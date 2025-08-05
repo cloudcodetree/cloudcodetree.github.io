@@ -4,15 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a modern portfolio website built with React, TypeScript, Vite, and deployed to GitHub Pages. It showcases a professional developer portfolio with the following features:
+This is CloudCodeTree's professional portfolio website built with React, TypeScript, Vite, and deployed to GitHub Pages. It showcases a modern developer portfolio with the following features:
 
 - **Dark Professional Theme**: Uses Material-UI with custom dark theme and Tailwind CSS
 - **Resume Section**: Interactive resume with human verification (reCAPTCHA) before PDF download
 - **Project Display**: Integrates with GitHub API to display repositories dynamically
 - **Static Blog**: Markdown-based blog system with search and filtering
 - **Contact Form**: EmailJS integration for sending emails to chris@cloudcodetree.com
-- **Interview Scheduling**: Calendly integration for booking appointments
+- **Interview Scheduling**: Calendly integration (https://calendly.com/cloudcodetree)
 - **Responsive Design**: Mobile-first design using CSS Grid, Flexbox, and modern CSS features
+- **Custom Domain**: Configured for cloudcodetree.com with Route53 DNS
 
 ## Development Commands
 
@@ -40,13 +41,14 @@ pnpm run deploy
 
 ### Tech Stack
 - **Frontend**: React 19, TypeScript, Vite
-- **UI Library**: Material-UI (MUI) v7 with custom dark theme
-- **CSS**: Tailwind CSS v4 with custom configuration
+- **UI Library**: Material-UI (MUI) v6 with custom dark theme
+- **CSS**: Tailwind CSS v3 with custom configuration
 - **Routing**: React Router v7
 - **Animation**: Framer Motion
 - **Markdown**: React Markdown with remark-gfm
 - **Forms**: EmailJS for contact form functionality
-- **Deployment**: GitHub Pages with GitHub Actions
+- **Deployment**: GitHub Pages with gh-pages package
+- **Domain**: Route53 DNS + GitHub Pages custom domain
 
 ### Project Structure
 ```
@@ -81,7 +83,7 @@ src/
 
 **GitHub API**: 
 - Fetches repository data from `https://api.github.com/users/cloudcodetree/repos`
-- Replace 'cloudcodetree' with actual GitHub username
+- GitHub username is set to 'cloudcodetree'
 - No authentication required for public repos
 
 **EmailJS Configuration**:
@@ -94,23 +96,43 @@ src/
 - Replace with production site key for real deployment
 
 **Calendly Integration**:
-- Replace placeholder URL 'https://calendly.com/cloudcodetree/consultation'
+- Configured URL: 'https://calendly.com/cloudcodetree'
 - Supports both embedded widget and popup modal
 
 ## Deployment
 
+### Repository Structure
+- **Repository**: `cloudcodetree/cloudcodetree.github.io`
+- **Main Branch**: Contains source code (React, TypeScript, etc.)
+- **gh-pages Branch**: Contains built/compiled files (auto-generated)
+- **Deploy Command**: `pnpm run deploy` builds and pushes to gh-pages branch
+
 ### GitHub Pages Setup
-1. Repository must be named exactly 'gh-pages' or update vite.config.ts base path
-2. Enable GitHub Pages in repository settings
-3. GitHub Actions workflow automatically deploys on push to main branch
-4. Site will be available at: `https://[username].github.io/gh-pages/`
+1. Repository is named `cloudcodetree.github.io` for username pages
+2. GitHub Pages serves from `gh-pages` branch automatically
+3. Custom domain configured: `cloudcodetree.com`
+4. HTTPS enforced via GitHub Pages settings
+
+### DNS Configuration (Route53)
+**A Records for cloudcodetree.com:**
+- 185.199.108.153
+- 185.199.109.153  
+- 185.199.110.153
+- 185.199.111.153
+
+**CNAME Record:**
+- www.cloudcodetree.com → cloudcodetree.github.io
+
+### URLs
+- **GitHub Pages**: `https://cloudcodetree.github.io/`
+- **Custom Domain**: `https://cloudcodetree.com/`
+- **Development**: `http://localhost:5173/`
 
 ### Environment Variables
 For production deployment, configure:
 - EmailJS Service ID, Template ID, Public Key
 - reCAPTCHA site key (production)
-- Calendly URL
-- GitHub username for API calls
+- GitHub username for API calls (currently: cloudcodetree)
 
 ## Content Management
 
@@ -125,9 +147,10 @@ For production deployment, configure:
 - Contains sensitive contact information
 
 ### GitHub Integration
-- Update GitHub username in ProjectsPage.tsx
-- Featured projects are manually curated
-- Real repositories are fetched from GitHub API
+- GitHub username set to 'cloudcodetree' in ProjectsPage.tsx
+- Featured projects are manually curated in the featuredProjects array
+- Real repositories are fetched from GitHub API dynamically
+- No authentication required for public repositories
 
 ## Performance Considerations
 
@@ -135,6 +158,7 @@ For production deployment, configure:
 - Images should be optimized and stored in public/assets/
 - Consider implementing service worker for offline functionality
 - Bundle size is optimized with tree shaking
+- Current bundle size: ~828KB (warning suggests code splitting)
 
 ## Security Notes
 
@@ -142,9 +166,26 @@ For production deployment, configure:
 - EmailJS prevents email spam and protects backend
 - No sensitive API keys exposed in client code
 - All external links use rel="noopener noreferrer"
+- HTTPS enforced on both GitHub Pages and custom domain
 
 ## Browser Support
 
 - Modern browsers with ES2020+ support
 - CSS Grid and Flexbox required
 - backdrop-filter requires recent browser versions
+
+## Development Workflow
+
+1. **Local Development**: `pnpm run dev` serves at `http://localhost:5173/`
+2. **Code Changes**: Make changes on `main` branch
+3. **Build & Test**: `pnpm run build` to verify production build
+4. **Deploy**: `pnpm run deploy` pushes to `gh-pages` branch
+5. **Live Site**: Changes appear at both GitHub Pages and custom domain URLs
+6. **DNS**: Route53 handles custom domain routing to GitHub Pages
+
+## SPA (Single Page Application) Support
+
+- **404.html**: Handles direct URL access and page refreshes
+- **Client-side Routing**: React Router manages navigation
+- **Deep Links**: All routes work with direct URL access
+- **SEO**: React Helmet provides meta tags for each page
