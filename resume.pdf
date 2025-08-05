@@ -9,8 +9,8 @@ endobj
 2 0 obj
 <<
 /Type /Pages
-/Kids [3 0 R]
-/Count 1
+/Kids [3 0 R 4 0 R 5 0 R]
+/Count 3
 >>
 endobj
 
@@ -19,10 +19,11 @@ endobj
 /Type /Page
 /Parent 2 0 R
 /MediaBox [0 0 612 792]
-/Contents 4 0 R
+/Contents 6 0 R
 /Resources <<
 /Font <<
-/F1 5 0 R
+/F1 7 0 R
+/F2 8 0 R
 >>
 >>
 >>
@@ -30,25 +31,125 @@ endobj
 
 4 0 obj
 <<
-/Length 140
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 9 0 R
+/Resources <<
+/Font <<
+/F1 7 0 R
+/F2 8 0 R
+>>
+>>
+>>
+endobj
+
+5 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 10 0 R
+/Resources <<
+/Font <<
+/F1 7 0 R
+/F2 8 0 R
+>>
+>>
+>>
+endobj
+
+6 0 obj
+<<
+/Length 2800
 >>
 stream
 BT
-/F1 24 Tf
+/F2 20 Tf
 50 750 Td
-(Chris Harper - Resume) Tj
+(CHRIS HARPER) Tj
+0 -25 Td
+/F1 14 Tf
+(Senior Software Engineering Leader | Cloud Architect | Engineering Manager) Tj
+0 -20 Td
+/F1 11 Tf
+(Email: chris@cloudcodetree.com | Phone: 512-938-9697) Tj
+0 -15 Td
+(Location: Austin, TX 78704 | LinkedIn: linkedin.com/in/cloudcodetree/) Tj
 0 -30 Td
-/F1 12 Tf
-(Full Stack Developer & Cloud Solutions Architect) Tj
+/F2 16 Tf
+(PROFESSIONAL SUMMARY) Tj
 0 -20 Td
-(Email: chris@cloudcodetree.com) Tj
+/F1 10 Tf
+(Engineering Manager & Cloud Architect with 25+ years of comprehensive experience in) Tj
+0 -12 Td
+(full-stack development, cloud architecture, infrastructure automation, enterprise) Tj
+0 -12 Td
+(application design, and AI/ML systems. Proven track record of leading cross-functional) Tj
+0 -12 Td
+(teams of 8-15 engineers, driving digital transformation, and delivering scalable) Tj
+0 -12 Td
+(solutions from concept to production. Expert in AWS cloud migrations, CI/CD) Tj
+0 -12 Td
+(implementation, microservices architecture, DevOps practices, database design,) Tj
+0 -12 Td
+(API development, modern web frameworks, and AI agent development.) Tj
 0 -20 Td
-(Phone: +1 (555) 123-4567) Tj
+/F2 14 Tf
+(TECHNICAL EXPERTISE) Tj
+0 -15 Td
+/F2 11 Tf
+(Artificial Intelligence & Machine Learning) Tj
+0 -12 Td
+/F1 10 Tf
+(AI Agent Development • Large Language Models \(LLMs\) • OpenAI GPT Integration) Tj
+0 -12 Td
+(Claude API • Prompt Engineering • RAG • Vector Databases • AI-Powered Automation) Tj
+0 -15 Td
+/F2 11 Tf
+(Full-Stack Development & Architecture) Tj
+0 -12 Td
+/F1 10 Tf
+(Frontend: React • Angular • Vue.js • TypeScript • JavaScript • HTML5 • CSS3/SCSS) Tj
+0 -12 Td
+(Backend: Node.js • Python • Java • Express • RESTful APIs • GraphQL • Microservices) Tj
+0 -15 Td
+/F2 11 Tf
+(Cloud Platforms & DevOps) Tj
+0 -12 Td
+/F1 10 Tf
+(AWS \(Lambda, ECS, EKS, EC2, S3, RDS, VPC, API Gateway, Route53, CloudFormation\)) Tj
+0 -12 Td
+(Azure • Infrastructure as Code \(Terraform, CDK\) • CI/CD Pipelines • Docker) Tj
+0 -12 Td
+(Kubernetes • OpenShift • GitOps) Tj
+0 -15 Td
+/F2 11 Tf
+(Database & Data Management) Tj
+0 -12 Td
+/F1 10 Tf
+(SQL: PostgreSQL • MySQL • SQL Server • Oracle) Tj
+0 -12 Td
+(NoSQL: MongoDB • DynamoDB • Redis • Elasticsearch) Tj
+0 -20 Td
+/F2 14 Tf
+(LEADERSHIP HIGHLIGHTS) Tj
+0 -15 Td
+/F1 10 Tf
+(• Led cloud transformation initiatives for 15+ development teams) Tj
+0 -12 Td
+(• Mentored 20+ junior and mid-level developers with 80% promotion rate) Tj
+0 -12 Td
+(• Established DevOps practices reducing deployment failures by 60%) Tj
+0 -12 Td
+(• Championed automation-first culture reducing manual processes by 70%) Tj
+0 -12 Td
+(• Pioneered AI agent development reducing operational overhead by 45%) Tj
 ET
 endstream
 endobj
 
-5 0 obj
+7 0 obj
 <<
 /Type /Font
 /Subtype /Type1
@@ -56,19 +157,196 @@ endobj
 >>
 endobj
 
+8 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Times-Bold
+>>
+endobj
+
+9 0 obj
+<<
+/Length 2200
+>>
+stream
+BT
+/F2 14 Tf
+50 750 Td
+(PROFESSIONAL EXPERIENCE) Tj
+0 -20 Td
+/F2 12 Tf
+(Cloud Solutions Architect \(Contract\) | ALSAC/St. Jude Children's Research Hospital) Tj
+0 -15 Td
+/F1 10 Tf
+(May 2023 - Present | Remote) Tj
+0 -15 Td
+(• Led enterprise cloud transformation initiative, architecting migration of legacy) Tj
+0 -12 Td
+(  applications to AWS in 6 months, improving scalability and reducing costs by 40%) Tj
+0 -12 Td
+(• Designed CI/CD pipelines using GitLab/Jenkins, reducing release cycle from 2 weeks to 4 hours) Tj
+0 -12 Td
+(• Architected enterprise Kafka messaging infrastructure with 99.9% uptime) Tj
+0 -12 Td
+(• Developed Infrastructure as Code solutions using Terraform) Tj
+0 -12 Td
+(• Managed production Kubernetes clusters on OpenShift for 50+ microservices) Tj
+0 -20 Td
+/F2 12 Tf
+(Managing Principal Cloud Consultant | Blue Sky Cloud Consulting) Tj
+0 -15 Td
+/F1 10 Tf
+(Aug 2020 - Apr 2023 | Remote) Tj
+0 -15 Td
+(• Led technical consulting engagements for Fortune 500 clients including GitKraken and Rivian) Tj
+0 -12 Td
+(• Architected cloud migration strategies for 12 enterprise clients) Tj
+0 -12 Td
+(• Designed IoT integration solutions for Rivian's battery cell factories using AWS CDK) Tj
+0 -12 Td
+(• Built complete SaaS platforms for solar energy companies) Tj
+0 -12 Td
+(• Architected white-label social media platform with AI-powered content moderation) Tj
+0 -20 Td
+/F2 12 Tf
+(Principal Developer | Cerity) Tj
+0 -15 Td
+/F1 10 Tf
+(Aug 2018 - Aug 2020 | Austin, TX) Tj
+0 -15 Td
+(• Led frontend development using Angular and React) Tj
+0 -12 Td
+(• Architected serverless solutions using AWS services supporting 50,000+ users) Tj
+0 -12 Td
+(• Implemented mono-repo architecture using NRWL/Nx) Tj
+0 -12 Td
+(• Optimized SEO increasing organic traffic by 200%) Tj
+0 -20 Td
+/F2 12 Tf
+(Lead Developer | ThunderDork LLC) Tj
+0 -15 Td
+/F1 10 Tf
+(May 2015 - Aug 2018 | Austin, TX) Tj
+0 -15 Td
+(• Architected full-stack solutions for enterprise clients including Capital One) Tj
+0 -12 Td
+(• Designed point-of-sale systems and marketing dashboards) Tj
+0 -12 Td
+(• Developed mobile applications using React Native) Tj
+0 -12 Td
+(• Implemented microservices architecture using Node.js, Docker, and AWS) Tj
+0 -20 Td
+/F2 12 Tf
+(Senior Frontend Developer | Netspend) Tj
+0 -15 Td
+/F1 10 Tf
+(Dec 2013 - May 2015 | Austin, TX) Tj
+0 -15 Td
+(• Designed customer account interfaces for prepaid card platform) Tj
+0 -12 Td
+(• Developed internal tools using Angular, Cordova, jQuery) Tj
+0 -12 Td
+(• Implemented automated testing with Protractor, Jasmine, Karma) Tj
+ET
+endstream
+endobj
+
+10 0 obj
+<<
+/Length 1400
+>>
+stream
+BT
+/F2 12 Tf
+50 750 Td
+(Senior Frontend Developer | Cinsay) Tj
+0 -15 Td
+/F1 10 Tf
+(Dec 2011 - Dec 2013 | Austin, TX) Tj
+0 -15 Td
+(• Created cross-platform eCommerce video systems) Tj
+0 -12 Td
+(• Engineered multilingual localization framework) Tj
+0 -12 Td
+(• Managed developer resources in Agile environment) Tj
+0 -20 Td
+/F2 12 Tf
+(Senior Marketing Developer | Schematic) Tj
+0 -15 Td
+/F1 10 Tf
+(Aug 2008 - Dec 2011 | Austin, TX) Tj
+0 -15 Td
+(• Designed marketing websites for Dell Computers) Tj
+0 -12 Td
+(• Developed cross-platform interactive experiences for mobile platforms) Tj
+0 -20 Td
+/F2 12 Tf
+(Senior Frontend Developer | Imc2) Tj
+0 -15 Td
+/F1 10 Tf
+(Jan 2006 - Aug 2008 | Dallas, TX) Tj
+0 -15 Td
+(• Led client engagements across consumer products and pharmaceutical industries) Tj
+0 -12 Td
+(• Designed advanced Flash applications using ActionScript 3, Flex) Tj
+0 -20 Td
+/F2 14 Tf
+(EDUCATION & CERTIFICATIONS) Tj
+0 -20 Td
+/F2 12 Tf
+(Associate of Applied Arts, Computer Animation) Tj
+0 -12 Td
+/F1 10 Tf
+(The Art Institute of Dallas) Tj
+0 -15 Td
+/F2 12 Tf
+(AWS Certified Developer - Associate) Tj
+0 -12 Td
+/F1 10 Tf
+(Additional AWS Certifications \(multiple cloud competencies\)) Tj
+0 -25 Td
+/F2 14 Tf
+(KEY ACHIEVEMENTS) Tj
+0 -15 Td
+/F1 10 Tf
+(• 25+ years of progressive software engineering experience) Tj
+0 -12 Td
+(• Webby People's Choice Award Winner \(2007\)) Tj
+0 -12 Td
+(• Led digital transformation initiatives for Fortune 500 clients) Tj
+0 -12 Td
+(• Managed cross-functional teams of 8-15 engineers) Tj
+0 -12 Td
+(• Architected enterprise solutions serving 50,000+ concurrent users) Tj
+0 -12 Td
+(• Established DevOps practices reducing deployment cycles from weeks to hours) Tj
+0 -12 Td
+(• Built reusable platforms adopted across multiple business units) Tj
+0 -12 Td
+(• Mentored 20+ developers with 80% promotion rate to senior roles) Tj
+ET
+endstream
+endobj
+
 xref
-0 6
+0 11
 0000000000 65535 f 
 0000000010 00000 n 
 0000000053 00000 n 
-0000000109 00000 n 
-0000000261 00000 n 
-0000000451 00000 n 
+0000000125 00000 n 
+0000000284 00000 n 
+0000000443 00000 n 
+0000000602 00000 n 
+0000003456 00000 n 
+0000003527 00000 n 
+0000003597 00000 n 
+0000005851 00000 n 
 trailer
 <<
-/Size 6
+/Size 11
 /Root 1 0 R
 >>
 startxref
-528
+7305
 %%EOF
