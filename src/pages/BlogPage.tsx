@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -32,314 +32,56 @@ interface BlogPost {
   readTime: number;
 }
 
-// Static blog posts - in a real app, these would be loaded from markdown files
-const blogPosts: BlogPost[] = [
-  {
-    id: '1',
-    title: 'Building Scalable Microservices with Kubernetes',
-    excerpt: 'Learn how to design and deploy microservices architecture using Kubernetes, including best practices for service mesh, monitoring, and security.',
-    content: `# Building Scalable Microservices with Kubernetes
-
-Kubernetes has revolutionized how we deploy and manage containerized applications at scale. In this comprehensive guide, we'll explore best practices for building microservices architectures.
-
-## Why Kubernetes for Microservices?
-
-Kubernetes provides several key benefits for microservices:
-
-- **Service Discovery**: Automatic service registration and discovery
-- **Load Balancing**: Built-in load balancing across service instances  
-- **Health Monitoring**: Automatic health checks and self-healing
-- **Scaling**: Horizontal pod autoscaling based on metrics
-
-## Architecture Patterns
-
-### 1. Service Mesh Pattern
-
-A service mesh provides communication infrastructure between services:
-
-\`\`\`yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: user-service
-spec:
-  selector:
-    app: user-service
-  ports:
-  - port: 80
-    targetPort: 8080
-\`\`\`
-
-### 2. Gateway Pattern
-
-Use an API Gateway to handle external traffic:
-
-- Rate limiting
-- Authentication
-- Request routing
-- Protocol translation
-
-## Best Practices
-
-1. **Keep services small and focused**
-2. **Use health checks effectively**
-3. **Implement proper logging and monitoring**
-4. **Plan for failure scenarios**
-
-Building microservices with Kubernetes requires careful planning, but the benefits of scalability and maintainability make it worthwhile.`,
-    author: 'Chris Harper',
-    date: '2024-01-15',
-    tags: ['Kubernetes', 'Microservices', 'DevOps', 'Cloud'],
-    readTime: 8,
-  },
-  {
-    id: '2',
-    title: 'Modern React Patterns and Best Practices',
-    excerpt: 'Explore the latest React patterns including hooks, context, and performance optimization techniques for building maintainable applications.',
-    content: `# Modern React Patterns and Best Practices
-
-React has evolved significantly over the years. Let's explore modern patterns that make your applications more maintainable and performant.
-
-## Custom Hooks
-
-Custom hooks let you extract component logic into reusable functions:
-
-\`\`\`tsx
-function useLocalStorage<T>(key: string, initialValue: T) {
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    try {
-      const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
-    } catch (error) {
-      return initialValue;
-    }
-  });
-
-  const setValue = (value: T | ((val: T) => T)) => {
-    try {
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  return [storedValue, setValue] as const;
-}
-\`\`\`
-
-## Context for State Management
-
-Use React Context for global state:
-
-\`\`\`tsx
-interface ThemeContextType {
-  theme: 'light' | 'dark';
-  toggleTheme: () => void;
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-}
-\`\`\`
-
-## Performance Optimization
-
-### React.memo for Component Memoization
-
-\`\`\`tsx
-const ExpensiveComponent = React.memo(({ data, onUpdate }) => {
-  // Expensive computations here
-  return <div>{/* render logic */}</div>;
-});
-\`\`\`
-
-### useMemo and useCallback
-
-\`\`\`tsx
-function MyComponent({ items, filter }) {
-  const filteredItems = useMemo(() => 
-    items.filter(item => item.category === filter),
-    [items, filter]
-  );
-
-  const handleClick = useCallback((id) => {
-    // Handle click logic
-  }, []);
-
-  return (
-    <div>
-      {filteredItems.map(item => (
-        <Item key={item.id} data={item} onClick={handleClick} />
-      ))}
-    </div>
-  );
-}
-\`\`\`
-
-These patterns help create more maintainable and performant React applications.`,
-    author: 'Chris Harper',
-    date: '2024-01-10',
-    tags: ['React', 'TypeScript', 'JavaScript', 'Frontend'],
-    readTime: 6,
-  },
-  {
-    id: '3',
-    title: 'AWS Security Best Practices for Developers',
-    excerpt: 'Essential security practices every developer should follow when building applications on AWS, from IAM roles to data encryption.',
-    content: `# AWS Security Best Practices for Developers
-
-Building secure applications on AWS requires understanding and implementing multiple layers of security. Here are essential practices every developer should follow.
-
-## Identity and Access Management (IAM)
-
-### Principle of Least Privilege
-
-Always grant the minimum permissions necessary:
-
-\`\`\`json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:PutObject"
-      ],
-      "Resource": "arn:aws:s3:::my-bucket/user-data/*"
-    }
-  ]
-}
-\`\`\`
-
-### Use IAM Roles, Not Access Keys
-
-Instead of embedding access keys in your application:
-
-\`\`\`typescript
-// ❌ Don't do this
-const s3 = new AWS.S3({
-  accessKeyId: 'AKIAI...',
-  secretAccessKey: '...'
-});
-
-// ✅ Use IAM roles instead
-const s3 = new AWS.S3(); // Automatically uses IAM role
-\`\`\`
-
-## Data Encryption
-
-### Encryption at Rest
-
-Enable encryption for all data stores:
-
-- **S3**: Server-side encryption with KMS
-- **RDS**: Encrypted storage
-- **EBS**: Encrypted volumes
-
-### Encryption in Transit
-
-Always use HTTPS/TLS:
-
-\`\`\`typescript
-const app = express();
-app.use(helmet()); // Security headers
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(','),
-  credentials: true
-}));
-\`\`\`
-
-## Network Security
-
-### VPC Configuration
-
-- Use private subnets for application servers
-- Implement proper security groups
-- Use NACLs for additional layer
-
-### Security Groups Rules
-
-\`\`\`terraform
-resource "aws_security_group" "web_sg" {
-  name_prefix = "web-"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-\`\`\`
-
-## Monitoring and Logging
-
-### Enable CloudTrail
-
-Monitor all API calls:
-
-\`\`\`terraform
-resource "aws_cloudtrail" "main" {
-  name           = "main-trail"
-  s3_bucket_name = aws_s3_bucket.trail.bucket
-  
-  enable_log_file_validation = true
-  include_global_service_events = true
-  is_multi_region_trail = true
-}
-\`\`\`
-
-### Application Monitoring
-
-Use CloudWatch and AWS Config:
-
-\`\`\`typescript
-import AWS from 'aws-sdk';
-
-const cloudwatch = new AWS.CloudWatch();
-
-async function logMetric(metricName: string, value: number) {
-  await cloudwatch.putMetricData({
-    Namespace: 'MyApp/Security',
-    MetricData: [{
-      MetricName: metricName,
-      Value: value,
-      Unit: 'Count'
-    }]
-  }).promise();
-}
-\`\`\`
-
-Security is not a one-time implementation but an ongoing process that requires continuous monitoring and improvement.`,
-    author: 'Chris Harper',
-    date: '2024-01-05',
-    tags: ['AWS', 'Security', 'DevSecOps', 'Cloud'],
-    readTime: 10,
-  },
-];
+// Dynamic blog posts loaded from external markdown files
 
 export default function BlogPage() {
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  // Load blog posts from external markdown files
+  useEffect(() => {
+    const loadBlogPosts = async () => {
+      try {
+        setLoading(true);
+        
+        // Load posts index
+        const postsResponse = await fetch('/blog/posts.json');
+        if (!postsResponse.ok) {
+          throw new Error('Failed to load posts index');
+        }
+        const postsIndex = await postsResponse.json();
+        
+        // Load markdown content for each post
+        const postsWithContent = await Promise.all(
+          postsIndex.map(async (post: any) => {
+            try {
+              const contentResponse = await fetch(`/blog/${post.filename}`);
+              if (!contentResponse.ok) {
+                throw new Error(`Failed to load ${post.filename}`);
+              }
+              const content = await contentResponse.text();
+              return { ...post, content };
+            } catch (error) {
+              console.error(`Error loading ${post.filename}:`, error);
+              return { ...post, content: 'Error loading post content.' };
+            }
+          })
+        );
+        
+        setBlogPosts(postsWithContent);
+      } catch (error) {
+        console.error('Failed to load blog posts:', error);
+        setBlogPosts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadBlogPosts();
+  }, []);
 
   const filteredPosts = blogPosts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -351,12 +93,7 @@ export default function BlogPage() {
   const allTags = Array.from(new Set(blogPosts.flatMap(post => post.tags)));
 
   const handlePostClick = (post: BlogPost) => {
-    setLoading(true);
-    // Simulate loading time
-    setTimeout(() => {
-      setSelectedPost(post);
-      setLoading(false);
-    }, 500);
+    setSelectedPost(post);
   };
 
   const handleBackToList = () => {

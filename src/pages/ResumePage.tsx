@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -6,9 +6,6 @@ import {
   Box,
   Card,
   CardContent,
-  Grid,
-  Chip,
-  Divider,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -18,63 +15,39 @@ import {
 import {
   Download as DownloadIcon,
   Verified as VerifiedIcon,
-  Work as WorkIcon,
-  School as SchoolIcon,
-  Star as StarIcon,
 } from '@mui/icons-material';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { motion } from 'framer-motion';
-
-const experience = [
-  {
-    title: 'Senior Full Stack Developer',
-    company: 'CloudCodeTree',
-    period: '2022 - Present',
-    description: 'Lead development of scalable web applications using React, Node.js, and AWS. Implemented DevSecOps practices and mentored junior developers.',
-    technologies: ['React', 'TypeScript', 'Node.js', 'AWS', 'Docker', 'Kubernetes'],
-  },
-  {
-    title: 'Cloud Solutions Architect',
-    company: 'TechCorp Inc.',
-    period: '2020 - 2022',
-    description: 'Designed and implemented cloud infrastructure solutions for enterprise clients. Reduced operational costs by 40% through optimization.',
-    technologies: ['AWS', 'Terraform', 'Python', 'PostgreSQL', 'Redis'],
-  },
-  {
-    title: 'Full Stack Developer',
-    company: 'StartupXYZ',
-    period: '2018 - 2020',
-    description: 'Built MVP products from scratch using modern web technologies. Collaborated closely with product and design teams.',
-    technologies: ['React', 'Node.js', 'MongoDB', 'GraphQL', 'Docker'],
-  },
-];
-
-const education = [
-  {
-    degree: 'Master of Science in Computer Science',
-    school: 'Stanford University',
-    period: '2016 - 2018',
-    description: 'Specialized in Distributed Systems and Machine Learning',
-  },
-  {
-    degree: 'Bachelor of Science in Software Engineering',
-    school: 'UC Berkeley',
-    period: '2012 - 2016',
-    description: 'Graduated Magna Cum Laude, Focus on Web Technologies',
-  },
-];
-
-const certifications = [
-  'AWS Solutions Architect Professional',
-  'Certified Kubernetes Administrator',
-  'Google Cloud Professional Cloud Architect',
-  'HashiCorp Terraform Associate',
-];
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function ResumePage() {
+  const [resumeContent, setResumeContent] = useState<string>('');
+  const [loading, setLoading] = useState(true);
   const [verificationOpen, setVerificationOpen] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [captchaValue, setCaptchaValue] = useState<string | null>(null);
+
+  // Load resume content from markdown file
+  useEffect(() => {
+    const loadResumeContent = async () => {
+      try {
+        const response = await fetch('/resume/chris-harper-resume.md');
+        if (!response.ok) {
+          throw new Error('Failed to load resume');
+        }
+        const content = await response.text();
+        setResumeContent(content);
+      } catch (error) {
+        console.error('Error loading resume:', error);
+        setResumeContent('# Error Loading Resume\n\nUnable to load resume content. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadResumeContent();
+  }, []);
 
   const handleDownloadClick = () => {
     if (isVerified) {
@@ -143,124 +116,81 @@ export default function ResumePage() {
           )}
         </Box>
 
-        {/* Experience Section */}
-        <Box sx={{ mb: 8 }}>
-          <Typography variant="h3" component="h2" sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <WorkIcon /> Professional Experience
-          </Typography>
-          <Grid container spacing={3}>
-            {experience.map((exp, index) => (
-              <Grid item xs={12} key={exp.title}>
-                <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <Card className="glass" sx={{ p: 2 }}>
-                    <CardContent>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                        <Box>
-                          <Typography variant="h5" component="h3" sx={{ mb: 1 }}>
-                            {exp.title}
-                          </Typography>
-                          <Typography variant="h6" sx={{ color: '#3b82f6', mb: 1 }}>
-                            {exp.company}
-                          </Typography>
-                        </Box>
-                        <Chip label={exp.period} variant="outlined" />
-                      </Box>
-                      <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.8 }}>
-                        {exp.description}
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                        {exp.technologies.map((tech) => (
-                          <Chip
-                            key={tech}
-                            label={tech}
-                            size="small"
-                            sx={{
-                              background: 'rgba(59, 130, 246, 0.1)',
-                              color: '#3b82f6',
-                              border: '1px solid rgba(59, 130, 246, 0.3)',
-                            }}
-                          />
-                        ))}
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-
-        {/* Education Section */}
-        <Box sx={{ mb: 8 }}>
-          <Typography variant="h3" component="h2" sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <SchoolIcon /> Education
-          </Typography>
-          <Grid container spacing={3}>
-            {education.map((edu, index) => (
-              <Grid item xs={12} md={6} key={edu.degree}>
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <Card className="glass" sx={{ height: '100%' }}>
-                    <CardContent>
-                      <Typography variant="h6" component="h3" sx={{ mb: 1 }}>
-                        {edu.degree}
-                      </Typography>
-                      <Typography variant="body1" sx={{ color: '#3b82f6', mb: 1 }}>
-                        {edu.school}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-                        {edu.period}
-                      </Typography>
-                      <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
-                        {edu.description}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-
-        {/* Certifications Section */}
-        <Box sx={{ mb: 8 }}>
-          <Typography variant="h3" component="h2" sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <StarIcon /> Certifications
-          </Typography>
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
+        {/* Resume Content */}
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <Typography variant="h6">Loading resume...</Typography>
+          </Box>
+        ) : (
+          <Box sx={{ mb: 8 }}>
             <Card className="glass">
-              <CardContent>
-                <Grid container spacing={2}>
-                  {certifications.map((cert, index) => (
-                    <Grid item xs={12} sm={6} key={cert}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <VerifiedIcon sx={{ color: '#3b82f6' }} />
-                        <Typography variant="body1">{cert}</Typography>
-                      </Box>
-                      {index < certifications.length - 1 && (
-                        <Divider sx={{ mt: 2, display: { sm: 'none' } }} />
-                      )}
-                    </Grid>
-                  ))}
-                </Grid>
+              <CardContent sx={{ p: 4 }}>
+                <Box sx={{ 
+                  '& h1': { 
+                    fontSize: '2.5rem', 
+                    fontWeight: 700, 
+                    mb: 2, 
+                    textAlign: 'center',
+                    background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  },
+                  '& h2': { 
+                    fontSize: '1.8rem', 
+                    fontWeight: 600, 
+                    mb: 2, 
+                    mt: 4,
+                    color: '#3b82f6',
+                    borderBottom: '2px solid rgba(59, 130, 246, 0.3)',
+                    paddingBottom: '0.5rem'
+                  },
+                  '& h3': { 
+                    fontSize: '1.4rem', 
+                    fontWeight: 600, 
+                    mb: 1.5, 
+                    mt: 3,
+                    color: '#06b6d4'
+                  },
+                  '& p': { 
+                    mb: 2, 
+                    lineHeight: 1.8,
+                    '&:has(strong)': {
+                      textAlign: 'center',
+                      fontSize: '1.1rem',
+                      mb: 3
+                    }
+                  },
+                  '& ul': { 
+                    mb: 2, 
+                    pl: 3,
+                    '& li': {
+                      mb: 0.5,
+                      lineHeight: 1.6
+                    }
+                  },
+                  '& hr': {
+                    border: 'none',
+                    borderTop: '1px solid rgba(148, 163, 184, 0.3)',
+                    my: 4
+                  },
+                  '& strong': {
+                    color: '#3b82f6',
+                    fontWeight: 600
+                  },
+                  '& em': {
+                    color: '#06b6d4',
+                    fontStyle: 'italic'
+                  }
+                }}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {resumeContent}
+                  </ReactMarkdown>
+                </Box>
               </CardContent>
             </Card>
-          </motion.div>
-        </Box>
+          </Box>
+        )}
       </motion.div>
 
       {/* Verification Dialog */}
