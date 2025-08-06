@@ -1,7 +1,7 @@
 # CHRIS HARPER
 **Senior Software Engineering Leader | Cloud Architect | Engineering Manager**
 
-📧 chris@cloudcodetree.com | 📱 512-938-9697 | 📍 Austin, TX 78704  
+📧 Contact via cloudcodetree.com/contact | 📍 Austin Metropolitan Area  
 🔗 https://www.linkedin.com/in/cloudcodetree/
 
 ---
