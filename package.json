@@ -1,7 +1,15 @@
 {
-  "name": "gh-pages",
+  "name": "cloudcodetree-portfolio",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Professional portfolio website for Chris Harper - Full Stack Developer & Cloud Solutions Architect",
+  "author": "Chris Harper <chris@cloudcodetree.com>",
+  "homepage": "https://cloudcodetree.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cloudcodetree/cloudcodetree.github.io.git"
+  },
+  "keywords": ["react", "typescript", "portfolio", "mui", "vite", "github-pages", "cloudcodetree"],
   "type": "module",
   "scripts": {
     "dev": "vite",

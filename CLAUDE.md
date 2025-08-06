@@ -6,14 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is CloudCodeTree's professional portfolio website built with React, TypeScript, Vite, and deployed to GitHub Pages. It showcases a modern developer portfolio with the following features:
 
-- **Dark Professional Theme**: Uses Material-UI with custom dark theme and Tailwind CSS
-- **Resume Section**: Interactive resume with human verification (reCAPTCHA) before PDF download
-- **Project Display**: Integrates with GitHub API to display repositories dynamically
-- **Static Blog**: Markdown-based blog system with search and filtering
-- **Contact Form**: EmailJS integration for sending emails to chris@cloudcodetree.com
-- **Interview Scheduling**: Calendly integration (https://calendly.com/cloudcodetree)
-- **Responsive Design**: Mobile-first design using CSS Grid, Flexbox, and modern CSS features
-- **Custom Domain**: Configured for cloudcodetree.com with Route53 DNS
+- **Dark Professional Theme**: Uses Material-UI v6 with custom dark theme, glass morphism effects, and gradient accents
+- **Hero Landing Page**: Professional intro with avatar, skills showcase, and service offerings
+- **Resume Section**: Interactive resume with reCAPTCHA verification and printable PDF download
+- **Projects Showcase**: Featured projects + dynamic GitHub repositories via API integration
+- **Dynamic Blog System**: Markdown-based blog with external file loading, search, and tag filtering
+- **Contact Form**: Direct email integration and professional contact methods
+- **Interview Scheduling**: Calendly integration for professional consultations
+- **Responsive Design**: Mobile-first design with glass morphism, animations, and modern CSS
+- **Custom Domain**: Configured for cloudcodetree.com with Route53 DNS and GitHub Pages
+- **SEO Optimized**: React Helmet for dynamic meta tags and page titles
+- **Performance Optimized**: Code splitting, lazy loading, and optimized bundle size
 
 ## Development Commands
 
@@ -53,31 +56,65 @@ pnpm run deploy
 ### Project Structure
 ```
 src/
-├── components/     # Reusable UI components
-│   └── Layout.tsx  # Main layout with navigation and routing
-├── pages/          # Page components
-│   ├── HomePage.tsx      # Landing page with hero and services
-│   ├── ResumePage.tsx    # Resume display with verification
-│   ├── ProjectsPage.tsx  # GitHub repos and featured projects
-│   ├── BlogPage.tsx      # Static blog with markdown content
-│   ├── ContactPage.tsx   # Contact form with EmailJS
-│   └── SchedulePage.tsx  # Calendly integration
-├── hooks/          # Custom React hooks
-├── utils/          # Utility functions
-└── data/           # Static data and content
+├── components/               # Reusable UI components
+│   ├── Layout.tsx           # Main layout with responsive navigation
+│   ├── ObfuscatedEmail.tsx  # Email obfuscation component
+│   └── PrintableResume.tsx  # Printable resume component
+├── pages/                   # Page components (SPA routes)
+│   ├── HomePage.tsx         # Hero landing with services and skills
+│   ├── ResumePage.tsx       # Resume display with reCAPTCHA protection
+│   ├── ProjectsPage.tsx     # Featured projects + GitHub API integration
+│   ├── BlogPage.tsx         # Dynamic blog with external markdown loading
+│   ├── ContactPage.tsx      # Contact form and professional info
+│   └── SchedulePage.tsx     # Calendly scheduling integration
+├── utils/                   # Utility functions
+│   └── emailObfuscation.ts  # Email security utilities
+├── hooks/                   # Custom React hooks (empty, ready for expansion)
+├── data/                    # Static data (empty, ready for expansion)
+└── assets/                  # Static assets (React logo, etc.)
+
+public/
+├── blog/                    # External blog content
+│   ├── posts.json          # Blog posts index
+│   └── *.md                 # Individual blog post markdown files
+├── resume/                  # Resume assets
+│   └── chris-harper-resume.md
+├── resume.pdf              # Protected resume PDF
+└── [standard PWA files]    # 404.html, robots.txt, sw.js, etc.
 ```
 
 ### Key Components
 
-**Layout.tsx**: Main application shell with:
-- Responsive navigation (drawer on mobile, horizontal on desktop)
-- Route-based page transitions with Framer Motion
-- SEO optimization with React Helmet
+**Layout.tsx**: Main application shell featuring:
+- Responsive navigation (mobile drawer + desktop horizontal nav)
+- Route-based page transitions with Framer Motion animations
+- SEO optimization with React Helmet for dynamic page titles
+- Glass morphism AppBar with backdrop blur effects
+- Icon-based navigation with active state styling
+
+**HomePage.tsx**: Professional landing page with:
+- Hero section with gradient avatar and typography
+- Interactive skills showcase with animated chips
+- Services grid highlighting core competencies
+- Call-to-action sections for resume and contact
+
+**ProjectsPage.tsx**: Comprehensive project showcase:
+- Featured projects section with curated highlights
+- Dynamic GitHub repositories via REST API
+- Language-specific color coding and repository stats
+- Loading skeletons and error handling
+
+**BlogPage.tsx**: Dynamic blog system featuring:
+- External markdown file loading from `/public/blog/`
+- Full-text search and tag-based filtering
+- Individual post view with proper markdown rendering
+- Responsive grid layout with loading states
 
 **Theme Configuration**: 
-- Dark theme using CSS custom properties and MUI theme
-- Glass morphism effects with backdrop-filter
-- Responsive typography and spacing
+- Custom dark theme with blue/cyan gradient accents (#3b82f6, #06b6d4)
+- Glass morphism effects using backdrop-filter and rgba backgrounds
+- Responsive typography scaling for mobile/desktop
+- Consistent component styling with rounded corners and hover effects
 
 ### External Integrations
 
@@ -137,9 +174,13 @@ For production deployment, configure:
 ## Content Management
 
 ### Blog Posts
-- Static blog posts are defined in `src/pages/BlogPage.tsx`
-- Each post includes: title, excerpt, content (markdown), author, date, tags, readTime
-- For dynamic blog, consider integrating with a headless CMS or markdown files
+- **Dynamic Blog System**: Posts loaded from external markdown files in `/public/blog/`
+- **Posts Index**: `posts.json` contains metadata for all blog posts
+- **Markdown Content**: Individual `.md` files for each blog post with full content
+- **Post Structure**: Each post includes title, excerpt, content, author, date, tags, readTime, filename
+- **Built-in Features**: Search functionality, tag filtering, individual post view
+- **Current Posts**: AWS Security, Microservices with Kubernetes, React Best Practices
+- **Expandable**: Add new posts by updating `posts.json` and adding markdown files
 
 ### Resume PDF
 - Store resume PDF in `public/resume.pdf`
@@ -154,11 +195,16 @@ For production deployment, configure:
 
 ## Performance Considerations
 
-- Uses React.lazy for code splitting (can be implemented for pages)
-- Images should be optimized and stored in public/assets/
-- Consider implementing service worker for offline functionality
-- Bundle size is optimized with tree shaking
-- Current bundle size: ~828KB (warning suggests code splitting)
+- **React 19**: Latest React version with improved performance and concurrent features
+- **Vite Build System**: Fast development and optimized production builds
+- **Tree Shaking**: Automatic dead code elimination for smaller bundles
+- **Code Splitting**: Ready for implementation with React.lazy for page-level splits
+- **Lazy Loading**: Framer Motion animations only load when components enter viewport
+- **API Optimization**: GitHub API calls with error handling and loading states
+- **Image Optimization**: Store optimized images in `public/assets/` directory
+- **Service Worker**: Basic service worker (`sw.js`) included for PWA capabilities
+- **Bundle Analysis**: Monitor bundle size and consider code splitting for further optimization
+- **Responsive Loading**: Skeleton loaders provide immediate feedback during data fetching
 
 ## Security Notes
 
@@ -170,22 +216,50 @@ For production deployment, configure:
 
 ## Browser Support
 
-- Modern browsers with ES2020+ support
-- CSS Grid and Flexbox required
-- backdrop-filter requires recent browser versions
+- **Modern Browsers**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **JavaScript**: ES2020+ features (optional chaining, nullish coalescing)
+- **CSS Requirements**: 
+  - CSS Grid and Flexbox (widely supported)
+  - `backdrop-filter` for glass morphism effects (recent browsers)
+  - CSS custom properties (CSS variables)
+  - CSS `clamp()` for responsive typography
+- **Fallbacks**: Glass morphism gracefully degrades without backdrop-filter
+- **Mobile Support**: iOS 14+, Android Chrome 90+
 
 ## Development Workflow
 
-1. **Local Development**: `pnpm run dev` serves at `http://localhost:5173/`
-2. **Code Changes**: Make changes on `main` branch
-3. **Build & Test**: `pnpm run build` to verify production build
-4. **Deploy**: `pnpm run deploy` pushes to `gh-pages` branch
-5. **Live Site**: Changes appear at both GitHub Pages and custom domain URLs
-6. **DNS**: Route53 handles custom domain routing to GitHub Pages
+1. **Local Development**: `pnpm run dev` serves at `http://localhost:5173/` with hot reload
+2. **Code Quality**: `pnpm run lint` for ESLint validation
+3. **Type Checking**: TypeScript compilation with `tsc -b` in build process
+4. **Build & Test**: `pnpm run build` generates optimized production build in `/dist`
+5. **Preview**: `pnpm run preview` serves production build locally for testing
+6. **Deploy**: `pnpm run deploy` builds and pushes to `gh-pages` branch automatically
+7. **Live Sites**: 
+   - GitHub Pages: `https://cloudcodetree.github.io/`
+   - Custom Domain: `https://cloudcodetree.com/`
+8. **DNS Management**: Route53 handles custom domain with A/CNAME records
+9. **Content Updates**: Add blog posts via markdown files, update project data in components
 
 ## SPA (Single Page Application) Support
 
-- **404.html**: Handles direct URL access and page refreshes
-- **Client-side Routing**: React Router manages navigation
-- **Deep Links**: All routes work with direct URL access
-- **SEO**: React Helmet provides meta tags for each page
+- **GitHub Pages SPA**: `404.html` redirects to `index.html` for client-side routing
+- **React Router v7**: Latest router with enhanced performance and features
+- **Deep Linking**: All routes (`/`, `/resume`, `/projects`, `/blog`, `/contact`, `/schedule`) work with direct access
+- **SEO Optimization**: React Helmet Async provides dynamic meta tags and titles
+- **Page Titles**: Format: `{Page Name} | Chris Harper` or fallback to full name
+- **Meta Descriptions**: Each page has appropriate meta description for search engines
+- **Open Graph**: Ready for social media meta tag implementation
+
+## Navigation Structure
+
+**Current Active Routes**:
+- `/` - HomePage (Hero, Skills, Services)
+- `/resume` - ResumePage (Interactive resume with PDF download)
+- `/contact` - ContactPage (Contact form and professional info)  
+- `/schedule` - SchedulePage (Calendly integration)
+
+**Available but Commented Out**:
+- `/projects` - ProjectsPage (Fully implemented but not in nav)
+- `/blog` - BlogPage (Fully implemented but not in nav)
+
+**Note**: Projects and Blog pages are complete and functional but currently commented out in the navigation (`Layout.tsx` lines 40-41, 23-24). Uncomment to enable.
