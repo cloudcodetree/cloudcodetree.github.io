@@ -4,7 +4,7 @@
     "title": "Building Scalable Microservices with Kubernetes",
     "excerpt": "Learn how to design and deploy microservices architecture using Kubernetes, including best practices for service mesh, monitoring, and security.",
     "author": "Chris Harper",
-    "date": "2024-01-15",
+    "date": "01-15-2024",
     "tags": ["Kubernetes", "Microservices", "DevOps", "Cloud"],
     "readTime": 8,
     "filename": "building-microservices-kubernetes.md"
@@ -14,7 +14,7 @@
     "title": "Modern React Patterns and Best Practices",
     "excerpt": "Explore the latest React patterns including hooks, context, and performance optimization techniques for building maintainable applications.",
     "author": "Chris Harper",
-    "date": "2024-01-10",
+    "date": "01-10-2024",
     "tags": ["React", "TypeScript", "JavaScript", "Frontend"],
     "readTime": 6,
     "filename": "react-patterns-best-practices.md"
@@ -24,7 +24,7 @@
     "title": "AWS Security Best Practices for Developers",
     "excerpt": "Essential security practices every developer should follow when building applications on AWS, from IAM roles to data encryption.",
     "author": "Chris Harper",
-    "date": "2024-01-05",
+    "date": "01-05-2024",
     "tags": ["AWS", "Security", "DevSecOps", "Cloud"],
     "readTime": 10,
     "filename": "aws-security-best-practices.md"

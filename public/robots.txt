@@ -1,0 +1,54 @@
+# Robots.txt for cloudcodetree.com
+# Privacy and security focused crawling rules
+
+User-agent: *
+Disallow: /resume.pdf
+Disallow: /resume/
+Disallow: /.claude/
+Disallow: /dist/
+Disallow: /node_modules/
+Disallow: /*?*
+Disallow: /contact?*
+
+# Allow main pages for professional visibility
+Allow: /
+Allow: /resume
+Allow: /contact
+Allow: /schedule
+
+# Prevent email harvesting from specific paths
+Disallow: /*email*
+Disallow: /*mailto*
+Disallow: /*@*
+
+# Security headers
+Disallow: /.env
+Disallow: /.env.*
+Disallow: /config/
+Disallow: /admin/
+Disallow: /api/
+
+# Prevent scraping of dynamic content
+Crawl-delay: 5
+
+# Sitemap location
+Sitemap: https://cloudcodetree.com/sitemap.xml
+
+# Specific bot restrictions for privacy
+User-agent: emailcollector
+Disallow: /
+
+User-agent: emailsiphon
+Disallow: /
+
+User-agent: emailwolf
+Disallow: /
+
+User-agent: extractorpro
+Disallow: /
+
+User-agent: fast
+Disallow: /
+
+User-agent: webbandit
+Disallow: /

@@ -20,34 +20,37 @@ import {
   Send as SendIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import ReCAPTCHA from 'react-google-recaptcha';
-import emailjs from '@emailjs/browser';
+import ObfuscatedEmail from '../components/ObfuscatedEmail';
 
 interface FormData {
   name: string;
   email: string;
   subject: string;
   message: string;
+  honeypot: string; // Hidden field to catch bots
+  website: string; // Additional honeypot
+  phone: string; // Phone honeypot
+  company: string; // Company honeypot
 }
 
 const contactInfo = [
   {
     icon: EmailIcon,
     label: 'Email',
-    value: 'chris@cloudcodetree.com',
+    value: 'obfuscated', // Special marker for obfuscated email
     link: 'mailto:chris@cloudcodetree.com',
   },
   {
     icon: LocationIcon,
     label: 'Location',
-    value: 'San Francisco, CA',
+    value: 'Austin Metropolitan Area',
     link: null,
   },
   {
     icon: LinkedInIcon,
     label: 'LinkedIn',
-    value: '/in/chris-harper-dev',
-    link: 'https://linkedin.com/in/chris-harper-dev',
+    value: '/in/cloudcodetree',
+    link: 'https://www.linkedin.com/in/cloudcodetree/',
   },
   {
     icon: GitHubIcon,
@@ -72,26 +75,55 @@ export default function ContactPage() {
     email: '',
     subject: '',
     message: '',
+    honeypot: '', // Hidden honeypot field
+    website: '', // Website honeypot
+    phone: '', // Phone honeypot  
+    company: '', // Company honeypot
   });
+
+  // Set initial time when component mounts
+  const [formStartTime] = useState<number>(Date.now());
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [captchaValue, setCaptchaValue] = useState<string | null>(null);
+  const [mouseMovements, setMouseMovements] = useState<number>(0);
+  const [keystrokes, setKeystrokes] = useState<number>(0);
 
   const handleInputChange = (field: keyof FormData) => (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
+    // Track keystroke activity (legitimate user behavior)
+    setKeystrokes(prev => prev + 1);
+    
     setFormData(prev => ({
       ...prev,
       [field]: event.target.value,
     }));
   };
 
+  const handleMouseMove = () => {
+    setMouseMovements(prev => prev + 1);
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
-    if (!captchaValue) {
-      setError('Please complete the reCAPTCHA verification');
+    // Multiple honeypot validation - if any filled, it's a bot
+    if (formData.honeypot || formData.website || formData.phone || formData.company) {
+      console.log('Bot detected: honeypot field filled');
+      return; // Silently reject
+    }
+
+    // User interaction validation
+    if (mouseMovements < 3 || keystrokes < 5) {
+      console.log('Bot detected: insufficient user interaction');
+      return; // Silently reject
+    }
+
+    // Time validation - too fast submission indicates bot
+    const timeTaken = Date.now() - formStartTime;
+    if (timeTaken < 3000) { // Less than 3 seconds
+      setError('Please take a moment to review your message before sending.');
       return;
     }
 
@@ -99,53 +131,53 @@ export default function ContactPage() {
     setError(null);
 
     try {
-      // Initialize EmailJS with your public key
-      emailjs.init('YOUR_PUBLIC_KEY'); // Replace with your actual public key
+      // Web3Forms submission
+      const formDataToSend = new FormData();
+      formDataToSend.append('access_key', '0f6f8184-a082-4307-ba26-af5ada2a4511');
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('subject', formData.subject);
+      formDataToSend.append('message', formData.message);
+      
+      // Add honeypot field for additional spam protection
+      if (formData.honeypot) {
+        formDataToSend.append('botcheck', formData.honeypot);
+      }
 
-      const templateParams = {
-        from_name: formData.name,
-        from_email: formData.email,
-        subject: formData.subject,
-        message: formData.message,
-        to_email: 'chris@cloudcodetree.com',
-      };
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: formDataToSend
+      });
 
-      await emailjs.send(
-        'YOUR_SERVICE_ID', // Replace with your service ID
-        'YOUR_TEMPLATE_ID', // Replace with your template ID
-        templateParams
-      );
-
-      setSuccess(true);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-      setCaptchaValue(null);
+      if (response.ok) {
+        setSuccess(true);
+        setFormData({ name: '', email: '', subject: '', message: '', honeypot: '', website: '', phone: '', company: '' });
+        setMouseMovements(0);
+        setKeystrokes(0);
+      } else {
+        throw new Error('Form submission failed');
+      }
     } catch (err) {
-      console.error('Email send error:', err);
-      setError('Failed to send message. Please try again or contact me directly at chris@cloudcodetree.com');
+      console.error('Form submission error:', err);
+      setError('Failed to send message. Please try again or use the email button below to contact me directly.');
     } finally {
       setLoading(false);
     }
   };
 
-  const onCaptchaChange = (value: string | null) => {
-    setCaptchaValue(value);
-  };
-
-  const isFormValid = formData.name && formData.email && formData.subject && formData.message && captchaValue;
+  const isFormValid = formData.name && formData.email && formData.subject && formData.message;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography variant="h2" component="h1" sx={{ mb: 2 }}>
             Get In Touch
           </Typography>
-          <Typography variant="h6" sx={{ color: 'text.secondary', mb: 4 }}>
+          <Typography variant="h6" sx={{ color: 'text.secondary', mb: 2 }}>
             Let's discuss your project requirements and explore how we can work together
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'text.secondary', mb: 4, fontStyle: 'italic' }}>
+            Prefer using the secure contact form below for fastest response • All messages go directly to my inbox
           </Typography>
         </Box>
 
@@ -175,7 +207,11 @@ export default function ContactPage() {
                     </Alert>
                   )}
 
-                  <Box component="form" onSubmit={handleSubmit}>
+                  <Box 
+                    component="form" 
+                    onSubmit={handleSubmit}
+                    onMouseMove={handleMouseMove}
+                  >
                     <Grid container spacing={3}>
                       <Grid item xs={12} sm={6}>
                         <TextField
@@ -221,14 +257,64 @@ export default function ContactPage() {
                           placeholder="Tell me about your project, timeline, and any specific requirements..."
                         />
                       </Grid>
-                      <Grid item xs={12}>
-                        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-                          <ReCAPTCHA
-                            sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" // Test key - replace with your actual site key
-                            onChange={onCaptchaChange}
-                            theme="dark"
-                          />
-                        </Box>
+                      {/* Multiple honeypot fields - hidden from users but visible to bots */}
+                      <Grid item xs={12} sx={{ display: 'none' }}>
+                        <TextField
+                          name="website"
+                          label="Website (leave blank)"
+                          value={formData.honeypot}
+                          onChange={handleInputChange('honeypot')}
+                          tabIndex={-1}
+                          autoComplete="off"
+                          sx={{ 
+                            position: 'absolute',
+                            left: '-9999px',
+                            opacity: 0,
+                            pointerEvents: 'none'
+                          }}
+                        />
+                        <TextField
+                          name="url"
+                          label="URL (leave blank)"
+                          value={formData.website}
+                          onChange={handleInputChange('website')}
+                          tabIndex={-1}
+                          autoComplete="off"
+                          sx={{ 
+                            position: 'absolute',
+                            left: '-9999px',
+                            opacity: 0,
+                            pointerEvents: 'none'
+                          }}
+                        />
+                        <TextField
+                          name="phone_number"
+                          label="Phone (leave blank)"
+                          value={formData.phone}
+                          onChange={handleInputChange('phone')}
+                          tabIndex={-1}
+                          autoComplete="off"
+                          sx={{ 
+                            position: 'absolute',
+                            left: '-9999px',
+                            opacity: 0,
+                            pointerEvents: 'none'
+                          }}
+                        />
+                        <TextField
+                          name="company_name"
+                          label="Company (leave blank)"
+                          value={formData.company}
+                          onChange={handleInputChange('company')}
+                          tabIndex={-1}
+                          autoComplete="off"
+                          sx={{ 
+                            position: 'absolute',
+                            left: '-9999px',
+                            opacity: 0,
+                            pointerEvents: 'none'
+                          }}
+                        />
                       </Grid>
                       <Grid item xs={12}>
                         <Button
@@ -299,9 +385,13 @@ export default function ContactPage() {
                           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                             {info.label}
                           </Typography>
-                          <Typography variant="body1">
-                            {info.value}
-                          </Typography>
+                          {info.value === 'obfuscated' ? (
+                            <ObfuscatedEmail variant="body1" />
+                          ) : (
+                            <Typography variant="body1">
+                              {info.value}
+                            </Typography>
+                          )}
                         </Box>
                       </Box>
                     );
@@ -345,7 +435,6 @@ export default function ContactPage() {
             For urgent matters, feel free to reach out directly via email.
           </Typography>
         </Box>
-      </motion.div>
     </Container>
   );
 }

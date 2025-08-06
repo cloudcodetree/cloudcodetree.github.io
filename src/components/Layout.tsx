@@ -20,8 +20,8 @@ import {
   Close as CloseIcon,
   Home as HomeIcon,
   Person as PersonIcon,
-  Work as WorkIcon,
-  Article as ArticleIcon,
+  // Work as WorkIcon,
+  // Article as ArticleIcon,
   ContactMail as ContactIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
@@ -31,16 +31,14 @@ import { Helmet } from 'react-helmet-async';
 
 import HomePage from '../pages/HomePage';
 import ResumePage from '../pages/ResumePage';
-import ProjectsPage from '../pages/ProjectsPage';
-import BlogPage from '../pages/BlogPage';
 import ContactPage from '../pages/ContactPage';
 import SchedulePage from '../pages/SchedulePage';
 
 const navItems = [
   { name: 'Home', path: '/', icon: HomeIcon },
   { name: 'Resume', path: '/resume', icon: PersonIcon },
-  { name: 'Projects', path: '/projects', icon: WorkIcon },
-  { name: 'Blog', path: '/blog', icon: ArticleIcon },
+  // { name: 'Projects', path: '/projects', icon: WorkIcon },
+  // { name: 'Blog', path: '/blog', icon: ArticleIcon },
   { name: 'Contact', path: '/contact', icon: ContactIcon },
   { name: 'Schedule', path: '/schedule', icon: ScheduleIcon },
 ];
@@ -202,8 +200,6 @@ export default function Layout() {
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/resume" element={<ResumePage />} />
-                <Route path="/projects" element={<ProjectsPage />} />
-                <Route path="/blog" element={<BlogPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/schedule" element={<SchedulePage />} />
               </Routes>

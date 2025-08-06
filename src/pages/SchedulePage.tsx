@@ -49,7 +49,7 @@ const meetingTypes = [
 ];
 
 const availability = {
-  timezone: 'PST (UTC-8)',
+  timezone: 'CST (UTC-6)',
   hours: 'Monday - Friday, 9:00 AM - 6:00 PM',
   note: 'I accommodate different time zones and can schedule outside regular hours when needed.',
 };
@@ -84,11 +84,6 @@ export default function SchedulePage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography variant="h2" component="h1" sx={{ mb: 2 }}>
             Schedule Interview
@@ -315,7 +310,6 @@ export default function SchedulePage() {
             ))}
           </Grid>
         </Box>
-      </motion.div>
     </Container>
   );
 }

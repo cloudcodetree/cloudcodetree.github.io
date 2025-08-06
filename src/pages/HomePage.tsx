@@ -64,11 +64,7 @@ export default function HomePage() {
           position: 'relative',
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
+        <Box>
           <Avatar
             sx={{
               width: 150,
@@ -141,15 +137,6 @@ export default function HomePage() {
             </Button>
             <Button
               component={Link}
-              to="/projects"
-              variant="outlined"
-              size="large"
-              sx={{ px: 4, py: 1.5 }}
-            >
-              View Projects
-            </Button>
-            <Button
-              component={Link}
               to="/contact"
               variant="outlined"
               size="large"
@@ -158,7 +145,7 @@ export default function HomePage() {
               Get In Touch
             </Button>
           </Box>
-        </motion.div>
+        </Box>
       </Box>
 
       {/* Skills Section */}
