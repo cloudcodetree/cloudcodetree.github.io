@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Container,
   Typography,
@@ -8,6 +8,8 @@ import {
   Grid,
   Chip,
   Button,
+  Skeleton,
+  CircularProgress,
 } from '@mui/material';
 import {
   Schedule as ScheduleIcon,
@@ -17,6 +19,7 @@ import {
   Business as BusinessIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { CALENDLY_CONFIG, buildCalendlyUrl } from '../config/calendly';
 
 declare global {
   interface Window {
@@ -26,25 +29,28 @@ declare global {
 
 const meetingTypes = [
   {
+    title: 'Employment Interview',
+    duration: '30 minutes',
+    description: 'Professional interview to discuss opportunities, experience, and how we can work together.',
+    icon: VideoCallIcon,
+    ideal: ['Job opportunities', 'Contract positions', 'Team leadership roles'],
+    calendlyUrl: CALENDLY_CONFIG.eventTypes.codeReview,
+  },
+  {
     title: 'Technical Consultation',
     duration: '30 minutes',
-    description: 'Quick discussion about your technical challenges, architecture questions, or project requirements.',
+    description: 'Discussion about technical challenges and project requirements.',
     icon: PersonIcon,
     ideal: ['Project scoping', 'Architecture advice', 'Technology selection'],
+    calendlyUrl: CALENDLY_CONFIG.eventTypes.technicalConsultation,
   },
   {
     title: 'Full Project Interview',
-    duration: '60 minutes',
-    description: 'Comprehensive discussion about your project, including requirements, timeline, and detailed technical planning.',
+    duration: '30 minutes',
+    description: 'Focused discussion about your project requirements, timeline, and technical planning.',
     icon: BusinessIcon,
-    ideal: ['New project planning', 'Full requirements review', 'Team collaboration'],
-  },
-  {
-    title: 'Code Review Session',
-    duration: '45 minutes',
-    description: 'Review your existing codebase, identify improvements, and discuss best practices and optimization strategies.',
-    icon: VideoCallIcon,
-    ideal: ['Code audit', 'Performance optimization', 'Security review'],
+    ideal: ['New project planning', 'Requirements review', 'Team collaboration'],
+    calendlyUrl: CALENDLY_CONFIG.eventTypes.projectInterview,
   },
 ];
 
@@ -55,11 +61,29 @@ const availability = {
 };
 
 export default function SchedulePage() {
+  const [calendlyLoaded, setCalendlyLoaded] = useState(false);
+  const [calendlyError, setCalendlyError] = useState(false);
+
   useEffect(() => {
+    // Check if Calendly is already loaded
+    if (window.Calendly) {
+      setCalendlyLoaded(true);
+      return;
+    }
+
     // Load Calendly widget script
     const script = document.createElement('script');
     script.src = 'https://assets.calendly.com/assets/external/widget.js';
     script.async = true;
+    
+    script.onload = () => {
+      setCalendlyLoaded(true);
+    };
+    
+    script.onerror = () => {
+      setCalendlyError(true);
+    };
+    
     document.body.appendChild(script);
 
     return () => {
@@ -72,15 +96,33 @@ export default function SchedulePage() {
   }, []);
 
   const openCalendlyModal = (url: string) => {
-    if (window.Calendly) {
-      window.Calendly.initPopupWidget({
-        url: url
-      });
-    } else {
-      // Fallback - open in new window
-      window.open(url, '_blank');
-    }
+    // Always use new window/tab to avoid iframe permission issues
+    const trackingUrl = buildCalendlyUrl(url, { utm: true });
+    window.open(trackingUrl, '_blank', 'noopener,noreferrer');
   };
+
+  // Loading skeleton for meeting type cards
+  const MeetingTypeSkeleton = () => (
+    <Card className="glass" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CardContent sx={{ flexGrow: 1, p: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Skeleton variant="circular" width={32} height={32} sx={{ mr: 2 }} />
+          <Box sx={{ flexGrow: 1 }}>
+            <Skeleton variant="text" width="70%" height={32} />
+            <Skeleton variant="text" width="40%" height={24} />
+          </Box>
+        </Box>
+        <Skeleton variant="text" width="100%" height={20} />
+        <Skeleton variant="text" width="90%" height={20} />
+        <Skeleton variant="text" width="95%" height={20} sx={{ mb: 3 }} />
+        <Skeleton variant="text" width="50%" height={20} sx={{ mb: 2 }} />
+        <Skeleton variant="text" width="80%" height={16} />
+        <Skeleton variant="text" width="75%" height={16} />
+        <Skeleton variant="text" width="70%" height={16} sx={{ mb: 3 }} />
+        <Skeleton variant="rectangular" width="100%" height={36} sx={{ borderRadius: 1 }} />
+      </CardContent>
+    </Card>
+  );
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -104,10 +146,9 @@ export default function SchedulePage() {
               return (
                 <Grid item xs={12} md={4} key={meeting.title}>
                   <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                    viewport={{ once: true }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.05 }}
                   >
                     <Card
                       className="glass"
@@ -166,16 +207,22 @@ export default function SchedulePage() {
                         <Button
                           variant="contained"
                           fullWidth
-                          onClick={() => openCalendlyModal('https://calendly.com/cloudcodetree')}
+                          onClick={() => openCalendlyModal(meeting.calendlyUrl)}
+                          disabled={!calendlyLoaded}
+                          startIcon={!calendlyLoaded ? <CircularProgress size={16} /> : undefined}
                           sx={{
                             mt: 'auto',
-                            background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+                            background: calendlyLoaded 
+                              ? 'linear-gradient(135deg, #3b82f6, #06b6d4)'
+                              : 'rgba(59, 130, 246, 0.3)',
                             '&:hover': {
-                              background: 'linear-gradient(135deg, #2563eb, #0891b2)',
+                              background: calendlyLoaded 
+                                ? 'linear-gradient(135deg, #2563eb, #0891b2)'
+                                : 'rgba(59, 130, 246, 0.4)',
                             },
                           }}
                         >
-                          Schedule {meeting.title}
+                          {!calendlyLoaded ? 'Loading...' : `Schedule ${meeting.title}`}
                         </Button>
                       </CardContent>
                     </Card>
@@ -187,12 +234,7 @@ export default function SchedulePage() {
         </Box>
 
         {/* Availability Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
+        <Box sx={{ mb: 6 }}>
           <Card className="glass" sx={{ mb: 6 }}>
             <CardContent sx={{ p: 4 }}>
               <Typography variant="h4" component="h2" sx={{ mb: 4, textAlign: 'center' }}>
@@ -234,15 +276,10 @@ export default function SchedulePage() {
               </Box>
             </CardContent>
           </Card>
-        </motion.div>
+        </Box>
 
         {/* Embedded Calendly Widget */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
+        <Box sx={{ mb: 6 }}>
           <Card className="glass">
             <CardContent sx={{ p: 2 }}>
               <Typography variant="h4" component="h2" sx={{ mb: 3, textAlign: 'center' }}>
@@ -254,21 +291,82 @@ export default function SchedulePage() {
                   background: '#fff',
                   borderRadius: 2,
                   overflow: 'hidden',
+                  position: 'relative',
                 }}
               >
-                {/* Replace the URL below with your actual Calendly URL */}
-                <iframe
-                  src="https://calendly.com/cloudcodetree"
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  title="Schedule Interview"
-                  style={{ border: 'none' }}
-                />
+                {/* Loading overlay */}
+                {!calendlyLoaded && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      zIndex: 1,
+                    }}
+                  >
+                    <CircularProgress sx={{ mb: 2 }} />
+                    <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                      Loading calendar...
+                    </Typography>
+                  </Box>
+                )}
+                
+                {/* Error state */}
+                {calendlyError && (
+                  <Box
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'rgba(255, 255, 255, 0.9)',
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ mb: 2, color: 'error.main' }}>
+                      Unable to load calendar
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary', textAlign: 'center' }}>
+                      Please try refreshing the page or use the buttons above to schedule a meeting.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      onClick={() => window.open(buildCalendlyUrl(CALENDLY_CONFIG.generalUrl, { utm: true }), '_blank')}
+                      sx={{
+                        background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #2563eb, #0891b2)',
+                        },
+                      }}
+                    >
+                      Open Calendar in New Tab
+                    </Button>
+                  </Box>
+                )}
+
+                {/* Calendly iframe */}
+                {!calendlyError && (
+                  <iframe
+                    src={buildCalendlyUrl(CALENDLY_CONFIG.generalUrl, { embed: true, utm: true })}
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    title="Schedule Interview"
+                    style={{ border: 'none' }}
+                    onLoad={() => setCalendlyLoaded(true)}
+                  />
+                )}
               </Box>
             </CardContent>
           </Card>
-        </motion.div>
+        </Box>
 
         {/* What to Expect */}
         <Box sx={{ mt: 8, textAlign: 'center' }}>
@@ -292,9 +390,9 @@ export default function SchedulePage() {
             ].map((step, index) => (
               <Grid item xs={12} md={4} key={step.title}>
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
                   viewport={{ once: true }}
                 >
                   <Box sx={{ p: 3 }}>

@@ -214,7 +214,7 @@ export default function ResumePage() {
             Resume
           </Typography>
           <Typography variant="h6" sx={{ color: 'text.secondary', mb: 4 }}>
-            Full Stack Developer & Cloud Solutions Architect
+            Principal Software Engineering Manager & Cloud Solutions Architect
           </Typography>
           
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mb: 2 }}>

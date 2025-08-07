@@ -455,135 +455,395 @@ export default function PrintableResume() {
             </Box>
           </Box>
 
-          {/* Other Roles */}
-          <Box sx={{ mb: 1 }}>
+          {/* Cerity */}
+          <Box sx={{ mb: 1.5 }}>
             <Typography variant="subtitle1" sx={{ 
               color: '#06b6d4', 
               fontWeight: 600, 
-              mb: 0.3,
+              mb: 0.5,
               '@media print': {
                 fontSize: '10px',
                 color: 'black',
                 fontWeight: 'bold',
-                mb: 0.1,
+                mb: 0.2,
               }
             }}>
-              Principal Developer | Cerity
+              Senior Software Engineer & Team Lead | Cerity
             </Typography>
             <Typography variant="body2" sx={{ 
               color: '#666', 
-              mb: 0.3, 
+              mb: 0.5, 
               fontStyle: 'italic',
               '@media print': {
                 fontSize: '9px',
                 color: 'black',
-                mb: 0.1,
+                mb: 0.2,
               }
             }}>
               Aug 2018 - Aug 2020 | Austin, TX
             </Typography>
-            <Typography variant="body2" sx={{ 
-              lineHeight: 1.4, 
-              mb: 1,
-              '@media print': {
-                fontSize: '8px',
-                lineHeight: 1.2,
-                mb: 0.3,
-              }
+            <Box component="ul" sx={{ 
+              pl: 2, 
+              mb: 0, 
+              listStyleType: 'disc', 
+              '& li': { 
+                mb: 0.3, 
+                lineHeight: 1.4, 
+                display: 'list-item',
+                '@media print': {
+                  fontSize: '8px',
+                  lineHeight: 1.2,
+                  mb: 0.1,
+                }
+              } 
             }}>
-              Led frontend development using Angular and React, architected serverless solutions with AWS services supporting 50,000+ concurrent users, implemented mono-repo architecture, and optimized SEO increasing organic traffic by 200%.
-            </Typography>
+              <li>Guided full-stack team building insurance platform using Angular, React, Python, and AWS services</li>
+              <li>Architected serverless applications with AWS Lambda, API Gateway, and DynamoDB supporting 50,000+ concurrent users</li>
+              <li>Implemented modern development practices including automated testing, code reviews, and CI improving code quality and productivity</li>
+              <li>Built responsive web applications using React and TypeScript for exceptional user experience</li>
+              <li>Facilitated Agile ceremonies, maintaining team velocity and continuous improvement</li>
+              <li>Optimized application performance through caching, database optimization, and CDN implementation, increasing user engagement by 200%</li>
+            </Box>
           </Box>
 
-          <Box sx={{ mb: 1 }}>
+          {/* ThunderDork */}
+          <Box sx={{ mb: 1.5 }}>
             <Typography variant="subtitle1" sx={{ 
               color: '#06b6d4', 
               fontWeight: 600, 
-              mb: 0.3,
+              mb: 0.5,
               '@media print': {
                 fontSize: '10px',
                 color: 'black',
                 fontWeight: 'bold',
-                mb: 0.1,
+                mb: 0.2,
               }
             }}>
-              Lead Developer | ThunderDork LLC
+              Lead Software Engineer | ThunderDork LLC
             </Typography>
             <Typography variant="body2" sx={{ 
               color: '#666', 
-              mb: 0.3, 
+              mb: 0.5, 
               fontStyle: 'italic',
               '@media print': {
                 fontSize: '9px',
                 color: 'black',
-                mb: 0.1,
+                mb: 0.2,
               }
             }}>
               May 2015 - Aug 2018 | Austin, TX
             </Typography>
-            <Typography variant="body2" sx={{ 
-              lineHeight: 1.4, 
-              mb: 1,
-              '@media print': {
-                fontSize: '8px',
-                lineHeight: 1.2,
-                mb: 0.3,
-              }
+            <Box component="ul" sx={{ 
+              pl: 2, 
+              mb: 0, 
+              listStyleType: 'disc', 
+              '& li': { 
+                mb: 0.3, 
+                lineHeight: 1.4, 
+                display: 'list-item',
+                '@media print': {
+                  fontSize: '8px',
+                  lineHeight: 1.2,
+                  mb: 0.1,
+                }
+              } 
             }}>
-              Architected full-stack solutions for enterprise clients including Capital One, designed point-of-sale systems, developed mobile applications using React Native, and implemented microservices architecture using Node.js, Docker, and AWS services.
-            </Typography>
+              <li>Led software development for enterprise clients including Capital One, managing onsite and remote teams</li>
+              <li>Developed full-stack applications using JavaScript, Python, React, and Node.js for multiple industry verticals</li>
+              <li>Architected microservices using Docker and AWS improving modularity and deployment flexibility</li>
+              <li>Established testing frameworks and quality processes, reducing production defects by 40%</li>
+              <li>Collaborated with clients and stakeholders, translating requirements into technical solutions</li>
+            </Box>
           </Box>
 
-          <Box sx={{ mb: 1 }}>
+          {/* Netspend */}
+          <Box sx={{ mb: 1.5 }}>
             <Typography variant="subtitle1" sx={{ 
               color: '#06b6d4', 
               fontWeight: 600, 
-              mb: 0.3,
+              mb: 0.5,
               '@media print': {
                 fontSize: '10px',
                 color: 'black',
                 fontWeight: 'bold',
-                mb: 0.1,
+                mb: 0.2,
               }
             }}>
-              Senior Frontend Developer | Netspend
+              Senior Full-Stack Engineer | Netspend
             </Typography>
             <Typography variant="body2" sx={{ 
               color: '#666', 
-              mb: 0.3, 
+              mb: 0.5, 
               fontStyle: 'italic',
               '@media print': {
                 fontSize: '9px',
                 color: 'black',
-                mb: 0.1,
+                mb: 0.2,
               }
             }}>
               Dec 2013 - May 2015 | Austin, TX
             </Typography>
-            <Typography variant="body2" sx={{ 
-              lineHeight: 1.4, 
-              mb: 1,
-              '@media print': {
-                fontSize: '8px',
-                lineHeight: 1.2,
-                mb: 0.3,
-              }
+            <Box component="ul" sx={{ 
+              pl: 2, 
+              mb: 0, 
+              listStyleType: 'disc', 
+              '& li': { 
+                mb: 0.3, 
+                lineHeight: 1.4, 
+                display: 'list-item',
+                '@media print': {
+                  fontSize: '8px',
+                  lineHeight: 1.2,
+                  mb: 0.1,
+                }
+              } 
             }}>
-              Designed and built customer account interfaces for leading prepaid card platform serving millions of users, developed internal corporate tools using Angular, and implemented comprehensive automated testing with CI/CD deployments.
-            </Typography>
+              <li>Developed customer-facing applications for fintech platforms serving millions of users with high-performance and security requirements</li>
+              <li>Built responsive web interfaces using Angular and JavaScript, improving user experience and conversion rates</li>
+              <li>Implemented automated testing and deployment pipelines for financial services</li>
+              <li>Collaborated with product and design teams to increase customer engagement</li>
+            </Box>
           </Box>
 
-          <Typography variant="body2" sx={{ 
-            color: '#666', 
-            fontStyle: 'italic', 
-            textAlign: 'center',
-            '@media print': {
-              fontSize: '8px',
-              color: 'black',
-            }
-          }}>
-            Additional experience includes senior roles at Cinsay, Schematic, Imc2, True.com, and Idea Integration (2001-2013)
-          </Typography>
+          {/* Cinsay */}
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle1" sx={{ 
+              color: '#06b6d4', 
+              fontWeight: 600, 
+              mb: 0.5,
+              '@media print': {
+                fontSize: '10px',
+                color: 'black',
+                fontWeight: 'bold',
+                mb: 0.2,
+              }
+            }}>
+              Senior Full-Stack Engineer | Cinsay
+            </Typography>
+            <Typography variant="body2" sx={{ 
+              color: '#666', 
+              mb: 0.5, 
+              fontStyle: 'italic',
+              '@media print': {
+                fontSize: '9px',
+                color: 'black',
+                mb: 0.2,
+              }
+            }}>
+              Dec 2011 - Dec 2013 | Austin, TX
+            </Typography>
+            <Box component="ul" sx={{ 
+              pl: 2, 
+              mb: 0, 
+              listStyleType: 'disc', 
+              '& li': { 
+                mb: 0.3, 
+                lineHeight: 1.4, 
+                display: 'list-item',
+                '@media print': {
+                  fontSize: '8px',
+                  lineHeight: 1.2,
+                  mb: 0.1,
+                }
+              } 
+            }}>
+              <li>Created cross-platform eCommerce applications using HTML5, JavaScript, Python, and cloud services</li>
+              <li>Developed video-based shopping experiences with integrated payments and real-time features</li>
+              <li>Led technical decision-making in a fast-paced startup environment, balancing innovation and delivery</li>
+            </Box>
+          </Box>
+
+          {/* Schematic */}
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle1" sx={{ 
+              color: '#06b6d4', 
+              fontWeight: 600, 
+              mb: 0.5,
+              '@media print': {
+                fontSize: '10px',
+                color: 'black',
+                fontWeight: 'bold',
+                mb: 0.2,
+              }
+            }}>
+              Senior Full-Stack Engineer | Schematic
+            </Typography>
+            <Typography variant="body2" sx={{ 
+              color: '#666', 
+              mb: 0.5, 
+              fontStyle: 'italic',
+              '@media print': {
+                fontSize: '9px',
+                color: 'black',
+                mb: 0.2,
+              }
+            }}>
+              Aug 2008 - Dec 2011 | Austin, TX
+            </Typography>
+            <Box component="ul" sx={{ 
+              pl: 2, 
+              mb: 0, 
+              listStyleType: 'disc', 
+              '& li': { 
+                mb: 0.3, 
+                lineHeight: 1.4, 
+                display: 'list-item',
+                '@media print': {
+                  fontSize: '8px',
+                  lineHeight: 1.2,
+                  mb: 0.1,
+                }
+              } 
+            }}>
+              <li>Designed and developed interactive web applications for Fortune 500 clients including Dell</li>
+              <li>Built cross-platform solutions for desktop, mobile, and tablet with consistent user interfaces</li>
+              <li>Collaborated with creative and marketing teams to drive customer engagement</li>
+            </Box>
+          </Box>
+
+          {/* Imc2 */}
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle1" sx={{ 
+              color: '#06b6d4', 
+              fontWeight: 600, 
+              mb: 0.5,
+              '@media print': {
+                fontSize: '10px',
+                color: 'black',
+                fontWeight: 'bold',
+                mb: 0.2,
+              }
+            }}>
+              Full-Stack Engineer | Imc2
+            </Typography>
+            <Typography variant="body2" sx={{ 
+              color: '#666', 
+              mb: 0.5, 
+              fontStyle: 'italic',
+              '@media print': {
+                fontSize: '9px',
+                color: 'black',
+                mb: 0.2,
+              }
+            }}>
+              Jan 2006 - Aug 2008 | Dallas, TX
+            </Typography>
+            <Box component="ul" sx={{ 
+              pl: 2, 
+              mb: 0, 
+              listStyleType: 'disc', 
+              '& li': { 
+                mb: 0.3, 
+                lineHeight: 1.4, 
+                display: 'list-item',
+                '@media print': {
+                  fontSize: '8px',
+                  lineHeight: 1.2,
+                  mb: 0.1,
+                }
+              } 
+            }}>
+              <li>Developed web applications for pharmaceutical, consumer products, and energy clients</li>
+              <li>Created interactive user interfaces with animations and multimedia for marketing campaigns</li>
+              <li>Managed technical project delivery, coordinating resources and client communication</li>
+            </Box>
+          </Box>
+
+          {/* True.com */}
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle1" sx={{ 
+              color: '#06b6d4', 
+              fontWeight: 600, 
+              mb: 0.5,
+              '@media print': {
+                fontSize: '10px',
+                color: 'black',
+                fontWeight: 'bold',
+                mb: 0.2,
+              }
+            }}>
+              Frontend Engineer | True.com
+            </Typography>
+            <Typography variant="body2" sx={{ 
+              color: '#666', 
+              mb: 0.5, 
+              fontStyle: 'italic',
+              '@media print': {
+                fontSize: '9px',
+                color: 'black',
+                mb: 0.2,
+              }
+            }}>
+              Feb 2004 - Jan 2006 | Dallas, TX
+            </Typography>
+            <Box component="ul" sx={{ 
+              pl: 2, 
+              mb: 0, 
+              listStyleType: 'disc', 
+              '& li': { 
+                mb: 0.3, 
+                lineHeight: 1.4, 
+                display: 'list-item',
+                '@media print': {
+                  fontSize: '8px',
+                  lineHeight: 1.2,
+                  mb: 0.1,
+                }
+              } 
+            }}>
+              <li>Built dating platform user interfaces for thousands of users with responsive web and real-time features</li>
+              <li>Developed interactive matching systems with data visualization and engagement features</li>
+              <li>Implemented real-time communication systems for scalability</li>
+            </Box>
+          </Box>
+
+          {/* Idea Integration */}
+          <Box sx={{ mb: 1 }}>
+            <Typography variant="subtitle1" sx={{ 
+              color: '#06b6d4', 
+              fontWeight: 600, 
+              mb: 0.5,
+              '@media print': {
+                fontSize: '10px',
+                color: 'black',
+                fontWeight: 'bold',
+                mb: 0.2,
+              }
+            }}>
+              Frontend Developer | Idea Integration (MPS Group)
+            </Typography>
+            <Typography variant="body2" sx={{ 
+              color: '#666', 
+              mb: 0.5, 
+              fontStyle: 'italic',
+              '@media print': {
+                fontSize: '9px',
+                color: 'black',
+                mb: 0.2,
+              }
+            }}>
+              Jan 2001 - Feb 2004 | Dallas, TX
+            </Typography>
+            <Box component="ul" sx={{ 
+              pl: 2, 
+              mb: 0, 
+              listStyleType: 'disc', 
+              '& li': { 
+                mb: 0.3, 
+                lineHeight: 1.4, 
+                display: 'list-item',
+                '@media print': {
+                  fontSize: '8px',
+                  lineHeight: 1.2,
+                  mb: 0.1,
+                }
+              } 
+            }}>
+              <li>Delivered web solutions for Fortune 1000 and government clients</li>
+              <li>Created interactive web applications with modern web standards and accessibility</li>
+              <li>Collaborated with design and backend teams for seamless integration</li>
+            </Box>
+          </Box>
         </Box>
 
         <Divider sx={{ my: 1, '@media print': { borderColor: 'black', my: 0.3 } }} />

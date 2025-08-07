@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is CloudCodeTree's professional portfolio website built with React, TypeScript, Vite, and deployed to GitHub Pages. It showcases a modern developer portfolio with the following features:
+This is CloudCodeTree's professional portfolio website built with React, TypeScript, Vite, and deployed to GitHub Pages. It showcases the professional profile of Chris Harper, a Principal Software Engineering Manager with extensive experience leading enterprise teams and cloud architecture initiatives. Features include:
 
 - **Dark Professional Theme**: Uses Material-UI v6 with custom dark theme, glass morphism effects, and gradient accents
 - **Hero Landing Page**: Professional intro with avatar, skills showcase, and service offerings
-- **Resume Section**: Interactive resume with reCAPTCHA verification and printable PDF download
+- **Resume Section**: Interactive resume showcasing extensive engineering leadership experience with multiple format downloads
 - **Projects Showcase**: Featured projects + dynamic GitHub repositories via API integration
 - **Dynamic Blog System**: Markdown-based blog with external file loading, search, and tag filtering
 - **Contact Form**: Direct email integration and professional contact methods

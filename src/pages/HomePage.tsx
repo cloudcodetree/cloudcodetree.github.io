@@ -21,30 +21,31 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const skills = [
-  'React', 'TypeScript', 'Node.js', 'Python', 'AWS', 'Docker',
-  'Kubernetes', 'PostgreSQL', 'MongoDB', 'GraphQL', 'Next.js', 'Rust'
+  'Python', 'TypeScript', 'React', 'Node.js', 'AWS', 'Azure', 'GCP',
+  'Kubernetes', 'Docker', 'PostgreSQL', 'MongoDB', 'GraphQL', 'AI/ML',
+  'DevOps', 'Microservices', 'Leadership', 'Agile/Scrum'
 ];
 
 const services = [
   {
     icon: CodeIcon,
-    title: 'Full Stack Development',
-    description: 'Modern web applications built with React, TypeScript, and cutting-edge technologies.',
+    title: 'Engineering Leadership',
+    description: 'Leading cross-functional teams of 8-15 engineers, delivering projects 20% ahead of schedule with 80% team promotion rate.',
   },
   {
     icon: CloudIcon,
-    title: 'Cloud Solutions',
-    description: 'Scalable and secure cloud architectures on AWS, GCP, and Azure platforms.',
+    title: 'Cloud Architecture',
+    description: 'Enterprise cloud solutions on AWS/Azure/GCP processing 10M+ daily transactions with 99.9% uptime.',
   },
   {
     icon: SecurityIcon,
-    title: 'DevSecOps',
-    description: 'Implementing security best practices throughout the development lifecycle.',
+    title: 'DevOps & AI/ML',
+    description: 'Modern software practices including CI/CD, microservices, AI integration, and automation reducing operational overhead by 70%.',
   },
   {
     icon: SpeedIcon,
-    title: 'Performance Optimization',
-    description: 'Optimizing applications for speed, scalability, and user experience.',
+    title: 'Digital Transformation',
+    description: 'Driving enterprise digital transformation for Fortune 500 clients, resulting in 40%+ cost reductions and improved scalability.',
   },
 ];
 
@@ -101,7 +102,7 @@ export default function HomePage() {
               fontWeight: 400,
             }}
           >
-            Full Stack Developer & Cloud Solutions Architect
+            Principal Software Engineering Manager & Cloud Solutions Architect
           </Typography>
           
           <Typography
@@ -114,8 +115,8 @@ export default function HomePage() {
               color: theme.palette.text.secondary,
             }}
           >
-            Building scalable, secure, and performant web applications with modern technologies.
-            Passionate about clean code, cloud architecture, and innovative solutions.
+            Extensive experience building and leading engineering teams, architecting cloud solutions, and delivering enterprise-scale applications.
+            Expert in full-stack development, AWS/Azure/GCP, and modern software engineering practices including AI/ML, DevOps, and microservices.
           </Typography>
           
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -256,7 +257,7 @@ export default function HomePage() {
           viewport={{ once: true }}
         >
           <Typography variant="h3" component="h2" sx={{ mb: 4 }}>
-            Let's Work Together
+            Ready to Build Something Great?
           </Typography>
           <Typography
             variant="h6"
@@ -267,8 +268,8 @@ export default function HomePage() {
               color: theme.palette.text.secondary,
             }}
           >
-            Ready to bring your ideas to life? Let's discuss your project requirements
-            and explore how we can build something amazing together.
+            Looking for an experienced engineering leader to drive your next project?
+            Let's discuss how extensive expertise can help scale your team and deliver exceptional results.
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button

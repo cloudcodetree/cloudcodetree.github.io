@@ -61,12 +61,12 @@ const contactInfo = [
 ];
 
 const services = [
-  'Full Stack Development',
-  'Cloud Architecture',
-  'DevSecOps Implementation',
-  'Technical Consulting',
-  'Code Review & Optimization',
-  'Team Training & Mentoring',
+  'Engineering Team Leadership',
+  'Cloud Architecture (AWS/Azure/GCP)',
+  'Digital Transformation',
+  'DevOps & AI/ML Implementation',
+  'Technical Strategy & Consulting',
+  'Enterprise Application Development',
 ];
 
 export default function ContactPage() {
@@ -174,21 +174,16 @@ export default function ContactPage() {
             Get In Touch
           </Typography>
           <Typography variant="h6" sx={{ color: 'text.secondary', mb: 2 }}>
-            Let's discuss your project requirements and explore how we can work together
+            Looking for engineering leadership or enterprise cloud solutions? Let's discuss your needs.
           </Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary', mb: 4, fontStyle: 'italic' }}>
-            Prefer using the secure contact form below for fastest response • All messages go directly to my inbox
+            Extensive experience leading engineering teams and delivering Fortune 500 solutions • All messages go directly to my inbox
           </Typography>
         </Box>
 
         <Grid container spacing={6}>
           {/* Contact Form */}
           <Grid item xs={12} lg={8}>
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
               <Card className="glass">
                 <CardContent sx={{ p: 4 }}>
                   <Typography variant="h4" component="h2" sx={{ mb: 4 }}>
@@ -254,7 +249,7 @@ export default function ContactPage() {
                           onChange={handleInputChange('message')}
                           required
                           disabled={loading}
-                          placeholder="Tell me about your project, timeline, and any specific requirements..."
+                          placeholder="Tell me about your engineering challenges, team needs, or cloud architecture requirements..."
                         />
                       </Grid>
                       {/* Multiple honeypot fields - hidden from users but visible to bots */}
@@ -342,16 +337,10 @@ export default function ContactPage() {
                   </Box>
                 </CardContent>
               </Card>
-            </motion.div>
           </Grid>
 
           {/* Contact Info & Services */}
           <Grid item xs={12} lg={4}>
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
               {/* Contact Information */}
               <Card className="glass" sx={{ mb: 4 }}>
                 <CardContent sx={{ p: 3 }}>
@@ -424,7 +413,6 @@ export default function ContactPage() {
                   </Box>
                 </CardContent>
               </Card>
-            </motion.div>
           </Grid>
         </Grid>
 

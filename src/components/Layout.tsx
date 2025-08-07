@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -14,6 +14,7 @@ import {
   useTheme,
   useMediaQuery,
   Container,
+  Fade,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -45,9 +46,20 @@ const navItems = [
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAnimationReady, setIsAnimationReady] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
+
+  // Ensure animations are ready before showing content
+  useEffect(() => {
+    // Small delay to prevent flash of unstyled content
+    const timer = setTimeout(() => {
+      setIsAnimationReady(true);
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -110,7 +122,7 @@ export default function Layout() {
     <>
       <Helmet>
         <title>{pageTitle}</title>
-        <meta name="description" content="Chris Harper - Full Stack Developer and Cloud Solutions Architect at CloudCodeTree" />
+        <meta name="description" content="Chris Harper - Principal Software Engineering Manager with extensive experience leading teams and architecting enterprise cloud solutions" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Helmet>
 
@@ -213,22 +225,42 @@ export default function Layout() {
             background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
           }}
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
+          {isAnimationReady ? (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ 
+                  duration: 0.3, 
+                  ease: "easeOut",
+                  opacity: { duration: 0.2 },
+                  y: { duration: 0.3 }
+                }}
+                style={{ minHeight: '100vh' }}
+              >
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/resume" element={<ResumePage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/schedule" element={<SchedulePage />} />
+                </Routes>
+              </motion.div>
+            </AnimatePresence>
+          ) : (
+            <Box
+              sx={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: 0,
+              }}
             >
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/resume" element={<ResumePage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/schedule" element={<SchedulePage />} />
-              </Routes>
-            </motion.div>
-          </AnimatePresence>
+              {/* Hidden loading state - content will fade in when ready */}
+            </Box>
+          )}
         </Box>
       </Box>
     </>
