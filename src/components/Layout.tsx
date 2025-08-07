@@ -59,9 +59,22 @@ export default function Layout() {
   const drawer = (
     <Box sx={{ width: 250 }}>
       <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6" className="gradient-text">
-          CloudCodeTree
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box
+            component="img"
+            src="/Fav_Icon.svg"
+            alt="CloudCodeTree Logo"
+            sx={{
+              width: 28,
+              height: 28,
+              mr: 1.5,
+              // Keep original SVG colors - purple circle with white content looks good in dark theme
+            }}
+          />
+          <Typography variant="h6" className="gradient-text">
+            CloudCodeTree
+          </Typography>
+        </Box>
         <IconButton onClick={handleDrawerToggle} sx={{ display: { md: 'none' } }}>
           <CloseIcon />
         </IconButton>
@@ -123,20 +136,31 @@ export default function Layout() {
                 <MenuIcon />
               </IconButton>
 
-              <Typography
-                variant="h6"
-                component={Link}
-                to="/"
-                sx={{
-                  flexGrow: { xs: 1, md: 0 },
-                  textDecoration: 'none',
-                  color: 'inherit',
-                  mr: 4,
-                }}
-                className="gradient-text"
-              >
-                CloudCodeTree
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: { xs: 1, md: 0 }, mr: 4 }}>
+                <Box
+                  component="img"
+                  src="/Fav_Icon.svg"
+                  alt="CloudCodeTree Logo"
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    mr: 1.5,
+                    // Keep original SVG colors - purple circle with white content looks good in dark theme
+                  }}
+                />
+                <Typography
+                  variant="h6"
+                  component={Link}
+                  to="/"
+                  sx={{
+                    textDecoration: 'none',
+                    color: 'inherit',
+                  }}
+                  className="gradient-text"
+                >
+                  CloudCodeTree
+                </Typography>
+              </Box>
 
               <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, ml: 'auto' }}>
                 {navItems.map((item) => (

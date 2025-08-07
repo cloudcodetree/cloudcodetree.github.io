@@ -62,7 +62,7 @@ src/
 │   └── PrintableResume.tsx  # Printable resume component
 ├── pages/                   # Page components (SPA routes)
 │   ├── HomePage.tsx         # Hero landing with services and skills
-│   ├── ResumePage.tsx       # Resume display with reCAPTCHA protection
+│   ├── ResumePage.tsx       # Resume display with multiple format downloads and one-time verification
 │   ├── ProjectsPage.tsx     # Featured projects + GitHub API integration
 │   ├── BlogPage.tsx         # Dynamic blog with external markdown loading
 │   ├── ContactPage.tsx      # Contact form and professional info
@@ -254,7 +254,7 @@ For production deployment, configure:
 
 **Current Active Routes**:
 - `/` - HomePage (Hero, Skills, Services)
-- `/resume` - ResumePage (Interactive resume with PDF download)
+- `/resume` - ResumePage (Interactive resume with multiple format downloads)
 - `/contact` - ContactPage (Contact form and professional info)  
 - `/schedule` - SchedulePage (Calendly integration)
 

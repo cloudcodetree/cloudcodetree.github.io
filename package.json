@@ -9,7 +9,15 @@
     "type": "git",
     "url": "https://github.com/cloudcodetree/cloudcodetree.github.io.git"
   },
-  "keywords": ["react", "typescript", "portfolio", "mui", "vite", "github-pages", "cloudcodetree"],
+  "keywords": [
+    "react",
+    "typescript",
+    "portfolio",
+    "mui",
+    "vite",
+    "github-pages",
+    "cloudcodetree"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -27,8 +35,10 @@
     "@mui/material": "^6.5.0",
     "@mui/system": "^7.3.0",
     "@tailwindcss/typography": "^0.5.16",
+    "@types/jszip": "^3.4.1",
     "autoprefixer": "^10.4.21",
     "framer-motion": "^12.23.12",
+    "jszip": "^3.10.1",
     "postcss": "^8.5.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
