@@ -19,7 +19,6 @@ import {
   GitHub as GitHubIcon,
   Send as SendIcon,
 } from '@mui/icons-material';
-import { motion } from 'framer-motion';
 import ObfuscatedEmail from '../components/ObfuscatedEmail';
 
 interface FormData {

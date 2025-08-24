@@ -8,7 +8,6 @@ import {
   Grid,
   Chip,
   Button,
-  Skeleton,
   CircularProgress,
 } from '@mui/material';
 import {
@@ -23,7 +22,14 @@ import { CALENDLY_CONFIG, buildCalendlyUrl } from '../config/calendly';
 
 declare global {
   interface Window {
-    Calendly: any;
+    Calendly: {
+      initPopupWidget: (options: {
+        url: string;
+        parentElement?: HTMLElement;
+        prefill?: Record<string, unknown>;
+        utm?: Record<string, string>;
+      }) => void;
+    };
   }
 }
 
@@ -100,29 +106,6 @@ export default function SchedulePage() {
     const trackingUrl = buildCalendlyUrl(url, { utm: true });
     window.open(trackingUrl, '_blank', 'noopener,noreferrer');
   };
-
-  // Loading skeleton for meeting type cards
-  const MeetingTypeSkeleton = () => (
-    <Card className="glass" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <CardContent sx={{ flexGrow: 1, p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Skeleton variant="circular" width={32} height={32} sx={{ mr: 2 }} />
-          <Box sx={{ flexGrow: 1 }}>
-            <Skeleton variant="text" width="70%" height={32} />
-            <Skeleton variant="text" width="40%" height={24} />
-          </Box>
-        </Box>
-        <Skeleton variant="text" width="100%" height={20} />
-        <Skeleton variant="text" width="90%" height={20} />
-        <Skeleton variant="text" width="95%" height={20} sx={{ mb: 3 }} />
-        <Skeleton variant="text" width="50%" height={20} sx={{ mb: 2 }} />
-        <Skeleton variant="text" width="80%" height={16} />
-        <Skeleton variant="text" width="75%" height={16} />
-        <Skeleton variant="text" width="70%" height={16} sx={{ mb: 3 }} />
-        <Skeleton variant="rectangular" width="100%" height={36} sx={{ borderRadius: 1 }} />
-      </CardContent>
-    </Card>
-  );
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>

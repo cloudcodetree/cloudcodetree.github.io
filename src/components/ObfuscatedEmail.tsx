@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Typography, Link } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
 import { getObfuscatedEmailData, reconstructEmail } from '../utils/emailObfuscation';
 
 interface ObfuscatedEmailProps {
   showAsLink?: boolean;
   variant?: 'inherit' | 'body1' | 'body2' | 'caption';
-  sx?: any;
+  sx?: SxProps<Theme>;
 }
 
 export default function ObfuscatedEmail({ 

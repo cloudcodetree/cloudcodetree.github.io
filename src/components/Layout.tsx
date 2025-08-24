@@ -14,7 +14,6 @@ import {
   useTheme,
   useMediaQuery,
   Container,
-  Fade,
 } from '@mui/material';
 import {
   Menu as MenuIcon,

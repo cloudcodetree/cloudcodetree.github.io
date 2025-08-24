@@ -30,6 +30,7 @@ interface BlogPost {
   date: string;
   tags: string[];
   readTime: number;
+  filename?: string;
 }
 
 // Dynamic blog posts loaded from external markdown files
@@ -56,7 +57,7 @@ export default function BlogPage() {
         
         // Load markdown content for each post
         const postsWithContent = await Promise.all(
-          postsIndex.map(async (post: any) => {
+          postsIndex.map(async (post: BlogPost) => {
             try {
               const contentResponse = await fetch(`/blog/${post.filename}`);
               if (!contentResponse.ok) {
