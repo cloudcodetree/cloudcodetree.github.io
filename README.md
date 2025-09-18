@@ -151,7 +151,7 @@ Add new blog posts by:
 
 - PDF stored in `/public/resume.pdf`
 - Protected by reCAPTCHA verification
-- Markdown version in `/public/resume/chris-harper-resume.md`
+- Markdown version in `/public/resume/chris_harper-resume.md`
 
 ## 🔒 Security
 

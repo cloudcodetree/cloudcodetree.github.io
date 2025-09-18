@@ -36,28 +36,28 @@ const resumeFormats = [
     label: 'PDF Document', 
     icon: PdfIcon, 
     description: 'Optimized for viewing and printing',
-    filename: 'chris-harper-resume.pdf'
+    filename: 'chris_harper-resume.pdf'
   },
   { 
     extension: 'docx', 
     label: 'Word Document', 
     icon: DocIcon, 
     description: 'Editable Microsoft Word format',
-    filename: 'chris-harper-resume.docx'
+    filename: 'chris_harper-resume.docx'
   },
   { 
     extension: 'odt', 
     label: 'OpenOffice Document', 
     icon: DocIcon, 
     description: 'Open source document format',
-    filename: 'chris-harper-resume.odt'
+    filename: 'chris_harper-resume.odt'
   },
   { 
     extension: 'md', 
     label: 'Markdown', 
     icon: MdIcon, 
     description: 'Plain text with formatting',
-    filename: 'chris-harper-resume.md'
+    filename: 'chris_harper-resume.md'
   },
 ];
 
@@ -128,7 +128,7 @@ export default function ResumePage() {
       const JSZipModule = await import('jszip');
       const JSZip = JSZipModule.default || JSZipModule;
       const zip = new JSZip();
-      const folder = zip.folder('chris-harper-resume');
+      const folder = zip.folder('chris_harper-resume');
 
       // Fetch all resume files
       const downloadPromises = resumeFormats.map(async (format) => {
@@ -149,7 +149,7 @@ export default function ResumePage() {
       const content = await zip.generateAsync({ type: 'blob' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(content);
-      link.download = 'chris-harper-resume-all-formats.zip';
+      link.download = 'chris_harper-resume-all-formats.zip';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

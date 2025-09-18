@@ -24,7 +24,7 @@ export default function ResumeContent({ showContactInfo = false }: ResumeContent
   useEffect(() => {
     const fetchResumeContent = async () => {
       try {
-        const response = await fetch('/resume/chris-harper-resume.md');
+        const response = await fetch('/resume/chris_harper-resume.md');
         if (!response.ok) {
           throw new Error('Failed to fetch resume content');
         }

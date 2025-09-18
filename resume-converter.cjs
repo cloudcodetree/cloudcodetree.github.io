@@ -144,8 +144,8 @@ strong {
 
 // Function to convert markdown to styled HTML
 function convertToHTML() {
-  const markdownPath = './public/resume/chris-harper-resume.md';
-  const outputPath = './chris-harper-resume-styled.html';
+  const markdownPath = './public/resume/chris_harper-resume.md';
+  const outputPath = './chris_harper-resume-styled.html';
   
   if (!fs.existsSync(markdownPath)) {
     console.error('Markdown file not found:', markdownPath);
@@ -199,7 +199,7 @@ function convertToHTML() {
   console.log('💡 Next steps:');
   console.log('   1. Open in browser to verify formatting');
   console.log('   2. Print to PDF or use pandoc to convert to Word:');
-  console.log('      pandoc chris-harper-resume-styled.html -o resume.docx');
+  console.log('      pandoc chris_harper-resume-styled.html -o resume.docx');
 }
 
 // Function to create a pandoc command
@@ -209,26 +209,26 @@ function generatePandocCommand() {
 # brew install pandoc (Mac) or apt install pandoc (Linux)
 
 # Convert markdown to Word with styling:
-pandoc public/resume/chris-harper-resume.md \\
+pandoc public/resume/chris_harper-resume.md \\
   --from markdown \\
   --to docx \\
-  --output chris-harper-resume.docx \\
+  --output chris_harper-resume.docx \\
   --reference-doc=custom-reference.docx \\
   --toc \\
   --highlight-style tango
 
 # Or convert to HTML first, then to Word:
-pandoc public/resume/chris-harper-resume.md \\
+pandoc public/resume/chris_harper-resume.md \\
   --from markdown \\
   --to html \\
   --css resume-styles.css \\
   --standalone \\
-  --output chris-harper-resume.html
+  --output chris_harper-resume.html
 
-pandoc chris-harper-resume.html \\
+pandoc chris_harper-resume.html \\
   --from html \\
   --to docx \\
-  --output chris-harper-resume.docx
+  --output chris_harper-resume.docx
 `;
   
   console.log('📋 Pandoc conversion commands:');
@@ -253,7 +253,7 @@ if (require.main === module) {
     console.log('');
     console.log('🎯 Recommended workflow:');
     console.log('  1. node resume-converter.js --html');
-    console.log('  2. Open chris-harper-resume-styled.html in browser');
+    console.log('  2. Open chris_harper-resume-styled.html in browser');
     console.log('  3. Print → Save as PDF or use pandoc for Word');
   }
 }

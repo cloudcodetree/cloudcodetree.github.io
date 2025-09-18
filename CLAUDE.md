@@ -78,7 +78,7 @@ public/
 │   ├── posts.json          # Blog posts index
 │   └── *.md                 # Individual blog post markdown files
 ├── resume/                  # Resume assets
-│   └── chris-harper-resume.md
+│   └── chris_harper-resume.md
 ├── resume.pdf              # Protected resume PDF
 └── [standard PWA files]    # 404.html, robots.txt, sw.js, etc.
 ```
