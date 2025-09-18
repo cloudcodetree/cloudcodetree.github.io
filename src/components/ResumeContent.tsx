@@ -40,17 +40,37 @@ export default function ResumeContent({ showContactInfo = false }: ResumeContent
     fetchResumeContent();
   }, []);
 
-  // Process the markdown content to hide/show contact information
+  // Process the markdown content to hide/show contact information and convert bullet points
   const processContent = (content: string) => {
-    if (showContactInfo) {
-      return content;
+    let processedContent = content;
+
+    if (!showContactInfo) {
+      // Replace contact information with placeholder for non-verified users
+      processedContent = processedContent.replace(
+        /chris@cloudcodetree\.com \| 512-938-9697/g,
+        'Contact via cloudcodetree.com/contact'
+      );
     }
 
-    // Replace contact information with placeholder for non-verified users
-    return content.replace(
-      /chris@cloudcodetree\.com \| 512-938-9697/g,
-      'Contact via cloudcodetree.com/contact'
+    // Convert bullet point lists to proper markdown lists
+    // Handle consecutive bullet points and group them properly
+    processedContent = processedContent.replace(
+      /^• (.+)$/gm,
+      '- $1'
     );
+
+    // Ensure proper spacing around lists by adding blank lines before and after list groups
+    processedContent = processedContent.replace(
+      /(?<!^|\n\n)(^- .+(?:\n- .+)*)/gm,
+      '\n$1'
+    );
+
+    processedContent = processedContent.replace(
+      /(^- .+(?:\n- .+)*)(?!\n\n|\n- |\n*$)/gm,
+      '$1\n'
+    );
+
+    return processedContent;
   };
 
   if (loading) {
@@ -115,12 +135,26 @@ export default function ResumeContent({ showContactInfo = false }: ResumeContent
             mb: 2, 
             lineHeight: 1.8,
           },
-          '& ul': { 
-            pl: 3, 
-            mb: 3,
-            '& li': { 
-              mb: 1, 
+          '& ul': {
+            paddingLeft: '24px',
+            marginBottom: '24px',
+            marginLeft: '0',
+            listStyleType: 'disc',
+            listStylePosition: 'outside',
+            textAlign: 'left',
+            '& li': {
+              marginBottom: '8px',
               lineHeight: 1.6,
+              paddingLeft: '4px',
+              display: 'list-item',
+              textAlign: 'left',
+              '& p': {
+                margin: 0,
+                textAlign: 'left',
+              },
+              '& strong': {
+                display: 'inline',
+              }
             }
           },
           '& strong': {
@@ -134,17 +168,12 @@ export default function ResumeContent({ showContactInfo = false }: ResumeContent
               textDecoration: 'underline',
             },
           },
-          // Style the contact line specially
-          '& p:nth-of-type(1)': {
+          // Style the contact line specially - only target the actual contact paragraph
+          '& > div > p:first-of-type': {
             textAlign: 'center',
             color: 'text.secondary',
             fontSize: '1.1rem',
             mb: 4,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexWrap: 'wrap',
-            gap: 1,
           },
         }}>
           {!showContactInfo && (
@@ -195,18 +224,27 @@ export default function ResumeContent({ showContactInfo = false }: ResumeContent
                   </Typography>
                 </>
               ),
-              // Handle the first paragraph (contact info) specially
+              // Handle list items and their content
+              li: ({ children }) => (
+                <li style={{ marginBottom: '8px', lineHeight: 1.6, textAlign: 'left' }}>
+                  {children}
+                </li>
+              ),
+              // Handle paragraphs - render content inline for list items
               p: ({ children, ...props }) => {
                 const content = children?.toString() || '';
-                
+
+                // Filter out non-DOM props
+                const { node, siblingCount, ...domProps } = props as any;
+
                 // Check if this is the contact info paragraph
                 if (content.includes('cloudcodetree.com') && content.includes('linkedin.com')) {
                   return (
-                    <Box sx={{ 
-                      textAlign: 'center', 
-                      mb: 4, 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                    <Box sx={{
+                      textAlign: 'center',
+                      mb: 4,
+                      display: 'flex',
+                      alignItems: 'center',
                       justifyContent: 'center',
                       flexWrap: 'wrap',
                       gap: 1,
@@ -220,12 +258,12 @@ export default function ResumeContent({ showContactInfo = false }: ResumeContent
                     </Box>
                   );
                 }
-                
+
                 return (
-                  <Typography 
-                    variant="body1" 
+                  <Typography
+                    variant="body1"
                     sx={{ mb: 2, lineHeight: 1.8 }}
-                    {...props}
+                    {...domProps}
                   >
                     {children}
                   </Typography>
