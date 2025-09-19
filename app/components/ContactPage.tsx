@@ -21,7 +21,7 @@ import {
   GitHub as GitHubIcon,
   Send as SendIcon,
 } from '@mui/icons-material';
-import ObfuscatedEmail from '../components/ObfuscatedEmail';
+import ObfuscatedEmail from './ObfuscatedEmail';
 
 interface FormData {
   name: string;
@@ -169,7 +169,7 @@ export default function ContactPage() {
   const isFormValid = formData.name && formData.email && formData.subject && formData.message;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography variant="h2" component="h1" sx={{ mb: 2 }}>
             Get In Touch
@@ -182,168 +182,174 @@ export default function ContactPage() {
           </Typography>
         </Box>
 
-        <Grid container spacing={6}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
+            gap: 4,
+            maxWidth: '1200px',
+            mx: 'auto'
+          }}
+        >
           {/* Contact Form */}
-          <Grid item xs={12} lg={8}>
-              <Card className="glass">
-                <CardContent sx={{ p: 4 }}>
-                  <Typography variant="h4" component="h2" sx={{ mb: 4 }}>
-                    Send Message
-                  </Typography>
+          <Card className="glass" sx={{ height: 'fit-content' }}>
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h4" component="h2" sx={{ mb: 4 }}>
+                Send Message
+              </Typography>
 
-                  {success && (
-                    <Alert severity="success" sx={{ mb: 3 }}>
-                      Thank you for your message! I'll get back to you within 24 hours.
-                    </Alert>
-                  )}
+              {success && (
+                <Alert severity="success" sx={{ mb: 3 }}>
+                  Thank you for your message! I'll get back to you within 24 hours.
+                </Alert>
+              )}
 
-                  {error && (
-                    <Alert severity="error" sx={{ mb: 3 }}>
-                      {error}
-                    </Alert>
-                  )}
+              {error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                  {error}
+                </Alert>
+              )}
 
-                  <Box 
-                    component="form" 
-                    onSubmit={handleSubmit}
-                    onMouseMove={handleMouseMove}
-                  >
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Your Name"
-                          value={formData.name}
-                          onChange={handleInputChange('name')}
-                          required
-                          disabled={loading}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Email Address"
-                          type="email"
-                          value={formData.email}
-                          onChange={handleInputChange('email')}
-                          required
-                          disabled={loading}
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Subject"
-                          value={formData.subject}
-                          onChange={handleInputChange('subject')}
-                          required
-                          disabled={loading}
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Message"
-                          multiline
-                          rows={6}
-                          value={formData.message}
-                          onChange={handleInputChange('message')}
-                          required
-                          disabled={loading}
-                          placeholder="Tell me about your engineering challenges, team needs, or cloud architecture requirements..."
-                        />
-                      </Grid>
-                      {/* Multiple honeypot fields - hidden from users but visible to bots */}
-                      <Grid item xs={12} sx={{ display: 'none' }}>
-                        <TextField
-                          name="website"
-                          label="Website (leave blank)"
-                          value={formData.honeypot}
-                          onChange={handleInputChange('honeypot')}
-                          tabIndex={-1}
-                          autoComplete="off"
-                          sx={{ 
-                            position: 'absolute',
-                            left: '-9999px',
-                            opacity: 0,
-                            pointerEvents: 'none'
-                          }}
-                        />
-                        <TextField
-                          name="url"
-                          label="URL (leave blank)"
-                          value={formData.website}
-                          onChange={handleInputChange('website')}
-                          tabIndex={-1}
-                          autoComplete="off"
-                          sx={{ 
-                            position: 'absolute',
-                            left: '-9999px',
-                            opacity: 0,
-                            pointerEvents: 'none'
-                          }}
-                        />
-                        <TextField
-                          name="phone_number"
-                          label="Phone (leave blank)"
-                          value={formData.phone}
-                          onChange={handleInputChange('phone')}
-                          tabIndex={-1}
-                          autoComplete="off"
-                          sx={{ 
-                            position: 'absolute',
-                            left: '-9999px',
-                            opacity: 0,
-                            pointerEvents: 'none'
-                          }}
-                        />
-                        <TextField
-                          name="company_name"
-                          label="Company (leave blank)"
-                          value={formData.company}
-                          onChange={handleInputChange('company')}
-                          tabIndex={-1}
-                          autoComplete="off"
-                          sx={{ 
-                            position: 'absolute',
-                            left: '-9999px',
-                            opacity: 0,
-                            pointerEvents: 'none'
-                          }}
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          size="large"
-                          fullWidth
-                          disabled={!isFormValid || loading}
-                          startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
-                          sx={{
-                            py: 1.5,
-                            background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
-                            '&:hover': {
-                              background: 'linear-gradient(135deg, #2563eb, #0891b2)',
-                            },
-                            '&:disabled': {
-                              background: 'rgba(59, 130, 246, 0.3)',
-                            },
-                          }}
-                        >
-                          {loading ? 'Sending...' : 'Send Message'}
-                        </Button>
-                      </Grid>
-                    </Grid>
+              <Box
+                component="form"
+                onSubmit={handleSubmit}
+                onMouseMove={handleMouseMove}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {/* First row: Name and Email side by side */}
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3 }}>
+                    <TextField
+                      fullWidth
+                      label="Your Name *"
+                      value={formData.name}
+                      onChange={handleInputChange('name')}
+                      required
+                      disabled={loading}
+                    />
+                    <TextField
+                      fullWidth
+                      label="Email Address *"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange('email')}
+                      required
+                      disabled={loading}
+                    />
                   </Box>
-                </CardContent>
-              </Card>
-          </Grid>
+
+                  {/* Second row: Subject full width */}
+                  <TextField
+                    fullWidth
+                    label="Subject *"
+                    value={formData.subject}
+                    onChange={handleInputChange('subject')}
+                    required
+                    disabled={loading}
+                  />
+
+                  {/* Third row: Message full width */}
+                  <TextField
+                    fullWidth
+                    label="Message *"
+                    multiline
+                    rows={6}
+                    value={formData.message}
+                    onChange={handleInputChange('message')}
+                    required
+                    disabled={loading}
+                    placeholder="Tell me about your engineering challenges, team needs, or cloud architecture requirements..."
+                  />
+
+                  {/* Fourth row: Submit button */}
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    fullWidth
+                    disabled={!isFormValid || loading}
+                    startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
+                    sx={{
+                      py: 1.5,
+                      background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #2563eb, #0891b2)',
+                      },
+                      '&:disabled': {
+                        background: 'rgba(59, 130, 246, 0.3)',
+                      },
+                    }}
+                  >
+                    {loading ? 'Sending...' : 'Send Message'}
+                  </Button>
+                </Box>
+
+                {/* Multiple honeypot fields - hidden from users but visible to bots */}
+                <Box sx={{ display: 'none' }}>
+                  <TextField
+                    name="website"
+                    label="Website (leave blank)"
+                    value={formData.honeypot}
+                    onChange={handleInputChange('honeypot')}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    sx={{
+                      position: 'absolute',
+                      left: '-9999px',
+                      opacity: 0,
+                      pointerEvents: 'none'
+                    }}
+                  />
+                  <TextField
+                    name="url"
+                    label="URL (leave blank)"
+                    value={formData.website}
+                    onChange={handleInputChange('website')}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    sx={{
+                      position: 'absolute',
+                      left: '-9999px',
+                      opacity: 0,
+                      pointerEvents: 'none'
+                    }}
+                  />
+                  <TextField
+                    name="phone_number"
+                    label="Phone (leave blank)"
+                    value={formData.phone}
+                    onChange={handleInputChange('phone')}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    sx={{
+                      position: 'absolute',
+                      left: '-9999px',
+                      opacity: 0,
+                      pointerEvents: 'none'
+                    }}
+                  />
+                  <TextField
+                    name="company_name"
+                    label="Company (leave blank)"
+                    value={formData.company}
+                    onChange={handleInputChange('company')}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    sx={{
+                      position: 'absolute',
+                      left: '-9999px',
+                      opacity: 0,
+                      pointerEvents: 'none'
+                    }}
+                  />
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
 
           {/* Contact Info & Services */}
-          <Grid item xs={12} lg={4}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {/* Contact Information */}
-              <Card className="glass" sx={{ mb: 4 }}>
+              <Card className="glass" sx={{ height: 'fit-content' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h5" component="h3" sx={{ mb: 3 }}>
                     Contact Information
@@ -390,7 +396,7 @@ export default function ContactPage() {
               </Card>
 
               {/* Services */}
-              <Card className="glass">
+              <Card className="glass" sx={{ height: 'fit-content' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h5" component="h3" sx={{ mb: 3 }}>
                     Services Offered
@@ -414,8 +420,8 @@ export default function ContactPage() {
                   </Box>
                 </CardContent>
               </Card>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
 
         {/* Response Time Info */}
         <Box sx={{ textAlign: 'center', mt: 6 }}>

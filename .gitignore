@@ -1,5 +1,30 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+/coverage/
+
+# Next.js
+/.next/
+/out/
+/dist/
+/.swc/
+
+# Production builds
+build/
+dist-ssr/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,18 +32,56 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary folders
+tmp/
+temp/
+.tmp/
+
+# Cache directories
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+.cache/
+.parcel-cache/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Editor directories and files
-.vscode/*
+.vscode/
 !.vscode/extensions.json
-.idea
-.DS_Store
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*~
+
+# IDE
+.fleet
+.vscode/settings.json
+
+# Local Netlify folder
+.netlify
+
+# Vercel
+.vercel
+
+# Sentry Config File
+.sentryclirc

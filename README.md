@@ -9,16 +9,17 @@
 
 ## ✨ Features
 
-- **Modern Tech Stack**: React 19, TypeScript, Material-UI v6, Vite
+- **Modern Tech Stack**: Next.js 15, React 19, TypeScript, Material-UI v7
 - **Professional Design**: Dark theme with glass morphism effects and gradient accents
 - **Responsive Layout**: Mobile-first design with adaptive navigation
-- **Dynamic Content**: 
+- **Dynamic Content**:
   - GitHub API integration for live repository data
   - External markdown blog system with search and filtering
   - Interactive resume with reCAPTCHA protection
-- **Performance Optimized**: Code splitting, lazy loading, tree shaking
-- **SEO Ready**: Dynamic meta tags with React Helmet
+- **Performance Optimized**: Automatic code splitting, static generation, image optimization
+- **SEO Ready**: Built-in Next.js metadata API with dynamic meta tags
 - **PWA Capabilities**: Service worker and offline functionality
+- **Static Export**: Optimized for GitHub Pages deployment
 
 ## 🛠️ Development
 
@@ -39,8 +40,8 @@ pnpm run dev
 # Build for production
 pnpm run build
 
-# Preview production build
-pnpm run preview
+# Start production server locally
+pnpm run start
 
 # Lint code
 pnpm run lint
@@ -51,41 +52,50 @@ pnpm run deploy
 
 ### Development Server
 
-The development server runs at `http://localhost:5173/` with hot reload enabled.
+The development server runs at `http://localhost:3000/` with hot reload enabled.
 
 ## 📁 Project Structure
 
 ```
-src/
-├── components/           # Reusable UI components
-│   ├── Layout.tsx       # Main app layout with navigation
-│   ├── ObfuscatedEmail.tsx
-│   └── PrintableResume.tsx
-├── pages/               # SPA route components
+app/
+├── layout.tsx           # Root layout with metadata and providers
+├── page.tsx            # Homepage route
+├── contact/page.tsx    # Contact page route
+├── resume/page.tsx     # Resume page route
+├── schedule/page.tsx   # Schedule page route
+├── components/         # Reusable UI components
+│   ├── ClientLayout.tsx # Client-side navigation and layout
+│   ├── ThemeProvider.tsx # MUI theme provider
 │   ├── HomePage.tsx     # Landing page with hero and services
 │   ├── ResumePage.tsx   # Interactive resume display
-│   ├── ProjectsPage.tsx # GitHub projects showcase
-│   ├── BlogPage.tsx     # Dynamic blog system
 │   ├── ContactPage.tsx  # Contact form and info
-│   └── SchedulePage.tsx # Calendly integration
-├── utils/               # Utility functions
-└── assets/              # Static assets
+│   ├── SchedulePage.tsx # Calendly integration
+│   ├── ObfuscatedEmail.tsx
+│   ├── ResumeContent.tsx
+│   └── PrintableResume.tsx
+├── lib/                # Utility functions and configurations
+│   ├── theme.ts        # MUI theme configuration
+│   └── emailObfuscation.ts
+├── config/             # Application configuration
+│   └── calendly.ts     # Calendly integration config
+└── globals.css         # Global styles
 
 public/
-├── blog/                # External blog content
-│   ├── posts.json      # Blog posts index
-│   └── *.md            # Individual blog posts
-├── resume/              # Resume assets
-└── [PWA files]         # Service worker, robots.txt, etc.
+├── blog/               # External blog content
+│   ├── posts.json     # Blog posts index
+│   └── *.md           # Individual blog posts
+├── resume/             # Resume assets
+└── [PWA files]        # Service worker, robots.txt, etc.
 ```
 
 ## 🎨 Tech Stack
 
 ### Core Technologies
-- **Frontend**: React 19, TypeScript, Vite
-- **UI Framework**: Material-UI (MUI) v6
+- **Framework**: Next.js 15 with App Router
+- **Frontend**: React 19, TypeScript
+- **UI Framework**: Material-UI (MUI) v7
 - **Styling**: Custom dark theme + Tailwind CSS utilities
-- **Routing**: React Router v7
+- **Routing**: Next.js file-based routing
 - **Animations**: Framer Motion
 
 ### Features & Integrations
@@ -93,8 +103,9 @@ public/
 - **GitHub Integration**: REST API for live repository data
 - **Contact**: Direct email integration
 - **Scheduling**: Calendly widget integration
-- **SEO**: React Helmet Async for meta management
+- **SEO**: Next.js built-in metadata API
 - **Security**: reCAPTCHA for resume download protection
+- **Static Generation**: Optimized static site generation for GitHub Pages
 
 ## 🚀 Deployment
 
@@ -118,8 +129,8 @@ pnpm run build
 ```
 
 The deployment process:
-1. Runs `pnpm run build` to generate `/dist`
-2. Pushes `/dist` contents to `gh-pages` branch
+1. Runs `pnpm run build` to generate static export in `/out`
+2. Pushes `/out` contents to `gh-pages` branch
 3. GitHub Pages serves the site automatically
 
 ### DNS Configuration
@@ -132,6 +143,25 @@ The deployment process:
 
 **CNAME Record:**
 - www.cloudcodetree.com → cloudcodetree.github.io
+
+## 🔄 Migration to Next.js
+
+This project was successfully migrated from Vite + React Router to Next.js 15 with App Router:
+
+### Key Changes
+- **Framework**: Migrated from Vite to Next.js 15 with App Router
+- **Routing**: Converted from React Router to file-based routing
+- **Build Output**: Changed from `/dist` to `/out` for static export
+- **SEO**: Replaced React Helmet with Next.js metadata API
+- **Theme**: Moved MUI theme provider to client component for better compatibility
+- **Performance**: Gained automatic code splitting and static generation
+
+### Benefits Achieved
+- ✅ **Better SEO**: Server-side rendering and static generation
+- ✅ **Improved Performance**: Automatic optimizations and code splitting
+- ✅ **Modern Architecture**: Latest Next.js features and best practices
+- ✅ **Enhanced DX**: Better development experience with improved tooling
+- ✅ **Future-Ready**: Easy scaling for server-side features if needed
 
 ## 📝 Content Management
 

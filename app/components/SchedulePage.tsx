@@ -125,11 +125,19 @@ export default function SchedulePage() {
           <Typography variant="h3" component="h2" sx={{ mb: 4, textAlign: 'center' }}>
             Choose Meeting Type
           </Typography>
-          <Grid container spacing={4}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+              gap: 4,
+              maxWidth: '1200px',
+              mx: 'auto'
+            }}
+          >
             {meetingTypes.map((meeting, index) => {
               const Icon = meeting.icon;
               return (
-                <Grid item xs={12} md={4} key={meeting.title}>
+                <Box key={meeting.title}>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -212,10 +220,10 @@ export default function SchedulePage() {
                       </CardContent>
                     </Card>
                   </motion.div>
-                </Grid>
+                </Box>
               );
             })}
-          </Grid>
+          </Box>
         </Box>
 
         {/* Availability Info */}
@@ -225,35 +233,43 @@ export default function SchedulePage() {
               <Typography variant="h4" component="h2" sx={{ mb: 4, textAlign: 'center' }}>
                 Availability & Details
               </Typography>
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={4}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+                  gap: 4,
+                  maxWidth: '1000px',
+                  mx: 'auto'
+                }}
+              >
+                <Box sx={{ textAlign: 'center' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
                     <TimeIcon sx={{ color: '#3b82f6' }} />
                     <Typography variant="h6">Timezone</Typography>
                   </Box>
                   <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                     {availability.timezone}
                   </Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                </Box>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
                     <ScheduleIcon sx={{ color: '#3b82f6' }} />
                     <Typography variant="h6">Regular Hours</Typography>
                   </Box>
                   <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                     {availability.hours}
                   </Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                </Box>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
                     <VideoCallIcon sx={{ color: '#3b82f6' }} />
                     <Typography variant="h6">Meeting Format</Typography>
                   </Box>
                   <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                     Video call via Google Meet or Zoom
                   </Typography>
-                </Grid>
-              </Grid>
+                </Box>
+              </Box>
               <Box sx={{ mt: 4, p: 3, background: 'rgba(59, 130, 246, 0.05)', borderRadius: 2 }}>
                 <Typography variant="body1" sx={{ textAlign: 'center', color: 'text.secondary' }}>
                   <strong>Note:</strong> {availability.note}

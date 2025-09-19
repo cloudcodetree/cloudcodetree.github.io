@@ -1,9 +1,6 @@
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import { HelmetProvider } from 'react-helmet-async';
-import Layout from './components/Layout';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { createTheme } from '@mui/material/styles';
 
-const darkTheme = createTheme({
+export const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
@@ -67,20 +64,3 @@ const darkTheme = createTheme({
     },
   },
 });
-
-function App() {
-  return (
-    <HelmetProvider>
-      <ThemeProvider theme={darkTheme}>
-        <CssBaseline />
-        <Router>
-          <div className="min-h-screen bg-dark-950 text-dark-50">
-            <Layout />
-          </div>
-        </Router>
-      </ThemeProvider>
-    </HelmetProvider>
-  );
-}
-
-export default App;

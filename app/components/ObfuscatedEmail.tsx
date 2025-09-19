@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Typography, Link } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material';
-import { getObfuscatedEmailData, reconstructEmail } from '../utils/emailObfuscation';
+import { getObfuscatedEmailData, reconstructEmail } from '../lib/emailObfuscation';
 
 interface ObfuscatedEmailProps {
   showAsLink?: boolean;

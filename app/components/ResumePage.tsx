@@ -28,8 +28,8 @@ import {
   Article as MdIcon,
   ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
-import PrintableResume from '../components/PrintableResume';
-import ResumeContent from '../components/ResumeContent';
+import PrintableResume from './PrintableResume';
+import ResumeContent from './ResumeContent';
 
 // Resume file formats available for download
 const resumeFormats = [
