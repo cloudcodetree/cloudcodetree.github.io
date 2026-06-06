@@ -1,0 +1,4 @@
+Anthropic shipped Dynamic Workflows alongside Claude Opus 4.8, letting you orchestrate up to 1,000 subagents (16 concurrent) from a single JavaScript script that Claude writes for you. The key architectural insight: the orchestration plan moves into code rather than Claude's context window, so intermediate results live in script variables and Claude only holds the final answer — dramatically reducing context bloat on large codebase migrations. Requires Claude Code v2.1.154+ and is available to Enterprise, Team, and Max users.
+
+---
+*Sources: [MarkTechPost](https://www.marktechpost.com/2026/05/28/anthropic-ships-claude-opus-4-8-alongside-dynamic-workflows-and-cheaper-fast-mode-with-workflows-capped-at-1000-subagents/) · [Dynamic Workflows Guide (MindStudio)](https://www.mindstudio.ai/blog/claude-opus-4-8-dynamic-workflows-parallel-sub-agents)*

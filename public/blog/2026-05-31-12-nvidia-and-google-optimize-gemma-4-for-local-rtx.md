@@ -1,0 +1,4 @@
+Google's open-source Gemma 4 model family (released March 31, Apache 2.0) now has optimized NVIDIA RTX support for local agentic workflows. The four model variants — E2B, E4B, 26B, 31B — span edge devices through workstation GPUs and DGX Spark. The 31B variant currently ranks #3 among open models on the Arena AI text leaderboard. Models include multimodal capabilities (vision, video, audio), native function calling for agent applications, and multilingual support for 35+ languages. Practically useful for developers who want frontier-class open models running locally.
+
+---
+*Sources: [NVIDIA Blog](https://blogs.nvidia.com/blog/rtx-ai-garage-open-models-google-gemma-4/) · [Google Cloud Blog](https://cloud.google.com/blog/products/ai-machine-learning/gemma-4-available-on-google-cloud) · [Auriga IT Guide](https://aurigait.com/blog/gemma-4-features-benchmarks-guide/)*

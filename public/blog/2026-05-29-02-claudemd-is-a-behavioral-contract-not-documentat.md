@@ -1,0 +1,4 @@
+A well-researched guide published this month confirms the highest-ROI practice for Claude Code: treat CLAUDE.md as a strict behavioral contract. Keep it under 200 lines and apply a ruthless filter — "Would removing this line cause Claude to make mistakes?" If not, cut it. Include project-specific business context, naming conventions, and domain rules that can't be inferred from code. Also: place a `~/.claude/CLAUDE.md` at your home directory for cross-project conventions, and run a session retro ("What did you learn?") at the end of each session to evolve it.
+
+---
+*Sources: [Medium (Bijit Ghosh)](https://medium.com/@bijit211987/the-complete-guide-to-claude-md-memory-rules-loading-and-cross-tool-compression-97cc12ed037b) · [DEV Community](https://dev.to/rams901/claudemd-rules-how-to-cut-ai-coding-mistakes-from-40-to-3-in-2026-2j7o)*

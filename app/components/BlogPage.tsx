@@ -1,329 +1,181 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import {
-  Container,
-  Typography,
-  Box,
-  Card,
-  CardContent,
-  Grid,
-  Chip,
-  Button,
-  TextField,
-  InputAdornment,
-  Skeleton,
-} from '@mui/material';
-import {
-  Search as SearchIcon,
-  AccessTime as TimeIcon,
-  Person as PersonIcon,
-} from '@mui/icons-material';
+import { Container, Typography, Box, Skeleton, Pagination } from '@mui/material';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { BlogPost, SERIF, MONO, ACCENT, LINK, formatLongDate, markdownSx } from './blogShared';
 
-interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  author: string;
-  date: string;
-  tags: string[];
-  readTime: number;
-  filename?: string;
-}
-
-// Dynamic blog posts loaded from external markdown files
+const POSTS_PER_PAGE = 10;
 
 export default function BlogPage() {
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Load blog posts from external markdown files
+  const [page, setPage] = useState(1);
+
+  // Restore page position when returning from an article (?page=N).
   useEffect(() => {
-    const loadBlogPosts = async () => {
+    const p = new URLSearchParams(window.location.search).get('page');
+    const n = p ? parseInt(p, 10) : 1;
+    if (n > 1) setPage(n);
+  }, []);
+
+  useEffect(() => {
+    const load = async () => {
       try {
         setLoading(true);
-        
-        // Load posts index
-        const postsResponse = await fetch('/blog/posts.json');
-        if (!postsResponse.ok) {
-          throw new Error('Failed to load posts index');
-        }
-        const postsIndex = await postsResponse.json();
-        
-        // Load markdown content for each post
-        const postsWithContent = await Promise.all(
-          postsIndex.map(async (post: BlogPost) => {
+        const index: BlogPost[] = await (await fetch('/blog/posts.json')).json();
+        const withContent = await Promise.all(
+          index.map(async (post) => {
             try {
-              const contentResponse = await fetch(`/blog/${post.filename}`);
-              if (!contentResponse.ok) {
-                throw new Error(`Failed to load ${post.filename}`);
-              }
-              const content = await contentResponse.text();
-              return { ...post, content };
-            } catch (error) {
-              console.error(`Error loading ${post.filename}:`, error);
-              return { ...post, content: 'Error loading post content.' };
+              const r = await fetch(`/blog/${post.filename}`);
+              return { ...post, content: r.ok ? await r.text() : '' };
+            } catch {
+              return { ...post, content: '' };
             }
           })
         );
-        
-        setBlogPosts(postsWithContent);
-      } catch (error) {
-        console.error('Failed to load blog posts:', error);
-        setBlogPosts([]);
+        setPosts(withContent);
+      } catch {
+        setPosts([]);
       } finally {
         setLoading(false);
       }
     };
-    
-    loadBlogPosts();
+    load();
   }, []);
 
-  const filteredPosts = blogPosts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTag = !selectedTag || post.tags.includes(selectedTag);
-    return matchesSearch && matchesTag;
-  });
+  const pageCount = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
+  const currentPage = Math.min(page, pageCount);
+  const pagePosts = posts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
 
-  const allTags = Array.from(new Set(blogPosts.flatMap(post => post.tags)));
-
-  const handlePostClick = (post: BlogPost) => {
-    setSelectedPost(post);
+  const goToPage = (n: number) => {
+    setPage(n);
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', n === 1 ? '/blog/' : `/blog/?page=${n}`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
-
-  const handleBackToList = () => {
-    setSelectedPost(null);
-  };
-
-  if (selectedPost) {
-    return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <Button onClick={handleBackToList} sx={{ mb: 4 }}>
-            ← Back to Blog
-          </Button>
-          
-          <Typography variant="h2" component="h1" sx={{ mb: 2 }}>
-            {selectedPost.title}
-          </Typography>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4, color: 'text.secondary' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <PersonIcon fontSize="small" />
-              <Typography variant="body2">{selectedPost.author}</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <TimeIcon fontSize="small" />
-              <Typography variant="body2">{selectedPost.readTime} min read</Typography>
-            </Box>
-            <Typography variant="body2">{selectedPost.date}</Typography>
-          </Box>
-
-          <Box sx={{ mb: 4 }}>
-            {selectedPost.tags.map(tag => (
-              <Chip
-                key={tag}
-                label={tag}
-                size="small"
-                sx={{
-                  mr: 1,
-                  mb: 1,
-                  background: 'rgba(59, 130, 246, 0.1)',
-                  color: '#3b82f6',
-                  border: '1px solid rgba(59, 130, 246, 0.3)',
-                }}
-              />
-            ))}
-          </Box>
-
-          <Card className="glass">
-            <CardContent sx={{ p: 4 }}>
-              <Box sx={{ 
-                '& h1': { fontSize: '2rem', fontWeight: 600, mb: 2 },
-                '& h2': { fontSize: '1.5rem', fontWeight: 600, mb: 1.5 },
-                '& h3': { fontSize: '1.25rem', fontWeight: 600, mb: 1 },
-                '& p': { mb: 2, lineHeight: 1.8 },
-                '& pre': { 
-                  backgroundColor: 'rgba(30, 41, 59, 0.8)', 
-                  borderRadius: 1, 
-                  p: 2, 
-                  overflow: 'auto',
-                  mb: 2
-                },
-                '& code': { 
-                  backgroundColor: 'rgba(30, 41, 59, 0.6)', 
-                  px: 1, 
-                  py: 0.5, 
-                  borderRadius: 0.5,
-                  fontFamily: 'monospace'
-                },
-                '& ul, & ol': { mb: 2, pl: 3 },
-                '& li': { mb: 0.5 }
-              }}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {selectedPost.content}
-                </ReactMarkdown>
-              </Box>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </Container>
-    );
-  }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
+    <Container maxWidth="lg" sx={{ py: { xs: 5, md: 9 } }}>
+      {/* Masthead */}
+      <Box
+        component={motion.div}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
+        sx={{ mb: { xs: 5, md: 7 } }}
       >
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
-          <Typography variant="h2" component="h1" sx={{ mb: 2 }}>
-            Blog
-          </Typography>
-          <Typography variant="h6" sx={{ color: 'text.secondary', mb: 4 }}>
-            Thoughts on web development, cloud architecture, and technology
-          </Typography>
+        <Typography
+          sx={{
+            fontFamily: MONO, color: ACCENT, fontSize: 12, fontWeight: 500,
+            letterSpacing: '0.22em', textTransform: 'uppercase', mb: 1.5,
+          }}
+        >
+          CloudCodeTree&nbsp;·&nbsp;Journal
+        </Typography>
 
-          {/* Search and Filter */}
-          <Box sx={{ maxWidth: 'md', mx: 'auto', mb: 4 }}>
-            <TextField
-              fullWidth
-              placeholder="Search articles..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ mb: 3 }}
-            />
+        <Typography
+          component="h1"
+          sx={{
+            fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '3rem', md: '4.75rem' },
+            lineHeight: 0.95, letterSpacing: '-0.02em', m: 0,
+            background: 'linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+          }}
+        >
+          AI News
+        </Typography>
 
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
-              <Chip
-                label="All"
-                onClick={() => setSelectedTag(null)}
-                color={selectedTag === null ? 'primary' : 'default'}
-                sx={{ cursor: 'pointer' }}
-              />
-              {allTags.map(tag => (
-                <Chip
-                  key={tag}
-                  label={tag}
-                  onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
-                  color={selectedTag === tag ? 'primary' : 'default'}
-                  sx={{ cursor: 'pointer' }}
-                />
-              ))}
-            </Box>
-          </Box>
+        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mt: 2.5, flexWrap: 'wrap' }}>
+          <Box sx={{ height: 2, width: 56, background: ACCENT, alignSelf: 'center' }} />
+          <Typography sx={{ color: 'text.secondary', fontSize: { xs: '1rem', md: '1.12rem' }, maxWidth: 560 }}>
+            Daily field notes on AI-assisted engineering.
+          </Typography>
         </Box>
+      </Box>
 
-        {/* Blog Posts Grid */}
-        <Grid container spacing={4}>
-          {loading
-            ? Array.from({ length: 3 }).map((_, index) => (
-                <Grid item xs={12} md={6} lg={4} key={index}>
-                  <Card className="glass">
-                    <CardContent>
-                      <Skeleton variant="text" height={32} width="80%" />
-                      <Skeleton variant="text" height={20} width="60%" sx={{ mb: 2 }} />
-                      <Skeleton variant="text" height={16} />
-                      <Skeleton variant="text" height={16} />
-                      <Skeleton variant="text" height={16} />
-                      <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                        <Skeleton variant="rectangular" height={24} width={60} />
-                        <Skeleton variant="rectangular" height={24} width={80} />
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))
-            : filteredPosts.map((post, index) => (
-                <Grid item xs={12} md={6} lg={4} key={post.id}>
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    <Card
-                      className="glass"
-                      sx={{
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        cursor: 'pointer',
-                        '&:hover': {
-                          transform: 'translateY(-5px)',
-                          transition: 'transform 0.3s ease',
-                        },
-                      }}
-                      onClick={() => handlePostClick(post)}
-                    >
-                      <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                        <Typography variant="h5" component="h3" sx={{ mb: 2 }}>
-                          {post.title}
-                        </Typography>
-                        
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, color: 'text.secondary' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <TimeIcon fontSize="small" />
-                            <Typography variant="caption">{post.readTime} min</Typography>
-                          </Box>
-                          <Typography variant="caption">{post.date}</Typography>
-                        </Box>
+      {loading ? (
+        <Box>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Box key={i} sx={{ py: 5, borderTop: '1px solid rgba(148,163,184,0.1)' }}>
+              <Skeleton variant="text" width={150} height={16} />
+              <Skeleton variant="text" width="60%" height={40} />
+              <Skeleton variant="text" width="95%" height={18} />
+              <Skeleton variant="text" width="90%" height={18} />
+              <Skeleton variant="text" width="80%" height={18} />
+            </Box>
+          ))}
+        </Box>
+      ) : (
+        <Box>
+          {pagePosts.map((post, index) => (
+            <Box
+              key={post.id}
+              component={motion.div}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: Math.min(index * 0.04, 0.4) }}
+              sx={{ py: { xs: 4, md: 6 }, borderTop: '1px solid rgba(148,163,184,0.12)' }}
+            >
+              {/* Meta line */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.5, flexWrap: 'wrap' }}>
+                {post.eyebrow && (
+                  <Box sx={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: ACCENT }}>
+                    {post.eyebrow}
+                  </Box>
+                )}
+                <Typography sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', letterSpacing: '0.04em' }}>
+                  {formatLongDate(post.date)} · {post.readTime} min read
+                </Typography>
+              </Box>
 
-                        <Typography
-                          variant="body2"
-                          sx={{ mb: 3, color: 'text.secondary', lineHeight: 1.8 }}
-                        >
-                          {post.excerpt}
-                        </Typography>
+              {/* Title — links to the article */}
+              <Typography
+                component={Link}
+                href={`/blog/${post.id}/`}
+                sx={{
+                  display: 'block', fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.7rem', md: '2.2rem' },
+                  lineHeight: 1.12, letterSpacing: '-0.015em', mb: 2.5, color: 'text.primary', textDecoration: 'none',
+                  transition: 'color 0.22s ease', '&:hover': { color: LINK },
+                }}
+              >
+                {post.title}
+              </Typography>
 
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 'auto' }}>
-                          {post.tags.slice(0, 3).map(tag => (
-                            <Chip
-                              key={tag}
-                              label={tag}
-                              size="small"
-                              sx={{
-                                background: 'rgba(59, 130, 246, 0.1)',
-                                color: '#3b82f6',
-                                border: '1px solid rgba(59, 130, 246, 0.3)',
-                              }}
-                            />
-                          ))}
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </Grid>
-              ))}
-        </Grid>
+              {/* Full entry content */}
+              <Box sx={markdownSx}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content || ''}</ReactMarkdown>
+              </Box>
+            </Box>
+          ))}
+          {pagePosts.length > 0 && <Box sx={{ borderTop: '1px solid rgba(148,163,184,0.12)' }} />}
 
-        {filteredPosts.length === 0 && !loading && (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h6" sx={{ color: 'text.secondary' }}>
-              No articles found matching your search criteria.
-            </Typography>
-          </Box>
-        )}
-      </motion.div>
+          {pageCount > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+              <Pagination
+                count={pageCount}
+                page={currentPage}
+                onChange={(_, value) => goToPage(value)}
+                shape="rounded"
+                sx={{
+                  '& .MuiPaginationItem-root': { fontFamily: MONO, color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)' },
+                  '& .Mui-selected': { background: `${ACCENT} !important`, color: '#0d1117', borderColor: ACCENT },
+                }}
+              />
+            </Box>
+          )}
+        </Box>
+      )}
+
+      {posts.length === 0 && !loading && (
+        <Box sx={{ textAlign: 'center', py: 10 }}>
+          <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>// no posts yet</Typography>
+        </Box>
+      )}
     </Container>
   );
 }

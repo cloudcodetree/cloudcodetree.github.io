@@ -1,0 +1,4 @@
+Microsoft is canceling Claude Code licenses across its Experiences + Devices division by June 30, steering engineers toward GitHub Copilot CLI. Separately, Uber exhausted its entire 2026 AI coding tools budget in four months. This is the first major signal of enterprise AI tool consolidation: companies are picking a primary agentic coding tool rather than stacking multiple subscriptions. Engineers should expect their orgs to standardize on one platform in H2 2026.
+
+---
+*Sources: [Developer Tech](https://www.developer-tech.com/news/microsoft-claude-code-github-copilot-cli/) · [Windows Forum](https://windowsforum.com/threads/microsoft-cuts-claude-code-pushes-copilot-cli-ai-coding-market-shifts-to-workflow-control.421281/) · [Space Daily](https://spacedaily.com/n-microsoft-is-canceling-claude-code-licenses-across-its-experiences-devices-division-by-june-30-steering-thousands-of-engineers-toward-github-copilot-while-uber-burned-through-its-entire-2026-ai-bu/)*

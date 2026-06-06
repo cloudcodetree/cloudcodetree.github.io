@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Fraunces, IBM_Plex_Mono } from 'next/font/google'
 import ClientOnlyThemeProvider from './components/ClientOnlyThemeProvider'
 import OptimizedHead from './components/OptimizedHead'
 import './globals.css'
@@ -11,6 +11,23 @@ const inter = Inter({
   fallback: ['system-ui', '-apple-system', 'sans-serif'],
   variable: '--font-inter',
   weight: ['400', '500', '600', '700']
+})
+
+// Editorial display serif for the blog ("The Brief") headlines.
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-fraunces',
+  axes: ['opsz', 'SOFT'],
+  style: ['normal', 'italic'],
+})
+
+// Developer mono for kickers, dates, and metadata.
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-plex-mono',
+  weight: ['400', '500', '600'],
 })
 
 export const metadata: Metadata = {
@@ -36,7 +53,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${fraunces.variable} ${plexMono.variable}`}>
       <head>
         <OptimizedHead />
       </head>

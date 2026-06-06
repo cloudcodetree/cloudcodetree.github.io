@@ -1,0 +1,4 @@
+The emerging 2026 consensus: if the model understands your intent but lacks the right information, that's a *context* problem, not a prompt problem. A well-crafted prompt in a poorly engineered context still fails; a mediocre prompt in a well-engineered context often succeeds. The practical shift: treat the LLM as a CPU, the context window as RAM, and your job as the OS — loading exactly the right data for each task. LangChain's four formalized strategies: *write* (persist externally), *select* (RAG), *compress* (summarize), and *isolate* (separate agent contexts).
+
+---
+*Sources: [Neo4j Blog](https://neo4j.com/blog/agentic-ai/context-engineering-vs-prompt-engineering/) · [Firecrawl Blog](https://www.firecrawl.dev/blog/context-engineering) · [deepset Blog](https://www.deepset.ai/blog/context-engineering-the-next-frontier-beyond-prompt-engineering)*

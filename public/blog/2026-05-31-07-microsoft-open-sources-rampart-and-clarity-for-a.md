@@ -1,0 +1,4 @@
+Released May 20, RAMPART (Risk Assessment and Measurement Platform for Agentic Red Teaming) is a Pytest-native framework for writing and running safety tests against AI agents — adversarial and benign — directly in CI pipelines. It's built on top of PyRIT, Microsoft's existing red-teaming automation library. Clarity is a structured design tool that guides teams through problem definition, solution options, and failure analysis before writing any code. The philosophy: "AI safety has to become a continuous engineering discipline rather than a periodic checkpoint."
+
+---
+*Sources: [Microsoft Security Blog](https://www.microsoft.com/en-us/security/blog/2026/05/20/introducing-rampart-and-clarity-open-source-tools-to-bring-safety-into-agent-development-workflow/) · [The Register](https://www.theregister.com/security/2026/05/21/microsoft-open-sources-agentic-ai-safety-tools/5243822)*

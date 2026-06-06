@@ -1,0 +1,4 @@
+Effective June 1, 2026, GitHub Copilot transitions from unlimited flat-rate plans to usage-based billing via "GitHub AI Credits" ($0.01 each). Base plan prices are unchanged but token-heavy workflows — chat, agentic coding sessions, code review — are now metered. The previous fallback to a cheaper model when premium requests ran out is gone. Code completions and next-edit suggestions remain unlimited. Developers with heavy agentic Copilot usage should audit their workflows now; the bill shock risk is real for power users.
+
+---
+*Sources: [GitHub Blog](https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/) · [Visual Studio Magazine](https://visualstudiomagazine.com/articles/2026/04/27/devs-sound-off-on-usage-based-copilot-pricing-change-you-will-get-less-but-pay-the-same-price.aspx)*

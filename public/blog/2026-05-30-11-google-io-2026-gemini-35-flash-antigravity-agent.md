@@ -1,0 +1,4 @@
+Google's I/O keynote (May 19-21) centered on the "agentic Gemini era." Key developer announcements: Gemini 3.5 Flash (rivals flagship models at Flash speeds, outperforms Gemini 3.1 Pro on coding/agentic benchmarks), Gemini Omni (multimodal creation from any input), the upgraded Antigravity agent-first development platform with subagents/hooks/async task management, and WebMCP — a proposed open web standard for exposing browser-based tools to AI agents, with an experimental origin trial in Chrome 149.
+
+---
+*Sources: [Google Blog](https://blog.google/innovation-and-ai/technology/ai/google-io-2026-all-our-announcements/) · [Developers Keynote](https://developers.googleblog.com/all-the-news-from-the-google-io-2026-developer-keynote/) · [9to5Google](https://9to5google.com/2026/05/19/google-io-2026-news/)*

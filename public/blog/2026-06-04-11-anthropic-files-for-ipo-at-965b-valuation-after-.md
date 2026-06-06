@@ -1,0 +1,4 @@
+Anthropic confidentially filed IPO paperwork this week, targeting an October 2026 listing, after closing a $65B Series H at a $965B post-money valuation — surpassing OpenAI's valuation for the first time. The company reported a Q2 revenue run rate of $47B, more than doubling quarter over quarter, driven largely by Claude Code adoption. For engineers: Anthropic's growth means continued heavy investment in coding tools, and an IPO creates pressure to maintain that trajectory. Claude Code is now the market-leading AI coding tool by usage among surveyed developers.
+
+---
+*Sources: [Fortune](https://fortune.com/2026/06/01/anthropic-confidentially-files-ipo-965-billion-valuation/) · [Anthropic Series H Announcement](https://www.anthropic.com/news/series-h) · [CNBC](https://www.cnbc.com/2026/05/28/anthropic-open-ai-startup-value.html)*

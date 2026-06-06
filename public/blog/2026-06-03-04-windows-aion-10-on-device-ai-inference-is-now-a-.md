@@ -1,0 +1,4 @@
+Microsoft shipped Aion 1.0 Plan (14B parameter, 32K context, tool-calling) and Aion 1.0 Instruct (fast summarization/rewriting SLM) in-box with Windows on capable devices. Developers can now build fully local agentic apps — file management, sub-agent orchestration, intent detection — without any cloud round-trip. Aion Instruct is available today in Edge Insider; open weights come to Hugging Face in July.
+
+---
+*Sources: [ChatForest Builder Guide](https://chatforest.com/builders-log/microsoft-build-2026-windows-ai-models-aion-local-inference-builder-guide/) · [WinCentral](https://thewincentral.com/microsoft-aion-1-ai-models-expanded-windows-ai-apis-build-2026/) · [Microsoft Build 2026 Everything Announced – The Neuron](https://www.theneuron.ai/explainer-articles/everything-microsoft-announced-at-microsoft-build-2026-explained/)*

@@ -24,6 +24,7 @@ import {
   Close as CloseIcon,
   Home as HomeIcon,
   Person as PersonIcon,
+  Article as ArticleIcon,
   ContactMail as ContactIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
@@ -32,6 +33,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const navItems = [
   { name: 'Home', path: '/', icon: HomeIcon },
   { name: 'Resume', path: '/resume', icon: PersonIcon },
+  { name: 'AI News', path: '/blog', icon: ArticleIcon },
   { name: 'Contact', path: '/contact', icon: ContactIcon },
   { name: 'Schedule', path: '/schedule', icon: ScheduleIcon },
 ];
@@ -46,6 +48,8 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const pathname = usePathname();
+  // Highlight a nav item for its route and any sub-route (e.g. /blog/<id> → AI News).
+  const isActive = (path: string) => (path === '/' ? pathname === '/' : pathname.startsWith(path));
 
   useEffect(() => {
     // Remove artificial delay - show content immediately
@@ -87,7 +91,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
                 component={Link}
                 href={item.path}
                 onClick={handleDrawerToggle}
-                selected={pathname === item.path}
+                selected={isActive(item.path)}
                 sx={{
                   '&.Mui-selected': {
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -95,7 +99,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
                   },
                 }}
               >
-                <Icon sx={{ mr: 2, color: pathname === item.path ? '#3b82f6' : 'inherit' }} />
+                <Icon sx={{ mr: 2, color: isActive(item.path) ? '#3b82f6' : 'inherit' }} />
                 <ListItemText primary={item.name} />
               </ListItemButton>
             </ListItem>
@@ -162,7 +166,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
                   color="inherit"
                   startIcon={<item.icon />}
                   sx={{
-                    color: pathname === item.path ? '#3b82f6' : 'inherit',
+                    color: isActive(item.path) ? '#3b82f6' : 'inherit',
                     '&:hover': {
                       backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     },

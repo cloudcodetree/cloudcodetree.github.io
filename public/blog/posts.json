@@ -1,32 +1,2020 @@
 [
   {
-    "id": "building-microservices-kubernetes",
-    "title": "Building Scalable Microservices with Kubernetes",
-    "excerpt": "Learn how to design and deploy microservices architecture using Kubernetes, including best practices for service mesh, monitoring, and security.",
+    "id": "2026-06-06-01-the-tasks-as-issues-pattern-from-this-weeks-ask-",
+    "title": "The \"tasks as issues\" pattern from this week's Ask HN dev-stack thread",
+    "excerpt": "The current Ask HN: What is your (AI) dev tech stack / workflow? thread surfaces a consistent winning pattern: write each unit of work like a GitHub issue (background, goal, acceptance criteria,…",
     "author": "Chris Harper",
-    "date": "01-15-2024",
-    "tags": ["Kubernetes", "Microservices", "DevOps", "Cloud"],
-    "readTime": 8,
-    "filename": "building-microservices-kubernetes.md"
+    "date": "06-06-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-06-01-the-tasks-as-issues-pattern-from-this-weeks-ask-.md",
+    "eyebrow": "Workflow"
   },
   {
-    "id": "react-patterns-best-practices",
-    "title": "Modern React Patterns and Best Practices",
-    "excerpt": "Explore the latest React patterns including hooks, context, and performance optimization techniques for building maintainable applications.",
+    "id": "2026-06-06-02-review-agent-output-like-a-junior-engineers-pr-n",
+    "title": "Review agent output like a junior engineer's PR, not an oracle",
+    "excerpt": "A widely-shared practical roadmap argues the default 2026 loop is hybrid: plan in your IDE, let the agent execute in a sandbox, then gate everything behind CI + human PR review. The mental model that…",
     "author": "Chris Harper",
-    "date": "01-10-2024",
-    "tags": ["React", "TypeScript", "JavaScript", "Frontend"],
-    "readTime": 6,
-    "filename": "react-patterns-best-practices.md"
+    "date": "06-06-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "Security",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-06-02-review-agent-output-like-a-junior-engineers-pr-n.md",
+    "eyebrow": "Workflow"
   },
   {
-    "id": "aws-security-best-practices",
-    "title": "AWS Security Best Practices for Developers",
-    "excerpt": "Essential security practices every developer should follow when building applications on AWS, from IAM roles to data encryption.",
+    "id": "2026-06-06-03-treat-the-context-window-as-ram-not-storage",
+    "title": "Treat the context window as RAM, not storage",
+    "excerpt": "A Mem0 post from June 5 makes a clean distinction that explains a lot of agent failures: the context window is working memory (RAM), and stuffing it like persistent storage is what causes drift and…",
     "author": "Chris Harper",
-    "date": "01-05-2024",
-    "tags": ["AWS", "Security", "DevSecOps", "Cloud"],
-    "readTime": 10,
-    "filename": "aws-security-best-practices.md"
+    "date": "06-06-2026",
+    "tags": [
+      "AI",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-06-03-treat-the-context-window-as-ram-not-storage.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-06-04-slopsquatting-is-now-a-confirmed-supply-chain-th",
+    "title": "Slopsquatting is now a confirmed supply-chain threat — gate your dependencies",
+    "excerpt": "Roughly 20% of AI-generated code references packages that don't exist, and attackers are registering those hallucinated names as malware. The CSA and vendors document real cases: the malicious…",
+    "author": "Chris Harper",
+    "date": "06-06-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "React"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-06-04-slopsquatting-is-now-a-confirmed-supply-chain-th.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-06-05-the-moat-is-eval-infrastructure-not-the-model",
+    "title": "The moat is eval infrastructure, not the model",
+    "excerpt": "A Towards Data Science framework distilled from 100+ deployments argues the teams shipping agents successfully aren't the ones with the best model — they're the ones with the best evaluation harness.…",
+    "author": "Chris Harper",
+    "date": "06-06-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-06-05-the-moat-is-eval-infrastructure-not-the-model.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-06-06-skill-vs-subagent-a-simple-decision-rule",
+    "title": "Skill vs. subagent: a simple decision rule",
+    "excerpt": "A practical Claude Code guide offers a clean heuristic for when to reach for which primitive: if the work is small and should stay in front of you, make it a skill; if it's big and should run in a…",
+    "author": "Chris Harper",
+    "date": "06-06-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-06-06-skill-vs-subagent-a-simple-decision-rule.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-06-07-openai-pushes-codex-past-coding-sites-role-speci",
+    "title": "OpenAI pushes Codex past coding — Sites, role-specific plugins, and in-place Annotations",
+    "excerpt": "In a June 2 update, OpenAI repositioned Codex from a programming assistant into a general work environment: \"Sites\" lets agents build and share hosted dashboards/apps via URL, six role-specific…",
+    "author": "Chris Harper",
+    "date": "06-06-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-06-07-openai-pushes-codex-past-coding-sites-role-speci.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-06-08-frontier-cyber-models-go-to-eu-regulators-gpt-55",
+    "title": "Frontier cyber models go to EU regulators: GPT-5.5-Cyber lands, Anthropic opens Mythos to ENISA (update)",
+    "excerpt": "A development on the Mythos thread first noted on May 31: as of June 5, OpenAI is extending GPT-5.5-Cyber — a permission-tuned variant for vetted defenders doing vuln research, malware analysis, and…",
+    "author": "Chris Harper",
+    "date": "06-06-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "Security",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-06-08-frontier-cyber-models-go-to-eu-regulators-gpt-55.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-06-09-minimax-m3-an-open-weight-model-claiming-frontie",
+    "title": "MiniMax M3: an open-weight model claiming frontier coding at 1M context",
+    "excerpt": "Released June 1, MiniMax M3 is pitched as the first open-weight model to combine frontier coding, a 1M-token context window, and native multimodality in one architecture, with a self-reported 59.0%…",
+    "author": "Chris Harper",
+    "date": "06-06-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-06-09-minimax-m3-an-open-weight-model-claiming-frontie.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-05-01-force-a-planning-phase-before-any-code-is-genera",
+    "title": "Force a planning phase before any code is generated",
+    "excerpt": "The single highest-leverage technique reported this week: make the agent produce a plan and approve it before it touches files. Without that separation, models jump straight to a solution and miss…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-01-force-a-planning-phase-before-any-code-is-genera.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-05-02-tighten-context-drop-the-politeness",
+    "title": "Tighten context, drop the politeness",
+    "excerpt": "Give the agent one well-scoped task and only the files relevant to it; broad context turns a specialist into a generalist. In Cursor, use \"Reference Open Editors\" to control context and avoid…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-02-tighten-context-drop-the-politeness.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-05-03-claude-code-dynamic-workflows-skills-changes-wor",
+    "title": "Claude Code dynamic workflows + skills changes worth adopting",
+    "excerpt": "Dynamic workflows (research preview, Enterprise/Team/Max) let Claude plan a large task, run hundreds of parallel subagents in one session, verify outputs, and report back — good for codebase-wide…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-03-claude-code-dynamic-workflows-skills-changes-wor.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-05-04-treat-your-rules-file-as-core-infra",
+    "title": "Treat your rules file as core infra",
+    "excerpt": "A well-maintained .cursorrules / CLAUDE.md is described as one of the highest-leverage investments in an AI workflow: it encodes architecture, conventions, and constraints so a generic assistant…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-04-treat-your-rules-file-as-core-infra.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-05-05-local-model-memory-retrieval-beats-bigger-contex",
+    "title": "Local-model memory: retrieval beats bigger context",
+    "excerpt": "A widely-shared r/LocalLLaMA finding pushes back on \"just add more context/VRAM\": bigger windows can make recall worse due to the Lost-in-the-Middle effect. The fix is structured external memory with…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-05-local-model-memory-retrieval-beats-bigger-contex.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-05-06-where-you-put-context-matters-more-than-whats-in",
+    "title": "Where you put context matters more than what's in it",
+    "excerpt": "A three-year, 50-model research review confirms position in the prompt changes the answer more than content does (the Lost-in-the-Middle geometry). Practical takeaway: put the most critical…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-06-where-you-put-context-matters-more-than-whats-in.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-05-07-context-engineering-is-now-the-discipline-rag-di",
+    "title": "Context engineering\" is now the discipline; RAG didn't die, it grew up",
+    "excerpt": "RAG is being reframed as a \"context engine\" with intelligent retrieval at its core. For enterprise Q&A, combining vector retrieval with GraphRAG is reported to cover ~90% of needs, and adaptive…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-07-context-engineering-is-now-the-discipline-rag-di.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-05-08-keep-prompts-short-reasoning-degrades-fast",
+    "title": "Keep prompts short; reasoning degrades fast",
+    "excerpt": "2026 best-practice writeups note LLM reasoning quality starts dropping around ~3,000 tokens, with a practical sweet spot of 150–300 words for most tasks. The field is splitting cleanly into casual…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-08-keep-prompts-short-reasoning-degrades-fast.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-05-09-make-evaluation-a-repeatable-loop-not-a-vibe-che",
+    "title": "Make evaluation a repeatable loop, not a vibe check",
+    "excerpt": "An evaluation-driven workflow — Define, Test, Diagnose, Fix — turns stochastic LLM output into an engineering loop, anchored by a \"Minimum Viable Evaluation Suite\" tiered for plain apps, RAG, and…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-09-make-evaluation-a-repeatable-loop-not-a-vibe-che.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-05-10-nvidia-launches-cosmos-3-first-fully-open-omnimo",
+    "title": "NVIDIA launches Cosmos 3 — first fully open \"omnimodel\" for physical AI",
+    "excerpt": "(June 1, GTC Taipei) — A mixture-of-transformers model combining vision reasoning, world generation, and action prediction; open weights on Hugging Face with Super/Nano/Edge variants. Why it matters…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-10-nvidia-launches-cosmos-3-first-fully-open-omnimo.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-05-11-microsoft-build-2026-mai-models-copilot-becomes-",
+    "title": "Microsoft Build 2026: MAI models + Copilot becomes multi-model",
+    "excerpt": "(June 2–3) — Microsoft shipped its own MAI family, including MAI-Code-1-Flash (code generation) and MAI-Thinking-1 (reasoning, low token cost), and rebuilt Copilot to route work across OpenAI,…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-11-microsoft-build-2026-mai-models-copilot-becomes-.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-05-12-open-letter-on-synthetic-dna-tracking-for-ai-bio",
+    "title": "Open letter on synthetic-DNA tracking for AI bioweapon risk",
+    "excerpt": "(June 3) — Sam Altman, Dario Amodei, and other lab leaders signed a letter urging better tracking of synthetic DNA potentially designed by AI. Why it matters: a likely precursor to…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "AI News"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-12-open-letter-on-synthetic-dna-tracking-for-ai-bio.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-05-13-anthropic-claude-opus-48-strongest-coding-scores",
+    "title": "Anthropic Claude Opus 4.8 — strongest coding scores yet",
+    "excerpt": "(released May 28, rolling out this week) — 88.6% on SWE-bench Verified and 74.6% on Terminal-Bench 2.1, with parallel-subagent workflows and a 2.5x fast mode, all at the same $5/$25 per-1M pricing.…",
+    "author": "Chris Harper",
+    "date": "06-05-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-05-13-anthropic-claude-opus-48-strongest-coding-scores.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-04-01-specs-before-code-the-waterfall-in-15-minutes-wo",
+    "title": "Specs Before Code: The \"Waterfall in 15 Minutes\" Workflow",
+    "excerpt": "Google engineer Addy Osmani's widely-shared LLM coding workflow guide emphasizes writing a spec.md collaboratively with the AI before writing any code, then generating a step-by-step plan from that…",
+    "author": "Chris Harper",
+    "date": "06-04-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-04-01-specs-before-code-the-waterfall-in-15-minutes-wo.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-04-02-dual-tool-strategy-use-claude-code-and-cursor-fo",
+    "title": "Dual-Tool Strategy: Use Claude Code and Cursor for Different Jobs",
+    "excerpt": "Updated June 3, the most comprehensive 2026 coding agent comparison confirms that high-velocity teams use Cursor for inline editing and daily feature work, and Claude Code for autonomous multi-file…",
+    "author": "Chris Harper",
+    "date": "06-04-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-04-02-dual-tool-strategy-use-claude-code-and-cursor-fo.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-04-03-windsurf-is-now-devin-desktop-ide-as-agent-manag",
+    "title": "Windsurf is Now Devin Desktop: IDE as Agent Manager",
+    "excerpt": "On June 2, Cognition retired the Windsurf brand and relaunched as Devin Desktop, with a Rust-rewritten engine (Devin Local, 30% more token-efficient), Agent Client Protocol (ACP) support, and a new…",
+    "author": "Chris Harper",
+    "date": "06-04-2026",
+    "tags": [
+      "AI",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-04-03-windsurf-is-now-devin-desktop-ide-as-agent-manag.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-04-04-github-copilot-overhauls-billing-flex-allotments",
+    "title": "GitHub Copilot Overhauls Billing: Flex Allotments + New $100 Max Plan",
+    "excerpt": "Effective June 1, Copilot rolled out usage-based \"flex billing\" across all plans. Pro gets 1,000 base + 500 flex credits/month; Pro+ gets 3,900 base + 3,100 flex; the new Max plan targets high-volume…",
+    "author": "Chris Harper",
+    "date": "06-04-2026",
+    "tags": [
+      "AI",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-04-04-github-copilot-overhauls-billing-flex-allotments.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-04-05-ai-productivity-reality-check-84-use-ai-tools-on",
+    "title": "AI Productivity Reality Check: 84% Use AI Tools, Only 10% Productivity Gains",
+    "excerpt": "A sobering data point making the rounds: despite 84% of developers using AI tools daily, measured productivity gains average only 10%. A METR controlled study found experienced developers actually…",
+    "author": "Chris Harper",
+    "date": "06-04-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-04-05-ai-productivity-reality-check-84-use-ai-tools-on.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-04-06-context-engineering-is-the-new-prompt-engineerin",
+    "title": "Context Engineering is the New Prompt Engineering",
+    "excerpt": "The 2026 consensus has shifted: the primary skill for working with LLMs is no longer crafting prompts but managing what information is available to the model. Anthropic published a detailed…",
+    "author": "Chris Harper",
+    "date": "06-04-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-04-06-context-engineering-is-the-new-prompt-engineerin.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-04-07-multi-agent-systems-outperform-single-agents-whe",
+    "title": "Multi-Agent Systems Outperform Single Agents — When Contexts Are Isolated",
+    "excerpt": "Anthropic researchers showed that multi-agent setups beat single-agent setups specifically when each subagent operates within its own narrow, isolated context and returns results to a main…",
+    "author": "Chris Harper",
+    "date": "06-04-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-04-07-multi-agent-systems-outperform-single-agents-whe.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-04-08-nine-best-practices-for-production-grade-agentic",
+    "title": "Nine Best Practices for Production-Grade Agentic Workflows",
+    "excerpt": "A practical arXiv guide (December 2025, widely circulated now) lays out nine engineering principles for shipping agentic AI in production: tool-first design over MCP, pure-function invocation,…",
+    "author": "Chris Harper",
+    "date": "06-04-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "Microservices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-04-08-nine-best-practices-for-production-grade-agentic.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-04-09-the-llm-context-problem-in-2026-treat-context-as",
+    "title": "The LLM Context Problem in 2026: Treat Context as a First-Class Engineering Discipline",
+    "excerpt": "LogRocket's analysis of context management challenges in 2026 makes a key argument: successful production teams treat context engineering as deliberate work — filtering, ranking, pruning,…",
+    "author": "Chris Harper",
+    "date": "06-04-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-04-09-the-llm-context-problem-in-2026-treat-context-as.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-04-10-microsoft-launches-mai-code-1-flash-and-mai-thin",
+    "title": "Microsoft Launches MAI-Code-1-Flash and MAI-Thinking-1 at Build 2026",
+    "excerpt": "At Build this week (June 2-3), Microsoft unveiled its first proprietary AI models built entirely in-house without OpenAI data. MAI-Code-1-Flash is a 5B-parameter coding model that outperforms Claude…",
+    "author": "Chris Harper",
+    "date": "06-04-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-04-10-microsoft-launches-mai-code-1-flash-and-mai-thin.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-04-11-anthropic-files-for-ipo-at-965b-valuation-after-",
+    "title": "Anthropic Files for IPO at $965B Valuation After $65B Series H",
+    "excerpt": "Anthropic confidentially filed IPO paperwork this week, targeting an October 2026 listing, after closing a $65B Series H at a $965B post-money valuation — surpassing OpenAI's valuation for the first…",
+    "author": "Chris Harper",
+    "date": "06-04-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-04-11-anthropic-files-for-ipo-at-965b-valuation-after-.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-04-12-claude-opus-48-released-with-dynamic-workflows-a",
+    "title": "Claude Opus 4.8 Released with Dynamic Workflows and Fast Mode",
+    "excerpt": "Released May 28 (the most recent Anthropic model), Opus 4.8 adds three developer-relevant features: (1) Dynamic Workflows — a research preview in Claude Code that splits large-scale jobs across…",
+    "author": "Chris Harper",
+    "date": "06-04-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-04-12-claude-opus-48-released-with-dynamic-workflows-a.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-03-01-github-copilot-multi-agent-ships-in-vs-code-micr",
+    "title": "GitHub Copilot Multi-Agent Ships in VS Code (Microsoft Build 2026)",
+    "excerpt": "At Build 2026, Microsoft launched multi-agent support for VS Code, letting an orchestrator agent spawn parallel subagents for simultaneous workstreams — linting, test generation, documentation, and…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "Security"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-01-github-copilot-multi-agent-ships-in-vs-code-micr.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-03-02-cursor-model-routing-strategy-match-the-model-to",
+    "title": "Cursor Model Routing Strategy: Match the Model to the Task",
+    "excerpt": "The community consensus in 2026 is to stop sending everything to the same model. Route Gemini 2.0 Flash for fast prototyping/throwaway code, Claude 3.5 Sonnet for standard feature development, and…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-02-cursor-model-routing-strategy-match-the-model-to.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-03-03-cursor-composer-25-cursor-as-an-autonomous-engin",
+    "title": "Cursor Composer 2.5 & Cursor as an Autonomous Engineer",
+    "excerpt": "Cursor shipped Composer 2.5 in May 2026, an in-house long-horizon model that benchmarks alongside Opus 4.7 and GPT-5.5 on agentic tasks. The latest versions can sustain multi-step tasks for hours…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-03-cursor-composer-25-cursor-as-an-autonomous-engin.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-03-04-windows-aion-10-on-device-ai-inference-is-now-a-",
+    "title": "Windows Aion 1.0: On-Device AI Inference Is Now a First-Class Build Target",
+    "excerpt": "Microsoft shipped Aion 1.0 Plan (14B parameter, 32K context, tool-calling) and Aion 1.0 Instruct (fast summarization/rewriting SLM) in-box with Windows on capable devices. Developers can now build…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "Cloud"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-04-windows-aion-10-on-device-ai-inference-is-now-a-.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-03-05-ollama-still-the-community-standard-for-local-ll",
+    "title": "Ollama Still the Community Standard for Local LLM Dev",
+    "excerpt": "r/LocalLLaMA benchmarks in 2026 consistently place Ollama as the fastest path to a local OpenAI-compatible API (localhost:11434). The top mistake: running CPU-only without realizing you'll get 2–5…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-05-ollama-still-the-community-standard-for-local-ll.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-03-06-context-engineering-is-replacing-prompt-engineer",
+    "title": "Context Engineering Is Replacing Prompt Engineering as the Core Discipline",
+    "excerpt": "The emerging 2026 consensus: if the model understands your intent but lacks the right information, that's a context problem, not a prompt problem. A well-crafted prompt in a poorly engineered context…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-06-context-engineering-is-replacing-prompt-engineer.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-03-07-lost-in-the-middle-still-kills-rag-quality-place",
+    "title": "Lost in the Middle\" Still Kills RAG Quality — Placement Matters",
+    "excerpt": "Stanford research has been widely validated in production: LLM performance degrades significantly when key information is buried in the middle of long contexts. For RAG pipelines, put the most…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-07-lost-in-the-middle-still-kills-rag-quality-place.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-03-08-ai-agent-prompt-patterns-that-hold-up-in-product",
+    "title": "AI Agent Prompt Patterns That Hold Up in Production",
+    "excerpt": "Three patterns that apply across all models and frameworks: (1) Role + Constraints — give the agent a specific persona and hard behavioral limits upfront; (2) Guard Rails — define what the agent must…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-08-ai-agent-prompt-patterns-that-hold-up-in-product.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-03-09-version-control-your-prompts-prompt-drift-is-rea",
+    "title": "Version Control Your Prompts — Prompt Drift Is Real",
+    "excerpt": "If a prompt runs more than once, it belongs in version control. Build a golden test set (representative inputs + expected outputs) and run it on every prompt change, treating it as regression testing…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-09-version-control-your-prompts-prompt-drift-is-rea.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-03-10-multi-agent-llm-research-2026-paper-roundup-arxi",
+    "title": "Multi-Agent LLM Research: 2026 Paper Roundup (arXiv)",
+    "excerpt": "Active research areas this month include multi-agent coordination with conformal prediction (CommCP), autonomous agentic pipelines for scientific computing (AutoNumerics), and multi-agent negotiation…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "Security"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-10-multi-agent-llm-research-2026-paper-roundup-arxi.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-03-11-anthropic-surpasses-openai-in-valuation-at-965b",
+    "title": "Anthropic Surpasses OpenAI in Valuation at $965B",
+    "excerpt": "Anthropic raised $65B in a Series H round led by Altimeter, Sequoia, Dragoneer, and Greenoaks, reaching a $965B post-money valuation vs. OpenAI's $730B. Annualized revenue crossed $47B. For…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-11-anthropic-surpasses-openai-in-valuation-at-965b.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-03-12-microsoft-build-2026-github-copilot-drops-gpt-4-",
+    "title": "Microsoft Build 2026: GitHub Copilot Drops GPT-4 for In-House Project Polaris",
+    "excerpt": "Starting August 2026, GitHub Copilot's default engine switches from GPT-4 Turbo to Project Polaris, Microsoft's own in-house coding model. This ends Copilot's dependence on OpenAI and gives Microsoft…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-12-microsoft-build-2026-github-copilot-drops-gpt-4-.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-03-13-google-releases-gemini-35-flash-as-ga-benchmarks",
+    "title": "Google Releases Gemini 3.5 Flash as GA — Benchmarks Beat Gemini 3.1 Pro on Coding",
+    "excerpt": "Gemini 3.5 Flash is now generally available at $1.50/$9 per 1M tokens (input/output), 1M token context, and 76.2% on Terminal-Bench 2.1 — outperforming Gemini 3.1 Pro on both coding and agentic…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "AI News"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-13-google-releases-gemini-35-flash-as-ga-benchmarks.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-03-14-microsoft-is-pulling-claude-code-licenses-ai-too",
+    "title": "Microsoft Is Pulling Claude Code Licenses — AI Tools Consolidation Is Here",
+    "excerpt": "Microsoft is canceling Claude Code licenses across its Experiences + Devices division by June 30, steering engineers toward GitHub Copilot CLI. Separately, Uber exhausted its entire 2026 AI coding…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-14-microsoft-is-pulling-claude-code-licenses-ai-too.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-03-15-ai-coding-tool-market-share-update-copilot-51-cu",
+    "title": "AI Coding Tool Market Share Update: Copilot 51%, Cursor 18%, Claude Code 10%",
+    "excerpt": "The 2026 Stack Overflow Developer Survey shows GitHub Copilot's professional developer share dropped from 67% to 51%, while Cursor debuted at 18% and Claude Code first appeared at 10%. The market is…",
+    "author": "Chris Harper",
+    "date": "06-03-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-03-15-ai-coding-tool-market-share-update-copilot-51-cu.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-02-01-escape-claude-cursor-limits-free-local-ai-coding",
+    "title": "Escape Claude & Cursor Limits: Free Local AI Coding with Ollama + Continue.dev",
+    "excerpt": "A developer guide for setting up a fully offline, free AI coding environment in VS Code. Install Ollama, pull qwen2.5-coder:7b (daily driver) and qwen2.5-coder:1.5b (autocomplete), then configure…",
+    "author": "Chris Harper",
+    "date": "06-02-2026",
+    "tags": [
+      "AI",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-02-01-escape-claude-cursor-limits-free-local-ai-coding.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-02-02-addy-osmanis-llm-coding-workflow-for-2026",
+    "title": "Addy Osmani's LLM Coding Workflow for 2026",
+    "excerpt": "Detailed, opinionated workflow from a Google engineer: draft a spec.md before any code, break implementation into file-level tasks, context-pack the model with relevant files (tools like gitingest…",
+    "author": "Chris Harper",
+    "date": "06-02-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-02-02-addy-osmanis-llm-coding-workflow-for-2026.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-02-03-agentic-coding-delegate-review-own",
+    "title": "Agentic Coding: Delegate, Review, Own",
+    "excerpt": "The emerging consensus workflow for 2026: AI agents handle first-pass execution, scaffolding, implementation, and tests; engineers review for correctness, risk, and alignment; humans own…",
+    "author": "Chris Harper",
+    "date": "06-02-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "Security",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-02-03-agentic-coding-delegate-review-own.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-02-04-build-claudemd-and-geminimd-rules-files-for-your",
+    "title": "Build CLAUDE.md (and GEMINI.md) Rules Files for Your Projects",
+    "excerpt": "One of the highest-ROI things you can do: create a CLAUDE.md (or equivalent) in your repo root with coding style rules, patterns to avoid, preferred libraries, and lint requirements. When you load…",
+    "author": "Chris Harper",
+    "date": "06-02-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-02-04-build-claudemd-and-geminimd-rules-files-for-your.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-02-05-context-engineering-has-replaced-prompt-engineer",
+    "title": "Context Engineering Has Replaced Prompt Engineering",
+    "excerpt": "The industry has shifted from crafting clever instructions (\"prompt engineering\") to architecting what information the model operates on (\"context engineering\"). Think of LLMs as a CPU and the…",
+    "author": "Chris Harper",
+    "date": "06-02-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-02-05-context-engineering-has-replaced-prompt-engineer.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-02-06-agentic-ai-design-patterns-2026-edition",
+    "title": "Agentic AI Design Patterns (2026 Edition)",
+    "excerpt": "Practical patterns for building reliable AI agents: agent prompts must handle state persistence across many LLM calls, specify tool-selection logic, define error-recovery protocols, and set hard…",
+    "author": "Chris Harper",
+    "date": "06-02-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-02-06-agentic-ai-design-patterns-2026-edition.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-02-07-keep-agentic-ai-simple-a-practical-workflow",
+    "title": "Keep Agentic AI Simple: A Practical Workflow",
+    "excerpt": "A counterweight to the hype: the best agentic workflows default to hybrid (plan in IDE, agents execute in sandbox, CI + PR review before merge). Breaking work into file-level tasks with an…",
+    "author": "Chris Harper",
+    "date": "06-02-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-02-07-keep-agentic-ai-simple-a-practical-workflow.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-02-08-anthropics-2026-agentic-coding-trends-report",
+    "title": "Anthropic's 2026 Agentic Coding Trends Report",
+    "excerpt": "Anthropic published a comprehensive look at how coding agents are reshaping engineering work. Engineers are spending less time writing foundational code and more time orchestrating agent portfolios.…",
+    "author": "Chris Harper",
+    "date": "06-02-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-02-08-anthropics-2026-agentic-coding-trends-report.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-02-09-microsoft-build-2026-kicks-off-today",
+    "title": "Microsoft Build 2026 Kicks Off Today",
+    "excerpt": "Microsoft's developer conference opened this morning in San Francisco with Satya Nadella's keynote. Key announcements for engineers: the MAI model family is launching publicly (MAI-Code-1 targets…",
+    "author": "Chris Harper",
+    "date": "06-02-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-02-09-microsoft-build-2026-kicks-off-today.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-02-10-github-copilot-switched-to-token-based-billing-y",
+    "title": "GitHub Copilot Switched to Token-Based Billing Yesterday",
+    "excerpt": "Effective June 1, GitHub Copilot replaced flat Premium Request Units with token-consumption billing. Base subscription prices are unchanged (Pro: $10/mo, Business: $19/user/mo), but agentic…",
+    "author": "Chris Harper",
+    "date": "06-02-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-02-10-github-copilot-switched-to-token-based-billing-y.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-02-11-anthropic-files-for-ipo-at-965b-valuation",
+    "title": "Anthropic Files for IPO at ~$965B Valuation",
+    "excerpt": "Anthropic confidentially filed a draft S-1 with the SEC on June 1, targeting an IPO expected this fall. The company reported $10.9B in projected Q2 revenue (more than double Q1's $4.8B) and is…",
+    "author": "Chris Harper",
+    "date": "06-02-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-02-11-anthropic-files-for-ipo-at-965b-valuation.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-02-12-anthropic-claude-opus-48-dynamic-workflows-relea",
+    "title": "Anthropic Claude Opus 4.8 + Dynamic Workflows (Released May 28)",
+    "excerpt": "Claude Opus 4.8 shipped alongside Dynamic Workflows in Claude Code — a major capability upgrade that spawns up to 1,000 parallel subagents to tackle codebase-wide tasks (migrations, security audits,…",
+    "author": "Chris Harper",
+    "date": "06-02-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "Security",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-02-12-anthropic-claude-opus-48-dynamic-workflows-relea.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-01-01-claude-code-dynamic-workflows-run-hundreds-of-pa",
+    "title": "Claude Code Dynamic Workflows: Run Hundreds of Parallel Subagents",
+    "excerpt": "Anthropic shipped Dynamic Workflows alongside Claude Opus 4.8, letting you orchestrate up to 1,000 subagents (16 concurrent) from a single JavaScript script that Claude writes for you. The key…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-01-claude-code-dynamic-workflows-run-hundreds-of-pa.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-01-02-the-right-claudemd-structure-for-agentic-coding",
+    "title": "The Right CLAUDE.md Structure for Agentic Coding",
+    "excerpt": "Your CLAUDE.md file is the single most impactful thing you can configure for Claude Code sessions — it onboards every new session and shapes every agent decision. Best practices: cover…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-02-the-right-claudemd-structure-for-agentic-coding.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-01-03-5-claude-code-workflow-patterns-beyond-one-shot-",
+    "title": "5 Claude Code Workflow Patterns Beyond One-Shot Prompts",
+    "excerpt": "Plan mode separates exploration from execution: never let Claude jump straight to coding without first understanding the problem scope. Use subagents for naturally independent parallel tasks (three…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-03-5-claude-code-workflow-patterns-beyond-one-shot-.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-01-04-multi-tool-ai-coding-stacks-are-now-the-norm",
+    "title": "Multi-Tool AI Coding Stacks Are Now the Norm",
+    "excerpt": "70% of developers surveyed by The Pragmatic Engineer use 2–4 AI coding tools simultaneously. The dominant stack: Cursor for daily file-level editing (72% autocomplete acceptance rate with Supermaven)…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-04-multi-tool-ai-coding-stacks-are-now-the-norm.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-01-05-webmcp-expose-your-websites-ui-as-structured-ai-",
+    "title": "WebMCP: Expose Your Website's UI as Structured AI Agent Tools",
+    "excerpt": "Google's proposed W3C standard (co-developed with Microsoft) landed in Chrome 149 as a public origin trial. Instead of agents brute-forcing DOM pixel-reading, you annotate HTML forms or define…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-05-webmcp-expose-your-websites-ui-as-structured-ai-.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-06-01-06-context-engineering-has-superseded-prompt-engine",
+    "title": "Context Engineering Has Superseded Prompt Engineering",
+    "excerpt": "The field has reached consensus: if the model understands what you want but lacks information to do it well, that's a context problem, not a prompt problem. Context engineering is the discipline of…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-06-context-engineering-has-superseded-prompt-engine.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-01-07-mcp-security-production-grade-best-practices",
+    "title": "MCP Security: Production-Grade Best Practices",
+    "excerpt": "Treat all AI-generated content as untrusted input including everything returned from MCP servers: tool definitions, resources, prompts, and responses. Run MCP servers that touch the host environment…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-07-mcp-security-production-grade-best-practices.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-01-08-fine-tuning-with-rag-to-teach-llms-new-skills-ic",
+    "title": "Fine-Tuning with RAG to Teach LLMs New Skills (ICLR 2026)",
+    "excerpt": "A well-received paper at ICLR 2026 proposes converting inference-time retrieval into learned competence via distillation: extract compact hints from agent failures, use them to generate improved…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-08-fine-tuning-with-rag-to-teach-llms-new-skills-ic.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-01-09-agentic-rag-patterns-from-retrieval-to-reasoning",
+    "title": "Agentic RAG Patterns: From Retrieval to Reasoning",
+    "excerpt": "The Agentic RAG survey (arXiv) documents how autonomous agents embedded into RAG pipelines use reflection, planning, tool use, and multi-agent collaboration to go beyond single-pass retrieval. Key…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-09-agentic-rag-patterns-from-retrieval-to-reasoning.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-01-10-google-antigravity-20-agent-first-dev-platform-n",
+    "title": "Google Antigravity 2.0: Agent-First Dev Platform Now Generally Available",
+    "excerpt": "Google's Antigravity 2.0 desktop app (available via I/O 2026) introduces dynamic subagents for parallel workflows, scheduled background tasks, and deep Firebase/Android Studio integration. The…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-10-google-antigravity-20-agent-first-dev-platform-n.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-06-01-11-anthropic-releases-claude-opus-48-with-dynamic-w",
+    "title": "Anthropic Releases Claude Opus 4.8 with Dynamic Workflows, Raises $65B at $965B Valuation",
+    "excerpt": "Anthropic shipped Claude Opus 4.8 on May 28 — just 41 days after Opus 4.7 — alongside Dynamic Workflows (parallel subagent orchestration) and a cheaper Fast Mode for lower-latency tasks.…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-11-anthropic-releases-claude-opus-48-with-dynamic-w.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-01-12-anthropics-mythos-model-near-superhuman-at-secur",
+    "title": "Anthropic's Mythos Model: Near-Superhuman at Security and Math, Coming Soon to Public",
+    "excerpt": "Mythos (unveiled April 7, currently restricted to ~50 defensive-security partners via Project Glasswing) scores 97.6% on the 2026 USA Mathematical Olympiad vs 42.3% for Opus 4.6, and successfully…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "Security",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-12-anthropics-mythos-model-near-superhuman-at-secur.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-01-13-google-io-2026-gemini-35-flash-is-now-ga-faster-",
+    "title": "Google I/O 2026: Gemini 3.5 Flash is Now GA — Faster Than Frontier, Stronger Than Pro",
+    "excerpt": "Gemini 3.5 Flash is generally available today via the Gemini API, Google AI Studio, Android Studio, and the Antigravity platform. It outperforms Gemini 3.1 Pro on coding and agentic benchmarks…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "React"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-13-google-io-2026-gemini-35-flash-is-now-ga-faster-.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-06-01-14-github-copilot-switches-to-token-based-billing-t",
+    "title": "GitHub Copilot Switches to Token-Based Billing Today — No More Flat Pricing",
+    "excerpt": "Effective June 1, 2026, GitHub Copilot transitions from unlimited flat-rate plans to usage-based billing via \"GitHub AI Credits\" ($0.01 each). Base plan prices are unchanged but token-heavy workflows…",
+    "author": "Chris Harper",
+    "date": "06-01-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-01-14-github-copilot-switches-to-token-based-billing-t.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-31-01-pair-a-terminal-agent-with-an-ide-assistant",
+    "title": "Pair a Terminal Agent with an IDE Assistant",
+    "excerpt": "The workflow pattern most productive developers use in 2026 is combining two tools: an IDE-integrated assistant (Cursor or GitHub Copilot) for day-to-day coding, and a terminal-based agent (Claude…",
+    "author": "Chris Harper",
+    "date": "05-31-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-31-01-pair-a-terminal-agent-with-an-ide-assistant.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-31-02-addy-osmanis-llm-coding-workflow-for-2026",
+    "title": "Addy Osmani's LLM Coding Workflow for 2026",
+    "excerpt": "Google's engineering lead lays out a disciplined approach: write a spec before touching the AI, break work into small focused prompts (one function, one bug, one feature at a time), and build…",
+    "author": "Chris Harper",
+    "date": "05-31-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-31-02-addy-osmanis-llm-coding-workflow-for-2026.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-31-03-spec-driven-development-sdd-is-replacing-vibe-co",
+    "title": "Spec-Driven Development (SDD) Is Replacing Vibe Coding",
+    "excerpt": "SDD has emerged as the structured answer to vibe coding's failure mode (plausible code that drifts from intent as projects scale). The method: write an executable, version-controlled spec first,…",
+    "author": "Chris Harper",
+    "date": "05-31-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "AWS",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-31-03-spec-driven-development-sdd-is-replacing-vibe-co.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-31-04-prompting-tips-that-work-across-claude-gpt-5-and",
+    "title": "Prompting Tips That Work Across Claude, GPT-5, and Gemini in 2026",
+    "excerpt": "Six months of cross-model testing surfaces a consistent set of techniques that deliver 28–30% fewer errors on structured tasks: chain-of-thought scaffolds, persona + goal + anti-goal triples, XML…",
+    "author": "Chris Harper",
+    "date": "05-31-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-31-04-prompting-tips-that-work-across-claude-gpt-5-and.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-31-05-context-engineering-is-the-new-prompt-engineerin",
+    "title": "Context Engineering Is the New Prompt Engineering",
+    "excerpt": "The framing gaining traction in 2026: context engineering is the discipline of curating the optimal set of tokens at inference time, including everything beyond the prompt itself. Anthropic research…",
+    "author": "Chris Harper",
+    "date": "05-31-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-31-05-context-engineering-is-the-new-prompt-engineerin.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-31-06-agentic-rag-embedding-agents-inside-the-retrieva",
+    "title": "Agentic RAG: Embedding Agents Inside the Retrieval Pipeline",
+    "excerpt": "A new ArXiv survey (2501.09136) and the Agent-UniRAG framework (2505.22571) document the shift from static RAG to agentic RAG, where autonomous agents dynamically manage retrieval strategies using…",
+    "author": "Chris Harper",
+    "date": "05-31-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-31-06-agentic-rag-embedding-agents-inside-the-retrieva.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-31-07-microsoft-open-sources-rampart-and-clarity-for-a",
+    "title": "Microsoft Open-Sources RAMPART and Clarity for AI Agent Safety",
+    "excerpt": "Released May 20, RAMPART (Risk Assessment and Measurement Platform for Agentic Red Teaming) is a Pytest-native framework for writing and running safety tests against AI agents — adversarial and…",
+    "author": "Chris Harper",
+    "date": "05-31-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-31-07-microsoft-open-sources-rampart-and-clarity-for-a.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-31-08-vibe-coding-has-a-quality-problem-and-the-number",
+    "title": "Vibe Coding Has a Quality Problem — And the Numbers Are Stark",
+    "excerpt": "A December 2025 analysis of 470 GitHub PRs found AI-generated code was 1.7× more likely to have major issues and 2.74× more prone to security vulnerabilities than human-written code. LLMs generate…",
+    "author": "Chris Harper",
+    "date": "05-31-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "Security",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-31-08-vibe-coding-has-a-quality-problem-and-the-number.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-31-09-anthropic-launches-self-hosted-sandboxes-and-mcp",
+    "title": "Anthropic Launches Self-Hosted Sandboxes and MCP Tunnels for Claude Agents",
+    "excerpt": "Announced at Code with Claude London (May 19), Claude Managed Agents now supports two enterprise features. Self-hosted sandboxes (public beta) let teams run tool execution inside their own cloud…",
+    "author": "Chris Harper",
+    "date": "05-31-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "Security",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-31-09-anthropic-launches-self-hosted-sandboxes-and-mcp.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-31-10-deepseek-makes-75-v4-pro-price-cut-permanent",
+    "title": "DeepSeek Makes 75% V4-Pro Price Cut Permanent",
+    "excerpt": "DeepSeek confirmed on May 22 that its promotional V4-Pro discount is now permanent. New pricing: $0.435/M cache-miss input tokens and $0.87/M output tokens — roughly 11.5× cheaper than GPT-5.5 on…",
+    "author": "Chris Harper",
+    "date": "05-31-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-31-10-deepseek-makes-75-v4-pro-price-cut-permanent.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-31-11-google-io-2026-gemini-35-flash-ga-gemini-spark-p",
+    "title": "Google I/O 2026: Gemini 3.5 Flash GA, Gemini Spark Personal Agent, $2M Hackathon",
+    "excerpt": "Google's developer conference (May 19–20) shipped several items developers should track: Gemini 3.5 Flash is now generally available via the Gemini API, Google AI Studio, and Android Studio. Gemini…",
+    "author": "Chris Harper",
+    "date": "05-31-2026",
+    "tags": [
+      "AI",
+      "AI News"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-31-11-google-io-2026-gemini-35-flash-ga-gemini-spark-p.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-31-12-nvidia-and-google-optimize-gemma-4-for-local-rtx",
+    "title": "NVIDIA and Google Optimize Gemma 4 for Local RTX Deployment",
+    "excerpt": "Google's open-source Gemma 4 model family (released March 31, Apache 2.0) now has optimized NVIDIA RTX support for local agentic workflows. The four model variants — E2B, E4B, 26B, 31B — span edge…",
+    "author": "Chris Harper",
+    "date": "05-31-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-31-12-nvidia-and-google-optimize-gemma-4-for-local-rtx.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-30-01-claude-code-dynamic-workflows-ultracode-mode",
+    "title": "Claude Code Dynamic Workflows & Ultracode Mode",
+    "excerpt": "Anthropic launched dynamic workflows on May 28, enabling Claude to orchestrate up to 1,000 parallel subagents for large, complex tasks like codebase audits, migration jobs, and security reviews. The…",
+    "author": "Chris Harper",
+    "date": "05-30-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "Security",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-30-01-claude-code-dynamic-workflows-ultracode-mode.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-30-02-playwright-mcp-self-healing-tests-in-cursor",
+    "title": "Playwright + MCP Self-Healing Tests in Cursor",
+    "excerpt": "A viral workflow connecting Playwright to Cursor via MCP creates TDD on autopilot: the agent runs tests, fails, fixes code, and verifies — all without leaving your editor. This \"agentic TDD\" pattern…",
+    "author": "Chris Harper",
+    "date": "05-30-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-30-02-playwright-mcp-self-healing-tests-in-cursor.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-30-03-budget-tokens-strategically-in-multi-agent-runs",
+    "title": "Budget Tokens Strategically in Multi-Agent Runs",
+    "excerpt": "With dynamic workflows consuming substantially more tokens, a practical rule of thumb from developers: use a smaller/cheaper model for indexing and low-risk classification phases, reserve the…",
+    "author": "Chris Harper",
+    "date": "05-30-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-30-03-budget-tokens-strategically-in-multi-agent-runs.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-30-04-context-engineering-4-core-strategies",
+    "title": "Context Engineering: 4 Core Strategies",
+    "excerpt": "LangChain formalized context engineering with four strategies now widely adopted in production agent systems: write (persist context externally), select (retrieve what's relevant via RAG), compress…",
+    "author": "Chris Harper",
+    "date": "05-30-2026",
+    "tags": [
+      "AI",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-30-04-context-engineering-4-core-strategies.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-30-05-9-best-practices-for-production-grade-agentic-ai",
+    "title": "9 Best Practices for Production-Grade Agentic AI",
+    "excerpt": "A recent arxiv paper distills production-grade agentic workflow patterns: tool-first design over MCP, pure-function tool invocation, single-tool and single-responsibility agents, externalized prompt…",
+    "author": "Chris Harper",
+    "date": "05-30-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-30-05-9-best-practices-for-production-grade-agentic-ai.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-30-06-design-patterns-for-securing-llm-agents-against-",
+    "title": "Design Patterns for Securing LLM Agents Against Prompt Injection",
+    "excerpt": "A new arxiv paper (2506.08837) proposes principled design patterns for building agents with provable resistance to prompt injection — a critical threat when agents have tool access or handle…",
+    "author": "Chris Harper",
+    "date": "05-30-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-30-06-design-patterns-for-securing-llm-agents-against-.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-30-07-6-production-proven-multi-agent-orchestration-pa",
+    "title": "6 Production-Proven Multi-Agent Orchestration Patterns",
+    "excerpt": "As multi-agent systems mature, six patterns have emerged as production-proven in 2026: sequential chains, parallel fan-out, supervisor/worker, hierarchical delegation, consensus/debate (multiple…",
+    "author": "Chris Harper",
+    "date": "05-30-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "Security"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-30-07-6-production-proven-multi-agent-orchestration-pa.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-30-08-is-agentic-rag-worth-it-new-research",
+    "title": "Is Agentic RAG Worth It? New Research",
+    "excerpt": "A January 2026 arxiv paper experimentally compares RAG approaches and finds agentic RAG outperforms static RAG for multi-hop reasoning tasks but adds latency and cost. Key pitfalls: \"over-search\"…",
+    "author": "Chris Harper",
+    "date": "05-30-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-30-08-is-agentic-rag-worth-it-new-research.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-30-09-anthropic-releases-claude-opus-48-with-dynamic-w",
+    "title": "Anthropic Releases Claude Opus 4.8 with Dynamic Workflows",
+    "excerpt": "Anthropic shipped Claude Opus 4.8 on May 28, just 41 days after Opus 4.7, with improvements across coding, agentic tasks, reasoning, and practical knowledge work. Alongside the model, Anthropic…",
+    "author": "Chris Harper",
+    "date": "05-30-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-30-09-anthropic-releases-claude-opus-48-with-dynamic-w.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-30-10-anthropic-closing-30b-round-at-900b-valuation-wo",
+    "title": "Anthropic Closing $30B Round at $900B+ Valuation — Would Surpass OpenAI",
+    "excerpt": "Anthropic is set to close a $30 billion funding round at a pre-money valuation above $900 billion, which would make it the most valuable private AI startup in the world, surpassing OpenAI's $852…",
+    "author": "Chris Harper",
+    "date": "05-30-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-30-10-anthropic-closing-30b-round-at-900b-valuation-wo.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-30-11-google-io-2026-gemini-35-flash-antigravity-agent",
+    "title": "Google I/O 2026: Gemini 3.5 Flash, Antigravity Agent Platform, WebMCP",
+    "excerpt": "Google's I/O keynote (May 19-21) centered on the \"agentic Gemini era.\" Key developer announcements: Gemini 3.5 Flash (rivals flagship models at Flash speeds, outperforms Gemini 3.1 Pro on…",
+    "author": "Chris Harper",
+    "date": "05-30-2026",
+    "tags": [
+      "AI",
+      "AI News"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-30-11-google-io-2026-gemini-35-flash-antigravity-agent.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-30-12-openai-publishes-frontier-governance-framework",
+    "title": "OpenAI Publishes Frontier Governance Framework",
+    "excerpt": "OpenAI released its Frontier Governance Framework on May 29, aligning its safety practices with the EU AI Act's Code of Practice and California's Transparency in Frontier AI Act. The framework maps…",
+    "author": "Chris Harper",
+    "date": "05-30-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-30-12-openai-publishes-frontier-governance-framework.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-29-01-claude-code-dynamic-workflows-run-up-to-1000-par",
+    "title": "Claude Code Dynamic Workflows: Run Up to 1,000 Parallel Subagents",
+    "excerpt": "Anthropic's Opus 4.8 launch (May 28) shipped Dynamic Workflows as a research-preview layer inside Claude Code. You can now write orchestration scripts that spawn tens to hundreds of parallel…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-01-claude-code-dynamic-workflows-run-up-to-1000-par.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-29-02-claudemd-is-a-behavioral-contract-not-documentat",
+    "title": "CLAUDE.md Is a Behavioral Contract, Not Documentation",
+    "excerpt": "A well-researched guide published this month confirms the highest-ROI practice for Claude Code: treat CLAUDE.md as a strict behavioral contract. Keep it under 200 lines and apply a ruthless filter —…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-02-claudemd-is-a-behavioral-contract-not-documentat.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-29-03-claude-code-cursor-combo-beats-using-either-alon",
+    "title": "Claude Code + Cursor Combo Beats Using Either Alone",
+    "excerpt": "The emerging 2026 consensus from developers shipping fastest: use Claude Code for heavy lifting (scaffolding, refactors, infrastructure, large context reasoning with its 200K token window), then…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-03-claude-code-cursor-combo-beats-using-either-alon.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-29-04-claude-code-v21152-powershell-security-fix-usefu",
+    "title": "Claude Code v2.1.152: PowerShell Security Fix + Useful /usage Breakdown",
+    "excerpt": "Shipped May 27. The critical update: a PowerShell permission bypass is patched (v2.1.149+) — built-in cd.., cd\\, cd~ functions could change working directory outside your workspace without triggering…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-04-claude-code-v21152-powershell-security-fix-usefu.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-29-05-messages-api-now-supports-mid-task-instruction-u",
+    "title": "Messages API Now Supports Mid-Task Instruction Updates",
+    "excerpt": "Alongside Opus 4.8, Anthropic updated the Messages API to accept system entries inside the messages array. Developers can now update Claude's instructions mid-task without breaking the prompt cache…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-05-messages-api-now-supports-mid-task-instruction-u.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-29-06-context-engineering-has-supplanted-prompt-engine",
+    "title": "Context Engineering Has Supplanted Prompt Engineering",
+    "excerpt": "The industry consensus in 2026: context architecture is the primary skill for working with LLMs, not prompt wording. The key asymmetry: a well-crafted prompt in a poorly engineered context still…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-06-context-engineering-has-supplanted-prompt-engine.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-29-07-use-small-language-models-for-routine-agentic-ta",
+    "title": "Use Small Language Models for Routine Agentic Tasks (New ArXiv)",
+    "excerpt": "A fresh paper from NVIDIA Research (\"Small Language Models are the Future of Agentic AI\") argues that SLMs can match or surpass LLMs on tool use, function calling, and RAG at 10x–100x lower token…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-07-use-small-language-models-for-routine-agentic-ta.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-29-08-rag-optimization-keep-key-information-at-the-edg",
+    "title": "RAG Optimization: Keep Key Information at the Edges of Context",
+    "excerpt": "Stanford's \"lost in the middle\" research (now mainstream practice) confirms that LLM attention degrades for information placed in the middle of long contexts. For RAG pipelines: place the most…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-08-rag-optimization-keep-key-information-at-the-edg.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-29-09-google-antigravity-managed-agents-provision-remo",
+    "title": "Google Antigravity Managed Agents: Provision Remote Sandboxes via API",
+    "excerpt": "Announced at Google I/O 2026, Managed Agents (powered by Gemini 3.5 Flash) let a single API call provision a remote Linux environment where an agent can plan, call tools, execute code, manage files,…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-09-google-antigravity-managed-agents-provision-remo.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-29-10-facebook-silvertorch-index-as-model-retrieval-pa",
+    "title": "Facebook SilverTorch: \"Index as Model\" Retrieval Paradigm",
+    "excerpt": "Meta Engineering published SilverTorch (May 26), a new retrieval architecture for recommendation systems that treats the index itself as a learned model rather than a static lookup structure. While…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-10-facebook-silvertorch-index-as-model-retrieval-pa.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-29-11-anthropic-releases-claude-opus-48-with-dynamic-w",
+    "title": "Anthropic Releases Claude Opus 4.8 with Dynamic Workflows",
+    "excerpt": "Released May 28, Opus 4.8 is an upgrade to Opus 4.7 at the same price ($5/$25 per million tokens in/out). Benchmarks beat its predecessor, GPT-5.5, and Gemini 3.1 Pro across most measures. Key…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "AWS",
+      "Security"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-11-anthropic-releases-claude-opus-48-with-dynamic-w.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-29-12-google-io-2026-gemini-35-flash-is-generally-avai",
+    "title": "Google I/O 2026: Gemini 3.5 Flash Is Generally Available",
+    "excerpt": "Launched May 19–20, Gemini 3.5 Flash is the headline model from Google I/O: frontier-class intelligence at Flash-tier speed (4x faster output tokens/sec than comparable models), outperforming Gemini…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-12-google-io-2026-gemini-35-flash-is-generally-avai.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-29-13-all-three-big-four-firms-now-standardized-on-cla",
+    "title": "All Three Big Four Firms Now Standardized on Claude",
+    "excerpt": "Deloitte (470K employees), PwC, and KPMG (276K employees in 138 countries) have all committed to enterprise-wide Claude deployment by September 2026 — roughly 1.1 million professionals total. The…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-13-all-three-big-four-firms-now-standardized-on-cla.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-29-14-openai-launches-4b-enterprise-consulting-subsidi",
+    "title": "OpenAI Launches $4B Enterprise Consulting Subsidiary (DeployCo)",
+    "excerpt": "May 11: OpenAI launched the OpenAI Deployment Company with $4B+ from TPG, Goldman Sachs, McKinsey, Bain Capital, and Capgemini as co-investors. The model copies Palantir's playbook: Forward Deployed…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-14-openai-launches-4b-enterprise-consulting-subsidi.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-29-15-canada-rules-chatgpt-training-data-violated-priv",
+    "title": "Canada Rules ChatGPT Training Data Violated Privacy Law",
+    "excerpt": "Canada's Privacy Commissioner plus provincial counterparts in Quebec, BC, and Alberta found (May 6) that OpenAI violated Canadian privacy law in developing ChatGPT: overcollection of personal data…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-15-canada-rules-chatgpt-training-data-violated-priv.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-29-16-chatgpt-voice-mode-runs-on-a-13-month-old-model",
+    "title": "ChatGPT Voice Mode Runs on a 13-Month-Old Model",
+    "excerpt": "Developer Simon Willison (citing Andrej Karpathy) revealed that ChatGPT's voice mode runs on a GPT-4o-era model with an April 2024 knowledge cutoff — while the text interface uses GPT-5.5. That's a…",
+    "author": "Chris Harper",
+    "date": "05-29-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-29-16-chatgpt-voice-mode-runs-on-a-13-month-old-model.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-28-01-use-ide-terminal-agent-as-a-two-tool-stack",
+    "title": "Use IDE + Terminal Agent as a two-tool stack",
+    "excerpt": "The winning formula in 2026 is pairing a fast IDE assistant (Cursor for inline suggestions and rapid autocomplete) with a terminal agent (Claude Code for complex, multi-file refactoring and…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-01-use-ide-terminal-agent-as-a-two-tool-stack.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-28-02-claude-codes-new-agent-view-changes-how-you-mana",
+    "title": "Claude Code's new Agent View changes how you manage parallel sessions",
+    "excerpt": "A major update (Week 20, May 11–15) introduced Agent View, a single screen showing all active Claude Code sessions — what's running, what's waiting on input, and what's done. You can launch agents to…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-02-claude-codes-new-agent-view-changes-how-you-mana.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-28-03-use-goal-to-keep-claude-working-across-multi-tur",
+    "title": "Use `/goal` to keep Claude working across multi-turn tasks",
+    "excerpt": "Claude Code's new /goal command lets you define a completion condition and Claude will keep working across turns until it's met, reducing the need to manually re-prompt. The Rewind menu also now lets…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-03-use-goal-to-keep-claude-working-across-multi-tur.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-28-04-ai-coding-agents-work-best-on-clean-modular-repo",
+    "title": "AI coding agents work best on clean, modular repos",
+    "excerpt": "Agents are strongest when work is clear, contained, and testable. Messy codebases create messy agents. Invest in good engineering hygiene first — the AI amplifies what's already there, for better or…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-04-ai-coding-agents-work-best-on-clean-modular-repo.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-28-05-build-modularly-so-you-can-deprecate-agent-harne",
+    "title": "Build modularly so you can deprecate agent harnesses",
+    "excerpt": "The complex orchestration logic you write today might be made redundant by model improvements in months. Design agent workflows modularly so you can rip out old harnesses when native model…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-05-build-modularly-so-you-can-deprecate-agent-harne.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-28-06-run-1015-claude-sessions-in-parallel-with-git-wo",
+    "title": "Run 10–15 Claude sessions in parallel with Git worktrees",
+    "excerpt": "Assign each Claude Code session its own git worktree to prevent branch collisions. Developers running this setup report it as their single biggest throughput multiplier — great for tackling…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-06-run-1015-claude-sessions-in-parallel-with-git-wo.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-28-07-context-engineering-replaces-prompt-engineering-",
+    "title": "Context Engineering\" replaces \"Prompt Engineering\" as the dominant discipline",
+    "excerpt": "Prompts are now treated as production code: versioned, tested, and systematically optimized. Tools like DSPy let you define what a system should do via declarative \"Signatures\" rather than how to…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-07-context-engineering-replaces-prompt-engineering-.md",
+    "eyebrow": "Workflow"
+  },
+  {
+    "id": "2026-05-28-08-agentic-prompts-need-four-core-components-system",
+    "title": "Agentic prompts need four core components: system prompt, tools, examples, and context state",
+    "excerpt": "Unlike one-shot prompts, agentic prompts are distributed across time and steps. An ambiguous instruction at step one doesn't fail immediately — it drifts, and by step seven, the agent is doing…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-08-agentic-prompts-need-four-core-components-system.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-28-09-five-agent-design-patterns-every-developer-shoul",
+    "title": "Five agent design patterns every developer should know in 2026",
+    "excerpt": "ReAct, Plan-and-Execute, Multi-Agent Collaboration, Reflection, and Tool Use have emerged as the canonical patterns for building reliable agents. Reflection (the agent critiques its own output before…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "React"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-09-five-agent-design-patterns-every-developer-shoul.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-28-10-agentic-rag-retrieval-as-a-repeated-tool-call-no",
+    "title": "Agentic RAG: retrieval as a repeated tool call, not a preprocessing step",
+    "excerpt": "Modern RAG best practice treats retrieval as something the agent can invoke multiple times during a task rather than once before generation. Combining dense vector search with sparse BM25 retrieval…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-10-agentic-rag-retrieval-as-a-repeated-tool-call-no.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-28-11-fix-agent-failure-modes-systematically-not-throu",
+    "title": "Fix agent failure modes systematically, not through prompt tweaks",
+    "excerpt": "When an agent makes a mistake, change the surrounding system (rules, tools, constraints, feedback loops) so that mistake structurally cannot recur — not just the prompt. Prompt patching compounds;…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-11-fix-agent-failure-modes-systematically-not-throu.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-28-12-design-tool-interfaces-with-agents-in-mind",
+    "title": "Design tool interfaces with agents in mind",
+    "excerpt": "Agents perform better when tools expose clear filters, structured results, and easily parseable formats. If your team is building internal tools that agents will call, treat agent-readability as a…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-12-design-tool-interfaces-with-agents-in-mind.md",
+    "eyebrow": "Strategy"
+  },
+  {
+    "id": "2026-05-28-13-kpmg-deploys-claude-to-276000-employees-across-1",
+    "title": "KPMG deploys Claude to 276,000 employees across 138 countries",
+    "excerpt": "One of the largest enterprise AI rollouts to date, KPMG is using Claude at scale across its global workforce for advisory and consulting work. Signals accelerating mainstream enterprise adoption of…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-13-kpmg-deploys-claude-to-276000-employees-across-1.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-28-14-openai-launches-4b-consulting-subsidiary-deployc",
+    "title": "OpenAI launches $4B consulting subsidiary \"DeployCo",
+    "excerpt": "OpenAI officially launched a majority-owned standalone consulting entity backed by $4B from 19 investment firms and consultancies. They simultaneously acquired applied AI firm Tomoro (150…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-14-openai-launches-4b-consulting-subsidiary-deployc.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-28-15-cohere-acquires-aleph-alpha-creating-a-20b-trans",
+    "title": "Cohere acquires Aleph Alpha, creating a $20B transatlantic sovereign AI challenger",
+    "excerpt": "The deal merges two of the most prominent \"non-US\" AI companies into a single entity, positioning them as the go-to option for European and Canadian sovereign AI deployments. Major implications for…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-15-cohere-acquires-aleph-alpha-creating-a-20b-trans.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-28-16-nvidia-releases-nemotron-3-nano-omni-open-omni-m",
+    "title": "NVIDIA releases Nemotron 3 Nano Omni — open omni-modal model at 30B parameters",
+    "excerpt": "NVIDIA's new model unifies vision, audio, and language in a single 30B-parameter mixture-of-experts architecture. Open weights and omni-modal capability in a relatively compact model could be…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-16-nvidia-releases-nemotron-3-nano-omni-open-omni-m.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-28-17-google-ships-gemini-35-and-gemini-35-flash",
+    "title": "Google ships Gemini 3.5 and Gemini 3.5 Flash",
+    "excerpt": "Major Gemini model updates announced at Google I/O (May 19) are rolling out, improving performance, speed, and accessibility across Google AI services. Flash variant targets cost-sensitive,…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-17-google-ships-gemini-35-and-gemini-35-flash.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-28-18-anthropic-launches-project-glasswing-ai-powered-",
+    "title": "Anthropic launches Project Glasswing — AI-powered zero-day vulnerability research",
+    "excerpt": "Anthropic gave select organizations access to Claude Mythos Preview, a specialized security model that reportedly identified thousands of zero-day vulnerabilities across major OSes and browsers in…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "Security",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-18-anthropic-launches-project-glasswing-ai-powered-.md",
+    "eyebrow": "AI News"
+  },
+  {
+    "id": "2026-05-28-19-amd-venice-enters-production-on-tsmc-2nm",
+    "title": "AMD Venice enters production on TSMC 2nm",
+    "excerpt": "AMD kicked off manufacturing of its 6th-gen EPYC \"Venice\" server CPUs on TSMC's 2nm node — the first high-performance computing product at this process generation. Positions AMD as a credible…",
+    "author": "Chris Harper",
+    "date": "05-28-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-05-28-19-amd-venice-enters-production-on-tsmc-2nm.md",
+    "eyebrow": "AI News"
   }
 ]

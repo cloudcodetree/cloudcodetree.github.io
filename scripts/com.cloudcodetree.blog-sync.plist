@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Daily local auto-publish for the AI Developer News blog.
+
+  Install:
+    cp scripts/com.cloudcodetree.blog-sync.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.cloudcodetree.blog-sync.plist
+  Disable:
+    launchctl unload ~/Library/LaunchAgents/com.cloudcodetree.blog-sync.plist
+
+  Runs scripts/sync-briefings.sh every day at 09:15 local time. Logs to /tmp.
+  (Only enable this once you're happy with the blog and the repo is committed —
+  it commits & pushes to main automatically.)
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.cloudcodetree.blog-sync</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/chris.harper/Development/cloudcodetree.github.io/scripts/sync-briefings.sh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>9</integer>
+    <key>Minute</key><integer>15</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/tmp/cct-blog-sync.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/cct-blog-sync.err</string>
+</dict>
+</plist>

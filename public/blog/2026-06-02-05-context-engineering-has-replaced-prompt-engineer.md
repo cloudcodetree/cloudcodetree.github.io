@@ -1,0 +1,4 @@
+The industry has shifted from crafting clever instructions ("prompt engineering") to architecting *what information the model operates on* ("context engineering"). Think of LLMs as a CPU and the context window as RAM — your job is the OS, loading the right code and data for each task. 65% of developers now cite missing or stale context as the leading cause of poor AI code quality, not model capability or prompt phrasing. LangChain's four context strategies (write, select/RAG, compress, isolate) are the practical framework to know.
+
+---
+*Sources: [Medium: Context Engineering Has Eaten Prompt Engineering](https://medium.com/@codewithrashid/context-engineering-has-eaten-prompt-engineerin-eb3a869c0362) · [Neo4j Blog](https://neo4j.com/blog/agentic-ai/context-engineering-vs-prompt-engineering/) · [Firecrawl: Context Engineering](https://www.firecrawl.dev/blog/context-engineering)*

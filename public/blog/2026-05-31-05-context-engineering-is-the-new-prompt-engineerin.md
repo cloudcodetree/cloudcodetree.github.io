@@ -1,0 +1,4 @@
+The framing gaining traction in 2026: context engineering is the discipline of curating the optimal set of tokens at inference time, including everything beyond the prompt itself. Anthropic research shows contexts above 100K tokens degrade reasoning quality; Chroma tested 18 frontier models and found every one nosedived (some from 95% to 60% accuracy) as input grew. Practical guidance: keep context small and high-signal, dynamically load only relevant tools (tool overload above ~30 tools breaks selection accuracy), and document your context strategy like you would system architecture.
+
+---
+*Sources: [Anthropic Engineering Blog](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) · [LogRocket Blog](https://blog.logrocket.com/llm-context-problem-strategies-2026/) · [Weaviate](https://weaviate.io/blog/context-engineering)*

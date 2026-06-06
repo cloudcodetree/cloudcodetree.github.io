@@ -1,0 +1,4 @@
+Released May 28 (the most recent Anthropic model), Opus 4.8 adds three developer-relevant features: (1) **Dynamic Workflows** — a research preview in Claude Code that splits large-scale jobs across parallel subagents, enabling codebase-wide tasks that were previously impractical; (2) **Fast mode** — 2.5x higher output tokens/second, now 3x cheaper than previous fast-mode pricing; (3) **Live messages API** — accepts changes to the messages array mid-task without breaking prompt cache or requiring a new user turn. It also scores 84% on Online-Mind2Web, making it the strongest computer-use agent tested. Available now at `claude-opus-4-8` on the API.
+
+---
+*Sources: [Anthropic News](https://www.anthropic.com/news/claude-opus-4-8) · [TechCrunch](https://techcrunch.com/2026/05/28/anthropic-releases-opus-4-8-with-new-dynamic-workflow-tool/) · [GitHub Copilot Changelog](https://github.blog/changelog/2026-05-28-claude-opus-4-8-is-generally-available-for-github-copilot/)*

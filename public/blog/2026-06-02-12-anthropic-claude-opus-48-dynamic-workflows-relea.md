@@ -1,0 +1,4 @@
+Claude Opus 4.8 shipped alongside Dynamic Workflows in Claude Code — a major capability upgrade that spawns up to 1,000 parallel subagents to tackle codebase-wide tasks (migrations, security audits, multi-file rewrites). Real-world example: Jarred Sumner used it to port the Bun runtime's 750,000-line codebase from Zig to Rust in 11 days with a 99.8% test pass rate — a project estimated at 6–12 months for a dedicated team. Available on Max, Team, and Enterprise plans via CLI, desktop, and VS Code extension; also accessible through the Claude API, Bedrock, Vertex AI, and Microsoft Foundry.
+
+---
+*Sources: [InfoQ](https://www.infoq.com/news/2026/06/dynamic-workflows-claude-code/) · [MarkTechPost](https://www.marktechpost.com/2026/05/28/anthropic-ships-claude-opus-4-8-alongside-dynamic-workflows-and-cheaper-fast-mode-with-workflows-capped-at-1000-subagents/) · [ITBrief](https://itbrief.news/story/anthropic-launches-dynamic-workflows-in-claude-code)*

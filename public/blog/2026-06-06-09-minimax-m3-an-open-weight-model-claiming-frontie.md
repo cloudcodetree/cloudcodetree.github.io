@@ -1,0 +1,4 @@
+Released [June 1](https://www.minimax.io/blog/minimax-m3), MiniMax M3 is pitched as the first open-weight model to combine frontier coding, a 1M-token context window, and native multimodality in one architecture, with a self-reported 59.0% on SWE-Bench Pro (above GPT-5.5 and Gemini 3.1 Pro, approaching Claude Opus 4.7) at $0.30/M input tokens, weights promised on Hugging Face within ~10 days. Treat the benchmarks with caution — [TechTimes flagged them as unverified](https://www.techtimes.com/articles/317532/20260601/minimax-m3-open-weight-coding-model-frontier-claims-unverified-benchmarks.htm) — but if they hold, it's a serious self-hostable option for repo-scale, long-context agentic coding without per-token frontier pricing.
+
+---
+*Sources: [MiniMax](https://www.minimax.io/blog/minimax-m3) · [The Decoder](https://the-decoder.com/minimax-m3-open-weight-model-with-a-million-token-context-challenges-proprietary-leaders/)*

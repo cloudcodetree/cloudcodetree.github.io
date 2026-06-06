@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is CloudCodeTree's professional portfolio website built with React, TypeScript, Vite, and deployed to GitHub Pages. It showcases the professional profile of Chris Harper, a Principal Software Engineering Manager with extensive experience leading enterprise teams and cloud architecture initiatives. Features include:
+This is CloudCodeTree's professional portfolio website built with Next.js 15 (App Router), React 19, and TypeScript, statically exported and deployed to GitHub Pages. It showcases the professional profile of Chris Harper, a Principal Software Engineering Manager with extensive experience leading enterprise teams and cloud architecture initiatives. Features include:
 
 - **Dark Professional Theme**: Uses Material-UI v6 with custom dark theme, glass morphism effects, and gradient accents
 - **Hero Landing Page**: Professional intro with avatar, skills showcase, and service offerings
@@ -24,54 +24,66 @@ This is CloudCodeTree's professional portfolio website built with React, TypeScr
 # Install dependencies
 pnpm install
 
-# Start development server
+# Start development server (Turbopack) at http://localhost:3000
 pnpm run dev
 
-# Build for production
+# Build the static export (outputs to ./out)
 pnpm run build
 
-# Preview production build
-pnpm run preview
+# Serve the production build locally
+pnpm run start
 
 # Lint code
 pnpm run lint
 
-# Deploy to GitHub Pages
+# Manual deploy of ./out to gh-pages (normally automatic via GitHub Actions on push to main)
 pnpm run deploy
 ```
+
+> Note: deployment is normally automatic — pushing to `main` triggers
+> `.github/workflows/deploy.yml`, which builds and publishes `./out` to GitHub Pages.
 
 ## Architecture
 
 ### Tech Stack
-- **Frontend**: React 19, TypeScript, Vite
-- **UI Library**: Material-UI (MUI) v6 with custom dark theme
+- **Framework**: Next.js 15 (App Router) with static export (`output: 'export'` → `./out`)
+- **Frontend**: React 19, TypeScript
+- **UI Library**: Material-UI (MUI) v7 with custom dark theme (Emotion SSR cache)
 - **CSS**: Tailwind CSS v3 with custom configuration
-- **Routing**: React Router v7
+- **Routing**: Next.js App Router (file-based, under `app/`)
 - **Animation**: Framer Motion
 - **Markdown**: React Markdown with remark-gfm
-- **Forms**: EmailJS for contact form functionality
-- **Deployment**: GitHub Pages with gh-pages package
-- **Domain**: Route53 DNS + GitHub Pages custom domain
+- **Deployment**: GitHub Actions → GitHub Pages (gh-pages branch)
+- **Domain**: Route53 DNS + GitHub Pages custom domain (cloudcodetree.com)
+
+> Historical note: this project was migrated from Vite + React Router to Next.js. A
+> legacy `src/` tree may still exist, but the live app is the `app/` directory below.
 
 ### Project Structure
 ```
-src/
-├── components/               # Reusable UI components
-│   ├── Layout.tsx           # Main layout with responsive navigation
-│   ├── ObfuscatedEmail.tsx  # Email obfuscation component
-│   └── PrintableResume.tsx  # Printable resume component
-├── pages/                   # Page components (SPA routes)
-│   ├── HomePage.tsx         # Hero landing with services and skills
-│   ├── ResumePage.tsx       # Resume display with multiple format downloads and one-time verification
-│   ├── ProjectsPage.tsx     # Featured projects + GitHub API integration
-│   ├── BlogPage.tsx         # Dynamic blog with external markdown loading
-│   ├── ContactPage.tsx      # Contact form and professional info
-│   └── SchedulePage.tsx     # Calendly scheduling integration
-├── utils/                   # Utility functions
-│   └── emailObfuscation.ts  # Email security utilities
-├── hooks/                   # Custom React hooks (empty, ready for expansion)
-├── data/                    # Static data (empty, ready for expansion)
-└── assets/                  # Static assets (React logo, etc.)
+app/                          # Next.js App Router
+├── layout.tsx               # Root layout (metadata, providers)
+├── page.tsx                 # Home route (/)
+├── blog/page.tsx            # "AI News" list route (/blog) → components/BlogPage (feed + pagination)
+├── blog/[id]/page.tsx       # Article route (/blog/<id>) → components/BlogPost; generateStaticParams from posts.json
+├── resume/page.tsx          # Resume route (/resume)
+├── contact/page.tsx         # Contact route (/contact)
+├── schedule/page.tsx        # Schedule route (/schedule)
+├── components/              # UI components (BlogPage, HomePage, Layout, ClientLayout, …)
+├── config/                  # Config (calendly.ts)
+└── lib/                     # theme.ts, mui.ts, emotionCache.ts, emailObfuscation.ts
+
+scripts/                      # Blog automation (Node, no deps)
+├── publish-post.mjs         # Publishing core: draft → public/blog/<id>.md + posts.json
+├── import-briefings.mjs     # Explode "AI Developer News" digests → one post per item
+└── validate-blog.mjs        # Validate posts.json ↔ public/blog consistency
+
+.claude/                      # Claude Code project tooling (see "Claude Code Tooling")
+├── settings.json            # Hooks + protective deny rules
+├── hooks/                   # validate-blog.sh, secret-scan.sh
+├── skills/                  # publish-post
+├── agents/                  # blog-editor, frontend-reviewer
+└── commands/                # /publish-post, /blog-status
 
 public/
 ├── blog/                    # External blog content
@@ -263,3 +275,75 @@ For production deployment, configure:
 - `/blog` - BlogPage (Fully implemented but not in nav)
 
 **Note**: Projects and Blog pages are complete and functional but currently commented out in the navigation (`Layout.tsx` lines 40-41, 23-24). Uncomment to enable.
+
+## Blog ("AI News")
+
+The blog is labeled **AI News** in the nav and masthead (route stays `/blog`). It's
+**static markdown**: `public/blog/posts.json` is the newest-first index; each entry points
+at a `public/blog/<id>.md` file. The list (`/blog`, `app/components/BlogPage.tsx`) fetches
+the JSON then each `.md`, renders it raw via `react-markdown` + `remark-gfm`, and shows a
+paginated full-content feed (10/page; page kept in the URL as `?page=N`). Each post title
+links to its own route `/blog/<id>` (`app/blog/[id]/page.tsx` → `BlogPost`), so the browser
+back button returns to the list at the right page. Shared types/styling live in
+`app/components/blogShared.ts`. All `/blog/<id>` pages are pre-rendered via
+`generateStaticParams` (required for `output: 'export'`) — re-export after adding posts.
+
+**Hard rules**
+- Published `.md` files have **no YAML frontmatter** (it would render as literal text).
+  All metadata lives in `posts.json`.
+- Dates are `MM-DD-YYYY`. Posts are newest-first.
+- `id` == filename stem == `posts.json` `id`.
+- `posts.json` entry schema: `id, title, excerpt, author, date, tags[], readTime, filename`
+  plus optional `eyebrow` / `dek` (presentation).
+- **Never hand-edit `posts.json`** — go through the scripts below.
+
+**Primary source — the "AI Developer News" briefings (per-item posts).**
+The Claude Desktop "AI Developer News" project produces daily `YYYY-MM-DD-ai-briefing.md`
+digests. Each digest groups items under three sections (Workflow / Strategy / News). On
+the blog, **each item becomes its own post** — the "AI Developer Briefing — <date>"
+wrapper is just the internal digest format. Explode + (re)publish them with:
+```bash
+node scripts/import-briefings.mjs "~/Documents/Claude/Projects/AI Developer News" [--commit]
+```
+This is idempotent: it rebuilds all briefing-derived posts on each run (and preserves
+any hand-written posts you add later). Item title = the bold lead-in; body = the item
+prose + a Sources footer; `eyebrow` = the section. No LLM, no web fetch, no synthesis —
+every source link is preserved verbatim. The blog currently contains only these
+individual briefing items.
+
+**Manual / one-off posts** — drop a `.md` (optionally with frontmatter) and run
+`node scripts/publish-post.mjs <file> --commit`, or `--intake ~/Downloads/cct-blog-drafts`,
+or the `/publish-post` command.
+
+**Local auto-publish (optional)** — `scripts/sync-briefings.sh` runs the importer, then
+commits & pushes to `main` (triggering the deploy). It runs **locally**, not in GitHub
+Actions, because the briefings live in a folder on this Mac that the cloud runner can't
+see. Schedule it daily with `scripts/com.cloudcodetree.blog-sync.plist` (launchd):
+```bash
+cp scripts/com.cloudcodetree.blog-sync.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.cloudcodetree.blog-sync.plist   # disable: launchctl unload …
+```
+(The LLM daily generator and the weekly roundup were removed.)
+
+Validate anytime with `node scripts/validate-blog.mjs` (CI and a hook run this too).
+
+## Claude Code Tooling
+
+Project-scoped Claude Code config lives in `.claude/`:
+
+- **Skills** (`.claude/skills/`): `publish-post` (the blog publishing workflow).
+- **Agents** (`.claude/agents/`): `blog-editor` (style/excerpt/tags/fact-flag pass on a
+  draft), `frontend-reviewer` (Next.js/MUI/static-export/a11y review of UI changes).
+- **Slash commands** (`.claude/commands/`): `/publish-post`, `/blog-status`.
+- **Hooks** (`.claude/hooks/`, wired in `settings.json`):
+  - `validate-blog.sh` — PostToolUse on Write/Edit; blocks if a `public/blog/` change
+    leaves `posts.json` inconsistent.
+  - `secret-scan.sh` — PreToolUse on Bash; blocks `git commit`/`git push` when the diff
+    contains an Anthropic/AWS key or PEM private key.
+- **Settings** (`.claude/settings.json`): hooks + protective `deny` rules (resume PDF,
+  `.env*`). A convenience permission allowlist is intentionally left out of the committed
+  file — add per-developer allows to `.claude/settings.local.json` if desired, e.g.
+  `Bash(pnpm run:*)`, `Bash(node scripts/:*)`, `Bash(git commit:*)`.
+
+The design spec for this setup is in
+`docs/superpowers/specs/2026-06-05-claude-code-blog-automation-design.md`.

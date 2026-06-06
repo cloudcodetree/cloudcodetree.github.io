@@ -1,0 +1,4 @@
+Canada's Privacy Commissioner plus provincial counterparts in Quebec, BC, and Alberta found (May 6) that OpenAI violated Canadian privacy law in developing ChatGPT: overcollection of personal data without proportionality assessment, no valid consent for scraped data, and inadequate safeguards for children's data. Federal complaint conditionally resolved, but provincial enforcement continues. First national ruling of this kind — the UK ICO, German DPA, and French CNIL have similar investigations underway. Enterprises subject to PIPEDA should seek legal review before ChatGPT deployment.
+
+---
+*Sources: [Globe and Mail](https://www.theglobeandmail.com/business/article-canadian-ai-firm-cohere-germanys-aleph-alpha-announce-merger/) · [Build Fast with AI](https://www.buildfastwithai.com/blogs/ai-news-today-may-28-2026)*

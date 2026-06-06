@@ -1,0 +1,4 @@
+Anthropic shipped Claude Opus 4.8 on May 28, just 41 days after Opus 4.7, with improvements across coding, agentic tasks, reasoning, and practical knowledge work. Alongside the model, Anthropic launched dynamic workflows in Claude Code (up to 1,000 subagents), effort controls (including the new `ultracode` mode), Fast mode that's 2.5× faster and 3× cheaper than before, and expanded MCP/plugin/browser support. The Claude Platform also adds Managed Agents webhooks, multi-agent orchestration APIs, and Memory in public beta.
+
+---
+*Sources: [Anthropic Blog](https://www.anthropic.com/news/claude-opus-4-8) · [The New Stack](https://thenewstack.io/claude-opus-48-release/) · [MarkTechPost](https://www.marktechpost.com/2026/05/28/anthropic-ships-claude-opus-4-8-alongside-dynamic-workflows-and-cheaper-fast-mode-with-workflows-capped-at-1000-subagents/)*

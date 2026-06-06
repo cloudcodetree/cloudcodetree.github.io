@@ -1,0 +1,4 @@
+SDD has emerged as the structured answer to vibe coding's failure mode (plausible code that drifts from intent as projects scale). The method: write an executable, version-controlled spec first, derive an implementation plan, break it into atomic tasks, then generate code. Every major AI coding tool — Claude Code, Cursor, GitHub Spec Kit, AWS Kiro, Google Antigravity — now ships its own SDD flavor. AWS Kiro reports real customer cases where 40-hour features shipped in under 8 human hours when authored spec-first.
+
+---
+*Sources: [Towards Data Science](https://towardsdatascience.com/from-vibe-coding-to-spec-driven-development/) · [Augment Code Guide](https://www.augmentcode.com/guides/what-is-spec-driven-development) · [Medium/Predict](https://medium.com/predict/spec-driven-development-with-ai-coding-agents-the-definitive-guide-453fba1baf39)*
