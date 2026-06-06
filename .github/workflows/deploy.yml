@@ -6,14 +6,15 @@ on:
   pull_request:
     branches: [ main ]
 
-# Allow the workflow token to push the built site to the gh-pages branch.
+# Least privilege by default; the deploy job elevates to contents:write itself.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: read
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -38,8 +39,27 @@ jobs:
     - name: Build
       run: pnpm run build
 
+    - name: Upload built site
+      uses: actions/upload-artifact@v4
+      with:
+        name: site
+        path: ./out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # Only the push-to-main deploy gets write access; PR builds never do.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+    - name: Download built site
+      uses: actions/download-artifact@v4
+      with:
+        name: site
+        path: ./out
+
     - name: Deploy to GitHub Pages
-      if: github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
