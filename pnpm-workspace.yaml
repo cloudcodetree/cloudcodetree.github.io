@@ -1,3 +1,5 @@
-allowBuilds:
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
+# Packages whose install/build scripts are allowed to run.
+# pnpm 10+ blocks dependency build scripts by default; list approvals here.
+onlyBuiltDependencies:
+  - sharp
+  - unrs-resolver
