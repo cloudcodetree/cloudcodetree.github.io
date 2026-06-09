@@ -1,5 +1,0 @@
-A clean architectural pattern is hardening for managing context cost. **MCP tool definitions are expensive**: a few connected servers (say GitHub + Playwright + an IDE integration) can occupy 70%+ of a 200K context window before the agent acts, and measured tool-selection accuracy drops sharply as tool count grows — one test fell from 43% to under 14%, with a practical ceiling around 5–7 servers.
-
-Skills, by contrast, use progressive disclosure (~30–50 tokens of metadata until invoked). The recommended shape: **pin one MCP per external system you genuinely need live** (GitHub, Postgres, Linear, Sentry), and push orchestration logic into thin skills rather than connecting yet another server.
-
-**Sources:** [Claude Skills and MCP Servers: a practitioner's guide (Codersera)](https://codersera.com/blog/claude-skills-mcp-servers-practitioner-guide-2026/), [Red Hat Developer: MCP servers vs skills](https://developers.redhat.com/articles/2026/05/25/mcp-servers-vs-skills-choosing-right-context-your-ai)
