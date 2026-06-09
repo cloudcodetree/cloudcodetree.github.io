@@ -1,0 +1,4 @@
+Relevant given today's WWDC: Apple's framework exposes the ~3B on-device model (the one behind Apple Intelligence) from Swift in as few as three lines, with guided generation and tool calling built in. Inference is free and runs offline, which makes it a real option for classification, structured extraction, and light agent tasks in shipping apps — reach for it before paying for a cloud round-trip, and fall back to cloud only when you need the bigger model. Apple is expected to expand context windows and fine-tuning support this week.
+
+---
+*Sources: [Foundation Models docs](https://developer.apple.com/documentation/FoundationModels) · [Run AI on-device with a few lines of Swift](https://dev.to/arshtechpro/apples-foundation-models-framework-run-ai-on-device-with-just-a-few-lines-of-swift-lbp)*

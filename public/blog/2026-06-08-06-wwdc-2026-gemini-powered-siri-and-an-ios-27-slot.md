@@ -1,0 +1,4 @@
+Apple opened WWDC today (June 8) with a rebuilt Siri backed by a custom ~1.2-trillion-parameter Gemini model licensed from Google (reportedly ~$1B/year), adding a chat mode and personal-context features. The part that matters for engineers: **iOS 27 Extensions let users pick a third-party AI model as their default assistant**, and Siri can hand questions off to installed services like Claude or Gemini — a new, OS-level distribution surface for AI apps. Developer betas are out now, public betas in July, GA in the fall.
+
+---
+*Sources: [TechCrunch: what to expect](https://techcrunch.com/2026/06/06/what-to-expect-from-wwdc-2026-siris-highly-anticipated-revamp-and-apple-intelligence-updates/) · [MacRumors WWDC 2026 guide](https://www.macrumors.com/guide/wwdc-2026-what-to-expect/) · [Apple Developer: WWDC26](https://developer.apple.com/wwdc26/)*

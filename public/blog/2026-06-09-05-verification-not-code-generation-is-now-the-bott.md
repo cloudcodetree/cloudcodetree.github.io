@@ -1,0 +1,4 @@
+The theme converging across Hacker News threads and June writeups: code volume is no longer the constraint; review capacity is. The gap between far more code reaching production and the same human review bandwidth is described as the defining technical risk of agentic coding at scale. The data backs the anxiety — 96% of developers say they don't fully trust AI-generated code to be correct, and only 48% claim they always review it before committing. Practical response: invest in review throughput (smaller PRs, AI-assisted-but-human-arbitrated review, strong CI gates) the way you'd invest in build speed. *Related to the June 4 productivity reality-check, but specifically about the review/verification gap.*
+
+---
+*Sources: [Hitechies: the best engineers aren't the best coders](https://www.hitechies.com/ai-coding-agents-developer-skills-code-review-2026/) · [SRLabs: the verification bottleneck](https://srlabs.de/blog/ai-verification-bottleneck)*
