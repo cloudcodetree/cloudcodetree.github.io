@@ -10,7 +10,7 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 09 Jun 2026 16:25:00 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 09 Jun 2026 16:45:00 GMT</lastBuildDate>
 
     <item>
       <title>Xcode 27 goes agent-native — and it's the practical Apple story from WWDC</title>
@@ -27,29 +27,33 @@ The keynote got the Siri headlines, but the developer story worth your attention
 
 The part that actually changes how long an agent can run unattended: Xcode now gives agents the tools to *validate their own work* — writing and running tests, trying ideas in isolated Playgrounds, checking visual changes through previews, and driving the simulator via a new Device Hub. Plug-ins let you add custom skills, wire in tools over **MCP**, and connect any agent that speaks the **Agent Client Protocol (ACP)**; GitHub and Figma ship one-click integrations.
 
-For engineers, this is Apple adopting the same open agent plumbing (MCP, ACP) the rest of the ecosystem standardized on, rather than a walled garden — which means your existing skills and MCP servers travel into Xcode.
+For engineers, this is Apple adopting the same open agent plumbing (MCP, ACP) the rest of the ecosystem standardized on, rather than a walled garden — which means your existing skills and MCP servers travel into Xcode. Note the split: inline completion runs on-device, but routing a task to a third-party agent does send that code off the machine, and it's opt-in.
 
-**Sources:** [Apple Newsroom](https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/), [Technetbook breakdown](https://www.technetbooks.com/2026/06/xcode-27-unveiled-at-wwdc-2026-ai-agent.html)
+**Sources:** [Apple Newsroom](https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/), [Tech Times: Xcode 27 on-device AI](https://www.techtimes.com/articles/318045/20260609/xcode-27-device-ai-code-completion-uses-neural-engine-skips-cloud-entirely.htm), [Technetbook breakdown](https://www.technetbooks.com/2026/06/xcode-27-unveiled-at-wwdc-2026-ai-agent.html)
       ]]></content:encoded>
+      <media:content url="https://d.techtimes.com/en/full/466345/developer-beta-wwdc.png" medium="image" type="image/png" />
+      <media:thumbnail url="https://d.techtimes.com/en/full/466345/developer-beta-wwdc.png" />
     </item>
 
     <item>
       <title>Claude Code adds fallback models — set the chain before your next overload</title>
-      <link>https://releasebot.io/updates/anthropic/claude-code</link>
+      <link>https://www.aiforanything.io/blog/claude-code-fallback-model-overload-fix-2026</link>
       <guid isPermaLink="false">2026-06-09-02-claude-code-fallback-models</guid>
       <pubDate>Tue, 09 Jun 2026 14:30:00 GMT</pubDate>
       <dc:creator>Chris Harper</dc:creator>
       <category>AI</category>
       <category>Developer Tools</category>
       <category>LLM</category>
-      <description>A recent Claude Code release adds a fallbackModel setting that tries up to three models when the primary is overloaded, now applied to interactive sessions too — a cheap reliability win.</description>
+      <description>Claude Code v2.1.166 adds a fallbackModel setting that tries up to three models when the primary returns a 529 overload, now applied to interactive and background sessions too.</description>
       <content:encoded><![CDATA[
-A recent Claude Code release adds a `fallbackModel` setting that lets you configure up to three models tried in order when the primary is overloaded or unavailable, and `--fallback-model` now applies to interactive sessions too — not just headless runs.
+Claude Code v2.1.166 (June 6, 2026) shipped a `fallbackModel` setting that lets you configure up to three backup models tried in order when the primary returns a `529 Overloaded` error — and `--fallback-model` now applies to interactive and backgrounded (`/bg`) sessions, not just headless runs.
 
-The same release broadens deny-rule globbing (you can now glob in the tool-name position of a deny rule) and hardens cross-session message security. If you script agents in CI or run long autonomous sessions, the fallback chain is a cheap reliability win against capacity errors — the kind of thing that otherwise silently kills an overnight run.
+Fallback fires on overload and unexpected non-retryable errors; auth, rate-limit, request-size, and transport errors still surface immediately (retrying those on another model wouldn't help). A sensible default chain for most developers is Opus 4.8 → Sonnet 4.6 → Haiku 4.5. The same release broadens deny-rule globbing and hardens cross-session message security. If you run long agent sessions, CI pipelines, or background workers, this is a cheap reliability win against the overload windows that otherwise kill a job mid-task.
 
-**Sources:** [Releasebot: Claude Code June 2026](https://releasebot.io/updates/anthropic/claude-code), [Claude Code changelog](https://code.claude.com/docs/en/changelog)
+**Sources:** [AI for Anything: fallbackModel guide](https://www.aiforanything.io/blog/claude-code-fallback-model-overload-fix-2026), [Releasebot: Claude Code June 2026](https://releasebot.io/updates/anthropic/claude-code), [Claude Code changelog](https://code.claude.com/docs/en/changelog), [Video walkthrough](https://www.youtube.com/watch?v=Um9lVyroxoI)
       ]]></content:encoded>
+      <media:content url="https://i.ytimg.com/vi/Um9lVyroxoI/hqdefault.jpg" medium="image" type="image/jpeg" />
+      <media:thumbnail url="https://i.ytimg.com/vi/Um9lVyroxoI/hqdefault.jpg" />
     </item>
 
     <item>
@@ -70,8 +74,10 @@ First, **every loaded skill consumes context on every run**, so install the foun
 
 Second, **community-sourced skills are mostly unverified**. One registry (ClawHub) reportedly saw ~20% of early-2026 submissions carrying prompt-injection or credential-theft payloads — so pull from official or high-install, security-scanned sources only, and read a skill before you trust it with your shell and tokens.
 
-**Sources:** [The 8 Claude Code skills worth installing first (Medium)](https://medium.com/@tentenco/the-8-claude-code-skills-worth-installing-first-898735fec4b8), [What are agent skills? (explainx.ai)](https://explainx.ai/blog/what-are-agent-skills-complete-guide)
+**Sources:** [The 8 Claude Code skills worth installing first (Medium)](https://medium.com/@tentenco/the-8-claude-code-skills-worth-installing-first-898735fec4b8), [Tech Times: Claude Code skills playbook](https://www.techtimes.com/articles/317951/20260607/claude-code-skills-inside-anthropics-playbook-nine-types-that-actually-work.htm), [What are agent skills? (explainx.ai)](https://explainx.ai/blog/what-are-agent-skills-complete-guide)
       ]]></content:encoded>
+      <media:content url="https://d.techtimes.com/en/full/466214/claude-skills.jpg" medium="image" type="image/jpeg" />
+      <media:thumbnail url="https://d.techtimes.com/en/full/466214/claude-skills.jpg" />
     </item>
 
     <item>
@@ -91,13 +97,15 @@ Apps still using the older `INExtension`/intent classes keep compiling under iOS
 
 If you own an iOS/macOS app with Siri or Shortcuts integration, schedule the App Intents port this cycle rather than treating it as deprecated-but-fine.
 
-**Sources:** [TechTimes: App Intents replaces SiriKit](https://www.techtimes.com/articles/318005/20260608/wwdc-2026-app-intents-replaces-sirikit-gemini-siri-migration-clock-starts.htm), [Apple: Migrating from SiriKit Intents to App Intents](https://developer.apple.com/documentation/widgetkit/migrating-from-sirikit-intents-to-app-intents)
+**Sources:** [Tech Times: App Intents replaces SiriKit](https://www.techtimes.com/articles/318005/20260608/wwdc-2026-app-intents-replaces-sirikit-gemini-siri-migration-clock-starts.htm), [Apple: Migrating from SiriKit Intents to App Intents](https://developer.apple.com/documentation/widgetkit/migrating-from-sirikit-intents-to-app-intents)
       ]]></content:encoded>
+      <media:content url="https://d.techtimes.com/en/full/466285/siri-announcement-wwdc.png" medium="image" type="image/png" />
+      <media:thumbnail url="https://d.techtimes.com/en/full/466285/siri-announcement-wwdc.png" />
     </item>
 
     <item>
       <title>Verification — not code generation — is now the bottleneck</title>
-      <link>https://www.hitechies.com/ai-coding-agents-developer-skills-code-review-2026/</link>
+      <link>https://dev.to/tanishka_karsulkar_ec9e58/the-verification-gap-why-96-of-developers-dont-fully-trust-ai-code-yet-only-half-always-check-4cah</link>
       <guid isPermaLink="false">2026-06-09-05-verification-is-the-bottleneck</guid>
       <pubDate>Tue, 09 Jun 2026 13:00:00 GMT</pubDate>
       <dc:creator>Chris Harper</dc:creator>
@@ -106,31 +114,35 @@ If you own an iOS/macOS app with Siri or Shortcuts integration, schedule the App
       <category>Developer Tools</category>
       <description>The converging theme: code generation is no longer the constraint, review capacity is. 96% of developers don't fully trust AI code; invest in review throughput like build speed.</description>
       <content:encoded><![CDATA[
-The theme converging across Hacker News threads and June writeups: **code volume is no longer the constraint; review capacity is.** The gap between far more code reaching production and the same human review bandwidth is being described as the defining technical risk of agentic coding at scale.
+The theme converging across Hacker News threads and June writeups: **code volume is no longer the constraint; review capacity is.** Sonar's 2026 State of Code survey found 96% of developers don't fully trust AI-generated code to be functionally correct, yet only ~48% always review it before committing — and PR review time rises 91% when teams adopt AI assistants even as individual task completion climbs.
 
-The data backs the anxiety — 96% of developers say they don't fully trust AI-generated code to be correct, and only 48% claim they always review it before committing. The practical response is to invest in review throughput the way you'd invest in build speed: smaller PRs, AI-assisted-but-human-arbitrated review, and strong CI gates that catch regressions before a human ever looks.
+The practical response is to treat verification as a first-class discipline and invest in review throughput the way you'd invest in build speed: smaller PRs, automated quality gates (static analysis, security scanning) on AI-generated changes, and human review reserved for architecture and business logic. "Vibe, then verify" — accept fast, validate systematically.
 
-**Sources:** [Hitechies: the best engineers aren't the best coders](https://www.hitechies.com/ai-coding-agents-developer-skills-code-review-2026/), [SRLabs: the verification bottleneck](https://srlabs.de/blog/ai-verification-bottleneck)
+**Sources:** [DEV: The Verification Gap](https://dev.to/tanishka_karsulkar_ec9e58/the-verification-gap-why-96-of-developers-dont-fully-trust-ai-code-yet-only-half-always-check-4cah), [byteiota: 96% don't trust AI code](https://byteiota.com/ai-code-verification-bottleneck-96-dont-trust-ai-code/), [Hitechies: the best engineers aren't the best coders](https://www.hitechies.com/ai-coding-agents-developer-skills-code-review-2026/)
       ]]></content:encoded>
+      <media:content url="https://media2.dev.to/dynamic/image/width=1200,height=627,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Frlilxkpplnnlmng4kga2.png" medium="image" type="image/png" />
+      <media:thumbnail url="https://media2.dev.to/dynamic/image/width=1200,height=627,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Frlilxkpplnnlmng4kga2.png" />
     </item>
 
     <item>
       <title>Pin one MCP per system, then write thin skills on top</title>
-      <link>https://codersera.com/blog/claude-skills-mcp-servers-practitioner-guide-2026/</link>
+      <link>https://roadie.io/blog/mcp-server-context-window/</link>
       <guid isPermaLink="false">2026-06-09-06-pin-one-mcp-per-system</guid>
       <pubDate>Tue, 09 Jun 2026 12:30:00 GMT</pubDate>
       <dc:creator>Chris Harper</dc:creator>
       <category>AI</category>
       <category>Best Practices</category>
       <category>Developer Tools</category>
-      <description>A hardening pattern for context cost: pin one MCP per external system you truly need live, and push orchestration into thin skills that use progressive disclosure.</description>
+      <description>A hardening pattern for context cost: pin one MCP per external system you truly need live, and push orchestration into thin skills using progressive disclosure.</description>
       <content:encoded><![CDATA[
-A clean architectural pattern is hardening for managing context cost. **MCP tool definitions are expensive**: a few connected servers (say GitHub + Playwright + an IDE integration) can occupy 70%+ of a 200K context window before the agent acts, and measured tool-selection accuracy drops sharply as tool count grows — one test fell from 43% to under 14%, with a practical ceiling around 5–7 servers.
+A clean architectural pattern is hardening for managing context cost. **MCP tool definitions are expensive**: connecting three servers (GitHub, Slack, Sentry) can load 55,000 tokens of tool definitions before the agent reads its first message, and one documented setup hit 143,000 tokens — 72% of a 200K window — before doing any work. Benchmarks also show MCP costing 4–32× more tokens per operation than an equivalent CLI call.
 
-Skills, by contrast, use progressive disclosure (~30–50 tokens of metadata until invoked). The recommended shape: **pin one MCP per external system you genuinely need live** (GitHub, Postgres, Linear, Sentry), and push orchestration logic into thin skills rather than connecting yet another server.
+Bigger 1M-token windows give margin but don't change the multiplier. The durable fix is **progressive disclosure**: each query returns only what the agent needs for its current decision, with full records available on request. The practical shape — pin one MCP per external system you genuinely need live (GitHub, Postgres, Linear, Sentry), and push orchestration logic into thin skills rather than connecting yet another server.
 
-**Sources:** [Claude Skills and MCP Servers: a practitioner's guide (Codersera)](https://codersera.com/blog/claude-skills-mcp-servers-practitioner-guide-2026/), [Red Hat Developer: MCP servers vs skills](https://developers.redhat.com/articles/2026/05/25/mcp-servers-vs-skills-choosing-right-context-your-ai)
+**Sources:** [Roadie: Why your MCP server is eating your context window](https://roadie.io/blog/mcp-server-context-window/), [Claude Skills and MCP Servers: a practitioner's guide (Codersera)](https://codersera.com/blog/claude-skills-mcp-servers-practitioner-guide-2026/), [Red Hat Developer: MCP servers vs skills](https://developers.redhat.com/articles/2026/05/25/mcp-servers-vs-skills-choosing-right-context-your-ai)
       ]]></content:encoded>
+      <media:content url="https://images.ctfassets.net/hcqpbvoqhwhm/3ux74Zff5vvF5P419M3NWb/a6ff293753aead05acba03495553e947/roa-13.png" medium="image" type="image/png" />
+      <media:thumbnail url="https://images.ctfassets.net/hcqpbvoqhwhm/3ux74Zff5vvF5P419M3NWb/a6ff293753aead05acba03495553e947/roa-13.png" />
     </item>
 
     <item>
@@ -156,23 +168,25 @@ The **SoK: Agentic Retrieval-Augmented Generation** systematization lays out a t
 
     <item>
       <title>Apple opens its platform to any model — Core AI for local LLMs, Foundation Models for the cloud</title>
-      <link>https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/</link>
+      <link>https://www.fonearena.com/blog/484623/apple-wwdc26-foundation-models-gemini-support-xcode-27-agentic-coding-tools.html</link>
       <guid isPermaLink="false">2026-06-09-08-apple-model-agnostic-core-ai-foundation-models</guid>
       <pubDate>Tue, 09 Jun 2026 11:30:00 GMT</pubDate>
       <dc:creator>Chris Harper</dc:creator>
       <category>AI</category>
       <category>AI News</category>
       <category>Developer Tools</category>
-      <description>Apple's platform is now model-agnostic: Foundation Models calls Claude, Gemini, or any provider via a language model protocol, and Core AI runs full third-party LLMs locally on Apple silicon.</description>
+      <description>Apple's platform is now model-agnostic: Foundation Models calls Claude, Gemini, or any provider via a LanguageModel protocol, and Core AI runs full third-party LLMs locally on Apple silicon.</description>
       <content:encoded><![CDATA[
 Beyond Siri, the structurally significant developer news from WWDC is that **Apple's platform is now model-agnostic.**
 
-The **Foundation Models** framework becomes a single native Swift API that, via a new *language model protocol*, lets you call Claude, Gemini, or any provider that implements it — and small developers (App Store Small Business Program, under 2M lifetime downloads) get Apple's next-gen models on Private Cloud Compute at no cloud API cost.
+The **Foundation Models** framework becomes a single native Swift API that, via a new *LanguageModel protocol*, lets you call Claude, Gemini, or any provider that implements it — Gemini is among the first, available through the Firebase Apple SDK. Small developers (App Store Small Business Program, under 2M lifetime downloads) get Apple's next-gen models on Private Cloud Compute at no cloud API cost.
 
 Separately, **Core AI** is a brand-new framework for running full-scale third-party LLMs *locally*, optimized for Apple silicon's unified memory and Neural Engine. For engineers, this turns hundreds of millions of devices into a first-class, MCP/ACP-speaking deployment target where you pick the model instead of being handed one.
 
-**Sources:** [Apple Newsroom](https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/), [AppleMagazine on Core AI](https://applemagazine.com/apple-core-ai/)
+**Sources:** [FoneArena: Foundation Models gain Gemini support](https://www.fonearena.com/blog/484623/apple-wwdc26-foundation-models-gemini-support-xcode-27-agentic-coding-tools.html), [Apple Newsroom](https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/)
       ]]></content:encoded>
+      <media:content url="https://images.fonearena.com/blog/wp-content/uploads/2026/06/Apple-development-tools-WWDC-2026-1024x641.jpg" medium="image" type="image/jpeg" />
+      <media:thumbnail url="https://images.fonearena.com/blog/wp-content/uploads/2026/06/Apple-development-tools-WWDC-2026-1024x641.jpg" />
     </item>
 
     <item>
@@ -185,12 +199,14 @@ Separately, **Core AI** is a brand-new framework for running full-scale third-pa
       <category>AI News</category>
       <description>Apple confirmed Siri AI's personal-context features won't ship in the EU at launch for iOS/iPadOS 27, citing DMA compliance — a concrete reminder that AI features are now region-gated.</description>
       <content:encoded><![CDATA[
-Apple confirmed that Siri AI's new personal-context and assistant features **will not ship in the EU at launch** for iOS 27 and iPadOS 27, citing Digital Markets Act compliance work.
+Apple confirmed that Siri AI's new personal-context and assistant features **will not ship in the EU at launch** for iOS 27 and iPadOS 27, citing Digital Markets Act compliance — with no timeline for when they will. (EU users still get Siri AI on macOS 27 and visionOS 27.)
 
 For engineers building App Intents integrations or features that hook into Siri AI capabilities, this is a concrete reminder that AI feature availability is now **region-gated by regulation**. Design for graceful degradation and test the EU configuration as a first-class path, not an afterthought — "available everywhere" is no longer a safe default for AI features.
 
 **Sources:** [Apple Newsroom: Siri AI delayed in EU](https://www.apple.com/newsroom/2026/06/due-to-dma-siri-ai-delayed-in-eu-for-ios-27-and-ipados-27/)
       ]]></content:encoded>
+      <media:content url="https://www.apple.com/newsroom/images/default/apple-logo-og.jpg" medium="image" type="image/jpeg" />
+      <media:thumbnail url="https://www.apple.com/newsroom/images/default/apple-logo-og.jpg" />
     </item>
 
   </channel>

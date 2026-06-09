@@ -12,13 +12,13 @@
     ],
     "readTime": 1,
     "filename": "2026-06-09-01-xcode-27-goes-agent-native.md",
-    "image": "/blog/images/_default.png",
+    "image": "/blog/images/2026-06-09-01-xcode-27-goes-agent-native.png",
     "imageSource": "https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/"
   },
   {
     "id": "2026-06-09-02-claude-code-fallback-models",
     "title": "Claude Code adds fallback models — set the chain before your next overload",
-    "excerpt": "A recent Claude Code release adds a fallbackModel setting that tries up to three models when the primary is overloaded, now applied to interactive sessions too — a cheap reliability win.",
+    "excerpt": "Claude Code v2.1.166 adds a fallbackModel setting that tries up to three models when the primary returns a 529 overload, now applied to interactive and background sessions too.",
     "author": "Chris Harper",
     "date": "06-09-2026",
     "tags": [
@@ -28,8 +28,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-09-02-claude-code-fallback-models.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://releasebot.io/updates/anthropic/claude-code"
+    "image": "/blog/images/2026-06-09-02-claude-code-fallback-models.jpg",
+    "imageSource": "https://www.aiforanything.io/blog/claude-code-fallback-model-overload-fix-2026"
   },
   {
     "id": "2026-06-09-03-skill-hygiene-untrusted-community-skills",
@@ -45,7 +45,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-09-03-skill-hygiene-untrusted-community-skills.md",
-    "image": "/blog/images/_default.png",
+    "image": "/blog/images/2026-06-09-03-skill-hygiene-untrusted-community-skills.jpg",
     "imageSource": "https://medium.com/@tentenco/the-8-claude-code-skills-worth-installing-first-898735fec4b8"
   },
   {
@@ -61,7 +61,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-09-04-wwdc-sirikit-deprecated-app-intents.md",
-    "image": "/blog/images/_default.png",
+    "image": "/blog/images/2026-06-09-04-wwdc-sirikit-deprecated-app-intents.png",
     "imageSource": "https://www.techtimes.com/articles/318005/20260608/wwdc-2026-app-intents-replaces-sirikit-gemini-siri-migration-clock-starts.htm"
   },
   {
@@ -77,13 +77,13 @@
     ],
     "readTime": 1,
     "filename": "2026-06-09-05-verification-is-the-bottleneck.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://www.hitechies.com/ai-coding-agents-developer-skills-code-review-2026/"
+    "image": "/blog/images/2026-06-09-05-verification-is-the-bottleneck.webp",
+    "imageSource": "https://dev.to/tanishka_karsulkar_ec9e58/the-verification-gap-why-96-of-developers-dont-fully-trust-ai-code-yet-only-half-always-check-4cah"
   },
   {
     "id": "2026-06-09-06-pin-one-mcp-per-system",
     "title": "Pin one MCP per system, then write thin skills on top",
-    "excerpt": "A hardening pattern for context cost: pin one MCP per external system you truly need live, and push orchestration into thin skills that use progressive disclosure.",
+    "excerpt": "A hardening pattern for context cost: pin one MCP per external system you truly need live, and push orchestration into thin skills using progressive disclosure.",
     "author": "Chris Harper",
     "date": "06-09-2026",
     "tags": [
@@ -93,8 +93,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-09-06-pin-one-mcp-per-system.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://codersera.com/blog/claude-skills-mcp-servers-practitioner-guide-2026/"
+    "image": "/blog/images/2026-06-09-06-pin-one-mcp-per-system.png",
+    "imageSource": "https://roadie.io/blog/mcp-server-context-window/"
   },
   {
     "id": "2026-06-09-07-agentic-rag-references",
@@ -115,7 +115,7 @@
   {
     "id": "2026-06-09-08-apple-model-agnostic-core-ai-foundation-models",
     "title": "Apple opens its platform to any model — Core AI for local LLMs, Foundation Models for the cloud",
-    "excerpt": "Apple's platform is now model-agnostic: Foundation Models calls Claude, Gemini, or any provider via a language model protocol, and Core AI runs full third-party LLMs locally on Apple silicon.",
+    "excerpt": "Apple's platform is now model-agnostic: Foundation Models calls Claude, Gemini, or any provider via a LanguageModel protocol, and Core AI runs full third-party LLMs locally on Apple silicon.",
     "author": "Chris Harper",
     "date": "06-09-2026",
     "tags": [
@@ -125,8 +125,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-09-08-apple-model-agnostic-core-ai-foundation-models.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/"
+    "image": "/blog/images/2026-06-09-08-apple-model-agnostic-core-ai-foundation-models.jpg",
+    "imageSource": "https://www.fonearena.com/blog/484623/apple-wwdc26-foundation-models-gemini-support-xcode-27-agentic-coding-tools.html"
   },
   {
     "id": "2026-06-09-09-siri-ai-delayed-eu-dma",
@@ -140,7 +140,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-09-09-siri-ai-delayed-eu-dma.md",
-    "image": "/blog/images/_default.png",
+    "image": "/blog/images/2026-06-09-09-siri-ai-delayed-eu-dma.jpg",
     "imageSource": "https://www.apple.com/newsroom/2026/06/due-to-dma-siri-ai-delayed-in-eu-for-ios-27-and-ipados-27/"
   },
   {

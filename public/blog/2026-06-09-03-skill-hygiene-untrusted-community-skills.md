@@ -4,4 +4,4 @@ First, **every loaded skill consumes context on every run**, so install the foun
 
 Second, **community-sourced skills are mostly unverified**. One registry (ClawHub) reportedly saw ~20% of early-2026 submissions carrying prompt-injection or credential-theft payloads — so pull from official or high-install, security-scanned sources only, and read a skill before you trust it with your shell and tokens.
 
-**Sources:** [The 8 Claude Code skills worth installing first (Medium)](https://medium.com/@tentenco/the-8-claude-code-skills-worth-installing-first-898735fec4b8), [What are agent skills? (explainx.ai)](https://explainx.ai/blog/what-are-agent-skills-complete-guide)
+**Sources:** [The 8 Claude Code skills worth installing first (Medium)](https://medium.com/@tentenco/the-8-claude-code-skills-worth-installing-first-898735fec4b8), [Tech Times: Claude Code skills playbook](https://www.techtimes.com/articles/317951/20260607/claude-code-skills-inside-anthropics-playbook-nine-types-that-actually-work.htm), [What are agent skills? (explainx.ai)](https://explainx.ai/blog/what-are-agent-skills-complete-guide)

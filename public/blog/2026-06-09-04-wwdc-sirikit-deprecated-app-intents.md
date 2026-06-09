@@ -4,4 +4,4 @@ Apps still using the older `INExtension`/intent classes keep compiling under iOS
 
 If you own an iOS/macOS app with Siri or Shortcuts integration, schedule the App Intents port this cycle rather than treating it as deprecated-but-fine.
 
-**Sources:** [TechTimes: App Intents replaces SiriKit](https://www.techtimes.com/articles/318005/20260608/wwdc-2026-app-intents-replaces-sirikit-gemini-siri-migration-clock-starts.htm), [Apple: Migrating from SiriKit Intents to App Intents](https://developer.apple.com/documentation/widgetkit/migrating-from-sirikit-intents-to-app-intents)
+**Sources:** [Tech Times: App Intents replaces SiriKit](https://www.techtimes.com/articles/318005/20260608/wwdc-2026-app-intents-replaces-sirikit-gemini-siri-migration-clock-starts.htm), [Apple: Migrating from SiriKit Intents to App Intents](https://developer.apple.com/documentation/widgetkit/migrating-from-sirikit-intents-to-app-intents)
