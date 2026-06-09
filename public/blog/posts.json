@@ -144,6 +144,22 @@
     "content": "Apple confirmed that Siri AI's new personal-context and assistant features **will not ship in the EU at launch** for iOS 27 and iPadOS 27, citing Digital Markets Act compliance — with no timeline for when they will. (EU users still get Siri AI on macOS 27 and visionOS 27.)\n\nFor engineers building App Intents integrations or features that hook into Siri AI capabilities, this is a concrete reminder that AI feature availability is now **region-gated by regulation**. Design for graceful degradation and test the EU configuration as a first-class path, not an afterthought — \"available everywhere\" is no longer a safe default for AI features.\n\n**Sources:** [Apple Newsroom: Siri AI delayed in EU](https://www.apple.com/newsroom/2026/06/due-to-dma-siri-ai-delayed-in-eu-for-ios-27-and-ipados-27/)"
   },
   {
+    "id": "2026-06-09-10-claude-foundation-models-swift-package",
+    "title": "Claude ships a Swift package for Apple's Foundation Models — call it in three lines",
+    "excerpt": "Anthropic shipped a Swift package implementing Apple's new LanguageModel protocol, so apps can hand typed on-device outputs to Claude for reasoning, web search, and code execution.",
+    "author": "Chris Harper",
+    "date": "06-09-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://claude.com/blog/claude-for-foundation-models",
+    "content": "The WWDC story this week was that Apple's **Foundation Models** framework went model-agnostic via a new `LanguageModel` protocol — and Gemini got named first. The concrete follow-through for the rest of us: **Anthropic has now published its own Swift package** implementing that protocol, available June 9.\n\nWhat this buys you in practice. Apple's framework already returns *typed* Swift values through guided generation (`@Generable`) in as few as three lines — great for fast, local, private tasks like summarization or extraction on the Neural Engine. The Claude package lets you **hand those clean, typed outputs off to Claude** when a request needs multi-step reasoning or code generation, and — unlike the on-device model — Claude can **search the web for current info and execute code for data analysis**, then stream the response back into the same SwiftUI view. The framework does the typed-input work, so you arrive at the Claude API call with structured inputs instead of raw user text.\n\nThe shape Anthropic shows: a journaling app generates daily prompts on-device, then asks Claude to find threads across months of entries; a study app defines a term locally, then escalates \"why does this matter?\" to Claude. One UX, the right model per step. Setup is add-the-package, sign in with an Anthropic API key, pass typed outputs through — it handles streaming, tool calls, and structured responses. Works on iOS/iPadOS/macOS/visionOS/watchOS 27. If you ship on Apple platforms, this is the cleanest on-device-to-frontier handoff yet.\n\n**Sources:** [Claude blog: Foundation Models support](https://claude.com/blog/claude-for-foundation-models), [Anthropic: Xcode now supports the Claude Agent SDK](https://www.anthropic.com/news/apple-xcode-claude-agent-sdk), [Tech Times: Foundation Models swaps providers without code changes](https://www.techtimes.com/articles/318039/20260609/wwdc-2026-developer-tools-foundation-models-now-swaps-ai-providers-without-code-changes.htm)"
+  },
+  {
     "id": "2026-06-08-01-claude-code-changelog-hooks-can-now-keep-the-tur",
     "title": "Claude Code changelog: hooks can now keep the turn alive, plus plugin management",
     "excerpt": "The latest Claude Code release lets Stop and SubagentStop hooks return hookSpecificOutput.additionalContext to feed the model guidance without tripping a hook-error state — useful for nudging an…",

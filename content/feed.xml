@@ -10,7 +10,30 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 09 Jun 2026 16:45:00 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 09 Jun 2026 21:50:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Claude ships a Swift package for Apple's Foundation Models — call it in three lines</title>
+      <link>https://claude.com/blog/claude-for-foundation-models</link>
+      <guid isPermaLink="false">2026-06-09-10-claude-foundation-models-swift-package</guid>
+      <pubDate>Tue, 09 Jun 2026 17:00:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>Anthropic shipped a Swift package implementing Apple's new LanguageModel protocol, so apps can hand typed on-device outputs to Claude for reasoning, web search, and code execution.</description>
+      <content:encoded><![CDATA[
+The WWDC story this week was that Apple's **Foundation Models** framework went model-agnostic via a new `LanguageModel` protocol — and Gemini got named first. The concrete follow-through for the rest of us: **Anthropic has now published its own Swift package** implementing that protocol, available June 9.
+
+What this buys you in practice. Apple's framework already returns *typed* Swift values through guided generation (`@Generable`) in as few as three lines — great for fast, local, private tasks like summarization or extraction on the Neural Engine. The Claude package lets you **hand those clean, typed outputs off to Claude** when a request needs multi-step reasoning or code generation, and — unlike the on-device model — Claude can **search the web for current info and execute code for data analysis**, then stream the response back into the same SwiftUI view. The framework does the typed-input work, so you arrive at the Claude API call with structured inputs instead of raw user text.
+
+The shape Anthropic shows: a journaling app generates daily prompts on-device, then asks Claude to find threads across months of entries; a study app defines a term locally, then escalates "why does this matter?" to Claude. One UX, the right model per step. Setup is add-the-package, sign in with an Anthropic API key, pass typed outputs through — it handles streaming, tool calls, and structured responses. Works on iOS/iPadOS/macOS/visionOS/watchOS 27. If you ship on Apple platforms, this is the cleanest on-device-to-frontier handoff yet.
+
+**Sources:** [Claude blog: Foundation Models support](https://claude.com/blog/claude-for-foundation-models), [Anthropic: Xcode now supports the Claude Agent SDK](https://www.anthropic.com/news/apple-xcode-claude-agent-sdk), [Tech Times: Foundation Models swaps providers without code changes](https://www.techtimes.com/articles/318039/20260609/wwdc-2026-developer-tools-foundation-models-now-swaps-ai-providers-without-code-changes.htm)
+      ]]></content:encoded>
+      <media:content url="https://cdn.prod.website-files.com/6889473510b50328dbb70ae6/68c469d23594abeb9ab6ee48_70ed020ecf8fa028b9bc95fa819720b6_og_claude-generic.jpg" medium="image" type="image/jpeg" />
+      <media:thumbnail url="https://cdn.prod.website-files.com/6889473510b50328dbb70ae6/68c469d23594abeb9ab6ee48_70ed020ecf8fa028b9bc95fa819720b6_og_claude-generic.jpg" />
+    </item>
 
     <item>
       <title>Xcode 27 goes agent-native — and it's the practical Apple story from WWDC</title>
