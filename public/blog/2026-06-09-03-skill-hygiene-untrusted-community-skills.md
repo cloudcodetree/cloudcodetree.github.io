@@ -1,7 +1,0 @@
-As the cross-tool `SKILL.md` standard spreads across Claude Code, Codex, and Cursor, two practical rules are surfacing in June writeups.
-
-First, **every loaded skill consumes context on every run**, so install the foundation set and add task-specific skills deliberately rather than dumping a whole pack. Context is a budget; skills spend it.
-
-Second, **community-sourced skills are mostly unverified**. One registry (ClawHub) reportedly saw ~20% of early-2026 submissions carrying prompt-injection or credential-theft payloads — so pull from official or high-install, security-scanned sources only, and read a skill before you trust it with your shell and tokens.
-
-**Sources:** [The 8 Claude Code skills worth installing first (Medium)](https://medium.com/@tentenco/the-8-claude-code-skills-worth-installing-first-898735fec4b8), [What are agent skills? (explainx.ai)](https://explainx.ai/blog/what-are-agent-skills-complete-guide)

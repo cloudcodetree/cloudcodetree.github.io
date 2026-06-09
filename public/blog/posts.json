@@ -1,21 +1,5 @@
 [
   {
-    "id": "2026-06-09-01-xcode-27-goes-agent-native",
-    "title": "Xcode 27 goes agent-native — and it's the practical Apple story from WWDC",
-    "excerpt": "Xcode 27 runs Anthropic, Google, and OpenAI agents inline, lets them validate their own work via tests and previews, and connects tools over MCP and the Agent Client Protocol.",
-    "author": "Chris Harper",
-    "date": "06-09-2026",
-    "tags": [
-      "AI",
-      "Developer Tools",
-      "AI News"
-    ],
-    "readTime": 1,
-    "filename": "2026-06-09-01-xcode-27-goes-agent-native.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/"
-  },
-  {
     "id": "2026-06-09-01-xcode-27-goes-agent-native-and-its-the-practical",
     "title": "Xcode 27 goes agent-native — and it's the practical part of yesterday's WWDC",
     "excerpt": "Following the keynote (June 8), the developer story worth your attention is Xcode 27's agentic coding overhaul: you can now run Anthropic, Google, and OpenAI agents directly inside Xcode, with…",
@@ -30,22 +14,6 @@
     "filename": "2026-06-09-01-xcode-27-goes-agent-native-and-its-the-practical.md",
     "image": "/blog/images/2026-06-09-01-xcode-27-goes-agent-native-and-its-the-practical.jpg",
     "imageSource": "https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/"
-  },
-  {
-    "id": "2026-06-09-02-claude-code-fallback-models",
-    "title": "Claude Code adds fallback models — set the chain before your next overload",
-    "excerpt": "A recent Claude Code release adds a fallbackModel setting that tries up to three models when the primary is overloaded, now applied to interactive sessions too — a cheap reliability win.",
-    "author": "Chris Harper",
-    "date": "06-09-2026",
-    "tags": [
-      "AI",
-      "Developer Tools",
-      "LLM"
-    ],
-    "readTime": 1,
-    "filename": "2026-06-09-02-claude-code-fallback-models.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://releasebot.io/updates/anthropic/claude-code"
   },
   {
     "id": "2026-06-09-02-claude-code-now-supports-fallback-models-set-the",
@@ -80,23 +48,6 @@
     "image": "/blog/images/_default.png"
   },
   {
-    "id": "2026-06-09-03-skill-hygiene-untrusted-community-skills",
-    "title": "Skill hygiene: install only what you'll use, and treat community skills as untrusted",
-    "excerpt": "Two practical skill rules from June: install only the skills you'll use because each one costs context every run, and treat community-sourced skills as untrusted until security-scanned.",
-    "author": "Chris Harper",
-    "date": "06-09-2026",
-    "tags": [
-      "AI",
-      "Developer Tools",
-      "Security",
-      "Best Practices"
-    ],
-    "readTime": 1,
-    "filename": "2026-06-09-03-skill-hygiene-untrusted-community-skills.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://medium.com/@tentenco/the-8-claude-code-skills-worth-installing-first-898735fec4b8"
-  },
-  {
     "id": "2026-06-09-04-wwdc-fallout-sirikit-is-formally-deprecated-star",
     "title": "WWDC fallout: SiriKit is formally deprecated — start your App Intents migration now",
     "excerpt": "A second-day developer detail from WWDC that wasn't in the keynote-level coverage: Apple gave SiriKit a formal deprecation notice and made the expanded App Intents framework the only way an app can…",
@@ -110,38 +61,6 @@
     "filename": "2026-06-09-04-wwdc-fallout-sirikit-is-formally-deprecated-star.md",
     "image": "/blog/images/2026-06-09-04-wwdc-fallout-sirikit-is-formally-deprecated-star.png",
     "imageSource": "https://www.techtimes.com/articles/318005/20260608/wwdc-2026-app-intents-replaces-sirikit-gemini-siri-migration-clock-starts.htm"
-  },
-  {
-    "id": "2026-06-09-04-wwdc-sirikit-deprecated-app-intents",
-    "title": "WWDC fallout: SiriKit is formally deprecated — start your App Intents migration now",
-    "excerpt": "Apple gave SiriKit a formal deprecation notice at WWDC; App Intents is now the only way to integrate with the new Gemini-powered Siri. SiriKit apps already won't surface in it.",
-    "author": "Chris Harper",
-    "date": "06-09-2026",
-    "tags": [
-      "AI",
-      "Developer Tools",
-      "Best Practices"
-    ],
-    "readTime": 1,
-    "filename": "2026-06-09-04-wwdc-sirikit-deprecated-app-intents.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://www.techtimes.com/articles/318005/20260608/wwdc-2026-app-intents-replaces-sirikit-gemini-siri-migration-clock-starts.htm"
-  },
-  {
-    "id": "2026-06-09-05-verification-is-the-bottleneck",
-    "title": "Verification — not code generation — is now the bottleneck",
-    "excerpt": "The converging theme: code generation is no longer the constraint, review capacity is. 96% of developers don't fully trust AI code; invest in review throughput like build speed.",
-    "author": "Chris Harper",
-    "date": "06-09-2026",
-    "tags": [
-      "AI",
-      "Best Practices",
-      "Developer Tools"
-    ],
-    "readTime": 1,
-    "filename": "2026-06-09-05-verification-is-the-bottleneck.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://www.hitechies.com/ai-coding-agents-developer-skills-code-review-2026/"
   },
   {
     "id": "2026-06-09-05-verification-not-code-generation-is-now-the-bott",
@@ -159,22 +78,6 @@
     "imageSource": "https://www.hitechies.com/ai-coding-agents-developer-skills-code-review-2026/"
   },
   {
-    "id": "2026-06-09-06-pin-one-mcp-per-system",
-    "title": "Pin one MCP per system, then write thin skills on top",
-    "excerpt": "A hardening pattern for context cost: pin one MCP per external system you truly need live, and push orchestration into thin skills that use progressive disclosure.",
-    "author": "Chris Harper",
-    "date": "06-09-2026",
-    "tags": [
-      "AI",
-      "Best Practices",
-      "Developer Tools"
-    ],
-    "readTime": 1,
-    "filename": "2026-06-09-06-pin-one-mcp-per-system.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://codersera.com/blog/claude-skills-mcp-servers-practitioner-guide-2026/"
-  },
-  {
     "id": "2026-06-09-06-pin-one-mcp-per-system-then-write-thin-skills-on",
     "title": "Pin one MCP per system, then write thin skills on top",
     "excerpt": "A clean architectural pattern is hardening for managing context cost. MCP tool definitions are expensive: a few connected servers (e.g., GitHub + Playwright + an IDE integration) can occupy ~70%+ of…",
@@ -190,22 +93,6 @@
     "imageSource": "https://codersera.com/blog/claude-skills-mcp-servers-practitioner-guide-2026/"
   },
   {
-    "id": "2026-06-09-07-agentic-rag-references",
-    "title": "Fresh agentic-RAG references worth bookmarking",
-    "excerpt": "Two new arXiv entries map where agentic RAG is heading: a systematization (SoK) with a taxonomy and eval framework, and A-RAG's hierarchical retrieval interfaces.",
-    "author": "Chris Harper",
-    "date": "06-09-2026",
-    "tags": [
-      "AI",
-      "LLM",
-      "Best Practices"
-    ],
-    "readTime": 1,
-    "filename": "2026-06-09-07-agentic-rag-references.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://arxiv.org/pdf/2603.07379"
-  },
-  {
     "id": "2026-06-09-07-fresh-agentic-rag-references-worth-bookmarking",
     "title": "Fresh agentic-RAG references worth bookmarking",
     "excerpt": "Two new arXiv entries give a current map of where retrieval-augmented agents are heading. The SoK: Agentic Retrieval-Augmented Generation systematization lays out a taxonomy, architectures, and an…",
@@ -218,22 +105,6 @@
     "readTime": 1,
     "filename": "2026-06-09-07-fresh-agentic-rag-references-worth-bookmarking.md",
     "image": "/blog/images/_default.png"
-  },
-  {
-    "id": "2026-06-09-08-apple-model-agnostic-core-ai-foundation-models",
-    "title": "Apple opens its platform to any model — Core AI for local LLMs, Foundation Models for the cloud",
-    "excerpt": "Apple's platform is now model-agnostic: Foundation Models calls Claude, Gemini, or any provider via a language model protocol, and Core AI runs full third-party LLMs locally on Apple silicon.",
-    "author": "Chris Harper",
-    "date": "06-09-2026",
-    "tags": [
-      "AI",
-      "AI News",
-      "Developer Tools"
-    ],
-    "readTime": 1,
-    "filename": "2026-06-09-08-apple-model-agnostic-core-ai-foundation-models.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/"
   },
   {
     "id": "2026-06-09-08-wwdc-2026-apple-opens-its-platform-to-any-model-",
@@ -251,21 +122,6 @@
     "filename": "2026-06-09-08-wwdc-2026-apple-opens-its-platform-to-any-model-.md",
     "image": "/blog/images/2026-06-09-08-wwdc-2026-apple-opens-its-platform-to-any-model-.jpg",
     "imageSource": "https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/"
-  },
-  {
-    "id": "2026-06-09-09-siri-ai-delayed-eu-dma",
-    "title": "Siri AI delayed in the EU under the DMA — plan for regulatory fragmentation",
-    "excerpt": "Apple confirmed Siri AI's personal-context features won't ship in the EU at launch for iOS/iPadOS 27, citing DMA compliance — a concrete reminder that AI features are now region-gated.",
-    "author": "Chris Harper",
-    "date": "06-09-2026",
-    "tags": [
-      "AI",
-      "AI News"
-    ],
-    "readTime": 1,
-    "filename": "2026-06-09-09-siri-ai-delayed-eu-dma.md",
-    "image": "/blog/images/_default.png",
-    "imageSource": "https://www.apple.com/newsroom/2026/06/due-to-dma-siri-ai-delayed-in-eu-for-ios-27-and-ipados-27/"
   },
   {
     "id": "2026-06-09-09-siri-ai-delayed-in-the-eu-under-the-dma-plan-for",
