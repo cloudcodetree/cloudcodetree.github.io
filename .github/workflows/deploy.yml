@@ -64,3 +64,6 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./out
+        # Keep gh-pages a single commit (no per-deploy history) so the deploy
+        # branch never accumulates old build artifacts.
+        force_orphan: true
