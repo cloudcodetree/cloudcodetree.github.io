@@ -21,6 +21,8 @@
   "scripts": {
     "dev": "next dev --turbo",
     "dev:slow": "next dev",
+    "feeds": "node scripts/generate-feeds.mjs",
+    "prebuild": "node scripts/generate-feeds.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

@@ -64,8 +64,9 @@ pnpm run deploy
 app/                          # Next.js App Router
 ├── layout.tsx               # Root layout (metadata, providers)
 ├── page.tsx                 # Home route (/)
-├── blog/page.tsx            # "AI News" list route (/blog) → components/BlogPage (feed + pagination)
-├── blog/[id]/page.tsx       # Article route (/blog/<id>) → components/BlogPost; generateStaticParams from posts.json
+├── ai-news/page.tsx         # "AI News" list route (/ai-news) → components/BlogPage (feed + pagination)
+├── ai-news/[id]/page.tsx    # Article route (/ai-news/<id>) → components/BlogPost; generateStaticParams from posts.json
+├── blog/…                   # Legacy: static redirect stubs (/blog, /blog/<id>) → /ai-news (components/Redirect)
 ├── resume/page.tsx          # Resume route (/resume)
 ├── contact/page.tsx         # Contact route (/contact)
 ├── schedule/page.tsx        # Schedule route (/schedule)
@@ -75,6 +76,7 @@ app/                          # Next.js App Router
 
 scripts/                      # Blog automation (Node, no deps)
 ├── ingest-feed.mjs          # content/feed.xml (RSS 2.0 + Media RSS) → posts.json + .md + images
+├── generate-feeds.mjs       # posts.json → public/feed.xml (reader feed; runs as prebuild)
 ├── push-feed.sh             # launchd watcher action: ingest → commit → push (task can't push)
 ├── com.cloudcodetree.feed-sync.plist  # launchd WatchPaths agent for push-feed.sh
 ├── publish-post.mjs         # Publishing core: draft → public/blog/<id>.md + posts.json
@@ -284,15 +286,23 @@ For production deployment, configure:
 
 ## Blog ("AI News")
 
-The blog is labeled **AI News** in the nav and masthead (route stays `/blog`). It's
-**static markdown**: `public/blog/posts.json` is the newest-first index; each entry points
-at a `public/blog/<id>.md` file. The list (`/blog`, `app/components/BlogPage.tsx`) fetches
-the JSON then each `.md`, renders it raw via `react-markdown` + `remark-gfm`, and shows a
+The blog is labeled **AI News** in the nav and masthead; the route is **`/ai-news`**
+(legacy `/blog` and `/blog/<id>` are static redirect stubs → `/ai-news`, via
+`app/components/Redirect.tsx`, with `canonical` + `noindex`). It's **static markdown**:
+`public/blog/posts.json` is the newest-first index; each entry points at a
+`public/blog/<id>.md` file. **Content assets stay under `/blog/`** (`posts.json`, `.md`,
+`images/`) — only the page route moved. The list (`/ai-news`, `app/components/BlogPage.tsx`)
+fetches the JSON then each `.md`, renders it via `react-markdown` + `remark-gfm`, and shows a
 paginated full-content feed (10/page; page kept in the URL as `?page=N`). Each post title
-links to its own route `/blog/<id>` (`app/blog/[id]/page.tsx` → `BlogPost`), so the browser
-back button returns to the list at the right page. Shared types/styling live in
-`app/components/blogShared.ts`. All `/blog/<id>` pages are pre-rendered via
-`generateStaticParams` (required for `output: 'export'`) — re-export after adding posts.
+links to `/ai-news/<id>` (`app/ai-news/[id]/page.tsx` → `BlogPost`). Shared types/styling
+live in `app/components/blogShared.ts`. All `/ai-news/<id>` pages are pre-rendered via
+`generateStaticParams` (required for `output: 'export'`).
+
+**Reader feed (emit).** `scripts/generate-feeds.mjs` builds `public/feed.xml` (RSS 2.0 +
+Media RSS + `content:encoded`) from `posts.json` at build time (`prebuild`, or `npm run
+feeds`); item links point to `/ai-news/<id>`, images are absolute URLs. It's gitignored
+(regenerated each build) and discoverable via a `<link rel="alternate">` in `app/layout.tsx`.
+This is separate from the **ingest** feed at `content/feed.xml` (task → site).
 
 **Hard rules**
 - Published `.md` files have **no YAML frontmatter** (it would render as literal text).

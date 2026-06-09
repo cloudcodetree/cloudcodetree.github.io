@@ -45,6 +45,9 @@ export const metadata: Metadata = {
     title: 'Chris Harper | Principal Software Engineering Manager',
     description: 'Principal Software Engineering Manager with extensive experience leading enterprise teams and cloud architecture initiatives.',
   },
+  alternates: {
+    types: { 'application/rss+xml': 'https://cloudcodetree.com/feed.xml' },
+  },
 }
 
 export default function RootLayout({

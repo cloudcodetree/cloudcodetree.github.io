@@ -33,7 +33,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const navItems = [
   { name: 'Home', path: '/', icon: HomeIcon },
   { name: 'Resume', path: '/resume', icon: PersonIcon },
-  { name: 'AI News', path: '/blog', icon: ArticleIcon },
+  { name: 'AI News', path: '/ai-news', icon: ArticleIcon },
   { name: 'Contact', path: '/contact', icon: ContactIcon },
   { name: 'Schedule', path: '/schedule', icon: ScheduleIcon },
 ];

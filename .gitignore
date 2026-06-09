@@ -15,6 +15,9 @@ node_modules/
 # TypeScript incremental build cache
 *.tsbuildinfo
 
+# Generated reader feed (built from posts.json by scripts/generate-feeds.mjs)
+/public/feed.xml
+
 # Production builds
 build/
 dist-ssr/

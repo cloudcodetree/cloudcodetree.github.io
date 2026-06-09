@@ -32,7 +32,7 @@ export default function BlogPost({ id }: { id: string }) {
   }, [id]);
 
   const backButton = (
-    <Button component={Link} href="/blog/" sx={{ mb: 4 }}>
+    <Button component={Link} href="/ai-news/" sx={{ mb: 4 }}>
       ← Back to AI News
     </Button>
   );

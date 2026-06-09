@@ -1,16 +1,14 @@
 import type { Metadata } from 'next';
-import ClientLayout from '../components/ClientLayout';
-import BlogPage from '../components/BlogPage';
+import Redirect from '../components/Redirect';
 
+// Legacy route — the blog moved to /ai-news. Keep a static stub that redirects
+// so old /blog links (and search results) don't 404.
 export const metadata: Metadata = {
-  title: 'AI News | Chris Harper',
-  description: 'Daily field notes on AI-assisted engineering — model releases, agent tooling, and developer workflow, curated by Chris Harper.',
+  title: 'Moved to AI News | Chris Harper',
+  alternates: { canonical: 'https://cloudcodetree.com/ai-news/' },
+  robots: { index: false, follow: true },
 };
 
-export default function Blog() {
-  return (
-    <ClientLayout>
-      <BlogPage />
-    </ClientLayout>
-  );
+export default function BlogMoved() {
+  return <Redirect to="/ai-news/" />;
 }

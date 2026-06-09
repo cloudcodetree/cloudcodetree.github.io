@@ -54,7 +54,7 @@ export default function BlogPage() {
   const goToPage = (n: number) => {
     setPage(n);
     if (typeof window !== 'undefined') {
-      window.history.replaceState(null, '', n === 1 ? '/blog/' : `/blog/?page=${n}`);
+      window.history.replaceState(null, '', n === 1 ? '/ai-news/' : `/ai-news/?page=${n}`);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -123,7 +123,7 @@ export default function BlogPage() {
             >
               {/* Featured image — links to the article */}
               {post.image && (
-                <Box component={Link} href={`/blog/${post.id}/`} sx={{ display: 'block', mb: 2.5 }}>
+                <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5 }}>
                   <Box
                     component="img"
                     src={post.image}
@@ -147,7 +147,7 @@ export default function BlogPage() {
               {/* Title — links to the article */}
               <Typography
                 component={Link}
-                href={`/blog/${post.id}/`}
+                href={`/ai-news/${post.id}/`}
                 sx={{
                   display: 'block', fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.7rem', md: '2.2rem' },
                   lineHeight: 1.12, letterSpacing: '-0.015em', mb: 2.5, color: 'text.primary', textDecoration: 'none',

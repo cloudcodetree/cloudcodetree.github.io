@@ -1,33 +1,41 @@
 import type { Metadata } from 'next';
 import fs from 'node:fs';
 import path from 'node:path';
-import Redirect from '../../components/Redirect';
+import ClientLayout from '../../components/ClientLayout';
+import BlogPost from '../../components/BlogPost';
 
 interface PostMeta {
   id: string;
+  title: string;
+  excerpt: string;
 }
 
 function readPosts(): PostMeta[] {
+  // Content still lives under public/blog/ (asset path); only the page route moved.
   const file = path.join(process.cwd(), 'public', 'blog', 'posts.json');
   return JSON.parse(fs.readFileSync(file, 'utf8')) as PostMeta[];
 }
 
-// Emit a static redirect stub for every legacy /blog/<id> URL so existing links
-// and indexed pages forward to /ai-news/<id> instead of 404ing.
+// Pre-render every post as a static page (required for output: 'export').
 export function generateStaticParams() {
   return readPosts().map((p) => ({ id: p.id }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
+  const post = readPosts().find((p) => p.id === id);
   return {
-    title: 'Moved to AI News | Chris Harper',
+    title: post ? `${post.title} | AI News` : 'AI News | Chris Harper',
+    description: post?.excerpt,
     alternates: { canonical: `https://cloudcodetree.com/ai-news/${id}/` },
-    robots: { index: false, follow: true },
   };
 }
 
-export default async function BlogPostMoved({ params }: { params: Promise<{ id: string }> }) {
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return <Redirect to={`/ai-news/${id}/`} />;
+  return (
+    <ClientLayout>
+      <BlogPost id={id} />
+    </ClientLayout>
+  );
 }
