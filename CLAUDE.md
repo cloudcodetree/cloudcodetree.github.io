@@ -94,9 +94,8 @@ content/                      # Source feed the Desktop task writes (ingested at
 └── commands/                # /publish-post, /blog-status
 
 public/
-├── blog/                    # External blog content
-│   ├── posts.json          # Blog posts index
-│   └── *.md                 # Individual blog post markdown files
+├── blog/                    # Blog content
+│   └── posts.json          # Index + inlined post bodies (images live on the Release CDN)
 ├── resume/                  # Resume assets
 │   └── chris_harper-resume.md
 ├── resume.pdf              # Protected resume PDF
@@ -290,13 +289,14 @@ The blog is labeled **AI News** in the nav and masthead; the route is **`/ai-new
 (legacy `/blog` and `/blog/<id>` are static redirect stubs → `/ai-news`, via
 `app/components/Redirect.tsx`, with `canonical` + `noindex`). It's **static markdown**:
 `public/blog/posts.json` is the newest-first index; each entry points at a
-`public/blog/<id>.md` file. **Content assets stay under `/blog/`** (`posts.json`, `.md`,
-`images/`) — only the page route moved. The list (`/ai-news`, `app/components/BlogPage.tsx`)
-fetches the JSON then each `.md`, renders it via `react-markdown` + `remark-gfm`, and shows a
-paginated full-content feed (10/page; page kept in the URL as `?page=N`). Each post title
-links to `/ai-news/<id>` (`app/ai-news/[id]/page.tsx` → `BlogPost`). Shared types/styling
-live in `app/components/blogShared.ts`. All `/ai-news/<id>` pages are pre-rendered via
-`generateStaticParams` (required for `output: 'export'`).
+post's body **inlined in `posts.json`** (no per-post `.md` files). The only committed blog
+asset is `public/blog/posts.json`; **images are not in the repo** — they live on the GitHub
+Release `blog-images` (CDN) and `posts.json` stores their URLs. The list (`/ai-news`,
+`app/components/BlogPage.tsx`) fetches `posts.json` once and renders each body via
+`react-markdown` + `remark-gfm`, paginated (10/page; page kept in the URL as `?page=N`). Each
+post title links to `/ai-news/<id>` (`app/ai-news/[id]/page.tsx` → `BlogPost`). Shared
+types/styling live in `app/components/blogShared.ts`. All `/ai-news/<id>` pages are
+pre-rendered via `generateStaticParams` (required for `output: 'export'`).
 
 **Reader feed (emit).** `scripts/generate-feeds.mjs` builds `public/feed.xml` (RSS 2.0 +
 Media RSS + `content:encoded`) from `posts.json` at build time (`prebuild`, or `npm run
@@ -305,13 +305,14 @@ feeds`); item links point to `/ai-news/<id>`, images are absolute URLs. It's git
 This is separate from the **ingest** feed at `content/feed.xml` (task → site).
 
 **Hard rules**
-- Published `.md` files have **no YAML frontmatter** (it would render as literal text).
-  All metadata lives in `posts.json`.
+- Post bodies are Markdown stored inline in `posts.json` `content` (no `.md` files, no YAML
+  frontmatter). All metadata lives in `posts.json`.
 - Dates are `MM-DD-YYYY`. Posts are newest-first.
-- `id` == filename stem == `posts.json` `id`.
-- `posts.json` entry schema: `id, title, excerpt, author, date, tags[], readTime, filename,
-  image` plus optional `imageSource` / `dek`. `image` is a site-absolute path to a re-hosted
-  featured image (`/blog/images/<id>.<ext>`), falling back to `/blog/images/_default.png`.
+- `id` == `posts.json` `id` (== the feed `<guid>`).
+- `posts.json` entry schema: `id, title, excerpt, author, date, tags[], readTime, content,
+  image` plus optional `imageSource` / `dek`. `image` is a **CDN URL** to a GitHub Release
+  asset (`https://github.com/<repo>/releases/download/blog-images/<id>.jpg`), falling back to
+  `…/blog-images/_default.png`. Images are never committed to the repo.
   Posts are not separated by category (the old `eyebrow` badge was removed).
 - **Never hand-edit `posts.json`** — go through the scripts below.
 
@@ -324,11 +325,14 @@ with:
 node scripts/ingest-feed.mjs [content/feed.xml] [--no-images] [--refresh-images]
 ```
 Each `<item>` UPSERTS a post keyed by `<guid>` (== `id`): `<content:encoded>` CDATA → the
-`.md` body (Markdown), `<media:content>`/`<media:thumbnail>` URL → a re-hosted image under
-`public/blog/images/<id>.<ext>` (`imageSource` = `<link>`), tags from `<category>`. It's a
-**merge, not a rebuild**: posts not in the feed are preserved. Idempotent; images cached by
-id. The `2026-05-28`–`2026-06-08` posts are the legacy back-catalog from the now-retired
-briefing importer (`scripts/import-briefings.mjs`, dormant); `2026-06-09` onward is the feed.
+`content` field (Markdown), `<media:content>`/`<media:thumbnail>` URL → the featured image,
+which ingest **downloads, compresses (`sips`, 1200px / JPEG q78), and uploads to the
+`blog-images` GitHub Release** (`posts.json` stores the CDN URL; `imageSource` = `<link>`),
+tags from `<category>`. It's a **merge, not a rebuild**: posts not in the feed are preserved.
+Idempotent; an image already uploaded for an id is reused unless `--refresh-images`. Requires
+`gh` (authenticated) + `sips`; without them, posts get the placeholder. The `2026-05-28`–
+`2026-06-08` posts are the legacy back-catalog from the now-retired briefing importer
+(`scripts/import-briefings.mjs`, dormant); `2026-06-09` onward is the feed.
 
 **Auto-publish.** The task can't push, so a launchd `WatchPaths` agent
 (`scripts/com.cloudcodetree.feed-sync.plist`) runs `scripts/push-feed.sh` whenever

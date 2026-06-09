@@ -1,4 +1,0 @@
-The 2026 consensus has shifted: the primary skill for working with LLMs is no longer crafting prompts but managing *what information* is available to the model. Anthropic published a detailed engineering guide on effective context engineering for agents, framing it as four strategies: **write** (persist context externally), **select** (retrieve via RAG), **compress** (summarize and compact), and **isolate** (separate contexts per agent). The key finding: most agent failures in 2026 aren't model failures — they're context failures. Dynamically selecting relevant tools alone improved Llama 3.1 8B function-calling performance by 44% in one benchmark.
-
----
-*Sources: [Anthropic Engineering Blog](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) · [LangChain Blog](https://www.langchain.com/blog/context-engineering-for-agents) · [ByteByteGo Guide](https://blog.bytebytego.com/p/a-guide-to-context-engineering-for)*

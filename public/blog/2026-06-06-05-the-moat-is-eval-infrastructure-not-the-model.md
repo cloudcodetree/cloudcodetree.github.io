@@ -1,4 +1,0 @@
-A [Towards Data Science framework](https://towardsdatascience.com/building-an-evaluation-harness-for-production-ai-agents-a-12-metric-framework-from-100-deployments/) distilled from 100+ deployments argues the teams shipping agents successfully aren't the ones with the best model — they're the ones with the best evaluation harness. Key specifics worth adopting: measure all-runs consistency with pass^k (not just pass@k), calibrate your LLM judge against a human gold set, grow your eval datasets from real production traces, and gate CI on actual scores. It also stresses logging full trajectories — every prompt, tool call, and intermediate thought — so failures are debuggable.
-
----
-*Sources: [Towards Data Science](https://towardsdatascience.com/building-an-evaluation-harness-for-production-ai-agents-a-12-metric-framework-from-100-deployments/) · [Arize comparison](https://arize.com/blog/the-best-eval-harness-for-production-ai-a-comparison/)*

@@ -26,18 +26,9 @@ export default function BlogPage() {
     const load = async () => {
       try {
         setLoading(true);
+        // posts.json carries each post's content inline — one fetch, no per-post .md.
         const index: BlogPost[] = await (await fetch('/blog/posts.json')).json();
-        const withContent = await Promise.all(
-          index.map(async (post) => {
-            try {
-              const r = await fetch(`/blog/${post.filename}`);
-              return { ...post, content: r.ok ? await r.text() : '' };
-            } catch {
-              return { ...post, content: '' };
-            }
-          })
-        );
-        setPosts(withContent);
+        setPosts(index);
       } catch {
         setPosts([]);
       } finally {

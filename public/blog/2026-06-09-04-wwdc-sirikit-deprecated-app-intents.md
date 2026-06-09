@@ -1,7 +1,0 @@
-A second-day developer detail that wasn't in the keynote-level coverage: Apple gave **SiriKit a formal deprecation notice** and made the expanded **App Intents** framework the *only* way an app can integrate with the new Gemini-powered Siri.
-
-Apps still using the older `INExtension`/intent classes keep compiling under iOS 27 but throw deprecation warnings and — critically — won't surface in the rebuilt Siri at all, since it routes exclusively through App Intents. The removal window is roughly 2–3 years (about macOS 29 / fall 2028), but the *functional* cutoff is now: any app relying on SiriKit voice features is already invisible to the new assistant.
-
-If you own an iOS/macOS app with Siri or Shortcuts integration, schedule the App Intents port this cycle rather than treating it as deprecated-but-fine.
-
-**Sources:** [Tech Times: App Intents replaces SiriKit](https://www.techtimes.com/articles/318005/20260608/wwdc-2026-app-intents-replaces-sirikit-gemini-siri-migration-clock-starts.htm), [Apple: Migrating from SiriKit Intents to App Intents](https://developer.apple.com/documentation/widgetkit/migrating-from-sirikit-intents-to-app-intents)

@@ -1,4 +1,0 @@
-Roughly 20% of AI-generated code references packages that don't exist, and attackers are registering those hallucinated names as malware. The CSA and vendors document real cases: the malicious `unused-imports` npm package (a hallucination of `eslint-plugin-unused-imports`) was still pulling ~233 weekly downloads in February, and `react-codeshift` spread through 237 repos largely via autonomous agents installing their own hallucinated output. The defense is concrete: add a dependency scanner that flags non-existent/suspicious packages before install, pin lockfiles, and don't let coding agents resolve dependencies unsupervised.
-
----
-*Sources: [Cloud Security Alliance](https://labs.cloudsecurityalliance.org/research/csa-research-note-slopsquatting-ai-supply-chain-20260419-csa/) · [Trend Micro](https://www.trendmicro.com/vinfo/us/security/news/cybercrime-and-digital-threats/slopsquatting-when-ai-agents-hallucinate-malicious-packages)*

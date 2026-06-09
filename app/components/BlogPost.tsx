@@ -19,9 +19,7 @@ export default function BlogPost({ id }: { id: string }) {
         setLoading(true);
         const index: Post[] = await (await fetch('/blog/posts.json')).json();
         const meta = index.find((p) => p.id === id);
-        if (!meta) { setPost(null); return; }
-        const content = meta.filename ? await (await fetch(`/blog/${meta.filename}`)).text() : '';
-        setPost({ ...meta, content });
+        setPost(meta ?? null);
       } catch {
         setPost(null);
       } finally {

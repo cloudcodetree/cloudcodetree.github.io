@@ -1,4 +1,0 @@
-Announced at Code with Claude London (May 19), Claude Managed Agents now supports two enterprise features. Self-hosted sandboxes (public beta) let teams run tool execution inside their own cloud environment (Cloudflare, Daytona, Modal, Vercel, or custom) while Anthropic continues to handle orchestration and context management. MCP tunnels (research preview) route MCP server traffic through a private network via a lightweight outbound-only gateway — no inbound firewall rules, no public endpoints, end-to-end encrypted. Significant for enterprise teams with data residency or security perimeter requirements.
-
----
-*Sources: [The New Stack](https://thenewstack.io/anthropic-mcp-tunnels-sandboxes/) · [The Decoder](https://the-decoder.com/anthropic-adds-self-hosted-sandboxes-and-mcp-tunnels-to-claude-managed-agents/) · [InfoQ](https://www.infoq.com/news/2026/05/claude-mcp-tunnels/)*

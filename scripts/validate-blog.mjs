@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BLOG_DIR = path.join(ROOT, 'public', 'blog');
 const POSTS_JSON = path.join(BLOG_DIR, 'posts.json');
-const REQUIRED = ['id', 'title', 'excerpt', 'author', 'date', 'tags', 'readTime', 'filename'];
+const REQUIRED = ['id', 'title', 'excerpt', 'author', 'date', 'tags', 'readTime', 'content', 'image'];
 
 async function main() {
   const errors = [];
@@ -43,7 +43,7 @@ async function main() {
     if (p.tags && !Array.isArray(p.tags)) errors.push(`${where}: "tags" must be an array`);
     if (p.readTime !== undefined && typeof p.readTime !== 'number') errors.push(`${where}: "readTime" must be a number`);
     if (p.date && !/^\d{2}-\d{2}-\d{4}$/.test(p.date)) errors.push(`${where}: "date" must be MM-DD-YYYY (got "${p.date}")`);
-    if (p.filename && !existsSync(path.join(BLOG_DIR, p.filename))) errors.push(`${where}: file public/blog/${p.filename} not found`);
+    if (p.image && !/^https?:\/\//.test(p.image) && !p.image.startsWith('/')) errors.push(`${where}: "image" must be a URL or absolute path (got "${p.image}")`);
   }
 
   if (errors.length) {
@@ -51,7 +51,7 @@ async function main() {
     for (const e of errors) console.error(`  - ${e}`);
     process.exit(1);
   }
-  console.log(`✓ blog OK — ${posts.length} posts, all files present`);
+  console.log(`✓ blog OK — ${posts.length} posts, posts.json consistent`);
 }
 
 main();

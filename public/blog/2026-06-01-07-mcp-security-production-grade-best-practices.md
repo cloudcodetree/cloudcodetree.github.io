@@ -1,4 +1,0 @@
-Treat all AI-generated content as untrusted input including everything returned from MCP servers: tool definitions, resources, prompts, and responses. Run MCP servers that touch the host environment in containers with additional sandboxing (gVisor, Kata Containers, or SELinux). Never write to stdout in STDIO mode — it corrupts the JSON-RPC stream; log to stderr instead. Use read-only modes for untrusted agents, scoped permissions, and network restrictions. Auth-propagation testing is the top reported integration blocker in enterprise pilots — prioritize it early.
-
----
-*Sources: [Coalition for Secure AI](https://www.coalitionforsecureai.org/securing-the-ai-agent-revolution-a-practical-guide-to-mcp-security/) · [Red Hat Developer](https://developers.redhat.com/articles/2026/01/08/building-effective-ai-agents-mcp)*

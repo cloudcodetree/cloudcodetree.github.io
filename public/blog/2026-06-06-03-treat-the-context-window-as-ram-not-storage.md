@@ -1,4 +1,0 @@
-A [Mem0 post from June 5](https://mem0.ai/blog/context-window-is-ram-not-storage-why-most-agent-failures-happen-how-to-fix-them-in-2026) makes a clean distinction that explains a lot of agent failures: the context window is working memory (RAM), and stuffing it like persistent storage is what causes drift and degradation. The fix is a memory hierarchy — separate short-lived working context from a persistent store, and retrieve narrowly (their algorithm stays under ~7K tokens per call vs. 25K+ for full-context dumps) while scoring better on long-memory benchmarks. Practically: compress and summarize old turns, curate what persists, and lean on retrieval instead of an ever-growing prompt.
-
----
-*Sources: [Mem0](https://mem0.ai/blog/context-window-is-ram-not-storage-why-most-agent-failures-happen-how-to-fix-them-in-2026)*

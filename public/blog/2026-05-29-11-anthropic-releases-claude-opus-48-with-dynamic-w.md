@@ -1,4 +1,0 @@
-Released May 28, Opus 4.8 is an upgrade to Opus 4.7 at the same price ($5/$25 per million tokens in/out). Benchmarks beat its predecessor, GPT-5.5, and Gemini 3.1 Pro across most measures. Key additions for developers: Dynamic Workflows in Claude Code (parallel subagents, checkpointing), Effort Controls (adjust reasoning depth per-request), and the Messages API mid-task instruction update capability. Separately, Anthropic also released Claude Security (public beta for Enterprise), a codebase vulnerability scanning tool that reasons about cross-component interactions — not just static pattern matching. Now available on AWS Bedrock and OpenRouter.
-
----
-*Sources: [Anthropic](https://www.anthropic.com/news/claude-opus-4-8) · [The New Stack](https://thenewstack.io/claude-opus-48-release/) · [AWS ML Blog](https://aws.amazon.com/blogs/machine-learning/claude-opus-4-8-is-now-available-on-aws/)*

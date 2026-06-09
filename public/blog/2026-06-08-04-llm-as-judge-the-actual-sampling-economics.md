@@ -1,4 +1,0 @@
-Beyond "build evals" advice that's been circulating, here's the concrete budget that production teams are converging on: run a frontier model as judge on 10–20% of production traffic and 100% of CI regression cases, and reserve human annotation for calibration and high-uncertainty edge cases (~2–5% of traffic). In 2026, LLM judges agree with human reviewers ~85% of the time — higher than two humans agree with each other — which is why it's now the default for evaluating LLM apps at scale. Validate the judge against human labels before you trust it.
-
----
-*Sources: [Agent Evaluation: tools, trajectories & LLM-as-judge](https://medium.com/@vinodkrane/chapter-8-agent-evaluation-for-llms-how-to-test-tools-trajectories-and-llm-as-judge-788f6f3e0d52) · [Confident AI: LLM-as-a-judge guide](https://www.confident-ai.com/blog/why-llm-as-a-judge-is-the-best-llm-evaluation-method)*

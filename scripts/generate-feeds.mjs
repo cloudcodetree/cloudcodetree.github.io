@@ -12,7 +12,7 @@
  * No external dependencies.
  */
 
-import { readFile, writeFile, stat } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,12 +57,10 @@ function inline(s) {
   return s;
 }
 
-async function imageInfo(post) {
+// Images are CDN URLs (GitHub Release assets); no local file to inspect.
+function imageInfo(post) {
   if (!post.image) return null;
-  const abs = `${SITE}${post.image}`;
-  let length = 0;
-  try { length = (await stat(path.join(PUBLIC, post.image.replace(/^\//, '')))).size; } catch { /* unknown */ }
-  return { url: abs, type: mimeFor(post.image), length };
+  return { url: post.image, type: mimeFor(post.image) };
 }
 
 async function main() {
@@ -70,20 +68,15 @@ async function main() {
   const posts = JSON.parse(await readFile(POSTS_JSON, 'utf8'));
   const now = rfc822(new Date());
 
-  const items = [];
-  for (const p of posts) {
-    let body = '';
-    try { body = await readFile(path.join(BLOG_DIR, p.filename), 'utf8'); } catch { /* skip */ }
-    items.push({ p, html: mdToHtml(body), img: await imageInfo(p), date: toDate(p.date) });
-  }
+  // Post bodies are inlined in posts.json (no per-post .md files).
+  const items = posts.map((p) => ({ p, html: mdToHtml(p.content || ''), img: imageInfo(p), date: toDate(p.date) }));
 
   const rssItems = items.map(({ p, html, img, date }) => {
     const link = `${SITE}/ai-news/${p.id}/`;
     const cats = (p.tags || []).map((t) => `    <category>${cdata(t)}</category>`).join('\n');
     const media = img
       ? `    <media:content url="${xml(img.url)}" medium="image" type="${img.type}" />\n` +
-        `    <media:thumbnail url="${xml(img.url)}" />\n` +
-        `    <enclosure url="${xml(img.url)}" length="${img.length}" type="${img.type}" />\n`
+        `    <media:thumbnail url="${xml(img.url)}" />\n`
       : '';
     const figure = img ? `<p><img src="${xml(img.url)}" alt="" /></p>\n` : '';
     return `  <item>
