@@ -1,5 +1,398 @@
 [
   {
+    "id": "2026-06-09-01-xcode-27-goes-agent-native-and-its-the-practical",
+    "title": "Xcode 27 goes agent-native — and it's the practical part of yesterday's WWDC",
+    "excerpt": "Following the keynote (June 8), the developer story worth your attention is Xcode 27's agentic coding overhaul: you can now run Anthropic, Google, and OpenAI agents directly inside Xcode, with…",
+    "author": "Chris Harper",
+    "date": "06-09-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-09-01-xcode-27-goes-agent-native-and-its-the-practical.md",
+    "image": "/blog/images/2026-06-09-01-xcode-27-goes-agent-native-and-its-the-practical.jpg",
+    "imageSource": "https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/"
+  },
+  {
+    "id": "2026-06-09-02-claude-code-now-supports-fallback-models-set-the",
+    "title": "Claude Code now supports fallback models — set them before your next overload",
+    "excerpt": "A recent Claude Code release adds a fallbackModel setting that lets you configure up to three models tried in order when the primary is overloaded or unavailable, and --fallback-model now applies to…",
+    "author": "Chris Harper",
+    "date": "06-09-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "Security",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-09-02-claude-code-now-supports-fallback-models-set-the.md",
+    "image": "/blog/images/_default.png"
+  },
+  {
+    "id": "2026-06-09-03-skill-hygiene-install-only-what-youll-use-and-tr",
+    "title": "Skill hygiene: install only what you'll use, and treat community skills as untrusted",
+    "excerpt": "As the cross-tool SKILL.md standard spreads across Claude Code, Codex, and Cursor, two practical rules are surfacing in June writeups. First, every loaded skill consumes context on every run, so…",
+    "author": "Chris Harper",
+    "date": "06-09-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "Security",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-09-03-skill-hygiene-install-only-what-youll-use-and-tr.md",
+    "image": "/blog/images/_default.png"
+  },
+  {
+    "id": "2026-06-09-04-wwdc-fallout-sirikit-is-formally-deprecated-star",
+    "title": "WWDC fallout: SiriKit is formally deprecated — start your App Intents migration now",
+    "excerpt": "A second-day developer detail from WWDC that wasn't in the keynote-level coverage: Apple gave SiriKit a formal deprecation notice and made the expanded App Intents framework the only way an app can…",
+    "author": "Chris Harper",
+    "date": "06-09-2026",
+    "tags": [
+      "AI",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-09-04-wwdc-fallout-sirikit-is-formally-deprecated-star.md",
+    "image": "/blog/images/2026-06-09-04-wwdc-fallout-sirikit-is-formally-deprecated-star.png",
+    "imageSource": "https://www.techtimes.com/articles/318005/20260608/wwdc-2026-app-intents-replaces-sirikit-gemini-siri-migration-clock-starts.htm"
+  },
+  {
+    "id": "2026-06-09-05-verification-not-code-generation-is-now-the-bott",
+    "title": "Verification — not code generation — is now the bottleneck",
+    "excerpt": "The theme converging across Hacker News threads and June writeups: code volume is no longer the constraint; review capacity is. The gap between far more code reaching production and the same human…",
+    "author": "Chris Harper",
+    "date": "06-09-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-09-05-verification-not-code-generation-is-now-the-bott.md",
+    "image": "/blog/images/2026-06-09-05-verification-not-code-generation-is-now-the-bott.png",
+    "imageSource": "https://www.hitechies.com/ai-coding-agents-developer-skills-code-review-2026/"
+  },
+  {
+    "id": "2026-06-09-06-pin-one-mcp-per-system-then-write-thin-skills-on",
+    "title": "Pin one MCP per system, then write thin skills on top",
+    "excerpt": "A clean architectural pattern is hardening for managing context cost. MCP tool definitions are expensive: a few connected servers (e.g., GitHub + Playwright + an IDE integration) can occupy ~70%+ of…",
+    "author": "Chris Harper",
+    "date": "06-09-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-09-06-pin-one-mcp-per-system-then-write-thin-skills-on.md",
+    "image": "/blog/images/2026-06-09-06-pin-one-mcp-per-system-then-write-thin-skills-on.jpg",
+    "imageSource": "https://codersera.com/blog/claude-skills-mcp-servers-practitioner-guide-2026/"
+  },
+  {
+    "id": "2026-06-09-07-fresh-agentic-rag-references-worth-bookmarking",
+    "title": "Fresh agentic-RAG references worth bookmarking",
+    "excerpt": "Two new arXiv entries give a current map of where retrieval-augmented agents are heading. The SoK: Agentic Retrieval-Augmented Generation systematization lays out a taxonomy, architectures, and an…",
+    "author": "Chris Harper",
+    "date": "06-09-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-09-07-fresh-agentic-rag-references-worth-bookmarking.md",
+    "image": "/blog/images/_default.png"
+  },
+  {
+    "id": "2026-06-09-08-wwdc-2026-apple-opens-its-platform-to-any-model-",
+    "title": "WWDC 2026: Apple opens its platform to any model — Core AI for local LLMs, Foundation Models for cloud providers",
+    "excerpt": "Beyond Siri, the structurally significant developer news from June 8 is that Apple's platform is now model-agnostic. The Foundation Models framework becomes a single native Swift API that, via a new…",
+    "author": "Chris Harper",
+    "date": "06-09-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM",
+      "Cloud"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-09-08-wwdc-2026-apple-opens-its-platform-to-any-model-.md",
+    "image": "/blog/images/2026-06-09-08-wwdc-2026-apple-opens-its-platform-to-any-model-.jpg",
+    "imageSource": "https://www.apple.com/newsroom/2026/06/apple-aids-app-development-with-new-intelligence-frameworks-and-advanced-tools/"
+  },
+  {
+    "id": "2026-06-09-09-siri-ai-delayed-in-the-eu-under-the-dma-plan-for",
+    "title": "Siri AI delayed in the EU under the DMA — plan for regulatory fragmentation",
+    "excerpt": "Apple confirmed (June 8) that Siri AI's new personal-context and assistant features will not ship in the EU at launch for iOS 27 and iPadOS 27, citing Digital Markets Act compliance work. For…",
+    "author": "Chris Harper",
+    "date": "06-09-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-09-09-siri-ai-delayed-in-the-eu-under-the-dma-plan-for.md",
+    "image": "/blog/images/2026-06-09-09-siri-ai-delayed-in-the-eu-under-the-dma-plan-for.jpg",
+    "imageSource": "https://www.apple.com/newsroom/2026/06/due-to-dma-siri-ai-delayed-in-eu-for-ios-27-and-ipados-27/"
+  },
+  {
+    "id": "2026-06-08-01-claude-code-changelog-hooks-can-now-keep-the-tur",
+    "title": "Claude Code changelog: hooks can now keep the turn alive, plus plugin management",
+    "excerpt": "The latest Claude Code release lets Stop and SubagentStop hooks return hookSpecificOutput.additionalContext to feed the model guidance without tripping a hook-error state — useful for nudging an…",
+    "author": "Chris Harper",
+    "date": "06-08-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-08-01-claude-code-changelog-hooks-can-now-keep-the-tur.md",
+    "image": "/blog/images/_default.png"
+  },
+  {
+    "id": "2026-06-08-02-a-concrete-baseline-for-configuring-a-coding-age",
+    "title": "A concrete baseline for configuring a coding agent in 2026",
+    "excerpt": "A 40-engineer survey writeup lands on a default config worth copying: custom style instructions, an AGENTS.md in the repo for architecture context, 5–10 skills for repetitive workflows (review,…",
+    "author": "Chris Harper",
+    "date": "06-08-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "DevOps",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-08-02-a-concrete-baseline-for-configuring-a-coding-age.md",
+    "image": "/blog/images/_default.png"
+  },
+  {
+    "id": "2026-06-08-03-treat-your-coding-tools-as-interchangeable-subag",
+    "title": "Treat your coding tools as interchangeable subagents, not rival apps",
+    "excerpt": "A pattern gaining traction: route a single task across Codex, Claude Code, Cursor CLI, and Gemini CLI as cooperating subagents, using MCP as the shared wire protocol. The open-source…",
+    "author": "Chris Harper",
+    "date": "06-08-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-08-03-treat-your-coding-tools-as-interchangeable-subag.md",
+    "image": "/blog/images/_default.png"
+  },
+  {
+    "id": "2026-06-08-04-llm-as-judge-the-actual-sampling-economics",
+    "title": "LLM-as-judge: the actual sampling economics",
+    "excerpt": "Beyond \"build evals\" advice that's been circulating, here's the concrete budget that production teams are converging on: run a frontier model as judge on 10–20% of production traffic and 100% of CI…",
+    "author": "Chris Harper",
+    "date": "06-08-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-08-04-llm-as-judge-the-actual-sampling-economics.md",
+    "image": "/blog/images/_default.png"
+  },
+  {
+    "id": "2026-06-08-05-apples-foundation-models-framework-as-a-free-pri",
+    "title": "Apple's Foundation Models framework as a free, private inference tier",
+    "excerpt": "Relevant given today's WWDC: Apple's framework exposes the ~3B on-device model (the one behind Apple Intelligence) from Swift in as few as three lines, with guided generation and tool calling built…",
+    "author": "Chris Harper",
+    "date": "06-08-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM",
+      "Cloud"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-08-05-apples-foundation-models-framework-as-a-free-pri.md",
+    "image": "/blog/images/2026-06-08-05-apples-foundation-models-framework-as-a-free-pri.jpg",
+    "imageSource": "https://developer.apple.com/documentation/FoundationModels"
+  },
+  {
+    "id": "2026-06-08-06-wwdc-2026-gemini-powered-siri-and-an-ios-27-slot",
+    "title": "WWDC 2026: Gemini-powered Siri, and an iOS 27 slot for third-party assistants",
+    "excerpt": "Apple opened WWDC today (June 8) with a rebuilt Siri backed by a custom ~1.2-trillion-parameter Gemini model licensed from Google (reportedly ~$1B/year), adding a chat mode and personal-context…",
+    "author": "Chris Harper",
+    "date": "06-08-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-08-06-wwdc-2026-gemini-powered-siri-and-an-ios-27-slot.md",
+    "image": "/blog/images/2026-06-08-06-wwdc-2026-gemini-powered-siri-and-an-ios-27-slot.jpg",
+    "imageSource": "https://techcrunch.com/2026/06/06/what-to-expect-from-wwdc-2026-siris-highly-anticipated-revamp-and-apple-intelligence-updates/"
+  },
+  {
+    "id": "2026-06-08-07-codex-changelog-sites-preview-hardens-windows-sa",
+    "title": "Codex changelog: Sites preview hardens, Windows sandbox lands",
+    "excerpt": "Following last week's Codex \"Sites\" launch (covered June 6), this week's update adds archive controls, smoother TUI markdown, stronger remote execution and app-server support, Windows sandbox…",
+    "author": "Chris Harper",
+    "date": "06-08-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-08-07-codex-changelog-sites-preview-hardens-windows-sa.md",
+    "image": "/blog/images/2026-06-08-07-codex-changelog-sites-preview-hardens-windows-sa.png",
+    "imageSource": "https://developers.openai.com/codex/changelog"
+  },
+  {
+    "id": "2026-06-07-01-gemini-cli-users-migrate-to-antigravity-cli-befo",
+    "title": "Gemini CLI users: migrate to Antigravity CLI before June 18",
+    "excerpt": "Google's release notes confirm that the Gemini Code Assist IDE extensions and the standalone Gemini CLI will stop serving requests for individual, Google AI Pro, and AI Ultra tiers on June 18, 2026.…",
+    "author": "Chris Harper",
+    "date": "06-07-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "DevOps",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-07-01-gemini-cli-users-migrate-to-antigravity-cli-befo.md",
+    "image": "/blog/images/2026-06-07-01-gemini-cli-users-migrate-to-antigravity-cli-befo.png",
+    "imageSource": "https://developers.google.com/gemini-code-assist/resources/release-notes"
+  },
+  {
+    "id": "2026-06-07-02-treat-folder-structure-as-agentic-architecture-n",
+    "title": "Treat folder structure as agentic architecture, not just human organization",
+    "excerpt": "A new arXiv paper (\"Interpretable Context Methodology: Folder Structure as Agentic Architecture\") argues your directory layout is itself a context-engineering lever: agents navigate and retrieve by…",
+    "author": "Chris Harper",
+    "date": "06-07-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-07-02-treat-folder-structure-as-agentic-architecture-n.md",
+    "image": "/blog/images/_default.png"
+  },
+  {
+    "id": "2026-06-07-03-six-months-in-split-the-work-by-tool-dont-pick-o",
+    "title": "Six months in: split the work by tool, don't pick one winner",
+    "excerpt": "The New Stack's hands-on retrospective comparing Claude Code, Cursor, Codex, and Antigravity lands on a role-splitting workflow rather than a single \"best\" tool: terminal agents (Claude Code, Codex)…",
+    "author": "Chris Harper",
+    "date": "06-07-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "LLM",
+      "Cloud"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-07-03-six-months-in-split-the-work-by-tool-dont-pick-o.md",
+    "image": "/blog/images/2026-06-07-03-six-months-in-split-the-work-by-tool-dont-pick-o.jpg",
+    "imageSource": "https://thenewstack.io/claude-code-vs-cursor-vs-codex-vs-antigravity-2026/"
+  },
+  {
+    "id": "2026-06-07-04-beyond-human-readable-code-conventions-are-shift",
+    "title": "Beyond Human-Readable\": code conventions are shifting toward the agent as primary reader",
+    "excerpt": "This new paper makes a concrete engineering argument: once LLM agents are the main consumers reading, writing, and debugging your code, optimizing purely for human readability can be…",
+    "author": "Chris Harper",
+    "date": "06-07-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-07-04-beyond-human-readable-code-conventions-are-shift.md",
+    "image": "/blog/images/2026-06-07-04-beyond-human-readable-code-conventions-are-shift.png",
+    "imageSource": "https://arxiv.org/abs/2604.07502"
+  },
+  {
+    "id": "2026-06-07-05-a-unified-map-of-agent-externalization-memory-sk",
+    "title": "A unified map of agent \"externalization\" — memory, skills, protocols, harness",
+    "excerpt": "A new survey (\"Externalization in LLM Agents: A Unified Review of Memory, Skills, Protocols and Harness Engineering\") pulls the scattered agent-engineering vocabulary into one framework: what the…",
+    "author": "Chris Harper",
+    "date": "06-07-2026",
+    "tags": [
+      "AI",
+      "Best Practices",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-07-05-a-unified-map-of-agent-externalization-memory-sk.md",
+    "image": "/blog/images/_default.png"
+  },
+  {
+    "id": "2026-06-07-06-empirical-look-at-agentic-ai-across-the-full-sdl",
+    "title": "Empirical look at agentic AI across the full SDLC",
+    "excerpt": "\"Agentic AI in the Software Development Lifecycle: Architecture, Empirical Evidence, and the Reshaping of Software Engineering\" surveys where autonomous agents are actually landing across planning,…",
+    "author": "Chris Harper",
+    "date": "06-07-2026",
+    "tags": [
+      "AI",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-07-06-empirical-look-at-agentic-ai-across-the-full-sdl.md",
+    "image": "/blog/images/2026-06-07-06-empirical-look-at-agentic-ai-across-the-full-sdl.png",
+    "imageSource": "https://arxiv.org/abs/2604.26275"
+  },
+  {
+    "id": "2026-06-07-07-openai-agrees-to-pre-release-federal-safety-revi",
+    "title": "OpenAI agrees to pre-release federal safety reviews",
+    "excerpt": "OpenAI told CNBC it will comply with the new executive order asking frontier developers to submit models for a 30-day federal safety check before release. For engineers, this signals a likely…",
+    "author": "Chris Harper",
+    "date": "06-07-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-07-07-openai-agrees-to-pre-release-federal-safety-revi.md",
+    "image": "/blog/images/2026-06-07-07-openai-agrees-to-pre-release-federal-safety-revi.jpg",
+    "imageSource": "https://www.cnbc.com/2026/06/01/microsoft-and-google-take-on-anthropic-and-openai-in-ai-coding-models.html"
+  },
+  {
+    "id": "2026-06-07-08-cursor-restructures-teams-pricing-into-standard-",
+    "title": "Cursor restructures Teams pricing into Standard and Premium seats",
+    "excerpt": "Cursor moved Teams to two tiers: Standard at $32/seat/mo (annual) or $40/mo, and a new Premium at $96/seat/mo (annual) or $120/mo with ~5x the usage allotment. Coming right after GitHub Copilot's…",
+    "author": "Chris Harper",
+    "date": "06-07-2026",
+    "tags": [
+      "AI",
+      "AI News"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-07-08-cursor-restructures-teams-pricing-into-standard-.md",
+    "image": "/blog/images/2026-06-07-08-cursor-restructures-teams-pricing-into-standard-.png",
+    "imageSource": "https://lushbinary.com/blog/ai-coding-agents-comparison-cursor-windsurf-claude-copilot-kiro-2026/"
+  },
+  {
+    "id": "2026-06-07-09-synthid-watermarking-gains-cross-vendor-adoption",
+    "title": "SynthID watermarking gains cross-vendor adoption",
+    "excerpt": "Google announced that OpenAI, Kakao, and ElevenLabs are adopting SynthID, its watermarking standard for AI-generated content. This nudges watermarking toward an industry default — relevant if you…",
+    "author": "Chris Harper",
+    "date": "06-07-2026",
+    "tags": [
+      "AI",
+      "AI News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "filename": "2026-06-07-09-synthid-watermarking-gains-cross-vendor-adoption.md",
+    "image": "/blog/images/2026-06-07-09-synthid-watermarking-gains-cross-vendor-adoption.png",
+    "imageSource": "https://blog.google/innovation-and-ai/sundar-pichai-io-2026/"
+  },
+  {
     "id": "2026-06-06-01-the-tasks-as-issues-pattern-from-this-weeks-ask-",
     "title": "The \"tasks as issues\" pattern from this week's Ask HN dev-stack thread",
     "excerpt": "The current Ask HN: What is your (AI) dev tech stack / workflow? thread surfaces a consistent winning pattern: write each unit of work like a GitHub issue (background, goal, acceptance criteria,…",
@@ -12,7 +405,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-06-01-the-tasks-as-issues-pattern-from-this-weeks-ask-.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-06-02-review-agent-output-like-a-junior-engineers-pr-n",
@@ -28,7 +421,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-06-02-review-agent-output-like-a-junior-engineers-pr-n.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-06-02-review-agent-output-like-a-junior-engineers-pr-n.png",
+    "imageSource": "https://codepick.dev/en/guides/ai-coding-agents-2026-roadmap/"
   },
   {
     "id": "2026-06-06-03-treat-the-context-window-as-ram-not-storage",
@@ -42,7 +436,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-06-03-treat-the-context-window-as-ram-not-storage.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-06-04-slopsquatting-is-now-a-confirmed-supply-chain-th",
@@ -57,7 +451,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-06-04-slopsquatting-is-now-a-confirmed-supply-chain-th.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-06-04-slopsquatting-is-now-a-confirmed-supply-chain-th.png",
+    "imageSource": "https://labs.cloudsecurityalliance.org/research/csa-research-note-slopsquatting-ai-supply-chain-20260419-csa/"
   },
   {
     "id": "2026-06-06-05-the-moat-is-eval-infrastructure-not-the-model",
@@ -72,7 +467,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-06-05-the-moat-is-eval-infrastructure-not-the-model.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-06-05-the-moat-is-eval-infrastructure-not-the-model.jpg",
+    "imageSource": "https://towardsdatascience.com/building-an-evaluation-harness-for-production-ai-agents-a-12-metric-framework-from-100-deployments/"
   },
   {
     "id": "2026-06-06-06-skill-vs-subagent-a-simple-decision-rule",
@@ -87,7 +483,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-06-06-skill-vs-subagent-a-simple-decision-rule.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-06-07-openai-pushes-codex-past-coding-sites-role-speci",
@@ -102,7 +498,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-06-07-openai-pushes-codex-past-coding-sites-role-speci.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-06-08-frontier-cyber-models-go-to-eu-regulators-gpt-55",
@@ -118,7 +514,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-06-08-frontier-cyber-models-go-to-eu-regulators-gpt-55.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-06-08-frontier-cyber-models-go-to-eu-regulators-gpt-55.jpg",
+    "imageSource": "https://www.techtimes.com/articles/317891/20260605/openai-gpt-55-cyber-reaches-eu-anthropic-mythos-opens-enisa-days-later.htm"
   },
   {
     "id": "2026-06-06-09-minimax-m3-an-open-weight-model-claiming-frontie",
@@ -133,7 +530,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-06-09-minimax-m3-an-open-weight-model-claiming-frontie.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-06-09-minimax-m3-an-open-weight-model-claiming-frontie.png",
+    "imageSource": "https://www.minimax.io/blog/minimax-m3"
   },
   {
     "id": "2026-06-05-01-force-a-planning-phase-before-any-code-is-genera",
@@ -147,7 +545,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-01-force-a-planning-phase-before-any-code-is-genera.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-05-01-force-a-planning-phase-before-any-code-is-genera.png",
+    "imageSource": "https://theexcitedengineer.substack.com/p/your-best-ai-coding-guide-with-claude"
   },
   {
     "id": "2026-06-05-02-tighten-context-drop-the-politeness",
@@ -162,7 +561,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-02-tighten-context-drop-the-politeness.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-05-02-tighten-context-drop-the-politeness.png",
+    "imageSource": "https://theexcitedengineer.substack.com/p/your-best-ai-coding-guide-with-claude"
   },
   {
     "id": "2026-06-05-03-claude-code-dynamic-workflows-skills-changes-wor",
@@ -178,7 +578,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-03-claude-code-dynamic-workflows-skills-changes-wor.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-05-04-treat-your-rules-file-as-core-infra",
@@ -194,7 +594,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-04-treat-your-rules-file-as-core-infra.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-05-04-treat-your-rules-file-as-core-infra.png",
+    "imageSource": "https://devtk.ai/en/blog/complete-guide-cursorrules/"
   },
   {
     "id": "2026-06-05-05-local-model-memory-retrieval-beats-bigger-contex",
@@ -208,7 +609,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-05-local-model-memory-retrieval-beats-bigger-contex.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-05-06-where-you-put-context-matters-more-than-whats-in",
@@ -223,7 +624,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-06-where-you-put-context-matters-more-than-whats-in.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-05-06-where-you-put-context-matters-more-than-whats-in.png",
+    "imageSource": "https://llm-stats.com/blog/research/the-position-of-your-context-matters-for-llms"
   },
   {
     "id": "2026-06-05-07-context-engineering-is-now-the-discipline-rag-di",
@@ -238,7 +640,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-07-context-engineering-is-now-the-discipline-rag-di.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-05-07-context-engineering-is-now-the-discipline-rag-di.webp",
+    "imageSource": "https://www.meta-intelligence.tech/en/insight-context-engineering"
   },
   {
     "id": "2026-06-05-08-keep-prompts-short-reasoning-degrades-fast",
@@ -253,7 +656,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-08-keep-prompts-short-reasoning-degrades-fast.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-05-08-keep-prompts-short-reasoning-degrades-fast.jpg",
+    "imageSource": "https://thomas-wiegold.com/blog/prompt-engineering-best-practices-2026/"
   },
   {
     "id": "2026-06-05-09-make-evaluation-a-repeatable-loop-not-a-vibe-che",
@@ -268,7 +672,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-09-make-evaluation-a-repeatable-loop-not-a-vibe-che.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-05-10-nvidia-launches-cosmos-3-first-fully-open-omnimo",
@@ -283,7 +687,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-10-nvidia-launches-cosmos-3-first-fully-open-omnimo.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-05-10-nvidia-launches-cosmos-3-first-fully-open-omnimo.jpg",
+    "imageSource": "https://nvidianews.nvidia.com/news/nvidia-launches-cosmos-3-the-open-frontier-foundation-model-for-physical-ai"
   },
   {
     "id": "2026-06-05-11-microsoft-build-2026-mai-models-copilot-becomes-",
@@ -298,7 +703,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-11-microsoft-build-2026-mai-models-copilot-becomes-.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-05-11-microsoft-build-2026-mai-models-copilot-becomes-.png",
+    "imageSource": "https://www.cnbc.com/2026/06/02/microsoft-unveils-new-ai-models-lessen-reliance-on-openai-lower-costs.html"
   },
   {
     "id": "2026-06-05-12-open-letter-on-synthetic-dna-tracking-for-ai-bio",
@@ -312,7 +718,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-12-open-letter-on-synthetic-dna-tracking-for-ai-bio.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-05-12-open-letter-on-synthetic-dna-tracking-for-ai-bio.jpg",
+    "imageSource": "https://www.wired.com/"
   },
   {
     "id": "2026-06-05-13-anthropic-claude-opus-48-strongest-coding-scores",
@@ -328,7 +735,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-05-13-anthropic-claude-opus-48-strongest-coding-scores.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-05-13-anthropic-claude-opus-48-strongest-coding-scores.png",
+    "imageSource": "https://llm-stats.com/blog/research/claude-opus-4-8-launch"
   },
   {
     "id": "2026-06-04-01-specs-before-code-the-waterfall-in-15-minutes-wo",
@@ -344,7 +752,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-04-01-specs-before-code-the-waterfall-in-15-minutes-wo.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-04-01-specs-before-code-the-waterfall-in-15-minutes-wo.webp",
+    "imageSource": "https://addyosmani.com/blog/ai-coding-workflow/"
   },
   {
     "id": "2026-06-04-02-dual-tool-strategy-use-claude-code-and-cursor-fo",
@@ -360,7 +769,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-04-02-dual-tool-strategy-use-claude-code-and-cursor-fo.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-04-02-dual-tool-strategy-use-claude-code-and-cursor-fo.jpg",
+    "imageSource": "https://www.cosmicjs.com/blog/claude-code-vs-github-copilot-vs-cursor-which-ai-coding-agent-should-you-use-2026"
   },
   {
     "id": "2026-06-04-03-windsurf-is-now-devin-desktop-ide-as-agent-manag",
@@ -374,7 +784,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-04-03-windsurf-is-now-devin-desktop-ide-as-agent-manag.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-04-03-windsurf-is-now-devin-desktop-ide-as-agent-manag.jpg",
+    "imageSource": "https://devin.ai/blog/windsurf-is-now-devin-desktop"
   },
   {
     "id": "2026-06-04-04-github-copilot-overhauls-billing-flex-allotments",
@@ -388,7 +799,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-04-04-github-copilot-overhauls-billing-flex-allotments.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-04-04-github-copilot-overhauls-billing-flex-allotments.png",
+    "imageSource": "https://github.blog/news-insights/company-news/github-copilot-individual-plans-introducing-flex-allotments-in-pro-and-pro-and-a-new-max-plan/"
   },
   {
     "id": "2026-06-04-05-ai-productivity-reality-check-84-use-ai-tools-on",
@@ -403,7 +815,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-04-05-ai-productivity-reality-check-84-use-ai-tools-on.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-04-05-ai-productivity-reality-check-84-use-ai-tools-on.png",
+    "imageSource": "https://www.secondtalent.com/resources/ai-developer-productivity-tools-2026/"
   },
   {
     "id": "2026-06-04-06-context-engineering-is-the-new-prompt-engineerin",
@@ -418,7 +831,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-04-06-context-engineering-is-the-new-prompt-engineerin.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-04-06-context-engineering-is-the-new-prompt-engineerin.png",
+    "imageSource": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
   },
   {
     "id": "2026-06-04-07-multi-agent-systems-outperform-single-agents-whe",
@@ -433,7 +847,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-04-07-multi-agent-systems-outperform-single-agents-whe.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-04-07-multi-agent-systems-outperform-single-agents-whe.png",
+    "imageSource": "https://arxiv.org/abs/2601.01743"
   },
   {
     "id": "2026-06-04-08-nine-best-practices-for-production-grade-agentic",
@@ -448,7 +863,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-04-08-nine-best-practices-for-production-grade-agentic.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-04-09-the-llm-context-problem-in-2026-treat-context-as",
@@ -463,7 +878,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-04-09-the-llm-context-problem-in-2026-treat-context-as.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-04-09-the-llm-context-problem-in-2026-treat-context-as.png",
+    "imageSource": "https://blog.logrocket.com/llm-context-problem-strategies-2026/"
   },
   {
     "id": "2026-06-04-10-microsoft-launches-mai-code-1-flash-and-mai-thin",
@@ -478,7 +894,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-04-10-microsoft-launches-mai-code-1-flash-and-mai-thin.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-04-10-microsoft-launches-mai-code-1-flash-and-mai-thin.jpg",
+    "imageSource": "https://microsoft.ai/news/introducingmai-code-1-flash/"
   },
   {
     "id": "2026-06-04-11-anthropic-files-for-ipo-at-965b-valuation-after-",
@@ -493,7 +910,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-04-11-anthropic-files-for-ipo-at-965b-valuation-after-.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-04-11-anthropic-files-for-ipo-at-965b-valuation-after-.jpg",
+    "imageSource": "https://fortune.com/2026/06/01/anthropic-confidentially-files-ipo-965-billion-valuation/"
   },
   {
     "id": "2026-06-04-12-claude-opus-48-released-with-dynamic-workflows-a",
@@ -509,7 +927,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-04-12-claude-opus-48-released-with-dynamic-workflows-a.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-04-12-claude-opus-48-released-with-dynamic-workflows-a.jpg",
+    "imageSource": "https://www.anthropic.com/news/claude-opus-4-8"
   },
   {
     "id": "2026-06-03-01-github-copilot-multi-agent-ships-in-vs-code-micr",
@@ -524,7 +943,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-01-github-copilot-multi-agent-ships-in-vs-code-micr.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-03-01-github-copilot-multi-agent-ships-in-vs-code-micr.jpg",
+    "imageSource": "https://www.techtimes.com/articles/317596/20260602/github-copilot-replaces-gpt-4-project-polaris-ships-multi-agent-vs-code-build.htm"
   },
   {
     "id": "2026-06-03-02-cursor-model-routing-strategy-match-the-model-to",
@@ -539,7 +959,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-02-cursor-model-routing-strategy-match-the-model-to.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-03-02-cursor-model-routing-strategy-match-the-model-to.png",
+    "imageSource": "https://www.vibecodingacademy.ai/blog/cursor-ai-best-practices-guide-2026"
   },
   {
     "id": "2026-06-03-03-cursor-composer-25-cursor-as-an-autonomous-engin",
@@ -554,7 +975,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-03-cursor-composer-25-cursor-as-an-autonomous-engin.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-03-03-cursor-composer-25-cursor-as-an-autonomous-engin.webp",
+    "imageSource": "https://dev.to/storm_son_b44db572b250b68/ai-coding-tools-2026-cursor-vs-github-copilot-vs-claude-code-real-comparison-1kj4"
   },
   {
     "id": "2026-06-03-04-windows-aion-10-on-device-ai-inference-is-now-a-",
@@ -569,7 +991,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-04-windows-aion-10-on-device-ai-inference-is-now-a-.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-03-04-windows-aion-10-on-device-ai-inference-is-now-a-.png",
+    "imageSource": "https://chatforest.com/builders-log/microsoft-build-2026-windows-ai-models-aion-local-inference-builder-guide/"
   },
   {
     "id": "2026-06-03-05-ollama-still-the-community-standard-for-local-ll",
@@ -584,7 +1007,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-05-ollama-still-the-community-standard-for-local-ll.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-03-05-ollama-still-the-community-standard-for-local-ll.jpg",
+    "imageSource": "https://www.aitooldiscovery.com/guides/local-llm-reddit"
   },
   {
     "id": "2026-06-03-06-context-engineering-is-replacing-prompt-engineer",
@@ -599,7 +1023,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-06-context-engineering-is-replacing-prompt-engineer.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-03-06-context-engineering-is-replacing-prompt-engineer.png",
+    "imageSource": "https://neo4j.com/blog/agentic-ai/context-engineering-vs-prompt-engineering/"
   },
   {
     "id": "2026-06-03-07-lost-in-the-middle-still-kills-rag-quality-place",
@@ -614,7 +1039,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-07-lost-in-the-middle-still-kills-rag-quality-place.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-03-07-lost-in-the-middle-still-kills-rag-quality-place.png",
+    "imageSource": "https://www.stackai.com/blog/prompt-engineering-for-rag-pipelines-the-complete-guide-to-prompt-engineering-for-retrieval-augmented-generation"
   },
   {
     "id": "2026-06-03-08-ai-agent-prompt-patterns-that-hold-up-in-product",
@@ -628,7 +1054,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-08-ai-agent-prompt-patterns-that-hold-up-in-product.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-03-09-version-control-your-prompts-prompt-drift-is-rea",
@@ -643,7 +1069,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-09-version-control-your-prompts-prompt-drift-is-rea.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-03-09-version-control-your-prompts-prompt-drift-is-rea.png",
+    "imageSource": "https://fungies.io/ai-prompt-engineering-best-practices-2026/"
   },
   {
     "id": "2026-06-03-10-multi-agent-llm-research-2026-paper-roundup-arxi",
@@ -658,7 +1085,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-10-multi-agent-llm-research-2026-paper-roundup-arxi.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-03-10-multi-agent-llm-research-2026-paper-roundup-arxi.png",
+    "imageSource": "https://github.com/VoltAgent/awesome-ai-agent-papers"
   },
   {
     "id": "2026-06-03-11-anthropic-surpasses-openai-in-valuation-at-965b",
@@ -673,7 +1101,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-11-anthropic-surpasses-openai-in-valuation-at-965b.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-03-11-anthropic-surpasses-openai-in-valuation-at-965b.jpg",
+    "imageSource": "https://www.cnbc.com/2026/05/28/anthropic-open-ai-startup-value.html"
   },
   {
     "id": "2026-06-03-12-microsoft-build-2026-github-copilot-drops-gpt-4-",
@@ -688,7 +1117,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-12-microsoft-build-2026-github-copilot-drops-gpt-4-.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-03-12-microsoft-build-2026-github-copilot-drops-gpt-4-.jpg",
+    "imageSource": "https://www.techtimes.com/articles/317596/20260602/github-copilot-replaces-gpt-4-project-polaris-ships-multi-agent-vs-code-build.htm"
   },
   {
     "id": "2026-06-03-13-google-releases-gemini-35-flash-as-ga-benchmarks",
@@ -702,7 +1132,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-13-google-releases-gemini-35-flash-as-ga-benchmarks.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-03-13-google-releases-gemini-35-flash-as-ga-benchmarks.png",
+    "imageSource": "https://developers.googleblog.com/all-the-news-from-the-google-io-2026-developer-keynote/"
   },
   {
     "id": "2026-06-03-14-microsoft-is-pulling-claude-code-licenses-ai-too",
@@ -717,7 +1148,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-14-microsoft-is-pulling-claude-code-licenses-ai-too.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-03-15-ai-coding-tool-market-share-update-copilot-51-cu",
@@ -733,7 +1164,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-03-15-ai-coding-tool-market-share-update-copilot-51-cu.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-03-15-ai-coding-tool-market-share-update-copilot-51-cu.png",
+    "imageSource": "https://lushbinary.com/blog/ai-coding-agents-comparison-cursor-windsurf-claude-copilot-kiro-2026/"
   },
   {
     "id": "2026-06-02-01-escape-claude-cursor-limits-free-local-ai-coding",
@@ -747,7 +1179,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-02-01-escape-claude-cursor-limits-free-local-ai-coding.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-02-01-escape-claude-cursor-limits-free-local-ai-coding.webp",
+    "imageSource": "https://dev.to/david_bilsonn/how-i-escaped-claude-cursor-limits-the-ultimate-free-local-ai-coding-setup-with-ollama--2nib"
   },
   {
     "id": "2026-06-02-02-addy-osmanis-llm-coding-workflow-for-2026",
@@ -763,7 +1196,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-02-02-addy-osmanis-llm-coding-workflow-for-2026.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-02-02-addy-osmanis-llm-coding-workflow-for-2026.webp",
+    "imageSource": "https://addyosmani.com/blog/ai-coding-workflow/"
   },
   {
     "id": "2026-06-02-03-agentic-coding-delegate-review-own",
@@ -779,7 +1213,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-02-03-agentic-coding-delegate-review-own.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-02-03-agentic-coding-delegate-review-own.png",
+    "imageSource": "https://kilo.ai/articles/beyond-autocomplete"
   },
   {
     "id": "2026-06-02-04-build-claudemd-and-geminimd-rules-files-for-your",
@@ -794,7 +1229,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-02-04-build-claudemd-and-geminimd-rules-files-for-your.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-02-04-build-claudemd-and-geminimd-rules-files-for-your.webp",
+    "imageSource": "https://addyosmani.com/blog/ai-coding-workflow/"
   },
   {
     "id": "2026-06-02-05-context-engineering-has-replaced-prompt-engineer",
@@ -809,7 +1245,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-02-05-context-engineering-has-replaced-prompt-engineer.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-02-06-agentic-ai-design-patterns-2026-edition",
@@ -824,7 +1260,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-02-06-agentic-ai-design-patterns-2026-edition.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-02-06-agentic-ai-design-patterns-2026-edition.png",
+    "imageSource": "https://medium.com/@dewasheesh.rana/agentic-ai-design-patterns-2026-ed-e3a5125162c5"
   },
   {
     "id": "2026-06-02-07-keep-agentic-ai-simple-a-practical-workflow",
@@ -838,7 +1275,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-02-07-keep-agentic-ai-simple-a-practical-workflow.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-02-07-keep-agentic-ai-simple-a-practical-workflow.png",
+    "imageSource": "https://timdeschryver.dev/blog/keep-agentic-ai-simple-a-practical-workflow-for-software-development"
   },
   {
     "id": "2026-06-02-08-anthropics-2026-agentic-coding-trends-report",
@@ -853,7 +1291,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-02-08-anthropics-2026-agentic-coding-trends-report.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-02-09-microsoft-build-2026-kicks-off-today",
@@ -868,7 +1306,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-02-09-microsoft-build-2026-kicks-off-today.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-02-09-microsoft-build-2026-kicks-off-today.png",
+    "imageSource": "https://news.microsoft.com/build-2026/"
   },
   {
     "id": "2026-06-02-10-github-copilot-switched-to-token-based-billing-y",
@@ -884,7 +1323,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-02-10-github-copilot-switched-to-token-based-billing-y.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-02-10-github-copilot-switched-to-token-based-billing-y.png",
+    "imageSource": "https://techcrunch.com/2026/05/30/what-a-joke-github-copilots-new-token-based-billing-spurs-consternation-among-devs/"
   },
   {
     "id": "2026-06-02-11-anthropic-files-for-ipo-at-965b-valuation",
@@ -899,7 +1339,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-02-11-anthropic-files-for-ipo-at-965b-valuation.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-02-11-anthropic-files-for-ipo-at-965b-valuation.jpg",
+    "imageSource": "https://techcrunch.com/2026/06/01/anthropic-files-to-go-public/"
   },
   {
     "id": "2026-06-02-12-anthropic-claude-opus-48-dynamic-workflows-relea",
@@ -915,7 +1356,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-02-12-anthropic-claude-opus-48-dynamic-workflows-relea.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-02-12-anthropic-claude-opus-48-dynamic-workflows-relea.jpg",
+    "imageSource": "https://www.infoq.com/news/2026/06/dynamic-workflows-claude-code/"
   },
   {
     "id": "2026-06-01-01-claude-code-dynamic-workflows-run-hundreds-of-pa",
@@ -931,7 +1373,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-01-claude-code-dynamic-workflows-run-hundreds-of-pa.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-01-02-the-right-claudemd-structure-for-agentic-coding",
@@ -947,7 +1389,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-02-the-right-claudemd-structure-for-agentic-coding.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-01-03-5-claude-code-workflow-patterns-beyond-one-shot-",
@@ -962,7 +1404,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-03-5-claude-code-workflow-patterns-beyond-one-shot-.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-01-03-5-claude-code-workflow-patterns-beyond-one-shot-.png",
+    "imageSource": "https://www.mindstudio.ai/blog/claude-code-agentic-workflow-patterns"
   },
   {
     "id": "2026-06-01-04-multi-tool-ai-coding-stacks-are-now-the-norm",
@@ -977,7 +1420,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-04-multi-tool-ai-coding-stacks-are-now-the-norm.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-06-01-04-multi-tool-ai-coding-stacks-are-now-the-norm.png",
+    "imageSource": "https://www.sitepoint.com/claude-code-vs-cursor-vs-copilot-the-2026-developer-comparison/"
   },
   {
     "id": "2026-06-01-05-webmcp-expose-your-websites-ui-as-structured-ai-",
@@ -991,7 +1435,7 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-05-webmcp-expose-your-websites-ui-as-structured-ai-.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-06-01-06-context-engineering-has-superseded-prompt-engine",
@@ -1006,7 +1450,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-06-context-engineering-has-superseded-prompt-engine.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-01-06-context-engineering-has-superseded-prompt-engine.png",
+    "imageSource": "https://neo4j.com/blog/agentic-ai/context-engineering-vs-prompt-engineering/"
   },
   {
     "id": "2026-06-01-07-mcp-security-production-grade-best-practices",
@@ -1020,7 +1465,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-07-mcp-security-production-grade-best-practices.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-01-07-mcp-security-production-grade-best-practices.png",
+    "imageSource": "https://www.coalitionforsecureai.org/securing-the-ai-agent-revolution-a-practical-guide-to-mcp-security/"
   },
   {
     "id": "2026-06-01-08-fine-tuning-with-rag-to-teach-llms-new-skills-ic",
@@ -1035,7 +1481,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-08-fine-tuning-with-rag-to-teach-llms-new-skills-ic.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-01-08-fine-tuning-with-rag-to-teach-llms-new-skills-ic.png",
+    "imageSource": "https://arxiv.org/abs/2510.01375"
   },
   {
     "id": "2026-06-01-09-agentic-rag-patterns-from-retrieval-to-reasoning",
@@ -1049,7 +1496,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-09-agentic-rag-patterns-from-retrieval-to-reasoning.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-01-09-agentic-rag-patterns-from-retrieval-to-reasoning.png",
+    "imageSource": "https://arxiv.org/abs/2501.09136"
   },
   {
     "id": "2026-06-01-10-google-antigravity-20-agent-first-dev-platform-n",
@@ -1064,7 +1512,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-10-google-antigravity-20-agent-first-dev-platform-n.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-06-01-10-google-antigravity-20-agent-first-dev-platform-n.png",
+    "imageSource": "https://blog.google/innovation-and-ai/technology/developers-tools/google-io-2026-developer-highlights/"
   },
   {
     "id": "2026-06-01-11-anthropic-releases-claude-opus-48-with-dynamic-w",
@@ -1080,7 +1529,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-11-anthropic-releases-claude-opus-48-with-dynamic-w.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-01-11-anthropic-releases-claude-opus-48-with-dynamic-w.jpg",
+    "imageSource": "https://techcrunch.com/2026/05/28/anthropic-releases-opus-4-8-with-new-dynamic-workflow-tool/"
   },
   {
     "id": "2026-06-01-12-anthropics-mythos-model-near-superhuman-at-secur",
@@ -1096,7 +1546,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-12-anthropics-mythos-model-near-superhuman-at-secur.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-01-12-anthropics-mythos-model-near-superhuman-at-secur.jpg",
+    "imageSource": "https://www.theregister.com/security/2026/05/25/anthropic-to-release-mythos-class-models-to-the-public/5245596"
   },
   {
     "id": "2026-06-01-13-google-io-2026-gemini-35-flash-is-now-ga-faster-",
@@ -1111,7 +1562,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-13-google-io-2026-gemini-35-flash-is-now-ga-faster-.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-01-13-google-io-2026-gemini-35-flash-is-now-ga-faster-.png",
+    "imageSource": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-5/"
   },
   {
     "id": "2026-06-01-14-github-copilot-switches-to-token-based-billing-t",
@@ -1127,7 +1579,8 @@
     ],
     "readTime": 1,
     "filename": "2026-06-01-14-github-copilot-switches-to-token-based-billing-t.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-06-01-14-github-copilot-switches-to-token-based-billing-t.png",
+    "imageSource": "https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/"
   },
   {
     "id": "2026-05-31-01-pair-a-terminal-agent-with-an-ide-assistant",
@@ -1143,7 +1596,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-31-01-pair-a-terminal-agent-with-an-ide-assistant.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-31-02-addy-osmanis-llm-coding-workflow-for-2026",
@@ -1159,7 +1612,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-31-02-addy-osmanis-llm-coding-workflow-for-2026.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-05-31-02-addy-osmanis-llm-coding-workflow-for-2026.webp",
+    "imageSource": "https://addyosmani.com/blog/ai-coding-workflow/"
   },
   {
     "id": "2026-05-31-03-spec-driven-development-sdd-is-replacing-vibe-co",
@@ -1175,7 +1629,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-31-03-spec-driven-development-sdd-is-replacing-vibe-co.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-05-31-03-spec-driven-development-sdd-is-replacing-vibe-co.jpg",
+    "imageSource": "https://towardsdatascience.com/from-vibe-coding-to-spec-driven-development/"
   },
   {
     "id": "2026-05-31-04-prompting-tips-that-work-across-claude-gpt-5-and",
@@ -1190,7 +1645,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-31-04-prompting-tips-that-work-across-claude-gpt-5-and.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-31-05-context-engineering-is-the-new-prompt-engineerin",
@@ -1205,7 +1660,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-31-05-context-engineering-is-the-new-prompt-engineerin.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-05-31-05-context-engineering-is-the-new-prompt-engineerin.png",
+    "imageSource": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
   },
   {
     "id": "2026-05-31-06-agentic-rag-embedding-agents-inside-the-retrieva",
@@ -1220,7 +1676,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-31-06-agentic-rag-embedding-agents-inside-the-retrieva.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-05-31-06-agentic-rag-embedding-agents-inside-the-retrieva.png",
+    "imageSource": "https://arxiv.org/abs/2501.09136"
   },
   {
     "id": "2026-05-31-07-microsoft-open-sources-rampart-and-clarity-for-a",
@@ -1234,7 +1691,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-31-07-microsoft-open-sources-rampart-and-clarity-for-a.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-05-31-07-microsoft-open-sources-rampart-and-clarity-for-a.png",
+    "imageSource": "https://www.microsoft.com/en-us/security/blog/2026/05/20/introducing-rampart-and-clarity-open-source-tools-to-bring-safety-into-agent-development-workflow/"
   },
   {
     "id": "2026-05-31-08-vibe-coding-has-a-quality-problem-and-the-number",
@@ -1250,7 +1708,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-31-08-vibe-coding-has-a-quality-problem-and-the-number.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-05-31-08-vibe-coding-has-a-quality-problem-and-the-number.jpg",
+    "imageSource": "https://hexaware.com/blogs/level-up-your-ai-workflow-11-vibe-coding-best-practices-for-real-world-builders/"
   },
   {
     "id": "2026-05-31-09-anthropic-launches-self-hosted-sandboxes-and-mcp",
@@ -1266,7 +1725,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-31-09-anthropic-launches-self-hosted-sandboxes-and-mcp.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-05-31-09-anthropic-launches-self-hosted-sandboxes-and-mcp.jpg",
+    "imageSource": "https://thenewstack.io/anthropic-mcp-tunnels-sandboxes/"
   },
   {
     "id": "2026-05-31-10-deepseek-makes-75-v4-pro-price-cut-permanent",
@@ -1281,7 +1741,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-31-10-deepseek-makes-75-v4-pro-price-cut-permanent.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-05-31-10-deepseek-makes-75-v4-pro-price-cut-permanent.jpg",
+    "imageSource": "https://www.engadget.com/2180062/deepseek-permanently-reduces-the-price-of-its-flagship-v4-model-by-75-percent/"
   },
   {
     "id": "2026-05-31-11-google-io-2026-gemini-35-flash-ga-gemini-spark-p",
@@ -1295,7 +1756,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-31-11-google-io-2026-gemini-35-flash-ga-gemini-spark-p.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-05-31-11-google-io-2026-gemini-35-flash-ga-gemini-spark-p.png",
+    "imageSource": "https://developers.googleblog.com/all-the-news-from-the-google-io-2026-developer-keynote/"
   },
   {
     "id": "2026-05-31-12-nvidia-and-google-optimize-gemma-4-for-local-rtx",
@@ -1311,7 +1773,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-31-12-nvidia-and-google-optimize-gemma-4-for-local-rtx.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-05-31-12-nvidia-and-google-optimize-gemma-4-for-local-rtx.jpg",
+    "imageSource": "https://blogs.nvidia.com/blog/rtx-ai-garage-open-models-google-gemma-4/"
   },
   {
     "id": "2026-05-30-01-claude-code-dynamic-workflows-ultracode-mode",
@@ -1327,7 +1790,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-30-01-claude-code-dynamic-workflows-ultracode-mode.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-05-30-01-claude-code-dynamic-workflows-ultracode-mode.jpg",
+    "imageSource": "https://claude.com/blog/introducing-dynamic-workflows-in-claude-code"
   },
   {
     "id": "2026-05-30-02-playwright-mcp-self-healing-tests-in-cursor",
@@ -1343,7 +1807,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-30-02-playwright-mcp-self-healing-tests-in-cursor.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-05-30-02-playwright-mcp-self-healing-tests-in-cursor.jpg",
+    "imageSource": "https://www.aitooldiscovery.com/guides/cursor-reddit"
   },
   {
     "id": "2026-05-30-03-budget-tokens-strategically-in-multi-agent-runs",
@@ -1359,7 +1824,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-30-03-budget-tokens-strategically-in-multi-agent-runs.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-30-04-context-engineering-4-core-strategies",
@@ -1373,7 +1838,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-30-04-context-engineering-4-core-strategies.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-30-05-9-best-practices-for-production-grade-agentic-ai",
@@ -1387,7 +1852,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-30-05-9-best-practices-for-production-grade-agentic-ai.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-30-06-design-patterns-for-securing-llm-agents-against-",
@@ -1402,7 +1867,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-30-06-design-patterns-for-securing-llm-agents-against-.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-05-30-06-design-patterns-for-securing-llm-agents-against-.png",
+    "imageSource": "https://arxiv.org/abs/2506.08837"
   },
   {
     "id": "2026-05-30-07-6-production-proven-multi-agent-orchestration-pa",
@@ -1417,7 +1883,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-30-07-6-production-proven-multi-agent-orchestration-pa.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-30-08-is-agentic-rag-worth-it-new-research",
@@ -1431,7 +1897,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-30-08-is-agentic-rag-worth-it-new-research.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-05-30-08-is-agentic-rag-worth-it-new-research.png",
+    "imageSource": "https://arxiv.org/abs/2601.07711"
   },
   {
     "id": "2026-05-30-09-anthropic-releases-claude-opus-48-with-dynamic-w",
@@ -1447,7 +1914,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-30-09-anthropic-releases-claude-opus-48-with-dynamic-w.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-05-30-09-anthropic-releases-claude-opus-48-with-dynamic-w.jpg",
+    "imageSource": "https://www.anthropic.com/news/claude-opus-4-8"
   },
   {
     "id": "2026-05-30-10-anthropic-closing-30b-round-at-900b-valuation-wo",
@@ -1462,7 +1930,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-30-10-anthropic-closing-30b-round-at-900b-valuation-wo.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-05-30-10-anthropic-closing-30b-round-at-900b-valuation-wo.jpg",
+    "imageSource": "https://www.bloomberg.com/news/articles/2026-05-12/anthropic-in-talks-to-raise-30-billion-at-900-billion-valuation"
   },
   {
     "id": "2026-05-30-11-google-io-2026-gemini-35-flash-antigravity-agent",
@@ -1476,7 +1945,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-30-11-google-io-2026-gemini-35-flash-antigravity-agent.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-05-30-11-google-io-2026-gemini-35-flash-antigravity-agent.png",
+    "imageSource": "https://blog.google/innovation-and-ai/technology/ai/google-io-2026-all-our-announcements/"
   },
   {
     "id": "2026-05-30-12-openai-publishes-frontier-governance-framework",
@@ -1491,7 +1961,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-30-12-openai-publishes-frontier-governance-framework.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-29-01-claude-code-dynamic-workflows-run-up-to-1000-par",
@@ -1507,7 +1977,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-01-claude-code-dynamic-workflows-run-up-to-1000-par.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-05-29-01-claude-code-dynamic-workflows-run-up-to-1000-par.jpg",
+    "imageSource": "https://techcrunch.com/2026/05/28/anthropic-releases-opus-4-8-with-new-dynamic-workflow-tool/"
   },
   {
     "id": "2026-05-29-02-claudemd-is-a-behavioral-contract-not-documentat",
@@ -1522,7 +1993,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-02-claudemd-is-a-behavioral-contract-not-documentat.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-29-03-claude-code-cursor-combo-beats-using-either-alon",
@@ -1537,7 +2008,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-03-claude-code-cursor-combo-beats-using-either-alon.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-29-04-claude-code-v21152-powershell-security-fix-usefu",
@@ -1552,7 +2023,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-04-claude-code-v21152-powershell-security-fix-usefu.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-05-29-04-claude-code-v21152-powershell-security-fix-usefu.png",
+    "imageSource": "https://claudefa.st/blog/guide/changelog"
   },
   {
     "id": "2026-05-29-05-messages-api-now-supports-mid-task-instruction-u",
@@ -1567,7 +2039,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-05-messages-api-now-supports-mid-task-instruction-u.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/2026-05-29-05-messages-api-now-supports-mid-task-instruction-u.png",
+    "imageSource": "https://www.digitalapplied.com/blog/claude-opus-4-8-release-dynamic-workflows-2026"
   },
   {
     "id": "2026-05-29-06-context-engineering-has-supplanted-prompt-engine",
@@ -1582,7 +2055,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-06-context-engineering-has-supplanted-prompt-engine.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-05-29-06-context-engineering-has-supplanted-prompt-engine.png",
+    "imageSource": "https://neo4j.com/blog/agentic-ai/context-engineering-vs-prompt-engineering/"
   },
   {
     "id": "2026-05-29-07-use-small-language-models-for-routine-agentic-ta",
@@ -1597,7 +2071,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-07-use-small-language-models-for-routine-agentic-ta.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-05-29-07-use-small-language-models-for-routine-agentic-ta.png",
+    "imageSource": "https://arxiv.org/abs/2506.02153"
   },
   {
     "id": "2026-05-29-08-rag-optimization-keep-key-information-at-the-edg",
@@ -1612,7 +2087,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-08-rag-optimization-keep-key-information-at-the-edg.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-05-29-08-rag-optimization-keep-key-information-at-the-edg.png",
+    "imageSource": "https://www.stackai.com/blog/prompt-engineering-for-rag-pipelines-the-complete-guide-to-prompt-engineering-for-retrieval-augmented-generation"
   },
   {
     "id": "2026-05-29-09-google-antigravity-managed-agents-provision-remo",
@@ -1626,7 +2102,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-09-google-antigravity-managed-agents-provision-remo.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-05-29-09-google-antigravity-managed-agents-provision-remo.jpg",
+    "imageSource": "https://cloud.google.com/blog/products/ai-machine-learning/innovations-from-google-io-26-on-google-cloud"
   },
   {
     "id": "2026-05-29-10-facebook-silvertorch-index-as-model-retrieval-pa",
@@ -1641,7 +2118,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-10-facebook-silvertorch-index-as-model-retrieval-pa.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/2026-05-29-10-facebook-silvertorch-index-as-model-retrieval-pa.png",
+    "imageSource": "https://engineering.fb.com/2026/05/26/ml-applications/silvertorch-index-as-model-new-retrieval-paradigm-recommendation-systems/"
   },
   {
     "id": "2026-05-29-11-anthropic-releases-claude-opus-48-with-dynamic-w",
@@ -1657,7 +2135,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-11-anthropic-releases-claude-opus-48-with-dynamic-w.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-05-29-11-anthropic-releases-claude-opus-48-with-dynamic-w.jpg",
+    "imageSource": "https://www.anthropic.com/news/claude-opus-4-8"
   },
   {
     "id": "2026-05-29-12-google-io-2026-gemini-35-flash-is-generally-avai",
@@ -1672,7 +2151,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-12-google-io-2026-gemini-35-flash-is-generally-avai.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-05-29-12-google-io-2026-gemini-35-flash-is-generally-avai.png",
+    "imageSource": "https://blog.google/innovation-and-ai/technology/ai/io-2026-keynote-moment-videos/"
   },
   {
     "id": "2026-05-29-13-all-three-big-four-firms-now-standardized-on-cla",
@@ -1688,7 +2168,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-13-all-three-big-four-firms-now-standardized-on-cla.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-05-29-13-all-three-big-four-firms-now-standardized-on-cla.jpg",
+    "imageSource": "https://kpmg.com/xx/en/media/press-releases/2026/05/kpmg-and-anthropic-sign-global-alliance-and-launch-digital-gateway-powered-by-claude.html"
   },
   {
     "id": "2026-05-29-14-openai-launches-4b-enterprise-consulting-subsidi",
@@ -1704,7 +2185,8 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-14-openai-launches-4b-enterprise-consulting-subsidi.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/2026-05-29-14-openai-launches-4b-enterprise-consulting-subsidi.png",
+    "imageSource": "https://techcrunch.com/2026/04/30/after-dissing-anthropic-for-limiting-mythos-openai-restricts-access-to-cyber-too/"
   },
   {
     "id": "2026-05-29-15-canada-rules-chatgpt-training-data-violated-priv",
@@ -1719,7 +2201,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-15-canada-rules-chatgpt-training-data-violated-priv.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-29-16-chatgpt-voice-mode-runs-on-a-13-month-old-model",
@@ -1734,7 +2216,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-29-16-chatgpt-voice-mode-runs-on-a-13-month-old-model.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-01-use-ide-terminal-agent-as-a-two-tool-stack",
@@ -1749,7 +2231,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-01-use-ide-terminal-agent-as-a-two-tool-stack.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-02-claude-codes-new-agent-view-changes-how-you-mana",
@@ -1764,7 +2246,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-02-claude-codes-new-agent-view-changes-how-you-mana.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-03-use-goal-to-keep-claude-working-across-multi-tur",
@@ -1779,7 +2261,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-03-use-goal-to-keep-claude-working-across-multi-tur.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-04-ai-coding-agents-work-best-on-clean-modular-repo",
@@ -1793,7 +2275,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-04-ai-coding-agents-work-best-on-clean-modular-repo.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-05-build-modularly-so-you-can-deprecate-agent-harne",
@@ -1809,7 +2291,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-05-build-modularly-so-you-can-deprecate-agent-harne.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-06-run-1015-claude-sessions-in-parallel-with-git-wo",
@@ -1824,7 +2306,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-06-run-1015-claude-sessions-in-parallel-with-git-wo.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-07-context-engineering-replaces-prompt-engineering-",
@@ -1838,7 +2320,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-07-context-engineering-replaces-prompt-engineering-.md",
-    "eyebrow": "Workflow"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-08-agentic-prompts-need-four-core-components-system",
@@ -1852,7 +2334,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-08-agentic-prompts-need-four-core-components-system.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-09-five-agent-design-patterns-every-developer-shoul",
@@ -1867,7 +2349,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-09-five-agent-design-patterns-every-developer-shoul.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-10-agentic-rag-retrieval-as-a-repeated-tool-call-no",
@@ -1881,7 +2363,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-10-agentic-rag-retrieval-as-a-repeated-tool-call-no.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-11-fix-agent-failure-modes-systematically-not-throu",
@@ -1895,7 +2377,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-11-fix-agent-failure-modes-systematically-not-throu.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-12-design-tool-interfaces-with-agents-in-mind",
@@ -1909,7 +2391,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-12-design-tool-interfaces-with-agents-in-mind.md",
-    "eyebrow": "Strategy"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-13-kpmg-deploys-claude-to-276000-employees-across-1",
@@ -1924,7 +2406,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-13-kpmg-deploys-claude-to-276000-employees-across-1.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-14-openai-launches-4b-consulting-subsidiary-deployc",
@@ -1939,7 +2421,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-14-openai-launches-4b-consulting-subsidiary-deployc.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-15-cohere-acquires-aleph-alpha-creating-a-20b-trans",
@@ -1954,7 +2436,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-15-cohere-acquires-aleph-alpha-creating-a-20b-trans.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-16-nvidia-releases-nemotron-3-nano-omni-open-omni-m",
@@ -1969,7 +2451,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-16-nvidia-releases-nemotron-3-nano-omni-open-omni-m.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-17-google-ships-gemini-35-and-gemini-35-flash",
@@ -1984,7 +2466,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-17-google-ships-gemini-35-and-gemini-35-flash.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-18-anthropic-launches-project-glasswing-ai-powered-",
@@ -2000,7 +2482,7 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-18-anthropic-launches-project-glasswing-ai-powered-.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/_default.png"
   },
   {
     "id": "2026-05-28-19-amd-venice-enters-production-on-tsmc-2nm",
@@ -2015,6 +2497,6 @@
     ],
     "readTime": 1,
     "filename": "2026-05-28-19-amd-venice-enters-production-on-tsmc-2nm.md",
-    "eyebrow": "AI News"
+    "image": "/blog/images/_default.png"
   }
 ]
