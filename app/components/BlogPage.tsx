@@ -121,13 +121,24 @@ export default function BlogPage() {
               transition={{ duration: 0.4, delay: Math.min(index * 0.04, 0.4) }}
               sx={{ py: { xs: 4, md: 6 }, borderTop: '1px solid rgba(148,163,184,0.12)' }}
             >
+              {/* Featured image — links to the article */}
+              {post.image && (
+                <Box component={Link} href={`/blog/${post.id}/`} sx={{ display: 'block', mb: 2.5 }}>
+                  <Box
+                    component="img"
+                    src={post.image}
+                    alt=""
+                    loading="lazy"
+                    sx={{
+                      width: '100%', aspectRatio: '1200 / 630', objectFit: 'cover', display: 'block',
+                      borderRadius: 2, border: '1px solid rgba(148,163,184,0.12)',
+                    }}
+                  />
+                </Box>
+              )}
+
               {/* Meta line */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.5, flexWrap: 'wrap' }}>
-                {post.eyebrow && (
-                  <Box sx={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: ACCENT }}>
-                    {post.eyebrow}
-                  </Box>
-                )}
                 <Typography sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', letterSpacing: '0.04em' }}>
                   {formatLongDate(post.date)} · {post.readTime} min read
                 </Typography>

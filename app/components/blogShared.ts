@@ -12,6 +12,10 @@ export interface BlogPost {
   filename?: string;
   eyebrow?: string;
   dek?: string;
+  /** Featured image, site-absolute path (e.g. /blog/images/<id>.jpg). */
+  image?: string;
+  /** Where the featured image was sourced from (the article URL), for attribution. */
+  imageSource?: string;
 }
 
 export const SERIF = 'var(--font-fraunces), Georgia, serif';

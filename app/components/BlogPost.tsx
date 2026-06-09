@@ -62,15 +62,16 @@ export default function BlogPost({ id }: { id: string }) {
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
         {backButton}
 
-        {post.eyebrow && (
-          <Typography
+        {post.image && (
+          <Box
+            component="img"
+            src={post.image}
+            alt=""
             sx={{
-              fontFamily: MONO, color: '#3fb950', fontSize: 12, fontWeight: 600,
-              letterSpacing: '0.16em', textTransform: 'uppercase', mb: 1.5,
+              width: '100%', aspectRatio: '1200 / 630', objectFit: 'cover', display: 'block',
+              borderRadius: 2, border: '1px solid #222a35', mb: 3,
             }}
-          >
-            {post.eyebrow}
-          </Typography>
+          />
         )}
 
         <Typography
