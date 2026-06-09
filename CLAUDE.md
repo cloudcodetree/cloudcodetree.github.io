@@ -74,9 +74,15 @@ app/                          # Next.js App Router
 └── lib/                     # theme.ts, mui.ts, emotionCache.ts, emailObfuscation.ts
 
 scripts/                      # Blog automation (Node, no deps)
+├── ingest-feed.mjs          # content/feed.xml (RSS 2.0 + Media RSS) → posts.json + .md + images
+├── push-feed.sh             # launchd watcher action: ingest → commit → push (task can't push)
+├── com.cloudcodetree.feed-sync.plist  # launchd WatchPaths agent for push-feed.sh
 ├── publish-post.mjs         # Publishing core: draft → public/blog/<id>.md + posts.json
-├── import-briefings.mjs     # Explode "AI Developer News" digests → one post per item
+├── import-briefings.mjs     # Legacy (dormant): exploded "AI Developer News" digests → posts
 └── validate-blog.mjs        # Validate posts.json ↔ public/blog consistency
+
+content/                      # Source feed the Desktop task writes (ingested at publish time)
+└── feed.xml                 # RSS 2.0 + Media RSS — source of truth for 2026-06-09 onward
 
 .claude/                      # Claude Code project tooling (see "Claude Code Tooling")
 ├── settings.json            # Hooks + protective deny rules
@@ -293,37 +299,40 @@ back button returns to the list at the right page. Shared types/styling live in
   All metadata lives in `posts.json`.
 - Dates are `MM-DD-YYYY`. Posts are newest-first.
 - `id` == filename stem == `posts.json` `id`.
-- `posts.json` entry schema: `id, title, excerpt, author, date, tags[], readTime, filename`
-  plus optional `eyebrow` / `dek` (presentation).
+- `posts.json` entry schema: `id, title, excerpt, author, date, tags[], readTime, filename,
+  image` plus optional `imageSource` / `dek`. `image` is a site-absolute path to a re-hosted
+  featured image (`/blog/images/<id>.<ext>`), falling back to `/blog/images/_default.png`.
+  Posts are not separated by category (the old `eyebrow` badge was removed).
 - **Never hand-edit `posts.json`** — go through the scripts below.
 
-**Primary source — the "AI Developer News" briefings (per-item posts).**
-The Claude Desktop "AI Developer News" project produces daily `YYYY-MM-DD-ai-briefing.md`
-digests. Each digest groups items under three sections (Workflow / Strategy / News). On
-the blog, **each item becomes its own post** — the "AI Developer Briefing — <date>"
-wrapper is just the internal digest format. Explode + (re)publish them with:
+**Primary source — an RSS feed (ingestion).** Since the 2026-06-09 cutover, posts come
+from a single **RSS 2.0 + Media RSS** feed that the Claude Desktop "AI Developer News"
+task maintains at `content/feed.xml` (the source of truth, committed; not under `public/`).
+The full feed format + the task prompt live in `docs/ai-news-feed-contract.md`. Ingest it
+with:
 ```bash
-node scripts/import-briefings.mjs "~/Documents/Claude/Projects/AI Developer News" [--commit]
+node scripts/ingest-feed.mjs [content/feed.xml] [--no-images] [--refresh-images]
 ```
-This is idempotent: it rebuilds all briefing-derived posts on each run (and preserves
-any hand-written posts you add later). Item title = the bold lead-in; body = the item
-prose + a Sources footer; `eyebrow` = the section. No LLM, no web fetch, no synthesis —
-every source link is preserved verbatim. The blog currently contains only these
-individual briefing items.
+Each `<item>` UPSERTS a post keyed by `<guid>` (== `id`): `<content:encoded>` CDATA → the
+`.md` body (Markdown), `<media:content>`/`<media:thumbnail>` URL → a re-hosted image under
+`public/blog/images/<id>.<ext>` (`imageSource` = `<link>`), tags from `<category>`. It's a
+**merge, not a rebuild**: posts not in the feed are preserved. Idempotent; images cached by
+id. The `2026-05-28`–`2026-06-08` posts are the legacy back-catalog from the now-retired
+briefing importer (`scripts/import-briefings.mjs`, dormant); `2026-06-09` onward is the feed.
+
+**Auto-publish.** The task can't push, so a launchd `WatchPaths` agent
+(`scripts/com.cloudcodetree.feed-sync.plist`) runs `scripts/push-feed.sh` whenever
+`content/feed.xml` changes: ingest → `validate-blog` → commit (`content/feed.xml` +
+`public/blog/`) → push → deploy. Ingestion + image re-hosting run **locally** (once per
+image) so CI stays a network-free `next build`. Install / disable:
+```bash
+cp scripts/com.cloudcodetree.feed-sync.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.cloudcodetree.feed-sync.plist   # disable: launchctl unload …
+```
 
 **Manual / one-off posts** — drop a `.md` (optionally with frontmatter) and run
 `node scripts/publish-post.mjs <file> --commit`, or `--intake ~/Downloads/cct-blog-drafts`,
 or the `/publish-post` command.
-
-**Local auto-publish (optional)** — `scripts/sync-briefings.sh` runs the importer, then
-commits & pushes to `main` (triggering the deploy). It runs **locally**, not in GitHub
-Actions, because the briefings live in a folder on this Mac that the cloud runner can't
-see. Schedule it daily with `scripts/com.cloudcodetree.blog-sync.plist` (launchd):
-```bash
-cp scripts/com.cloudcodetree.blog-sync.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.cloudcodetree.blog-sync.plist   # disable: launchctl unload …
-```
-(The LLM daily generator and the weekly roundup were removed.)
 
 Validate anytime with `node scripts/validate-blog.mjs` (CI and a hook run this too).
 
