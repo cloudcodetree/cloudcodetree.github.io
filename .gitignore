@@ -12,6 +12,9 @@ node_modules/
 /dist/
 /.swc/
 
+# TypeScript incremental build cache
+*.tsbuildinfo
+
 # Production builds
 build/
 dist-ssr/
