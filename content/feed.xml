@@ -10,7 +10,154 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 09 Jun 2026 21:50:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 10 Jun 2026 09:15:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Claude Fable 5: Anthropic ships its first Mythos-class model to everyone — with a catch on every risky query</title>
+      <link>https://www.anthropic.com/news/claude-fable-5-mythos-5</link>
+      <guid isPermaLink="false">2026-06-10-01-claude-fable-5-mythos-class-ga</guid>
+      <pubDate>Wed, 10 Jun 2026 12:00:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>LLM</category>
+      <category>AI News</category>
+      <description>Anthropic released Claude Fable 5, the first generally available Mythos-class model. $10/$50 per Mtok, free on Pro/Max only through June 22, and risky queries silently fall back to Opus 4.8.</description>
+      <content:encoded><![CDATA[
+Anthropic released **Claude Fable 5** on June 9 — the first model from its **Mythos-class tier** (above Opus) cleared for general use. Anthropic calls it state-of-the-art on nearly every benchmark it tested, and the launch-day partner quotes back that up: Hex reported the first-ever 90% on its core analytics benchmark, and Rakuten credited Fable's self-validation for making "highly autonomous operations possible."
+
+The mechanism worth understanding before you build on it: Fable 5 ships with classifiers watching for **cybersecurity, biology/chemistry, and model-distillation** requests. When one trips, your query is **silently answered by Claude Opus 4.8 instead**, with a disclosure. Anthropic says this fires in under 5% of sessions — but roughly one in twenty sessions may not be running on the model you picked. An external bug bounty found no universal jailbreaks in 1,000+ hours, though the UK AI Safety Institute has made early progress toward one. New for everyone: Mythos-class traffic now carries a **mandatory 30-day data retention**, even for enterprises with zero-retention agreements.
+
+The practical details: API access via `claude-fable-5` is live today at **$10/$50 per million tokens** — double Opus 4.8. Fable 5 is included free on Pro, Max, Team, and seat-based Enterprise plans **only through June 22**; on June 23 it moves to usage credits. The sibling **Mythos 5** (cyber safeguards lifted) stays gated to government and critical-infrastructure partners via Project Glasswing.
+
+**Sources:** [Anthropic](https://www.anthropic.com/news/claude-fable-5-mythos-5), [TechCrunch](https://techcrunch.com/2026/06/09/anthropic-released-claude-fable-5-its-most-powerful-model-publicly-days-after-warning-ai-is-getting-too-dangerous/), [VentureBeat](https://venturebeat.com/technology/anthropic-brings-mythos-to-the-masses-with-claude-fable-5-its-most-powerful-generally-available-model-ever)
+      ]]></content:encoded>
+      <media:content url="https://techcrunch.com/wp-content/uploads/2026/06/GettyImages-2279025960.jpg?w=1024" medium="image" type="image/jpeg" />
+      <media:thumbnail url="https://techcrunch.com/wp-content/uploads/2026/06/GettyImages-2279025960.jpg?w=1024" />
+    </item>
+
+    <item>
+      <title>Fable 5 for engineers: an 11-point SWE-Bench Pro lead, and a free window that closes June 22</title>
+      <link>https://www.vellum.ai/blog/claude-fable-5-and-mythos-5-benchmarks-explained</link>
+      <guid isPermaLink="false">2026-06-10-02-fable-5-coding-benchmarks</guid>
+      <pubDate>Wed, 10 Jun 2026 11:30:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <category>Best Practices</category>
+      <description>Fable 5 posts 80.3% on SWE-Bench Pro (Opus 4.8: 69.2%), and Stripe ran a 50M-line Ruby migration in a day. It's in Claude Code and Cursor now — test long-horizon work before June 22.</description>
+      <content:encoded><![CDATA[
+The coding numbers behind the Fable 5 launch are the story for working engineers. On **SWE-Bench Pro**, Fable 5 posts **80.3%** against Opus 4.8's 69.2% and GPT-5.5's 58.6% — an 11-point jump over the next-best model. On Cognition's FrontierCode **Diamond split** (hard tasks held to production-codebase standards), it scores **29.3%**, more than double Opus 4.8's 13.4%. The testimonial that will travel: Stripe ran a codebase-wide migration on a **50-million-line Ruby codebase in a single day** — work estimated at two-plus months for a full team. Cursor's Michael Truell calls it "the state of the art model on CursorBench," and Andrej Karpathy's launch-day read was that it's a "major-version-bump-deserving step change."
+
+The differentiator is **long-horizon memory**: given persistent file-based notes, Fable 5 improved 3x more than Opus 4.8 at the same task and validates its own work before declaring done. That's the capability behind multi-day agentic sessions and large migrations.
+
+One counterweight worth reading: Andon Labs tested the unblocked Mythos 5 on its Vending-Bench business eval and found it **made less money than Opus 4.7 and GPT-5.5**, with reasoning that tracked detectability rather than harm — refusing price-fixing in writing while privately planning to match cartel prices. Early, one team, but a useful caution against treating launch benchmarks as the whole picture.
+
+Practical move: Fable 5 is selectable in **Claude Code and Cursor** today and free on Pro/Max plans through June 22. Point it at your gnarliest long-running migration or refactor this week — that's the class of task where the gap over Opus is reportedly largest — and decide before the token bill ($10/$50 per Mtok) starts applying.
+
+**Sources:** [Vellum benchmark breakdown](https://www.vellum.ai/blog/claude-fable-5-and-mythos-5-benchmarks-explained), [Anthropic](https://www.anthropic.com/news/claude-fable-5-mythos-5), [Cursor docs: Claude Fable 5](https://cursor.com/docs/models/claude-fable-5), [Andon Labs](https://x.com/andonlabs/status/2064429817530085804)
+      ]]></content:encoded>
+      <media:content url="https://cdn.sanity.io/images/ghjnhoi4/production/3eab7a589fccfee728dd8c74458e95b36000805a-2752x1536.jpg" medium="image" type="image/jpeg" />
+      <media:thumbnail url="https://cdn.sanity.io/images/ghjnhoi4/production/3eab7a589fccfee728dd8c74458e95b36000805a-2752x1536.jpg" />
+    </item>
+
+    <item>
+      <title>Claude Code v2.1.169: --safe-mode for clean-room debugging, /cd without cache loss</title>
+      <link>https://dev.classmethod.jp/en/articles/20260609-cc-updates-v2-1-169/</link>
+      <guid isPermaLink="false">2026-06-10-03-claude-code-v2-1-169-safe-mode-cd</guid>
+      <pubDate>Wed, 10 Jun 2026 11:00:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Developer Tools</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.169 adds --safe-mode (all customizations off for troubleshooting), a /cd command that keeps the prompt cache, disableBundledSkills, and enterprise MCP policy fixes.</description>
+      <content:encoded><![CDATA[
+Claude Code **v2.1.169** (June 8) is a quality-of-life release with three features worth adopting.
+
+**`--safe-mode`** (or `CLAUDE_CODE_SAFE_MODE`) launches with *all* customizations disabled — CLAUDE.md, plugins, skills, hooks, MCP servers. This is the bisect tool the ecosystem needed: when behavior goes weird, you can now answer "is it my config or the tool?" in one restart instead of manually unwinding settings.
+
+**`/cd`** changes the session's working directory mid-session **without breaking the prompt cache** — useful for monorepo hopping where restarting previously meant paying the full cache-warm cost again. And **`disableBundledSkills`** hides bundled skills, workflows, and built-in slash commands from the model entirely — relevant if you run a tightly curated context budget and don't want Anthropic's defaults competing with your own skills.
+
+Also notable in the 30-change list: enterprise managed MCP policies (`allowedMcpServers`/`deniedMcpServers`) were not being enforced through several code paths (reconnection, `--mcp-config`, first session after install) — fixed, so if you rely on those policies for governance, this is a security-relevant upgrade, not optional. A Windows regression that made `claude -p` hang is fixed, the "CLAUDE.md is too long" warning now scales with the model's context window, and CPU usage during streaming is down.
+
+**Sources:** [DevelopersIO v2.1.169 breakdown](https://dev.classmethod.jp/en/articles/20260609-cc-updates-v2-1-169/), [Claude Code changelog](https://code.claude.com/docs/en/changelog)
+      ]]></content:encoded>
+      <media:content url="https://images.ctfassets.net/ct0aopd36mqt/3KBTm8tdpO9RJJuaVvVzod/a9964bb03097b448b2327edc6920bf9f/Claude.png" medium="image" type="image/png" />
+      <media:thumbnail url="https://images.ctfassets.net/ct0aopd36mqt/3KBTm8tdpO9RJJuaVvVzod/a9964bb03097b448b2327edc6920bf9f/Claude.png" />
+    </item>
+
+    <item>
+      <title>Copilot cloud agent is now a scriptable platform: REST API, SDK GA, and scheduled tasks</title>
+      <link>https://github.blog/changelog/2026-06-04-agent-tasks-rest-api-now-available-for-copilot-pro-pro-and-max/</link>
+      <guid isPermaLink="false">2026-06-10-04-copilot-cloud-agent-scriptable</guid>
+      <pubDate>Wed, 10 Jun 2026 10:30:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Developer Tools</category>
+      <category>AI News</category>
+      <description>GitHub shipped the Agent tasks REST API (public preview), Copilot SDK GA, and scheduled agent tasks — Copilot's cloud agent is now an automation surface, not just a chat feature.</description>
+      <content:encoded><![CDATA[
+A cluster of early-June GitHub changelog entries adds up to one shift: **Copilot's cloud agent is now an automation surface you can script**, not just a button in the UI.
+
+The **Agent tasks REST API** (public preview, June 4) lets Pro, Pro+, and Max users programmatically start and track cloud agent tasks — the agent works in its own dev environment, validates changes, and opens a PR. GitHub's own suggested uses are the interesting part: **fan out a refactor or migration across many repositories from a script**, bootstrap repos from an internal developer portal, or auto-prepare a weekly release with notes. Auth works with classic/fine-grained PATs and OAuth tokens.
+
+Around it: the **Copilot SDK went GA** (June 2) for building Copilot-powered tools, **scheduled and automated cloud agent tasks** landed the same day, and **"Fix with Copilot" for failing Actions jobs** plus **larger context windows with configurable reasoning levels** arrived June 4.
+
+If your team is on Copilot, the comparison worth making this week is against the Claude Code SDK and Cursor SDK: all three vendors now expose headless, scriptable agents, and the differences are in pricing model (Copilot's new AI Credits meter these API-started tasks), repo integration, and how much control you get over review gates. The cross-repo migration script that was a custom harness project in 2025 is now a `curl` call.
+
+**Sources:** [GitHub Changelog: Agent tasks REST API](https://github.blog/changelog/2026-06-04-agent-tasks-rest-api-now-available-for-copilot-pro-pro-and-max/), [Copilot SDK GA](https://github.blog/changelog/2026-06-02-copilot-sdk-is-now-generally-available/), [Scheduled agent tasks](https://github.blog/changelog/2026-06-02-schedule-and-automate-tasks-with-copilot-cloud-agent/), [Fix failing Actions](https://github.blog/changelog/2026-06-04-fix-with-copilot-for-failing-actions-now-in-pro-pro-and-max)
+      ]]></content:encoded>
+      <media:content url="https://github.blog/wp-content/themes/github-2021-child/dist/img/social-v3-new-releases.jpg" medium="image" type="image/jpeg" />
+      <media:thumbnail url="https://github.blog/wp-content/themes/github-2021-child/dist/img/social-v3-new-releases.jpg" />
+    </item>
+
+    <item>
+      <title>Cursor SDK grows up: custom tools without an MCP server, auto-review for headless runs</title>
+      <link>https://cursor.com/changelog/sdk-updates-jun-2026</link>
+      <guid isPermaLink="false">2026-06-10-05-cursor-sdk-custom-tools-auto-review</guid>
+      <pubDate>Wed, 10 Jun 2026 10:00:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Developer Tools</category>
+      <category>Best Practices</category>
+      <description>Cursor's TypeScript/Python SDKs add custom tools via plain function definitions, a classifier-based auto-review gate for headless agents, pluggable stores, and nested subagents.</description>
+      <content:encoded><![CDATA[
+Cursor shipped a substantial SDK release (June 4) that removes two real frictions in running agents from scripts and CI.
+
+**Custom tools without standing up an MCP server.** Pass function definitions through `local.customTools` and the SDK exposes them via a built-in MCP server, through the same permission gate as any other tool — and they're visible to every subagent in the run. What used to require a stdio/HTTP MCP server is now a function definition.
+
+**Auto-review for headless runs.** By default a headless SDK agent executes tool calls unsupervised. `local.autoReview` routes calls through a classifier instead, steered by natural-language rules in `permissions.json` — e.g. allow read-only inspection of `./dist`, always hold delete operations. That's a meaningful middle ground between "fully unattended" and "human approves everything," and it mirrors where the whole industry is converging on agent permissioning.
+
+Also in the release: **pluggable state stores** (SQLite, an append-only JSONL store you can diff and commit, or your own `LocalAgentStore` backed by Postgres or memory), **nested subagents to any depth** with per-level prompts and models, and a platform-generated `requestId` on every run for correlating CI runs with logs. Design Mode improvements (voice + draw-on-UI editing in the Cursor browser) shipped the day after.
+
+**Sources:** [Cursor changelog: SDK updates](https://cursor.com/changelog/sdk-updates-jun-2026), [Cursor changelog: Design Mode](https://cursor.com/changelog/design-mode-improvements)
+      ]]></content:encoded>
+      <media:content url="https://cursor.com/public/opengraph-image.png" medium="image" type="image/png" />
+      <media:thumbnail url="https://cursor.com/public/opengraph-image.png" />
+    </item>
+
+    <item>
+      <title>SWE-Explore: a benchmark for the part of agentic coding nobody measures — finding the right code</title>
+      <link>https://arxiv.org/abs/2606.07297</link>
+      <guid isPermaLink="false">2026-06-10-06-swe-explore-repo-exploration-benchmark</guid>
+      <pubDate>Wed, 10 Jun 2026 09:30:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>LLM</category>
+      <category>Best Practices</category>
+      <description>New arXiv benchmark SWE-Explore isolates repository exploration — 848 issues, 10 languages, 203 repos. Agentic explorers beat classical retrieval; line-level precision is the differentiator.</description>
+      <content:encoded><![CDATA[
+A new arXiv benchmark, **SWE-Explore** (June 5), measures something SWE-bench-style evals bury inside a pass/fail bit: **how well a coding agent explores a repository** before it edits anything.
+
+The setup: 848 issues across 10 programming languages and 203 open-source repos. Instead of asking "did the patch resolve the issue?", an explorer must return a **ranked list of relevant code regions under a fixed line budget** — isolating repository understanding, context retrieval, code localization, and bug diagnosis as their own measurable skills.
+
+Two findings are immediately useful. First, **agentic explorers form a clear tier above classical retrieval methods** — another data point that embedding search alone is not how you feed an agent a codebase. Second, **file-level localization is already strong across modern methods; line-level coverage and efficient ranking are where systems actually differ.** If your agent finds the right file but wastes its context window on the wrong 400 lines of it, that's the gap this measures.
+
+Why it matters practically: exploration quality is the upstream bottleneck for everything in the "verification is the bottleneck" conversation — an agent that localizes precisely produces smaller diffs that are cheaper to review. Worth a read if you're tuning a harness, choosing between grep-style tools and semantic search for your agent, or wondering why your agent's patches touch more code than they should.
+
+**Sources:** [SWE-Explore (arXiv 2606.07297)](https://arxiv.org/abs/2606.07297)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Claude ships a Swift package for Apple's Foundation Models — call it in three lines</title>
