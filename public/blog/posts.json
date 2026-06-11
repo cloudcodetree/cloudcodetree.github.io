@@ -1,5 +1,85 @@
 [
   {
+    "id": "2026-06-11-01-webmcp-chrome-canary-early-preview",
+    "title": "WebMCP lands in Chrome Canary: websites become callable tools, and your MCP server may be optional",
+    "excerpt": "Chrome 146 Canary ships WebMCP behind a flag: a navigator.modelContext API that lets any website expose structured tools to browser agents — no separate MCP server, built with Microsoft via the W3C.",
+    "author": "Chris Harper",
+    "date": "06-11-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "AI News"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://venturebeat.com/infrastructure/google-chrome-ships-webmcp-in-early-preview-turning-every-website-into-a",
+    "content": "The Chrome team shipped **WebMCP** this week as an early preview in **Chrome 146 Canary** (behind the \"WebMCP for testing\" flag at `chrome://flags`). Co-developed by Google and Microsoft engineers and incubated in the W3C's Web Machine Learning community group, it's a proposed standard that lets any website expose **structured, callable tools to AI agents** through a new browser API: `navigator.modelContext`.\n\nWhy this matters to you as a builder: today's browser agents interact with your site by screenshotting it or parsing raw DOM — slow, fragile, and token-expensive. WebMCP inverts that. Your site declares the actions it supports, and the agent calls them as functions. There are two surfaces: a **Declarative API** that makes existing well-structured HTML forms agent-callable by adding tool names and descriptions to the markup, and an **Imperative API** (`registerTool()`) where you define tool schemas — conceptually the same shape as OpenAI/Anthropic tool definitions — that run entirely client-side. A single `searchProducts(query, filters)` call replaces dozens of click-scroll-screenshot rounds.\n\nTwo design points worth noting. First, this is **not a replacement for MCP** — it's client-side and form-factor-different from Anthropic's JSON-RPC server protocol; the two are complementary (back-end MCP server for service-to-service, WebMCP for in-browser sessions where the user is present). Second, the spec explicitly treats **headless autonomy as a non-goal** — it's built around human-in-the-loop, cooperative browsing.\n\nPractical move: if you own a consumer-facing web app, audit which of your flows are clean HTML forms — that's reportedly \"80% of the way there\" for the declarative path. [DataCamp already has a hands-on tutorial](https://www.datacamp.com/tutorial/webmcp-tutorial) if you want to try it in Canary this week.\n\n**Sources:** [VentureBeat](https://venturebeat.com/infrastructure/google-chrome-ships-webmcp-in-early-preview-turning-every-website-into-a), [WebMCP spec site](https://webmcp.link/), [DataCamp tutorial](https://www.datacamp.com/tutorial/webmcp-tutorial)"
+  },
+  {
+    "id": "2026-06-11-02-claude-code-fast-mode-economics",
+    "title": "Claude Code /fast economics: enable it on turn one or pay a full-context toll",
+    "excerpt": "Fast mode on Opus 4.8 is 2x price for up to 2.5x speed — but toggling /fast mid-session re-bills your whole context uncached, and every fast token draws from usage credits, not your plan.",
+    "author": "Chris Harper",
+    "date": "06-11-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.developersdigest.tech/blog/claude-code-fast-mode-worth-it",
+    "content": "A same-day-verified breakdown of Claude Code's **fast mode** is worth internalizing before you build a `/fast` habit. The headline trade is simple — same Opus model, **up to 2.5x faster at 2x the token price** ($10/$50 per MTok on Opus 4.8 vs $5/$25 standard) — but three billing wrinkles change how you should use it.\n\n**The first-enable toll.** Fast mode adds a request header that's part of the prompt cache key. The first `/fast` in a conversation invalidates your cache and re-reads the *entire* history as uncached input at fast rates. 400K tokens deep, that toggle costs ~$4 before it does anything; on turn one, it's a cent. Enable at session start or wait for the next session. (The charge is once per conversation on v2.1.86+ — later toggles keep the cache.)\n\n**Separate money.** On Pro/Max/Team plans, fast mode bills **usage credits from the very first token** and never touches included plan usage. Surprise line items on your credits are likely this. It also has its own rate-limit pool; hitting it degrades gracefully to standard speed.\n\n**Where it's wrong.** Skip it for agents, overnight runs, and CI — nobody's watching, output tokens dominate, and fast mode isn't even available in the Batch API (the actual 50%-off lever). And if you're still pointed at Opus 4.7/4.6, fast mode there is a **6x premium** ($30/$150) — switch models before switching speeds. Not available on Bedrock, Vertex, or Azure Foundry; CLI only, not the VS Code extension.\n\nRule of thumb: `/fast` for interactive debugging from turn one; standard mode for everything autonomous.\n\n**Sources:** [Developers Digest](https://www.developersdigest.tech/blog/claude-code-fast-mode-worth-it), [Claude Code fast mode docs](https://code.claude.com/docs/en/fast-mode), [Claude API pricing](https://platform.claude.com/docs/en/about-claude/pricing)"
+  },
+  {
+    "id": "2026-06-11-03-one-cent-prompt-injection-bank-memo",
+    "title": "The €0.02 prompt injection: a bank transfer memo compromised a production AI assistant",
+    "excerpt": "Researchers compromised Bunq's banking assistant with one €0.02 SEPA transfer: an injected memo made the bank's own AI render a phishing prompt. The defense checklist applies to any agent you ship.",
+    "author": "Chris Harper",
+    "date": "06-11-2026",
+    "tags": [
+      "AI",
+      "Security",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://blue41.com/blog/how-we-helped-bunq-secure-their-financial-ai-assistant/",
+    "content": "Security firm Blue41 published a case study — 145 points and 120 comments on Hacker News — showing how they compromised the AI assistant at **Bunq** (Europe's second-largest digital bank, 20M+ customers) with a single **€0.02 SEPA transfer**. The free-form transfer description carried an injection payload; the next time the victim asked the assistant *any* question that fetched recent transactions, the attacker-controlled text entered the LLM context and steered the assistant into rendering a realistic reauthentication phish — inside the bank's own UI, referencing the user's real account data. As one researcher put it: \"It was never about the prompt, it is about the prompt delivery.\"\n\nThis generalizes to anything you're building. The attack surface is **any string an attacker controls that your agent later reads**: email subjects, calendar invite titles, support tickets, webhook payloads, GitHub issue titles, product reviews, CRM notes. Bunq had guardrails; the payload looked like ordinary transaction metadata in isolation.\n\nThe layered defenses, with honest limits: **minimize context** to fields the task needs; **structurally tag retrieved data** as untrusted (a probability shift, not a boundary — the prepared-statement equivalent for LLMs doesn't exist yet); **allowlist outputs and actions** (the agent that can't emit external URLs can't exfiltrate users); **human confirmation for side effects**, displaying system-derived values rather than LLM summaries; and **runtime behavioral monitoring** to catch what prevention misses. The HN framing to remember: \"We're not even at the 'ASLR' level of protection for LLMs yet.\" Design for the assumption that injection sometimes succeeds, and make sure it has nowhere useful to go.\n\n**Sources:** [Blue41 case study](https://blue41.com/blog/how-we-helped-bunq-secure-their-financial-ai-assistant/), [Hacker News discussion](https://news.ycombinator.com/item?id=48476136), [Developers Digest analysis](https://www.developersdigest.tech/blog/ai-agent-prompt-injection-banking), [Simon Willison: prompt injection design patterns](https://simonwillison.net/2025/Jun/13/prompt-injection-design-patterns/)"
+  },
+  {
+    "id": "2026-06-11-04-deepseek-legacy-retirement-v4-migration",
+    "title": "deepseek-chat dies July 24 — and your model already changed under you in April",
+    "excerpt": "DeepSeek retires deepseek-chat and deepseek-reasoner on July 24. The aliases already route to V4-Flash, thinking moved to a request parameter, and V4 Flash runs $0.14/$0.28 per MTok with 1M context.",
+    "author": "Chris Harper",
+    "date": "06-11-2026",
+    "tags": [
+      "AI",
+      "LLM",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://api-docs.deepseek.com/news/news260424",
+    "content": "If `deepseek-chat` or `deepseek-reasoner` appears anywhere in your codebase, you have a hard deadline: both names become **fully inaccessible after July 24, 2026, 15:59 UTC** per [DeepSeek's official notice](https://api-docs.deepseek.com/quick_start/pricing). Two facts to internalize. First, **your model already changed** — since the V4 preview shipped April 24, the legacy names have silently routed to DeepSeek-V4-Flash, so any evals you ran against V3-era models no longer describe what you're serving. Second, on July 24 the aliases stop resolving and requests hard-fail.\n\nThe migration is mechanical but has one structural change: **thinking is no longer a model name**. `deepseek-chat` → `deepseek-v4-flash`; `deepseek-reasoner` → `deepseek-v4-flash` plus `thinking: {\"type\": \"enabled\"}` in the request body. Base URL and OpenAI-compatible format are unchanged. Cleanup items: keep stripping `reasoning_content` from assistant turns in multi-turn flows, revisit hardcoded `max_tokens` (V4 supports 384K output vs the old 64K cap), and re-test tool calls — legacy reasoner didn't support function calling, V4 does in both modes, which may let you collapse a split reasoning/tool-calling architecture into one call.\n\nThe economics are the draw: V4-Flash at **$0.14/$0.28 per MTok** ($0.0028 on cache hits) with a **1M-token context window** — 8x V3.2's 128K, per [Artificial Analysis](https://artificialanalysis.ai/articles/deepseek-is-back-among-the-leading-open-weights-models-with-v4-pro-and-v4-flash) — and both Flash and Pro are MIT-licensed with open weights. There's also an Anthropic-compatible endpoint (`api.deepseek.com/anthropic`) where Claude SDK traffic maps automatically; pin explicit model names in production so an upstream mapping change can't silently swap your model.\n\n**Sources:** [DeepSeek V4 announcement](https://api-docs.deepseek.com/news/news260424), [DeepSeek pricing page](https://api-docs.deepseek.com/quick_start/pricing), [Developers Digest migration guide](https://www.developersdigest.tech/blog/deepseek-chat-to-v4-migration-guide), [Artificial Analysis](https://artificialanalysis.ai/articles/deepseek-is-back-among-the-leading-open-weights-models-with-v4-pro-and-v4-flash)"
+  },
+  {
+    "id": "2026-06-11-05-ai-coding-tools-pricing-reset",
+    "title": "The June pricing reset: Copilot pauses new sign-ups, Windsurf is now Devin Desktop, and your old cost spreadsheet is wrong",
+    "excerpt": "A same-week audit of live pricing pages: Copilot's new credit tiers are temporarily closed to new sign-ups, Windsurf rebranded to Devin Desktop, Cursor added Pro+, and Fable 5 leaves Claude plans J…",
+    "author": "Chris Harper",
+    "date": "06-11-2026",
+    "tags": [
+      "AI",
+      "Developer Tools",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.developersdigest.tech/blog/ai-coding-tools-pricing-june-2026",
+    "content": "Every major AI coding tool repriced in the first half of 2026, and a [verified-against-live-pages audit](https://www.developersdigest.tech/blog/ai-coding-tools-pricing-june-2026) (checked June 10) is the cleanest snapshot of where things landed. Three changes are easy to miss.\n\n**Copilot's paid tiers are temporarily closed.** New sign-ups for Pro ($10), Pro+ ($39), and Max ($100) are paused while GitHub manages capacity after the June 1 switch to usage-based AI Credits ($15/$70/$200 of monthly included credits respectively). If you were planning to add Copilot seats, that's blocked right now; existing customers can still move between tiers.\n\n**Windsurf is gone.** The windsurf.com domain now redirects to devin.ai — Cognition has rebranded the IDE as **Devin Desktop** (Free / Pro $20 / Max $200 / Teams $80 base + $40 per seat), running its SWE 1.6 model. **Cursor** meanwhile added a Pro+ tier at $60 between Pro ($20) and Ultra ($200), with Teams at $40/user.\n\n**The June 22 Fable 5 deadline is the budget item.** Fable 5 leaves claude.ai Pro/Max included usage on June 22 and moves to usage credits / API-only at $10/$50 per MTok. The hidden-cost math to do before then: a complex agentic session burns 50K–200K tokens, so at Fable rates that's **$2–8 per session** — 20 sessions a day is $40–160 before any subscription. Ballpark budgets that held up: $20–40/mo for a serious solo setup, $200–500/mo for a 5–10-person team before overages.\n\nWorth an hour this week to re-run your own numbers — the spreadsheet you made in Q1 no longer reflects any vendor's actual pricing.\n\n**Sources:** [Developers Digest pricing audit](https://www.developersdigest.tech/blog/ai-coding-tools-pricing-june-2026), [Fable 5 June 22 deadline breakdown](https://www.developersdigest.tech/blog/claude-fable-5-june-22-deadline), [Devin pricing](https://devin.ai/pricing)"
+  },
+  {
     "id": "2026-06-10-01-claude-fable-5-mythos-class-ga",
     "title": "Claude Fable 5: Anthropic ships its first Mythos-class model to everyone — with a catch on every risky query",
     "excerpt": "Anthropic released Claude Fable 5, the first generally available Mythos-class model. $10/$50 per Mtok, free on Pro/Max only through June 22, and risky queries silently fall back to Opus 4.8.",
