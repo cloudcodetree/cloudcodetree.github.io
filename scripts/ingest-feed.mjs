@@ -12,7 +12,9 @@
  * It is a MERGE, not a rebuild: posts already in posts.json that aren't in the
  * feed are preserved. Idempotent; an image already uploaded for an id is reused
  * unless --refresh-images. Requires `gh` (authenticated) and `sips` (macOS) for
- * image work; without them, posts get the placeholder image.
+ * image work; without them, posts get the placeholder image. XML is parsed with
+ * fast-xml-parser (the blog scripts' only npm dependency), so node_modules must
+ * be installed where this runs (true for the launchd watcher: it runs in-repo).
  *
  * Usage:
  *   node scripts/ingest-feed.mjs [feed.xml] [--no-images] [--refresh-images]
@@ -24,6 +26,7 @@ import { execFileSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { XMLParser } from 'fast-xml-parser';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -43,35 +46,32 @@ const TMP = path.join(os.tmpdir(), 'cct-ingest-images');
 const DEFAULT_AUTHOR = 'Chris Harper';
 const UA = 'Mozilla/5.0 (compatible; cloudcodetree-blog/1.0; +https://cloudcodetree.com)';
 
-// --- tiny XML helpers (the feed is a controlled, well-formed format) --------
+// --- XML parsing (fast-xml-parser) ------------------------------------------
+// Real parser instead of regexes so malformed feeds fail loudly (parse error)
+// rather than silently mis-extracting fields. CDATA bodies pass through
+// untouched; entities outside CDATA are decoded; values stay strings.
 
-function decodeEntities(s) {
-  return String(s)
-    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").replace(/&apos;/g, "'")
-    .replace(/&amp;/g, '&');
+const parser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+  parseTagValue: false,       // keep "2026", guids, etc. as strings
+  parseAttributeValue: false,
+  isArray: (name, jpath) => jpath === 'rss.channel.item' || name === 'category',
+});
+
+/** Text content of a parsed node ('' if absent; unwraps attribute-bearing nodes). */
+function text(node) {
+  if (node == null) return '';
+  if (Array.isArray(node)) return text(node[0]);
+  if (typeof node === 'object') return text(node['#text']);
+  return String(node);
 }
-function getTag(item, tag) {
-  const m = new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i').exec(item);
-  if (!m) return '';
-  const cdataMatch = /^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/.exec(m[1]);
-  return cdataMatch ? cdataMatch[1] : decodeEntities(m[1].trim());
+
+/** url attribute of a parsed node like <media:content url="…"/> ('' if absent). */
+function urlAttr(node) {
+  const n = Array.isArray(node) ? node[0] : node;
+  return n && typeof n === 'object' && n['@_url'] ? String(n['@_url']) : '';
 }
-function getAllTags(item, tag) {
-  const re = new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'gi');
-  const out = [];
-  let m;
-  while ((m = re.exec(item))) {
-    const c = /^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/.exec(m[1]);
-    out.push(c ? c[1].trim() : decodeEntities(m[1].trim()));
-  }
-  return out;
-}
-function getAttr(item, tag, attr) {
-  const m = new RegExp(`<${tag}\\b[^>]*\\b${attr}=["']([^"']+)["'][^>]*>`, 'i').exec(item);
-  return m ? decodeEntities(m[1]) : '';
-}
-const splitItems = (xml) => xml.match(/<item\b[^>]*>[\s\S]*?<\/item>/gi) || [];
 
 // --- field transforms -------------------------------------------------------
 
@@ -100,19 +100,51 @@ const readTime = (body) => Math.max(1, Math.ceil(body.trim().split(/\s+/).filter
 
 // --- images: download → compress (sips) → upload to GitHub Release ----------
 
-async function downloadTo(url, dst) {
-  let res;
-  try { res = await fetch(url, { headers: { 'user-agent': UA }, redirect: 'follow', signal: AbortSignal.timeout(15000) }); }
-  catch { return false; }
-  if (!res.ok) return false;
-  const ct = (res.headers.get('content-type') || '').toLowerCase();
-  if (ct && !ct.startsWith('image/')) return false;
-  const buf = Buffer.from(await res.arrayBuffer());
-  if (!buf.length) return false;
-  await writeFile(dst, buf);
-  return true;
+/** True if buf starts like a real image (JPEG/PNG/GIF/WebP/HEIF-family). */
+function looksLikeImage(buf) {
+  if (buf.length < 12) return false;
+  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return true; // JPEG
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return true; // PNG
+  if (buf.toString('ascii', 0, 4) === 'GIF8') return true; // GIF
+  if (buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return true; // WebP
+  if (buf.toString('ascii', 4, 8) === 'ftyp') return true; // HEIC/AVIF
+  return false;
 }
-function compress(src, dst) {
+
+async function downloadTo(url, dst, attempts = 3) {
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      const res = await fetch(url, { headers: { 'user-agent': UA }, redirect: 'follow', signal: AbortSignal.timeout(15000) });
+      if (!res.ok) {
+        // 4xx won't get better on retry; 5xx/429 might.
+        if (res.status < 500 && res.status !== 429) return false;
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const ct = (res.headers.get('content-type') || '').toLowerCase();
+      if (ct && !ct.startsWith('image/')) return false;
+      const buf = Buffer.from(await res.arrayBuffer());
+      if (!buf.length || !looksLikeImage(buf)) return false;
+      await writeFile(dst, buf);
+      return true;
+    } catch {
+      if (i < attempts) await new Promise((r) => setTimeout(r, 1000 * 2 ** (i - 1)));
+    }
+  }
+  return false;
+}
+let sharpMod; // lazy-loaded so the script still parses if sharp isn't installed
+async function compress(src, dst) {
+  // Prefer sharp (cross-platform — cloud agents run on Linux); fall back to
+  // sips (macOS built-in) so a bare local checkout without node_modules works.
+  try {
+    sharpMod ??= (await import('sharp')).default;
+    await sharpMod(src)
+      .rotate() // honor EXIF orientation
+      .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 78 })
+      .toFile(dst);
+    return existsSync(dst);
+  } catch { /* sharp missing or failed — try sips */ }
   try { execFileSync('sips', ['-Z', '1200', '-s', 'format', 'jpeg', '-s', 'formatOptions', '78', src, '--out', dst], { stdio: 'ignore' }); return existsSync(dst); }
   catch { return false; }
 }
@@ -123,56 +155,85 @@ function uploadAsset(file) {
 
 /** Resolve a featured image for one post → a CDN URL (or the placeholder). */
 async function resolveImage(item, id, existing) {
-  if (NO_IMAGES) return PLACEHOLDER;
-  // reuse an already-uploaded image unless refreshing
+  // reuse an already-uploaded image unless refreshing (even with --no-images:
+  // that flag means "don't fetch/upload", never "discard existing CDN images")
   if (!REFRESH && existing && existing.startsWith(CDN) && !existing.endsWith('_default.png')) return existing;
-  const url = getAttr(item, 'media:content', 'url') || getAttr(item, 'media:thumbnail', 'url');
+  if (NO_IMAGES) return PLACEHOLDER;
+  const url = urlAttr(item['media:content']) || urlAttr(item['media:thumbnail']);
   if (!url) return PLACEHOLDER;
-  await mkdir(TMP, { recursive: true });
+  await mkdir(TMP, { recursive: true, mode: 0o700 });
   const raw = path.join(TMP, `${id}.raw`);
   const jpg = path.join(TMP, `${id}.jpg`);
-  if (!(await downloadTo(url, raw))) return PLACEHOLDER;
-  if (!compress(raw, jpg)) { await rm(raw, { force: true }); return PLACEHOLDER; }
+  if (!(await downloadTo(url, raw))) { console.warn(`! ${id}: image download failed (${url}) — using placeholder`); return PLACEHOLDER; }
+  if (!(await compress(raw, jpg))) { await rm(raw, { force: true }); console.warn(`! ${id}: image compression failed (sharp/sips) — using placeholder`); return PLACEHOLDER; }
   await rm(raw, { force: true });
-  if (!uploadAsset(jpg)) return PLACEHOLDER;
+  if (!uploadAsset(jpg)) { await rm(jpg, { force: true }); console.warn(`! ${id}: gh release upload failed — using placeholder`); return PLACEHOLDER; }
   return `${CDN}/${id}.jpg`;
+}
+
+/** Warn up front if image hosting can't work, instead of failing silently per item. */
+function checkImagePrereqs() {
+  if (NO_IMAGES) return;
+  try { execFileSync('gh', ['release', 'view', RELEASE_TAG, '--repo', REPO, '--json', 'tagName'], { stdio: 'ignore' }); }
+  catch {
+    console.warn(`! cannot reach GitHub Release "${RELEASE_TAG}" (gh missing/unauthenticated or release absent) — new images will use the placeholder`);
+  }
 }
 
 // --- main -------------------------------------------------------------------
 
 async function main() {
   if (!existsSync(FEED)) { console.error(`✗ feed not found: ${path.relative(ROOT, FEED)}`); process.exit(1); }
-  const items = splitItems(await readFile(FEED, 'utf8'));
+  let doc;
+  try {
+    doc = parser.parse(await readFile(FEED, 'utf8'), true); // true = validate XML
+  } catch (e) {
+    console.error(`✗ feed is not well-formed XML: ${e.message}`);
+    process.exit(1);
+  }
+  const items = doc?.rss?.channel?.item ?? [];
   if (!items.length) { console.error('✗ no <item> elements in feed'); process.exit(1); }
 
   const existing = existsSync(POSTS_JSON) ? JSON.parse(await readFile(POSTS_JSON, 'utf8')) : [];
   const byId = new Map(existing.map((p) => [p.id, p]));
 
-  let upserted = 0, withImg = 0;
+  checkImagePrereqs();
+
+  let upserted = 0, withImg = 0, failed = 0;
   for (const item of items) {
-    const id = getTag(item, 'guid').trim();
+    const id = text(item.guid).trim();
     if (!/^[a-z0-9][a-z0-9-]*$/i.test(id)) { console.warn(`! skipping item with bad/missing guid: "${id}"`); continue; }
 
-    const body = getTag(item, 'content:encoded').trim();
-    const link = getTag(item, 'link').trim();
-    const tags = getAllTags(item, 'category').filter(Boolean);
-    const image = await resolveImage(item, id, byId.get(id)?.image);
-    if (image !== PLACEHOLDER) withImg++;
+    // One malformed item shouldn't abort the whole ingest.
+    try {
+      const body = text(item['content:encoded']).trim();
+      if (!body) { console.warn(`! skipping ${id}: empty <content:encoded>`); failed++; continue; }
+      const title = text(item.title).trim();
+      if (!title) { console.warn(`! skipping ${id}: empty <title>`); failed++; continue; }
+      const link = text(item.link).trim();
+      const tags = (item.category ?? []).map((c) => text(c).trim()).filter(Boolean);
+      const image = await resolveImage(item, id, byId.get(id)?.image);
+      if (image !== PLACEHOLDER) withImg++;
 
-    byId.set(id, {
-      id,
-      title: getTag(item, 'title').trim(),
-      excerpt: excerptFrom(getTag(item, 'description'), body),
-      author: getTag(item, 'dc:creator').trim() || DEFAULT_AUTHOR,
-      date: toMDY(getTag(item, 'pubDate').trim(), id),
-      tags: tags.length ? tags : ['AI'],
-      readTime: readTime(body),
-      image,
-      ...(link ? { imageSource: link } : {}),
-      content: body,
-    });
-    upserted++;
+      byId.set(id, {
+        id,
+        title,
+        excerpt: excerptFrom(text(item.description), body),
+        author: text(item['dc:creator']).trim() || DEFAULT_AUTHOR,
+        date: toMDY(text(item.pubDate).trim(), id),
+        tags: tags.length ? tags : ['AI'],
+        readTime: readTime(body),
+        image,
+        ...(link ? { imageSource: link } : {}),
+        content: body,
+      });
+      upserted++;
+    } catch (e) {
+      console.warn(`! skipping ${id}: ${e.message}`);
+      failed++;
+    }
   }
+  if (failed) console.warn(`! ${failed} feed item(s) skipped — fix the feed and re-run`);
 
   // Newest day first; within a day, ascending item order (…-01 before …-02).
   const merged = [...byId.values()].sort((a, b) =>

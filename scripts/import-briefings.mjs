@@ -20,7 +20,7 @@
  *   node scripts/import-briefings.mjs "<dir>" [--commit]
  */
 
-import { readFile, readdir, writeFile, rm } from 'node:fs/promises';
+import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,13 +30,14 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BLOG_DIR = path.join(ROOT, 'public', 'blog');
 const POSTS_JSON = path.join(BLOG_DIR, 'posts.json');
 const ARROW = ' → ';
+const CDN = 'https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images';
+const PLACEHOLDER_IMAGE = `${CDN}/_default.png`;
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
   'August', 'September', 'October', 'November', 'December'];
 
-// Posts whose ids/files come from this importer (so re-runs are idempotent).
+// Posts whose ids come from this importer (so re-runs are idempotent).
 const isBriefingId = (id) => /^ai-dev-brief-\d{8}$/.test(id) || /^\d{4}-\d{2}-\d{2}-\d{2}-/.test(id);
-const isBriefingFile = (f) => /^ai-dev-brief-\d{8}\.md$/.test(f) || /^\d{4}-\d{2}-\d{2}-\d{2}-.*\.md$/.test(f);
 
 function categoryOf(section) {
   const s = section.toLowerCase();
@@ -96,7 +97,6 @@ function bulletToPost(bullet, iso, n) {
   const tags = [...new Set(['AI', cat.tag, ...inferTags(prose)])].slice(0, 4);
 
   return {
-    body,
     entry: {
       id,
       title,
@@ -105,8 +105,7 @@ function bulletToPost(bullet, iso, n) {
       date: `${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}-${y}`,
       tags,
       readTime: estimateReadTime(prose),
-      filename: `${id}.md`,
-      eyebrow: cat.eyebrow,
+      content: body,
     },
   };
 }
@@ -138,15 +137,15 @@ async function main() {
     console.log(`• ${iso}: ${n} items`);
   }
 
-  // Remove previously-generated briefing files; keep hand-written posts.
-  for (const f of await readdir(BLOG_DIR)) {
-    if (isBriefingFile(f)) await rm(path.join(BLOG_DIR, f), { force: true });
-  }
-  for (const p of posts) await writeFile(path.join(BLOG_DIR, p.entry.filename), p.body);
-
   const existing = existsSync(POSTS_JSON) ? JSON.parse(await readFile(POSTS_JSON, 'utf8')) : [];
+  const existingById = new Map(existing.map((p) => [p.id, p]));
   const preserved = existing.filter((p) => !isBriefingId(p.id));
-  const next = [...posts.map((p) => p.entry), ...preserved];
+  // Rebuild briefing posts, but keep an already-uploaded CDN image for the same id.
+  const rebuilt = posts.map((p) => ({
+    ...p.entry,
+    image: existingById.get(p.entry.id)?.image || PLACEHOLDER_IMAGE,
+  }));
+  const next = [...rebuilt, ...preserved];
   await writeFile(POSTS_JSON, JSON.stringify(next, null, 2) + '\n');
 
   console.log(`\n✓ Published ${posts.length} individual posts (+${preserved.length} preserved) → ${next.length} total.`);

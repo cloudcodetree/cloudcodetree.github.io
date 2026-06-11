@@ -3,12 +3,16 @@
  * publish-post.mjs — the blog publishing core.
  *
  * Turns a markdown draft into a published blog post:
- *   1. strips YAML frontmatter (published .md must be frontmatter-free — it is
- *      rendered raw by react-markdown, so frontmatter would show as literal text),
+ *   1. strips YAML frontmatter (the body is rendered raw by react-markdown,
+ *      so frontmatter would show as literal text),
  *   2. derives metadata (id, title, excerpt, tags, readTime, date),
- *   3. writes the body to public/blog/<id>.md,
- *   4. upserts the entry into public/blog/posts.json (newest-first, deduped by id),
- *   5. validates the result.
+ *   3. upserts the entry — body INLINE in `content` — into
+ *      public/blog/posts.json (newest-first, deduped by id),
+ *   4. validates the result.
+ *
+ * No per-post .md files are written; posts.json is the single artifact.
+ * `image` defaults to the blog-images Release placeholder (upload a real
+ * image with `gh release upload blog-images <id>.jpg` and update the entry).
  *
  * Usage:
  *   node scripts/publish-post.mjs <draft.md> [--tags a,b] [--date MM-DD-YYYY]
@@ -28,6 +32,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BLOG_DIR = path.join(ROOT, 'public', 'blog');
 const POSTS_JSON = path.join(BLOG_DIR, 'posts.json');
 const DEFAULT_AUTHOR = 'Chris Harper';
+const CDN = 'https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images';
+const PLACEHOLDER_IMAGE = `${CDN}/_default.png`;
 
 // --- pure helpers ----------------------------------------------------------
 
@@ -141,6 +147,10 @@ export async function publishOne(srcPath, opts = {}) {
 
   const id = slugify(opts.id || data.id || path.basename(srcPath).replace(/\.md$/i, '') || title);
   const tags = opts.tags || (Array.isArray(data.tags) ? data.tags : undefined) || inferTags(cleanBody);
+
+  const posts = await readPosts();
+  const prior = posts.find((p) => p.id === id);
+
   const entry = {
     id,
     title,
@@ -149,24 +159,21 @@ export async function publishOne(srcPath, opts = {}) {
     date: opts.date || data.date || formatDate(),
     tags,
     readTime: Number(opts.readTime || data.readTime || estimateReadTime(cleanBody)),
-    filename: `${id}.md`,
+    // Keep an already-uploaded CDN image on republish; otherwise placeholder.
+    image: opts.image || data.image || prior?.image || PLACEHOLDER_IMAGE,
+    content: cleanBody,
   };
 
-  // Optional presentation metadata (used by the AI Dev Brief design in BlogPage).
-  const eyebrow = opts.eyebrow || data.eyebrow;
+  // Optional presentation metadata.
   const dek = opts.dek || data.dek;
-  if (eyebrow) entry.eyebrow = eyebrow;
   if (dek) entry.dek = dek;
 
   await mkdir(BLOG_DIR, { recursive: true });
-  await writeFile(path.join(BLOG_DIR, entry.filename), cleanBody);
-
-  const posts = await readPosts();
   const next = posts.filter((p) => p.id !== id);
   next.unshift(entry);
   await writePosts(next);
 
-  console.log(`✓ published "${entry.title}" → public/blog/${entry.filename} (${entry.readTime} min, [${entry.tags.join(', ')}])`);
+  console.log(`✓ published "${entry.title}" → posts.json (${entry.readTime} min, [${entry.tags.join(', ')}])`);
   return entry;
 }
 

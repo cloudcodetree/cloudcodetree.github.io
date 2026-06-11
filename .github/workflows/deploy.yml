@@ -10,6 +10,13 @@ on:
 permissions:
   contents: read
 
+# Rapid feed pushes can queue overlapping runs; with force_orphan deploys,
+# two racing pushes to gh-pages could interleave. Serialize per ref and drop
+# superseded in-flight runs (only the newest commit's deploy matters).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
