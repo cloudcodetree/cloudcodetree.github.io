@@ -6,17 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is CloudCodeTree's professional portfolio website built with Next.js 15 (App Router), React 19, and TypeScript, statically exported and deployed to GitHub Pages. It showcases the professional profile of Chris Harper, a Principal Software Engineering Manager with extensive experience leading enterprise teams and cloud architecture initiatives. Features include:
 
-- **Dark Professional Theme**: Uses Material-UI v6 with custom dark theme, glass morphism effects, and gradient accents
+- **Dark Professional Theme**: Uses Material-UI v7 with custom dark theme, glass morphism effects, and gradient accents
 - **Hero Landing Page**: Professional intro with avatar, skills showcase, and service offerings
 - **Resume Section**: Interactive resume showcasing extensive engineering leadership experience with multiple format downloads
-- **Projects Showcase**: Featured projects + dynamic GitHub repositories via API integration
-- **Dynamic Blog System**: Markdown-based blog with external file loading, search, and tag filtering
-- **Contact Form**: Direct email integration and professional contact methods
+- **AI News Blog**: Statically rendered markdown blog fed by an RSS ingest pipeline (see "Blog" below)
+- **Contact Form**: Web3Forms-backed contact form and professional contact methods
 - **Interview Scheduling**: Calendly integration for professional consultations
 - **Responsive Design**: Mobile-first design with glass morphism, animations, and modern CSS
 - **Custom Domain**: Configured for cloudcodetree.com with Route53 DNS and GitHub Pages
-- **SEO Optimized**: React Helmet for dynamic meta tags and page titles
-- **Performance Optimized**: Code splitting, lazy loading, and optimized bundle size
+- **SEO Optimized**: Next.js Metadata API (per-page titles/descriptions, per-post Open Graph images, canonicals) + build-time sitemap.xml and RSS feed
+- **Performance Optimized**: Static export, build-time blog rendering, paginated blog data chunks
 
 ## Development Commands
 
@@ -56,8 +55,9 @@ pnpm run deploy
 - **Deployment**: GitHub Actions → GitHub Pages (gh-pages branch)
 - **Domain**: Route53 DNS + GitHub Pages custom domain (cloudcodetree.com)
 
-> Historical note: this project was migrated from Vite + React Router to Next.js. A
-> legacy `src/` tree may still exist, but the live app is the `app/` directory below.
+> Historical note: this project was migrated from Vite + React Router to Next.js. The
+> legacy `src/` tree and Vite-era configs (netlify.toml, vercel.json) were removed in
+> June 2026; the live app is the `app/` directory below.
 
 ### Project Structure
 ```
@@ -70,18 +70,18 @@ app/                          # Next.js App Router
 ├── resume/page.tsx          # Resume route (/resume)
 ├── contact/page.tsx         # Contact route (/contact)
 ├── schedule/page.tsx        # Schedule route (/schedule)
-├── components/              # UI components (BlogPage, HomePage, Layout, ClientLayout, …)
+├── components/              # UI components (BlogPage, HomePage, ClientLayout, …)
 ├── config/                  # Config (calendly.ts)
 └── lib/                     # theme.ts, mui.ts, emotionCache.ts, emailObfuscation.ts
 
-scripts/                      # Blog automation (Node, no deps)
-├── ingest-feed.mjs          # content/feed.xml (RSS 2.0 + Media RSS) → posts.json + .md + images
-├── generate-feeds.mjs       # posts.json → public/feed.xml (reader feed; runs as prebuild)
+scripts/                      # Blog automation (Node; fast-xml-parser is the only dep, used by ingest)
+├── ingest-feed.mjs          # content/feed.xml (RSS 2.0 + Media RSS) → posts.json + CDN images
+├── generate-feeds.mjs       # posts.json → public/feed.xml + sitemap.xml + blog/pages/<n>.json (prebuild + dev)
 ├── push-feed.sh             # launchd watcher action: ingest → commit → push (task can't push)
 ├── com.cloudcodetree.feed-sync.plist  # launchd WatchPaths agent for push-feed.sh
-├── publish-post.mjs         # Publishing core: draft → public/blog/<id>.md + posts.json
+├── publish-post.mjs         # Publishing core: draft → posts.json entry (content inline)
 ├── import-briefings.mjs     # Legacy (dormant): exploded "AI Developer News" digests → posts
-└── validate-blog.mjs        # Validate posts.json ↔ public/blog consistency
+└── validate-blog.mjs        # Validate posts.json consistency
 
 content/                      # Source feed the Desktop task writes (ingested at publish time)
 └── feed.xml                 # RSS 2.0 + Media RSS — source of truth for 2026-06-09 onward
@@ -104,10 +104,9 @@ public/
 
 ### Key Components
 
-**Layout.tsx**: Main application shell featuring:
+**ClientLayout.tsx**: Main application shell featuring:
 - Responsive navigation (mobile drawer + desktop horizontal nav)
 - Route-based page transitions with Framer Motion animations
-- SEO optimization with React Helmet for dynamic page titles
 - Glass morphism AppBar with backdrop blur effects
 - Icon-based navigation with active state styling
 
@@ -117,17 +116,15 @@ public/
 - Services grid highlighting core competencies
 - Call-to-action sections for resume and contact
 
-**ProjectsPage.tsx**: Comprehensive project showcase:
-- Featured projects section with curated highlights
-- Dynamic GitHub repositories via REST API
-- Language-specific color coding and repository stats
-- Loading skeletons and error handling
+**BlogPage.tsx / BlogPost.tsx**: the AI News blog (see "Blog" below):
+- List page gets page 1 embedded at build time; later pages fetch
+  `/blog/pages/<n>.json` chunks (10 posts each, generated at prebuild)
+- Article pages are fully prerendered — the post is passed as a prop by the
+  server route (`app/ai-news/[id]/page.tsx`), no client-side fetch
+- Markdown rendered via `react-markdown` + `remark-gfm`
 
-**BlogPage.tsx**: Dynamic blog system featuring:
-- External markdown file loading from `/public/blog/`
-- Full-text search and tag-based filtering
-- Individual post view with proper markdown rendering
-- Responsive grid layout with loading states
+**ProjectsPage.tsx** (implemented, not in nav): featured projects + dynamic
+GitHub repositories via REST API, with loading skeletons and error handling.
 
 **Theme Configuration**: 
 - Custom dark theme with blue/cyan gradient accents (#3b82f6, #06b6d4)
@@ -137,23 +134,18 @@ public/
 
 ### External Integrations
 
-**GitHub API**: 
+**GitHub API** (ProjectsPage, not currently in nav):
 - Fetches repository data from `https://api.github.com/users/cloudcodetree/repos`
-- GitHub username is set to 'cloudcodetree'
 - No authentication required for public repos
 
-**EmailJS Configuration**:
-- Service ID, Template ID, and Public Key need to be configured
-- Replace placeholder values in ContactPage.tsx
-- Sends emails to chris@cloudcodetree.com
-
-**reCAPTCHA**: 
-- Test site key used (6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI)
-- Replace with production site key for real deployment
+**Web3Forms** (contact form):
+- ContactPage.tsx submits to the Web3Forms API with an access key that is
+  client-exposed **by design** (it only routes mail to the configured inbox).
+  Spam mitigation is handled by Web3Forms settings, not by hiding the key.
 
 **Calendly Integration**:
 - Configured URL: 'https://calendly.com/cloudcodetree'
-- Supports both embedded widget and popup modal
+- Supports both embedded widget and new-tab open
 
 ## Deployment
 
@@ -182,29 +174,18 @@ public/
 ### URLs
 - **GitHub Pages**: `https://cloudcodetree.github.io/`
 - **Custom Domain**: `https://cloudcodetree.com/`
-- **Development**: `http://localhost:5173/`
-
-### Environment Variables
-For production deployment, configure:
-- EmailJS Service ID, Template ID, Public Key
-- reCAPTCHA site key (production)
-- GitHub username for API calls (currently: cloudcodetree)
+- **Development**: `http://localhost:3000/`
 
 ## Content Management
 
 ### Blog Posts
-- **Dynamic Blog System**: Posts loaded from external markdown files in `/public/blog/`
-- **Posts Index**: `posts.json` contains metadata for all blog posts
-- **Markdown Content**: Individual `.md` files for each blog post with full content
-- **Post Structure**: Each post includes title, excerpt, content, author, date, tags, readTime, filename
-- **Built-in Features**: Search functionality, tag filtering, individual post view
-- **Current Posts**: AWS Security, Microservices with Kubernetes, React Best Practices
-- **Expandable**: Add new posts by updating `posts.json` and adding markdown files
+See the **Blog ("AI News")** section below — posts live inline in
+`public/blog/posts.json` and are managed exclusively through the scripts in
+`scripts/` (never hand-edited).
 
 ### Resume PDF
 - Store resume PDF in `public/resume.pdf`
-- Protected by reCAPTCHA verification
-- Contains sensitive contact information
+- Contains sensitive contact information (protected by a `.claude` deny rule)
 
 ### GitHub Integration
 - GitHub username set to 'cloudcodetree' in ProjectsPage.tsx
@@ -214,24 +195,23 @@ For production deployment, configure:
 
 ## Performance Considerations
 
-- **React 19**: Latest React version with improved performance and concurrent features
-- **Vite Build System**: Fast development and optimized production builds
-- **Tree Shaking**: Automatic dead code elimination for smaller bundles
-- **Code Splitting**: Ready for implementation with React.lazy for page-level splits
-- **Lazy Loading**: Framer Motion animations only load when components enter viewport
-- **API Optimization**: GitHub API calls with error handling and loading states
-- **Image Optimization**: Store optimized images in `public/assets/` directory
+- **Static export**: every route (incl. all blog articles) is prerendered HTML —
+  no server, no client data fetch for article content
+- **Paginated blog data**: the list page embeds page 1 and fetches ~28KB
+  `/blog/pages/<n>.json` chunks on pagination instead of the whole posts.json
+- **React 19 / Next 15**: build-time type + lint checks are ON
+  (`next.config.js` no longer ignores build errors)
+- **Lazy Loading**: Framer Motion animations animate when components enter viewport
+- **Image hosting**: blog images live on the GitHub Release CDN, never in the repo
 - **Service Worker**: Basic service worker (`sw.js`) included for PWA capabilities
-- **Bundle Analysis**: Monitor bundle size and consider code splitting for further optimization
-- **Responsive Loading**: Skeleton loaders provide immediate feedback during data fetching
 
 ## Security Notes
 
-- reCAPTCHA protects resume download from bots
-- EmailJS prevents email spam and protects backend
+- The Web3Forms access key in ContactPage is public by design (see Integrations)
 - No sensitive API keys exposed in client code
 - All external links use rel="noopener noreferrer"
 - HTTPS enforced on both GitHub Pages and custom domain
+- `.claude/hooks/secret-scan.sh` blocks commits containing Anthropic/AWS keys or PEMs
 
 ## Browser Support
 
@@ -247,41 +227,38 @@ For production deployment, configure:
 
 ## Development Workflow
 
-1. **Local Development**: `pnpm run dev` serves at `http://localhost:5173/` with hot reload
+1. **Local Development**: `pnpm run dev` serves at `http://localhost:3000/` with hot
+   reload (it first runs `generate-feeds.mjs` so feed/sitemap/page chunks exist)
 2. **Code Quality**: `pnpm run lint` for ESLint validation
-3. **Type Checking**: TypeScript compilation with `tsc -b` in build process
-4. **Build & Test**: `pnpm run build` generates optimized production build in `/dist`
-5. **Preview**: `pnpm run preview` serves production build locally for testing
-6. **Deploy**: `pnpm run deploy` builds and pushes to `gh-pages` branch automatically
-7. **Live Sites**: 
+3. **Type Checking**: enforced during `pnpm run build` (TS + ESLint failures fail the build)
+4. **Build**: `pnpm run build` generates the static export in `./out`
+5. **Deploy**: push to `main` → GitHub Actions builds and publishes (manual fallback: `pnpm run deploy`)
+6. **Live Sites**:
    - GitHub Pages: `https://cloudcodetree.github.io/`
    - Custom Domain: `https://cloudcodetree.com/`
-8. **DNS Management**: Route53 handles custom domain with A/CNAME records
-9. **Content Updates**: Add blog posts via markdown files, update project data in components
+7. **DNS Management**: Route53 handles custom domain with A/CNAME records
+8. **Content Updates**: blog content flows through the feed pipeline (see "Blog")
 
-## SPA (Single Page Application) Support
+## Routing & SEO
 
-- **GitHub Pages SPA**: `404.html` redirects to `index.html` for client-side routing
-- **React Router v7**: Latest router with enhanced performance and features
-- **Deep Linking**: All routes (`/`, `/resume`, `/projects`, `/blog`, `/contact`, `/schedule`) work with direct access
-- **SEO Optimization**: React Helmet Async provides dynamic meta tags and titles
-- **Page Titles**: Format: `{Page Name} | Chris Harper` or fallback to full name
-- **Meta Descriptions**: Each page has appropriate meta description for search engines
-- **Open Graph**: Ready for social media meta tag implementation
+- **Static export**: every route is a real prerendered HTML file — deep links work
+  on GitHub Pages without SPA redirect tricks (`404.html` exists as fallback)
+- **Metadata**: Next.js Metadata API — per-page `metadata` exports; blog articles
+  get per-post title/description/canonical/Open Graph image via `generateMetadata`
+- **Sitemap & feed**: `public/sitemap.xml` + `public/feed.xml` generated at prebuild
+  (gitignored), advertised in robots.txt / `<link rel="alternate">`
 
 ## Navigation Structure
 
 **Current Active Routes**:
 - `/` - HomePage (Hero, Skills, Services)
 - `/resume` - ResumePage (Interactive resume with multiple format downloads)
-- `/contact` - ContactPage (Contact form and professional info)  
+- `/ai-news` (+ `/ai-news/<id>`) - AI News blog
+- `/contact` - ContactPage (Contact form and professional info)
 - `/schedule` - SchedulePage (Calendly integration)
 
-**Available but Commented Out**:
-- `/projects` - ProjectsPage (Fully implemented but not in nav)
-- `/blog` - BlogPage (Fully implemented but not in nav)
-
-**Note**: Projects and Blog pages are complete and functional but currently commented out in the navigation (`Layout.tsx` lines 40-41, 23-24). Uncomment to enable.
+**Available but not in nav**: `/projects` - ProjectsPage (implemented; enable by
+adding it to the nav arrays in `app/components/ClientLayout.tsx`).
 
 ## Blog ("AI News")
 
@@ -291,18 +268,26 @@ The blog is labeled **AI News** in the nav and masthead; the route is **`/ai-new
 `public/blog/posts.json` is the newest-first index; each entry points at a
 post's body **inlined in `posts.json`** (no per-post `.md` files). The only committed blog
 asset is `public/blog/posts.json`; **images are not in the repo** — they live on the GitHub
-Release `blog-images` (CDN) and `posts.json` stores their URLs. The list (`/ai-news`,
-`app/components/BlogPage.tsx`) fetches `posts.json` once and renders each body via
-`react-markdown` + `remark-gfm`, paginated (10/page; page kept in the URL as `?page=N`). Each
-post title links to `/ai-news/<id>` (`app/ai-news/[id]/page.tsx` → `BlogPost`). Shared
-types/styling live in `app/components/blogShared.ts`. All `/ai-news/<id>` pages are
-pre-rendered via `generateStaticParams` (required for `output: 'export'`).
+Release `blog-images` (CDN) and `posts.json` stores their URLs.
 
-**Reader feed (emit).** `scripts/generate-feeds.mjs` builds `public/feed.xml` (RSS 2.0 +
-Media RSS + `content:encoded`) from `posts.json` at build time (`prebuild`, or `npm run
-feeds`); item links point to `/ai-news/<id>`, images are absolute URLs. It's gitignored
-(regenerated each build) and discoverable via a `<link rel="alternate">` in `app/layout.tsx`.
-This is separate from the **ingest** feed at `content/feed.xml` (task → site).
+**Rendering.** The list (`/ai-news`, `app/ai-news/page.tsx` → `BlogPage`) embeds page 1
+at build time (read from `posts.json` server-side) and, when paginating, fetches only
+`/blog/pages/<n>.json` chunks (10 posts each, generated at prebuild, gitignored); the page
+is kept in the URL as `?page=N`. Bodies render via `react-markdown` + `remark-gfm`. Each
+post title links to `/ai-news/<id>` (`app/ai-news/[id]/page.tsx` → `BlogPost`); the server
+route reads the post at build time and passes it as a prop — article HTML is fully baked,
+with per-post Open Graph metadata from `generateMetadata`. Shared types/styling live in
+`app/components/blogShared.ts`. All `/ai-news/<id>` pages are pre-rendered via
+`generateStaticParams` (required for `output: 'export'`).
+
+**Generated artifacts (emit).** `scripts/generate-feeds.mjs` runs at `prebuild` (and
+before `dev`; also `npm run feeds`) and builds, from `posts.json`:
+`public/feed.xml` (RSS 2.0 + Media RSS + `content:encoded`; item links point to
+`/ai-news/<id>`, images absolute), `public/sitemap.xml` (static routes + every article),
+and `public/blog/pages/<n>.json` (the list's pagination chunks). All three are gitignored
+(regenerated each build). The feed is discoverable via a `<link rel="alternate">` in
+`app/layout.tsx`, the sitemap via robots.txt. This is separate from the **ingest** feed at
+`content/feed.xml` (task → site).
 
 **Hard rules**
 - Post bodies are Markdown stored inline in `posts.json` `content` (no `.md` files, no YAML
@@ -338,7 +323,9 @@ Idempotent; an image already uploaded for an id is reused unless `--refresh-imag
 (`scripts/com.cloudcodetree.feed-sync.plist`) runs `scripts/push-feed.sh` whenever
 `content/feed.xml` changes: ingest → `validate-blog` → commit (`content/feed.xml` +
 `public/blog/`) → push → deploy. Ingestion + image re-hosting run **locally** (once per
-image) so CI stays a network-free `next build`. Install / disable:
+image) so CI stays a network-free `next build`. Runs are serialized via a lock dir; a
+failed push is recorded in `/tmp/cct-feed-sync.failed` and recovered by the next run
+(it pushes leftover `blog:`-prefixed commits). Install / disable:
 ```bash
 cp scripts/com.cloudcodetree.feed-sync.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.cloudcodetree.feed-sync.plist   # disable: launchctl unload …

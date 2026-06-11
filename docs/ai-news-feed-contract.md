@@ -1,28 +1,33 @@
 # AI News feed contract (ingestion)
 
-The "AI News" blog is driven by a single **RSS 2.0 + Media RSS** feed that the
-Claude Desktop "AI Developer News" task maintains. This is the **ingestion**
-direction: the task is the producer, this repo is the consumer.
+The "AI News" blog is driven by a single **RSS 2.0 + Media RSS** feed maintained
+by the daily **"AI News Publisher" Claude Code cloud routine**
+(claude.ai/code/routines). This is the **ingestion** direction: the routine is
+the producer, this repo is the consumer.
 
 ```
-Claude Desktop task ──writes──▶ content/feed.xml        (source of truth, committed)
+Cloud routine (daily) ──writes──▶ content/feed.xml      (source of truth, committed)
         │
-   launchd WatchPaths ─fires─▶ scripts/push-feed.sh
-        │                         ├─ node scripts/ingest-feed.mjs   (feed → posts)
-        │                         ├─ node scripts/validate-blog.mjs
-        │                         └─ git commit + push  (content/feed.xml + public/blog/)
+        ├─ node scripts/ingest-feed.mjs    (feed → posts + re-hosted images)
+        ├─ node scripts/validate-blog.mjs
+        └─ git commit + push  (content/feed.xml + public/blog/)
         ▼
    GitHub Actions: next build → deploy   (no network; builds committed content)
 ```
 
-The task **cannot push**, so a local launchd agent does it. Ingestion + image
-re-hosting run **locally** (once per image) and the results are committed, so CI
-stays a deterministic, network-free `next build`.
+The routine runs research, feed-writing, ingest, and push in one cloud session.
+Results are committed, so CI stays a deterministic, network-free `next build`.
+
+> **Legacy/fallback path:** before June 2026 the producer was a Claude Desktop
+> task that couldn't push; a local launchd `WatchPaths` agent
+> (`scripts/com.cloudcodetree.feed-sync.plist` → `scripts/push-feed.sh`) did
+> ingest + commit + push whenever `content/feed.xml` changed. That agent can stay
+> installed as a manual fallback — it's a no-op when the feed is already ingested.
 
 ## Where the feed lives
 
 `content/feed.xml` at the repo root — **not** under `public/` (it is a source, not
-served, and must not be confused with any generated feed). The task overwrites /
+served, and must not be confused with any generated feed). The producer overwrites /
 extends this one file each run.
 
 ## What ingest-feed.mjs does
@@ -33,23 +38,25 @@ For each `<item>` it UPSERTS (keyed by `<guid>` == post `id`):
 
 | Feed element | → |
 |---|---|
-| `<guid isPermaLink="false">` | `id` + filename stem (`<id>.md`) |
+| `<guid isPermaLink="false">` | `id` |
 | `<title>` | `title` |
 | `<dc:creator>` | `author` (default `Chris Harper`) |
 | `<pubDate>` (RFC-822) | `date` (`MM-DD-YYYY`) |
 | `<category>` (repeatable) | `tags[]` (default `["AI"]`) |
 | `<description>` | `excerpt` (plain text, ≤200 chars) |
-| `<content:encoded>` (CDATA, **Markdown**) | `public/blog/<id>.md` body |
-| `<media:content url>` / `<media:thumbnail url>` | `image` — downloaded to `public/blog/images/<id>.<ext>`; `imageSource` = `<link>` |
+| `<content:encoded>` (CDATA, **Markdown**) | `content` (inlined in `posts.json`) |
+| `<media:content url>` / `<media:thumbnail url>` | `image` — downloaded, compressed (1200px JPEG q78), uploaded to the `blog-images` GitHub Release (CDN URL stored); `imageSource` = `<link>` |
 
 It is a **merge, not a rebuild**: posts already in `posts.json` that aren't in the
 feed are preserved (historical back-catalog, hand-written one-offs). Idempotent;
 images cached by id (re-fetch with `--refresh-images`). Missing/!image → the
 branded placeholder `/blog/images/_default.png`.
 
-## The task prompt
+## Editorial rules (the producer's instructions)
 
-Paste this as the Claude Desktop task instructions (repo folder connected):
+The cloud routine's prompt points here — these rules are the source of truth for
+what gets written into the feed. (They were originally the Claude Desktop task
+prompt; the "stop doing" list below is historical but still binding on any producer.)
 
 > You produce the daily "AI News" content for cloudcodetree.com as a single
 > **RSS 2.0 + Media RSS feed file**. The `cloudcodetree.github.io` repo folder is
