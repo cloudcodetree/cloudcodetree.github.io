@@ -1,6 +1,6 @@
 ---
 name: publish-post
-description: Use when publishing a markdown article to the CloudCodeTree blog — ingesting a draft (from the Claude Desktop drafts folder or a given file), formatting it, indexing it in posts.json, and optionally committing. Covers the blog's static-markdown pipeline and conventions.
+description: Use when publishing a markdown article to the CloudCodeTree blog — ingesting a draft (from the local drafts folder ~/Downloads/cct-blog-drafts or a given file), formatting it, indexing it in posts.json, and optionally committing. Covers the blog's static-markdown pipeline and conventions.
 ---
 
 # Publishing a blog post
@@ -23,7 +23,7 @@ Always route through the publishing core — never hand-edit `posts.json`:
 # Publish one draft file:
 node scripts/publish-post.mjs path/to/draft.md --commit
 
-# Ingest everything the Desktop task dropped in the local drafts folder:
+# Ingest everything in the local drafts folder:
 node scripts/publish-post.mjs --intake ~/Downloads/cct-blog-drafts --commit
 ```
 
@@ -36,7 +36,7 @@ Useful flags: `--tags AI,LLM`  `--date 06-05-2026`  `--author "Chris Harper"`
 3. Spot-check locally with `pnpm dev` → http://localhost:3000/blog.
 
 ## Drafts folder convention
-The Claude Desktop article task should save finished `.md` files to
+Drop finished `.md` drafts into
 `~/Downloads/cct-blog-drafts/`. They may include YAML frontmatter
 (`title`, `excerpt`, `tags`, `date`, `author`) — the core uses it for metadata and
 strips it from the published body. If absent, metadata is derived (title from the H1,

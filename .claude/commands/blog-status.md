@@ -1,17 +1,20 @@
 ---
-description: Show blog health — validate posts.json, list recent posts, and check for new Claude Desktop briefings to import.
-allowed-tools: Bash(node scripts/:*), Bash(ls:*), Bash(git log:*), Read
+description: Show blog health — validate posts.json, list recent posts, and check the cloud publishing pipeline.
+allowed-tools: Bash(node scripts/:*), Bash(ls:*), Bash(git log:*), Bash(gh run list:*), Read
 ---
 
 Report the current state of the blog:
 
 1. Run `node scripts/validate-blog.mjs` and show the result.
-2. Show the post count and the 5 most recent posts (date · eyebrow · title) from
+2. Show the post count and the 5 most recent posts (date · title) from
    `public/blog/posts.json`.
-3. List the source briefings in `~/Documents/Claude/Projects/AI Developer News/`
-   (`ls -1 *-ai-briefing.md`) and note the newest one, so we can see if there are days
-   not yet imported.
+3. Freshness: compare the newest post's date to today. Posts come from the daily
+   "AI News Publisher" cloud routine (claude.ai/code/routines, 12:02 UTC). If the
+   newest post is more than ~36 hours old, the routine probably failed — tell the
+   user to check the routine's runs.
 4. Show the last few blog commits (`git log --oneline -5 -- public/blog/`).
-5. Note whether the local auto-publish launchd agent is installed
-   (`ls ~/Library/LaunchAgents/com.cloudcodetree.blog-sync.plist`). Summarize anything
-   that needs attention (e.g. "run `node scripts/import-briefings.mjs` to pick up N new days").
+5. Check recent deploys (`gh run list --branch main --limit 3`) and note any
+   failures — the `rehost-images` job is what upgrades routine posts from
+   placeholder images to CDN images.
+
+Summarize anything that needs attention.

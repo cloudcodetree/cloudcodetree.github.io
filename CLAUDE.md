@@ -74,13 +74,10 @@ app/                          # Next.js App Router
 ├── config/                  # Config (calendly.ts)
 └── lib/                     # theme.ts, mui.ts, emotionCache.ts, emailObfuscation.ts
 
-scripts/                      # Blog automation (Node; fast-xml-parser is the only dep, used by ingest)
+scripts/                      # Blog automation (Node; deps: fast-xml-parser, sharp — used by ingest)
 ├── ingest-feed.mjs          # content/feed.xml (RSS 2.0 + Media RSS) → posts.json + CDN images
 ├── generate-feeds.mjs       # posts.json → public/feed.xml + sitemap.xml + blog/pages/<n>.json (prebuild + dev)
-├── push-feed.sh             # launchd watcher action: ingest → commit → push (task can't push)
-├── com.cloudcodetree.feed-sync.plist  # launchd WatchPaths agent for push-feed.sh
-├── publish-post.mjs         # Publishing core: draft → posts.json entry (content inline)
-├── import-briefings.mjs     # Legacy (dormant): exploded "AI Developer News" digests → posts
+├── publish-post.mjs         # Manual publishing: draft → posts.json entry (content inline)
 └── validate-blog.mjs        # Validate posts.json consistency
 
 content/                      # Source feed the Desktop task writes (ingested at publish time)
@@ -315,9 +312,10 @@ which ingest **downloads, compresses (`sips`, 1200px / JPEG q78), and uploads to
 `blog-images` GitHub Release** (`posts.json` stores the CDN URL; `imageSource` = `<link>`),
 tags from `<category>`. It's a **merge, not a rebuild**: posts not in the feed are preserved.
 Idempotent; an image already uploaded for an id is reused unless `--refresh-images`. Requires
-`gh` (authenticated) + `sips`; without them, posts get the placeholder. The `2026-05-28`–
-`2026-06-08` posts are the legacy back-catalog from the now-retired briefing importer
-(`scripts/import-briefings.mjs`, dormant); `2026-06-09` onward is the feed.
+`gh` (authenticated) + sharp; without them, posts get the placeholder (CI's
+`rehost-images` job fixes those on the next push). The `2026-05-28`–`2026-06-08` posts
+are the back-catalog from the retired Desktop-briefings importer (removed June 2026);
+they live only in `posts.json` now. `2026-06-09` onward is the feed.
 
 **Auto-publish (cloud).** The daily **"AI News Publisher" Claude Code cloud routine**
 (claude.ai/code/routines, 12:02 UTC) researches the day's stories, updates
@@ -328,15 +326,11 @@ job in `.github/workflows/deploy.yml`** then uploads the real images to the
 `blog-images` Release (via `GITHUB_TOKEN`) and commits the CDN URLs before the same
 run builds and deploys.
 
-**Legacy/fallback (local).** The pre-cloud path — a launchd `WatchPaths` agent
-(`scripts/com.cloudcodetree.feed-sync.plist`) running `scripts/push-feed.sh` on
-`content/feed.xml` changes (ingest → validate → commit → push, serialized via a lock
-dir, failed pushes recovered on the next run) — still works for manual/offline
-publishing. Re-enable with:
-```bash
-cp scripts/com.cloudcodetree.feed-sync.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.cloudcodetree.feed-sync.plist   # disable: launchctl unload …
-```
+**Manual fallback.** If the routine is down, publish by hand: edit `content/feed.xml`
+per the contract, then `node scripts/ingest-feed.mjs && node scripts/validate-blog.mjs`,
+commit `content/feed.xml` + `public/blog/`, and push. (The pre-cloud Desktop-task +
+launchd-watcher pipeline was removed in June 2026 — see git history for
+`scripts/push-feed.sh` if it's ever needed again.)
 
 **Manual / one-off posts** — drop a `.md` (optionally with frontmatter) and run
 `node scripts/publish-post.mjs <file> --commit`, or `--intake ~/Downloads/cct-blog-drafts`,

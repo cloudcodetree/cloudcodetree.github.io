@@ -21,11 +21,12 @@ images — the `rehost-images` job in `.github/workflows/deploy.yml` re-hosts th
 real images (download → sharp compress → upload to the `blog-images` Release)
 and commits the CDN URLs before that same workflow run builds and deploys.
 
-> **Legacy/fallback path:** before June 2026 the producer was a Claude Desktop
-> task that couldn't push; a local launchd `WatchPaths` agent
-> (`scripts/com.cloudcodetree.feed-sync.plist` → `scripts/push-feed.sh`) did
-> ingest + commit + push whenever `content/feed.xml` changed. That agent can stay
-> installed as a manual fallback — it's a no-op when the feed is already ingested.
+> **History:** before June 2026 the producer was a Claude Desktop task that
+> couldn't push; a local launchd watcher did ingest + commit + push whenever
+> `content/feed.xml` changed. Both were retired and their files removed on
+> 2026-06-11 (see git history for `scripts/push-feed.sh` /
+> `scripts/com.cloudcodetree.feed-sync.plist` / `scripts/import-briefings.mjs`).
+> Manual fallback today: edit the feed, run ingest + validate, commit, push.
 
 ## Where the feed lives
 
