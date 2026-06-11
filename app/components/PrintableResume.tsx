@@ -120,7 +120,7 @@ export default function PrintableResume() {
           </Typography>
           
           <Grid container spacing={1}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ 
                 color: '#06b6d4', 
                 fontWeight: 600, 
@@ -145,7 +145,7 @@ export default function PrintableResume() {
               </Typography>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ 
                 color: '#06b6d4', 
                 fontWeight: 600, 
@@ -179,7 +179,7 @@ export default function PrintableResume() {
               </Typography>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ 
                 color: '#06b6d4', 
                 fontWeight: 600, 
@@ -204,7 +204,7 @@ export default function PrintableResume() {
               </Typography>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ 
                 color: '#06b6d4', 
                 fontWeight: 600, 
@@ -238,7 +238,7 @@ export default function PrintableResume() {
               </Typography>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ 
                 color: '#06b6d4', 
                 fontWeight: 600, 
@@ -263,7 +263,7 @@ export default function PrintableResume() {
               </Typography>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ 
                 color: '#06b6d4', 
                 fontWeight: 600, 
@@ -850,7 +850,7 @@ export default function PrintableResume() {
 
         {/* Education & Key Achievements */}
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Typography variant="h6" sx={{ 
               color: '#2563eb', 
               fontWeight: 600, 
@@ -878,7 +878,7 @@ export default function PrintableResume() {
             </Typography>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Typography variant="h6" sx={{ 
               color: '#2563eb', 
               fontWeight: 600, 

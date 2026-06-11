@@ -132,7 +132,7 @@ export default function ProjectsPage() {
           </Typography>
           <Grid container spacing={4}>
             {featuredProjects.map((project, index) => (
-              <Grid item xs={12} md={6} lg={4} key={project.title}>
+              <Grid size={{ xs: 12, md: 6, lg: 4 }} key={project.title}>
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -224,7 +224,7 @@ export default function ProjectsPage() {
           <Grid container spacing={3}>
             {loading
               ? Array.from({ length: 6 }).map((_, index) => (
-                  <Grid item xs={12} md={6} key={index}>
+                  <Grid size={{ xs: 12, md: 6 }} key={index}>
                     <Card className="glass">
                       <CardContent>
                         <Skeleton variant="text" height={32} width="60%" />
@@ -240,7 +240,7 @@ export default function ProjectsPage() {
                   </Grid>
                 ))
               : repositories.map((repo, index) => (
-                  <Grid item xs={12} md={6} key={repo.id}>
+                  <Grid size={{ xs: 12, md: 6 }} key={repo.id}>
                     <motion.div
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}

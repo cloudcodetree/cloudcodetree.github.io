@@ -5,9 +5,6 @@ User-agent: *
 Disallow: /resume.pdf
 Disallow: /resume/
 Disallow: /.claude/
-Disallow: /dist/
-Disallow: /node_modules/
-Disallow: /*?*
 Disallow: /contact?*
 
 # Allow main pages for professional visibility
@@ -15,6 +12,7 @@ Allow: /
 Allow: /resume
 Allow: /contact
 Allow: /schedule
+Allow: /ai-news
 
 # Prevent email harvesting from specific paths
 Disallow: /*email*

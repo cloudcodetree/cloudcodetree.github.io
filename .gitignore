@@ -17,6 +17,7 @@ node_modules/
 
 # Generated reader feed (built from posts.json by scripts/generate-feeds.mjs)
 /public/feed.xml
+/public/sitemap.xml
 
 # Blog images live on the GitHub Release CDN, never in the repo
 /public/blog/images/
@@ -94,3 +95,4 @@ Thumbs.db
 
 # Sentry Config File
 .sentryclirc
+/public/blog/pages/

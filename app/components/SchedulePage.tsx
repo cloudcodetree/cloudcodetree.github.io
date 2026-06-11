@@ -20,7 +20,7 @@ import {
   Business as BusinessIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { CALENDLY_CONFIG, buildCalendlyUrl } from '../config/calendly';
+import { CALENDLY_CONFIG } from '../config/calendly';
 
 declare global {
   interface Window {
@@ -104,9 +104,9 @@ export default function SchedulePage() {
   }, []);
 
   const openCalendlyModal = (url: string) => {
-    // Always use new window/tab to avoid iframe permission issues
-    const trackingUrl = buildCalendlyUrl(url, { utm: true });
-    window.open(trackingUrl, '_blank', 'noopener,noreferrer');
+    // url is already a full Calendly event URL; open in a new tab to avoid
+    // iframe permission issues.
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -339,7 +339,7 @@ export default function SchedulePage() {
                     </Typography>
                     <Button
                       variant="contained"
-                      onClick={() => window.open(buildCalendlyUrl(CALENDLY_CONFIG.generalUrl, { utm: true }), '_blank')}
+                      onClick={() => window.open(CALENDLY_CONFIG.url, '_blank')}
                       sx={{
                         background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
                         '&:hover': {
@@ -355,7 +355,7 @@ export default function SchedulePage() {
                 {/* Calendly iframe */}
                 {!calendlyError && (
                   <iframe
-                    src={buildCalendlyUrl(CALENDLY_CONFIG.generalUrl, { embed: true, utm: true })}
+                    src={`${CALENDLY_CONFIG.url}?embed_domain=cloudcodetree.com&embed_type=Inline`}
                     width="100%"
                     height="100%"
                     frameBorder="0"
@@ -389,7 +389,7 @@ export default function SchedulePage() {
                 description: 'After our meeting, I\'ll send you a summary with recommendations and next steps if we decide to work together.',
               },
             ].map((step, index) => (
-              <Grid item xs={12} md={4} key={step.title}>
+              <Grid size={{ xs: 12, md: 4 }} key={step.title}>
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}

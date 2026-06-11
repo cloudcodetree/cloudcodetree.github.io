@@ -206,7 +206,7 @@ export default function HomePage() {
             {services.map((service, index) => {
               const Icon = service.icon;
               return (
-                <Grid item xs={12} md={6} key={service.title}>
+                <Grid size={{ xs: 12, md: 6 }} key={service.title}>
                   <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}

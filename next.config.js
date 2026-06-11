@@ -10,25 +10,11 @@ const nextConfig = {
   assetPrefix: process.env.NODE_ENV === 'production' ? 'https://cloudcodetree.com' : '',
   basePath: '',
   reactStrictMode: true,
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   experimental: {
     optimizePackageImports: ['@mui/material', '@mui/icons-material'],
-  },
-  turbopack: {
-    rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
-      },
-    },
   },
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
