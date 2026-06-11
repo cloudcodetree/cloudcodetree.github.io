@@ -242,9 +242,14 @@ async function main() {
   }
   if (failed) console.warn(`! ${failed} feed item(s) skipped — fix the feed and re-run`);
 
-  // Newest day first; within a day, ascending item order (…-01 before …-02).
+  // Newest day first; within a day, newest publish time first (so a later
+  // run's posts appear on top). Posts without publishedAt (pre-feed
+  // back-catalog) keep the original ascending item order.
+  const ts = (p) => p.publishedAt || '';
   const merged = [...byId.values()].sort((a, b) =>
-    (dateKey(b.date) - dateKey(a.date)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    (dateKey(b.date) - dateKey(a.date)) ||
+    (ts(b) < ts(a) ? -1 : ts(b) > ts(a) ? 1 : 0) ||
+    (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   await writeFile(POSTS_JSON, JSON.stringify(merged, null, 2) + '\n');
   await rm(TMP, { recursive: true, force: true });
 

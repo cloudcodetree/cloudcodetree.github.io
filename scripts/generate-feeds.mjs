@@ -80,7 +80,13 @@ async function main() {
   const now = rfc822(new Date());
 
   // Post bodies are inlined in posts.json (no per-post .md files).
-  const items = posts.map((p) => ({ p, html: mdToHtml(p.content || ''), img: imageInfo(p), date: toDate(p.date) }));
+  // Prefer the full publish timestamp; fall back to date-at-noon for old posts.
+  const items = posts.map((p) => ({
+    p,
+    html: mdToHtml(p.content || ''),
+    img: imageInfo(p),
+    date: p.publishedAt && !isNaN(new Date(p.publishedAt).getTime()) ? new Date(p.publishedAt) : toDate(p.date),
+  }));
 
   const rssItems = items.map(({ p, html, img, date }) => {
     const link = `${SITE}/ai-news/${p.id}/`;
