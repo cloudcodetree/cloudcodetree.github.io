@@ -1,52 +1,54 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Container, Typography, Box, Skeleton, Pagination } from '@mui/material';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { BlogPost, SERIF, MONO, ACCENT, LINK, formatLongDate, markdownSx } from './blogShared';
+import { BlogPost, BlogPageChunk, SERIF, MONO, ACCENT, LINK, formatLongDate, markdownSx } from './blogShared';
 
-const POSTS_PER_PAGE = 10;
+interface BlogPageProps {
+  /** Page 1, embedded in the static HTML at build time. */
+  initialPosts: BlogPost[];
+  pageCount: number;
+}
 
-export default function BlogPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function BlogPage({ initialPosts, pageCount }: BlogPageProps) {
   const [page, setPage] = useState(1);
+  const [pagePosts, setPagePosts] = useState<BlogPost[]>(initialPosts);
+  const [loading, setLoading] = useState(false);
+  // Chunks already fetched this session (page 1 is prefilled from props).
+  const cache = useRef<Map<number, BlogPost[]>>(new Map([[1, initialPosts]]));
 
   // Restore page position when returning from an article (?page=N).
   useEffect(() => {
     const p = new URLSearchParams(window.location.search).get('page');
     const n = p ? parseInt(p, 10) : 1;
-    if (n > 1) setPage(n);
+    if (n > 1 && n <= pageCount) goToPage(n, { replaceUrl: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        // posts.json carries each post's content inline — one fetch, no per-post .md.
-        const index: BlogPost[] = await (await fetch('/blog/posts.json')).json();
-        setPosts(index);
-      } catch {
-        setPosts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  const pageCount = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
-  const currentPage = Math.min(page, pageCount);
-  const pagePosts = posts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
-
-  const goToPage = (n: number) => {
+  const goToPage = async (n: number, { replaceUrl = true } = {}) => {
     setPage(n);
-    if (typeof window !== 'undefined') {
+    if (replaceUrl) {
       window.history.replaceState(null, '', n === 1 ? '/ai-news/' : `/ai-news/?page=${n}`);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    const cached = cache.current.get(n);
+    if (cached) {
+      setPagePosts(cached);
+      return;
+    }
+    try {
+      setLoading(true);
+      const chunk: BlogPageChunk = await (await fetch(`/blog/pages/${n}.json`)).json();
+      cache.current.set(n, chunk.posts);
+      setPagePosts(chunk.posts);
+    } catch {
+      setPagePosts([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -118,7 +120,7 @@ export default function BlogPage() {
                   <Box
                     component="img"
                     src={post.image}
-                    alt=""
+                    alt={post.title}
                     loading="lazy"
                     sx={{
                       width: '100%', aspectRatio: '1200 / 630', objectFit: 'cover', display: 'block',
@@ -156,11 +158,17 @@ export default function BlogPage() {
           ))}
           {pagePosts.length > 0 && <Box sx={{ borderTop: '1px solid rgba(148,163,184,0.12)' }} />}
 
+          {pagePosts.length === 0 && (
+            <Box sx={{ textAlign: 'center', py: 10 }}>
+              <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>{'// no posts yet'}</Typography>
+            </Box>
+          )}
+
           {pageCount > 1 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
               <Pagination
                 count={pageCount}
-                page={currentPage}
+                page={page}
                 onChange={(_, value) => goToPage(value)}
                 shape="rounded"
                 sx={{
@@ -170,12 +178,6 @@ export default function BlogPage() {
               />
             </Box>
           )}
-        </Box>
-      )}
-
-      {posts.length === 0 && !loading && (
-        <Box sx={{ textAlign: 'center', py: 10 }}>
-          <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>// no posts yet</Typography>
         </Box>
       )}
     </Container>

@@ -1,18 +1,29 @@
 #!/usr/bin/env node
 /**
- * generate-feeds.mjs — build the public reader feed from public/blog/posts.json.
+ * generate-feeds.mjs — build the public reader feed + sitemap from
+ * public/blog/posts.json.
  *
- * Output: public/feed.xml — RSS 2.0 + Media RSS + content:encoded, for feed
- * readers and "subscribe" links. Featured images are referenced by absolute URL
- * so they render in any reader. Runs automatically as `prebuild` (and `npm run
- * feeds`); regenerated from posts.json each build, so it's never hand-maintained.
+ * Outputs:
+ *   public/feed.xml    — RSS 2.0 + Media RSS + content:encoded, for feed
+ *                        readers and "subscribe" links. Featured images are
+ *                        referenced by absolute URL so they render anywhere.
+ *   public/sitemap.xml — static routes + every /ai-news/<id>/ page
+ *                        (robots.txt advertises this URL).
+ *   public/blog/pages/<n>.json — the list page's pagination chunks (10 posts
+ *                        each, full content). The /ai-news list embeds page 1
+ *                        at build time and fetches only the visited page's
+ *                        chunk, instead of all of posts.json.
+ *
+ * Runs automatically as `prebuild` and before `dev`; all outputs are
+ * regenerated from posts.json each build, so they're never hand-maintained
+ * (and they're gitignored).
  *
  * This EMITS the site's own feed (site → readers). It is separate from the
  * INGEST feed at content/feed.xml (task → site); different files, no collision.
  * No external dependencies.
  */
 
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -111,6 +122,50 @@ ${rssItems}
   await writeFile(path.join(PUBLIC, 'feed.xml'), rss);
   const withImg = items.filter((it) => it.img).length;
   console.log(`✓ feed.xml (${items.length} items, ${withImg} with images) → public/`);
+
+  // --- sitemap.xml -----------------------------------------------------------
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const newest = items.length ? iso(items.map((it) => it.date).sort((a, b) => b - a)[0]) : iso(new Date());
+  const staticRoutes = [
+    { loc: `${SITE}/`, lastmod: newest, priority: '1.0' },
+    { loc: `${SITE}/ai-news/`, lastmod: newest, priority: '0.9' },
+    { loc: `${SITE}/resume/`, priority: '0.8' },
+    { loc: `${SITE}/contact/`, priority: '0.5' },
+    { loc: `${SITE}/schedule/`, priority: '0.5' },
+  ];
+  const urls = [
+    ...staticRoutes,
+    ...items.map(({ p, date }) => ({ loc: `${SITE}/ai-news/${p.id}/`, lastmod: iso(date), priority: '0.6' })),
+  ].map((u) => `  <url>
+    <loc>${xml(u.loc)}</loc>
+${u.lastmod ? `    <lastmod>${u.lastmod}</lastmod>\n` : ''}    <priority>${u.priority}</priority>
+  </url>`).join('\n');
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`;
+  await writeFile(path.join(PUBLIC, 'sitemap.xml'), sitemap);
+  console.log(`✓ sitemap.xml (${items.length + staticRoutes.length} urls) → public/`);
+
+  // --- pagination chunks for the /ai-news list -------------------------------
+  const PER_PAGE = 10;
+  const PAGES_DIR = path.join(BLOG_DIR, 'pages');
+  await rm(PAGES_DIR, { recursive: true, force: true }); // drop stale chunks from shrunken sets
+  await mkdir(PAGES_DIR, { recursive: true });
+  const pageCount = Math.max(1, Math.ceil(posts.length / PER_PAGE));
+  for (let n = 1; n <= pageCount; n++) {
+    const chunk = {
+      page: n,
+      pageCount,
+      perPage: PER_PAGE,
+      total: posts.length,
+      posts: posts.slice((n - 1) * PER_PAGE, n * PER_PAGE),
+    };
+    await writeFile(path.join(PAGES_DIR, `${n}.json`), JSON.stringify(chunk));
+  }
+  console.log(`✓ blog/pages/ (${pageCount} chunks of ${PER_PAGE}) → public/blog/pages/`);
 }
 
 main().catch((e) => { console.error('✗ generate-feeds failed:', e.message); process.exit(1); });

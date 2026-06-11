@@ -4,18 +4,26 @@ export interface BlogPost {
   id: string;
   title: string;
   excerpt: string;
+  /** Post body, Markdown, inlined in posts.json. */
   content?: string;
   author: string;
   date: string;
   tags: string[];
   readTime: number;
-  filename?: string;
-  eyebrow?: string;
   dek?: string;
-  /** Featured image, site-absolute path (e.g. /blog/images/<id>.jpg). */
+  /** Featured image — CDN URL on the blog-images GitHub Release. */
   image?: string;
   /** Where the featured image was sourced from (the article URL), for attribution. */
   imageSource?: string;
+}
+
+/** One pagination chunk emitted by scripts/generate-feeds.mjs → /blog/pages/<n>.json */
+export interface BlogPageChunk {
+  page: number;
+  pageCount: number;
+  perPage: number;
+  total: number;
+  posts: BlogPost[];
 }
 
 export const SERIF = 'var(--font-fraunces), Georgia, serif';

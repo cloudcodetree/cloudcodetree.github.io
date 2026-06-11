@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Container, Typography, Box, Card, CardContent, Chip, Button } from '@mui/material';
 import { AccessTime as TimeIcon, Person as PersonIcon } from '@mui/icons-material';
 import Link from 'next/link';
@@ -9,51 +8,14 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { BlogPost as Post, SERIF, MONO, formatLongDate, markdownSx } from './blogShared';
 
-export default function BlogPost({ id }: { id: string }) {
-  const [post, setPost] = useState<Post | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const index: Post[] = await (await fetch('/blog/posts.json')).json();
-        const meta = index.find((p) => p.id === id);
-        setPost(meta ?? null);
-      } catch {
-        setPost(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [id]);
-
+// The post is loaded at build time by app/ai-news/[id]/page.tsx and baked into
+// the static HTML — no client-side fetch, no loading state.
+export default function BlogPost({ post }: { post: Post }) {
   const backButton = (
     <Button component={Link} href="/ai-news/" sx={{ mb: 4 }}>
       ← Back to AI News
     </Button>
   );
-
-  if (loading) {
-    return (
-      <Container maxWidth="md" sx={{ py: 6 }}>
-        {backButton}
-        <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>Loading…</Typography>
-      </Container>
-    );
-  }
-
-  if (!post) {
-    return (
-      <Container maxWidth="md" sx={{ py: 6 }}>
-        {backButton}
-        <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>
-          // article not found
-        </Typography>
-      </Container>
-    );
-  }
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -64,7 +26,7 @@ export default function BlogPost({ id }: { id: string }) {
           <Box
             component="img"
             src={post.image}
-            alt=""
+            alt={post.title}
             sx={{
               width: '100%', aspectRatio: '1200 / 630', objectFit: 'cover', display: 'block',
               borderRadius: 2, border: '1px solid #222a35', mb: 3,
