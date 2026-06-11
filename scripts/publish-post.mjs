@@ -157,6 +157,7 @@ export async function publishOne(srcPath, opts = {}) {
     excerpt: opts.excerpt || data.excerpt || deriveExcerpt(cleanBody),
     author: opts.author || data.author || DEFAULT_AUTHOR,
     date: opts.date || data.date || formatDate(),
+    publishedAt: prior?.publishedAt || new Date().toISOString(),
     tags,
     readTime: Number(opts.readTime || data.readTime || estimateReadTime(cleanBody)),
     // Keep an already-uploaded CDN image on republish; otherwise placeholder.

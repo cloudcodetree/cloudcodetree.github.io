@@ -1,5 +1,8 @@
 // Shared types and styling for the AI News blog (list + article views).
 
+import { createElement, type AnchorHTMLAttributes } from 'react';
+import type { Components } from 'react-markdown';
+
 export interface BlogPost {
   id: string;
   title: string;
@@ -8,6 +11,8 @@ export interface BlogPost {
   content?: string;
   author: string;
   date: string;
+  /** Full publication timestamp (ISO 8601, from the feed's pubDate). */
+  publishedAt?: string;
   tags: string[];
   readTime: number;
   dek?: string;
@@ -39,6 +44,35 @@ export function formatLongDate(d: string): string {
   if (!mm || !dd || !yyyy) return d;
   return `${MONTHS[mm - 1]} ${dd}, ${yyyy}`;
 }
+
+/**
+ * Post date+time for the meta line: "Jun 11, 2026 · 18:33 UTC".
+ * Rendered in UTC (not the viewer's timezone) deliberately — the string must
+ * be identical on the build server and in the browser, or hydration breaks.
+ * Falls back to the date-only form for pre-feed posts without a timestamp.
+ */
+export function formatPublished(post: Pick<BlogPost, 'date' | 'publishedAt'>): string {
+  if (post.publishedAt) {
+    const d = new Date(post.publishedAt);
+    if (!isNaN(d.getTime())) {
+      const hh = String(d.getUTCHours()).padStart(2, '0');
+      const mi = String(d.getUTCMinutes()).padStart(2, '0');
+      return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()} · ${hh}:${mi} UTC`;
+    }
+  }
+  return formatLongDate(post.date);
+}
+
+/** react-markdown overrides: external links open in a new tab. */
+function MarkdownLink({ href, children, ...rest }: AnchorHTMLAttributes<HTMLAnchorElement>) {
+  const external = /^https?:\/\//i.test(href ?? '') && !(href ?? '').startsWith('https://cloudcodetree.com');
+  return createElement(
+    'a',
+    external ? { href, target: '_blank', rel: 'noopener noreferrer', ...rest } : { href, ...rest },
+    children,
+  );
+}
+export const markdownComponents: Components = { a: MarkdownLink };
 
 /** Markdown rendering style shared by the feed and the article page. */
 export const markdownSx = {

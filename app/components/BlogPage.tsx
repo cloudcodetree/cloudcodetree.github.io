@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { BlogPost, BlogPageChunk, SERIF, MONO, ACCENT, LINK, formatLongDate, markdownSx } from './blogShared';
+import { BlogPost, BlogPageChunk, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx, markdownComponents } from './blogShared';
 
 interface BlogPageProps {
   /** Page 1, embedded in the static HTML at build time. */
@@ -133,7 +133,7 @@ export default function BlogPage({ initialPosts, pageCount }: BlogPageProps) {
               {/* Meta line */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.5, flexWrap: 'wrap' }}>
                 <Typography sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', letterSpacing: '0.04em' }}>
-                  {formatLongDate(post.date)} · {post.readTime} min read
+                  {formatPublished(post)} · {post.readTime} min read
                 </Typography>
               </Box>
 
@@ -152,7 +152,7 @@ export default function BlogPage({ initialPosts, pageCount }: BlogPageProps) {
 
               {/* Full entry content */}
               <Box sx={markdownSx}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content || ''}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{post.content || ''}</ReactMarkdown>
               </Box>
             </Box>
           ))}

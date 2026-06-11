@@ -89,6 +89,11 @@ function toMDY(pubDate, id) {
   throw new Error(`unparseable pubDate "${pubDate}" for ${id}`);
 }
 const dateKey = (mdy) => { const [mm, dd, yyyy] = mdy.split('-'); return Number(`${yyyy}${mm}${dd}`); };
+/** RFC-822 pubDate → ISO 8601 (or '' if unparseable) — keeps the time of day. */
+function toISO(pubDate) {
+  const d = new Date(pubDate);
+  return isNaN(d.getTime()) ? '' : d.toISOString();
+}
 function stripMd(s) {
   return String(s).replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
     .replace(/[*_`#>]/g, '').replace(/\s+/g, ' ').trim();
@@ -222,6 +227,7 @@ async function main() {
         excerpt: excerptFrom(text(item.description), body),
         author: text(item['dc:creator']).trim() || DEFAULT_AUTHOR,
         date: toMDY(text(item.pubDate).trim(), id),
+        ...(toISO(text(item.pubDate).trim()) ? { publishedAt: toISO(text(item.pubDate).trim()) } : {}),
         tags: tags.length ? tags : ['AI'],
         readTime: readTime(body),
         image,

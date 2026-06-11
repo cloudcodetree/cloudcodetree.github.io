@@ -85,7 +85,10 @@ prompt; the "stop doing" list below is historical but still binding on any produ
 > **Per-item fields:**
 > - `<guid isPermaLink="false">` — stable, slug-safe `YYYY-MM-DD-NN-short-slug`
 >   (NN = 2-digit item number that day; lowercase `a–z 0–9 -`). Never change a guid.
-> - `<pubDate>` — RFC-822 (`Mon, 09 Jun 2026 12:00:00 GMT`).
+> - `<pubDate>` — RFC-822, set to the **actual UTC time of this run** (e.g.
+>   `Thu, 11 Jun 2026 19:42:00 GMT`; offset items by a minute each to keep
+>   ordering). The site displays this time so readers/operators can see when a
+>   post was published — never backdate or use a fixed placeholder time.
 > - `<category>` — 2–4 tags from: `AI`, `LLM`, `Best Practices`, `Developer Tools`,
 >   `AI News`, `Security`, `React`, `AWS`, `Cloud`. Always include `AI`.
 > - `<description>` — plain text, ≤200 chars, no markdown.

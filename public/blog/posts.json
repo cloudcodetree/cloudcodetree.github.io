@@ -5,6 +5,7 @@
     "excerpt": "Chrome 146 Canary ships WebMCP behind a flag: a navigator.modelContext API that lets any website expose structured tools to browser agents — no separate MCP server, built with Microsoft via the W3C.",
     "author": "Chris Harper",
     "date": "06-11-2026",
+    "publishedAt": "2026-06-11T12:00:00.000Z",
     "tags": [
       "AI",
       "Developer Tools",
@@ -21,6 +22,7 @@
     "excerpt": "Fast mode on Opus 4.8 is 2x price for up to 2.5x speed — but toggling /fast mid-session re-bills your whole context uncached, and every fast token draws from usage credits, not your plan.",
     "author": "Chris Harper",
     "date": "06-11-2026",
+    "publishedAt": "2026-06-11T11:30:00.000Z",
     "tags": [
       "AI",
       "Developer Tools",
@@ -37,6 +39,7 @@
     "excerpt": "Researchers compromised Bunq's banking assistant with one €0.02 SEPA transfer: an injected memo made the bank's own AI render a phishing prompt. The defense checklist applies to any agent you ship.",
     "author": "Chris Harper",
     "date": "06-11-2026",
+    "publishedAt": "2026-06-11T11:00:00.000Z",
     "tags": [
       "AI",
       "Security",
@@ -53,6 +56,7 @@
     "excerpt": "DeepSeek retires deepseek-chat and deepseek-reasoner on July 24. The aliases already route to V4-Flash, thinking moved to a request parameter, and V4 Flash runs $0.14/$0.28 per MTok with 1M context.",
     "author": "Chris Harper",
     "date": "06-11-2026",
+    "publishedAt": "2026-06-11T10:30:00.000Z",
     "tags": [
       "AI",
       "LLM",
@@ -69,6 +73,7 @@
     "excerpt": "An audit of live pricing pages: Copilot's new credit tiers are paused for new sign-ups, Windsurf rebranded to Devin Desktop, Cursor added Pro+, and Fable 5 leaves Claude plans June 22.",
     "author": "Chris Harper",
     "date": "06-11-2026",
+    "publishedAt": "2026-06-11T10:00:00.000Z",
     "tags": [
       "AI",
       "Developer Tools",
@@ -85,6 +90,7 @@
     "excerpt": "A self-propagating npm worm hit 57 packages on June 3, hiding execution in binding.gyp files to evade scanners, then planting backdoors in Claude Code, Cursor, Gemini, and VS Code project configs.",
     "author": "Chris Harper",
     "date": "06-11-2026",
+    "publishedAt": "2026-06-11T14:00:00.000Z",
     "tags": [
       "AI",
       "Security",
@@ -101,6 +107,7 @@
     "excerpt": "Microsoft's first in-house coding model launched in the Copilot model picker June 2. Trained on production Copilot harnesses, it uses 60% fewer tokens and scores ~51% on SWE-Bench Pro.",
     "author": "Chris Harper",
     "date": "06-11-2026",
+    "publishedAt": "2026-06-11T13:30:00.000Z",
     "tags": [
       "AI",
       "Developer Tools",
@@ -117,6 +124,7 @@
     "excerpt": "OpenAI announced June 11 that enterprise customers can access its frontier models and Codex via existing Oracle Universal Credits on OCI Marketplace, eliminating separate procurement.",
     "author": "Chris Harper",
     "date": "06-11-2026",
+    "publishedAt": "2026-06-11T13:00:00.000Z",
     "tags": [
       "AI",
       "Cloud",
@@ -133,6 +141,7 @@
     "excerpt": "Anthropic released Claude Fable 5, the first generally available Mythos-class model. $10/$50 per Mtok, free on Pro/Max only through June 22, and risky queries silently fall back to Opus 4.8.",
     "author": "Chris Harper",
     "date": "06-10-2026",
+    "publishedAt": "2026-06-10T12:00:00.000Z",
     "tags": [
       "AI",
       "LLM",
@@ -149,6 +158,7 @@
     "excerpt": "Fable 5 posts 80.3% on SWE-Bench Pro (Opus 4.8: 69.2%), and Stripe ran a 50M-line Ruby migration in a day. It's in Claude Code and Cursor now — test long-horizon work before June 22.",
     "author": "Chris Harper",
     "date": "06-10-2026",
+    "publishedAt": "2026-06-10T11:30:00.000Z",
     "tags": [
       "AI",
       "LLM",
@@ -166,6 +176,7 @@
     "excerpt": "Claude Code v2.1.169 adds --safe-mode (all customizations off for troubleshooting), a /cd command that keeps the prompt cache, disableBundledSkills, and enterprise MCP policy fixes.",
     "author": "Chris Harper",
     "date": "06-10-2026",
+    "publishedAt": "2026-06-10T11:00:00.000Z",
     "tags": [
       "AI",
       "Developer Tools",
@@ -182,6 +193,7 @@
     "excerpt": "GitHub shipped the Agent tasks REST API (public preview), Copilot SDK GA, and scheduled agent tasks — Copilot's cloud agent is now an automation surface, not just a chat feature.",
     "author": "Chris Harper",
     "date": "06-10-2026",
+    "publishedAt": "2026-06-10T10:30:00.000Z",
     "tags": [
       "AI",
       "Developer Tools",
@@ -198,6 +210,7 @@
     "excerpt": "Cursor's TypeScript/Python SDKs add custom tools via plain function definitions, a classifier-based auto-review gate for headless agents, pluggable stores, and nested subagents.",
     "author": "Chris Harper",
     "date": "06-10-2026",
+    "publishedAt": "2026-06-10T10:00:00.000Z",
     "tags": [
       "AI",
       "Developer Tools",
@@ -214,6 +227,7 @@
     "excerpt": "New arXiv benchmark SWE-Explore isolates repository exploration — 848 issues, 10 languages, 203 repos. Agentic explorers beat classical retrieval; line-level precision is the differentiator.",
     "author": "Chris Harper",
     "date": "06-10-2026",
+    "publishedAt": "2026-06-10T09:30:00.000Z",
     "tags": [
       "AI",
       "LLM",
@@ -230,6 +244,7 @@
     "excerpt": "Xcode 27 runs Anthropic, Google, and OpenAI agents inline, lets them validate their own work via tests and previews, and connects tools over MCP and the Agent Client Protocol.",
     "author": "Chris Harper",
     "date": "06-09-2026",
+    "publishedAt": "2026-06-09T15:00:00.000Z",
     "tags": [
       "AI",
       "Developer Tools",
@@ -246,6 +261,7 @@
     "excerpt": "Claude Code v2.1.166 adds a fallbackModel setting that tries up to three models when the primary returns a 529 overload, now applied to interactive and background sessions too.",
     "author": "Chris Harper",
     "date": "06-09-2026",
+    "publishedAt": "2026-06-09T14:30:00.000Z",
     "tags": [
       "AI",
       "Developer Tools",
@@ -262,6 +278,7 @@
     "excerpt": "Two practical skill rules from June: install only the skills you'll use because each one costs context every run, and treat community-sourced skills as untrusted until security-scanned.",
     "author": "Chris Harper",
     "date": "06-09-2026",
+    "publishedAt": "2026-06-09T14:00:00.000Z",
     "tags": [
       "AI",
       "Developer Tools",
@@ -279,6 +296,7 @@
     "excerpt": "Apple gave SiriKit a formal deprecation notice at WWDC; App Intents is now the only way to integrate with the new Gemini-powered Siri. SiriKit apps already won't surface in it.",
     "author": "Chris Harper",
     "date": "06-09-2026",
+    "publishedAt": "2026-06-09T13:30:00.000Z",
     "tags": [
       "AI",
       "Developer Tools",
@@ -295,6 +313,7 @@
     "excerpt": "The converging theme: code generation is no longer the constraint, review capacity is. 96% of developers don't fully trust AI code; invest in review throughput like build speed.",
     "author": "Chris Harper",
     "date": "06-09-2026",
+    "publishedAt": "2026-06-09T13:00:00.000Z",
     "tags": [
       "AI",
       "Best Practices",
@@ -311,6 +330,7 @@
     "excerpt": "A hardening pattern for context cost: pin one MCP per external system you truly need live, and push orchestration into thin skills using progressive disclosure.",
     "author": "Chris Harper",
     "date": "06-09-2026",
+    "publishedAt": "2026-06-09T12:30:00.000Z",
     "tags": [
       "AI",
       "Best Practices",
@@ -327,6 +347,7 @@
     "excerpt": "Two new arXiv entries map where agentic RAG is heading: a systematization (SoK) with a taxonomy and eval framework, and A-RAG's hierarchical retrieval interfaces.",
     "author": "Chris Harper",
     "date": "06-09-2026",
+    "publishedAt": "2026-06-09T12:00:00.000Z",
     "tags": [
       "AI",
       "LLM",
@@ -343,6 +364,7 @@
     "excerpt": "Apple's platform is now model-agnostic: Foundation Models calls Claude, Gemini, or any provider via a LanguageModel protocol, and Core AI runs full third-party LLMs locally on Apple silicon.",
     "author": "Chris Harper",
     "date": "06-09-2026",
+    "publishedAt": "2026-06-09T11:30:00.000Z",
     "tags": [
       "AI",
       "AI News",
@@ -359,6 +381,7 @@
     "excerpt": "Apple confirmed Siri AI's personal-context features won't ship in the EU at launch for iOS/iPadOS 27, citing DMA compliance — a concrete reminder that AI features are now region-gated.",
     "author": "Chris Harper",
     "date": "06-09-2026",
+    "publishedAt": "2026-06-09T11:00:00.000Z",
     "tags": [
       "AI",
       "AI News"
@@ -374,6 +397,7 @@
     "excerpt": "Anthropic shipped a Swift package implementing Apple's new LanguageModel protocol, so apps can hand typed on-device outputs to Claude for reasoning, web search, and code execution.",
     "author": "Chris Harper",
     "date": "06-09-2026",
+    "publishedAt": "2026-06-09T17:00:00.000Z",
     "tags": [
       "AI",
       "Developer Tools",
