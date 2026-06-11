@@ -11,10 +11,11 @@
  *
  * It is a MERGE, not a rebuild: posts already in posts.json that aren't in the
  * feed are preserved. Idempotent; an image already uploaded for an id is reused
- * unless --refresh-images. Requires `gh` (authenticated) and `sips` (macOS) for
- * image work; without them, posts get the placeholder image. XML is parsed with
- * fast-xml-parser (the blog scripts' only npm dependency), so node_modules must
- * be installed where this runs (true for the launchd watcher: it runs in-repo).
+ * unless --refresh-images. Image work needs an authenticated `gh` plus sharp
+ * (npm; falls back to macOS `sips`); without them, posts get the placeholder —
+ * which the rehost-images CI job then fixes on the next push to main. XML is
+ * parsed with fast-xml-parser, so node_modules must be installed where this
+ * runs (true everywhere it runs: CI, cloud agents, and the repo checkout).
  *
  * Usage:
  *   node scripts/ingest-feed.mjs [feed.xml] [--no-images] [--refresh-images]

@@ -18,13 +18,71 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Re-host any feed images that are still on the placeholder (the cloud
+  # routine can't authenticate gh, so its posts land with placeholders; this
+  # job uploads the real images to the blog-images release and commits the
+  # CDN URLs). Convergent: a push with nothing to fix commits nothing, and the
+  # GITHUB_TOKEN push below doesn't trigger a new workflow run — the build job
+  # checks out latest main instead, so the fix ships in THIS run's deploy.
+  rehost-images:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: main
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Re-host feed images to the blog-images release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: node scripts/ingest-feed.mjs
+
+    - name: Validate blog index
+      run: node scripts/validate-blog.mjs
+
+    - name: Commit re-hosted image URLs (if any)
+      run: |
+        if git diff --quiet -- public/blog/posts.json; then
+          echo "no image changes to commit"
+        else
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/blog/posts.json
+          git commit -m "blog: re-host images (CI)"
+          git push origin main
+        fi
+
   build:
+    needs: rehost-images
+    # Run for PRs (rehost-images is skipped there) and after it on main pushes.
+    if: ${{ !cancelled() && needs.rehost-images.result != 'failure' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        # On main pushes, build latest main so a rehost-images commit (which
+        # can't trigger its own run) is included; empty ref = default for PRs.
+        ref: ${{ github.event_name == 'push' && 'main' || '' }}
 
     - name: Setup pnpm
       uses: pnpm/action-setup@v4

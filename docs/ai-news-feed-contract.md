@@ -16,7 +16,10 @@ Cloud routine (daily) ──writes──▶ content/feed.xml      (source of tru
 ```
 
 The routine runs research, feed-writing, ingest, and push in one cloud session.
-Results are committed, so CI stays a deterministic, network-free `next build`.
+Its environment can't authenticate `gh`, so its posts land with placeholder
+images — the `rehost-images` job in `.github/workflows/deploy.yml` re-hosts the
+real images (download → sharp compress → upload to the `blog-images` Release)
+and commits the CDN URLs before that same workflow run builds and deploys.
 
 > **Legacy/fallback path:** before June 2026 the producer was a Claude Desktop
 > task that couldn't push; a local launchd `WatchPaths` agent

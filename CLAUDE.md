@@ -319,13 +319,20 @@ Idempotent; an image already uploaded for an id is reused unless `--refresh-imag
 `2026-06-08` posts are the legacy back-catalog from the now-retired briefing importer
 (`scripts/import-briefings.mjs`, dormant); `2026-06-09` onward is the feed.
 
-**Auto-publish.** The task can't push, so a launchd `WatchPaths` agent
-(`scripts/com.cloudcodetree.feed-sync.plist`) runs `scripts/push-feed.sh` whenever
-`content/feed.xml` changes: ingest → `validate-blog` → commit (`content/feed.xml` +
-`public/blog/`) → push → deploy. Ingestion + image re-hosting run **locally** (once per
-image) so CI stays a network-free `next build`. Runs are serialized via a lock dir; a
-failed push is recorded in `/tmp/cct-feed-sync.failed` and recovered by the next run
-(it pushes leftover `blog:`-prefixed commits). Install / disable:
+**Auto-publish (cloud).** The daily **"AI News Publisher" Claude Code cloud routine**
+(claude.ai/code/routines, 12:02 UTC) researches the day's stories, updates
+`content/feed.xml` per `docs/ai-news-feed-contract.md`, runs ingest + `validate-blog`,
+and commits/pushes — no local machine involved. The routine's environment can't
+authenticate `gh`, so its posts land with placeholder images; the **`rehost-images`
+job in `.github/workflows/deploy.yml`** then uploads the real images to the
+`blog-images` Release (via `GITHUB_TOKEN`) and commits the CDN URLs before the same
+run builds and deploys.
+
+**Legacy/fallback (local).** The pre-cloud path — a launchd `WatchPaths` agent
+(`scripts/com.cloudcodetree.feed-sync.plist`) running `scripts/push-feed.sh` on
+`content/feed.xml` changes (ingest → validate → commit → push, serialized via a lock
+dir, failed pushes recovered on the next run) — still works for manual/offline
+publishing. Re-enable with:
 ```bash
 cp scripts/com.cloudcodetree.feed-sync.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.cloudcodetree.feed-sync.plist   # disable: launchctl unload …
