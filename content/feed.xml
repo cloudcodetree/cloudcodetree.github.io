@@ -10,7 +10,87 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 11 Jun 2026 09:15:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 11 Jun 2026 14:00:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Miasma worm backdoors Claude Code, Cursor, and Gemini configs — 57 npm packages compromised</title>
+      <link>https://www.microsoft.com/en-us/security/blog/2026/06/02/preinstall-persistence-inside-red-hat-npm-miasma-credential-stealing-campaign/</link>
+      <guid isPermaLink="false">2026-06-11-06-miasma-npm-ai-assistant-backdoor</guid>
+      <pubDate>Thu, 11 Jun 2026 14:00:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Security</category>
+      <category>Developer Tools</category>
+      <description>A self-propagating npm worm hit 57 packages on June 3, hiding execution in binding.gyp files to evade scanners, then planting backdoors in Claude Code, Cursor, Gemini, and VS Code project configs.</description>
+      <content:encoded><![CDATA[
+A supply-chain attack security teams are calling **Miasma** compromised **57 npm packages** — including `@vapi-ai/server-sdk` (408K+ monthly downloads) and `ai-sdk-ollama` (120K+) — in under two hours on June 3, 2026. The attack is notable for two things that go beyond a standard credential-harvesting worm: its evasion technique and its deliberate targeting of AI coding-assistant configurations.
+
+**The evasion — "Phantom Gyp".** Rather than the `preinstall` or `postinstall` lifecycle hooks that npm security scanners typically watch, Miasma used a 157-byte `binding.gyp` file — the config format for native C++ add-ons — to trigger code execution during `npm install`. Most install-script auditing tools don't monitor `binding.gyp`. Defense: `npm install --ignore-scripts` blocks it; pinning dependency integrity hashes in lockfiles catches tampered packages before they run.
+
+**The AI assistant targeting.** The payload deliberately injected persistent backdoor files into six environments:
+- `.claude/setup.mjs` and `.claude/settings.json` (Claude Code)
+- `.cursor/rules/setup.mdc` (Cursor)
+- `.gemini/settings.json` (Google Gemini)
+- `.vscode/tasks.json` and `.vscode/setup.mjs` (VS Code)
+- `.github/setup.js` (GitHub Actions)
+
+Each file claimed legitimacy as "required for proper IDE integration." Any future project-open in those tools runs attacker-controlled code silently.
+
+**CI/CD credential exfiltration.** On GitHub Actions runners, the worm scraped AWS IMDSv2 tokens, Azure IMDS credentials, GCP service accounts, GitHub Actions OIDC tokens, and 1Password/gopass stores from process memory. It then republished its own reinfected packages with forged Sigstore provenance attestations to continue propagating downstream.
+
+**Mitigation checklist:** update or remove affected packages; audit repositories for injected files in `.claude/`, `.cursor/`, `.gemini/`, `.vscode/`, and `.github/`; rotate all CI/CD secrets as if exposed; add `--ignore-scripts` to default `npm install` invocations.
+
+**Sources:** [Microsoft Security Blog](https://www.microsoft.com/en-us/security/blog/2026/06/02/preinstall-persistence-inside-red-hat-npm-miasma-credential-stealing-campaign/), [StepSecurity (Phantom Gyp)](https://www.stepsecurity.io/blog/binding-gyp-npm-supply-chain-attack-spreads-like-worm), [Wiz Blog](https://www.wiz.io/blog/miasma-supply-chain-attack-targeting-redhat-npm-packages), [Snyk](https://snyk.io/blog/miasma-supply-chain-attack-malicious-code-redhat-cloud-services-npm-packages/)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Microsoft's first in-house coding model lands in GitHub Copilot — built on real workflows, not benchmarks</title>
+      <link>https://microsoft.ai/news/introducingmai-code-1-flash/</link>
+      <guid isPermaLink="false">2026-06-11-07-mai-code-1-flash-copilot</guid>
+      <pubDate>Thu, 11 Jun 2026 13:30:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>Microsoft's first in-house coding model launched in the Copilot model picker June 2. Trained on production Copilot harnesses, it uses 60% fewer tokens and scores ~51% on SWE-Bench Pro.</description>
+      <content:encoded><![CDATA[
+Microsoft shipped **MAI-Code-1-Flash** on June 2 at Build 2026 — its first coding AI trained entirely in-house, without distillation from OpenAI or any third-party model. That provenance distinction is deliberate: Microsoft is signaling strategic independence from its own AI partner, and this is the first deployable product of that effort.
+
+**What makes the training approach different.** Rather than training on a general coding benchmark corpus, the model was trained directly on **GitHub Copilot's production harnesses** — the actual file-editing tools, terminal integrations, and multi-step agentic loops that Copilot already runs in developers' IDEs. The result is a model optimized for the surrounding tool-call context of real development work, not just the isolated code problem. Microsoft describes this as "adaptive thinking" — the model adjusts its reasoning depth to task complexity, spending less on simple completions and more on harder multi-step tasks.
+
+**The benchmark profile is honest about where it sits.** ~**51% on SWE-Bench Pro** (above Claude Haiku 4.5, below Claude Opus 4.6), **60% fewer tokens** than comparable approaches for equivalent coding results, and **85.8% adjusted accuracy** on Microsoft's internal 186-question adversarial benchmark across 34 categories. These numbers put it in the capable mid-tier with unusually good token efficiency — meaningful for teams where Copilot token credits are becoming a budget line.
+
+**Availability.** MAI-Code-1-Flash is live in the GitHub Copilot model picker in VS Code on all paid Copilot tiers. It's also accessible via GitHub Models, Fireworks AI, Baseten, and OpenRouter. The broader MAI family (including MAI-Thinking-1 for reasoning) is available through Azure AI Foundry.
+
+**Sources:** [Microsoft AI announcement](https://microsoft.ai/news/introducingmai-code-1-flash/), [Enterprise DNA](https://enterprisedna.co/resources/news/microsoft-mai-code-1-flash-github-copilot-build-2026/), [ChatForest analysis](https://chatforest.com/builders-log/microsoft-mai-code-1-flash-github-copilot-coding-model-build-2026/), [GitHub Community Discussion](https://github.com/orgs/community/discussions/197306)
+      ]]></content:encoded>
+      <media:content url="https://microsoft.ai/wp-content/uploads/2026/06/mai-code-1-flash-hero.png" medium="image" type="image/png" />
+      <media:thumbnail url="https://microsoft.ai/wp-content/uploads/2026/06/mai-code-1-flash-hero.png" />
+    </item>
+
+    <item>
+      <title>OpenAI frontier models are now billable through your Oracle Cloud commitment — no separate procurement</title>
+      <link>https://openai.com/index/openai-on-oracle-cloud/</link>
+      <guid isPermaLink="false">2026-06-11-08-openai-oracle-cloud-credits</guid>
+      <pubDate>Thu, 11 Jun 2026 13:00:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Cloud</category>
+      <category>AI News</category>
+      <description>OpenAI announced June 11 that enterprise customers can access its frontier models and Codex via existing Oracle Universal Credits on OCI Marketplace, eliminating separate procurement.</description>
+      <content:encoded><![CDATA[
+As of June 11, **OpenAI's frontier models and Codex** are accessible through **Oracle Cloud Infrastructure (OCI) Marketplace**, billable against existing Oracle Universal Credits — eliminating the separate procurement and billing pipeline that made OpenAI models a parallel budget track for Oracle-committed enterprises.
+
+The announcement is the commercial layer built on the Stargate infrastructure partnership that's been scaling for months. GPT-5.5 was trained on the flagship Stargate site in Abilene, Texas, running on Oracle Cloud with NVIDIA GB200 systems; Oracle was already delivering the first GB200 racks last month as OpenAI began running early training and inference workloads there. What's new on June 11 is the billing integration: Oracle customers can now consume OpenAI models through existing purchase agreements the same way they consume any other OCI service.
+
+**Practical implications.** If your enterprise is Oracle-committed — common for organizations running Fusion ERP, NetSuite, or large Oracle Database workloads — you may now be able to route AI workloads through existing credits rather than opening a separate OpenAI API billing relationship. For teams building on OCI, OpenAI's models appear alongside Oracle's own AI services in the Marketplace. GPT-5.5 and Codex are confirmed available; the model list is managed through OCI.
+
+**Competitive context.** This makes Oracle the third major hyperscaler — alongside AWS Bedrock and Azure OpenAI Service — offering OpenAI models as a native cloud service. For enterprises choosing a cloud AI strategy, the practical question shifts from "which cloud supports OpenAI?" (all three do) to "which cloud's pricing, governance, and data-residency terms fit our existing commitments?"
+
+**Sources:** [OpenAI announcement](https://openai.com/index/openai-on-oracle-cloud/), [IT Brief NZ](https://itbrief.co.nz/story/openai-oracle-to-offer-models-on-oci-marketplace), [Data Center Frontier: Stargate-Oracle infrastructure](https://www.datacenterfrontier.com/machine-learning/article/55316610/openai-and-oracles-300b-stargate-deal-building-ais-national-scale-infrastructure)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>WebMCP lands in Chrome Canary: websites become callable tools, and your MCP server may be optional</title>
