@@ -1,5 +1,73 @@
 [
   {
+    "id": "2026-06-12-01-litellm-badhost-chain-cvss-10-rce",
+    "title": "LiteLLM chains with BadHost for a CVSS 10.0 zero-auth path into your AI gateway — CISA deadline June 22",
+    "excerpt": "Horizon3.ai chained CVE-2026-42271 (LiteLLM MCP command injection) with CVE-2026-48710 (BadHost) for a CVSS 10.0 zero-auth RCE. CISA KEV catalog, June 22 federal deadline.",
+    "author": "Chris Harper",
+    "date": "06-12-2026",
+    "publishedAt": "2026-06-12T12:11:00.000Z",
+    "tags": [
+      "AI",
+      "Security",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://thehackernews.com/2026/06/litellm-flaw-cve-2026-42271-exploited.html",
+    "content": "Yesterday's BadHost story covered how a single `/` in an HTTP Host header bypasses Starlette's path-based auth. Today, [Horizon3.ai published the exploit chain](https://horizon3.ai/attack-research/vulnerabilities/cve-2026-42271-chained-with-cve-2026-48710/) that upgrades that auth bypass into **zero-credential remote code execution** against any LiteLLM deployment. The combined CVSS score is **10.0 Critical** — the ceiling.\n\n**The LiteLLM flaw (CVE-2026-42271, CVSS 8.7).** Two endpoints for previewing MCP server connections before saving — `POST /mcp-rest/test/connection` and `POST /mcp-rest/test/tools/list` — accept a full server config in the request body, including the `command`, `args`, and `env` fields used by the stdio transport. Any authenticated user can pass arbitrary OS commands and have them executed on the host.\n\n**The chain.** BadHost (CVE-2026-48710) removes the \"authenticated\" requirement entirely on Starlette ≤1.0.0 deployments. Send a malformed Host header, bypass path-based auth, then call the MCP preview endpoint with your chosen command. Result: run arbitrary code on the LiteLLM host with no credentials whatsoever. The attacker then has access to every API key stored in the proxy, can impersonate any downstream model provider, and can move laterally through connected AI infrastructure.\n\n**CISA added CVE-2026-42271 to the Known Exploited Vulnerabilities (KEV) catalog on June 9**, citing confirmed active exploitation in the wild, and directed US federal agencies to remediate by **June 22, 2026**. That's 10 days.\n\n**Remediation is two-step:** update **LiteLLM to 1.83.7+** *and* **Starlette to 1.0.1+** — both patches are required because the chain exploits both vulnerabilities. If you cannot patch immediately, block `POST /mcp-rest/test/connection` and `POST /mcp-rest/test/tools/list` at your reverse proxy or API gateway. For any internet-accessible LiteLLM instance, this is not optional.\n\n**Sources:** [Horizon3.ai: CVE-2026-42271 chained with CVE-2026-48710](https://horizon3.ai/attack-research/vulnerabilities/cve-2026-42271-chained-with-cve-2026-48710/), [The Hacker News](https://thehackernews.com/2026/06/litellm-flaw-cve-2026-42271-exploited.html), [SOCRadar: CISA KEV update](https://socradar.io/blog/cisa-kev-litellm-cve-2026-42271-check-point-cve-2026-50751/), [Help Net Security](https://www.helpnetsecurity.com/2026/06/09/litellm-vulnerability-under-active-attack-cisa-warns-cve-2026-42271/), [rescana: active exploitation alert](https://www.rescana.com/post/active-exploitation-alert-cve-2026-42271-and-cve-2026-48710-unauthenticated-rce-in-litellm-ai-gateway-via-starlette-host)"
+  },
+  {
+    "id": "2026-06-12-02-amodei-faa-regulation-g7-summit",
+    "title": "Amodei calls for FAA-style pre-release AI testing — Anthropic backs it with $350M and a G7 seat",
+    "excerpt": "Dario Amodei's June 10 essay calls for government power to block unsafe frontier models before release, backed by $350M in new labor initiatives. Amodei, Altman, and Hassabis attend G7 June 15-17.",
+    "author": "Chris Harper",
+    "date": "06-12-2026",
+    "publishedAt": "2026-06-12T12:10:00.000Z",
+    "tags": [
+      "AI",
+      "LLM",
+      "AI News"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://darioamodei.com/post/policy-on-the-ai-exponential",
+    "content": "Anthropic CEO Dario Amodei published **\"Policy on the AI Exponential\"** on June 10 — a sweeping five-part essay arguing that the US government should hold legal authority to block frontier AI models that fail independent safety testing, and backing that position with $350 million in new funding and a seat at this week's G7 summit.\n\n**The regulatory ask.** Amodei calls for mandatory third-party evaluations of frontier models before deployment, assessing risks across cybersecurity, biological threats, and misuse categories. If a model is found to present unacceptable risks, the government would hold authority to block or defer its release — an FAA- or FDA-style pre-clearance regime. He covers five domains: safety regulation, economics and taxes, science acceleration, civil liberties, and geopolitics. For a company simultaneously filing an S-1, this is also Anthropic's public negotiating position for what the regulatory environment should look like once it's a public company.\n\n**The $350M commitment.** Alongside the essay, Anthropic pledged a **$200M Economic Futures Research Fund** to sponsor trials and evaluations of AI labor-market policy responses, and a **$150M national fellowship program** for early-career Americans in communities facing AI displacement. This is framed explicitly as funding research into what interventions actually work — not a claim that displacement has been solved.\n\n**G7 context.** France hosts the G7 summit June 15-17 with AI prominently on the agenda. Amodei, OpenAI's Sam Altman, and Google's Demis Hassabis are all confirmed attendees, per the French presidential office. The essay lands three days before those conversations begin.\n\n**Why it matters to builders.** If mandatory pre-release safety certification advances — even in narrower federal form — the compliance overhead would land on teams distributing or deploying frontier models. Watch G7 communiqués after June 17 for signals on whether the FAA-style framing finds multilateral support.\n\n**Sources:** [Dario Amodei: Policy on the AI Exponential](https://darioamodei.com/post/policy-on-the-ai-exponential), [VentureBeat: FAA-style regulation explained](https://venturebeat.com/technology/anthropic-ceo-calls-for-faa-style-regulation-of-powerful-ai-models-what-enterprises-should-know), [TechTimes: $350M and regulation push](https://www.techtimes.com/articles/318217/20260611/ai-regulation-push-amodei-demands-power-blocking-unsafe-models-anthropic-pledges-350-million.htm), [Bloomberg: G7 summit AI executives](https://www.bloomberg.com/news/articles/2026-06-12/anthropic-openai-google-executives-plan-to-attend-g7-summit)"
+  },
+  {
+    "id": "2026-06-12-03-spacex-spcx-ipo-opens-ai-infrastructure",
+    "title": "SpaceX opens on Nasdaq today at $135 — the $1.75T IPO that puts a public price on AI infrastructure",
+    "excerpt": "SpaceX begins trading June 12 under SPCX at $135 per share, targeting a $1.75T valuation — potentially the largest IPO ever. Its Stargate AI partnership ties this valuation to frontier compute.",
+    "author": "Chris Harper",
+    "date": "06-12-2026",
+    "publishedAt": "2026-06-12T12:09:00.000Z",
+    "tags": [
+      "AI",
+      "Cloud",
+      "AI News"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.heygotrade.com/en/news/spacex-ipo-177-trillion-valuation-2026-ipo-wave/",
+    "content": "SpaceX begins trading on Nasdaq today under the ticker **SPCX**, priced at **$135 per share** for a **$1.75 trillion valuation** — if the offering holds, the largest IPO in stock market history, surpassing Saudi Aramco's 2019 debut. SpaceX reserved roughly 30% of shares for retail investors, compared with the typical 5–10%, making this unusually accessible for a listing of this size.\n\nFor the AI engineering audience, the relevant angle is **Stargate**. SpaceX is the infrastructure partner for OpenAI's $500 billion Stargate joint venture, targeting 10 gigawatts of AI data-center capacity across the US by 2029. GPT-5.5 was reportedly trained at the first Abilene, Texas Stargate site on Oracle Cloud-hosted NVIDIA GB200 systems. SpaceX's public valuation is, in material part, a market bet on the continued scale of frontier AI compute demand — and today, for the first time, that bet has a live ticker.\n\n**Why public filings change your information environment.** The S-1 will force disclosure of Stargate contract terms, capacity commitments, and infrastructure economics that the industry has only seen through selective leaks. Combined with Anthropic's confidential S-1 (June 1) and OpenAI's (June 8), three of the largest players in AI — with a combined private-market valuation of roughly **$3.6 trillion** — are all in the public markets pipeline. The risk factors and financial schedules that follow will tell engineers more about pricing trajectories, vendor dependency risk, and cost-structure sustainability than any product marketing has.\n\n**Practical note.** Public company earnings pressure changes vendor behavior: pricing stability, roadmap transparency, and support tier economics all become quarterly-earnings factors. If you're building production systems on API providers heading into public markets, their S-1 disclosures are worth reading as due diligence, not just investor material.\n\n**Sources:** [HeyGoTrade: SpaceX IPO $1.75T](https://www.heygotrade.com/en/news/spacex-ipo-177-trillion-valuation-2026-ipo-wave/), [Investing.com: The $3T test](https://www.investing.com/analysis/the-3-trillion-test-spacex-openai-and-the-ipo-wave-that-will-price-the-ai-boom-200680910), [TechJournal: SpaceX OpenAI Anthropic IPO wave](https://techjournal.org/spacex-openai-anthropic-ipo-2026), [Financer.com: SpaceX IPO guide](https://financer.com/invest/spacex-ipo/)"
+  },
+  {
+    "id": "2026-06-12-04-openai-assistants-api-august-sunset",
+    "title": "OpenAI Assistants API shuts down August 26 — 75 days to migrate to the Responses API",
+    "excerpt": "OpenAI's Assistants API (/v1/assistants, /v1/threads) is permanently removed August 26, 2026 — 75 days from today. No extensions available. The replacement is the Responses API plus the Conversatio…",
+    "author": "Chris Harper",
+    "date": "06-12-2026",
+    "publishedAt": "2026-06-12T12:08:00.000Z",
+    "tags": [
+      "AI",
+      "LLM",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://community.openai.com/t/assistants-api-beta-deprecation-august-26-2026-sunset/1354666",
+    "content": "OpenAI's **Assistants API** — `/v1/assistants`, `/v1/threads`, and all related endpoints — goes **permanently offline on August 26, 2026**. That's approximately 75 days from today. OpenAI has stated explicitly that there is no extension option, and Azure OpenAI retires it on the same date.\n\n**Why the deadline is hard.** The deprecation notice went out August 26, 2025, giving teams one full year of runway. The Responses API has been stable since March 2025, and OpenAI has progressively ported Assistants capabilities — threads, file search, code interpreter — into it over the past year. Teams that haven't started migrating are now in the final quarter of that window.\n\n**The migration shape.** The Responses API uses a simpler input/output model: send input items, get output items back, without the stateful `Thread` and `Run` management overhead. For persistent conversation context, the **Conversations API** covers that pattern. OpenAI provides a [migration guide](https://platform.openai.com/docs/guides/migrate-to-responses) with conceptual mapping and code samples.\n\n**What the Responses API adds that makes migration worth doing, not just required.** Native **MCP tool calls** — call any MCP server directly without custom tool definitions. Built-in **deep research** capability. Structured outputs with `json_schema`. Improved streaming performance. `computer_use_preview`. None of these are available in the Assistants path; staying on the old API means staying without them.\n\n**Audit checklist.** Search your codebase for: `/v1/assistants`, `/v1/threads`, `AssistantEventHandler`, `client.beta.assistants`, `openai.AssistantFile`. Each hit is a migration scope item. Azure OpenAI teams: same August 26 date, no separate extension.\n\n**Sources:** [OpenAI community: Assistants API deprecation](https://community.openai.com/t/assistants-api-beta-deprecation-august-26-2026-sunset/1354666), [OpenAI migration guide](https://platform.openai.com/docs/guides/migrate-to-responses), [Syntackle: migration overview](https://syntackle.com/blog/openai-assistants-to-responses-api/), [ClonePartner: step-by-step guide](https://clonepartner.com/blog/openai-assistants-api-shutdown-the-2026-migration-guide)"
+  },
+  {
     "id": "2026-06-11-09-badhost-starlette-mcp-auth-bypass",
     "title": "BadHost (CVE-2026-48710): one malformed Host header bypasses auth on 325M-download Starlette — and every MCP server built on it",
     "excerpt": "CVE-2026-48710 \"BadHost\" lets an unauthenticated attacker bypass path-based auth in Starlette <1.0.1 by injecting a / into the Host header — hitting FastAPI, vLLM, LiteLLM, and every MCP server bui…",
