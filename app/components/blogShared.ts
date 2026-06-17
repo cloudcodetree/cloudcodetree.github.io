@@ -20,6 +20,9 @@ export interface BlogPost {
   image?: string;
   /** Where the featured image was sourced from (the article URL), for attribution. */
   imageSource?: string;
+  /** Stock-photo credit (set when the image came from Pexels). */
+  imageCredit?: string;
+  imageCreditUrl?: string;
 }
 
 /** One pagination chunk emitted by scripts/generate-feeds.mjs → /blog/pages/<n>.json */

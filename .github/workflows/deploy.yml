@@ -52,6 +52,9 @@ jobs:
     - name: Re-host feed images to the blog-images release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Optional: add a free Pexels API key as a repo secret to give posts with
+        # no source image a relevant stock photo instead of the placeholder.
+        PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
       run: node scripts/ingest-feed.mjs
 
     - name: Validate blog index

@@ -23,15 +23,29 @@ export default function BlogPost({ post }: { post: Post }) {
         {backButton}
 
         {post.image && (
-          <Box
-            component="img"
-            src={post.image}
-            alt={post.title}
-            sx={{
-              width: '100%', aspectRatio: '1200 / 630', objectFit: 'cover', display: 'block',
-              borderRadius: 2, border: '1px solid #222a35', mb: 3,
-            }}
-          />
+          <Box sx={{ mb: 3 }}>
+            <Box
+              component="img"
+              src={post.image}
+              alt={post.title}
+              sx={{
+                width: '100%', aspectRatio: '1200 / 630', objectFit: 'cover', display: 'block',
+                borderRadius: 2, border: '1px solid #222a35',
+              }}
+            />
+            {post.imageCredit && (
+              <Typography sx={{ mt: 0.75, fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>
+                Photo:{' '}
+                <Box component="a" href={post.imageCreditUrl || 'https://www.pexels.com'} target="_blank" rel="noopener noreferrer" sx={{ color: 'inherit', textDecoration: 'underline' }}>
+                  {post.imageCredit}
+                </Box>
+                {' / '}
+                <Box component="a" href="https://www.pexels.com" target="_blank" rel="noopener noreferrer" sx={{ color: 'inherit', textDecoration: 'underline' }}>
+                  Pexels
+                </Box>
+              </Typography>
+            )}
+          </Box>
         )}
 
         <Typography

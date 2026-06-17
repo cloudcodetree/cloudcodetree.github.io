@@ -43,6 +43,9 @@ const REPO = 'cloudcodetree/cloudcodetree.github.io';
 const RELEASE_TAG = 'blog-images';
 const CDN = `https://github.com/${REPO}/releases/download/${RELEASE_TAG}`;
 const PLACEHOLDER = `${CDN}/_default.png`;
+// Optional: when set (e.g. in the rehost-images CI job), posts with no source
+// image get a relevant Pexels stock photo instead of the placeholder.
+const PEXELS_KEY = process.env.PEXELS_API_KEY || '';
 const TMP = path.join(os.tmpdir(), 'cct-ingest-images');
 const DEFAULT_AUTHOR = 'Chris Harper';
 const UA = 'Mozilla/5.0 (compatible; cloudcodetree-blog/1.0; +https://cloudcodetree.com)';
@@ -159,22 +162,74 @@ function uploadAsset(file) {
   catch { return false; }
 }
 
-/** Resolve a featured image for one post → a CDN URL (or the placeholder). */
-async function resolveImage(item, id, existing) {
-  // reuse an already-uploaded image unless refreshing (even with --no-images:
-  // that flag means "don't fetch/upload", never "discard existing CDN images")
-  if (!REFRESH && existing && existing.startsWith(CDN) && !existing.endsWith('_default.png')) return existing;
-  if (NO_IMAGES) return PLACEHOLDER;
-  const url = urlAttr(item['media:content']) || urlAttr(item['media:thumbnail']);
-  if (!url) return PLACEHOLDER;
+/** Download one src URL → compress → upload to the CDN as <id>.jpg. Returns ok. */
+async function hostImage(srcUrl, id) {
   await mkdir(TMP, { recursive: true, mode: 0o700 });
   const raw = path.join(TMP, `${id}.raw`);
   const jpg = path.join(TMP, `${id}.jpg`);
-  if (!(await downloadTo(url, raw))) { console.warn(`! ${id}: image download failed (${url}) — using placeholder`); return PLACEHOLDER; }
-  if (!(await compress(raw, jpg))) { await rm(raw, { force: true }); console.warn(`! ${id}: image compression failed (sharp/sips) — using placeholder`); return PLACEHOLDER; }
+  if (!(await downloadTo(srcUrl, raw))) return false;
+  if (!(await compress(raw, jpg))) { await rm(raw, { force: true }); return false; }
   await rm(raw, { force: true });
-  if (!uploadAsset(jpg)) { await rm(jpg, { force: true }); console.warn(`! ${id}: gh release upload failed — using placeholder`); return PLACEHOLDER; }
-  return `${CDN}/${id}.jpg`;
+  if (!uploadAsset(jpg)) { await rm(jpg, { force: true }); return false; }
+  return true;
+}
+
+// Map a post's tags to a concrete, non-cliché Pexels search term.
+const PEXELS_QUERY_MAP = [
+  [/security/i, 'cyber security abstract'],
+  [/rag|embedding|vector|knowledge base/i, 'data network abstract'],
+  [/lora|fine.?tun|self.?host|model/i, 'computer server hardware'],
+  [/claude code|agent|mcp|workflow|developer tools|best practices/i, 'software developer workspace'],
+  [/cloud|aws/i, 'data center'],
+  [/react|frontend|web/i, 'web design code'],
+];
+function pexelsQuery(post) {
+  const tags = (post.tags || []).filter((t) => t.toLowerCase() !== 'ai');
+  const hay = `${tags.join(' ')} ${post.title || ''}`;
+  for (const [re, q] of PEXELS_QUERY_MAP) if (re.test(hay)) return q;
+  return 'technology abstract';
+}
+/** Pick a relevant Pexels photo for a post → { src, credit:{name,url} } or null. */
+async function pexelsPick(post, id) {
+  const q = pexelsQuery(post);
+  let data;
+  try {
+    const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(q)}&per_page=15&orientation=landscape`,
+      { headers: { Authorization: PEXELS_KEY }, signal: AbortSignal.timeout(15000) });
+    if (!res.ok) { console.warn(`! ${id}: Pexels HTTP ${res.status}`); return null; }
+    data = await res.json();
+  } catch (e) { console.warn(`! ${id}: Pexels query failed (${e.message})`); return null; }
+  const photos = data?.photos || [];
+  if (!photos.length) return null;
+  // Deterministic spread so different posts don't all get photo #1.
+  let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const p = photos[h % photos.length];
+  return { src: p.src?.large2x || p.src?.large || p.src?.original, credit: { name: p.photographer, url: p.url } };
+}
+
+/** Resolve a featured image for one post → { url, credit? } (CDN URL or placeholder). */
+async function resolveImage(item, id, existing, post) {
+  // reuse an already-uploaded image unless refreshing (even with --no-images:
+  // that flag means "don't fetch/upload", never "discard existing CDN images")
+  if (!REFRESH && existing && existing.startsWith(CDN) && !existing.endsWith('_default.png')) return { url: existing };
+  if (NO_IMAGES) return { url: PLACEHOLDER };
+
+  // 1) The source article's own preview image, if the feed provided one.
+  const srcUrl = urlAttr(item['media:content']) || urlAttr(item['media:thumbnail']);
+  if (srcUrl) {
+    if (await hostImage(srcUrl, id)) return { url: `${CDN}/${id}.jpg` };
+    console.warn(`! ${id}: source image failed (${srcUrl})`);
+  }
+  // 2) Pexels stock fallback (only when a key is configured, e.g. CI).
+  if (PEXELS_KEY) {
+    const pick = await pexelsPick(post, id);
+    if (pick?.src && await hostImage(pick.src, id)) {
+      console.log(`  ${id}: Pexels stock by "${pexelsQuery(post)}" (© ${pick.credit.name})`);
+      return { url: `${CDN}/${id}.jpg`, credit: pick.credit };
+    }
+  }
+  console.warn(`! ${id}: no image — using placeholder`);
+  return { url: PLACEHOLDER };
 }
 
 /** Warn up front if image hosting can't work, instead of failing silently per item. */
@@ -218,8 +273,15 @@ async function main() {
       if (!title) { console.warn(`! skipping ${id}: empty <title>`); failed++; continue; }
       const link = text(item.link).trim();
       const tags = (item.category ?? []).map((c) => text(c).trim()).filter(Boolean);
-      const image = await resolveImage(item, id, byId.get(id)?.image);
+      const tagsArr = tags.length ? tags : ['AI'];
+      const prior = byId.get(id);
+      const { url: image, credit } = await resolveImage(item, id, prior?.image, { tags: tagsArr, title });
       if (image !== PLACEHOLDER) withImg++;
+      // Attribution: use this run's credit, else carry over a prior one if the image is unchanged.
+      const creditFields = credit
+        ? { imageCredit: credit.name, imageCreditUrl: credit.url }
+        : (image === prior?.image && prior?.imageCredit
+            ? { imageCredit: prior.imageCredit, imageCreditUrl: prior.imageCreditUrl } : {});
 
       byId.set(id, {
         id,
@@ -228,9 +290,10 @@ async function main() {
         author: text(item['dc:creator']).trim() || DEFAULT_AUTHOR,
         date: toMDY(text(item.pubDate).trim(), id),
         ...(toISO(text(item.pubDate).trim()) ? { publishedAt: toISO(text(item.pubDate).trim()) } : {}),
-        tags: tags.length ? tags : ['AI'],
+        tags: tagsArr,
         readTime: readTime(body),
         image,
+        ...creditFields,
         ...(link ? { imageSource: link } : {}),
         content: body,
       });
