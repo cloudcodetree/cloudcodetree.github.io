@@ -132,21 +132,30 @@ what gets written into the feed.
 > Duplicate guard: if a bucket has nothing genuinely new/strong this run, skip it;
 > if the whole run would be duplicates, exit WITHOUT writing.
 >
-> **Research log (audit trail — required every run).** Append a section to
-> `content/research-log/<UTC-date>.md` (e.g. `content/research-log/2026-06-17.md`;
-> create the dir/file if missing — multiple runs a day append to the same file).
-> Format: an `## HH:MM UTC` header for this run, then two lists:
-> - **Published** — one line per item: `[bucket] <guid> — <one-line what>`.
-> - **Considered but skipped** — one line per candidate you researched and did
->   NOT publish, each with a one-line reason: `duplicate of <guid>`, `thin/single
->   source`, `not significant for this reader`, `off-topic`, `teachable: no strong
->   tutorial found`, etc. Include the duplicate-guard skips here.
+> **Research log (full audit trail — required every run).** Append a section to
+> `content/research-log/<UTC-date>.md` (create the dir/file if missing — multiple
+> runs a day append). This is a FULL trace of the run's research, not a summary:
+> the owner uses it to see *everything* you searched and every story you weighed.
+> **Build it incrementally as you research** (don't reconstruct it at the end).
+> Under an `## HH:MM UTC` header, write three sections:
 >
-> This is the only record of editorial judgment — it lets the owner audit what was
-> dropped and why, and catch the duplicate guard being too aggressive. Be honest
-> and specific; "skipped 3 minor model-pricing tweaks (not significant)" is fine.
-> If a run exits early via the duplicate guard, still write the log section
-> explaining what was already covered.
+> - **### Searched** — every web search you ran, one bullet each:
+>   `` `exact query` `` → 3–6 notable results as `[Title](url)` links, each with a
+>   few words on what it was. Log the query even when it surfaced nothing useful
+>   (`` `query` `` → nothing relevant).
+> - **### Candidates evaluated** — EVERY story/topic you seriously considered, not
+>   just what you published. One bullet each with a verdict:
+>   `<story> — [source](url) — **published** as <guid> [bucket]`, or
+>   `<story> — [source](url) — **skipped**: <reason>`. Reasons: `duplicate of
+>   <guid>`, `thin / single source`, `unverified`, `not significant for this
+>   reader`, `off-topic`, `teachable: no strong tutorial found`, etc. Include the
+>   duplicate-guard skips. **This list should be noticeably longer than what you
+>   published** — if it isn't, you didn't cast a wide enough net; search more.
+> - **### Published** — quick index: one line per published item,
+>   `[bucket] <guid> — <one-line what>`.
+>
+> Be honest and specific. Even on a full duplicate-guard day (nothing published),
+> still write Searched + Candidates so the owner sees the day was actually checked.
 >
 > **Per-item fields:**
 > - `<guid isPermaLink="false">` — stable, slug-safe `YYYY-MM-DD-NN-short-slug`
