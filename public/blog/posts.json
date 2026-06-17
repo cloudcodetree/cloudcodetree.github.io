@@ -1,5 +1,41 @@
 [
   {
+    "id": "2026-06-17-05-claude-code-worktree-fanout-parallel",
+    "title": "Claude Code Fan-Out: Parallel Subagents in Git Worktrees Halve Your Wall-Clock Time",
+    "excerpt": "Run independent agent tasks in parallel git worktrees — each gets its own branch, no file conflicts, merge when done. Three concrete patterns with hooks, tool-scoping, and stop gates.",
+    "author": "Chris Harper",
+    "date": "06-17-2026",
+    "publishedAt": "2026-06-17T15:59:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://shipyard.build/blog/claude-code-multi-agent/",
+    "content": "**TL;DR: Parallel Claude Code sessions in separate git worktrees eliminate file conflicts and reduce wall-clock time to the longest single task instead of the sum of all tasks.**\n\nWhen a coding job splits into independent subtasks — \"update the API layer,\" \"add tests,\" \"regenerate docs\" — sequential Claude Code sessions leave you waiting. The fan-out pattern: one `git worktree` per task, parallel sessions, merge when all finish.\n\n**One-time setup:**\n```bash\ngit worktree add ../project-api api-work\ngit worktree add ../project-tests test-work\n```\nEach worktree is a full checkout on a named branch. Open a separate `claude` session in each directory — they share repo history but touch different files, so there are no conflicts mid-run.\n\n**Pattern 1: Scope each subagent's tools.** If you're using Claude Code's experimental Agent Teams (set `\"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\": \"1\"` in settings.json), restrict each subagent to exactly what it needs. A test-writer agent doesn't need web fetches or git push:\n\n```markdown\n---\ntools: Read, Write, Bash\n---\nWrite tests only. Do not modify source files or run git commands.\n```\n\n**Pattern 2: Stop hook as a completion gate.** Wire a hook in `.claude/settings.json` that runs your test suite before the agent ends the session:\n\n```json\n\"Stop\": [{\n  \"hooks\": [{\"type\": \"command\", \"command\": \"pnpm test --passWithNoTests\"}]\n}]\n```\n\nThe agent can't declare done until tests pass — you get a green bar without manual review.\n\n**Pattern 3: Spec first, implement in parallel.** Session 1 writes a task breakdown. Sessions 2–N open worktrees, each handed one bounded task with `--allowedTools \"Read,Write,Bash\"` to prevent scope creep. Merge and review the combined diff once all branches report done.\n\n**Sources:** [Shipyard: Multi-agent orchestration for Claude Code](https://shipyard.build/blog/claude-code-multi-agent/), [Developers Digest: Claude Code agent teams playbook](https://www.developersdigest.tech/blog/claude-code-agent-teams-subagents-2026), [SmartScope: Claude Code advanced best practices](https://smartscope.blog/en/generative-ai/claude/claude-code-best-practices-advanced-2026/), [okhlopkov.com: Claude Code setup 2026](https://okhlopkov.com/claude-code-setup-mcp-hooks-skills-2026/)"
+  },
+  {
+    "id": "2026-06-17-04-whitehouse-mythos-premeditated-glasswing",
+    "title": "The ban was already written: White House had Mythos in its sights weeks before Fable 5 launched",
+    "excerpt": "New Washington Post, WSJ, and Semafor reporting: the Fable 5 export control directive was \"already locked and loaded\" before Amazon's jailbreak tip — triggered by Project Glasswing and a China-link…",
+    "author": "Chris Harper",
+    "date": "06-17-2026",
+    "publishedAt": "2026-06-17T15:58:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Security"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://gizmodo.com/the-white-house-was-reportedly-ready-to-go-after-claude-mythos-long-before-fable-5-was-released-2000772295",
+    "content": "**TL;DR: New reporting shows the White House export directive was pre-written before Amazon's jailbreak report — the actual trigger was Project Glasswing giving a China-linked entity access to Mythos capabilities.**\n\nNew reporting from the Washington Post, WSJ, and Semafor (via [Gizmodo](https://gizmodo.com/the-white-house-was-reportedly-ready-to-go-after-claude-mythos-long-before-fable-5-was-released-2000772295)) reveals the June 12 export control order was \"already locked and loaded\" *before* Amazon CEO Andy Jassy delivered the jailbreak finding the administration cited publicly.\n\nThe actual trigger: **Project Glasswing** — Anthropic's vetted early-access program for Mythos Preview cybersecurity capabilities. On June 2, Anthropic announced 111 approved Glasswing organizations, then disclosed ~50 additional entities had already received access without advance White House sign-off. Among them: a South Korean telecom officials believed had \"ties to China.\" When ordered to revoke that access, Anthropic complied — but the relationship was already broken. The Amazon jailbreak finding provided the public rationale; the governance dispute was the cause.\n\n**The reframe:** \"Fix this code\" was the pretext, not the origin.\n\n**Why it matters:** Planning your model roadmap around \"restores once the jailbreak is patched\" misses the actual issue. The June 22 White House meeting is about an *access governance arrangement* — who gets frontier Anthropic capabilities, and under what review process — not a technical fix. Expect tighter controls on who can access top-tier Anthropic models even after any patch, particularly for non-US users and organizations with opaque ownership.\n\n**Sources:** [Gizmodo: White House was ready to go before Fable 5 launched](https://gizmodo.com/the-white-house-was-reportedly-ready-to-go-after-claude-mythos-long-before-fable-5-was-released-2000772295), [Globe and Mail: deal negotiations underway](https://www.theglobeandmail.com/business/article-anthropic-trump-officials-deal-restore-fable-5-mythos-5/), [Anthropic: Fable 5 and Mythos 5 statement](https://www.anthropic.com/news/fable-mythos-access)"
+  },
+  {
     "id": "2026-06-17-03-openai-deployment-simulation",
     "title": "OpenAI's Deployment Simulation: Catch AI Regressions Before They Ship by Replaying 1.3M Real Production Conversations",
     "excerpt": "OpenAI's new pre-release check replays de-identified production conversations through a candidate model to catch 1-in-200K failures — and found a novel 'calculator hacking' regression in GPT-5.1.",
