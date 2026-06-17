@@ -14,18 +14,19 @@ export const metadata: Metadata = {
   },
 };
 
-const POSTS_PER_PAGE = 10;
-
 export default function AiNews() {
-  // Embed page 1 in the static HTML at build time (SEO + instant first paint);
-  // the client fetches /blog/pages/<n>.json chunks only when paginating.
+  // Embed a SLIM (content-free) index of every post in the static HTML at build
+  // time. The list/cards views paginate client-side from this with a reader-
+  // selectable page size; the feed view lazy-loads full bodies from
+  // /blog/posts.json only when selected. (Bodies are excluded here to keep the
+  // page light — if the catalog grows very large, switch to a fetched index.)
   const file = path.join(process.cwd(), 'public', 'blog', 'posts.json');
   const posts = JSON.parse(fs.readFileSync(file, 'utf8')) as BlogPost[];
-  const pageCount = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
+  const slim = posts.map(({ content, ...rest }) => rest);
 
   return (
     <ClientLayout>
-      <BlogPage initialPosts={posts.slice(0, POSTS_PER_PAGE)} pageCount={pageCount} />
+      <BlogPage posts={slim} />
     </ClientLayout>
   );
 }

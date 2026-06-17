@@ -23,7 +23,7 @@
  * No external dependencies.
  */
 
-import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -154,24 +154,9 @@ ${urls}
 `;
   await writeFile(path.join(PUBLIC, 'sitemap.xml'), sitemap);
   console.log(`✓ sitemap.xml (${items.length + staticRoutes.length} urls) → public/`);
-
-  // --- pagination chunks for the /ai-news list -------------------------------
-  const PER_PAGE = 10;
-  const PAGES_DIR = path.join(BLOG_DIR, 'pages');
-  await rm(PAGES_DIR, { recursive: true, force: true }); // drop stale chunks from shrunken sets
-  await mkdir(PAGES_DIR, { recursive: true });
-  const pageCount = Math.max(1, Math.ceil(posts.length / PER_PAGE));
-  for (let n = 1; n <= pageCount; n++) {
-    const chunk = {
-      page: n,
-      pageCount,
-      perPage: PER_PAGE,
-      total: posts.length,
-      posts: posts.slice((n - 1) * PER_PAGE, n * PER_PAGE),
-    };
-    await writeFile(path.join(PAGES_DIR, `${n}.json`), JSON.stringify(chunk));
-  }
-  console.log(`✓ blog/pages/ (${pageCount} chunks of ${PER_PAGE}) → public/blog/pages/`);
+  // The /ai-news list paginates client-side from a slim (content-free) index the
+  // server route embeds, with a reader-selectable page size — so no per-page
+  // chunk files are generated here anymore.
 }
 
 main().catch((e) => { console.error('✗ generate-feeds failed:', e.message); process.exit(1); });
