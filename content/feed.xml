@@ -10,7 +10,105 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 17 Jun 2026 15:59:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 17 Jun 2026 17:04:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Build a Resilient Model Stack Now: fallbackModel Chains, Nested Sub-Agents, and Safe Mode in Claude Code Week 24</title>
+      <link>https://code.claude.com/docs/en/whats-new/2026-w24</link>
+      <guid isPermaLink="false">2026-06-17-07-claude-code-week24-fallbackmodel-nested-agents</guid>
+      <pubDate>Wed, 17 Jun 2026 17:04:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.166-176 ships fallbackModel for automatic model failover, nested sub-agents up to 5 levels deep, /cd to move sessions without losing cache, and --safe-mode for debugging.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code Week 24 ships `fallbackModel` for automatic failover, nested sub-agents up to 5 levels deep, `/cd` to move sessions between projects, and `--safe-mode` to strip customizations for debugging — the most practically relevant update while Fable 5 is offline.**
+
+With Fable 5 still down, `fallbackModel` is the feature to deploy first. Added in v2.1.166, it configures up to three backup models Claude Code tries in order whenever the primary returns a 529 overload or is unavailable. The switch covers the current turn only — the next message retries the primary first.
+
+**Configure a resilient chain in `~/.claude/settings.json`:**
+```json
+{
+  "fallbackModel": ["claude-sonnet-4-6", "claude-haiku-4-5"]
+}
+```
+
+Or for a single session: `claude --fallback-model sonnet,haiku`
+
+The **`best` alias** pairs cleanly: it resolves to Fable 5 when your account has access, otherwise the latest Opus model. Set `"model": "best"` now, add a fallback chain, and your config will automatically promote to Fable 5 when it returns — no change required.
+
+**Nested sub-agents (v2.1.172).** Sub-agents can now spawn their own sub-agents — background chains capped at five levels deep, foreground chains self-limiting at any depth. The `/agents` view shows the full tree with descendant counts and a path back to `main`. Practical pattern: an orchestrator spawns a research agent that spawns parallel fetch agents — each level scoped to exactly its tools, the top level just waits for results.
+
+**`/cd` (v2.1.169).** Move the current session to a different directory without rebuilding the prompt cache. The new directory's `CLAUDE.md` is appended as a message instead of replacing the system prompt, so context built up in the session survives the hop.
+
+```
+> /cd ../other-project
+```
+
+**`--safe-mode` (v2.1.169).** When Claude Code behaves unexpectedly, `claude --safe-mode` (or `CLAUDE_CODE_SAFE_MODE=1`) strips CLAUDE.md, plugins, skills, hooks, MCP servers, and custom commands — while keeping auth and built-in tools working. If the problem disappears in safe mode, binary-search which surface introduced it.
+
+```bash
+claude --safe-mode
+```
+
+**Sources:** [Claude Code What's New — Week 24](https://code.claude.com/docs/en/whats-new/2026-w24), [Fallback model chains docs](https://code.claude.com/docs/en/model-config#fallback-model-chains), [Nested sub-agents docs](https://code.claude.com/docs/en/sub-agents#spawn-nested-subagents), [Commands reference](https://code.claude.com/docs/en/commands#all-commands)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Drops into Apple Foundation Models — iOS Devs Can Now Hand Off to Claude Mid-Task</title>
+      <link>https://claude.com/blog/claude-for-foundation-models</link>
+      <guid isPermaLink="false">2026-06-17-06-claude-apple-foundation-models-ios27</guid>
+      <pubDate>Wed, 17 Jun 2026 17:03:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Claude Code</category>
+      <description>Anthropic's ClaudeForFoundationModels Swift package makes Claude a drop-in for Apple's Foundation Models framework on iOS 27, macOS 27, and iPadOS 27. Announced June 8 at Apple's Platforms State of the Union.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Anthropic shipped a Swift package that makes Claude a drop-in model in Apple's Foundation Models framework — iOS 27 apps can delegate complex reasoning and code tasks to Claude through the same API they use for on-device models.**
+
+[`ClaudeForFoundationModels`](https://claude.com/blog/claude-for-foundation-models), announced June 8 at Apple's Platforms State of the Union, gives Apple platform developers a single Swift API path for on-device-first AI with Claude as the capable escalation path. An app's Foundation Models session can route lightweight inference to Apple's on-device model and hand off multi-step reasoning, code generation, or web search to Claude — streaming, tool calls, and `@Generable` structured output all work through the same API without custom routing code.
+
+The package covers iOS 27, iPadOS 27, macOS 27, visionOS 27, and watchOS 27. It is part of Apple's broader move to open the Foundation Models framework to third-party cloud models (Claude and Gemini are the two announced providers), per [MacRumors](https://www.macrumors.com/2026/06/09/apple-outlines-major-ai-and-developer-tool-updates/).
+
+**Why it matters:** If you build iOS apps, you no longer need bespoke "call Claude when on-device isn't enough" integration logic. The framework handles routing, streaming, and type-safe response generation through standard Swift APIs — your app stays on-device for common cases and reaches Claude only for the requests that need it.
+
+**Sources:** [Anthropic: Claude for Foundation Models](https://claude.com/blog/claude-for-foundation-models), [MacRumors: Apple Platforms State of the Union 2026](https://www.macrumors.com/2026/06/09/apple-outlines-major-ai-and-developer-tool-updates/), [Lushbinary: Apple Foundation Models Swift guide 2026](https://lushbinary.com/blog/apple-foundation-models-framework-swift-guide/)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>LoRA on a Free GPU: Fine-Tune Your First LLM in 45 Minutes with Unsloth + Google Colab</title>
+      <link>https://github.com/unslothai/notebooks</link>
+      <guid isPermaLink="false">2026-06-17-08-lora-unsloth-colab-fine-tuning-beginner</guid>
+      <pubDate>Wed, 17 Jun 2026 17:02:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>Unsloth's 250+ free Colab notebooks make LoRA fine-tuning of 7B+ models accessible on a T4 GPU — adapting a model to your data in under an hour with no paid compute. A hands-on starting point for beginners.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Unsloth's free Colab notebooks let you fine-tune a 7B language model on a T4 GPU in under 45 minutes — no hardware budget, no setup friction, and 2× faster than standard fine-tuning tooling.**
+
+**What you'll be able to do after this:** Adapt an open-weight 7B language model to your specific domain — your codebase, your support docs, your API schemas — on a free Google Colab T4 GPU, using a ready-made notebook.
+
+**Three things to take away:**
+- **Why LoRA is the entry point.** Instead of retraining all parameters, LoRA inserts small "adapter" matrices (~1% of the model's weights) and trains only those. The base model stays frozen. That's what makes a 7B model fit on a free Colab T4 (15GB VRAM) rather than requiring a paid A100.
+- **What QLoRA adds.** 4-bit quantization stacks on top of LoRA, reducing memory further — enabling 12B+ models on the same free GPU. Unsloth's implementation runs 2× faster than standard Hugging Face PEFT with no reported accuracy loss.
+- **Where to start.** [Unsloth's notebook collection on GitHub](https://github.com/unslothai/notebooks) has 250+ ready-made Colab notebooks covering Llama 3.1 8B, Qwen 3, Gemma 4, Mistral, and dozens more. Pick the base model that fits your use case, open the notebook, point it at your dataset, run. For a no-code path, [Unsloth Studio](https://unsloth.ai/docs/new/studio) provides a web UI for models up to 22B — no Python required.
+
+**The walk-through.** The [Unsloth fine-tuning guide](https://unsloth.ai/docs/get-started/fine-tuning-llms-guide) covers dataset preparation, key LoRA hyperparameters (rank, alpha, learning rate), and how to export the trained adapter for inference. The [LoRA hyperparameters guide](https://unsloth.ai/docs/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide) explains what each knob does without assuming prior experience. Start with a small instruct model (Llama 3.1 8B is Unsloth's recommended entry point) and a dataset of 100–500 examples — enough to observe meaningful domain adaptation.
+
+**Why now.** With Fable 5 offline and frontier API costs rising, a domain-specific fine-tuned 7B model is increasingly the practical alternative for inference-heavy workloads. A model fine-tuned on your actual data routinely outperforms a generic frontier model on that specific task — and runs at a fraction of the per-token cost at inference time.
+
+**Sources:** [Unsloth notebooks on GitHub (250+)](https://github.com/unslothai/notebooks), [Unsloth fine-tuning guide](https://unsloth.ai/docs/get-started/fine-tuning-llms-guide), [Unsloth Studio (no-code UI)](https://unsloth.ai/docs/new/studio), [LoRA & QLoRA 2026 guide](https://www.meta-intelligence.tech/en/insight-lora-finetuning)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Claude Code Fan-Out: Parallel Subagents in Git Worktrees Halve Your Wall-Clock Time</title>
