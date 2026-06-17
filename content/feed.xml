@@ -10,7 +10,173 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 17 Jun 2026 17:04:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 17 Jun 2026 17:44:00 GMT</lastBuildDate>
+
+    <item>
+      <title>MCP Goes Stateless July 28: Four Breaking Changes and How to Migrate Before the Final Spec</title>
+      <link>https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/</link>
+      <guid isPermaLink="false">2026-06-17-10-mcp-rc-stateless-breaking-changes-july28</guid>
+      <pubDate>Wed, 17 Jun 2026 17:44:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>MCP</category>
+      <category>Developer Tools</category>
+      <description>The MCP 2026-07-28 RC (locked May 21) removes sessions, adds two required HTTP headers, changes an error code, and adds caching metadata. Migration steps with TypeScript examples before the July 28 finalization.</description>
+      <content:encoded><![CDATA[
+**TL;DR: MCP's July 28 final spec goes stateless — remove `Mcp-Session-Id` sessions, add `Mcp-Method` and `Mcp-Name` headers to every request, update one error code, and add caching metadata to list responses.**
+
+The [2026-07-28 RC was locked May 21](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/) — the 10-week window before the final spec is when Tier 1 SDKs are shipping updated implementations. If you maintain a custom MCP server or transport layer, here are the four changes that break existing code.
+
+**1. Remove session management**
+
+The `initialize`/`initialized` handshake and `Mcp-Session-Id` header are gone. Client metadata now travels in `_meta` on every request:
+```typescript
+// Old
+const session = sessions.get(req.headers['mcp-session-id'])
+
+// New — read from request body
+const meta = body.params?._meta ?? {}
+const clientCaps = meta.capabilities ?? {}
+```
+Infrastructure side: remove sticky-session routing and any Redis store that existed only for MCP sessions.
+
+**2. Add two required headers**
+
+Streamable HTTP requests must include `Mcp-Method` and `Mcp-Name`. Servers reject requests where headers disagree with the body:
+```typescript
+await fetch(serverUrl, {
+  headers: {
+    'Mcp-Method': 'tools/call',
+    'Mcp-Name': toolName,
+    'MCP-Protocol-Version': '2026-07-28',
+  },
+  body: JSON.stringify({ method: 'tools/call', params: { name: toolName } })
+})
+```
+
+**3. Error code -32002 → -32602**
+
+Resource-not-found errors move to standard JSON-RPC Invalid Params. Update any client code that matches on the literal code:
+```typescript
+// Old
+if (err.code === -32002) { /* missing resource */ }
+
+// New — check err.data to distinguish from other -32602 causes
+if (err.code === -32602) { /* invalid params or missing resource */ }
+```
+
+**4. Caching metadata on list responses**
+
+`tools/list` and `resources/list` now carry `ttlMs` and `cacheScope`:
+```typescript
+return res.json({ result: { tools, ttlMs: 300_000, cacheScope: 'global' } })
+```
+Clients must respect these fields — replace any ad-hoc TTL conventions you currently use.
+
+**Three features in gradual deprecation** (12+ month removal window, not breaking July 28): `Roots`, `Logging` (migrate to stderr or OpenTelemetry), and `Sampling` (replace with direct LLM provider calls). Sampling is the most disruptive — if you rely on it for lightweight inference flows, plan that migration now rather than at removal.
+
+**On official SDKs:** the migration is largely at the SDK layer — update to the version that ships 2026-07-28 support, move session initialization out of app startup, add the new headers. The TypeScript above targets custom transports and low-level clients.
+
+**Sources:** [MCP 2026-07-28 RC announcement](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/), [byteiota: MCP goes stateless](https://byteiota.com/mcp-goes-stateless-2026-release-candidate/), [DEV.to: every breaking change and how to migrate](https://dev.to/akaranjkar08/mcp-spec-ships-july-28-every-breaking-change-and-how-to-migrate-4co8), [tokenmix.ai: full MCP protocol changelog 2026](https://tokenmix.ai/blog/mcp-updates-changelog-every-protocol-change-2026)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code Hooks: 6 Production Patterns That Enforce Quality Without Prompting</title>
+      <link>https://www.pixelmojo.io/blogs/claude-code-hooks-production-quality-ci-cd-patterns</link>
+      <guid isPermaLink="false">2026-06-17-09-claude-code-hooks-six-production-patterns</guid>
+      <pubDate>Wed, 17 Jun 2026 17:43:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Six hooks patterns for Claude Code with working JSON: auto-format on every edit, block critical files, block prod deps, type-check after edits, LLM-based semantic security gate, and Stop notification.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Hooks turn your Claude Code setup from advisory prompts into enforced rules — these six patterns fire every time, with working JSON you can drop into `.claude/settings.json` today.**
+
+CLAUDE.md is advisory — Claude follows it roughly 70% of the time. Hooks are deterministic: a `PreToolUse` hook can block an action entirely (exit 1); a `PostToolUse` hook fires every time a file changes. Anything that *must always happen* belongs in a hook.
+
+**The two event types that matter most:**
+- `PreToolUse` — fires before the tool call; exit 1 blocks it completely
+- `PostToolUse` — fires after completion; use for formatting, linting, type-checking
+
+All patterns go in `.claude/settings.json` under `"hooks"`.
+
+**Pattern 1: Auto-format on every write**
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "handler": { "type": "command", "command": "npx prettier --write $FILEPATH" }
+      }
+    ]
+  }
+}
+```
+
+**Pattern 2: Block edits to critical files**
+```js
+// scripts/block-critical.js
+const blocked = ['src/middleware.ts', '.env', 'src/app/api/auth']
+if (blocked.some(f => process.env.FILEPATH?.includes(f))) process.exit(1)
+```
+Wire it as a `PreToolUse` command handler with matcher `"Edit|Write"`. Exit code 1 = denied.
+
+**Pattern 3: Block production dependency installs**
+```js
+// scripts/block-prod-deps.js
+const cmd = process.env.COMMAND || ''
+if (/npm install|yarn add|pnpm add/.test(cmd) && !cmd.includes('--save-dev'))
+  process.exit(1)
+```
+
+**Pattern 4: Type-check after every TypeScript edit**
+```json
+{
+  "PostToolUse": [
+    { "matcher": "Edit|Write",
+      "handler": { "type": "command", "command": "npx tsc --noEmit 2>&1 | tail -20" } }
+  ]
+}
+```
+The compiler error output appears in Claude's next turn — it self-corrects without you asking.
+
+**Pattern 5: Semantic security gate (prompt hook)**
+When a regex can't capture intent, use a prompt-type hook:
+```json
+{
+  "PreToolUse": [
+    {
+      "matcher": "Edit",
+      "handler": {
+        "type": "prompt",
+        "prompt": "Review this edit to $FILEPATH. If it touches auth, DB schema, payment paths, or secrets — DENY. Otherwise ALLOW."
+      }
+    }
+  ]
+}
+```
+
+**Pattern 6: Notify on Stop**
+```json
+{
+  "Stop": [
+    { "handler": { "type": "command",
+        "command": "osascript -e 'display notification \"Task complete\" with title \"Claude Code\"'" } }
+  ]
+}
+```
+Fires the moment a long-running session ends — step away without polling.
+
+**The rule:** CLAUDE.md for what you want most of the time. Hooks for what must happen without exception.
+
+**Sources:** [Claude Code Hooks: 6 Production Patterns](https://www.pixelmojo.io/blogs/claude-code-hooks-production-quality-ci-cd-patterns), [Designing CLAUDE.md correctly (2026 architecture)](https://www.obviousworks.ch/en/designing-claude-md-right-the-2026-architecture-that-finally-makes-claude-code-work/), [SmartScope: Claude Code advanced best practices](https://smartscope.blog/en/generative-ai/claude/claude-code-best-practices-advanced-2026/), [Official Claude Code best practices](https://code.claude.com/docs/en/best-practices)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Build a Resilient Model Stack Now: fallbackModel Chains, Nested Sub-Agents, and Safe Mode in Claude Code Week 24</title>
