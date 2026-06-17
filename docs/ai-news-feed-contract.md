@@ -85,7 +85,10 @@ what gets written into the feed.
 >
 > 1. **News (tightened).** The 2–4 genuinely important developments for engineers
 >    who ship code with AI. **Consolidate**: fold related stories into one item
->    rather than one item each. Keep each to ~100–220 words.
+>    rather than one item each. Size each to its importance — ~60–150 words; a
+>    minor item is 1–2 sentences. End each news item with a bold
+>    **Why it matters:** one-liner written for *this* reader (what it changes for
+>    someone shipping code with Claude Code) — not a generic recap.
 > 2. **Practitioner posts (at least one every run — the priority).** A concrete
 >    tip, technique, workflow, or trick for native agentic software development —
 >    Claude Code, subagents, MCP, agent harnesses, context engineering, prompt
@@ -97,15 +100,24 @@ what gets written into the feed.
 >    a topic not already well covered in the existing feed. Publish one ONLY when
 >    your research turns up genuinely good source material — a quality written
 >    tutorial, an official doc walkthrough, a notebook, or a **YouTube video**.
->    Lead the reader from "what is this / why care" to a hands-on next step, and
->    link the tutorial/video prominently. If nothing strong turns up this run,
->    publish zero — that is correct, not a failure.
+>    Format: name **one** concept and link **one** hands-on resource (don't
+>    survey five); open with a "**What you'll be able to do after this:**" line,
+>    then a 3-bullet takeaway list, then the walk-through. Link the tutorial/video
+>    prominently and use its thumbnail (e.g. the YouTube thumbnail) as the item's
+>    `<media:content>` image. If nothing strong turns up this run, publish zero —
+>    that is correct, not a failure.
+>
+> **Post format (every item).** Start each post's body with a **one-line bold
+> TL;DR (≤30 words)** so a skimmer gets the point without scrolling — it shows on
+> both the list and the article page. Then the body, then the `**Sources:**` line.
 >
 > **Second-draft / consolidation pass (required).** After drafting all items,
 > re-read the whole set and revise: merge anything redundant, cut filler and
 > hedging, tighten every item to its essential signal, and confirm each news item
 > respects its word budget. Shorter and sharper wins. The site has been getting
-> news-heavy and long — actively correct for that.
+> news-heavy and long — actively correct for that. **Length tracks substance:** a
+> genuinely quiet day is fine — ship a shorter run (even a single "quiet day" note
+> with a couple of links) rather than padding. Never inflate an item to hit length.
 >
 > **Sourcing.** Prefer primary sources (vendor blogs, official docs, papers,
 > release notes, the tool's own site) over aggregators. For teachable posts, a
@@ -127,6 +139,9 @@ what gets written into the feed.
 >   `date -u`; offset items by a minute each to keep ordering). Do NOT copy the
 >   timestamp pattern of older items. The site displays this time so the owner can
 >   verify which run published each post — never backdate or use a placeholder time.
+>   **Ordering within a run:** the site sorts newest-first by publish time, so give
+>   the **practitioner post the latest timestamp** (it's the priority — it should
+>   top the day), then news, then any teachable post.
 > - `<category>` — 2–4 tags. Always include `AI`, plus a **content-type** tag
 >   (`News`, `Workflow`, or `Tutorial`) and relevant topic tags from: `LLM`,
 >   `Agents`, `Claude Code`, `MCP`, `Best Practices`, `Developer Tools`, `RAG`,
