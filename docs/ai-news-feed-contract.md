@@ -10,7 +10,7 @@ Cloud routine (daily) ──writes──▶ content/feed.xml      (source of tru
         │
         ├─ node scripts/ingest-feed.mjs    (feed → posts + re-hosted images)
         ├─ node scripts/validate-blog.mjs
-        └─ git commit + push  (content/feed.xml + public/blog/)
+        └─ git commit + push  (content/feed.xml + content/research-log/ + public/blog/)
         ▼
    GitHub Actions: next build → deploy   (no network; builds committed content)
 ```
@@ -75,10 +75,10 @@ what gets written into the feed.
 > this person beats breadth. When you teach a beginner topic, assume zero prior
 > knowledge and link a real, hands-on resource.
 >
-> **Stop doing all of this:** editing `posts.json`; writing `.md` files;
-> downloading images; running scripts; committing/pushing. Do not touch `public/`.
-> Your only write is `content/feed.xml` at the repo root (create `content/` if
-> needed). It is the source of truth.
+> **Stop doing all of this:** editing `posts.json`; writing post `.md` files;
+> downloading images. Do not touch `public/`. You write exactly two things:
+> `content/feed.xml` (the source of truth) and `content/research-log/<UTC-date>.md`
+> (the audit trail, see below) — both at the repo root (create dirs if needed).
 >
 > **Each run produces a MIX across three buckets — not just news.** Aim for ~4–6
 > items total. Prioritize the practitioner bucket; it is the point of the blog.
@@ -132,6 +132,22 @@ what gets written into the feed.
 > Duplicate guard: if a bucket has nothing genuinely new/strong this run, skip it;
 > if the whole run would be duplicates, exit WITHOUT writing.
 >
+> **Research log (audit trail — required every run).** Append a section to
+> `content/research-log/<UTC-date>.md` (e.g. `content/research-log/2026-06-17.md`;
+> create the dir/file if missing — multiple runs a day append to the same file).
+> Format: an `## HH:MM UTC` header for this run, then two lists:
+> - **Published** — one line per item: `[bucket] <guid> — <one-line what>`.
+> - **Considered but skipped** — one line per candidate you researched and did
+>   NOT publish, each with a one-line reason: `duplicate of <guid>`, `thin/single
+>   source`, `not significant for this reader`, `off-topic`, `teachable: no strong
+>   tutorial found`, etc. Include the duplicate-guard skips here.
+>
+> This is the only record of editorial judgment — it lets the owner audit what was
+> dropped and why, and catch the duplicate guard being too aggressive. Be honest
+> and specific; "skipped 3 minor model-pricing tweaks (not significant)" is fine.
+> If a run exits early via the duplicate guard, still write the log section
+> explaining what was already covered.
+>
 > **Per-item fields:**
 > - `<guid isPermaLink="false">` — stable, slug-safe `YYYY-MM-DD-NN-short-slug`
 >   (NN = 2-digit item number that day; lowercase `a–z 0–9 -`). Never change a guid.
@@ -158,5 +174,6 @@ what gets written into the feed.
 >
 > Use the channel/item skeleton with namespaces `content:`, `dc:`, `atom:`,
 > `media:`. Finish by reporting, per bucket, how many items you added and their
-> guids; the first item's `<pubDate>` (must match this run's wall-clock time); and
-> the total feed item count.
+> guids; the first item's `<pubDate>` (must match this run's wall-clock time); the
+> total feed item count; and confirm you appended this run's section to
+> `content/research-log/<UTC-date>.md`.
