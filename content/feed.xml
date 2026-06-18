@@ -10,7 +10,111 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 17 Jun 2026 17:44:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 18 Jun 2026 12:08:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Build Your First Production RAG Pipeline — Free 8-Hour Course on freeCodeCamp</title>
+      <link>https://www.youtube.com/watch?v=mHxLXzYjQRE</link>
+      <guid isPermaLink="false">2026-06-18-01-production-rag-langchain-freecodecamp-course</guid>
+      <pubDate>Thu, 18 Jun 2026 12:06:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Embeddings</category>
+      <description>Free 8-hour freeCodeCamp course on production RAG with LangChain and Supabase pgvector — chunk, embed, query, debug with observability, add security, and deploy hybrid search.</description>
+      <content:encoded><![CDATA[
+**TL;DR: This free 8-hour freeCodeCamp course takes you from "chatbot with docs" to a deployed, observable, secure RAG system using LangChain and Supabase pgvector.**
+
+**What you'll be able to do after this:** build a RAG pipeline that survives contact with real users — with visible retrieval, token budgeting, and a security layer, deployed on real infrastructure.
+
+- **Embed and query documents end-to-end** with LangChain + pgvector (Supabase), with chunking strategies and similarity search you can tune to your data
+- **Debug in production** — add an observability dashboard showing exactly which retrieved chunks answered (or didn't answer) each query
+- **Go beyond basic RAG** — hybrid search, contextual retrieval, late chunking, GraphRAG for linked-data scenarios, and a multimodal pipeline for vision-based documents
+
+The [course](https://www.youtube.com/watch?v=mHxLXzYjQRE) is taught by Paulo Dichone and runs 8 hours on freeCodeCamp's YouTube channel — a structured progression, not a clip collection. It's designed for the gap between "I built a chatbot that answers questions about my PDF" and "I have something I can ship to real users."
+
+RAG is the most practical entry point into custom model behavior: no fine-tuning, no GPU, just your data and a vector store. If you've hit a wall after a 20-minute tutorial and wondered why retrieval wasn't working in practice, this is what comes next.
+
+**Sources:** [Production RAG with LangChain & Vector Databases — freeCodeCamp](https://www.freecodecamp.org/news/production-rag-with-langchain-vector-databases/), [Course on YouTube](https://www.youtube.com/watch?v=mHxLXzYjQRE)
+      ]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/mHxLXzYjQRE/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/mHxLXzYjQRE/maxresdefault.jpg" />
+    </item>
+
+    <item>
+      <title>SpaceX Locks Up Cursor for $60B — and Gemini CLI Dies for Free Users Today</title>
+      <link>https://www.cnbc.com/2026/06/16/spacex-spcx-cursor-acquisition-ipo.html</link>
+      <guid isPermaLink="false">2026-06-18-02-cursor-spacex-60b-gemini-cli-sunset-consolidation</guid>
+      <pubDate>Thu, 18 Jun 2026 12:07:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Agents</category>
+      <description>SpaceX acquired Cursor for $60B on June 16, the largest-ever venture acquisition. Gemini CLI stops serving free/Pro/Ultra users today — CI pipelines calling `gemini` break silently; migrate to `agy`.</description>
+      <content:encoded><![CDATA[
+**TL;DR: SpaceX's $60B all-stock Cursor acquisition (June 16) and Gemini CLI's shutdown for free users (today) both signal the same thing — AI coding tools are now platform assets, not indie products.**
+
+SpaceX sealed the Anysphere (Cursor) deal on June 16 — the largest venture acquisition ever. Cursor's ARR grew from $100M to $4B+ in 18 months; SpaceX pairs it with its Colossus cluster (~1M H100-equivalent GPUs) to train the next Composer generation. Market share had already slipped from 41% to 26% over the past year — this deal removes Cursor from the open market before Claude Code or Copilot could erode it further.
+
+Also today: Gemini CLI stops serving requests for Google AI free, Pro, and Ultra accounts. The replacement is Antigravity CLI (`agy`). Four things that break silently:
+
+- CI pipelines or git hooks that shell out to `gemini` — update the binary to `agy`
+- Default model changed: gemini-1.5-pro → gemini-3-pro (pin with `--model gemini-1.5-pro` if your prompts were tuned to 1.5)
+- Rate limits moved from 1,000 req/day to a weekly compute cap (heavy users report hitting it within days)
+- Antigravity CLI is not open source
+
+Enterprise and Standard Gemini Code Assist users are unaffected.
+
+**Why it matters:** Two tools you might use just changed ownership or died for your tier. AI coding tooling is reshuffling fast — tool-agnostic workflows are a resilience bet, not a preference.
+
+**Sources:** [CNBC: SpaceX $60B Cursor deal](https://www.cnbc.com/2026/06/16/spacex-spcx-cursor-acquisition-ipo.html), [Bloomberg: SpaceX cements Cursor takeover](https://www.bloomberg.com/news/articles/2026-06-16/spacex-cements-60-billion-deal-to-take-over-ai-startup-cursor), [Google: Gemini CLI → Antigravity CLI](https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/), [Groundy: forced migration breaks existing automation](https://groundy.com/articles/google-sunsets-gemini-cli-on-june-18-forced-migration-to-antigravity-cli-breaks/)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code Week 23: Auto Mode on Every Cloud Provider — and a Guardrail Before Touching Your Shell Startup Files</title>
+      <link>https://code.claude.com/docs/en/whats-new/2026-w23</link>
+      <guid isPermaLink="false">2026-06-18-03-claude-code-week23-auto-mode-providers-safe-writes</guid>
+      <pubDate>Thu, 18 Jun 2026 12:08:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code Week 23: enable auto mode on Bedrock, Vertex, and Foundry with one env var; Claude now confirms before writing shell startup files or build configs, even in acceptEdits mode.</description>
+      <content:encoded><![CDATA[
+**TL;DR: One env var enables Claude Code auto mode on Bedrock, Vertex, and Foundry — no permission prompts in CI. Claude also now pauses before writing `.zshenv`, `.npmrc`, or `.pre-commit-config.yaml`, even in acceptEdits mode.**
+
+**Auto mode on third-party providers (v2.1.158)**
+
+Auto mode was Claude.ai-only until Week 23. Now it runs on Opus 4.7 and 4.8 across AWS Bedrock, Google Vertex AI, and Microsoft Foundry:
+
+```bash
+export CLAUDE_CODE_ENABLE_AUTO_MODE=1
+# Then Shift+Tab inside Claude Code to cycle to auto mode
+# or set permissionMode: "auto" in managed settings
+```
+
+Auto mode runs a background classifier on every proposed action. Safe actions — reading files, running tests, editing source — proceed without prompts. Risky ones — network calls to new hosts, writing sensitive paths — pause for confirmation. For CI pipelines, this replaces the blunt `--dangerously-skip-permissions` with an approach that actually maintains a safety boundary.
+
+**Protected file writes (v2.1.160)**
+
+Even in `acceptEdits` mode, Claude now prompts before writing:
+- Shell startup files: `.zshenv`, `.bash_login`, `.bashrc`, `.profile`
+- Git config: `~/.config/git/config`
+- Build tool configs: `.npmrc`, `.bazelrc`, `.pre-commit-config.yaml`
+
+These are never auto-approved in any permission mode except `bypassPermissions`. The reason: a prompt injection that silently rewrites `.npmrc` can redirect every package install to a malicious registry; one targeting `.pre-commit-config.yaml` bypasses your commit hooks on every subsequent commit — the SymJack attack pattern. If you need to write these files legitimately, Claude asks once and proceeds.
+
+**Also in Week 23: `/plugin list --enabled`**
+
+Run `/plugin list --enabled` inside a session (or `claude plugin list` from the shell) to see active plugins inline without opening the plugin menu. Add `--disabled` to see what's installed but off — handy when debugging unexpected session behavior from a plugin you forgot you had.
+
+**Sources:** [Claude Code Week 23 digest](https://code.claude.com/docs/en/whats-new/2026-w23), [Auto mode on third-party providers](https://code.claude.com/docs/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry), [Protected paths](https://code.claude.com/docs/en/permission-modes#protected-paths)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>MCP Goes Stateless July 28: Four Breaking Changes and How to Migrate Before the Final Spec</title>
