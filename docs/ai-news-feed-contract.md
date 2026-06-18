@@ -94,6 +94,16 @@ what gets written into the feed.
 >    Claude Code, subagents, MCP, agent harnesses, context engineering, prompt
 >    patterns, CI-for-agents, etc. Make it *actionable*: what to do, why it works,
 >    and a copy-pasteable example or steps. ~150–350 words.
+>    **New Claude/Anthropic product features and official "get started" guides**
+>    (e.g. Claude Design, Claude for Foundation Models, new Claude Code abilities)
+>    are prime material — cover them with a hands-on angle.
+>    **Freshness guard:** prefer timeless techniques over changelog recaps. Only
+>    write up a dated release/changelog (e.g. a Claude Code "Week N" digest) when
+>    it's the CURRENT week's AND not already on the blog — never republish a week
+>    older than one already covered, and never present a changelog/release more
+>    than ~10 days old as if it were new. On a day with no fresh release, write an
+>    evergreen technique (there's always a good one) rather than dredging up a
+>    stale week.
 > 3. **Teachable deep-dives (only when strong material exists — do NOT force one).**
 >    A beginner-friendly explainer on a custom-model topic (RAG, knowledge bases,
 >    LoRA/fine-tuning, embeddings, vectors, self-hosting, or the tooling above) for
@@ -106,6 +116,18 @@ what gets written into the feed.
 >    prominently and use its thumbnail (e.g. the YouTube thumbnail) as the item's
 >    `<media:content>` image. If nothing strong turns up this run, publish zero —
 >    that is correct, not a failure.
+>
+> **Sources to check every run (don't skip these official channels).** The
+> audience's most relevant updates land here first:
+> - **Anthropic / Claude (first-party):** `anthropic.com/news`, `claude.com/blog`,
+>   **`support.claude.com`** (product + "get started" guides, e.g. *Get started
+>   with Claude Design*), `code.claude.com/docs` (esp. `/whats-new` for Claude
+>   Code), `docs.claude.com`. A new Claude capability or official guide is almost
+>   always worth a post for this reader.
+> - **Ecosystem:** other model labs, agent tooling, AI security, and the custom-
+>   model stack (HuggingFace, Colab, Fireworks, Supabase, Cloudflare, OpenRouter…).
+> Surface a new product feature/guide as news (the announcement) or as a
+> practitioner/teachable post (how to use it) — whichever fits.
 >
 > **Post format (every item).** Start each post's body with a **one-line bold
 > TL;DR (≤30 words)** so a skimmer gets the point without scrolling — it shows on
