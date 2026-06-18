@@ -10,7 +10,65 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 18 Jun 2026 12:08:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 18 Jun 2026 19:07:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Claude Design Now Imports Your Design System and Syncs Directly with Claude Code</title>
+      <link>https://claude.com/blog/claude-design-stays-on-brand-for-daily-work</link>
+      <guid isPermaLink="false">2026-06-18-05-claude-design-code-sync-design-systems</guid>
+      <pubDate>Thu, 18 Jun 2026 19:07:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>Claude Design's June 17 update adds /design-sync and /design in Claude Code, closing the prototype-to-production gap — designs start from your real component library, not generic templates.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Design's June 17 update adds `/design-sync` and `/design` to Claude Code — your mockups now use your actual component library, and the loop between prototype and production code is bi-directional.**
+
+Anthropic shipped a significant Claude Design overhaul on June 17. The headline for engineers: the design-to-code handoff is now a loop that stays inside the Claude ecosystem.
+
+**The two new Claude Code commands:**
+
+`/design-sync` imports a design system (from a GitHub repo, uploaded design file, or Figma export) into your Claude Code session. Once synced, Claude builds UI with your actual components — not generic MUI or Tailwind placeholders — and validates output against the design system before showing results. Enterprise admins can lock a single system so every engineer on the team builds from the same library.
+
+`/design` goes the other direction: from Claude Code, run it to create or edit a visual prototype, import a design into a codebase, or convert existing code to a live prototype. The hand-off between design and engineering becomes bi-directional rather than a one-way spec dump.
+
+**Two practical workflows:**
+
+1. **Design → Code**: Import a Figma component library via `/design-sync`. Claude Code builds production components using your real design tokens and checks them against your system before you see results.
+2. **Code → Design**: Run `/design` on an existing component to generate a visual version for design review; iterate in Claude Design; sync back.
+
+**Also in the June 17 update:** a rebuilt canvas editor for drag/resize/align without full model regeneration (lower token burn); PDF and PowerPoint export; connectors for Vercel, Replit, Lovable, Miro, Adobe, and Canva.
+
+Available in beta on Pro, Max, Team, and Enterprise at claude.ai/design or the Desktop sidebar.
+
+**Sources:** [Anthropic: Claude Design stays on brand for daily work](https://claude.com/blog/claude-design-stays-on-brand-for-daily-work), [TechRepublic: Anthropic Adds Brand Controls, Code Sync to Claude Design](https://www.techrepublic.com/article/news-anthropic-claude-design-overhaul-enterprise-teams/), [WinCentral: Claude Design Adds Real Editing and Claude Code Sync](https://thewincentral.com/anthropic-claude-design-real-editing-design-system-imports-code-sync/)
+      ]]></content:encoded>
+      <media:content url="https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6a32d4f7ae9712d1f8ef661e_Claude-Design-beta-static.webp" medium="image" />
+      <media:thumbnail url="https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6a32d4f7ae9712d1f8ef661e_Claude-Design-beta-static.webp" />
+    </item>
+
+    <item>
+      <title>Gemini Co-Lead Noam Shazeer Leaves Google for OpenAI</title>
+      <link>https://thenextweb.com/news/googles-gemini-co-lead-noam-shazeer-is-leaving-for-openai</link>
+      <guid isPermaLink="false">2026-06-18-04-noam-shazeer-google-gemini-openai</guid>
+      <pubDate>Thu, 18 Jun 2026 19:05:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <description>Noam Shazeer — Google's VP of Engineering, Gemini co-lead, and co-author of "Attention Is All You Need" — is leaving for OpenAI, just 18 months after Google spent $2.7B to bring him back from Character.AI.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Noam Shazeer — co-author of "Attention Is All You Need" and Google's Gemini co-lead — is joining OpenAI, 18 months after Google spent $2.7B to bring him back from Character.AI.**
+
+Shazeer co-wrote the 2017 paper that introduced the Transformer architecture underpinning virtually every LLM today. Google brought him back from Character.AI in a high-profile 2024 deal and made him VP of Engineering with responsibility for Gemini. His announcement was brief: "I'm excited to share that I'll be joining OpenAI and look forward to working with the exceptional team there."
+
+**Why it matters:** The co-lead of Gemini moving to the team building GPT-5.5 is the clearest public signal of where top AI researchers currently see the most consequential model work — and it intensifies competition between the labs whose models power the tools you use daily.
+
+**Sources:** [Bloomberg](https://www.bloomberg.com/news/articles/2026-06-18/star-google-researcher-jumps-to-openai-in-coup-for-startup), [The Next Web](https://thenextweb.com/news/googles-gemini-co-lead-noam-shazeer-is-leaving-for-openai), [9to5Google](https://9to5google.com/2026/06/17/geminis-co-lead-is-leaving-google-to-join-openai/)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Build Your First Production RAG Pipeline — Free 8-Hour Course on freeCodeCamp</title>
