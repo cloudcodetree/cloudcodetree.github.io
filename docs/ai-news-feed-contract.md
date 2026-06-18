@@ -117,15 +117,24 @@ what gets written into the feed.
 >    `<media:content>` image. If nothing strong turns up this run, publish zero —
 >    that is correct, not a failure.
 >
-> **Sources to check every run (don't skip these official channels).** The
-> audience's most relevant updates land here first:
-> - **Anthropic / Claude (first-party):** `anthropic.com/news`, `claude.com/blog`,
+> **Sources to check every run — prefer official/first-party over aggregators.**
+> Scan these for new releases, features, and guides; the audience's most relevant
+> updates land here first. Not exhaustive — follow primary links wherever a story
+> leads.
+> - **Anthropic / Claude:** `anthropic.com/news`, `claude.com/blog`,
 >   **`support.claude.com`** (product + "get started" guides, e.g. *Get started
->   with Claude Design*), `code.claude.com/docs` (esp. `/whats-new` for Claude
->   Code), `docs.claude.com`. A new Claude capability or official guide is almost
->   always worth a post for this reader.
-> - **Ecosystem:** other model labs, agent tooling, AI security, and the custom-
->   model stack (HuggingFace, Colab, Fireworks, Supabase, Cloudflare, OpenRouter…).
+>   with Claude Design*), `code.claude.com/docs` (esp. `/whats-new`), `docs.claude.com`.
+> - **Other model labs:** OpenAI (`openai.com/blog`, `platform.openai.com/docs/changelog`),
+>   Google (`blog.google`, `ai.google.dev`, `deepmind.google`), Meta AI
+>   (`ai.meta.com/blog`), Mistral, Cohere, xAI.
+> - **Coding agents & dev tools:** GitHub (`github.blog`, GitHub Next, Copilot),
+>   VS Code release notes, Cursor changelog, Vercel / v0, JetBrains AI, Replit,
+>   Sourcegraph/Cody, Continue, Aider, Warp.
+> - **Custom-model & infra stack:** Hugging Face (`huggingface.co/blog`), LangChain,
+>   LlamaIndex, Ollama, vLLM, Unsloth, Supabase, Cloudflare (Workers AI),
+>   Fireworks, OpenRouter, Together, Modal, and vector DBs (Pinecone/Weaviate/Qdrant).
+> - **Standards & security:** Model Context Protocol (`modelcontextprotocol.io`),
+>   plus AI-security advisories relevant to agentic dev.
 > Surface a new product feature/guide as news (the announcement) or as a
 > practitioner/teachable post (how to use it) — whichever fits.
 >
