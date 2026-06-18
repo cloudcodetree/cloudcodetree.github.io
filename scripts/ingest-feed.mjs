@@ -189,6 +189,24 @@ function pexelsQuery(post) {
   for (const [re, q] of PEXELS_QUERY_MAP) if (re.test(hay)) return q;
   return 'technology abstract';
 }
+/** Scrape an article page's real og:image / twitter:image → absolute URL or ''. */
+async function ogImageFrom(pageUrl) {
+  if (!pageUrl) return '';
+  let html;
+  try {
+    const res = await fetch(pageUrl, { headers: { 'user-agent': UA, accept: 'text/html' }, redirect: 'follow', signal: AbortSignal.timeout(15000) });
+    if (!res.ok) return '';
+    if (!(res.headers.get('content-type') || '').toLowerCase().includes('html')) return '';
+    html = (await res.text()).slice(0, 200_000); // the <head> is plenty
+  } catch { return ''; }
+  const tags = '(?:og:image:secure_url|og:image|twitter:image)';
+  const m =
+    new RegExp(`<meta[^>]+(?:property|name)=["']${tags}["'][^>]+content=["']([^"']+)["']`, 'i').exec(html) ||
+    new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${tags}["']`, 'i').exec(html);
+  if (!m) return '';
+  try { return new URL(m[1].replace(/&amp;/g, '&'), pageUrl).href; } catch { return ''; }
+}
+
 /** Pick a relevant Pexels photo for a post → { src, credit:{name,url} } or null. */
 async function pexelsPick(post, id) {
   const q = pexelsQuery(post);
@@ -214,13 +232,20 @@ async function resolveImage(item, id, existing, post) {
   if (!REFRESH && existing && existing.startsWith(CDN) && !existing.endsWith('_default.png')) return { url: existing };
   if (NO_IMAGES) return { url: PLACEHOLDER };
 
-  // 1) The source article's own preview image, if the feed provided one.
+  // 1) The image URL the feed provided directly (if it's a real image).
   const srcUrl = urlAttr(item['media:content']) || urlAttr(item['media:thumbnail']);
   if (srcUrl) {
     if (await hostImage(srcUrl, id)) return { url: `${CDN}/${id}.jpg` };
-    console.warn(`! ${id}: source image failed (${srcUrl})`);
+    console.warn(`! ${id}: feed media image failed (${srcUrl})`);
   }
-  // 2) Pexels stock fallback (only when a key is configured, e.g. CI).
+  // 2) The article's real og:image, scraped from its link (the feed media URL is
+  //    often missing or a dead guess; the article's own og:image is reliable).
+  const ogUrl = await ogImageFrom(post?.link);
+  if (ogUrl) {
+    if (await hostImage(ogUrl, id)) { console.log(`  ${id}: og:image from article`); return { url: `${CDN}/${id}.jpg` }; }
+    console.warn(`! ${id}: og:image failed (${ogUrl})`);
+  }
+  // 3) Pexels stock fallback (only when a key is configured, e.g. CI).
   if (PEXELS_KEY) {
     const pick = await pexelsPick(post, id);
     if (pick?.src && await hostImage(pick.src, id)) {
@@ -275,7 +300,7 @@ async function main() {
       const tags = (item.category ?? []).map((c) => text(c).trim()).filter(Boolean);
       const tagsArr = tags.length ? tags : ['AI'];
       const prior = byId.get(id);
-      const { url: image, credit } = await resolveImage(item, id, prior?.image, { tags: tagsArr, title });
+      const { url: image, credit } = await resolveImage(item, id, prior?.image, { tags: tagsArr, title, link });
       if (image !== PLACEHOLDER) withImg++;
       // Attribution: use this run's credit, else carry over a prior one if the image is unchanged.
       const creditFields = credit
