@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Container, Typography, Box, Skeleton, Pagination,
   ToggleButtonGroup, ToggleButton, Grid, Chip,
@@ -49,17 +49,31 @@ export default function BlogPage({ posts }: BlogPageProps) {
   const [view, setView] = useState<View>('list');               // SSR default
   const [sizeOverride, setSizeOverride] = useState<Partial<Record<View, number>>>({});
   const [page, setPage] = useState(1);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   // Feed bodies are loaded lazily (only when the feed view is opened).
   const [feedContent, setFeedContent] = useState<Map<string, string> | null>(null);
   const [feedLoading, setFeedLoading] = useState(false);
   const feedRef = useRef<Map<string, string> | null>(null);
 
-  const pageSize = sizeOverride[view] ?? PAGE_DEFAULT[view];
-  const pageCount = Math.max(1, Math.ceil(posts.length / pageSize));
-  const safePage = Math.min(page, pageCount);
-  const pagePosts = posts.slice((safePage - 1) * pageSize, safePage * pageSize);
+  // Topic chips: every tag except the ubiquitous "AI", most-used first, with counts.
+  const topics = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const p of posts) for (const t of p.tags || []) if (t.toLowerCase() !== 'ai') c[t] = (c[t] || 0) + 1;
+    return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count }));
+  }, [posts]);
 
-  // Reconcile view + page-size preferences from localStorage (client-only).
+  // Filter (OR): a post matches if it carries any selected topic.
+  const filteredPosts = useMemo(
+    () => (selectedTags.length ? posts.filter((p) => p.tags.some((t) => selectedTags.includes(t))) : posts),
+    [posts, selectedTags],
+  );
+
+  const pageSize = sizeOverride[view] ?? PAGE_DEFAULT[view];
+  const pageCount = Math.max(1, Math.ceil(filteredPosts.length / pageSize));
+  const safePage = Math.min(page, pageCount);
+  const pagePosts = filteredPosts.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  // Reconcile view + page-size prefs from localStorage and ?page/?topics from the URL.
   useEffect(() => {
     const v = window.localStorage.getItem('ainews-view') as View | null;
     if (v && VIEWS.includes(v)) setView(v);
@@ -67,18 +81,23 @@ export default function BlogPage({ posts }: BlogPageProps) {
       const s = JSON.parse(window.localStorage.getItem('ainews-pagesize') || '{}');
       if (s && typeof s === 'object') setSizeOverride(s);
     } catch { /* ignore */ }
-    const p = new URLSearchParams(window.location.search).get('page');
-    const n = p ? parseInt(p, 10) : 1;
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get('topics');
+    if (t) setSelectedTags(t.split(',').map((s) => s.trim()).filter(Boolean));
+    const n = parseInt(params.get('page') || '1', 10);
     if (n > 1) setPage(n);
   }, []);
 
-  // Keep the URL's ?page in sync and clamp to the available range.
+  // Keep the URL (?page, ?topics) in sync, clamped, on the CURRENT path (/ or /ai-news/).
   useEffect(() => {
     if (page !== safePage) { setPage(safePage); return; }
-    const qs = safePage === 1 ? '/ai-news/' : `/ai-news/?page=${safePage}`;
-    window.history.replaceState(null, '', qs);
+    const params = new URLSearchParams();
+    if (selectedTags.length) params.set('topics', selectedTags.join(','));
+    if (safePage > 1) params.set('page', String(safePage));
+    const qs = params.toString();
+    window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [safePage, view, pageSize]);
+  }, [safePage, view, pageSize, selectedTags]);
 
   // Lazy-load full bodies the first time the feed view is opened.
   useEffect(() => {
@@ -113,6 +132,12 @@ export default function BlogPage({ posts }: BlogPageProps) {
     setPage(n);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+    setPage(1);
+  };
+  const clearTags = () => { setSelectedTags([]); setPage(1); };
 
   const metaLine = (post: BlogPost) => `${formatPublished(post)} · ${post.readTime} min read`;
 
@@ -270,9 +295,45 @@ export default function BlogPage({ posts }: BlogPageProps) {
         </ToggleButtonGroup>
       </Box>
 
-      {posts.length === 0 ? (
+      {/* Topic filter */}
+      {topics.length > 0 && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mb: { xs: 3, md: 4 } }}>
+          <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', mr: 0.5 }}>Topics</Typography>
+          {topics.map(({ tag, count }) => {
+            const on = selectedTags.includes(tag);
+            return (
+              <Chip
+                key={tag}
+                label={`${tag} ${count}`}
+                size="small"
+                onClick={() => toggleTag(tag)}
+                sx={{
+                  fontFamily: MONO, fontSize: 11, cursor: 'pointer',
+                  color: on ? '#0d1117' : 'text.secondary',
+                  background: on ? ACCENT : 'transparent',
+                  border: '1px solid', borderColor: on ? ACCENT : 'rgba(148,163,184,0.25)',
+                  '& .MuiChip-label': { px: 1 },
+                  '&:hover': { background: on ? ACCENT : 'rgba(63,185,80,0.12)' },
+                }}
+              />
+            );
+          })}
+          {selectedTags.length > 0 && (
+            <Chip
+              label={`Clear · ${filteredPosts.length} post${filteredPosts.length === 1 ? '' : 's'}`}
+              size="small"
+              onClick={clearTags}
+              sx={{ fontFamily: MONO, fontSize: 11, cursor: 'pointer', color: ACCENT, background: 'transparent', border: '1px solid', borderColor: ACCENT, '& .MuiChip-label': { px: 1 } }}
+            />
+          )}
+        </Box>
+      )}
+
+      {filteredPosts.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10 }}>
-          <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>{'// no posts yet'}</Typography>
+          <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>
+            {posts.length === 0 ? '// no posts yet' : '// no posts match those topics — clear a filter above'}
+          </Typography>
         </Box>
       ) : (
         <>
