@@ -104,7 +104,7 @@ export default function HomePage() {
               fontWeight: 400,
             }}
           >
-            Senior Engineering Manager · AI-Assisted Development, Cloud &amp; Full-Stack
+            Engineering Leader · AI-Assisted Development, Cloud &amp; Full-Stack
           </Typography>
 
           <Typography
