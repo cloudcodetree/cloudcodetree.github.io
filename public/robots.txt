@@ -9,10 +9,11 @@ Disallow: /contact?*
 
 # Allow main pages for professional visibility
 Allow: /
-Allow: /resume
-Allow: /contact
-Allow: /schedule
 Allow: /ai-news
+Allow: /about
+Allow: /about/resume
+Allow: /about/contact
+Allow: /about/schedule
 
 # Prevent email harvesting from specific paths
 Disallow: /*email*

@@ -133,11 +133,11 @@ ${rssItems}
   const iso = (d) => d.toISOString().slice(0, 10);
   const newest = items.length ? iso(items.map((it) => it.date).sort((a, b) => b - a)[0]) : iso(new Date());
   const staticRoutes = [
-    { loc: `${SITE}/`, lastmod: newest, priority: '1.0' },
-    { loc: `${SITE}/ai-news/`, lastmod: newest, priority: '0.9' },
-    { loc: `${SITE}/resume/`, priority: '0.8' },
-    { loc: `${SITE}/contact/`, priority: '0.5' },
-    { loc: `${SITE}/schedule/`, priority: '0.5' },
+    { loc: `${SITE}/`, lastmod: newest, priority: '1.0' }, // home = AI News blog
+    { loc: `${SITE}/about/`, priority: '0.7' },
+    { loc: `${SITE}/about/resume/`, priority: '0.6' },
+    { loc: `${SITE}/about/contact/`, priority: '0.4' },
+    { loc: `${SITE}/about/schedule/`, priority: '0.4' },
   ];
   const urls = [
     ...staticRoutes,

@@ -3,7 +3,12 @@
     "allow": [
       "Bash(npm run build:*)",
       "Bash(pnpm add:*)",
-      "Bash(pnpm run:*)"
+      "Bash(pnpm run:*)",
+      "Bash(brew list *)",
+      "Bash(brew info *)",
+      "Bash(brew uninstall *)",
+      "Bash(npm install *)",
+      "Bash(env)"
     ],
     "deny": []
   }

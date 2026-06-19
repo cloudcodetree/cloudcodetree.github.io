@@ -30,20 +30,24 @@ const plexMono = IBM_Plex_Mono({
   weight: ['400', '500', '600'],
 })
 
+// Site-wide default metadata = the AI News brand. This is the fallback Open
+// Graph/title for any shared link, so it must NOT carry a personal title — keep
+// the focus on the blog. Per-article pages override with their own title/image.
 export const metadata: Metadata = {
-  title: 'Chris Harper | Principal Software Engineering Manager',
-  description: 'Principal Software Engineering Manager with extensive experience leading enterprise teams and cloud architecture initiatives.',
+  metadataBase: new URL('https://cloudcodetree.com'),
+  title: 'AI News · CloudCodeTree',
+  description: 'Daily field notes on AI-assisted engineering — model releases, agent tooling, developer workflow, and the custom-model stack.',
   openGraph: {
-    title: 'Chris Harper | Principal Software Engineering Manager',
-    description: 'Principal Software Engineering Manager with extensive experience leading enterprise teams and cloud architecture initiatives.',
+    title: 'AI News · CloudCodeTree',
+    description: 'Daily field notes on AI-assisted engineering — model releases, agent tooling, developer workflow, and the custom-model stack.',
     url: 'https://cloudcodetree.com',
     siteName: 'CloudCodeTree',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Chris Harper | Principal Software Engineering Manager',
-    description: 'Principal Software Engineering Manager with extensive experience leading enterprise teams and cloud architecture initiatives.',
+    title: 'AI News · CloudCodeTree',
+    description: 'Daily field notes on AI-assisted engineering — model releases, agent tooling, developer workflow, and the custom-model stack.',
   },
   alternates: {
     types: { 'application/rss+xml': 'https://cloudcodetree.com/feed.xml' },

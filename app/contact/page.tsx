@@ -1,16 +1,13 @@
 import type { Metadata } from 'next';
-import ClientLayout from '../components/ClientLayout';
-import { DynamicContactPage } from '../components/DynamicComponents';
+import Redirect from '../components/Redirect';
 
+// Moved under /about. Static redirect stub so old links don't 404.
 export const metadata: Metadata = {
-  title: 'Contact | Chris Harper',
-  description: 'Get in touch with Chris Harper for consulting opportunities, technical leadership roles, or collaboration on enterprise cloud solutions.',
+  title: 'Moved · CloudCodeTree',
+  alternates: { canonical: 'https://cloudcodetree.com/about/contact/' },
+  robots: { index: false, follow: true },
 };
 
-export default function Contact() {
-  return (
-    <ClientLayout>
-      <DynamicContactPage />
-    </ClientLayout>
-  );
+export default function ContactMoved() {
+  return <Redirect to="/about/contact/" />;
 }

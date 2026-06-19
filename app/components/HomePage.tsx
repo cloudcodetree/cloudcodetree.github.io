@@ -13,41 +13,41 @@ import {
   useTheme,
 } from '@mui/material';
 import {
-  Code as CodeIcon,
+  AutoAwesome as AIIcon,
+  Hub as AgentIcon,
   Cloud as CloudIcon,
-  Security as SecurityIcon,
-  Speed as SpeedIcon,
+  Code as CodeIcon,
   Email as EmailIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 const skills = [
+  'Claude Code', 'AI Agents', 'MCP', 'LLMs', 'RAG', 'Embeddings',
   'Python', 'TypeScript', 'React', 'Node.js', 'AWS', 'Azure', 'GCP',
-  'Kubernetes', 'Docker', 'PostgreSQL', 'MongoDB', 'GraphQL', 'AI/ML',
-  'DevOps', 'Microservices', 'Leadership', 'Agile/Scrum'
+  'Docker', 'PostgreSQL', 'DevOps', 'Microservices'
 ];
 
 const services = [
   {
-    icon: CodeIcon,
-    title: 'Engineering Leadership',
-    description: 'Leading cross-functional teams of 8-15 engineers, delivering projects 20% ahead of schedule with 80% team promotion rate.',
+    icon: AIIcon,
+    title: 'AI-Assisted Development',
+    description: 'Building with agentic coding tools — Claude Code, subagents, MCP, and prompt/context engineering — and shipping AI-powered apps. This site’s AI News blog runs on an autonomous research-and-publish pipeline I built.',
+  },
+  {
+    icon: AgentIcon,
+    title: 'Custom Models & Agents',
+    description: 'Hands-on with the model stack — RAG, embeddings, vector search, fine-tuning, and self-hosting — wiring LLMs into real developer workflows.',
   },
   {
     icon: CloudIcon,
-    title: 'Cloud Architecture',
-    description: 'Enterprise cloud solutions on AWS/Azure/GCP processing 10M+ daily transactions with 99.9% uptime.',
+    title: 'Cloud & Full-Stack',
+    description: 'Cloud-native solutions across AWS/Azure/GCP with modern full-stack delivery — reliable, scalable infrastructure and clean app architecture.',
   },
   {
-    icon: SecurityIcon,
-    title: 'DevOps & AI/ML',
-    description: 'Modern software practices including CI/CD, microservices, AI integration, and automation reducing operational overhead by 70%.',
-  },
-  {
-    icon: SpeedIcon,
-    title: 'Digital Transformation',
-    description: 'Driving enterprise digital transformation for Fortune 500 clients, resulting in 40%+ cost reductions and improved scalability.',
+    icon: CodeIcon,
+    title: 'Engineering & Teams',
+    description: 'Shipping software collaboratively: CI/CD, microservices, and automation, plus mentoring and helping engineering teams grow.',
   },
 ];
 
@@ -104,27 +104,28 @@ export default function HomePage() {
               fontWeight: 400,
             }}
           >
-            Principal Software Engineering Manager & Cloud Solutions Architect
+            Senior Engineering Manager · AI-Assisted Development, Cloud &amp; Full-Stack
           </Typography>
-          
+
           <Typography
             variant="h6"
             sx={{
               mb: 6,
-              maxWidth: '600px',
+              maxWidth: '640px',
               mx: 'auto',
               lineHeight: 1.8,
               color: theme.palette.text.secondary,
             }}
           >
-            Extensive experience building and leading engineering teams, architecting cloud solutions, and delivering enterprise-scale applications.
-            Expert in full-stack development, AWS/Azure/GCP, and modern software engineering practices including AI/ML, DevOps, and microservices.
+            I build with AI — agentic coding tools, custom models, and automation — and write about
+            the craft on the <Box component={Link} href="/" sx={{ color: '#3b82f6', textDecoration: 'none' }}>AI News</Box> blog.
+            Day to day I lead engineering work across cloud and full-stack, with a deep interest in how AI is changing how we ship software.
           </Typography>
-          
+
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button
               component={Link}
-              href="/resume"
+              href="/"
               variant="contained"
               size="large"
               sx={{
@@ -136,11 +137,20 @@ export default function HomePage() {
                 },
               }}
             >
-              View Resume
+              Read the AI News blog
             </Button>
             <Button
               component={Link}
-              href="/contact"
+              href="/about/resume"
+              variant="outlined"
+              size="large"
+              sx={{ px: 4, py: 1.5 }}
+            >
+              Resume
+            </Button>
+            <Button
+              component={Link}
+              href="/about/contact"
               variant="outlined"
               size="large"
               sx={{ px: 4, py: 1.5 }}
@@ -259,7 +269,7 @@ export default function HomePage() {
           viewport={{ once: true }}
         >
           <Typography variant="h3" component="h2" sx={{ mb: 4 }}>
-            Ready to Build Something Great?
+            Let’s talk shop
           </Typography>
           <Typography
             variant="h6"
@@ -270,13 +280,13 @@ export default function HomePage() {
               color: theme.palette.text.secondary,
             }}
           >
-            Looking for an experienced engineering leader to drive your next project?
-            Let's discuss how extensive expertise can help scale your team and deliver exceptional results.
+            Always happy to compare notes on AI-assisted development, agents, or anything cloud and full-stack.
+            Reach out or grab a time to chat.
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button
               component={Link}
-              href="/schedule"
+              href="/about/schedule"
               variant="contained"
               size="large"
               sx={{
@@ -288,7 +298,7 @@ export default function HomePage() {
                 },
               }}
             >
-              Schedule Interview
+              Schedule a chat
             </Button>
             <Button
               href="mailto:chris@cloudcodetree.com"

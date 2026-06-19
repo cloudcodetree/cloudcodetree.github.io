@@ -5,11 +5,14 @@ import ClientLayout from '../components/ClientLayout';
 import BlogPage from '../components/BlogPage';
 import type { BlogPost } from '../components/blogShared';
 
+// Preserved legacy route — the blog now lives at the site root (/). Keep this
+// rendering so old /ai-news links don't 404, but canonicalize to / to avoid
+// duplicate-content. Article pages remain at /ai-news/<id>.
 export const metadata: Metadata = {
-  title: 'AI News | Chris Harper',
-  description: 'Daily field notes on AI-assisted engineering — model releases, agent tooling, and developer workflow, curated by Chris Harper.',
+  title: 'AI News · CloudCodeTree',
+  description: 'Daily field notes on AI-assisted engineering — model releases, agent tooling, developer workflow, and the custom-model stack.',
   alternates: {
-    canonical: 'https://cloudcodetree.com/ai-news/',
+    canonical: 'https://cloudcodetree.com/',
     types: { 'application/rss+xml': 'https://cloudcodetree.com/feed.xml' },
   },
 };

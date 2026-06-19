@@ -22,20 +22,14 @@ import {
 import {
   Menu as MenuIcon,
   Close as CloseIcon,
-  Home as HomeIcon,
-  Person as PersonIcon,
   Article as ArticleIcon,
-  ContactMail as ContactIcon,
-  Schedule as ScheduleIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
-  { name: 'Home', path: '/', icon: HomeIcon },
-  { name: 'Resume', path: '/resume', icon: PersonIcon },
-  { name: 'AI News', path: '/ai-news', icon: ArticleIcon },
-  { name: 'Contact', path: '/contact', icon: ContactIcon },
-  { name: 'Schedule', path: '/schedule', icon: ScheduleIcon },
+  { name: 'AI News', path: '/', icon: ArticleIcon },
+  { name: 'About', path: '/about', icon: PersonIcon },
 ];
 
 interface ClientLayoutProps {

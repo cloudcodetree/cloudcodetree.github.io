@@ -1,16 +1,13 @@
 import type { Metadata } from 'next';
-import ClientLayout from '../components/ClientLayout';
-import ResumePage from '../components/ResumePage';
+import Redirect from '../components/Redirect';
 
+// Moved under /about. Static redirect stub so old links don't 404.
 export const metadata: Metadata = {
-  title: 'Resume | Chris Harper',
-  description: 'Professional resume of Chris Harper - Principal Software Engineering Manager with extensive experience in cloud architecture and team leadership.',
+  title: 'Moved · CloudCodeTree',
+  alternates: { canonical: 'https://cloudcodetree.com/about/resume/' },
+  robots: { index: false, follow: true },
 };
 
-export default function Resume() {
-  return (
-    <ClientLayout>
-      <ResumePage />
-    </ClientLayout>
-  );
+export default function ResumeMoved() {
+  return <Redirect to="/about/resume/" />;
 }

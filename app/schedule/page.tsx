@@ -1,16 +1,13 @@
 import type { Metadata } from 'next';
-import ClientLayout from '../components/ClientLayout';
-import { DynamicSchedulePage } from '../components/DynamicComponents';
+import Redirect from '../components/Redirect';
 
+// Moved under /about. Static redirect stub so old links don't 404.
 export const metadata: Metadata = {
-  title: 'Schedule | Chris Harper',
-  description: 'Schedule a consultation with Chris Harper to discuss your enterprise technology needs, cloud architecture, or team leadership challenges.',
+  title: 'Moved · CloudCodeTree',
+  alternates: { canonical: 'https://cloudcodetree.com/about/schedule/' },
+  robots: { index: false, follow: true },
 };
 
-export default function Schedule() {
-  return (
-    <ClientLayout>
-      <DynamicSchedulePage />
-    </ClientLayout>
-  );
+export default function ScheduleMoved() {
+  return <Redirect to="/about/schedule/" />;
 }
