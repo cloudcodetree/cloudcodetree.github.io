@@ -20,8 +20,8 @@ interface BlogPageProps {
 
 type View = 'list' | 'cards' | 'feed';
 const VIEWS: View[] = ['list', 'cards', 'feed'];
-const PAGE_DEFAULT: Record<View, number> = { list: 20, cards: 10, feed: 5 };
-const PAGE_OPTIONS = [5, 10, 20, 50];
+const PAGE_DEFAULT: Record<View, number> = { list: 40, cards: 20, feed: 5 };
+const PAGE_OPTIONS = [5, 10, 20, 40, 50];
 const border = '1px solid rgba(148,163,184,0.12)';
 
 const clamp = (n: number) => ({
@@ -46,7 +46,7 @@ function Pills({ post, max = 3 }: { post: BlogPost; max?: number }) {
 }
 
 export default function BlogPage({ posts }: BlogPageProps) {
-  const [view, setView] = useState<View>('list');               // SSR default
+  const [view, setView] = useState<View>('cards');              // SSR default
   const [sizeOverride, setSizeOverride] = useState<Partial<Record<View, number>>>({});
   const [page, setPage] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
