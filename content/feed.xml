@@ -10,7 +10,94 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 18 Jun 2026 21:04:00 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 19 Jun 2026 12:07:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Stop Typing OAuth: Enterprise-Managed MCP Auth Gives Every Engineer Zero-Touch Tool Access</title>
+      <link>https://claude.com/blog/enterprise-managed-auth</link>
+      <guid isPermaLink="false">2026-06-19-03-enterprise-mcp-auth-okta-zero-touch</guid>
+      <pubDate>Fri, 19 Jun 2026 12:07:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>MCP</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude&#x27;s new enterprise MCP auth lets admins provision Figma, Linear, and Supabase for the whole org via Okta — zero-touch setup for every engineer on first login, no per-app OAuth.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude's new enterprise MCP auth lets admins provision Figma, Linear, and Supabase for the whole org via Okta — zero-touch setup for every engineer on first login, no per-app OAuth.**
+
+The MCP connector setup question used to go like this: "Have you connected your Figma account?" "No, how do I do that?" And then three minutes of OAuth clicking, per person, per tool. Enterprise-managed authorization ends that.
+
+**How it works**: Admins connect Okta to Claude (Team or Enterprise plan) and select which MCP connectors to enable for the org. Each connector is scoped to the employee's existing IdP groups and roles — a new hire gets the same tools as their team on first login, automatically. Under the hood, the protocol uses **ID-JAG** (Identity Assertion JWT Authorization Grant): during SSO, the client obtains an assertion token from the identity provider, exchanges it for an MCP server access token, and bypasses the per-server consent screen entirely. There is no OAuth popup.
+
+**What's available at launch**: Asana, Atlassian (Jira/Confluence), Canva, Figma, Granola, Linear, and Supabase — Slack is coming soon. Works across Claude chat, Claude Code, and Cowork from the same admin configuration. Identity providers: Okta only at launch, more coming.
+
+**Practical Claude Code impact**: When Claude Code reads an issue from Linear or looks up a Jira ticket, it uses the same org-provisioned auth. No personal OAuth tokens to manage per dev, no env vars in CI, no "it worked on my machine" auth failures. Revoking access through the IdP takes effect near-instantly — deprovisioning is as clean as provisioning.
+
+**To get access**: In beta for Team and Enterprise plans. Apply via the [Claude Help Center](https://support.claude.com/en/articles/15537633-authorize-mcp-connectors-for-your-entire-organization) or the interest form linked there.
+
+**Sources:** [Centrally manage authorization for MCP connectors — Claude blog](https://claude.com/blog/enterprise-managed-auth), [Enterprise-Managed Authorization for MCP — MCP Protocol blog](https://blog.modelcontextprotocol.io/posts/enterprise-managed-auth/), [Okta: Featured identity provider for Claude — Okta Newsroom](https://www.okta.com/newsroom/press-releases/okta-becomes-a-featured-identity-provider-powering-secure-ai-agent-connections-for-claude-enterprise/)
+      ]]></content:encoded>
+      <media:content url="https://blog.modelcontextprotocol.io/posts/enterprise-managed-auth/ema-comparison.png" medium="image" />
+      <media:thumbnail url="https://blog.modelcontextprotocol.io/posts/enterprise-managed-auth/ema-comparison.png" />
+    </item>
+
+    <item>
+      <title>Fable 5 "In the Coming Days" — First Executive Timeline, Plus a Korea Enterprise Wave and a June 20 Refund Deadline</title>
+      <link>https://www.anthropic.com/news/seoul-office-partnerships-korean-ai-ecosystem</link>
+      <guid isPermaLink="false">2026-06-19-02-fable5-coming-days-korea-wave</guid>
+      <pubDate>Fri, 19 Jun 2026 12:05:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Claude Code</category>
+      <description>Anthropic's international MD says Fable 5 returns "in the coming days" — first executive timeline. June 20 refund deadline is tomorrow. NAVER, Samsung SDS, LG CNS all rolled out Claude Code in Korea.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Anthropic's MD says Fable 5 returns "in the coming days" — first executive timeline — with a June 20 refund deadline tomorrow and a massive Korea enterprise deployment wave from the Seoul office launch.**
+
+At Anthropic's Seoul office launch on June 17, Managing Director Chris Ciauri told reporters: *"We are very confident that in the coming days, the models will become available again."* Day 7 of the export-control suspension, no firm date — but the most specific commitment any Anthropic executive has made since the June 12 shutdown.
+
+**Refund deadline**: June 20 (tomorrow). Pro and Max subscribers who want a refund for the Fable 5/Mythos 5 suspension window must act now; Anthropic has not signaled an extension.
+
+**Korea enterprise wave (same event)**: NAVER deployed Claude Code across its entire engineering organization. Samsung SDS is rolling out Claude Code + Cowork to Samsung Electronics employees. LG CNS is deploying to thousands of workers across LG Group. Game company Nexon is using Claude Code for live-service title development. Claude Code's weekly active users in Korea grew 6× over the past four months.
+
+**Why it matters:** "Coming days" suggests a possible weekend return — watch the official [@AnthropicAI](https://twitter.com/AnthropicAI) channel, not third-party speculation. The Korea wave is the largest single-day enterprise Claude Code adoption announcement to date.
+
+**Sources:** [TechTimes: Fable 5 Export Ban Day Six — Vows Models Back in Days](https://www.techtimes.com/articles/318668/20260618/fable-5-export-ban-day-six-anthropic-opens-seoul-office-vows-models-back-days.htm), [Anthropic: Seoul office and Korean AI ecosystem partnerships](https://www.anthropic.com/news/seoul-office-partnerships-korean-ai-ecosystem), [Korea JoongAng Daily: Ciauri statement](https://www.koreajoongangdaily.com/business/anthropic-confident-of-reenabling-mythos-fable-5-access-in-coming-days-executive/12727522)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>VS Code 1.125: Agents Can Now Browse Through Remote Proxies — and You&#x27;ll See Copilot Overage Coming</title>
+      <link>https://code.visualstudio.com/updates/v1_125</link>
+      <guid isPermaLink="false">2026-06-19-01-vscode-1125-agent-proxy-copilot-budget</guid>
+      <pubDate>Fri, 19 Jun 2026 12:03:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Agents</category>
+      <description>VS Code 1.125 (June 17) ships an agent-aware browser proxy for remote workspaces, a Copilot budget gauge, and MDM policy delivery — practical updates for teams running AI agents in VS Code.</description>
+      <content:encoded><![CDATA[
+**TL;DR: VS Code 1.125 ships an agent-aware browser proxy for remote workspaces and a Copilot budget gauge to catch overage charges before they hit.**
+
+The June 17 release addresses two practical pain points for teams running AI coding agents in VS Code:
+
+**Agent-aware port proxying (Remote workspaces)**: When agents request forwarded ports in a remote VS Code session (SSH, dev containers, Codespaces), the built-in browser now rewrites the URL correctly and notifies the agent of any address changes. Previously, agents silently failed when trying to open local staging services — a broken redirect they couldn't recover from without human intervention. HTTP/HTTPS traffic routes through the remote connection; no manual tunnel required.
+
+**Copilot budget monitoring**: Since Copilot moved to token-based AI Credits on June 1, teams on additional-usage plans had no in-editor visibility into consumption. VS Code 1.125 adds a percentage gauge to the Copilot status bar so you see how much of your additional monthly budget has been used — before you get a billing surprise at month-end.
+
+**Enterprise MDM delivery**: Copilot settings can now be enforced via Windows and macOS device management policies without requiring per-user sign-in, giving IT teams a centralized enforcement path.
+
+**Why it matters:** The port-proxy fix unblocks a real workflow — agents running inside remote environments were silently failing at a common step. The budget gauge is a guardrail most Copilot-heavy teams didn't know they needed until after the June 1 credits switch.
+
+**Sources:** [VS Code 1.125 Release Notes](https://code.visualstudio.com/updates/v1_125)
+      ]]></content:encoded>
+      <media:content url="https://code.visualstudio.com/assets/updates/1_125/additional_budget.webp" medium="image" />
+      <media:thumbnail url="https://code.visualstudio.com/assets/updates/1_125/additional_budget.webp" />
+    </item>
 
     <item>
       <title>Run a Codebase-Wide Audit Without Burning Your Context Window: Dynamic Workflows in Claude Code</title>
