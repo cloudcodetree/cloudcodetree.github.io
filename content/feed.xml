@@ -10,7 +10,98 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 19 Jun 2026 12:07:00 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 19 Jun 2026 21:07:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Claude Code 2.1.183: Auto Mode Now Guards Against Destructive Git and IaC Commands</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-06-19-06-claude-code-2183-auto-mode-destructor-guard</guid>
+      <pubDate>Fri, 19 Jun 2026 21:07:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code 2.1.183 blocks destructive git commands in auto mode, adds model deprecation warnings, attribution.sessionUrl to hide session links from commits, and /config --help.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code 2.1.183 (June 19) blocks destructive git and IaC commands in auto mode by default — no more accidental `git reset --hard` or `terraform destroy` unless you explicitly asked.**
+
+The June 19 release ships a safety guard that prevents a painful category of accidents when Claude Code runs autonomously.
+
+**What's now blocked in auto mode (unless you ask):**
+- `git reset --hard`, `git checkout -- .`, `git clean -fd`, `git stash drop` — blocked when you didn't ask to discard local work
+- `git commit --amend` — blocked when the commit being amended wasn't made by the agent this session
+- `terraform destroy`, `pulumi destroy`, `cdk destroy` — blocked unless you named the specific stack
+
+These blockers apply in auto mode only. Interactive sessions still prompt as before.
+
+**Three other updates worth knowing:**
+
+**Model deprecation warnings.** Claude Code now prints a stderr notice when the model in your config (or in agent frontmatter) has been silently updated to a newer version. No more wondering why behaviour changed.
+
+**`attribution.sessionUrl` setting.** Add `attribution.sessionUrl: false` to your project's `.claude/settings.json` to strip the `claude.ai/code/session/…` link from commit messages and PRs generated in web and Remote Control sessions — useful for cleaner commit history in enterprise repos.
+
+**`/config --help`.** Run it from the prompt to get a full list of every supported `key=value` shorthand. No more digging through docs to remember whether the key is `autoMode` or `auto_mode`.
+
+**Sources:** [Claude Code changelog v2.1.183 — code.claude.com](https://code.claude.com/docs/en/changelog), [Releasebot Claude Code June 2026](https://releasebot.io/updates/anthropic/claude-code)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code Artifacts Beta: Turn Your Sessions Into Private Team-Viewable Live Pages</title>
+      <link>https://claude.com/blog/artifacts-in-claude-code</link>
+      <guid isPermaLink="false">2026-06-19-05-claude-code-artifacts-live-pages</guid>
+      <pubDate>Fri, 19 Jun 2026 21:06:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>Claude Code Artifacts (beta, Team/Enterprise) turns your coding session into a private shareable live page — PR walkthroughs, dashboards, and postmortems that auto-update as Claude works.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code Artifacts (launched June 18, beta) gives every session a private stable URL your teammates can watch update in real time — no status updates, no separate docs workflow.**
+
+Artifacts is a new output type alongside code and text: a private HTML page at a stable URL, visible only to authenticated members of your org. As Claude works — analyzing a PR, building a UI, mapping cloud costs — the artifact refreshes in place. Link once, share with your team; they see live updates without being in the session.
+
+**What you can build:** PR walkthroughs with annotated diffs, architecture explainers, security audit findings linked to specific code lines, SRE incident pages that evolve into postmortems, cost/resource dashboards, UX variation comparisons built from your actual component library.
+
+**Constraints to know:** Artifacts can't call external APIs or accept form input at view time. They stay private to your org and can't be made public. Full version history is kept — you can restore any prior state via the same link.
+
+**Availability:** Beta for Team and Enterprise plans. On Team plans it's enabled by default; on Enterprise, an admin must enable it in org settings first. Free and Pro plans are not included.
+
+**Why it matters:** The gap between a solo Claude Code session and a team-scale one has always been "how do we share what the agent found." Artifacts closes it.
+
+**Sources:** [Claude Code now supports artifacts — Anthropic](https://claude.com/blog/artifacts-in-claude-code), [VentureBeat](https://venturebeat.com/data/anthropics-claude-code-artifacts-update-brings-live-shared-dashboards-and-interactive-workspaces-to-enterprises), [SD Times](https://sdtimes.com/ai/claude-code-adds-support-for-artifacts/)
+      ]]></content:encoded>
+      <media:content url="https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6903d22d0099a66d72e05699_33ddc751e21fb4b116b3f57dd553f0bc55ea09d1-1000x1000.svg" medium="image" type="image/svg+xml" />
+      <media:thumbnail url="https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6903d22d0099a66d72e05699_33ddc751e21fb4b116b3f57dd553f0bc55ea09d1-1000x1000.svg" />
+    </item>
+
+    <item>
+      <title>Codex Learns by Watching: Record &amp; Replay Turns Your Mac Workflows Into Reusable Team Skills</title>
+      <link>https://developers.openai.com/codex/changelog</link>
+      <guid isPermaLink="false">2026-06-19-04-codex-record-replay-cli-mcp-threads</guid>
+      <pubDate>Fri, 19 Jun 2026 21:05:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Agents</category>
+      <description>Codex app 26.616 ships Record &amp; Replay for macOS: demonstrate a workflow once and Codex packages it as a reusable team skill. CLI 0.141.0 adds encrypted relay channels and per-thread MCP.</description>
+      <content:encoded><![CDATA[
+**TL;DR: OpenAI Codex app 26.616 (June 18) ships Record & Replay for macOS — demonstrate any GUI workflow once and Codex wraps it into a reusable team skill, no scripting required.**
+
+Record a workflow — filing expenses, deploying a release, any repetitive GUI sequence — and Codex packages it as a **skill** that teammates can trigger via Computer Use, Browser Use, or a connected plugin. Skills are shareable across teams. Currently macOS-only; not available in EEA, UK, or Switzerland.
+
+**CLI 0.141.0** (same day) adds encrypted Noise relay channels for remote executors (better security for team setups running Codex on remote machines) and **per-thread MCP server activation** — each Codex thread can activate a different set of MCP servers via plugin, avoiding the old global-config clash.
+
+**CLI 0.140.0** (June 15) added `/import` — selectively pull your Claude Code settings, commands, and agent configs into Codex. Useful if your team is evaluating both tools and wants to share prompt engineering across them.
+
+**Why it matters:** Record & Replay is the practical alternative to hand-writing Computer Use scripts for workflows that are easier to show than describe.
+
+**Sources:** [Codex changelog — OpenAI Developers](https://developers.openai.com/codex/changelog), [Record & Replay docs — OpenAI](https://developers.openai.com/codex/record-and-replay), [CryptoBriefing](https://cryptobriefing.com/openai-record-replay-codex-automation/)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Stop Typing OAuth: Enterprise-Managed MCP Auth Gives Every Engineer Zero-Touch Tool Access</title>
