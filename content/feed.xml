@@ -10,7 +10,106 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 19 Jun 2026 21:07:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 20 Jun 2026 12:05:00 GMT</lastBuildDate>
+
+    <item>
+      <title>GitHub&#x27;s AGENTS.md Lands in Copilot Code Review; Fable 5 June 20 Return Window Closes</title>
+      <link>https://github.blog/changelog/month/06-2026/</link>
+      <guid isPermaLink="false">2026-06-20-01-github-agents-md-fable5-june22</guid>
+      <pubDate>Sat, 20 Jun 2026 12:03:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>GitHub Copilot code review now reads AGENTS.md for standing project instructions; auto mode went GA. Fable 5&#x27;s June 20 market window closed unresolved — the June 22 White House meeting is next.</description>
+      <content:encoded><![CDATA[
+**TL;DR: GitHub ships AGENTS.md for Copilot code review and auto mode goes GA; Fable 5's June 20 return window closed — June 22 White House meeting is the next catalyst.**
+
+**GitHub Copilot: two June 17–18 updates.** Copilot code review now reads an `AGENTS.md` file in your repo root — the Copilot equivalent of Claude Code's `CLAUDE.md`. Add it to give the code review agent standing project instructions: which patterns to flag, which paths are sensitive, team-specific review conventions. It loads automatically on every review request, no per-request prompt needed. The same update improves the UI for requesting Copilot agent reviews on draft PRs directly. Separately, **auto mode in Copilot Chat** — which selects the best model for each request without manual configuration — is now generally available for all users after being opt-in.
+
+**Fable 5: the June 20 window closed, June 22 is next.** Prediction markets had a "before June 20" contract for Fable 5 restoration — that window expired today with both models still offline. Kalshi's July 1 market sits at 57% (down from 68% earlier this week). The Pro/Max refund window also closes today. **June 22** is the next hard milestone: Anthropic's scheduled in-person meeting with White House officials, working toward a framework to restore access starting with US customers. Watch [anthropic.com/news](https://www.anthropic.com/news/fable-mythos-access) for the authoritative signal.
+
+**Why it matters:** AGENTS.md lets Copilot code review carry your team's conventions into every PR — not just generic linting. On Fable 5: the negotiating window is narrowing; the June 22 meeting is the first formal venue where a restoration framework could actually be agreed.
+
+**Sources:** [GitHub changelog June 2026](https://github.blog/changelog/month/06-2026/), [Kalshi: Fable 5 odds](https://news.kalshi.com/p/fable-5-odds-anthropic-access-restored-july-57-percent), [Anthropic: Fable 5 &amp; Mythos 5 statement](https://www.anthropic.com/news/fable-mythos-access)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Platform: Workload Identity Federation Is GA and the June 15 Agent SDK Billing Split Was Rolled Back</title>
+      <link>https://claude.com/blog/workload-identity-federation</link>
+      <guid isPermaLink="false">2026-06-20-02-wif-ga-agent-sdk-billing-rollback</guid>
+      <pubDate>Sat, 20 Jun 2026 12:04:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <category>Security</category>
+      <description>Workload Identity Federation is GA on the Claude Platform — replace static API keys with OIDC short-lived credentials from AWS, GCP, GitHub Actions, or Azure. The June 15 Agent SDK billing split was paused.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Workload Identity Federation is GA on the Claude Platform — no more static API keys — and the June 15 Agent SDK billing split was rolled back before it took effect.**
+
+**Workload Identity Federation (WIF) is now generally available** as of June 17. Instead of embedding a static Anthropic API key in your CI config or secrets manager, workloads authenticate with the identity they already have: an AWS IAM role, a GCP service account, a GitHub Actions OIDC token, an Azure managed identity, or any OIDC-compliant provider. The Claude Platform verifies the signed OIDC token, matches its claims against federation rules, and issues a short-lived scoped credential. No key to rotate, no key that retains full access if it leaks from a log or env dump. Each workload gets its own service account with an independent audit trail — useful when you have multiple agents hitting the API for different purposes and need to attribute costs and audit requests separately.
+
+Setup is a guided flow in the [Claude Console](https://claude.ai/). Per-provider docs are at [platform.claude.com/docs/en/manage-claude/workload-identity-federation](https://platform.claude.com/docs/en/manage-claude/workload-identity-federation). GitHub Actions is the fastest first integration — your `GITHUB_TOKEN` becomes your API credential with no secret storage.
+
+**The June 15 Agent SDK billing change was paused** — on the same day it was due to take effect. The original plan (announced May 14): move `claude -p`, Agent SDK calls, Claude Code GitHub Actions, and third-party agent usage off your subscription limit onto a separate monthly credit pool ($20/Pro · $100/Max 5x · $200/Max 20x) at full API rates. That plan is suspended. Those surfaces continue drawing from your existing plan limits exactly as before. Anthropic says it is reworking the model and will give advance notice before any future change takes effect.
+
+**Sources:** [Workload Identity Federation — Anthropic blog](https://claude.com/blog/workload-identity-federation), [WIF docs](https://platform.claude.com/docs/en/manage-claude/workload-identity-federation), [Agent SDK billing — Claude Help Center](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan)
+      ]]></content:encoded>
+      <media:content url="https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6903d2308749b4e883cc44b7_e029027e0b3beeb5b629bd4a26143597e7775b38-1000x1000.svg" medium="image" type="image/svg+xml" />
+      <media:thumbnail url="https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6903d2308749b4e883cc44b7_e029027e0b3beeb5b629bd4a26143597e7775b38-1000x1000.svg" />
+    </item>
+
+    <item>
+      <title>Seven Ways to Steer Claude Code — and Which Layer to Use for What</title>
+      <link>https://claude.com/blog/steering-claude-code-skills-hooks-rules-subagents-and-more</link>
+      <guid isPermaLink="false">2026-06-20-03-steering-claude-code-seven-layers</guid>
+      <pubDate>Sat, 20 Jun 2026 12:05:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Anthropic&#x27;s official June 18 guide clarifies seven Claude Code customization layers: CLAUDE.md, rules, skills, subagents, hooks, output styles, and system prompt — when each loads and its authority level.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Anthropic's official guide names seven Claude Code customization layers — CLAUDE.md, rules, skills, subagents, hooks, output styles, system prompt — each with different context loading and authority.**
+
+Anthropic published the definitive architecture for Claude Code customization on June 18. If you've been putting everything in `CLAUDE.md` and wondering why behavior drifts, this is the missing piece: there are seven distinct layers, each controlling when instructions load, how they survive compaction, and how much weight they carry.
+
+**The seven layers:**
+
+**CLAUDE.md files** — Load at session start, survive compaction. Keep the root file under 200 lines. Place subdirectory versions (e.g., `app/api/CLAUDE.md`) for on-demand loading — they load automatically when Claude touches files in that directory.
+
+**Rules** (`.claude/rules/`) — Path-scoped constraints that load only when relevant files are edited. Better than CLAUDE.md for restrictions that apply only to specific directories:
+```
+---
+paths:
+  - "src/api/**"
+---
+All API handlers must validate input with Zod before processing.
+```
+This rule loads only when Claude edits an API handler — zero token cost on unrelated tasks.
+
+**Skills** (`.claude/skills/`) — Procedural workflows: deploy checklists, review processes, migration steps. The full body only enters context when invoked. Anything procedural you call explicitly belongs here, not in CLAUDE.md.
+
+**Subagents** (`.claude/agents/`) — Isolated context windows for side tasks. The subagent completes its work and returns only the final summary — intermediate steps don't pollute your main conversation or burn your context budget.
+
+**Hooks** — The deterministic layer. Instructions in CLAUDE.md are advisory; hooks fire 100% of the time. If something *must always happen* (format on every write, block a sensitive path, run tests before Stop), put it in a hook, not a prompt.
+
+**Output styles** (`.claude/output-styles/`) — Carry high instruction weight; risk overwriting critical defaults. Use the built-in `/style` options (Proactive, Explanatory, Learning) for most needs. Reserve custom styles for significant persona or role changes.
+
+**System prompt appending** — For programmatic extension of the base system prompt via the API without replacing it; developer-tier use.
+
+**The decision rule:** Deterministic must-happen → **hook**. Procedural workflow you invoke explicitly → **skill**. Always-on project context → **CLAUDE.md**. Constraints tied to specific paths → **path-scoped rules**. Isolated side tasks → **subagents**. Everything else → start with CLAUDE.md and refactor as the project grows.
+
+**Sources:** [Steering Claude Code: skills, hooks, subagents and more — Anthropic](https://claude.com/blog/steering-claude-code-skills-hooks-rules-subagents-and-more)
+      ]]></content:encoded>
+      <media:content url="https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6903d22d7d4c10df6024f7bc_ee580919acaba2ddc07425f7a7390c8962cadc94-1000x1000.svg" medium="image" type="image/svg+xml" />
+      <media:thumbnail url="https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6903d22d7d4c10df6024f7bc_ee580919acaba2ddc07425f7a7390c8962cadc94-1000x1000.svg" />
+    </item>
 
     <item>
       <title>Claude Code 2.1.183: Auto Mode Now Guards Against Destructive Git and IaC Commands</title>
