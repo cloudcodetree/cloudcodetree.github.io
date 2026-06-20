@@ -10,7 +10,93 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 20 Jun 2026 12:05:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 20 Jun 2026 21:05:00 GMT</lastBuildDate>
+
+    <item>
+      <title>The Writer/Reviewer Pattern: Why One Claude Session Can&#x27;t Check Its Own Work</title>
+      <link>https://code.claude.com/docs/en/best-practices</link>
+      <guid isPermaLink="false">2026-06-20-05-writer-reviewer-adversarial-review</guid>
+      <pubDate>Sat, 20 Jun 2026 21:05:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <category>Agents</category>
+      <description>Splitting Claude Code into Writer and Reviewer sessions — or using an adversarial subagent — catches edge cases the implementing session talks itself out of. Official Anthropic pattern.</description>
+      <content:encoded><![CDATA[
+**TL;DR: A Claude session that implements and then self-reviews has a bias problem — it saw the reasoning that produced the code. A fresh Reviewer session or adversarial subagent doesn't.**
+
+A Claude Code session that builds something and then reviews it is primed to rationalize what it just built. It knows why each decision was made and unconsciously defends it. A reviewer running in a separate context with zero knowledge of the implementation history evaluates the result on its own terms.
+
+**The Writer/Reviewer split (two sessions)**
+
+Run Session A to implement and Session B to review — they can run in parallel in separate worktrees:
+
+```
+# Session A (Writer)
+Implement a rate limiter for our API endpoints — write tests and get them passing.
+
+# Session B (Reviewer) — after Session A finishes
+Review the rate limiter in @src/middleware/rateLimiter.ts.
+Look for edge cases, race conditions, and consistency with our existing middleware patterns.
+Report gaps — not style preferences.
+```
+
+Session B never read the implementation context, has no sunk-cost attachment to the approach, and will flag things Session A reasoned away. Feed Session A the findings: "here's the review. Address these issues."
+
+**The adversarial subagent (for autonomous runs)**
+
+For longer unattended sessions, delegate review to a subagent — it gets its own fresh context window inside the same session:
+
+```
+Use a subagent to review the rate limiter diff against PLAN.md.
+Check that every requirement is implemented, listed edge cases have tests,
+and nothing outside the task scope changed.
+Report gaps only — not style preferences.
+```
+
+The subagent reports findings directly back to the implementing session, which can fix and re-review without you copying between windows.
+
+**One calibration:** A reviewer told to find gaps will always find some, even when the work is sound. Prompt it to flag only gaps that affect correctness or stated requirements — not hypothetical future scenarios. Over-chasing findings produces defensive abstraction layers for cases that can't happen.
+
+**Quick version: `/code-review`.** The built-in skill launches a subagent in a fresh context, reviews the current diff, and surfaces findings in your session — the adversarial step with zero setup.
+
+**Sources:** [Claude Code best practices](https://code.claude.com/docs/en/best-practices), [Sub-agents — Claude Code Docs](https://code.claude.com/docs/en/sub-agents)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Cursor&#x27;s June Drops: /in-cloud Cloud Subagents, /babysit for Autonomous PR Iteration, and Natural-Language Automations</title>
+      <link>https://cursor.com/changelog</link>
+      <guid isPermaLink="false">2026-06-20-04-cursor-37-38-cloud-subagents-automations</guid>
+      <pubDate>Sat, 20 Jun 2026 21:04:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Agents</category>
+      <description>Cursor 3.7 (June 17) added /in-cloud cloud subagents and /babysit for autonomous PR iteration; 3.8 (June 18) added /automate for natural-language Automation setup and computer use for cloud agents.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Cursor 3.7 shipped cloud subagents and autonomous PR babysitting; 3.8 added natural-language Automation creation and computer use — features buried under the SpaceX deal headlines last week.**
+
+The SpaceX acquisition dominated coverage. Two releases the same week added agentic features worth knowing regardless of who owns the company.
+
+**Version 3.7 (June 17) — `/in-cloud` and `/babysit`**
+
+`/in-cloud` spins an isolated cloud subagent for long-running tasks — large refactors, test generation sweeps — so you can hand it off and close your laptop. The subagent works independently and returns results without tying up your local session.
+
+`/babysit` is a quick-action that hands a PR to a cloud agent: it reads CI failures, makes fixes, and re-pushes until the PR is merge-ready or it gets stuck. No local session needed, no CI tab to watch.
+
+**Version 3.8 (June 18) — `/automate` and computer use**
+
+Cursor Automations (always-on cloud agents triggered by external events) existed before. What's new: the `/automate` skill creates one from a plain-English description — Cursor configures the trigger (Slack, GitHub, Linear, PagerDuty, or webhook), instructions, and tools. Five new GitHub event triggers and Slack emoji reactions were added. Computer use for cloud agents also shipped, letting automations interact with a browser to produce demos or artifacts.
+
+**Why it matters:** `/babysit`-style autonomous PR iteration and event-driven always-on agents are where every coding tool is heading. Understanding the pattern — even if Claude Code is your daily driver — is worthwhile.
+
+**Sources:** [Cursor changelog 3.7 — June 17](https://cursor.com/changelog/06-17-26), [Cursor changelog 3.8 — June 18](https://cursor.com/changelog/06-18-26), [Cursor /automate explained](https://kingy.ai/news/cursor-automate-skill-ai-coding-agents/)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>GitHub&#x27;s AGENTS.md Lands in Copilot Code Review; Fable 5 June 20 Return Window Closes</title>
