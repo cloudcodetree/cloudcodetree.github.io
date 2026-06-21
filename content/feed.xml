@@ -10,7 +10,87 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 21 Jun 2026 12:16:00 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 21 Jun 2026 21:04:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Vercel Eve: Two Files and One Command to a Production-Ready AI Agent</title>
+      <link>https://vercel.com/blog/introducing-eve</link>
+      <guid isPermaLink="false">2026-06-21-05-vercel-eve-agent-framework</guid>
+      <pubDate>Sun, 21 Jun 2026 21:04:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Developer Tools</category>
+      <category>Agents</category>
+      <description>Vercel Eve (June 17): open-source TypeScript agent framework where an agent is a directory, tools are .ts files, skills are .md. Two files, one command to a running production-ready agent.</description>
+      <media:content url="https://assets.vercel.com/image/upload/contentful/image/e5382hct74si/yrQSmbh5sSvn4egFUkOoe/c4de567a788d6d84cd9be12e2d7cab77/Eve2.png" medium="image" type="image/png" />
+      <media:thumbnail url="https://assets.vercel.com/image/upload/contentful/image/e5382hct74si/yrQSmbh5sSvn4egFUkOoe/c4de567a788d6d84cd9be12e2d7cab77/Eve2.png" />
+      <content:encoded><![CDATA[
+**TL;DR: Vercel Eve (June 17) makes a production AI agent a two-file directory: tools are `.ts`, skills are `.md`, channels adapt it to Slack/GitHub/Discord — infra included.**
+
+Guillermo Rauch describes Eve as "the Next.js for agents": the same way Next.js eliminated the wiring for routing, SSR, and bundling, Eve eliminates the wiring for durable execution, sandboxed compute, human approval gates, and multi-channel deployment.
+
+**The minimum runnable agent** is two files:
+
+```
+my-agent/
+├── agent.ts           # model config: which model, effort, max_tokens
+└── instructions.md    # system prompt — just English
+```
+
+**Add capabilities by adding files** — no registration, no framework config:
+
+```
+tools/        # search.ts, db.ts → each filename becomes a callable tool
+skills/       # debugging.md, style.md → loaded when relevant, not always
+channels/     # slack.ts, github.ts, discord.ts → same agent, multiple surfaces
+schedules/    # cron.ts → agent fires on schedule
+subagents/    # triage-agent/ → delegate bounded tasks with their own context
+```
+
+**Getting started in under a minute:**
+
+```bash
+npx eve@latest init my-agent
+cd my-agent && eve dev     # local dev server with streaming traces + interactive TUI
+vercel deploy              # production on Vercel Functions
+```
+
+Eve sandboxes automatically swap from Docker locally to Vercel Sandbox in production — no code changes required. Channel adapters mean the same `instructions.md` and `tools/` serve Slack, Discord, Teams, GitHub, and a plain HTTP API without duplication.
+
+**What's built in without configuration:** durable execution (sessions checkpoint across crashes and restarts), sandboxed compute, human-in-the-loop approval gates (set `requireApproval: true` on any tool), OpenTelemetry tracing, and an eval test suite (`eve eval`).
+
+**The Claude Code angle:** Eve works with any model provider, including Claude via the Anthropic SDK or MCP. For a team that ships with Claude Code but wants to expose a workflow as a Slack command or scheduled webhook, Eve handles the production infrastructure — you own the logic in `tools/` and `instructions.md`.
+
+**Sources:** [Introducing eve — Vercel](https://vercel.com/blog/introducing-eve), [eve changelog — Vercel](https://vercel.com/changelog/introducing-eve-an-open-source-agent-framework), [The Register: Vercel debuts eve](https://www.theregister.com/devops/2026/06/19/vercel-debuts-eve-open-source-agent-framework-tries-to-fix-shadow-ai-with-passport/5258726)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>NSA Red-Team Testimony Reshapes the Fable 5 Ban; Anthropic Identity Verification Opens a US Restoration Path</title>
+      <link>https://www.economist.com/briefing/2026/06/14/donald-trumps-blocking-of-anthropic-is-capricious-and-chaotic</link>
+      <guid isPermaLink="false">2026-06-21-04-nsa-mythos-testimony-id-verification</guid>
+      <pubDate>Sun, 21 Jun 2026 21:03:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Security</category>
+      <description>NSA Director Rudd's red-team result — Mythos breached nearly all classified systems in hours — went viral June 21, reframing the ban; Anthropic biometric ID verification starts July 8.</description>
+      <content:encoded><![CDATA[
+**TL;DR: NSA red-team viral today — Mythos breached NSA systems in hours, reframing the ban as autonomous offense; identity verification (July 8) creates the US-only restoration path.**
+
+The morning run covered Trump's June 19 softening and tomorrow's June 22 White House meeting. Here is what emerged today.
+
+**The NSA testimony goes viral.** A quote from The Economist (June 14) broke through on social media June 21: Senator Mark Warner cited NSA Director Gen. Joshua Rudd saying Mythos "broke into nearly all of the NSA's classified systems in hours" during an authorized red-team exercise. Context: this was a controlled test on the NSA's own networks — not a live intrusion. The Economist's own reporter cautioned the claim "depends on Mythos working alongside other tools in particular conditions," and the framing was disputed. But the viral spread has political weight: the government's position is now publicly framed as autonomous offensive cyber capability — not a patchable API hole — which raises the bar for a quick full restoration.
+
+**Identity verification (July 8) is the technical key.** Anthropic updated its privacy policy to collect government-issued ID and facial biometric data via third-party vendor Persona, effective July 8. This creates the mechanism for US-only access: verified domestic users could regain Fable 5 without the Commerce Department formally lifting the export-control directive. Enterprise customers won't benefit from this consumer-facing pathway and will need a separate commercial arrangement.
+
+**Why it matters:** The viral NSA testimony pushes full diplomatic restoration higher up the bar; the July 8 identity verification date is the earliest concrete window for US consumer access, regardless of tomorrow's meeting outcome.
+
+**Sources:** [The Economist: Trump's blocking of Anthropic (June 14)](https://www.economist.com/briefing/2026/06/14/donald-trumps-blocking-of-anthropic-is-capricious-and-chaotic), [TechTimes: NSA testimony reshapes ban (June 21)](https://www.techtimes.com/articles/318783/20260621/claude-fable-5-resurfaces-android-app-nsa-breach-testimony-reshapes-ban.htm), [CIO: Identity verification and the Fable ban](https://www.cio.com/article/4185510/anthropics-new-privacy-policy-offers-us-consumers-a-way-around-the-fable-ban.html), [TechTimes: Identity verification July 8](https://www.techtimes.com/articles/318778/20260621/claude-identity-verification-starts-july-8-what-facial-data-anthropic-collects.htm)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Stop Fighting Context Compaction: Use /compact with a Focus Note in Claude Code</title>
