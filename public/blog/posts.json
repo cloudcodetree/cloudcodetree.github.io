@@ -19,8 +19,8 @@
   },
   {
     "id": "2026-06-21-02-fable5-trump-softens-june22-jumper",
-    "title": "Trump Says Anthropic Is &#x22;Not a Threat Now&#x22;; June 22 White House Meeting Is Tomorrow; AlphaFold Nobel Laureate Joins Anthropic",
-    "excerpt": "Trump&#x27;s June 19 Axios interview: no longer views Anthropic as a security threat. June 22 White House meeting tomorrow is the formal window for Fable 5 restoration. AlphaFold Nobel laureate Joh…",
+    "title": "Trump Says Anthropic Is \"Not a Threat Now\"; June 22 White House Meeting Is Tomorrow; AlphaFold Nobel Laureate Joins Anthropic",
+    "excerpt": "Trump's June 19 Axios interview: no longer views Anthropic as a security threat. June 22 White House meeting tomorrow is the formal window for Fable 5 restoration. AlphaFold Nobel laureate Joh…",
     "author": "Chris Harper",
     "date": "06-21-2026",
     "publishedAt": "2026-06-21T12:15:00.000Z",
@@ -36,7 +36,7 @@
   },
   {
     "id": "2026-06-21-01-github-mcp-issue-fields-duplicate-detection",
-    "title": "GitHub MCP Server Can Now Write Fully Triaged Issues — and Flag Duplicates Before They&#x27;re Filed",
+    "title": "GitHub MCP Server Can Now Write Fully Triaged Issues — and Flag Duplicates Before They're Filed",
     "excerpt": "The GitHub MCP server (June 18) lets AI agents create fully triaged issues with custom fields — priority, area, dates — at filing time, plus public-preview duplicate detection before submitting.",
     "author": "Chris Harper",
     "date": "06-21-2026",
@@ -54,7 +54,7 @@
   },
   {
     "id": "2026-06-20-05-writer-reviewer-adversarial-review",
-    "title": "The Writer/Reviewer Pattern: Why One Claude Session Can&#x27;t Check Its Own Work",
+    "title": "The Writer/Reviewer Pattern: Why One Claude Session Can't Check Its Own Work",
     "excerpt": "Splitting Claude Code into Writer and Reviewer sessions — or using an adversarial subagent — catches edge cases the implementing session talks itself out of. Official Anthropic pattern.",
     "author": "Chris Harper",
     "date": "06-20-2026",
@@ -73,7 +73,7 @@
   },
   {
     "id": "2026-06-20-04-cursor-37-38-cloud-subagents-automations",
-    "title": "Cursor&#x27;s June Drops: /in-cloud Cloud Subagents, /babysit for Autonomous PR Iteration, and Natural-Language Automations",
+    "title": "Cursor's June Drops: /in-cloud Cloud Subagents, /babysit for Autonomous PR Iteration, and Natural-Language Automations",
     "excerpt": "Cursor 3.7 (June 17) added /in-cloud cloud subagents and /babysit for autonomous PR iteration; 3.8 (June 18) added /automate for natural-language Automation setup and computer use for cloud agents.",
     "author": "Chris Harper",
     "date": "06-20-2026",
@@ -92,7 +92,7 @@
   {
     "id": "2026-06-20-03-steering-claude-code-seven-layers",
     "title": "Seven Ways to Steer Claude Code — and Which Layer to Use for What",
-    "excerpt": "Anthropic&#x27;s official June 18 guide clarifies seven Claude Code customization layers: CLAUDE.md, rules, skills, subagents, hooks, output styles, and system prompt — when each loads and its auth…",
+    "excerpt": "Anthropic's official June 18 guide clarifies seven Claude Code customization layers: CLAUDE.md, rules, skills, subagents, hooks, output styles, and system prompt — when each loads and its auth…",
     "author": "Chris Harper",
     "date": "06-20-2026",
     "publishedAt": "2026-06-20T12:05:00.000Z",
@@ -128,8 +128,8 @@
   },
   {
     "id": "2026-06-20-01-github-agents-md-fable5-june22",
-    "title": "GitHub&#x27;s AGENTS.md Lands in Copilot Code Review; Fable 5 June 20 Return Window Closes",
-    "excerpt": "GitHub Copilot code review now reads AGENTS.md for standing project instructions; auto mode went GA. Fable 5&#x27;s June 20 market window closed unresolved — the June 22 White House meeting is next.",
+    "title": "GitHub's AGENTS.md Lands in Copilot Code Review; Fable 5 June 20 Return Window Closes",
+    "excerpt": "GitHub Copilot code review now reads AGENTS.md for standing project instructions; auto mode went GA. Fable 5's June 20 market window closed unresolved — the June 22 White House meeting is next.",
     "author": "Chris Harper",
     "date": "06-20-2026",
     "publishedAt": "2026-06-20T12:03:00.000Z",
@@ -201,7 +201,7 @@
   {
     "id": "2026-06-19-03-enterprise-mcp-auth-okta-zero-touch",
     "title": "Stop Typing OAuth: Enterprise-Managed MCP Auth Gives Every Engineer Zero-Touch Tool Access",
-    "excerpt": "Claude&#x27;s new enterprise MCP auth lets admins provision Figma, Linear, and Supabase for the whole org via Okta — zero-touch setup for every engineer on first login, no per-app OAuth.",
+    "excerpt": "Claude's new enterprise MCP auth lets admins provision Figma, Linear, and Supabase for the whole org via Okta — zero-touch setup for every engineer on first login, no per-app OAuth.",
     "author": "Chris Harper",
     "date": "06-19-2026",
     "publishedAt": "2026-06-19T12:07:00.000Z",
@@ -237,7 +237,7 @@
   },
   {
     "id": "2026-06-19-01-vscode-1125-agent-proxy-copilot-budget",
-    "title": "VS Code 1.125: Agents Can Now Browse Through Remote Proxies — and You&#x27;ll See Copilot Overage Coming",
+    "title": "VS Code 1.125: Agents Can Now Browse Through Remote Proxies — and You'll See Copilot Overage Coming",
     "excerpt": "VS Code 1.125 (June 17) ships an agent-aware browser proxy for remote workspaces, a Copilot budget gauge, and MDM policy delivery — practical updates for teams running AI agents in VS Code.",
     "author": "Chris Harper",
     "date": "06-19-2026",
