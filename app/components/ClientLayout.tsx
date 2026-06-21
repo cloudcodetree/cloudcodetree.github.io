@@ -197,6 +197,10 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
         component="main"
         sx={{
           flexGrow: 1,
+          // Flex children default to min-width:auto and won't shrink below their
+          // content's intrinsic size — a wide hero image then forces horizontal
+          // overflow on mobile. minWidth:0 lets <main> shrink to the viewport.
+          minWidth: 0,
           pt: { xs: 8, md: 9 },
           minHeight: '100vh',
           background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
