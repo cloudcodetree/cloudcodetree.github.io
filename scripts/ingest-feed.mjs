@@ -92,6 +92,22 @@ function toMDY(pubDate, id) {
   throw new Error(`unparseable pubDate "${pubDate}" for ${id}`);
 }
 const dateKey = (mdy) => { const [mm, dd, yyyy] = mdy.split('-'); return Number(`${yyyy}${mm}${dd}`); };
+/**
+ * Decode HTML/XML entities. Feed titles/descriptions sometimes arrive with
+ * numeric refs (&#x27; &#x22;) or named ones; plain-text fields (title, excerpt)
+ * are rendered as React text, NOT markdown, so an undecoded entity shows up
+ * literally on the page. Decode &amp; last so single-encoded input resolves
+ * fully without re-creating entities.
+ */
+function decodeEntities(s) {
+  return String(s)
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => { try { return String.fromCodePoint(parseInt(h, 16)); } catch { return _; } })
+    .replace(/&#(\d+);/g, (_, d) => { try { return String.fromCodePoint(parseInt(d, 10)); } catch { return _; } })
+    .replace(/&apos;/g, "'").replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&');
+}
 /** RFC-822 pubDate → ISO 8601 (or '' if unparseable) — keeps the time of day. */
 function toISO(pubDate) {
   const d = new Date(pubDate);
@@ -294,10 +310,10 @@ async function main() {
     try {
       const body = text(item['content:encoded']).trim();
       if (!body) { console.warn(`! skipping ${id}: empty <content:encoded>`); failed++; continue; }
-      const title = text(item.title).trim();
+      const title = decodeEntities(text(item.title).trim());
       if (!title) { console.warn(`! skipping ${id}: empty <title>`); failed++; continue; }
       const link = text(item.link).trim();
-      const tags = (item.category ?? []).map((c) => text(c).trim()).filter(Boolean);
+      const tags = (item.category ?? []).map((c) => decodeEntities(text(c).trim())).filter(Boolean);
       const tagsArr = tags.length ? tags : ['AI'];
       const prior = byId.get(id);
       const { url: image, credit } = await resolveImage(item, id, prior?.image, { tags: tagsArr, title, link });
@@ -311,8 +327,8 @@ async function main() {
       byId.set(id, {
         id,
         title,
-        excerpt: excerptFrom(text(item.description), body),
-        author: text(item['dc:creator']).trim() || DEFAULT_AUTHOR,
+        excerpt: decodeEntities(excerptFrom(text(item.description), body)),
+        author: decodeEntities(text(item['dc:creator']).trim()) || DEFAULT_AUTHOR,
         date: toMDY(text(item.pubDate).trim(), id),
         ...(toISO(text(item.pubDate).trim()) ? { publishedAt: toISO(text(item.pubDate).trim()) } : {}),
         tags: tagsArr,
