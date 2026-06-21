@@ -80,14 +80,18 @@ export const markdownComponents: Components = { a: MarkdownLink };
 /** Markdown rendering style shared by the feed and the article page. */
 export const markdownSx = {
   lineHeight: 1.8,
+  // Long URLs / inline code shouldn't push the layout wider than the screen.
+  overflowWrap: 'anywhere',
+  wordBreak: 'break-word',
   // Title is rendered separately; hide a duplicate leading H1 in the body.
   '& h1:first-of-type': { display: 'none' },
-  '& h1': { fontSize: '2rem', fontWeight: 600, mb: 2 },
-  '& h2': { fontSize: '1.3rem', fontWeight: 600, mt: 4, mb: 1.5, pl: 1.5, borderLeft: `3px solid ${ACCENT}` },
-  '& h3': { fontSize: '1.15rem', fontWeight: 600, mt: 3, mb: 1 },
+  '& h1': { fontSize: { xs: '1.5rem', md: '2rem' }, fontWeight: 600, mb: 2 },
+  '& h2': { fontSize: { xs: '1.15rem', md: '1.3rem' }, fontWeight: 600, mt: 4, mb: 1.5, pl: 1.5, borderLeft: `3px solid ${ACCENT}` },
+  '& h3': { fontSize: { xs: '1.05rem', md: '1.15rem' }, fontWeight: 600, mt: 3, mb: 1 },
   '& p': { mb: 2, lineHeight: 1.8 },
   '& strong': { color: '#ffffff', fontWeight: 700 },
   '& a': { color: LINK, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } },
+  '& img': { maxWidth: '100%', height: 'auto', borderRadius: 1 },
   '& blockquote': {
     m: '28px 0', p: '16px 20px', backgroundColor: '#161b22', border: '1px solid #222a35',
     borderLeft: `3px solid ${LINK}`, borderRadius: 2, color: 'text.secondary', fontSize: '0.97rem',
@@ -95,8 +99,11 @@ export const markdownSx = {
   },
   '& hr': { border: 0, borderTop: '1px solid #222a35', my: 3 },
   '& hr + p': { color: 'text.secondary', fontSize: 13 },
-  '& pre': { backgroundColor: 'rgba(30, 41, 59, 0.8)', borderRadius: 1, p: 2, overflow: 'auto', mb: 2 },
+  // Code blocks scroll horizontally instead of widening the page.
+  '& pre': { backgroundColor: 'rgba(30, 41, 59, 0.8)', borderRadius: 1, p: 2, maxWidth: '100%', overflowX: 'auto', mb: 2, '& code': { whiteSpace: 'pre', overflowWrap: 'normal', wordBreak: 'normal' } },
   '& code': { backgroundColor: 'rgba(30, 41, 59, 0.6)', px: 1, py: 0.5, borderRadius: 0.5, fontFamily: 'monospace' },
   '& ul, & ol': { mb: 2, pl: 3 },
   '& li': { mb: 1, lineHeight: 1.8 },
+  // Wide tables scroll within their own box.
+  '& table': { display: 'block', maxWidth: '100%', overflowX: 'auto', borderCollapse: 'collapse' },
 } as const;

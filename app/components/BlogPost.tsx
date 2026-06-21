@@ -18,7 +18,7 @@ export default function BlogPost({ post }: { post: Post }) {
   );
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container maxWidth="md" sx={{ py: { xs: 2, md: 4 } }}>
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
         {backButton}
 
@@ -51,8 +51,8 @@ export default function BlogPost({ post }: { post: Post }) {
         <Typography
           component="h1"
           sx={{
-            fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '2.1rem', md: '3rem' },
-            lineHeight: 1.08, letterSpacing: '-0.015em', mb: 2,
+            fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.6rem', sm: '2.1rem', md: '3rem' },
+            lineHeight: 1.12, letterSpacing: '-0.015em', mb: 2, overflowWrap: 'anywhere',
           }}
         >
           {post.title}
@@ -88,7 +88,7 @@ export default function BlogPost({ post }: { post: Post }) {
         )}
 
         <Card className="glass">
-          <CardContent sx={{ p: 4 }}>
+          <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
             <Box sx={markdownSx}>
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{post.content || ''}</ReactMarkdown>
             </Box>
