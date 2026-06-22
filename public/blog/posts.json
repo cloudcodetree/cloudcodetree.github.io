@@ -1,5 +1,57 @@
 [
   {
+    "id": "2026-06-22-03-claude-code-config-tool-params",
+    "title": "Two Claude Code Config Tricks You Probably Missed: /config from the Prompt and Tool(param:value) Scoping",
+    "excerpt": "v2.1.181 lets you set any Claude Code option from the prompt with /config key=value; v2.1.178 added Tool(param:value) permission rules to scope by parameter value, not just tool name.",
+    "author": "Chris Harper",
+    "date": "06-22-2026",
+    "publishedAt": "2026-06-22T12:09:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**TL;DR: `/config thinking=false` flips any Claude Code setting mid-session without restarting; `Tool(param:value)` in permissions scopes allow/deny by what gets passed to a tool, not just its name.**\n\nBoth shipped quietly in the June 15–17 releases and are worth knowing.\n\n## `/config key=value` from the prompt (v2.1.181)\n\nAny Claude Code setting can now be changed from the chat interface — no menu, no editing `settings.json`, no session restart:\n\n```\n/config thinking=false\n/config maxTokens=32000\n/config wheelScrollAccelerationEnabled=true\n```\n\nWorks in interactive mode, in `-p` (print/non-interactive), and in Remote Control. This matters most in scripted pipelines where you want per-invocation settings without rewriting config files — pass `/config maxTokens=8000` before a bulk summarization loop, then `/config maxTokens=64000` for the analysis step, all in one script.\n\n**Bonus from v2.1.181:** Set `CLAUDE_CLIENT_PRESENCE_FILE=/tmp/claude-here` to suppress mobile push notifications while you're at the machine. Touch the file on connect, delete on disconnect — notifications only fire when it doesn't exist.\n\n## `Tool(param:value)` permission scoping (v2.1.178)\n\nPermission rules now match on tool input parameters, using `*` as a wildcard:\n\n```json\n{\n  \"permissions\": {\n    \"allow\": [\"Agent(model:sonnet)\"],\n    \"deny\": [\"Agent(model:opus)\"]\n  }\n}\n```\n\nThis lets Sonnet subagents run automatically while requiring a confirmation prompt for Opus subagents — useful for cost control in long unattended runs where a subagent might reach for a heavier model unnecessarily.\n\n**Bonus from v2.1.183:** Add `\"attribution\": { \"sessionUrl\": false }` to your `settings.json` to omit the claude.ai session URL from commit messages and PRs — useful if you don't want session links persisted in public repos.\n\n**Sources:** [Claude Code changelog — code.claude.com](https://code.claude.com/docs/en/changelog), [v2.1.181 full release notes — DevelopersIO](https://dev.classmethod.jp/en/articles/20260618-cc-updates-v2-1-181/)"
+  },
+  {
+    "id": "2026-06-22-02-fable5-june22-plan-deadline-meeting",
+    "title": "June 22: Anthropic's White House Commerce Meeting; Fable 5 Free-Plan Period Ends Today",
+    "excerpt": "Anthropic meets Commerce Secretary Lutnick today — the first in-person venue for a Fable 5 restoration framework. June 22 also ends the originally planned free plan inclusion period.",
+    "author": "Chris Harper",
+    "date": "06-22-2026",
+    "publishedAt": "2026-06-22T12:08:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.anthropic.com/news/fable-mythos-access",
+    "content": "**TL;DR: The scheduled Commerce meeting is today — no outcome at noon UTC; watch anthropic.com/news. June 22 also ends the originally planned Pro/Max free-inclusion period for Fable 5 (moot while suspended).**\n\n**Commerce meeting in progress.** Anthropic executives are scheduled to meet with Commerce Secretary Howard Lutnick and the National Cyber Director today — the first in-person session with the officials who issued the June 12 export control directive. This is the formal venue to negotiate a selective-restoration framework (US customers first). No outcome confirmed as of noon UTC; watch [anthropic.com/news](https://www.anthropic.com/news) for the official signal.\n\n**Plan deadline.** June 22 was the last day Fable 5 was to be included at no extra cost on Pro/Max/Team/Enterprise plans before switching to usage-credits billing. That pricing transition is moot while both models remain suspended, but the date marks the boundary of the originally agreed inclusion period.\n\n**Why it matters:** If today's meeting produces a framework, restoration timelines compress; if not, July 8 (Persona identity verification activates) remains the next concrete date.\n\n**Sources:** [Anthropic: Fable &amp; Mythos access](https://www.anthropic.com/news/fable-mythos-access), [Anthropic to meet White House — AOL/Reuters](https://www.aol.com/articles/anthropic-meet-white-house-over-174646000.html), [Kalshi: 57% odds before July 1](https://news.kalshi.com/p/fable-5-odds-anthropic-access-restored-july-57-percent)"
+  },
+  {
+    "id": "2026-06-22-01-github-copilot-mai-opus46-deprecation",
+    "title": "GitHub Copilot: MAI-Code-1-Flash Reaches All 8 Surfaces; Opus 4.6 (fast) Sunsets June 29",
+    "excerpt": "MAI-Code-1-Flash — Microsoft's purpose-built small coding model — now runs on all 8 GitHub Copilot surfaces including CLI and JetBrains; Opus 4.6 (fast) is deprecated in Copilot on June 29.",
+    "author": "Chris Harper",
+    "date": "06-22-2026",
+    "publishedAt": "2026-06-22T12:07:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.blog/changelog/2026-06-18-mai-code-1-flash-available-on-more-copilot-surfaces/",
+    "content": "**TL;DR: MAI-Code-1-Flash, Microsoft's small coding model for Copilot, now runs across all 8 surfaces including CLI and JetBrains; Opus 4.6 (fast) leaves GitHub Copilot on June 29 — switch now.**\n\nTwo GitHub Copilot model changes from June 18:\n\n**MAI-Code-1-Flash on 8 surfaces.** Microsoft's purpose-built small coding model has expanded to all major Copilot touchpoints: CLI, Copilot app, GitHub Chat, Visual Studio, GitHub Mobile, JetBrains, Eclipse, and Xcode. Available on Free through Max plans (Business/Enterprise soon). MAI-Code-1-Flash is designed for low-latency completions on shorter tasks — the fast pick for JetBrains inline completions and CLI interactions while Claude handles heavier agentic work in a separate session.\n\n**Opus 4.6 (fast) deprecated June 29.** GitHub Copilot is removing Opus 4.6 (fast) from all Copilot experiences on June 29. If you or your team have it pinned in any surface, switch to Opus 4.8 or Sonnet 4.6 before month-end to avoid a hard cutover.\n\n**Why it matters:** Knowing what model powers each Copilot surface matters for budget and quality decisions — especially on usage-based plans. The Opus 4.6 (fast) cutover is a hard date, not a gradual sunset.\n\n**Sources:** [MAI-Code-1-Flash on more Copilot surfaces — GitHub Changelog (June 18)](https://github.blog/changelog/2026-06-18-mai-code-1-flash-available-on-more-copilot-surfaces/), [Opus 4.6 (fast) deprecation — GitHub Changelog (June 18)](https://github.blog/changelog/2026-06-18-upcoming-deprecation-of-opus-4-6-fast/)"
+  },
+  {
     "id": "2026-06-21-05-vercel-eve-agent-framework",
     "title": "Vercel Eve: Two Files and One Command to a Production-Ready AI Agent",
     "excerpt": "Vercel Eve (June 17): open-source TypeScript agent framework where an agent is a directory, tools are .ts files, skills are .md. Two files, one command to a running production-ready agent.",
