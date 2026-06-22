@@ -1,5 +1,41 @@
 [
   {
+    "id": "2026-06-22-05-claude-design-code-sync",
+    "title": "Close the Design-to-Code Gap: /design-sync Links Claude Design to Claude Code",
+    "excerpt": "Claude Design's June 17 overhaul adds /design-sync for bidirectional Code sync — designs start from real components, handoff skips the screenshot-to-rebuild loop.",
+    "author": "Chris Harper",
+    "date": "06-22-2026",
+    "publishedAt": "2026-06-22T21:12:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://claude.com/blog/claude-design-stays-on-brand-for-daily-work",
+    "content": "**TL;DR: `/design-sync` links Claude Design to Claude Code bidirectionally — designs start from your real components and hand off to code without the screenshot-to-rebuild loop.**\n\nAnthropic shipped a major Claude Design overhaul on June 17. The headline for Claude Code users: the design-to-code handoff is now a sync, not a translation.\n\n## `/design-sync` — bidirectional design system sync\n\nRun `/design-sync` from Claude Code to import your project's design system — from a GitHub repo, design file, or local upload — into Claude Design. Claude then builds prototypes from your actual components, validates its output against the system before you see it, and makes corrections automatically. When a design is ready to ship, run `/design-sync` again to push it back to Claude Code as an incremental update: one component at a time, with a plan you approve before any file is written.\n\n## `/design` from the terminal\n\nRun `/design` in your terminal to create, edit, and sync design projects without leaving Claude Code. Works in the same context as your active session — no tab-switch to the browser needed for quick iterations.\n\n## Design system imports\n\nBring in one or several design systems from a GitHub repo, design files, or raw uploads. For teams: admins can lock a company-wide design system so every prototype starts from the approved component set automatically.\n\n## Also in this update\n\n- Canvas editing: drag, resize, and align elements directly on the canvas\n- Export to PDF and PowerPoint\n- Connections to Adobe, Canva, Gamma, Lovable, Miro, Replit, Vercel, and Wix\n- Shared usage limits with Claude chat, Cowork, and Claude Code (most users get more room before hitting caps)\n\n**Sources:** [Claude Design stays on brand — Anthropic (June 17)](https://claude.com/blog/claude-design-stays-on-brand-for-daily-work), [Get started with Claude Design — support.claude.com](https://support.claude.com/en/articles/14604416-get-started-with-claude-design), [Claude Design overhaul — VentureBeat](https://venturebeat.com/technology/anthropic-ships-major-claude-design-overhaul-with-design-system-imports-code-round-trips-and-a-fix-for-its-token-burning-problem)"
+  },
+  {
+    "id": "2026-06-22-04-github-copilot-jetbrains-claude-agent",
+    "title": "GitHub Copilot for JetBrains: Claude as Agent Provider Now in Public Preview, Plus Org Agents and CLI Message Queueing",
+    "excerpt": "GitHub Copilot for JetBrains (June 22): select Claude from the agent picker, org-level custom agents, CLI message queueing mid-run, /models command, and per-turn AI credits indicator.",
+    "author": "Chris Harper",
+    "date": "06-22-2026",
+    "publishedAt": "2026-06-22T21:11:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "Claude Code"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.blog/changelog/2026-06-22-new-features-and-claude-as-agent-provider-preview-in-jetbrains-ides/",
+    "content": "**TL;DR: The June 22 JetBrains release makes Claude selectable as an agent provider inside Copilot Chat — bypass-permissions by default — plus org-published agents, CLI message queueing, and per-turn credit tracking.**\n\nFour updates landed in the GitHub Copilot for JetBrains changelog on June 22:\n\n**Claude as agent provider (public preview).** Select Claude from the Copilot Chat agent picker to start an agent session in your JetBrains IDE. Requirements: Claude Code CLI installed, its path configured in Settings. Current behavior: **bypass-permissions mode** — file edits and tool calls are automatically approved without a confirmation step. Granular permission controls are on the roadmap. Copilot Business and Enterprise accounts need admin approval to enable.\n\n**Organization and enterprise agents.** Admins publish custom agents at the org or enterprise level; they appear in every member's Copilot Chat agent picker automatically — a clean way to standardize reusable workflows (style-enforced code generation, security review, onboarding scripts) across the team.\n\n**CLI message management.** While a request is in-flight, the Send button becomes a dropdown: queue a follow-up message (runs after the current request), steer the active request with new input, or stop and start fresh immediately.\n\n**Model picker + per-turn credits.** A new `/models` command gives direct access to the model picker, including larger context window selection. Local, CLI, and Claude agent sessions now show a per-turn AI credits indicator per interaction.\n\n**Why it matters:** Claude Code inside JetBrains collapses the context-switch between IDE and terminal — but bypass-permissions mode is the default. Understand what the agent can auto-approve before enabling it on a production codebase.\n\n**Sources:** [GitHub Copilot for JetBrains — June 22 changelog](https://github.blog/changelog/2026-06-22-new-features-and-claude-as-agent-provider-preview-in-jetbrains-ides/)"
+  },
+  {
     "id": "2026-06-22-03-claude-code-config-tool-params",
     "title": "Two Claude Code Config Tricks You Probably Missed: /config from the Prompt and Tool(param:value) Scoping",
     "excerpt": "v2.1.181 lets you set any Claude Code option from the prompt with /config key=value; v2.1.178 added Tool(param:value) permission rules to scope by parameter value, not just tool name.",
