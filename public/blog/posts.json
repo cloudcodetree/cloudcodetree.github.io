@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-06-23-05-claude-code-action-github-pr-automation",
+    "title": "Add @claude to GitHub PRs in 3 Minutes with claude-code-action@v1",
+    "excerpt": "anthropics/claude-code-action@v1: run /install-github-app, add ANTHROPIC_API_KEY as a repo secret, copy one workflow YAML — then @claude in any PR comment triggers a full Claude Code agent run.",
+    "author": "Chris Harper",
+    "date": "06-23-2026",
+    "publishedAt": "2026-06-23T18:17:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-23-05-claude-code-action-github-pr-automation.jpg",
+    "imageSource": "https://code.claude.com/docs/en/github-actions",
+    "content": "**TL;DR: `anthropics/claude-code-action@v1` puts Claude Code into GitHub Actions in 3 steps — one slash command, one secret, one YAML file — then `@claude fix this` in any PR comment triggers a full agent run.**\n\nThe [official Claude Code GitHub Action](https://github.com/anthropics/claude-code-action) runs the full Claude Code runtime inside GitHub Actions — the same agentic engine you use in your terminal, with access to your repo, your CLAUDE.md, and all of Claude's tools.\n\n## Setup: 3 steps\n\n**Step 1.** From your Claude Code session in the terminal:\n```\n/install-github-app\n```\nThis installs the GitHub App to your repo (it needs write access to Contents, Issues, and Pull requests) and guides you through adding `ANTHROPIC_API_KEY` to your repo secrets.\n\n**Step 2.** Copy the workflow into `.github/workflows/claude.yml`:\n\n```yaml\nname: Claude Code\non:\n  issue_comment:\n    types: [created]\n  pull_request_review_comment:\n    types: [created]\njobs:\n  claude:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n```\n\n**Step 3.** Test it: in any PR, comment `@claude explain what this PR does`.\n\n## Three patterns worth setting up\n\n**On-demand.** The basic pattern above. Comment `@claude implement the feature described in this issue`, `@claude fix the TypeError in UserDashboard.tsx`, or `@claude add test coverage for this function` — Claude reads the diff, writes code, commits. It follows your CLAUDE.md rules and test requirements.\n\n**Automatic code review.** Trigger on `pull_request` events using Anthropic's `code-review` plugin:\n\n```yaml\non:\n  pull_request:\n    types: [opened, synchronize]\njobs:\n  review:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n          plugin_marketplaces: \"https://github.com/anthropics/claude-code.git\"\n          plugins: \"code-review@claude-code-plugins\"\n          prompt: \"/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}\"\n```\n\n**Scheduled automation.** Run Claude on a cron for daily digests, stale issue triage, or dependency drift checks:\n\n```yaml\non:\n  schedule:\n    - cron: \"0 9 * * *\"\n```\n\n## Cost control\n\nEach run consumes GitHub Actions minutes plus API tokens. Set explicit limits:\n\n```yaml\nclaude_args: \"--max-turns 10 --model claude-sonnet-4-6\"\n```\n\nAdd `timeout-minutes: 10` at the job level. Agentic GitHub Actions runs draw from the separate agentic credit pool (not your subscription limit) on usage-based plans.\n\n**Sources:** [Claude Code GitHub Actions docs](https://code.claude.com/docs/en/github-actions), [anthropics/claude-code-action repository](https://github.com/anthropics/claude-code-action), [GitHub Code Review docs](https://code.claude.com/docs/en/code-review)"
+  },
+  {
+    "id": "2026-06-23-04-claude-tag-slack-enterprise-launch",
+    "title": "Claude Tag Launches in Slack: @Claude Becomes Your Team's Shared AI Teammate",
+    "excerpt": "Anthropic launched Claude Tag today — type @Claude in any Slack thread to summon a shared agentic teammate that reads channels, breaks down tasks, and proactively flags updates for Enterprise and T…",
+    "author": "Chris Harper",
+    "date": "06-23-2026",
+    "publishedAt": "2026-06-23T18:16:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-23-04-claude-tag-slack-enterprise-launch.jpg",
+    "imageSource": "https://techcrunch.com/2026/06/23/anthropics-claude-tag-is-learning-your-company-one-slack-message-at-a-time/",
+    "content": "**TL;DR: Anthropic launched Claude Tag today — @Claude in any Slack thread summons a shared agentic teammate that plans tasks, reads channel context, and proactively flags updates across your whole team.**\n\n**Claude Tag**, now in research preview for Enterprise and Team customers, is Anthropic's first persistent Slack agent. Type `@Claude` in any thread:\n\n- **Execute multi-step tasks independently.** Claude reads the conversation, breaks the request into stages, completes them, and delivers the result to the team — not just to the person who asked.\n- **Proactive monitoring.** Tell Claude to watch a channel and surface posts that match a condition (\"flag anything that touches the payment API\") — it does so without being re-prompted.\n- **Shared identity.** Every member interacts with the same Claude \"identity.\" Half-finished tasks can be handed off; context is shared across the team, not siloed to individuals.\n\nAnthropic says the Claude Code team has used Claude Tag internally all year. It now writes 65% of the product team's code, including most of what built Claude Tag itself.\n\n**Note: June 23 outage.** Earlier today the API, Claude.ai, Claude Code, and Claude Cowork experienced two 529-error (overloaded) incidents, peaking at 8,000+ Downdetector reports. Both were resolved within an hour; Anthropic has not published a root-cause analysis.\n\n**Why it matters:** Claude Tag is Anthropic's push to make Claude a visible team participant in the tool every engineering team already lives in — not just a terminal tool for individuals. If your team uses Claude Code, this makes Claude's work visible and handoff-able in Slack without a context switch.\n\n**Sources:** [TechCrunch: Claude Tag](https://techcrunch.com/2026/06/23/anthropics-claude-tag-is-learning-your-company-one-slack-message-at-a-time/), [Fortune: Claude Tag launch](https://fortune.com/2026/06/23/anthropic-claude-tag-virtual-employee-tool-slack/), [Engadget: Claude in Slack](https://www.engadget.com/2199619/anthropic-announces-claude-tag-for-slack/), [Claude status history](https://status.claude.com/history)"
+  },
+  {
+    "id": "2026-06-23-03-embeddings-sentence-transformers-foundations",
+    "title": "What Are Embeddings? From Zero to Semantic Search in 10 Lines of Python",
+    "excerpt": "Embeddings turn text into vectors that capture meaning — 10 lines of Python with sentence-transformers to build semantic search and understand the foundation every RAG system sits on.",
+    "author": "Chris Harper",
+    "date": "06-23-2026",
+    "publishedAt": "2026-06-23T18:15:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Embeddings",
+      "RAG"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-23-03-embeddings-sentence-transformers-foundations.jpg",
+    "imageSource": "https://huggingface.co/blog/getting-started-with-embeddings",
+    "content": "**TL;DR: Embeddings convert text to vectors where meaning is distance — two lines of Python with sentence-transformers produce numbers you can use for search, RAG, and AI memory.**\n\n**What you'll be able to do after this:**\n- Generate semantic embeddings from any text with three lines of Python using a pretrained model\n- Find the most similar document to a query using cosine similarity — the core of every RAG pipeline\n- Understand the vector space model that underpins RAG, semantic search, and AI memory\n\nBefore you can build RAG, before a vector database makes sense, before you can evaluate retrieval quality — you need to understand what an embedding is and how to generate one.\n\n**What an embedding is.** The text `\"The weather is lovely today\"` becomes a list of 384 floating-point numbers. Two sentences with similar *meaning* end up as vectors geometrically close in that 384-dimensional space — even with no shared words. `\"It's so sunny outside!\"` is a neighbor; `\"She drove to the stadium.\"` is far away.\n\n**The 10-line walkthrough.** Using the [sentence-transformers](https://www.sbert.net/) library:\n\n```bash\npip install -U sentence-transformers\n```\n\n```python\nfrom sentence_transformers import SentenceTransformer, util\n\nmodel = SentenceTransformer(\"all-MiniLM-L6-v2\")\n\nsentences = [\n    \"The weather is lovely today\",\n    \"It's so sunny outside!\",\n    \"She drove to the stadium.\"\n]\n\nembeddings = model.encode(sentences)\nprint(embeddings.shape)  # (3, 384)\n\nsimilarities = util.cos_sim(embeddings, embeddings)\n# sentences 0 and 1 score ~0.7+; sentence 2 scores ~0.2 against both\n```\n\nThat similarity computation is literally how RAG retrieval works: embed your query, embed your documents, return the ones with highest cosine similarity.\n\n**Run it now.** HuggingFace's [\"Getting Started With Embeddings\"](https://huggingface.co/blog/getting-started-with-embeddings) blog walks through a real-world semantic search over a Medicare FAQ dataset — with a [Colab notebook](https://colab.research.google.com/github/huggingface/blog/blob/main/notebooks/80_getting_started_with_embeddings.ipynb) you can open and run immediately. Start with `all-MiniLM-L6-v2` (fast, light, general-purpose); move to `all-mpnet-base-v2` for better quality on more demanding tasks. Over 10,000 pretrained models are on the [sentence-transformers HuggingFace page](https://huggingface.co/sentence-transformers) — many optimized for code, multilingual text, or long documents.\n\n**Where this leads.** Once you can generate embeddings and compute similarity, every subsequent RAG concept clicks: chunking is about what unit you embed, pgvector/Chroma/FAISS store the resulting vectors, retrieval is the cosine search you just ran, and reranking is a second pass on the top-k results. This 10-line example is the foundation.\n\n**Sources:** [Sentence Transformers official docs (sbert.net)](https://www.sbert.net/), [HuggingFace: Getting Started With Embeddings](https://huggingface.co/blog/getting-started-with-embeddings), [Colab notebook](https://colab.research.google.com/github/huggingface/blog/blob/main/notebooks/80_getting_started_with_embeddings.ipynb), [sentence-transformers on HuggingFace Hub](https://huggingface.co/sentence-transformers)"
+  },
+  {
     "id": "2026-06-23-02-vscode-1126-agent-approval-token",
     "title": "VS Code 1.126: Control Whether Your Agent Skips Approval Prompts, Plus Session-Level Token Usage",
     "excerpt": "VS Code 1.126 (June 22) adds a bypass-approval toggle for agents, session-level token usage with cache hit rate, and deprecates the built-in chat Edit mode.",
