@@ -1,5 +1,41 @@
 [
   {
+    "id": "2026-06-23-02-vscode-1126-agent-approval-token",
+    "title": "VS Code 1.126: Control Whether Your Agent Skips Approval Prompts, Plus Session-Level Token Usage",
+    "excerpt": "VS Code 1.126 (June 22) adds a bypass-approval toggle for agents, session-level token usage with cache hit rate, and deprecates the built-in chat Edit mode.",
+    "author": "Chris Harper",
+    "date": "06-23-2026",
+    "publishedAt": "2026-06-23T12:07:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.visualstudio.com/updates/v1_126",
+    "content": "**TL;DR: VS Code 1.126 adds per-session token usage with cache hit rate, a bypass-approval toggle for agents, and deprecates the built-in chat Edit mode.**\n\nVS Code 1.126 shipped June 22 with several quality-of-life improvements for AI-assisted development.\n\n**Agent bypass-approval control.** A new setting lets you decide whether an agent can skip tool approval prompts entirely. If you've been finding the per-action confirmation loop too disruptive, you can now unlock bypass — or lock it down explicitly if you want the prompts always.\n\n**Session-level token usage.** Chat sessions now surface total token consumption for the session, including cache hit rate. Useful for understanding how much prompt caching is actually saving you, and for keeping AI-assisted work within cost targets when using metered models.\n\n**Unified model customization picker.** Context window and reasoning effort controls are merged into a single model picker — less clutter when swapping configurations mid-session.\n\n**Edit mode deprecated.** The built-in chat Edit mode is deprecated in favor of the Agents window. If you were still using Edit mode for targeted file rewrites, now is the time to migrate your workflow to Agents.\n\n**PR activity in chat.** CI failure and comment indicators (via codicons) now appear directly in the chat session list so you can see PR health without leaving the editor.\n\n**Why it matters:** The bypass-approval toggle and session token reporting are the two changes most worth configuring now — together they give you better control over both agentic autonomy and cost visibility in a single release.\n\n**Sources:** [VS Code 1.126 release notes](https://code.visualstudio.com/updates/v1_126), [VS Code on X](https://x.com/code)"
+  },
+  {
+    "id": "2026-06-23-01-claude-code-2186-mcp-auth-bash",
+    "title": "Claude Code v2.1.186: MCP CLI Auth, Bash Auto-Response, and a Critical Subagent Permission Fix",
+    "excerpt": "v2.1.186 (June 22) adds claude mcp login/logout for CLI-based MCP auth, bash output auto-response, and surfaces background subagent permission prompts instead of auto-denying.",
+    "author": "Chris Harper",
+    "date": "06-23-2026",
+    "publishedAt": "2026-06-23T12:06:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Claude Code",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**TL;DR: Claude Code v2.1.186 adds CLI MCP auth, bash auto-response, and stops silently denying background subagent permission prompts.**\n\nThree meaningful changes in the June 22 v2.1.186 release:\n\n**`claude mcp login` / `claude mcp logout`.** Authenticate MCP servers directly from the CLI without opening the `/mcp` menu. Pass `--no-browser` for headless or SSH environments — useful when the MCP server needs an OAuth flow but you're on a remote box.\n\n**Bash auto-response.** `!`-prefixed bash commands now automatically trigger a Claude response after the command runs — no manual prompt needed to continue the workflow. Opt out per-project with `\"respondToBashCommands\": false` in settings if you prefer the old behavior.\n\n**Background subagent permission surfacing.** Previously, when a subagent running in the background hit a permission prompt it couldn't auto-approve, it would silently deny and continue (or fail). Now those prompts surface in the main session so you can approve or deny them explicitly. This is a significant UX fix for anyone running unattended or scheduled subagent tasks — jobs were likely failing silently before.\n\nAlso fixed: streaming \"Content block not found\" errors after a machine went to sleep and woke up mid-session. And `/review <pr>` now uses the same engine as `/code-review medium`, so review quality is consistent across both entry points.\n\n**Why it matters:** The subagent permission fix alone is worth updating for — if you run background agents that shell out or call external tools, they were probably auto-denying permissions and you didn't know.\n\n**Sources:** [Claude Code changelog](https://code.claude.com/docs/en/changelog), [Releasebot claude-code](https://releasebot.io/updates/anthropic/claude-code), [ClaudeCodeLog on X](https://x.com/ClaudeCodeLog/status/2069162080393973775)"
+  },
+  {
     "id": "2026-06-22-05-claude-design-code-sync",
     "title": "Close the Design-to-Code Gap: /design-sync Links Claude Design to Claude Code",
     "excerpt": "Claude Design's June 17 overhaul adds /design-sync for bidirectional Code sync — designs start from real components, handoff skips the screenshot-to-rebuild loop.",
