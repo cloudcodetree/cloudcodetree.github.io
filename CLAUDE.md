@@ -247,12 +247,15 @@ See the **Blog ("AI News")** section below — posts live inline in
 
 ## Navigation Structure
 
+Nav (`app/components/ClientLayout.tsx`) is **AI News · Tutorials · About**.
+
 **Current Active Routes**:
-- `/` - HomePage (Hero, Skills, Services)
-- `/resume` - ResumePage (Interactive resume with multiple format downloads)
-- `/ai-news` (+ `/ai-news/<id>`) - AI News blog
-- `/contact` - ContactPage (Contact form and professional info)
-- `/schedule` - SchedulePage (Calendly integration)
+- `/` - **AI News blog** (the home/front door; `BlogPage`)
+- `/ai-news/` - preserved legacy list (canonical → `/`); articles live at `/ai-news/<id>`
+- `/tutorials` (+ `/tutorials/<slug>`) - hand-authored **MDX** tutorials (see Tutorials below)
+- `/about` - the former home page, toned down (`HomePage`); the personal/portfolio hub
+- `/about/resume`, `/about/contact`, `/about/schedule` - personal sub-routes
+- `/resume`, `/contact`, `/schedule` - redirect stubs → the `/about/*` versions
 
 **Available but not in nav**: `/projects` - ProjectsPage (implemented; enable by
 adding it to the nav arrays in `app/components/ClientLayout.tsx`).
@@ -337,6 +340,30 @@ launchd-watcher pipeline was removed in June 2026 — see git history for
 or the `/publish-post` command.
 
 Validate anytime with `node scripts/validate-blog.mjs` (CI and a hook run this too).
+The `rehost-images` CI job also runs `node scripts/validate-research-log.mjs`,
+which fails the build if a routine run's research log claims posts that aren't in
+`content/feed.xml` (guards the "log says published, content missing" bug).
+
+## Tutorials (hand-authored, separate from the blog)
+
+`/tutorials` is a **hand-written, interactive** learning section, fully decoupled
+from the auto-generated AI News blog. **Full convention + how-to:
+`docs/tutorials-playbook.md`** — read that before adding one. In short:
+
+- Tutorials are **MDX** files at `app/tutorials/(article)/<slug>/page.mdx` (via
+  `@next/mdx`; `pageExtensions` includes `mdx`; root `mdx-components.tsx` exposes
+  custom components like `<Callout>` from `app/components/mdx/`). List metadata
+  lives in `app/tutorials/manifest.ts`; the list UI (`TutorialsList`, cards/list +
+  topic filter + per-page) mirrors the blog. `app/tutorials/layout.tsx` adds site
+  chrome; `app/tutorials/(article)/layout.tsx` styles the MDX + back link.
+- Each tutorial has a **companion code repo** `github.com/cloudcodetree/tutorial-<slug>`
+  (public) where the build is a **step-by-step git-tag progression** (`step-01`,
+  `step-02`, …; `main` = final) so learners can check out or diff any step. The
+  MDX links the repo + per-step compare URLs.
+- Scaffold a new companion repo with
+  `node scripts/new-tutorial-repo.mjs <slug> --title "…" [--create-remote]`.
+- First tutorial: `build-a-rag-over-your-blog` (repo: `tutorial-rag-over-blog`).
+- `scripts/generate-feeds.mjs` auto-discovers tutorial slugs for the sitemap.
 
 ## Claude Code Tooling
 
