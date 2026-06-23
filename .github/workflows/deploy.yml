@@ -104,6 +104,9 @@ jobs:
     - name: Validate blog index
       run: node scripts/validate-blog.mjs
 
+    - name: Validate research log ↔ feed consistency
+      run: node scripts/validate-research-log.mjs
+
     - name: Build
       run: pnpm run build
 
