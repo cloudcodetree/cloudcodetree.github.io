@@ -35,4 +35,14 @@ export const tutorials: Tutorial[] = [
     order: 2,
     readTime: 10,
   },
+  {
+    slug: 'chunking-strategies-for-rag',
+    title: 'Chunking Strategies for RAG',
+    excerpt:
+      'Chunking is the biggest lever on RAG quality. Compare whole-document, fixed-size, and paragraph-aware+overlap chunking on the same query — with real numbers.',
+    date: '06-23-2026',
+    tags: ['Tutorial', 'RAG', 'Python'],
+    order: 3,
+    readTime: 9,
+  },
 ];

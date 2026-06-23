@@ -1,0 +1,103 @@
+export const metadata = {
+  title: 'Chunking Strategies for RAG · Tutorials',
+  description:
+    'Chunking is the biggest lever on RAG quality. Compare whole-document, fixed-size, and paragraph-aware+overlap chunking on the same corpus — tested, with real numbers.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/chunking-strategies-for-rag/' },
+  openGraph: {
+    title: 'Chunking Strategies for RAG',
+    description: 'How splitting documents into passages makes or breaks retrieval.',
+    url: 'https://cloudcodetree.com/tutorials/chunking-strategies-for-rag/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+  },
+};
+
+# Chunking Strategies for RAG
+
+**TL;DR: How you split documents into passages is the single biggest lever on RAG quality. Compare three strategies on the same query and watch retrieval get sharper.**
+
+Embeddings and a vector DB get you retrieval; **chunking** decides what you retrieve. Too coarse and you match a whole document instead of the passage that answers the question. Too fine and a chunk loses its context. Here we run the same query against three chunkings of the same corpus and watch the top result improve.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-chunking-strategies-for-rag](https://github.com/cloudcodetree/tutorial-chunking-strategies-for-rag).
+Each strategy is a git tag — `git checkout step-01`, `step-02`, `step-03` — or [diff what each adds](https://github.com/cloudcodetree/tutorial-chunking-strategies-for-rag#steps-and-what-each-adds).
+</Callout>
+
+## What you'll be able to do after this
+
+- See *why* chunk size and boundaries change which passage wins retrieval.
+- Implement paragraph-aware chunking with overlap (a solid default for prose).
+- Reason about the size/precision trade-off for your own documents.
+
+The test query throughout: **"how big should a chunk be?"** — the answer lives in one specific paragraph of one document.
+
+## Step 1 — whole document (one chunk per doc)
+
+```python
+def chunk(text: str) -> list[str]:
+    return [text]   # the whole document is one chunk
+```
+
+```
+3 chunks. Top matches:
+[0.710] Retrieval Augmented Generation: RAG grounds a model's answer in your own documents…
+```
+
+It finds the right *document*, but the matched text is the generic intro — the whole doc is one fuzzy vector, so the specific answer is diluted.
+
+## Step 2 — fixed-size word windows
+
+```python
+CHUNK_WORDS = 60
+def chunk(text: str) -> list[str]:
+    words = text.split()
+    return [" ".join(words[i:i+CHUNK_WORDS]) for i in range(0, len(words), CHUNK_WORDS)]
+```
+
+```
+6 chunks. Top matches:
+[0.676] Retrieval Augmented Generation: RAG grounds a model's answer…
+[0.636] Retrieval Augmented Generation: the surrounding meaning and answers fragment. A good default is a few…
+```
+
+Now passages compete, and the chunk that actually discusses sizing surfaces — but a hard word count can slice mid-sentence (note the chunk *starting* mid-thought).
+
+## Step 3 — paragraph-aware windows with overlap
+
+Respect paragraph boundaries, pack to a word budget, carry one paragraph of overlap:
+
+```python
+def chunk(text: str, target_words: int = 60) -> list[str]:
+    paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+    chunks, cur, count = [], [], 0
+    for para in paras:
+        w = len(para.split())
+        if count + w > target_words and cur:
+            chunks.append(" ".join(cur)); cur = cur[-1:]; count = len(cur[0].split())
+        cur.append(para); count += w
+    if cur:
+        chunks.append(" ".join(cur))
+    return chunks
+```
+
+```
+7 chunks. Top matches:
+[0.726] Retrieval Augmented Generation: Chunking is the step that decides what a passage is. If chunks are too…
+```
+
+The top hit is now **exactly** the passage that answers the question, and at a higher score (0.726) than any previous strategy. Same corpus, same query, same model — only the chunking changed.
+
+<Callout tone="note">
+**There's no universal best chunk size.** It depends on your documents and queries. The reliable move is to make chunking a knob you can turn and measure — which is what the [evaluation tutorial](/tutorials/) sets up. Paragraph-aware + small overlap is a strong default for prose; code and tables often want structure-aware splitting instead.
+</Callout>
+
+## Where this goes next
+
+- **Hybrid search** — combine keyword matching with vectors so exact terms (names, error codes) aren't missed.
+- **Reranking** — a second model re-scores the top chunks for precision.
+- **Evaluation** — measure retrieval so "is this chunking better?" stops being a guess.
+
+---
+
+*Sources: [sentence-transformers](https://www.sbert.net/) · [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5)*
