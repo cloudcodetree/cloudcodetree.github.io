@@ -4,6 +4,8 @@ const nextConfig = {
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
   distDir: 'out',
+  // Let .mdx files under app/ be pages (hand-authored tutorials).
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'mdx'],
   images: {
     unoptimized: true
   },
@@ -31,4 +33,7 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+const createMDX = require('@next/mdx').default ?? require('@next/mdx');
+const withMDX = createMDX({ extension: /\.mdx?$/ });
+
+module.exports = withMDX(nextConfig);

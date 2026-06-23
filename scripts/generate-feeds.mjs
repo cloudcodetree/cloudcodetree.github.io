@@ -24,7 +24,7 @@
  */
 
 import { readFile, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -132,8 +132,16 @@ ${rssItems}
   // --- sitemap.xml -----------------------------------------------------------
   const iso = (d) => d.toISOString().slice(0, 10);
   const newest = items.length ? iso(items.map((it) => it.date).sort((a, b) => b - a)[0]) : iso(new Date());
+  // Hand-authored tutorial slugs, discovered from app/tutorials/(article)/*/.
+  const articleDir = path.join(ROOT, 'app', 'tutorials', '(article)');
+  const tutorialSlugs = existsSync(articleDir)
+    ? readdirSync(articleDir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name)
+    : [];
+
   const staticRoutes = [
     { loc: `${SITE}/`, lastmod: newest, priority: '1.0' }, // home = AI News blog
+    { loc: `${SITE}/tutorials/`, priority: '0.8' },
+    ...tutorialSlugs.map((s) => ({ loc: `${SITE}/tutorials/${s}/`, priority: '0.7' })),
     { loc: `${SITE}/about/`, priority: '0.7' },
     { loc: `${SITE}/about/resume/`, priority: '0.6' },
     { loc: `${SITE}/about/contact/`, priority: '0.4' },

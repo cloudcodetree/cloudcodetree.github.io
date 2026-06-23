@@ -23,12 +23,14 @@ import {
   Menu as MenuIcon,
   Close as CloseIcon,
   Article as ArticleIcon,
+  School as SchoolIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
   { name: 'AI News', path: '/', icon: ArticleIcon },
+  { name: 'Tutorials', path: '/tutorials', icon: SchoolIcon },
   { name: 'About', path: '/about', icon: PersonIcon },
 ];
 

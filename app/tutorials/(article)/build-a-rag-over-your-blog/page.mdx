@@ -1,0 +1,156 @@
+export const metadata = {
+  title: 'Build a RAG Pipeline Over Your Own Blog · Tutorials',
+  description:
+    'Your first hands-on AI-engineering project: retrieve answers from your own posts with embeddings + cosine search — no vector DB, no API key, ~60 lines of Python.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/build-a-rag-over-your-blog/' },
+  openGraph: {
+    title: 'Build a RAG Pipeline Over Your Own Blog',
+    description: 'Retrieval-Augmented Generation from scratch, over a corpus you actually understand.',
+    url: 'https://cloudcodetree.com/tutorials/build-a-rag-over-your-blog/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+  },
+};
+
+# Build a RAG Pipeline Over Your Own Blog
+
+**TL;DR: Retrieval-Augmented Generation (RAG) in ~60 lines of Python — embed your posts, find the most relevant passages by meaning, and feed them to an LLM. No vector database, no API key.**
+
+This is the best first project for getting into AI engineering, because you run it on a corpus *you* understand. Every retrieval result is something you can sanity-check ("did it pull the right post?"), so you build intuition for the two things that actually make RAG good — chunking and embeddings — fast.
+
+<Callout tone="note">
+**RAG for knowledge, fine-tuning for behavior.** RAG doesn't change the model; it changes what the model *sees* at answer time. Use it to ground answers in private or up-to-date facts. Reach for fine-tuning only to change *how* the model responds.
+</Callout>
+
+## What you'll be able to do after this
+
+- Explain the full RAG loop — embed → retrieve → augment → generate — and where each piece lives.
+- Run semantic search over any folder of text and see *why* a result ranked where it did.
+- Know the two highest-leverage knobs (chunking and the prompt) and how to tune them.
+
+## The mental model
+
+```
+question ──embed──► vector
+posts ──chunk──► embed ──► vectors ──cosine similarity──► top-K chunks
+top-K chunks + question ──► prompt ──► LLM ──► grounded answer
+```
+
+**Embeddings** turn text into vectors where similar *meaning* lands nearby — so "how do I cancel?" matches "refund policy" with no shared words. **Cosine similarity** ranks your chunks against the question. That's retrieval; the LLM step just answers from what you retrieved.
+
+## Setup
+
+```bash
+mkdir rag-over-blog && cd rag-over-blog
+python3 -m venv .venv && source .venv/bin/activate
+pip install "sentence-transformers>=3.0" "numpy>=1.26"
+```
+
+We use `sentence-transformers` for embeddings and plain `numpy` for similarity — no vector database yet, so the fundamentals stay visible. Point `POSTS` at any JSON array of `{ "title", "content" }` objects (your blog export works directly).
+
+## Step 1 — the retrieval loop (provided)
+
+```python
+import json, sys, pathlib
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+POSTS = pathlib.Path("posts.json")
+MODEL = "BAAI/bge-small-en-v1.5"   # small, fast, strong; downloads once
+TOP_K = 5
+
+def main():
+    question = " ".join(sys.argv[1:]) or input("Ask: ")
+    model = SentenceTransformer(MODEL)
+
+    posts = json.loads(POSTS.read_text())
+    items = []  # (chunk, title)
+    for p in posts:
+        for c in chunk_text(p.get("content") or ""):
+            if c.strip():
+                items.append((c, p.get("title", "")))
+
+    texts = [c for c, _ in items]
+    emb = model.encode(texts, normalize_embeddings=True)   # matrix of unit vectors
+    q = model.encode([question], normalize_embeddings=True)[0]
+    scores = emb @ q                                        # cosine (vectors normalized)
+    top = np.argsort(scores)[::-1][:TOP_K]
+
+    for rank, i in enumerate(top, 1):
+        print(f"[{rank}] {scores[i]:.3f}  {items[i][1]}")
+    print(build_prompt(question, [texts[i] for i in top]))
+```
+
+Two functions are deliberately left to you — they're the decisions that shape quality.
+
+## Step 2 — chunking (you write this)
+
+How you split posts into retrieval units matters more than anything else: too big and retrieval is imprecise; too small and chunks lose context.
+
+```python
+import re
+
+def chunk_text(text: str, target_words: int = 180) -> list[str]:
+    paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+    chunks, cur, count = [], [], 0
+    for para in paras:
+        w = len(para.split())
+        if count + w > target_words and cur:
+            chunks.append("\n\n".join(cur))
+            cur = cur[-1:]           # 1-paragraph overlap so ideas aren't split
+            count = len(cur[0].split())
+        cur.append(para); count += w
+    if cur:
+        chunks.append("\n\n".join(cur))
+    return chunks
+```
+
+<Callout tone="tip">
+Run it, look at the retrieved chunks, then change `target_words` to **80** and **300** and re-run the same query. Watching the scores and which passages win is how chunking intuition actually forms.
+</Callout>
+
+## Step 3 — the prompt (you write this)
+
+This is the "Augmented" in RAG: make the model answer *from your chunks*, and admit when they don't contain the answer (which is what prevents hallucination).
+
+```python
+def build_prompt(question: str, chunks: list[str]) -> str:
+    context = "\n\n".join(f"[{i}] {c}" for i, c in enumerate(chunks, 1))
+    return (
+        "Answer using ONLY the numbered context below. Cite chunks like [1], [2]. "
+        'If the context lacks the answer, say "I don\'t know from these sources."\n\n'
+        f"Context:\n{context}\n\nQuestion: {question}\n\nAnswer:"
+    )
+```
+
+## Step 4 — run it
+
+```bash
+python rag.py "what is the writer/reviewer pattern?"
+```
+
+Real output over this very blog:
+
+```
+[1] 0.761  The Writer/Reviewer Pattern: Why One Claude Session Can't Check Its Own Work
+[2] 0.704  The Writer/Reviewer Pattern: ...
+[3] 0.694  The Writer/Reviewer Pattern: ...
+[4] 0.685  The "tasks as issues" pattern ...
+[5] 0.670  Make evaluation a repeatable loop ...
+```
+
+The top three hits are the exact post that answers the question — found by *meaning*, not keywords. Notice the same post appears as several chunks with different scores: that's `chunk_text` doing its job, surfacing the specific passages that match.
+
+Want a written answer, not just a ranked list? Install [Ollama](https://ollama.com), `ollama pull llama3.1`, and POST the prompt to `http://localhost:11434/api/generate` — free, local, no API key.
+
+## Where this goes next
+
+- **Swap numpy for a real vector store** (Chroma or Supabase/pgvector) so you don't re-embed every run.
+- **Improve retrieval:** hybrid (keyword + vector) search, then a reranker.
+- **Evaluate** retrieval quality and answer groundedness instead of eyeballing.
+
+Each of those is its own upcoming tutorial. The rule to carry forward: **retrieve for facts, fine-tune for behavior.**
+
+---
+
+*Sources: [sentence-transformers](https://www.sbert.net/) · [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) · [Ollama](https://ollama.com)*
