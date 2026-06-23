@@ -25,4 +25,14 @@ export const tutorials: Tutorial[] = [
     order: 1,
     readTime: 12,
   },
+  {
+    slug: 'vector-database-for-rag',
+    title: 'Give Your RAG a Vector Database',
+    excerpt:
+      'Move from in-memory numpy to Chroma: embed once, persist to disk, query fast, and filter by metadata. The next step after the RAG intro.',
+    date: '06-23-2026',
+    tags: ['Tutorial', 'RAG', 'Vectors', 'Python'],
+    order: 2,
+    readTime: 10,
+  },
 ];

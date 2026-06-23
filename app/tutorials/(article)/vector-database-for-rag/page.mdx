@@ -1,0 +1,118 @@
+export const metadata = {
+  title: 'Give Your RAG a Vector Database · Tutorials',
+  description:
+    'Move your RAG from in-memory numpy to a real vector database (Chroma): embed once, persist to disk, query fast, and filter by metadata — tested, ~50 lines.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/vector-database-for-rag/' },
+  openGraph: {
+    title: 'Give Your RAG a Vector Database',
+    description: 'Persist embeddings, query fast, and filter by metadata with Chroma.',
+    url: 'https://cloudcodetree.com/tutorials/vector-database-for-rag/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+  },
+};
+
+# Give Your RAG a Vector Database
+
+**TL;DR: The intro RAG re-embedded every post on every run and searched with numpy. Swap that for Chroma — embed once, persist to disk, query fast, filter by metadata.**
+
+In [Build a RAG Pipeline Over Your Own Blog](/tutorials/build-a-rag-over-your-blog/) you held all the vectors in a numpy array and recomputed them every run. That's perfect for learning and fine for a few hundred chunks — but it doesn't persist, doesn't scale, and can't filter. A **vector database** fixes all three. We'll use [Chroma](https://www.trychroma.com/): a local-first vector DB that's a `pip install`.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-vector-database-for-rag](https://github.com/cloudcodetree/tutorial-vector-database-for-rag).
+Each step is a git tag — `git checkout step-01`, then `step-02`, `step-03` — or [diff what each step adds](https://github.com/cloudcodetree/tutorial-vector-database-for-rag#steps-and-what-each-adds).
+</Callout>
+
+## What you'll be able to do after this
+
+- Persist embeddings so you embed your corpus **once**, not on every run.
+- Query a Chroma collection and read cosine similarity scores correctly.
+- Attach metadata to vectors and run **filtered** searches (`where=`).
+
+## Step 1 — the baseline (and its problem)
+
+The numpy approach: embed everything, every run.
+
+```python
+emb = model.encode([p["content"] for p in posts], normalize_embeddings=True)
+q = model.encode(question, normalize_embeddings=True)
+scores = emb @ q                       # cosine, in memory
+```
+
+Re-embedding 5 posts is instant; re-embedding 5,000 on every query is not — and when the process exits, the vectors are gone. We want them on disk.
+
+## Step 2 — persist in a Chroma collection
+
+Embed once into a **persistent** collection; later runs reuse it.
+
+```python
+import chromadb
+from sentence_transformers import SentenceTransformer
+
+DB = "./chroma"   # persists to disk between runs
+
+def get_collection(model):
+    client = chromadb.PersistentClient(path=DB)
+    # cosine, so distances are meaningful similarity scores
+    col = client.get_or_create_collection("posts", metadata={"hnsw:space": "cosine"})
+    if col.count() == 0:                       # first run only
+        posts = json.loads(POSTS.read_text())
+        col.add(
+            ids=[p["id"] for p in posts],
+            documents=[p["content"] for p in posts],
+            embeddings=[model.encode(p["content"], normalize_embeddings=True).tolist() for p in posts],
+        )
+    return col
+
+res = col.query(query_embeddings=[q], n_results=3)
+```
+
+<Callout tone="note">
+**Set the distance to cosine.** Chroma defaults to L2 (Euclidean). For normalized embeddings you want `metadata={"hnsw:space": "cosine"}` so `1 - distance` is a real 0–1 similarity score. Skip this and your scores look strange (and can go negative).
+</Callout>
+
+Run it twice — the first run indexes, the second reuses the saved index:
+
+```
+$ python rag.py "running agents in parallel with git worktrees"
+Indexed 5 posts into ./chroma/
+
+=== Retrieved from Chroma ===
+[0.750] Parallel Subagents in Git Worktrees
+[0.576] The Writer/Reviewer Pattern
+[0.564] Make Evaluation a Repeatable Loop
+```
+
+The right post wins at 0.75, and nothing re-embeds on the next run.
+
+## Step 3 — metadata + filtered queries
+
+Store metadata next to each vector, then filter — something a flat numpy array can't do cleanly:
+
+```python
+col.add(..., metadatas=[{"title": p["title"], "tag": p["tags"][0]} for p in posts])
+
+res = col.query(query_embeddings=[q], n_results=3, where={"tag": "RAG"})
+```
+
+```
+$ python rag.py --tag RAG "what is retrieval?"
+=== Retrieved from Chroma (filtered to tag=RAG) ===
+[0.237] What Are Embeddings  ·  RAG
+[0.202] RAG vs Fine-Tuning  ·  RAG
+```
+
+Only RAG-tagged posts are searched. Real systems use this constantly — filter by source, date, user, or permission before the vector search.
+
+## Where this goes next
+
+- **[Pinecone](https://www.pinecone.io/) / [pgvector](https://github.com/pgvector/pgvector) (Supabase)** when you outgrow local — same shape: add vectors + metadata, query by similarity.
+- **Better retrieval:** hybrid (keyword + vector) search and reranking — the next tutorials.
+- **Evaluation:** measure whether your retrieval is actually improving.
+
+The rule still holds: **retrieve for knowledge, fine-tune for behavior.**
+
+---
+
+*Sources: [Chroma docs](https://docs.trychroma.com/) · [sentence-transformers](https://www.sbert.net/) · [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5)*
