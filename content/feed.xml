@@ -10,7 +10,185 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 23 Jun 2026 18:17:00 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 23 Jun 2026 21:07:00 GMT</lastBuildDate>
+
+    <item>
+      <title>The Chunking Decision That Makes or Breaks RAG Retrieval Quality</title>
+      <link>https://weaviate.io/blog/chunking-strategies-for-rag</link>
+      <guid isPermaLink="false">2026-06-23-08-document-chunking-rag-strategies</guid>
+      <pubDate>Tue, 23 Jun 2026 21:07:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>Chunk size and strategy determine RAG retrieval quality more than any other parameter. The practical default: recursive 256-512 tokens — then measure before adding complexity.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Chunk size and strategy — not model choice — are the biggest lever on RAG retrieval quality. Start with recursive 256–512 tokens; measure before adding complexity.**
+
+When you add documents to a vector database, you almost never add them whole. A 20-page PDF as a single embedding captures an average of everything — not the specific passage you need at retrieval time. You chunk first so each stored vector represents a coherent, bounded piece of meaning.
+
+## The core parameters
+
+**Chunk size.** 256–512 tokens is the validated starting point for most retrieval tasks. Shorter chunks (128) help factoid queries ("What's the API rate limit?"); longer chunks (1024+) help analytical ones ("Explain how auth works"). Pick one, measure, adjust.
+
+**Overlap.** 10–20% overlap (50–100 tokens on a 512-token chunk) prevents context from being severed at a boundary. However, a January 2026 systematic analysis found no measurable benefit in some retrieval settings — test before assuming the storage cost is worth it.
+
+**Strategy.** Three approaches in order of complexity:
+
+1. **Fixed-size** — split every N characters regardless of sentence structure. Simple baseline, but splits sentences mid-thought.
+2. **Recursive** — respects natural boundaries (paragraph → sentence → character). Preserves coherent meaning. **Use this as your default.**
+3. **Semantic** — clusters adjacent sentences by embedding similarity before finalizing boundaries. Up to ~70% retrieval lift on benchmarks vs naive fixed-split; costs more CPU at indexing time; add it after you've established a baseline.
+
+## Code (LangChain + ChromaDB)
+
+```python
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=512,
+    chunk_overlap=64,
+    separators=["\n\n", "\n", ". ", " ", ""]
+)
+chunks = splitter.split_text(raw_text)
+```
+
+Pass `chunks` directly to `collection.add(documents=chunks, ids=[…])`. Always add a `metadata` dict per chunk with the source file path — this is what lets you surface `[Source: docs.md, section: auth]` citations in your generated answer.
+
+## The rule of thumb
+
+Recursive 256–512 tokens gets you 80% of the way there. The 2026 techniques (contextual retrieval, late chunking, cross-granularity indexing) deliver the remaining lift — but they work *on top of* a well-chunked baseline, not instead of one.
+
+**Sources:** [Weaviate: Chunking Strategies for RAG](https://weaviate.io/blog/chunking-strategies-for-rag), [Firecrawl: Best Chunking Strategies 2026](https://www.firecrawl.dev/blog/best-chunking-strategies-rag), [Unstructured.io: Chunking for RAG Best Practices](https://unstructured.io/blog/chunking-for-rag-best-practices)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Anthropic Starts ID and Age Verification for Claude Subscribers on July 8</title>
+      <link>https://www.biometricupdate.com/202606/update-on-identity-age-verification-for-claude-prompts-user-pushback</link>
+      <guid isPermaLink="false">2026-06-23-07-anthropic-id-verification-july8</guid>
+      <pubDate>Tue, 23 Jun 2026 21:06:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Security</category>
+      <description>Starting July 8, Anthropic can require Claude Free/Pro/Max users to submit a government ID or biometric facial scan. API keys and Enterprise contracts are not affected.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Starting July 8, Anthropic may require Claude Free/Pro/Max subscribers to submit a government ID or biometric facial scan — accounts that refuse risk suspension. API keys and Enterprise contracts are not in scope.**
+
+Under updated privacy terms, Anthropic has reserved the right to demand identity verification from consumer subscribers in unspecified circumstances. Two verification tiers:
+
+- **Age-only checks:** handled by Yoti — returns a pass/fail result only; no ID image or biometric data is passed to Anthropic.
+- **Full identity checks:** handled by Persona Identities — government ID scan plus facial geometry capture. That data goes to Persona; Anthropic acknowledges it "may be considered biometric data in some jurisdictions." Checks have run in limited form since April 14 for select use cases.
+
+What triggers a check isn't disclosed. There's no opt-out. Refusing may result in account suspension.
+
+**Who's affected:** Claude Free, Pro, Max personal accounts. **Not affected:** Claude API keys, Claude for Work/Enterprise contracts.
+
+**Why it matters:** Most developers using Claude professionally work through the API, which isn't in scope. But if your team relies on Claude Pro or Max accounts for day-to-day coding help, flag the July 8 date — a verification prompt may appear without warning.
+
+**Sources:** [Biometric Update](https://www.biometricupdate.com/202606/update-on-identity-age-verification-for-claude-prompts-user-pushback), [TheStreet](https://www.thestreet.com/technology/anthropic-doubles-down-on-safety-claude-id-checks), [The Register](https://www.theregister.com/ai-and-ml/2026/06/15/anthropic-reserves-right-to-check-id-for-claude-subs/5255804), [TechTimes: what data is collected](https://www.techtimes.com/articles/318778/20260621/claude-identity-verification-starts-july-8-what-facial-data-anthropic-collects.htm)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>From Embeddings to Search: Your First Vector Database with ChromaDB</title>
+      <link>https://docs.trychroma.com/docs/overview/getting-started</link>
+      <guid isPermaLink="false">2026-06-23-06-chromadb-vector-database-foundations</guid>
+      <pubDate>Tue, 23 Jun 2026 21:05:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Vectors</category>
+      <category>RAG</category>
+      <description>ChromaDB stores and searches embeddings locally in 4 lines of Python — the missing piece between generating vectors with sentence-transformers and building a working RAG system.</description>
+      <content:encoded><![CDATA[
+**TL;DR: ChromaDB turns your sentence-transformer embeddings into a searchable local database in 4 lines of Python — no server, no cloud account, and one argument change makes it persistent.**
+
+**What you'll be able to do after this:**
+- Create a local vector database, add documents with auto-generated embeddings, and retrieve the most semantically similar results by meaning — in under 20 lines of Python
+- Understand how ChromaDB bridges the gap from "I can generate embeddings" (yesterday's post) to "I can search by meaning at scale"
+- Build the core retrieve-then-generate loop that every RAG application shares
+
+## Why you need a vector database
+
+In the previous tutorial you saw that `sentence-transformers` converts text to 384-dimensional vectors where similarity = meaning. A vector database stores those vectors and runs the similarity search fast — across thousands or millions of documents, in milliseconds. ChromaDB is the fastest path to running one locally.
+
+## Install and run
+
+```bash
+pip install chromadb
+```
+
+```python
+import chromadb
+
+client = chromadb.Client()
+collection = client.create_collection("my_docs")
+
+collection.add(
+    documents=[
+        "Claude Code runs agentic tasks from the terminal",
+        "ChromaDB stores embeddings and runs them locally",
+        "sentence-transformers converts text to vectors",
+        "RAG retrieves relevant context before generating"
+    ],
+    ids=["doc1", "doc2", "doc3", "doc4"]
+)
+
+results = collection.query(
+    query_texts=["how do I generate embeddings?"],
+    n_results=2
+)
+print(results["documents"])
+# [['sentence-transformers converts text to vectors',
+#   'ChromaDB stores embeddings and runs them locally']]
+```
+
+You didn't call an embedding model yourself. Chroma ships with `all-MiniLM-L6-v2` as its default embedding function and runs it at both add and query time. Swap in your own model — or the official integrations for OpenAI, HuggingFace, or Cohere — via the `embedding_function` parameter when you need more control.
+
+## Persist across restarts
+
+```python
+client = chromadb.PersistentClient(path="/tmp/my_chroma")
+```
+
+One argument. Now your entire knowledge base survives restarts and can be loaded by a web server or a CI job.
+
+## Metadata and filtered search
+
+Add a `metadata` dict to each document at index time:
+
+```python
+collection.add(
+    documents=chunks,
+    metadatas=[{"source": "auth-docs.md", "section": "oauth"}, ...],
+    ids=[...]
+)
+```
+
+Query with a filter:
+```python
+results = collection.query(
+    query_texts=["how does token refresh work?"],
+    where={"section": "oauth"},
+    n_results=5
+)
+```
+
+Only documents matching the filter are searched — critical for multi-tenant apps or large knowledge bases with distinct domains.
+
+## The full RAG loop
+
+1. **Index** — chunk your documents (see today's practitioner post on chunking strategies), call `collection.add()` once
+2. **Retrieve** — call `collection.query(query_texts=[user_question], n_results=5)` at runtime
+3. **Generate** — pass the returned `documents` list as context in the Claude messages API
+
+That loop — index once, retrieve at runtime, generate with context — is the pattern every RAG application is built on. ChromaDB handles step 2 completely, and the `metadata` field is what lets you show users `[Source: auth-docs.md]` citations in the answer.
+
+**Sources:** [ChromaDB official docs](https://docs.trychroma.com/), [ChromaDB getting started](https://docs.trychroma.com/docs/overview/getting-started), [DataCamp: Learn How to Use Chroma DB](https://www.datacamp.com/tutorial/chromadb-tutorial-step-by-step-guide)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Add @claude to GitHub PRs in 3 Minutes with claude-code-action@v1</title>
