@@ -66,14 +66,17 @@ what gets written into the feed.
 > folder is connected. Your only output is the feed below — the site ingests it
 > and generates everything else.
 >
-> **Audience (write for this one reader).** A professional software engineer who
-> uses Claude Code daily for real work and needs to stay current on agentic-dev
-> best practices, tooling, and industry news — AND who is a *beginner* at custom
-> models: RAG, knowledge bases, LoRA/fine-tuning, embeddings, vectors, self-hosting,
-> and the surrounding tooling (HuggingFace, Google Colab, Fireworks, Apify,
-> Supabase, Cloudflare, AWS, OpenRouter, Jupyter/notebooks). Practical value for
-> this person beats breadth. When you teach a beginner topic, assume zero prior
-> knowledge and link a real, hands-on resource.
+> **Audience.** Working software engineers leveling up into AI — on two fronts:
+> **(1) agentic AI development** (using Claude Code, agents, subagents, MCP, and
+> modern AI-assisted workflows for real work), and **(2) AI engineering** (building
+> and customizing AI services: RAG, knowledge bases, embeddings/vectors,
+> fine-tuning/LoRA, self-hosting, and the surrounding stack — HuggingFace, Colab,
+> Ollama, Supabase, Cloudflare, OpenRouter, Fireworks, vLLM). They're strong
+> engineers but **beginners at the custom-model side**, so the blog doubles as
+> their **learning center**: a structured, hands-on teachable track (the curriculum
+> below) running every day alongside the news. Practical value beats breadth;
+> assume zero prior knowledge on a new topic and always link a real, runnable
+> resource.
 >
 > **Stop doing all of this:** editing `posts.json`; writing post `.md` files;
 > downloading images. Do not touch `public/`. You write exactly two things:
@@ -104,18 +107,42 @@ what gets written into the feed.
 >    than ~10 days old as if it were new. On a day with no fresh release, write an
 >    evergreen technique (there's always a good one) rather than dredging up a
 >    stale week.
-> 3. **Teachable deep-dives (only when strong material exists — do NOT force one).**
->    A beginner-friendly explainer on a custom-model topic (RAG, knowledge bases,
->    LoRA/fine-tuning, embeddings, vectors, self-hosting, or the tooling above) for
->    a topic not already well covered in the existing feed. Publish one ONLY when
->    your research turns up genuinely good source material — a quality written
->    tutorial, an official doc walkthrough, a notebook, or a **YouTube video**.
->    Format: name **one** concept and link **one** hands-on resource (don't
->    survey five); open with a "**What you'll be able to do after this:**" line,
->    then a 3-bullet takeaway list, then the walk-through. Link the tutorial/video
->    prominently and use its thumbnail (e.g. the YouTube thumbnail) as the item's
->    `<media:content>` image. If nothing strong turns up this run, publish zero —
->    that is correct, not a failure.
+> 3. **Teachable deep-dive (publish one EVERY run — at minimum once per day).**
+>    **This blog is the reader's learning center for building and customizing AI**,
+>    so a teachable post is a co-priority with the practitioner one, not an extra.
+>    Each run, cover the next topic from the **Custom-model curriculum** (below)
+>    that isn't yet well covered in the feed — foundations first. Anchor it to ONE
+>    genuinely good hands-on resource: an official doc/tutorial, a Colab notebook,
+>    or a **YouTube video** (these fundamentals all have excellent free ones —
+>    find the best, don't settle for a thin aggregator post). Format: name **one**
+>    concept, link **one** resource; open with "**What you'll be able to do after
+>    this:**", then a 3-bullet takeaway list, then a concrete walk-through (the
+>    commands/code/steps the reader can actually run). Tag it `Tutorial` + the
+>    topic; use the resource's thumbnail (e.g. the YouTube thumbnail) as the
+>    `<media:content>` image. Only skip if you genuinely cannot find a solid
+>    resource for any uncovered topic — that should be rare, not routine.
+>
+> **Custom-model curriculum (the AI-engineering learning track — work through it,
+> foundations first).** This is the structured path that takes the reader from
+> "software dev who uses Claude Code" to "can build and customize AI services."
+> Each run, pick the next topic NOT yet well covered (check the feed's existing
+> `Tutorial`/topic tags); revisit a topic only to add a distinctly better resource
+> or a deeper follow-up.
+> 1. **Foundations:** what embeddings are & using an embedding model
+>    (sentence-transformers); vector similarity & vector databases
+>    (pgvector/Chroma/FAISS); document chunking; a minimal end-to-end RAG pipeline;
+>    building & maintaining a knowledge base.
+> 2. **Better RAG:** hybrid (keyword+vector) search; reranking; metadata filtering;
+>    evaluating retrieval quality & groundedness; citations.
+> 3. **Fine-tuning:** RAG vs fine-tuning (when each wins); building a dataset;
+>    LoRA explained; QLoRA on a free Colab GPU (Unsloth); evaluating a fine-tune.
+> 4. **Run & serve:** local models with Ollama; quantization (GGUF / 4-bit);
+>    hosted inference & routing (OpenRouter/Fireworks/Together); self-hosting and
+>    serving (vLLM).
+> 5. **Applied / agentic:** tool use & function calling; building MCP servers;
+>    memory & context engineering; evaluation & observability for LLM apps.
+> Feature these tools hands-on: HuggingFace, sentence-transformers, Google Colab,
+> Unsloth, Ollama, Supabase/pgvector, Cloudflare, OpenRouter, Fireworks, vLLM.
 >
 > **Sources to check every run — prefer official/first-party over aggregators.**
 > Scan these for new releases, features, and guides; the audience's most relevant
