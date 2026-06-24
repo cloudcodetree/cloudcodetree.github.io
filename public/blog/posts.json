@@ -1,5 +1,61 @@
 [
   {
+    "id": "2026-06-24-03-claude-code-2187-sandbox-credentials",
+    "title": "Claude Code 2.1.187: Block Credential Leaks in Sandboxes and Lock the Model Picker Org-Wide",
+    "excerpt": "v2.1.187 adds sandbox.credentials to prevent shell commands from reading your API keys and secrets, org-level model restrictions to lock the model picker team-wide, and a critical fix for MCP tool…",
+    "author": "Chris Harper",
+    "date": "06-24-2026",
+    "publishedAt": "2026-06-24T12:07:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Developer Tools",
+      "Security"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**TL;DR: v2.1.187 lands two security controls — `sandbox.credentials` blocks shell commands from reading your API keys and secret env vars, and org model restrictions lock the model picker team-wide — plus a critical fix for MCP tool calls that were silently hanging for 5 minutes.**\n\nReleased June 23, this update has more operational weight than its version number suggests.\n\n## sandbox.credentials — stop shells from reading your secrets\n\nWhen Claude Code spawns bash commands, those subprocesses can inherit your shell's environment — which means your `ANTHROPIC_API_KEY`, `AWS_SECRET_ACCESS_KEY`, `~/.aws/credentials`, and anything else in your env is readable. In automated or multi-agent contexts that's a wider attack surface than most teams realize.\n\nThe new `sandbox.credentials` setting shuts this door. Add it to your project-level settings:\n\n```json\n{\n  \"sandbox\": {\n    \"credentials\": true\n  }\n}\n```\n\nWith this enabled, sandboxed commands can't read credential-shaped env vars or dotfiles. Your agent can still run bash — it just can't leak secrets to whatever it spawns.\n\n## Org model restrictions — lock the picker for your whole team\n\nAdmins can now configure an allowlist of models via organization settings. When a user tries to select a restricted model — via the `/model` picker, `--model` flag, or `ANTHROPIC_MODEL` env var — they see \"restricted by your organization's settings\" instead of silently switching. Useful for enforcing cost caps or approved-model policies across a team.\n\n## Other fixes that matter\n\n- **MCP timeout**: remote MCP tool calls that hung silently for up to 5 minutes now abort immediately with an error. Configurable via `CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT` env var.\n- **Structured output loop**: `--json-schema` and `agent({schema})` no longer let the model re-call `StructuredOutput` after a successful response — follow-up turns reliably return structured output.\n- **JetBrains flickering** in IntelliJ, PyCharm, and WebStorm terminals is fixed.\n- **Mouse click support** in fullscreen mode — permission prompts, `/model`, `/config` menus now respond to clicks.\n- **`/btw` ←/→ arrow navigation** lets you step through earlier answers without retyping.\n\nUpdate with `claude update` or `npm i -g @anthropic-ai/claude-code`.\n\n**Sources:** [Claude Code changelog](https://code.claude.com/docs/en/changelog), [Releasebot Claude Code](https://releasebot.io/updates/anthropic/claude-code)"
+  },
+  {
+    "id": "2026-06-24-02-github-10k-repos-ai-agent-supply-chain",
+    "title": "10,000 Malicious GitHub Repo Clones Have Been Targeting AI Agents for Over a Year",
+    "excerpt": "Thousands of GitHub repositories are near-identical clones with a single README change: a link to a malware-packed ZIP. AI agents that auto-fetch dependencies are the prime attack surface.",
+    "author": "Chris Harper",
+    "date": "06-24-2026",
+    "publishedAt": "2026-06-24T12:06:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Security",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://cybernews.com/security/10k-repos-github-malware-campaign-targets-ai-agents/",
+    "content": "**TL;DR: A researcher mapped 10,000 GitHub repo clones that silently delivered malware via README ZIP links for over a year — with AI agents as the prime target, since they're far more likely than a human to follow a download instruction in a README.**\n\nResearcher \"Orchid\" spent weeks analyzing 16 million GitHub Archive commit events and found a quiet, automated campaign: threat actors clone real repositories with commit history and attribution intact, swap one README link for a pointer to a malicious ZIP archive, and push fresh commits every few hours to appear active. Cloned repos sometimes outrank originals in search results.\n\nThe specific focus on AI agents is the new threat model. A developer browsing GitHub is unlikely to download and run a ZIP from a README. An agent instructed to \"find and set up the library at this GitHub repo\" may do exactly that.\n\n**Defenses for agentic workflows:** Pin exact commit SHAs (not branch names) in any repo your agent clones. Verify the owner/repo path matches your intended source before any `git clone`. Add a tool-use guardrail that refuses to execute downloaded binaries unless they match a known hash or are from a verified registry. GitHub removed the explicitly named repos but hasn't built independent detection for the pattern.\n\n**Why it matters:** Every `git clone` your agent runs is now a supply-chain trust decision — treat it like an `npm install` from an unknown package.\n\n**Sources:** [Cybernews: AI agents targeted](https://cybernews.com/security/10k-repos-github-malware-campaign-targets-ai-agents/), [Orchid original research](https://orchidfiles.com/github-repositories-distributing-malware/), [TechTimes: clone campaign](https://www.techtimes.com/articles/318669/20260618/github-malicious-repositories-10000-trojan-clones-evade-detection-over-year.htm), [ByteIota: audit your dependencies](https://byteiota.com/10000-trojan-github-repos-are-targeting-ai-agents-audit-your-dependencies-now/)"
+  },
+  {
+    "id": "2026-06-24-01-hybrid-search-bm25-vector-rag",
+    "title": "Better RAG: Add Hybrid Search (BM25 + Semantic) to Catch What Vector Search Misses",
+    "excerpt": "Pure vector search fails on product codes, error strings, and exact terms. Hybrid search runs BM25 and semantic search in parallel, merges with Reciprocal Rank Fusion, and is the single biggest qua…",
+    "author": "Chris Harper",
+    "date": "06-24-2026",
+    "publishedAt": "2026-06-24T12:04:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "RAG",
+      "Embeddings",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://machinelearningmastery.com/implementing-hybrid-semantic-lexical-search-in-rag/",
+    "content": "**TL;DR: About 35% of real user queries need exact-match keyword search, not semantic search — hybrid search runs BM25 and vector retrieval in parallel, fuses the ranked lists with Reciprocal Rank Fusion (RRF), and delivers a measurable 7%+ retrieval lift over either method alone.**\n\n**What you'll be able to do after this:**\n- Understand why vector-only RAG fails on product codes, error strings, and proper nouns — and why BM25 fills that gap\n- Implement BM25 + semantic search from scratch with `rank_bm25` + `sentence-transformers` and merge the results with RRF\n- Drop in LangChain's `EnsembleRetriever` as a two-line shortcut when you're already using LangChain\n\n## Why vector-only RAG silently fails\n\nVector embeddings capture *meaning*. They're excellent at \"what's the timeout setting?\" finding a chunk about \"connection wait time\" even when those words never appear together. They're unreliable on `ERR_TLS_CERT_EXPIRED`, a part number like `SKU-8842-B`, or an API endpoint path — because embedding those strings doesn't give the model any semantic intuition about them.\n\nBM25 (Best Match 25) is a term-frequency scoring algorithm — the statistical backbone behind most search engines. It knows nothing about meaning, but it never misses an exact string match.\n\nOn the WANDS e-commerce benchmark, a tuned hybrid setup reached 0.7497 NDCG — a 7.4% lift over BM25 alone (0.6983) or vector alone (0.6953). In practice the gap is most visible on the queries with rare identifiers that make up the long tail of any real corpus.\n\n## How Reciprocal Rank Fusion (RRF) merges the results\n\nRunning both retrievers gives you two independent ranked lists. You can't add BM25 scores to cosine similarity — the units are incompatible. RRF sidesteps this by converting each list to rank-based scores:\n\n```\nRRF_score(doc) = 1 / (k + rank_BM25) + 1 / (k + rank_semantic)\n```\n\nwhere `k = 60` is a stability constant. A document near the top of *both* lists accumulates the highest combined score. One that only appears in one list still contributes. No normalization, no parameter tuning beyond `k`.\n\n## Code: build it from scratch\n\n```python\npip install rank_bm25 sentence-transformers torch\n```\n\n```python\nfrom rank_bm25 import BM25Okapi\nfrom sentence_transformers import SentenceTransformer, util\nimport torch\n\ndocs = [\n    \"Connection timeout default is 30 seconds\",\n    \"Set ANTHROPIC_API_KEY in your environment\",\n    \"ERR_TLS_CERT_EXPIRED means the server certificate has expired\"\n]\n\n# BM25 index\nbm25 = BM25Okapi([d.lower().split() for d in docs])\n\n# Semantic index\nmodel = SentenceTransformer('all-MiniLM-L6-v2')\ndoc_embs = model.encode(docs, convert_to_tensor=True)\n\ndef hybrid_search(query, top_k=3, k=60):\n    # BM25 ranking\n    bm25_ranks = sorted(range(len(docs)),\n                        key=lambda i: bm25.get_scores(query.lower().split())[i],\n                        reverse=True)\n    # Semantic ranking\n    q_emb = model.encode(query, convert_to_tensor=True)\n    sem_ranks = torch.argsort(util.cos_sim(q_emb, doc_embs)[0],\n                              descending=True).tolist()\n    # RRF fusion\n    rrf = {i: 0.0 for i in range(len(docs))}\n    for rank, idx in enumerate(bm25_ranks):\n        rrf[idx] += 1.0 / (k + rank + 1)\n    for rank, idx in enumerate(sem_ranks):\n        rrf[idx] += 1.0 / (k + rank + 1)\n    return sorted(rrf, key=rrf.get, reverse=True)[:top_k]\n\nprint(hybrid_search(\"ERR_TLS_CERT_EXPIRED\"))   # exact match wins\nprint(hybrid_search(\"how long does a connection wait\"))  # semantic wins\n```\n\n## Drop-in shortcut: LangChain EnsembleRetriever\n\nIf you're already on LangChain, `EnsembleRetriever` wires BM25 + FAISS with RRF in a few lines:\n\n```python\nfrom langchain_community.retrievers import BM25Retriever\nfrom langchain_community.vectorstores import FAISS\nfrom langchain.retrievers import EnsembleRetriever\n\nbm25_r = BM25Retriever.from_texts(docs); bm25_r.k = 4\nfaiss_r = FAISS.from_texts(docs, embedding=your_embeddings).as_retriever(search_kwargs={\"k\": 4})\n\nhybrid = EnsembleRetriever(retrievers=[bm25_r, faiss_r], weights=[0.4, 0.6])\nresults = hybrid.invoke(\"ERR_TLS_CERT_EXPIRED\")\n```\n\n`weights=[0.4, 0.6]` leans semantic — a good starting point. Move toward `[0.5, 0.5]` if your users frequently search by exact identifiers. Weaviate, Pinecone, and pgvector all offer native hybrid search with the same alpha-parameter tuning when you're ready to move off in-memory retrieval.\n\n**Sources:** [MachineLearningMastery: Implementing Hybrid Semantic-Lexical Search in RAG](https://machinelearningmastery.com/implementing-hybrid-semantic-lexical-search-in-rag/), [Weaviate: Hybrid Search Explained](https://weaviate.io/blog/hybrid-search-explained), [LangChain EnsembleRetriever tutorial](https://www.youtube.com/watch?v=jJFhajY47jo)"
+  },
+  {
     "id": "2026-06-23-08-document-chunking-rag-strategies",
     "title": "The Chunking Decision That Makes or Breaks RAG Retrieval Quality",
     "excerpt": "Chunk size and strategy determine RAG retrieval quality more than any other parameter. The practical default: recursive 256-512 tokens — then measure before adding complexity.",
