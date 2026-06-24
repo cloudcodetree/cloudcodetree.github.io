@@ -1,0 +1,131 @@
+export const metadata = {
+  title: 'Evaluating RAG · Tutorials',
+  description:
+    'Stop guessing whether a change helped. Build a golden query set and score retrieval with Hit@k and MRR, then A/B two retrievers over the same set — tested, with real numbers.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/evaluating-rag/' },
+  openGraph: {
+    title: 'Evaluating RAG',
+    description: 'Golden set + Hit@k + MRR: turn "is this better?" into a number.',
+    url: 'https://cloudcodetree.com/tutorials/evaluating-rag/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+  },
+};
+
+# Evaluating RAG
+
+**TL;DR: Every other tutorial in this track ended with "tune it by measuring." This is the measuring. Build a fixed golden set of queries with known-relevant docs, score retrieval with Hit@k and MRR, and A/B two retrievers over the same set — so "is this change better?" stops being a vibe.**
+
+You've now got [embeddings](/tutorials/build-a-rag-over-your-blog/), a [vector DB](/tutorials/vector-database-for-rag/), [chunking](/tutorials/chunking-strategies-for-rag/), [hybrid search](/tutorials/hybrid-search-for-rag/), and [reranking](/tutorials/reranking-for-rag/) — a stack of knobs. Without measurement, tuning them is guesswork. **Evaluation** is the missing instrument: a repeatable score you can watch move on every change.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-evaluating-rag](https://github.com/cloudcodetree/tutorial-evaluating-rag).
+Each step is a git tag — `git checkout step-01`, `step-02`, `step-03` — or [diff what each adds](https://github.com/cloudcodetree/tutorial-evaluating-rag#steps-and-what-each-adds).
+</Callout>
+
+## What you'll be able to do after this
+
+- Build a **golden set** — queries paired with the doc that *should* win.
+- Compute **Hit@k** and **MRR** and explain what each one rewards.
+- Run an **A/B harness** that scores two retrievers over the same set.
+
+<Callout tone="note">
+**Evaluate retrieval separately from generation.** If the right passage never comes back, no amount of prompt tuning saves the answer. This tutorial measures *retrieval* — the half you can score deterministically without an LLM in the loop. (Generation quality — groundedness, faithfulness — is a separate, fuzzier measurement.)
+</Callout>
+
+## Step 1 — a golden set and Hit@1
+
+The golden set is just queries paired with the *one* doc id that should win — your fixed yardstick:
+
+```json
+[
+  {"query": "a vector database that does not need a separate server to run", "relevant": "chroma"},
+  {"query": "how do I add new facts to a model without retraining it",       "relevant": "rag"}
+]
+```
+
+The simplest metric: did the right doc come back at **#1**?
+
+```python
+hits = 0
+for case in gold:
+    ranking = retrieve(case["query"])
+    pos = ranking.index(case["relevant"]) + 1
+    hits += pos == 1
+print(f"Hit@1 = {hits / len(gold):.2f}")
+```
+
+```
+Bi-encoder over 5 queries:
+  chroma    #2          ← the negation query again: right doc at #2, not #1
+  rag       #1
+  chunking  #1
+  bm25      #1
+  finetune  #1
+
+Hit@1 = 0.80
+```
+
+Four of five land at #1; the negation query ("does *not* need a server") puts the right doc at #2. So Hit@1 = 0.80. Now you have a number.
+
+## Step 2 — MRR and Hit@3 (rank matters)
+
+Hit@1 is brutal — it scores `#2` and `#8` identically (both "miss"). Two rank-aware metrics fix that:
+
+- **Hit@3** — did the answer make the top 3? (Forgiving: you often feed several passages to the model anyway.)
+- **MRR** (mean reciprocal rank) — average of `1/rank` of the right answer. `#1` → 1.0, `#2` → 0.5, `#3` → 0.33. It rewards getting the answer *higher*, not just present.
+
+```python
+hit1 += pos == 1
+hit3 += pos <= 3
+mrr  += 1 / pos
+```
+
+```
+Hit@1 = 0.80   Hit@3 = 1.00   MRR = 0.900
+```
+
+Hit@3 is a perfect 1.00 — every right answer is in the top 3. MRR is 0.900: four `#1`s (1.0 each) and one `#2` (0.5) over five queries. The gap between Hit@1 (0.80) and MRR (0.900) is precisely the cost of that one near-miss.
+
+## Step 3 — the payoff: A/B two retrievers
+
+Wrap scoring in a function, then run it over **two** retrievers on the same golden set — the bi-encoder alone vs. bi-encoder + cross-encoder [reranker](/tutorials/reranking-for-rag/):
+
+```python
+def score(ranker):
+    hit1 = hit3 = mrr = 0.0
+    for case in gold:
+        pos = ranker(case["query"]).index(case["relevant"]) + 1
+        hit1 += pos == 1; hit3 += pos <= 3; mrr += 1 / pos
+    n = len(gold)
+    return hit1 / n, hit3 / n, mrr / n
+
+for name, ranker in [("bi-encoder", bi_only), ("bi+rerank", bi_rerank)]:
+    print(name, score(ranker))
+```
+
+```
+retriever     Hit@1  Hit@3    MRR
+bi-encoder     0.80   1.00  0.900
+bi+rerank      1.00   1.00  1.000
+```
+
+There it is: reranking takes Hit@1 from **0.80 → 1.00** and MRR from **0.900 → 1.000** on this set. That's the entire point of evaluation — the reranking tutorial *claimed* the cross-encoder fixed the negation case; here you can **prove** it moved the aggregate number. Swap chunking strategies, change the fusion weight, try a bigger embedding model — rerun, watch the table.
+
+<Callout tone="note">
+**Make it real.** A 5-query set is a teaching toy. For your own RAG, aim for 30–100 queries drawn from real questions, refresh them as usage shifts, and run the harness in CI so a regression fails the build — exactly like the unit tests you already trust.
+</Callout>
+
+## Where this track goes next
+
+You've built a complete, measurable retrieval stack from scratch. From here:
+
+- **Generation metrics** — groundedness/faithfulness (is the answer supported by the retrieved context?), usually scored with an LLM judge against the same golden set.
+- **Fine-tuning** — when retrieval is solid but you need to change the model's *behavior*, not its *knowledge*. That's the next track.
+
+The rule that started this track is the one to keep: **retrieve for knowledge, fine-tune for behavior** — and now, **measure before you trust either.**
+
+---
+
+*Sources: [MRR](https://en.wikipedia.org/wiki/Mean_reciprocal_rank) · [BEIR retrieval benchmark](https://github.com/beir-cellar/beir) · [sentence-transformers](https://www.sbert.net/) · [ms-marco-MiniLM-L-6-v2](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2)*

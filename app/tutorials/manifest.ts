@@ -65,4 +65,14 @@ export const tutorials: Tutorial[] = [
     order: 5,
     readTime: 10,
   },
+  {
+    slug: 'evaluating-rag',
+    title: 'Evaluating RAG',
+    excerpt:
+      'Stop guessing whether a change helped. Build a golden query set, score retrieval with Hit@k and MRR, then A/B two retrievers over the same set — the capstone of the RAG track.',
+    date: '06-23-2026',
+    tags: ['Tutorial', 'RAG', 'Evaluation', 'Python'],
+    order: 6,
+    readTime: 11,
+  },
 ];
