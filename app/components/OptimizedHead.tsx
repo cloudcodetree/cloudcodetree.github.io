@@ -10,9 +10,7 @@ const OptimizedHead: FC<OptimizedHeadProps> = ({ children }) => {
       {/* Emotion insertion point for MUI styles */}
       <meta name="emotion-insertion-point" content="" />
 
-      {/* Favicon links */}
-      <link rel="icon" href="/icon" sizes="32x32" type="image/png" />
-      <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" type="image/png" />
+      {/* Favicon links are provided by metadata.icons in app/layout.tsx */}
 
       {/* DNS prefetch for external domains */}
       <link rel="dns-prefetch" href="//fonts.googleapis.com" />

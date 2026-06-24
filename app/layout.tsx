@@ -52,6 +52,16 @@ export const metadata: Metadata = {
   alternates: {
     types: { 'application/rss+xml': 'https://cloudcodetree.com/feed.xml' },
   },
+  // Browser-tab icon = the actual brand mark from the header (SVG, with a PNG
+  // fallback). Replaces the old generated "CH" icon.
+  icons: {
+    icon: [
+      { url: '/Fav_Icon.svg', type: 'image/svg+xml' },
+      { url: '/Fav_Icon_32.png', type: 'image/png', sizes: '32x32' },
+    ],
+    shortcut: '/Fav_Icon.svg',
+    apple: '/apple-icon.png',
+  },
 }
 
 export default function RootLayout({
