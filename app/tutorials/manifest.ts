@@ -141,9 +141,26 @@ export const tutorials: Tutorial[] = [
   },
 ];
 
+/** One-line description of each series, shown in the course header. */
+export const SERIES_INFO: Record<string, { blurb: string }> = {
+  'RAG from Scratch': {
+    blurb:
+      'Build retrieval from the ground up — embeddings, a vector DB, chunking, hybrid search, reranking, and evaluation — one locally-tested step at a time.',
+  },
+  'Fine-Tuning & Serving': {
+    blurb:
+      'Change the model itself: when to fine-tune vs. retrieve, how LoRA/QLoRA work, and how to serve the result behind an OpenAI-compatible API.',
+  },
+};
+
 /** Total parts in a tutorial's series. */
 export function seriesTotal(series: string): number {
   return tutorials.filter((t) => t.series === series).length;
+}
+
+/** All parts of a series, in reading order. */
+export function seriesParts(series: string): Tutorial[] {
+  return tutorials.filter((t) => t.series === series).sort((a, b) => a.part - b.part);
 }
 
 /** Canonical display title: "Series: Subtitle (Part N of M)". */
