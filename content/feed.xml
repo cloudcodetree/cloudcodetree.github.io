@@ -10,7 +10,198 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 24 Jun 2026 12:07:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 24 Jun 2026 21:09:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Give Claude a Verifier, Not Just a Task: /goal, Stop Hooks, and Evidence-Based Confirmation</title>
+      <link>https://code.claude.com/docs/en/best-practices</link>
+      <guid isPermaLink="false">2026-06-24-06-claude-code-give-claude-a-verifier</guid>
+      <pubDate>Wed, 24 Jun 2026 21:09:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude stops when work looks done. A /goal condition, Stop hook, or reviewer subagent closes the loop — so Claude catches its own mistakes before you do, even in unattended sessions.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude's default "done" signal is visual — the task looks complete. A /goal condition, Stop hook, or reviewer subagent closes the loop so Claude catches its own mistakes before you do.**
+
+The most common source of subtle bugs in autonomous Claude Code sessions isn't hallucination — it's the absence of a mechanically-failing check. Without a verifier, Claude stops when the work *looks* done, and you become the review loop.
+
+Three tiers of verifier, in increasing setup cost:
+
+## Tier 1: In-prompt verification (zero setup)
+
+Describe what pass looks like in the task itself:
+
+```text
+Implement validateEmail(). Test cases: user@example.com → true, invalid → false, user@.com → false.
+Run the tests after implementing and iterate until they all pass.
+```
+
+Works immediately. Use for any task where you can describe the acceptance criteria in one sentence.
+
+## Tier 2: /goal conditions (session-level gate)
+
+Set a condition Claude must satisfy before stopping:
+
+```text
+/goal All unit tests pass, TypeScript reports zero errors, and pnpm build exits 0
+```
+
+A separate evaluator re-checks after every turn. Claude keeps working until the condition holds.
+
+## Tier 3: Stop hooks (deterministic gate)
+
+Add to `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "Stop": [{"command": "pnpm test && pnpm build"}]
+  }
+}
+```
+
+The hook runs before Claude can end a turn. If it fails, Claude gets the output and retries. Claude Code overrides after 8 consecutive failures — a built-in safety valve. Use this for CI-equivalent gates on unattended runs.
+
+## Evidence over assertions
+
+Pair any verifier with this habit: ask Claude to show evidence, not just claim success.
+
+```text
+Fix the session timeout bug. When done, show me the failing test you wrote and
+the output confirming it passes — don't just say it's fixed.
+```
+
+Reviewing evidence (test output, build exit code, a screenshot) is faster than re-running verification yourself and works for sessions you weren't watching.
+
+## For autonomous runs: chain a reviewer subagent
+
+```text
+When done, use a subagent to review the diff against the requirements — report
+gaps in correctness or coverage only, not style preferences.
+```
+
+The reviewer runs in a fresh context with no bias toward the implementation. Gaps come back to the main session for immediate fixes — no copying between windows.
+
+**Sources:** [Claude Code best practices — Anthropic](https://code.claude.com/docs/en/best-practices), [Hooks guide](https://code.claude.com/docs/en/hooks-guide), [Sub-agents](https://code.claude.com/docs/en/sub-agents)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>OpenAI Unveils Jalapeño Inference Chip; Micron Joins Anthropic's Series H</title>
+      <link>https://openai.com/index/openai-broadcom-jalapeno-inference-chip/</link>
+      <guid isPermaLink="false">2026-06-24-05-openai-jalapeno-micron-anthropic-chip</guid>
+      <pubDate>Wed, 24 Jun 2026 21:08:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>OpenAI and Broadcom today unveiled Jalapeño, OpenAI's first custom LLM inference chip, claiming faster perf-per-watt than current state-of-the-art; engineering samples run GPT-5.3-Codex-Spark. Micron also joined Anthropic's Series H this week.</description>
+      <media:content url="https://d15shllkswkct0.cloudfront.net/wp-content/blogs.dir/1/files/2026/06/OpenAI-2.png" medium="image"/>
+      <media:thumbnail url="https://d15shllkswkct0.cloudfront.net/wp-content/blogs.dir/1/files/2026/06/OpenAI-2.png"/>
+      <content:encoded><![CDATA[
+**TL;DR: OpenAI and Broadcom today launched Jalapeño — OpenAI's first custom ASIC, engineered for LLM inference, not training — while Micron completes Anthropic's HBM supply trio with a Series H stake and multi-year supply deal.**
+
+## OpenAI Jalapeño — the first inference-first chip
+
+OpenAI and Broadcom today unveiled **Jalapeño**, OpenAI's first custom Intelligence Processor: an ASIC designed specifically for LLM inference from the ground up around OpenAI's model roadmap, kernel stack, and serving systems. Co-developed in 9 months — claimed to be the fastest ASIC development cycle in high-performance semiconductors — with Broadcom handling silicon and Celestica handling rack and board integration. Engineering samples are running **GPT-5.3-Codex-Spark** in the lab at production target frequency and power.
+
+Key design principle: "reduces data movement," an architecture choice that trades generality for lower memory bandwidth pressure at LLM inference time. OpenAI claims "substantially better performance per watt than current state-of-the-art." Deployment planned for end of 2026, at gigawatt-scale data centers with Microsoft and other partners.
+
+**Why it matters:** Purpose-built inference silicon could unlock meaningfully lower API latency or cost at scale — and signals that OpenAI is betting on vertical compute integration, not just model quality, as a long-term advantage.
+
+## Micron + Anthropic
+
+Announced June 22: Micron joined Anthropic's Series H with a **multi-year supply agreement** covering HBM, DRAM, and SSDs, plus internal Claude deployment across engineering and agentic workflows. Samsung and SK Hynix had already joined the round (May 28). Anthropic now has all three major HBM suppliers as strategic investors — an infrastructure lock-in unusual even by the standards of frontier AI fundraising.
+
+**Why it matters:** The full HBM supply trio as equity partners signals how central compute supply security has become to Anthropic's roadmap planning.
+
+**Sources:** [OpenAI: Jalapeño announcement](https://openai.com/index/openai-broadcom-jalapeno-inference-chip/), [SiliconAngle: Jalapeño details](https://siliconangle.com/2026/06/24/openai-broadcom-debut-custom-jalapeno-chip-llm-inference/), [Micron/Anthropic press release](https://investors.micron.com/news-releases/news-release-details/micron-and-anthropic-announce-strategic-agreement-scale-next), [DigitalApplied: Micron deal breakdown](https://www.digitalapplied.com/blog/micron-anthropic-strategic-infrastructure-agreement-2026)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Better RAG: Add a Reranker to Cut Your Top-20 Candidates Down to the Right Top 3</title>
+      <link>https://www.pinecone.io/learn/series/rag/rerankers/</link>
+      <guid isPermaLink="false">2026-06-24-04-reranking-cross-encoder-rag-pipeline</guid>
+      <pubDate>Wed, 24 Jun 2026 21:07:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Embeddings</category>
+      <category>Best Practices</category>
+      <description>A cross-encoder reads each query-chunk pair together and re-scores them — fixing the precision gap that makes vector-only RAG hallucinate. Two-stage retrieval (bi-encoder recall + cross-encoder reranking) is the standard production pattern.</description>
+      <media:content url="https://img.youtube.com/vi/I9lkQ_eudRA/maxresdefault.jpg" medium="image"/>
+      <media:thumbnail url="https://img.youtube.com/vi/I9lkQ_eudRA/maxresdefault.jpg"/>
+      <content:encoded><![CDATA[
+**TL;DR: A cross-encoder reads each query-chunk pair together and re-scores them — fixing the precision gap that makes vector-only RAG hallucinate, at 100-250ms of added latency per request.**
+
+**What you'll be able to do after this:**
+- Understand why bi-encoder retrieval gets recall right but precision wrong — and why a cross-encoder fixes it
+- Implement a two-stage pipeline: retrieve 20 candidates with a fast bi-encoder, rerank to the top 3 with a cross-encoder
+- Choose between self-hosted (BGE-reranker, FlashRank) and hosted (Cohere Rerank, Pinecone Rerank) options
+
+## The precision problem
+
+From the last post: hybrid search gives you better recall. But your retriever can still return a top-3 where #1 is semantically close but semantically wrong — same topic, wrong answer. The culprit is how bi-encoders work: they encode the query and each chunk separately, then compare vectors. Fast, but they can't read the query and chunk *together*. Subtle signals — negation ("not the timeout setting"), numeric precision, domain jargon — slip through.
+
+A **cross-encoder** fixes this. It takes the query and a candidate chunk as a single combined input and outputs one relevance score. Much more accurate. Also much slower — you can't run it against all million chunks. Two-stage retrieval captures the best of both:
+
+- **Stage 1 (recall):** bi-encoder retrieves top-20 candidates in milliseconds
+- **Stage 2 (precision):** cross-encoder re-scores those 20, returns top-3 to the LLM
+
+The LLM sees 3 highly relevant chunks instead of 20 mediocre ones — smaller context, less hallucination, better answers.
+
+## Code: drop-in reranker with sentence-transformers
+
+```bash
+pip install sentence-transformers
+```
+
+```python
+from sentence_transformers import CrossEncoder
+
+reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+
+query = "What is the connection timeout setting?"
+candidates = [
+    "The default connection wait time is 30 seconds.",
+    "Set ANTHROPIC_API_KEY in your environment.",
+    "ERR_TLS_CERT_EXPIRED means the server certificate has expired.",
+    "Set connect_timeout in your database config to override the default.",
+    "Connection pooling is managed by the database driver.",
+]
+
+pairs = [[query, chunk] for chunk in candidates]
+scores = reranker.predict(pairs)   # one score per pair, rated jointly
+
+# Sort descending, take top 3
+ranked = sorted(zip(scores, candidates), reverse=True)
+top_3 = [chunk for _, chunk in ranked[:3]]
+```
+
+On CPU, `ms-marco-MiniLM-L-6-v2` scores 50 candidates in 100–250ms — a worthwhile trade for precision. Swap in `BAAI/bge-reranker-v2-m3` (568M params, multilingual) for best free accuracy (~80ms batched). For 15–30ms CPU reranking, try **FlashRank** (quantized, purpose-built for speed).
+
+## Options at a glance
+
+| Option | Latency | Cost | Notes |
+|---|---|---|---|
+| `ms-marco-MiniLM-L-6-v2` | 100-250ms | Free | Fast, good baseline |
+| `BAAI/bge-reranker-v2-m3` | ~80ms batched | Free | Best free accuracy, multilingual |
+| FlashRank | 15-30ms | Free | `pip install flashrank`, quantized |
+| Cohere Rerank | 150-400ms + net | Pay per call | Best-in-class accuracy |
+| Pinecone Rerank | Managed | Pay per call | One call if on Pinecone |
+
+The **Pinecone "Rerankers and Two-Stage Retrieval"** tutorial walks the full pipeline — retrieval, reranking, comparing results — with runnable Python. The YouTube full course covers LLM, cross-encoder, and rule-based reranking in one session.
+
+**Sources:** [Pinecone: Rerankers and Two-Stage Retrieval](https://www.pinecone.io/learn/series/rag/rerankers/), [Reranking for RAG — Full Course (YouTube)](https://www.youtube.com/watch?v=I9lkQ_eudRA), [TDS: Advanced RAG Cross-Encoders](https://towardsdatascience.com/advanced-rag-retrieval-cross-encoders-reranking/), [DEV.to: Production Reranker Layer](https://dev.to/velsof/production-reranker-layer-for-rag-in-python-cross-encoder-cohere-fallback-and-reciprocal-rank-1a29)
+      ]]></content:encoded>
+    </item>
+
 
     <item>
       <title>Claude Code 2.1.187: Block Credential Leaks in Sandboxes and Lock the Model Picker Org-Wide</title>
