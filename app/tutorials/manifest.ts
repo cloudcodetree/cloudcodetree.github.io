@@ -55,4 +55,14 @@ export const tutorials: Tutorial[] = [
     order: 4,
     readTime: 10,
   },
+  {
+    slug: 'reranking-for-rag',
+    title: 'Reranking for RAG',
+    excerpt:
+      'A bi-encoder retrieves fast but is fooled by negation; a cross-encoder reads query and passage together and fixes it. Retrieve wide, rerank narrow — with the recall ceiling made concrete.',
+    date: '06-23-2026',
+    tags: ['Tutorial', 'RAG', 'Search', 'Python'],
+    order: 5,
+    readTime: 10,
+  },
 ];

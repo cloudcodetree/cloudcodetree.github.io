@@ -1,0 +1,112 @@
+export const metadata = {
+  title: 'Reranking for RAG · Tutorials',
+  description:
+    'A bi-encoder retrieves fast but is fooled by negation; a cross-encoder reads query and passage together and fixes it. Retrieve wide, rerank narrow — tested, with real numbers.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/reranking-for-rag/' },
+  openGraph: {
+    title: 'Reranking for RAG',
+    description: 'Retrieve wide with a bi-encoder, rerank narrow with a cross-encoder.',
+    url: 'https://cloudcodetree.com/tutorials/reranking-for-rag/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+  },
+};
+
+# Reranking for RAG
+
+**TL;DR: Retrieval is a two-speed problem. A bi-encoder is fast but fooled by subtle wording like negation; a cross-encoder reads the query and passage *together* for a sharper score, but is too slow to run over everything. Retrieve wide with the bi-encoder, then rerank the top-K with the cross-encoder.**
+
+So far every retriever in this track — [embeddings](/tutorials/build-a-rag-over-your-blog/), [Chroma](/tutorials/vector-database-for-rag/), [hybrid](/tutorials/hybrid-search-for-rag/) — is a **bi-encoder**: it embeds the query and each document *independently* into vectors, then compares them. That independence is what makes it fast and indexable at scale — but the query and document never actually "read" each other, so fine distinctions get blurred. **Reranking** adds a precise second pass over the shortlist.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-reranking-for-rag](https://github.com/cloudcodetree/tutorial-reranking-for-rag).
+Each stage is a git tag — `git checkout step-01`, `step-02`, `step-03` — or [diff what each adds](https://github.com/cloudcodetree/tutorial-reranking-for-rag#steps-and-what-each-adds).
+</Callout>
+
+## What you'll be able to do after this
+
+- Explain the difference between a **bi-encoder** and a **cross-encoder** — and why you use both.
+- Add a cross-encoder rerank pass to any retriever in a few lines.
+- Tune the candidate-pool size and reason about the **recall ceiling**.
+
+The test query has a trap in it: **"a vector database that does not need a separate server to run."** The word that matters most is *not*.
+
+## Step 1 — bi-encoder retrieval (and the trap)
+
+```python
+scores = bi.encode(texts, normalize_embeddings=True) @ bi.encode(question, normalize_embeddings=True)
+```
+
+```
+Bi-encoder retrieval for '…does not need a separate server to run':
+  #1 [0.760] Qdrant (self-hosted server)      ← exactly what we DON'T want
+  #2 [0.718] Chroma (local-first)             ← the right answer, buried at #2
+  #3 [0.665] Pinecone (managed service)
+```
+
+The bi-encoder ranks the *self-hosted server* database first. It collapsed the query into a single "vector database / server" vector and lost the **negation** — "does *not* need a server." This is a well-known bi-encoder weakness: one averaged vector can't represent "X but not Y" cleanly.
+
+## Step 2 — rerank the shortlist with a cross-encoder
+
+A cross-encoder takes a *(query, document)* **pair** and runs both through the model together, with full cross-attention, to produce one relevance score. That joint read is what lets it catch the negation:
+
+```python
+from sentence_transformers import CrossEncoder
+
+ce = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+cand = list(np.argsort(scores)[::-1][:POOL])          # bi-encoder's top-K
+ce_scores = ce.predict([(question, docs[i]["text"]) for i in cand])
+reranked = sorted(zip(cand, ce_scores), key=lambda x: x[1], reverse=True)
+```
+
+```
+Stage 1 - bi-encoder retrieval:
+  #1 [0.760] Qdrant (self-hosted server)
+  #2 [0.718] Chroma (local-first)
+
+Stage 2 - cross-encoder rerank of top-4:
+  #1 [+6.68] Chroma (local-first)             ← promoted to #1, correctly
+  #2 [+2.92] Qdrant (self-hosted server)
+  #3 [-0.39] Pinecone (managed service)
+  #4 [-11.15] Embeddings basics
+```
+
+Same candidates, reordered. The cross-encoder pushes the local-first DB to the top and the self-hosted one down. (Cross-encoder scores are raw logits — sign and spacing matter, not a 0–1 scale.)
+
+<Callout tone="note">
+**Why not cross-encode everything?** Because it can't be precomputed. A bi-encoder embeds each document *once*, ahead of time, and a query is then one vector compared against an index of millions. A cross-encoder must run the model on *every (query, document) pair at query time* — fine for 20–100 candidates, hopeless for a million. Hence two stages: cheap recall, then expensive precision on the shortlist.
+</Callout>
+
+## Step 3 — the candidate pool, and the recall ceiling
+
+How many bi-encoder hits should you rerank? It's a knob — and getting it too small is fatal, because **a reranker can only reorder what retrieval already found.**
+
+```
+$ python search.py --pool 1 "…does not need a separate server to run"
+Retrieved pool (top-1): ['qdrant']
+Reranked:
+  #1 [+2.92] Qdrant (self-hosted server)      ← stuck: the right doc never made the pool
+
+$ python search.py --pool 4 "…does not need a separate server to run"
+Retrieved pool (top-4): ['qdrant', 'chroma', 'pinecone', 'embed']
+Reranked:
+  #1 [+6.68] Chroma (local-first)             ← now it can fix the order
+```
+
+With a pool of 1, the cross-encoder only ever sees the bi-encoder's (wrong) top hit, so it's powerless. That's the **recall ceiling**: the best a reranker can do is bounded by what the first stage retrieved. The practical rule is to retrieve *generously* (top 20–100) and rerank down to the few you'll actually use.
+
+<Callout tone="note">
+**The standard pattern.** Retrieve top-K with a fast retriever (often [hybrid](/tutorials/hybrid-search-for-rag/)), rerank that pool with a cross-encoder, keep the top-n for the prompt. Bigger K → higher recall ceiling but more rerank cost. Tune K by *measuring* — which is the next tutorial.
+</Callout>
+
+## Where this goes next
+
+- **Evaluation** — every tutorial so far ended with "tune it by measuring." Next we actually build the measurement: a fixed query set, retrieval metrics (hit rate, MRR), and a loop you run on every change. *(Final tutorial in the track.)*
+- **Hosted rerankers** — Cohere Rerank, Voyage, and others expose a cross-encoder as an API call if you'd rather not host one.
+
+The through-line holds: **retrieve for knowledge, fine-tune for behavior** — and rerank when "close enough" isn't.
+
+---
+
+*Sources: [Cross-Encoders (sentence-transformers)](https://www.sbert.net/examples/applications/cross-encoder/README.html) · [ms-marco-MiniLM-L-6-v2](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2) · [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5)*
