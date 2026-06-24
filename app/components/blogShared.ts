@@ -100,7 +100,7 @@ export const markdownSx = {
   '& hr': { border: 0, borderTop: '1px solid #222a35', my: 3 },
   '& hr + p': { color: 'text.secondary', fontSize: 13 },
   // Code blocks scroll horizontally instead of widening the page.
-  '& pre': { backgroundColor: 'rgba(30, 41, 59, 0.8)', borderRadius: 1, p: 2, maxWidth: '100%', overflowX: 'auto', mb: 2, '& code': { whiteSpace: 'pre', overflowWrap: 'normal', wordBreak: 'normal' } },
+  '& pre': { backgroundColor: 'rgba(30, 41, 59, 0.8)', borderRadius: 1, p: 2, maxWidth: '100%', overflowX: 'auto', mb: 2, fontSize: { xs: '0.78rem', md: '0.875rem' }, '& code': { whiteSpace: 'pre', overflowWrap: 'normal', wordBreak: 'normal' } },
   '& code': { backgroundColor: 'rgba(30, 41, 59, 0.6)', px: 1, py: 0.5, borderRadius: 0.5, fontFamily: 'monospace' },
   '& ul, & ol': { mb: 2, pl: 3 },
   '& li': { mb: 1, lineHeight: 1.8 },
