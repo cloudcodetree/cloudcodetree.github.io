@@ -1,18 +1,25 @@
 export const metadata = {
-  title: 'Build a RAG Pipeline Over Your Own Blog · Tutorials',
+  title: 'RAG from Scratch: Build a RAG Over Your Blog (Part 1 of 6) · Tutorials',
   description:
     'Your first hands-on AI-engineering project: retrieve answers from your own posts with embeddings + cosine search — no vector DB, no API key, ~60 lines of Python.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/build-a-rag-over-your-blog/' },
   openGraph: {
-    title: 'Build a RAG Pipeline Over Your Own Blog',
+    title: 'RAG from Scratch: Build a RAG Over Your Blog (Part 1 of 6)',
     description: 'Retrieval-Augmented Generation from scratch, over a corpus you actually understand.',
     url: 'https://cloudcodetree.com/tutorials/build-a-rag-over-your-blog/',
     siteName: 'CloudCodeTree',
     type: 'article',
+    images: [{ url: '/tutorials/covers/build-a-rag-over-your-blog.png', width: 1200, height: 675 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/tutorials/covers/build-a-rag-over-your-blog.png'],
   },
 };
 
-# Build a RAG Pipeline Over Your Own Blog
+<TutorialHero slug="build-a-rag-over-your-blog" />
+
+# Build a RAG Over Your Blog
 
 **TL;DR: Retrieval-Augmented Generation (RAG) in ~60 lines of Python — embed your posts, find the most relevant passages by meaning, and feed them to an LLM. No vector database, no API key.**
 

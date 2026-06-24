@@ -1,18 +1,25 @@
 export const metadata = {
-  title: 'Evaluating RAG · Tutorials',
+  title: 'RAG from Scratch: Evaluating Retrieval (Part 6 of 6) · Tutorials',
   description:
     'Stop guessing whether a change helped. Build a golden query set and score retrieval with Hit@k and MRR, then A/B two retrievers over the same set — tested, with real numbers.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/evaluating-rag/' },
   openGraph: {
-    title: 'Evaluating RAG',
+    title: 'RAG from Scratch: Evaluating Retrieval (Part 6 of 6)',
     description: 'Golden set + Hit@k + MRR: turn "is this better?" into a number.',
     url: 'https://cloudcodetree.com/tutorials/evaluating-rag/',
     siteName: 'CloudCodeTree',
     type: 'article',
+    images: [{ url: '/tutorials/covers/evaluating-rag.png', width: 1200, height: 675 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/tutorials/covers/evaluating-rag.png'],
   },
 };
 
-# Evaluating RAG
+<TutorialHero slug="evaluating-rag" />
+
+# Evaluating Retrieval
 
 **TL;DR: Every other tutorial in this track ended with "tune it by measuring." This is the measuring. Build a fixed golden set of queries with known-relevant docs, score retrieval with Hit@k and MRR, and A/B two retrievers over the same set — so "is this change better?" stops being a vibe.**
 

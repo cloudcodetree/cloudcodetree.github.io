@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { SERIF, MONO, ACCENT, LINK, formatLongDate } from './blogShared';
 import type { Tutorial } from '../tutorials/manifest';
+import { seriesTotal } from '../tutorials/manifest';
 
 type View = 'cards' | 'list';
 const VIEWS: View[] = ['cards', 'list'];
@@ -67,7 +68,7 @@ export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) 
               </Box>
             )}
             <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1.25, flexGrow: 1 }}>
-              <Typography sx={{ fontFamily: MONO, fontSize: 11, color: ACCENT, letterSpacing: '0.06em' }}>{`TUTORIAL ${String(t.order).padStart(2, '0')}`}</Typography>
+              <Typography sx={{ fontFamily: MONO, fontSize: 11, color: ACCENT, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{`${t.series} · Part ${t.part}/${seriesTotal(t.series)}`}</Typography>
               <Typography component={Link} href={`/tutorials/${t.slug}/`} sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: '1.3rem', lineHeight: 1.2, color: 'text.primary', textDecoration: 'none', ...clamp(3), '&:hover': { color: LINK } }}>{t.title}</Typography>
               <Typography sx={{ color: 'text.secondary', fontSize: '0.92rem', lineHeight: 1.5, ...clamp(3) }}>{t.excerpt}</Typography>
               <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>{meta(t)}</Typography>
@@ -86,6 +87,7 @@ export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) 
           sx={{ display: 'flex', gap: 2.5, py: 3, borderTop: border, alignItems: 'flex-start' }}>
           <Typography sx={{ fontFamily: MONO, fontSize: 13, color: ACCENT, pt: 0.5, flexShrink: 0 }}>{String(t.order).padStart(2, '0')}</Typography>
           <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Typography sx={{ fontFamily: MONO, fontSize: 10, color: ACCENT, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{`${t.series} · Part ${t.part}/${seriesTotal(t.series)}`}</Typography>
             <Typography component={Link} href={`/tutorials/${t.slug}/`} sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.5rem' }, lineHeight: 1.15, color: 'text.primary', textDecoration: 'none', ...clamp(2), '&:hover': { color: LINK } }}>{t.title}</Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: '0.95rem', lineHeight: 1.5, ...clamp(2) }}>{t.excerpt}</Typography>
             <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>{meta(t)}</Typography>

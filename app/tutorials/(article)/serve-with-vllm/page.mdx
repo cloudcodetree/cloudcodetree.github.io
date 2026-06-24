@@ -1,0 +1,112 @@
+export const metadata = {
+  title: 'Fine-Tuning & Serving: Serve a Model with vLLM (Part 3 of 3) · Tutorials',
+  description:
+    'Turn a fine-tuned model into a fast, OpenAI-compatible API. Merge the LoRA adapter, start a vLLM server with one command, and call it from the OpenAI client — a drop-in for your existing code.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/serve-with-vllm/' },
+  openGraph: {
+    title: 'Fine-Tuning & Serving: Serve a Model with vLLM (Part 3 of 3)',
+    description: 'One command to an OpenAI-compatible endpoint for your own model.',
+    url: 'https://cloudcodetree.com/tutorials/serve-with-vllm/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/serve-with-vllm.png', width: 1200, height: 675 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/tutorials/covers/serve-with-vllm.png'],
+  },
+};
+
+<TutorialHero slug="serve-with-vllm" />
+
+# Serve a Model with vLLM
+
+**TL;DR: Merge your LoRA adapter back into the base model, then `vllm serve ./your-model` gives you an OpenAI-compatible endpoint. Your existing OpenAI client code works against it by changing one line — the `base_url`.**
+
+You [fine-tuned a model](/tutorials/lora-qlora-fine-tuning/). Right now it's a folder of weights. This tutorial makes it a service anything can call — and because the API mirrors OpenAI's, the rest of your stack barely notices the swap.
+
+<Callout tone="warn">
+**Serving runs on a GPU host**, not your laptop — vLLM is built for CUDA. The commands below are the real ones from [vLLM's quickstart](https://docs.vllm.ai/en/latest/getting_started/quickstart/); run them where there's a GPU (a cloud VM, or the same Colab/box you trained on). This page is concept + verified commands, not locally-tested output.
+</Callout>
+
+## Why vLLM (and why "OpenAI-compatible" matters)
+
+vLLM is a high-throughput inference server. The headline feature for you isn't the speed tricks (paged attention, continuous batching) — it's that it **speaks the OpenAI API**. That means:
+
+- Your code that calls `openai.chat.completions.create(...)` works unchanged — you only repoint `base_url`.
+- Every tool that already talks to OpenAI (SDKs, frameworks, UIs) talks to *your* model for free.
+
+No vendor lock-in, no bespoke client. You own the model *and* the interface.
+
+## Step 1 — merge the adapter into the base
+
+[LoRA](/tutorials/lora-qlora-fine-tuning/) left you with a small *adapter* on top of a frozen base. The simplest thing to serve is a single merged model. With Hugging Face PEFT:
+
+```python
+# illustrative — run on the GPU host where you trained
+from peft import AutoPeftModelForCausalLM
+from transformers import AutoTokenizer
+
+model = AutoPeftModelForCausalLM.from_pretrained("./my-lora-adapter")
+merged = model.merge_and_unload()          # fold adapter weights into the base
+merged.save_pretrained("./my-merged-model")
+AutoTokenizer.from_pretrained("./my-lora-adapter").save_pretrained("./my-merged-model")
+```
+
+`merge_and_unload()` collapses the `W + B·A` from the last tutorial into a single set of weights, so the served model is just a normal model — no adapter plumbing at inference time.
+
+<Callout tone="note">
+**Merge vs. dynamic adapters.** Merging is the simplest path and adds zero inference overhead. If instead you want to serve *many* adapters over *one* base (e.g. a per-customer fine-tune), vLLM can load adapters dynamically with `--enable-lora` — see vLLM's [LoRA serving docs](https://docs.vllm.ai/en/latest/features/lora/). Start merged; reach for dynamic LoRA when you actually have multiple adapters.
+</Callout>
+
+## Step 2 — start the server (one command)
+
+```bash
+vllm serve ./my-merged-model
+```
+
+That's it — the server comes up at `http://localhost:8000` with OpenAI-compatible routes (`/v1/chat/completions`, `/v1/completions`). Add `--host` / `--port` to change the address, or `--api-key` to require a key.
+
+## Step 3 — call it like OpenAI
+
+With `curl`:
+
+```bash
+curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "./my-merged-model",
+    "messages": [
+      {"role": "system", "content": "You are our support assistant."},
+      {"role": "user", "content": "How do I reset my password?"}
+    ]
+  }'
+```
+
+Or with the **OpenAI Python client** — the only changes from real OpenAI are `base_url` and `api_key`:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="http://localhost:8000/v1", api_key="not-needed")
+resp = client.chat.completions.create(
+    model="./my-merged-model",
+    messages=[{"role": "user", "content": "How do I reset my password?"}],
+)
+print(resp.choices[0].message.content)
+```
+
+Any framework that takes an OpenAI `base_url` — including a [RAG pipeline](/tutorials/evaluating-rag/) — now runs on your fine-tuned model.
+
+## The full picture
+
+You've now done both halves of applied AI engineering, end to end:
+
+- **Knowledge** → [retrieval](/tutorials/build-a-rag-over-your-blog/): [embeddings](/tutorials/build-a-rag-over-your-blog/) → [vector DB](/tutorials/vector-database-for-rag/) → [chunking](/tutorials/chunking-strategies-for-rag/) → [hybrid](/tutorials/hybrid-search-for-rag/) → [reranking](/tutorials/reranking-for-rag/) → [evaluation](/tutorials/evaluating-rag/).
+- **Behavior** → fine-tuning: [when to](/tutorials/fine-tuning-vs-rag/) → [LoRA/QLoRA](/tutorials/lora-qlora-fine-tuning/) → serving (here).
+
+And they meet at the `base_url`: a vLLM-served, fine-tuned model behind an OpenAI API, fed fresh facts by your RAG stack. **Retrieve for knowledge, fine-tune for behavior** — now wired together and shippable.
+
+---
+
+*Sources: [vLLM quickstart](https://docs.vllm.ai/en/latest/getting_started/quickstart/) · [vLLM OpenAI-compatible server](https://docs.vllm.ai/en/latest/serving/openai_compatible_server/) · [vLLM LoRA serving](https://docs.vllm.ai/en/latest/features/lora/) · [PEFT merge_and_unload](https://huggingface.co/docs/peft/quicktour)*

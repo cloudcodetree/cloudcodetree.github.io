@@ -1,0 +1,97 @@
+export const metadata = {
+  title: 'Fine-Tuning & Serving: LoRA & QLoRA on One GPU (Part 2 of 3) · Tutorials',
+  description:
+    'How parameter-efficient fine-tuning works: LoRA trains tiny adapter matrices instead of the whole model, and QLoRA adds 4-bit quantization so an 8B model fits a free Colab GPU. Concept + an official runnable notebook.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/lora-qlora-fine-tuning/' },
+  openGraph: {
+    title: 'Fine-Tuning & Serving: LoRA & QLoRA on One GPU (Part 2 of 3)',
+    description: 'Train tiny adapters, not the whole model — and fit an 8B model on a free GPU.',
+    url: 'https://cloudcodetree.com/tutorials/lora-qlora-fine-tuning/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/lora-qlora-fine-tuning.png', width: 1200, height: 675 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/tutorials/covers/lora-qlora-fine-tuning.png'],
+  },
+};
+
+<TutorialHero slug="lora-qlora-fine-tuning" />
+
+# LoRA & QLoRA on One GPU
+
+**TL;DR: LoRA freezes the base model and trains two small low-rank matrices per layer — often under 1% of the parameters — so fine-tuning fits in modest memory. QLoRA adds 4-bit quantization of the frozen base, shrinking memory enough to fine-tune an 8B model on a free Colab T4.**
+
+[Last tutorial](/tutorials/fine-tuning-vs-rag/) drew the line: fine-tune for *behavior*. This one is *how* — without renting a cluster.
+
+<Callout tone="warn">
+**This one runs on a GPU, not your laptop.** Fine-tuning needs CUDA, so the hands-on part lives in a notebook with a free GPU. Read here for the concepts and the knobs; **run** it in the official notebook linked below. This page intentionally ships no "tested locally" output — the code runs in the Colab, which is the honest place for it.
+</Callout>
+
+## The problem LoRA solves
+
+Full fine-tuning updates *every* weight in the model. For an 8B-parameter model that means holding the weights, their gradients, and optimizer state (Adam keeps two extra numbers per weight) in GPU memory at once — easily 60–80 GB. That's a data-center GPU, not a free notebook.
+
+**LoRA (Low-Rank Adaptation)** makes a bet: the *change* you need to make to a big weight matrix during fine-tuning is "low-rank" — it can be approximated by multiplying two much smaller matrices. So instead of updating a frozen weight matrix `W` (say 4096×4096 ≈ 16.7M numbers), you freeze it and learn a small correction `B·A`:
+
+```text
+output = W·x  +  (B·A)·x        W is frozen; only A and B are trained
+                                A: 4096×r   B: r×4096   with rank r ≈ 8–32
+```
+
+With `r = 16`, that's `2 × 4096 × 16 ≈ 131K` trainable numbers in place of 16.7M — about **0.8%**. Across the model you typically train well under 1% of the parameters, so gradients and optimizer state shrink by the same factor. Small enough to fit; fast to train; and the adapter saves as a file of a few MB instead of a multi-GB model copy.
+
+## QLoRA: go one step smaller
+
+LoRA shrinks the *trainable* part, but you still have to *hold* the frozen base model in memory to run the forward pass. **QLoRA** quantizes that frozen base to **4-bit** (from 16-bit), cutting the base's memory roughly 4×, while the small LoRA adapters stay in higher precision and are what actually train. Net effect: an 8B model that needed a big GPU now fits in ~the 15 GB a free Colab T4 gives you.
+
+`★ The one-line mental model ─────────────────────`
+**LoRA** = train tiny adapters, freeze the rest. **QLoRA** = LoRA + a 4-bit frozen base so it fits a small GPU. Same training signal, a fraction of the memory.
+`─────────────────────────────────────────────────`
+
+## The knobs that matter
+
+When you read the notebook, these are the LoRA settings to understand (the rest are sensible defaults):
+
+| Setting | What it does | Typical |
+|---|---|---|
+| `r` (rank) | Size of the adapters → capacity to learn | 8–32 (start at 16) |
+| `lora_alpha` | Scales the adapter's effect; often set to `r` or `2r` | 16–32 |
+| `target_modules` | Which layers get adapters (attention projections, sometimes MLP) | `q_proj,k_proj,v_proj,o_proj` |
+| `lora_dropout` | Regularization on the adapter | 0–0.1 |
+
+Higher `r` = more capacity but more memory and more overfitting risk on small datasets. For a first run, the notebook's defaults are deliberately good — change the *data*, not the hyperparameters, until you have a baseline.
+
+## Run it — the official notebook
+
+The cleanest hands-on path is **Unsloth's** notebooks (they wrap Hugging Face PEFT/TRL with big speed and memory wins and run on the free tier):
+
+<Callout tone="tip">
+**Fine-tune Llama 3.1 (8B) with QLoRA on a free Colab T4:**
+[Llama3.1 (8B) Alpaca notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_%288B%29-Alpaca.ipynb)
+— from the official [unslothai/notebooks](https://github.com/unslothai/notebooks) repo (a notebook per model: Qwen, Gemma, Mistral, …). Open in Colab, set Runtime → GPU, run top to bottom.
+</Callout>
+
+What you'll see it do, in order:
+
+1. **Load** a 4-bit base model (that's the Q in QLoRA).
+2. **Attach LoRA adapters** with a `LoraConfig` (the knobs above).
+3. **Format a dataset** into instruction/response pairs (it uses Alpaca — swap in *your* behavior data here; this is the part that actually matters).
+4. **Train** for a few hundred steps — minutes, not hours.
+5. **Save the adapter** (a few MB) and run a quick before/after generation.
+
+For the framework-level reference behind all of this, Hugging Face's [PEFT quicktour](https://huggingface.co/docs/peft/quicktour) shows the same `LoraConfig` → `get_peft_model()` → train flow in plain Transformers.
+
+<Callout tone="note">
+**Your dataset is the whole game.** The architecture is solved; the notebook just works. Quality comes almost entirely from your training data — a few hundred *clean, consistent* examples of the exact behavior you want beat tens of thousands of noisy ones. Garbage in, confidently-fluent garbage out.
+</Callout>
+
+## Where this goes next
+
+- **[Serve Your Fine-Tuned Model with vLLM](/tutorials/serve-with-vllm/)** — you have an adapter; now put it behind a fast, OpenAI-compatible API.
+- **Evaluate it** — the [evaluation harness](/tutorials/evaluating-rag/) idea applies to behavior too: a fixed set of inputs with expected outputs, scored before and after.
+
+---
+
+*Sources: [Unsloth notebooks](https://github.com/unslothai/notebooks) · [Hugging Face PEFT quicktour](https://huggingface.co/docs/peft/quicktour) · [LoRA paper (Hu et al., 2021)](https://arxiv.org/abs/2106.09685) · [QLoRA paper (Dettmers et al., 2023)](https://arxiv.org/abs/2305.14314)*

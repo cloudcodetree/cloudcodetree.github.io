@@ -1,18 +1,25 @@
 export const metadata = {
-  title: 'Reranking for RAG · Tutorials',
+  title: 'RAG from Scratch: Reranking (Part 5 of 6) · Tutorials',
   description:
     'A bi-encoder retrieves fast but is fooled by negation; a cross-encoder reads query and passage together and fixes it. Retrieve wide, rerank narrow — tested, with real numbers.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/reranking-for-rag/' },
   openGraph: {
-    title: 'Reranking for RAG',
+    title: 'RAG from Scratch: Reranking (Part 5 of 6)',
     description: 'Retrieve wide with a bi-encoder, rerank narrow with a cross-encoder.',
     url: 'https://cloudcodetree.com/tutorials/reranking-for-rag/',
     siteName: 'CloudCodeTree',
     type: 'article',
+    images: [{ url: '/tutorials/covers/reranking-for-rag.png', width: 1200, height: 675 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/tutorials/covers/reranking-for-rag.png'],
   },
 };
 
-# Reranking for RAG
+<TutorialHero slug="reranking-for-rag" />
+
+# Reranking
 
 **TL;DR: Retrieval is a two-speed problem. A bi-encoder is fast but fooled by subtle wording like negation; a cross-encoder reads the query and passage *together* for a sharper score, but is too slow to run over everything. Retrieve wide with the bi-encoder, then rerank the top-K with the cross-encoder.**
 

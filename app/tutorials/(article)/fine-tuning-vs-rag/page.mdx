@@ -1,0 +1,82 @@
+export const metadata = {
+  title: 'Fine-Tuning & Serving: Fine-Tuning vs RAG (Part 1 of 3) · Tutorials',
+  description:
+    'A decision framework for the most common AI-engineering fork: should you retrieve knowledge (RAG) or change the model itself (fine-tuning)? When each wins, when to combine them, and what fine-tuning cannot do.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/fine-tuning-vs-rag/' },
+  openGraph: {
+    title: 'Fine-Tuning & Serving: Fine-Tuning vs RAG (Part 1 of 3)',
+    description: 'Retrieve for knowledge, fine-tune for behavior — the decision, made concrete.',
+    url: 'https://cloudcodetree.com/tutorials/fine-tuning-vs-rag/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/fine-tuning-vs-rag.png', width: 1200, height: 675 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/tutorials/covers/fine-tuning-vs-rag.png'],
+  },
+};
+
+<TutorialHero slug="fine-tuning-vs-rag" />
+
+# Fine-Tuning vs RAG
+
+**TL;DR: RAG changes what the model *knows* at query time; fine-tuning changes how the model *behaves* by adjusting its weights. Reach for retrieval first — it's cheaper, updatable, and citable. Fine-tune when you need a behavior, format, or style that no prompt reliably produces.**
+
+The whole [RAG track](/tutorials/build-a-rag-over-your-blog/) built one half of applied AI engineering: getting the right *knowledge* in front of the model. This tutorial is the fork in the road to the other half — changing the *model itself*. It's the most common architecture decision you'll make, and the most commonly gotten wrong (teams fine-tune to "add knowledge," which is the one thing it's bad at).
+
+This one is conceptual — no GPU, no notebook. It's the map for the two tutorials that follow.
+
+## The one-sentence rule
+
+> **Retrieve for knowledge. Fine-tune for behavior.**
+
+- **Knowledge** = facts, documents, things that change. *Who is our Q3 enterprise contact? What does our refund policy say?* This belongs in **retrieval** — it updates the instant the source does, and the model can cite it.
+- **Behavior** = format, tone, structure, a skill the base model does inconsistently. *Always answer as a strict JSON object. Write in our terse house voice. Classify support tickets into our 9 internal categories.* This is what **fine-tuning** bakes in.
+
+## Why not just fine-tune in the knowledge?
+
+Because it fails at exactly the things retrieval is good at:
+
+| | RAG (retrieval) | Fine-tuning |
+|---|---|---|
+| **Update a fact** | Edit the source; live immediately | Retrain to change anything |
+| **Cite a source** | Yes — you have the passage | No — knowledge is diffuse in weights |
+| **New/changing data** | Ideal | Stale the moment data moves |
+| **Consistent format/voice** | Fragile (prompt-dependent) | Ideal — it's learned |
+| **Cost to set up** | Low (an afternoon) | GPU time + a labeled dataset |
+| **Risk** | Retrieve wrong passage | Hallucinate confidently; forget skills |
+
+Fine-tuning teaches a *pattern*, not a *fact*. Train it on 1,000 Q&A pairs about your product and it learns to *sound* like product Q&A — it will happily invent a confident, fluent, wrong answer about a feature that shipped last week. That's not a bug you can prompt away.
+
+<Callout tone="note">
+**They compose — and the best systems use both.** Fine-tune a model to *follow your format and use retrieved context well*, then feed it fresh facts via RAG at query time. The model brings the behavior; retrieval brings the knowledge. "RAG vs fine-tuning" is usually really "RAG *and* fine-tuning."
+</Callout>
+
+## A decision checklist
+
+Ask, in order:
+
+1. **Can a better prompt do it?** Few-shot examples and a clear output spec solve a surprising amount. Always try this first — it's free and instant.
+2. **Is the gap *knowledge*?** → **RAG.** ([the whole track you just finished](/tutorials/evaluating-rag/)).
+3. **Is the gap *behavior* a prompt can't reliably hit** — strict format, domain tone, a narrow classification skill? → **fine-tune.**
+4. **Both?** Fine-tune the behavior, retrieve the knowledge.
+
+<Callout tone="tip">
+**Order matters.** Prompt → RAG → fine-tune is also the order of increasing cost and decreasing flexibility. Don't fine-tune away a problem a system prompt and three examples would have fixed. Most "we need to fine-tune" instincts are solved one rung lower.
+</Callout>
+
+## What fine-tuning actually changes
+
+Modern fine-tuning rarely touches all the weights. **Parameter-efficient fine-tuning (PEFT)** — usually **LoRA** — freezes the base model and trains a tiny set of new adapter weights instead. That's what makes it feasible on one GPU, and it's the subject of the next tutorial. The official starting point is Hugging Face's [PEFT quicktour](https://huggingface.co/docs/peft/quicktour); a LoRA adapter for a 350M model is just a few megabytes.
+
+## Where this goes next
+
+- **[LoRA & QLoRA: Fine-Tune on One GPU](/tutorials/lora-qlora-fine-tuning/)** — *how* parameter-efficient fine-tuning works, run in a free Colab notebook.
+- **[Serve Your Fine-Tuned Model with vLLM](/tutorials/serve-with-vllm/)** — take the result and put it behind an OpenAI-compatible API.
+
+The rule to carry forward: **retrieve for knowledge, fine-tune for behavior — and measure before you trust either.**
+
+---
+
+*Sources: [Hugging Face PEFT](https://huggingface.co/docs/peft/index) · [PEFT quicktour](https://huggingface.co/docs/peft/quicktour)*
