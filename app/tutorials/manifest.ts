@@ -45,4 +45,14 @@ export const tutorials: Tutorial[] = [
     order: 3,
     readTime: 9,
   },
+  {
+    slug: 'hybrid-search-for-rag',
+    title: 'Hybrid Search for RAG',
+    excerpt:
+      'Vector search understands meaning; BM25 nails exact tokens. Each has a blind spot. Fuse them with Reciprocal Rank Fusion so retrieval stays correct when either one is wrong.',
+    date: '06-23-2026',
+    tags: ['Tutorial', 'RAG', 'Search', 'Python'],
+    order: 4,
+    readTime: 10,
+  },
 ];

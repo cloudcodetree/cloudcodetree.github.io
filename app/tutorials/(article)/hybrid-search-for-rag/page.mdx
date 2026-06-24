@@ -1,0 +1,130 @@
+export const metadata = {
+  title: 'Hybrid Search for RAG · Tutorials',
+  description:
+    'Vector search understands meaning; BM25 nails exact tokens. Each has a blind spot. Fuse them with Reciprocal Rank Fusion so retrieval stays correct when either one is wrong — tested, with real numbers.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/hybrid-search-for-rag/' },
+  openGraph: {
+    title: 'Hybrid Search for RAG',
+    description: 'Two retrievers, two blind spots. Fuse vector + BM25 with RRF.',
+    url: 'https://cloudcodetree.com/tutorials/hybrid-search-for-rag/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+  },
+};
+
+# Hybrid Search for RAG
+
+**TL;DR: Vector search understands meaning but its margin can be thin on bare tokens; BM25 is surgical on exact tokens but common words can fool it. Fuse both with Reciprocal Rank Fusion and you stay correct when either one is wrong.**
+
+By now your RAG retrieves with embeddings and a [vector database](/tutorials/vector-database-for-rag/), tuned by [chunking](/tutorials/chunking-strategies-for-rag/). Dense vectors are great at *meaning* — but they're not the whole story. Keyword (lexical) search like **BM25** is great at *exact tokens*: error codes, product names, API symbols. The two fail in different places, which is exactly why **combining them** beats either alone.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-hybrid-search-for-rag](https://github.com/cloudcodetree/tutorial-hybrid-search-for-rag).
+Each retriever is a git tag — `git checkout step-01`, `step-02`, `step-03` — or [diff what each adds](https://github.com/cloudcodetree/tutorial-hybrid-search-for-rag#steps-and-what-each-adds).
+</Callout>
+
+## What you'll be able to do after this
+
+- See *where* dense (vector) and lexical (BM25) retrieval each break down.
+- Fuse two rankers with **Reciprocal Rank Fusion** — no score normalization needed.
+- Read a fusion table and explain *why* a result won.
+
+The corpus is four short docs. Only one — **"The E4012 error code"** — actually explains the code `E4012`. A second doc, **"Reading error messages,"** is densely about the *words* "what / error / mean." That's the trap.
+
+## Step 1 — vector only
+
+```python
+emb = model.encode(texts, normalize_embeddings=True)
+q = model.encode(question, normalize_embeddings=True)
+scores = emb @ q                       # cosine similarity
+```
+
+```
+Vector search for 'what does error E4012 mean':
+  [0.704] The E4012 error code
+  [0.619] Retrying transient failures
+  [0.586] Reading error messages
+
+Vector search for 'E4012':
+  [0.577] The E4012 error code
+  [0.538] Retrying transient failures      ← irrelevant, and only 0.04 behind
+```
+
+Vector search is **robust to phrasing** — it ranks the right doc first whether you ask in plain English or just type the code. But notice the bare-token query: the runner-up is an *unrelated* "Retrying" doc, a hair behind. Dense vectors have a thin margin on bare tokens, because a lone code carries little meaning to embed.
+
+## Step 2 — BM25 keyword only
+
+BM25 scores documents by term overlap (with term-frequency saturation and a length penalty). Add it:
+
+```python
+from rank_bm25 import BM25Okapi
+
+def tok(s): return [w.strip(".,()<>=:").lower() for w in s.split()]
+
+bm25 = BM25Okapi([tok(d["text"]) for d in docs])
+scores = bm25.get_scores(tok(question))
+```
+
+```
+BM25 keyword search for 'E4012':
+  [0.63] The E4012 error code            ← surgical: nothing else even scores
+  [0.00] Reading error messages
+
+BM25 keyword search for 'what does error E4012 mean':
+  [2.55] Reading error messages          ← WRONG. fooled by "what / error / mean"
+  [0.63] The E4012 error code
+```
+
+On the bare code, BM25 is **perfect** — only the doc containing `E4012` scores at all. But phrase the *same* question in natural language and BM25 confidently returns the wrong doc: the generic "Reading error messages" page wins purely on common-word overlap. Lexical search has no idea what you *mean*.
+
+<Callout tone="note">
+**This is the whole case for hybrid.** Step 1 and Step 2 each fail on a query the other gets right. You don't want to pick one and live with its blind spot — you want both, fused.
+</Callout>
+
+## Step 3 — fuse with Reciprocal Rank Fusion
+
+RRF ignores the raw scores (which aren't comparable — cosine ~0–1 vs BM25 ~0–3) and uses only each doc's **rank** in each list:
+
+```text
+RRF(d) = Σ  1 / (k + rank_of_d_in_that_ranker)      with k = 60
+        rankers
+```
+
+```python
+def ranks(scores):                     # doc index -> 1-based rank
+    order = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
+    return {i: r + 1 for r, i in enumerate(order)}
+
+vrank, brank = ranks(vec), ranks(bm)
+rrf = {i: 1/(RRF_K + vrank[i]) + 1/(RRF_K + brank[i]) for i in range(len(docs))}
+```
+
+```
+Hybrid (vector + BM25, RRF) for 'what does error E4012 mean':
+      vec  bm25      RRF  title
+  #1   #1    #2   0.0325  The E4012 error code      ← correct
+  #2   #3    #1   0.0323  Reading error messages
+
+Hybrid (vector + BM25, RRF) for 'E4012':
+      vec  bm25      RRF  title
+  #1   #1    #1   0.0328  The E4012 error code      ← correct
+```
+
+The right doc now wins **both** phrasings. The table shows *why*: on the natural-language query, "The E4012 error code" is `#1` for vectors and `#2` for BM25 — strong in both — which beats the generic doc that topped BM25 alone (`#1`) but sank to `#3` on vectors. Fusion rewards agreement.
+
+<Callout tone="note">
+**Why `k = 60`?** It's the value from the original RRF paper and a near-universal default. A larger `k` flattens the contribution of top ranks (fusion leans on broad agreement); a smaller `k` makes the #1 spot dominate. 60 is a sane starting point — make it a knob and let [evaluation](/tutorials/) settle it.
+</Callout>
+
+## Where this goes next
+
+- **Reranking** — fusion gives a good candidate set; a cross-encoder then re-scores the top few with full query-document attention for precision. *(Next tutorial.)*
+- **Weighted fusion** — trust one retriever more by weighting its term: `w_v/(k+rank) + w_b/(k+rank)`.
+- **Evaluation** — measure retrieval so "is hybrid actually better *for my data*?" stops being a guess.
+
+The rule from the start still holds: **retrieve for knowledge, fine-tune for behavior** — and retrieve with *both* lenses.
+
+---
+
+*Sources: [rank-bm25](https://github.com/dorianbrown/rank_bm25) · [RRF paper (Cormack et al., 2009)](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf) · [sentence-transformers](https://www.sbert.net/) · [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5)*
