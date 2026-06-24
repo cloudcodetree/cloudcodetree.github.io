@@ -95,3 +95,9 @@ Thumbs.db
 
 # Sentry Config File
 .sentryclirc
+
+# Personal learning scratch (not part of the site)
+/learn/
+
+# Playwright MCP session artifacts
+/.playwright-mcp/
