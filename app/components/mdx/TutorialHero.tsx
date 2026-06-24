@@ -29,9 +29,36 @@ export default function TutorialHero({ slug }: { slug: string }) {
           sx={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', borderRadius: 2, mb: 2.5, border: '1px solid rgba(148,163,184,0.12)' }}
         />
       )}
-      <Typography sx={{ fontFamily: MONO, fontSize: 12, color: ACCENT, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-        {t.series} · Part {t.part} of {total}
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+        <Typography sx={{ fontFamily: MONO, fontSize: 12, color: ACCENT, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          {t.series} · Part {t.part} of {total}
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {parts.map((p) => {
+            const here = p.slug === t.slug;
+            return (
+              <Box
+                key={p.slug}
+                component={Link}
+                href={`/tutorials/${p.slug}/`}
+                aria-label={`Part ${p.part}: ${p.title}`}
+                aria-current={here ? 'page' : undefined}
+                title={`Part ${p.part}: ${p.title}`}
+                sx={{
+                  width: here ? 11 : 9,
+                  height: here ? 11 : 9,
+                  borderRadius: '50%',
+                  flexShrink: 0,
+                  background: here ? ACCENT : 'transparent',
+                  border: here ? 'none' : '1.5px solid #3a4452',
+                  transition: 'border-color .15s, transform .15s',
+                  '&:hover': { borderColor: ACCENT, transform: 'scale(1.2)' },
+                }}
+              />
+            );
+          })}
+        </Box>
+      </Box>
 
       <Box sx={{ mt: 1.5, p: { xs: 2, md: 2.5 }, borderRadius: 2, border: '1px solid rgba(148,163,184,0.14)', background: 'rgba(148,163,184,0.04)' }}>
         <Typography sx={{ fontFamily: MONO, fontSize: 10.5, color: ACCENT, letterSpacing: '0.14em', textTransform: 'uppercase', mb: 0.75 }}>

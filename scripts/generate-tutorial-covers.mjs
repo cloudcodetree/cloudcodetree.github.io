@@ -53,15 +53,6 @@ function svg({ series, title, part }) {
     .map((l, i) => `<tspan x="${pad}" dy="${i === 0 ? 0 : titlePx * 1.16}">${esc(l)}</tspan>`)
     .join('');
 
-  // part progress dots
-  const dotR = 7, gap = 26, dy = 596;
-  const dots = Array.from({ length: total }, (_, i) => {
-    const cx = pad + dotR + i * gap;
-    return i + 1 === part
-      ? `<circle cx="${cx}" cy="${dy}" r="${dotR}" fill="${ACCENT}"/>`
-      : `<circle cx="${cx}" cy="${dy}" r="${dotR - 1.5}" fill="none" stroke="#3a4452" stroke-width="2"/>`;
-  }).join('');
-
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -78,8 +69,7 @@ function svg({ series, title, part }) {
   <text x="${pad}" y="200" font-family="Menlo, monospace" font-size="22" letter-spacing="5" fill="${ACCENT}">${esc(series.toUpperCase())}</text>
   <text x="${W - pad}" y="200" text-anchor="end" font-family="Menlo, monospace" font-size="22" letter-spacing="3" fill="#8b98a8">PART ${part} / ${total}</text>
   <text y="${titleY}" font-family="Georgia, serif" font-weight="bold" font-size="${titlePx}" fill="#ffffff">${tspans}</text>
-  ${dots}
-  <text x="${W - pad}" y="601" text-anchor="end" font-family="Menlo, monospace" font-size="20" fill="#8b98a8">cloudcodetree.com/tutorials</text>
+  <text x="${pad}" y="601" font-family="Menlo, monospace" font-size="20" fill="#8b98a8">cloudcodetree.com/tutorials</text>
 </svg>`;
 }
 
