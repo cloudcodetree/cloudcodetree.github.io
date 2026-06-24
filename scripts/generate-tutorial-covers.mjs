@@ -28,29 +28,47 @@ const tutorials = [
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-// Greedy word-wrap by an approximate glyph width (Georgia ~0.52em average).
-function wrap(text, fontPx, maxW) {
-  const per = fontPx * 0.52;
-  const max = Math.floor(maxW / per);
-  const words = text.split(' ');
+// Georgia bold runs wide (esp. caps/&), so estimate ~0.62em per glyph and
+// leave headroom. Underestimating here is what clipped a title off the edge.
+const FIT = 0.62;
+
+// Greedy word-wrap to a max character count per line.
+function wrapByChars(text, maxChars) {
   const lines = [];
   let cur = '';
-  for (const w of words) {
-    if ((cur + ' ' + w).trim().length > max && cur) { lines.push(cur); cur = w; }
+  for (const w of text.split(' ')) {
+    if ((cur + ' ' + w).trim().length > maxChars && cur) { lines.push(cur); cur = w; }
     else cur = (cur + ' ' + w).trim();
   }
   if (cur) lines.push(cur);
   return lines;
 }
 
+// Pick the largest font size that fits within maxW using the fewest lines
+// (1 line preferred, up to maxLines). Guarantees no line overflows the width.
+function fitTitle(title, maxW, maxLines = 2) {
+  let best = null;
+  for (const fontPx of [80, 74, 68, 62, 56, 50, 44]) {
+    const maxChars = Math.floor(maxW / (fontPx * FIT));
+    if (maxChars < 1) continue;
+    const lines = wrapByChars(title, maxChars);
+    if (lines.length > maxLines) continue;
+    if (lines.some((l) => l.length > maxChars)) continue; // a single word too wide
+    if (!best || lines.length < best.lines.length) best = { fontPx, lines };
+  }
+  if (best) return best;
+  // Fallback: smallest size, wrap as best we can.
+  const fontPx = 44;
+  return { fontPx, lines: wrapByChars(title, Math.floor(maxW / (fontPx * FIT))) };
+}
+
 function svg({ series, title, part }) {
   const total = SERIES[series];
   const pad = 90;
-  const titlePx = title.length > 26 ? 66 : 78;
-  const lines = wrap(title, titlePx, W - pad * 2);
-  const titleY = 312 - (lines.length - 1) * (titlePx * 0.58);
+  const { fontPx, lines } = fitTitle(title, W - pad * 2, 2);
+  const titleY = 312 - (lines.length - 1) * (fontPx * 0.58);
   const tspans = lines
-    .map((l, i) => `<tspan x="${pad}" dy="${i === 0 ? 0 : titlePx * 1.16}">${esc(l)}</tspan>`)
+    .map((l, i) => `<tspan x="${pad}" dy="${i === 0 ? 0 : fontPx * 1.16}">${esc(l)}</tspan>`)
     .join('');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
@@ -68,7 +86,7 @@ function svg({ series, title, part }) {
   <rect x="${pad}" y="150" width="56" height="4" fill="${ACCENT}"/>
   <text x="${pad}" y="200" font-family="Menlo, monospace" font-size="22" letter-spacing="5" fill="${ACCENT}">${esc(series.toUpperCase())}</text>
   <text x="${W - pad}" y="200" text-anchor="end" font-family="Menlo, monospace" font-size="22" letter-spacing="3" fill="#8b98a8">PART ${part} / ${total}</text>
-  <text y="${titleY}" font-family="Georgia, serif" font-weight="bold" font-size="${titlePx}" fill="#ffffff">${tspans}</text>
+  <text y="${titleY}" font-family="Georgia, serif" font-weight="bold" font-size="${fontPx}" fill="#ffffff">${tspans}</text>
   <text x="${pad}" y="601" font-family="Menlo, monospace" font-size="20" fill="#8b98a8">cloudcodetree.com/tutorials</text>
 </svg>`;
 }
