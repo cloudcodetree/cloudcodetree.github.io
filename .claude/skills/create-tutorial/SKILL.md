@@ -43,13 +43,21 @@ For verified tutorials, `--with-repo` also scaffolds the local companion repo
   and make code snippets clearly illustrative.
 - **MDX gotcha:** a bare `<` before a digit/space in prose (e.g. `<1%`) parses as JSX and fails
   the build — write "under 1%" or `&lt;1%`. (Inside fenced code it's fine.)
+- **No personal info — scrub before publishing.** Tutorials are public. The "real output" rule
+  makes this easy to violate, because real runs leak identifying data into pasted commands and
+  output. Replace all of it with generic placeholders: hostnames/MagicDNS names (`my-mac`),
+  Tailscale/IP addresses (`100.x.y.z`), usernames and `/Users/<name>/...` paths (`~/...` or `you`),
+  account handles/emails (`you@`), device names, API keys/tokens, and **real private project or
+  repo names** (`web-app`, `api-server`). Keep generic hardware/OS facts (e.g. "a Mac mini (M1)").
+  Sweep with a grep for your name/handles/IPs before commit.
 - **Fill every `TODO`** the template leaves (TL;DR, intro, sections, sources).
 
 ## After authoring
 
 1. `pnpm build` — must compile and export.
 2. Mobile check: no horizontal page overflow at 320px (code blocks scroll inside `<pre>` — that's fine).
-3. Commit + push. If the push is rejected, the autonomous blog pipeline pushed first — `git fetch && git rebase origin/main`, then push.
+3. Personal-info sweep: grep the page for your name, handles, real hostnames/IPs, and private project names; confirm it comes back clean (see the "No personal info" hard rule).
+4. Commit + push. If the push is rejected, the autonomous blog pipeline pushed first — `git fetch && git rebase origin/main`, then push.
 
 ## Conventions (reference)
 
