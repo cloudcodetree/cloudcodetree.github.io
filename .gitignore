@@ -15,11 +15,17 @@ node_modules/
 # TypeScript incremental build cache
 *.tsbuildinfo
 
-# Generated reader feeds (built by scripts/generate-feeds.mjs)
-/public/feed.xml
+# Generated reader feeds + guessable aliases (built by scripts/generate-feeds.mjs)
 /public/sitemap.xml
+/public/feed.xml
+/public/rss.xml
+/public/index.xml
 /public/ai-news/feed.xml
+/public/ai-news/rss.xml
+/public/ai-news/index.xml
 /public/tutorials/feed.xml
+/public/tutorials/rss.xml
+/public/tutorials/index.xml
 
 # Blog images live on the GitHub Release CDN, never in the repo
 /public/blog/images/

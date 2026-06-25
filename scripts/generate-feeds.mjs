@@ -35,8 +35,9 @@ const BLOG_DIR = path.join(PUBLIC, 'blog');
 const POSTS_JSON = path.join(BLOG_DIR, 'posts.json');
 
 const SITE = 'https://cloudcodetree.com';
-const FEED_TITLE = 'AI News — cloudcodetree';
+const FEED_TITLE = 'AI News · CloudCodeTree';
 const FEED_DESC = 'Daily field notes on AI-assisted engineering.';
+const FEED_LIMIT = 20; // most-recent items per feed (small feeds; readers want recent, sitemap keeps all)
 
 const MIME = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', avif: 'image/avif', svg: 'image/svg+xml' };
 const mimeFor = (p) => MIME[(p.split('.').pop() || '').toLowerCase()] || 'image/jpeg';
@@ -119,7 +120,8 @@ async function main() {
     date: p.publishedAt && !isNaN(new Date(p.publishedAt).getTime()) ? new Date(p.publishedAt) : toDate(p.date),
   }));
 
-  const rssItems = items.map(({ p, html, img, date }) => {
+  const feedPosts = items.slice(0, FEED_LIMIT); // newest-first; cap the feed (sitemap below keeps all)
+  const rssItems = feedPosts.map(({ p, html, img, date }) => {
     const link = `${SITE}/ai-news/${p.id}/`;
     const cats = (p.tags || []).map((t) => `    <category>${cdata(t)}</category>`).join('\n');
     const media = img
@@ -138,22 +140,26 @@ ${cats ? cats + '\n' : ''}    <description>${cdata(p.excerpt || '')}</descriptio
 ${media}  </item>`;
   }).join('\n');
 
-  const withImg = items.filter((it) => it.img).length;
-  // Site/AI-News feed. Emitted at the canonical /feed.xml (advertised site-wide,
-  // back-compat) AND at the section path /ai-news/feed.xml so the section has its
-  // own conventional feed URL. Same items; only the self-link differs.
-  await writeFeed(PUBLIC, 'feed.xml',
-    rssChannel({ title: FEED_TITLE, desc: FEED_DESC, self: `${SITE}/feed.xml`, link: `${SITE}/ai-news/`, itemsXml: rssItems, now }),
-    `${items.length} items, ${withImg} with images`);
-  await writeFeed(PUBLIC, 'ai-news/feed.xml',
-    rssChannel({ title: FEED_TITLE, desc: FEED_DESC, self: `${SITE}/ai-news/feed.xml`, link: `${SITE}/ai-news/`, itemsXml: rssItems, now }),
-    `${items.length} items`);
+  // Each feed is written at its canonical .../feed.xml AND at guessable aliases
+  // (rss.xml, index.xml) so naive path-discovery also finds it; autodiscovery
+  // <link> tags remain the primary, correct mechanism. Aliases share the body
+  // (rel=self points at the canonical feed.xml so readers can dedupe).
+  const ALIASES = ['feed.xml', 'rss.xml', 'index.xml'];
+  const writeAll = (dir, body, n) =>
+    Promise.all(ALIASES.map((name) => writeFeed(PUBLIC, dir ? `${dir}/${name}` : name, body, `${n} items`)));
 
-  // Tutorials feed — built from the hand-authored manifest (newest-first).
-  const tuts = readTutorials()
+  const siteBody = rssChannel({ title: FEED_TITLE, desc: FEED_DESC, self: `${SITE}/feed.xml`, link: `${SITE}/ai-news/`, itemsXml: rssItems, now });
+  await writeAll('', siteBody, feedPosts.length);
+  const aiBody = rssChannel({ title: FEED_TITLE, desc: FEED_DESC, self: `${SITE}/ai-news/feed.xml`, link: `${SITE}/ai-news/`, itemsXml: rssItems, now });
+  await writeAll('ai-news', aiBody, feedPosts.length);
+
+  // Tutorials feed — built from the hand-authored manifest (newest-first, capped).
+  const allTuts = readTutorials();
+  const tuts = allTuts
     .filter((t) => t.date)
-    .map((t) => ({ ...t, d: toDate(t.date), total: seriesTotal(readTutorials(), t.series) }))
-    .sort((a, b) => (b.d - a.d) || (b.order - a.order));
+    .map((t) => ({ ...t, d: toDate(t.date), total: seriesTotal(allTuts, t.series) }))
+    .sort((a, b) => (b.d - a.d) || (b.order - a.order))
+    .slice(0, FEED_LIMIT);
   const tutItems = tuts.map((t) => {
     const link = `${SITE}/tutorials/${t.slug}/`;
     const fullTitle = `${t.series}: ${t.title} (Part ${t.part} of ${t.total})`;
@@ -167,9 +173,8 @@ ${media}  </item>`;
     <description>${cdata(t.excerpt || '')}</description>
   </item>`;
   }).join('\n');
-  await writeFeed(PUBLIC, 'tutorials/feed.xml',
-    rssChannel({ title: 'Tutorials — cloudcodetree', desc: 'Hands-on tutorials for agentic AI development and AI engineering.', self: `${SITE}/tutorials/feed.xml`, link: `${SITE}/tutorials/`, itemsXml: tutItems, now }),
-    `${tuts.length} items`);
+  const tutBody = rssChannel({ title: 'Tutorials · CloudCodeTree', desc: 'Hands-on tutorials for agentic AI development and AI engineering.', self: `${SITE}/tutorials/feed.xml`, link: `${SITE}/tutorials/`, itemsXml: tutItems, now });
+  await writeAll('tutorials', tutBody, tuts.length);
 
   // --- sitemap.xml -----------------------------------------------------------
   const iso = (d) => d.toISOString().slice(0, 10);
