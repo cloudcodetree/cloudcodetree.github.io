@@ -35,7 +35,7 @@ export function readTutorials() {
     .split(/\},\s*/)
     .map((c) => c.trim())
     .filter((c) => c.startsWith('{'))
-    .map((c) => ({ slug: str(c, 'slug'), title: str(c, 'title'), series: str(c, 'series'), part: num(c, 'part'), order: num(c, 'order') }))
+    .map((c) => ({ slug: str(c, 'slug'), title: str(c, 'title'), series: str(c, 'series'), part: num(c, 'part'), order: num(c, 'order'), date: str(c, 'date'), excerpt: str(c, 'excerpt') }))
     .filter((t) => t.slug);
 }
 

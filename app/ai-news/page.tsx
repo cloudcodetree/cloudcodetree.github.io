@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: 'Daily field notes on AI-assisted engineering — model releases, agent tooling, developer workflow, and the custom-model stack.',
   alternates: {
     canonical: 'https://cloudcodetree.com/',
-    types: { 'application/rss+xml': 'https://cloudcodetree.com/feed.xml' },
+    types: { 'application/rss+xml': 'https://cloudcodetree.com/ai-news/feed.xml' },
   },
 };
 

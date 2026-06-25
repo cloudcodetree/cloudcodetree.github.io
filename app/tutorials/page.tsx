@@ -5,7 +5,10 @@ import { tutorials } from './manifest';
 export const metadata: Metadata = {
   title: 'Tutorials · CloudCodeTree',
   description: 'Hand-written, hands-on tutorials for software engineers getting into agentic AI development and AI engineering — RAG, embeddings, fine-tuning, and more.',
-  alternates: { canonical: 'https://cloudcodetree.com/tutorials/' },
+  alternates: {
+    canonical: 'https://cloudcodetree.com/tutorials/',
+    types: { 'application/rss+xml': 'https://cloudcodetree.com/tutorials/feed.xml' },
+  },
   openGraph: {
     title: 'Tutorials · CloudCodeTree',
     description: 'Hands-on tutorials for agentic AI development and AI engineering.',

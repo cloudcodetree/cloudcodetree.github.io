@@ -23,10 +23,11 @@
  * No external dependencies.
  */
 
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readTutorials, seriesTotal } from './lib/tutorials-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -49,6 +50,36 @@ function toDate(mdY) {
   return new Date(Date.UTC(yyyy, mm - 1, dd, 12, 0, 0));
 }
 const rfc822 = (d) => d.toUTCString();
+
+/** Wrap pre-rendered <item> XML in an RSS 2.0 channel. */
+function rssChannel({ title, desc, self, link, itemsXml, now }) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>${xml(title)}</title>
+    <link>${link}</link>
+    <atom:link href="${self}" rel="self" type="application/rss+xml" />
+    <description>${xml(desc)}</description>
+    <language>en-us</language>
+    <generator>cloudcodetree generate-feeds.mjs</generator>
+    <lastBuildDate>${now}</lastBuildDate>
+${itemsXml}
+  </channel>
+</rss>
+`;
+}
+
+/** Write a feed to public/<relPath>, creating parent dirs as needed. */
+async function writeFeed(PUBLIC, relPath, body, label) {
+  const out = path.join(PUBLIC, relPath);
+  await mkdir(path.dirname(out), { recursive: true });
+  await writeFile(out, body);
+  console.log(`✓ ${relPath} (${label}) → public/`);
+}
 
 /** Minimal, safe Markdown→HTML for the controlled post bodies. */
 function mdToHtml(md) {
@@ -107,27 +138,38 @@ ${cats ? cats + '\n' : ''}    <description>${cdata(p.excerpt || '')}</descriptio
 ${media}  </item>`;
   }).join('\n');
 
-  const rss = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0"
-  xmlns:content="http://purl.org/rss/1.0/modules/content/"
-  xmlns:dc="http://purl.org/dc/elements/1.1/"
-  xmlns:atom="http://www.w3.org/2005/Atom"
-  xmlns:media="http://search.yahoo.com/mrss/">
-  <channel>
-    <title>${xml(FEED_TITLE)}</title>
-    <link>${SITE}/ai-news/</link>
-    <atom:link href="${SITE}/feed.xml" rel="self" type="application/rss+xml" />
-    <description>${xml(FEED_DESC)}</description>
-    <language>en-us</language>
-    <generator>cloudcodetree generate-feeds.mjs</generator>
-    <lastBuildDate>${now}</lastBuildDate>
-${rssItems}
-  </channel>
-</rss>
-`;
-  await writeFile(path.join(PUBLIC, 'feed.xml'), rss);
   const withImg = items.filter((it) => it.img).length;
-  console.log(`✓ feed.xml (${items.length} items, ${withImg} with images) → public/`);
+  // Site/AI-News feed. Emitted at the canonical /feed.xml (advertised site-wide,
+  // back-compat) AND at the section path /ai-news/feed.xml so the section has its
+  // own conventional feed URL. Same items; only the self-link differs.
+  await writeFeed(PUBLIC, 'feed.xml',
+    rssChannel({ title: FEED_TITLE, desc: FEED_DESC, self: `${SITE}/feed.xml`, link: `${SITE}/ai-news/`, itemsXml: rssItems, now }),
+    `${items.length} items, ${withImg} with images`);
+  await writeFeed(PUBLIC, 'ai-news/feed.xml',
+    rssChannel({ title: FEED_TITLE, desc: FEED_DESC, self: `${SITE}/ai-news/feed.xml`, link: `${SITE}/ai-news/`, itemsXml: rssItems, now }),
+    `${items.length} items`);
+
+  // Tutorials feed — built from the hand-authored manifest (newest-first).
+  const tuts = readTutorials()
+    .filter((t) => t.date)
+    .map((t) => ({ ...t, d: toDate(t.date), total: seriesTotal(readTutorials(), t.series) }))
+    .sort((a, b) => (b.d - a.d) || (b.order - a.order));
+  const tutItems = tuts.map((t) => {
+    const link = `${SITE}/tutorials/${t.slug}/`;
+    const fullTitle = `${t.series}: ${t.title} (Part ${t.part} of ${t.total})`;
+    return `  <item>
+    <title>${cdata(fullTitle)}</title>
+    <link>${xml(link)}</link>
+    <guid isPermaLink="false">tutorial-${xml(t.slug)}</guid>
+    <pubDate>${rfc822(t.d)}</pubDate>
+    <dc:creator>${cdata('Chris Harper')}</dc:creator>
+    <category>${cdata(t.series)}</category>
+    <description>${cdata(t.excerpt || '')}</description>
+  </item>`;
+  }).join('\n');
+  await writeFeed(PUBLIC, 'tutorials/feed.xml',
+    rssChannel({ title: 'Tutorials — cloudcodetree', desc: 'Hands-on tutorials for agentic AI development and AI engineering.', self: `${SITE}/tutorials/feed.xml`, link: `${SITE}/tutorials/`, itemsXml: tutItems, now }),
+    `${tuts.length} items`);
 
   // --- sitemap.xml -----------------------------------------------------------
   const iso = (d) => d.toISOString().slice(0, 10);
