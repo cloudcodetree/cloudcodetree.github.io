@@ -294,8 +294,19 @@ netstat -an | grep '\.5900 ' | grep -i listen
 </Callout>
 
 <Callout tone="warn">
-**Two notes before you rely on it.** Screen Sharing grants full control of your logged-in Mac — safe here because Tailscale keeps it private to your own devices, but never pair it with a public port-forward. And if you were using Chrome Remote Desktop, you can retire it now: it relays through Google's servers and keeps your display awake; native Screen Sharing over Tailscale does neither.
+**Two notes before you rely on it.** Screen Sharing grants full control of your logged-in Mac — safe here because Tailscale keeps it private to your own devices, but never pair it with a public port-forward. And make Screen Sharing over Tailscale your *default*: it's direct and end-to-end encrypted, whereas Chrome Remote Desktop (the fallback below) relays through Google and keeps your display awake.
 </Callout>
+
+### When you can't install Tailscale: Chrome Remote Desktop
+
+The approach above assumes you can run the Tailscale app on the device you're connecting *from*. On a locked-down machine — a work laptop, a public or library computer, someone else's PC — you often can't install anything. That's the one case where **Chrome Remote Desktop** earns its place: you connect from nothing but a web browser, and because it relays through Google's servers it slips through restrictive firewalls that would block a direct connection.
+
+Set it up as a *fallback*, not your default:
+
+1. On the Mac, install the host from [remotedesktop.google.com/access](https://remotedesktop.google.com/access) (a small Chrome Remote Desktop Host), turn on **Remote Access**, and set a PIN.
+2. From anywhere, open the same [remotedesktop.google.com/access](https://remotedesktop.google.com/access) in a browser signed into that Google account, click your Mac, and enter the PIN — no app install on the viewing side.
+
+The trade-off is exactly what makes it work: your screen relays through Google rather than going straight to your own devices, and it pins the display awake. So lead with Tailscale + Screen Sharing, and keep Chrome Remote Desktop in your back pocket for networks that won't cooperate.
 
 ## Where this goes next
 
