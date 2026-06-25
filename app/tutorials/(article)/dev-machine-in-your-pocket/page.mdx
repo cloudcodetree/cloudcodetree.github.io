@@ -269,13 +269,25 @@ macOS ships a built-in VNC server — **Screen Sharing** — so there's nothing 
 
 > **System Settings → General → Sharing → enable Screen Sharing.**
 
-Now the Mac listens on port 5900, reachable over your tailnet as `my-mac:5900` — and *only* over your tailnet, never the public internet. The connection details are identical to SSH: same MagicDNS name, same private network.
+Now the Mac listens on port 5900, reachable over your tailnet — and *only* over your tailnet, never the public internet.
+
+The Sharing panel will say your screen is reachable at something like `vnc://my-mac.lan/`. **Ignore that address** — the `.lan` name only resolves on your home network. Over Tailscale you connect by your **MagicDNS** name (`my-mac`) or the `100.x.y.z` tailnet IP, which work from anywhere. Same name, same private network as your SSH connection.
+
+Confirm it's actually listening before you go hunting for connection bugs:
+
+```bash
+# A plain `lsof` won't show it — the VNC daemon runs as root, so use netstat.
+netstat -an | grep '\.5900 ' | grep -i listen
+# -> tcp4  0  0  *.5900  *.*  LISTEN
+```
 
 **From a Mac (desktop):** open the built-in **Screen Sharing** app, or in Finder press Cmd-K and enter `vnc://my-mac`. Mac-to-Mac, macOS negotiates its own efficient codec, so on a decent link it feels close to local.
 
 **From Windows or Linux (desktop):** any VNC client — [RealVNC Viewer](https://www.realvnc.com/en/connect/download/viewer/) or TigerVNC — pointed at `my-mac:5900`.
 
-**From a phone or tablet (mobile):** install a VNC client — RealVNC Viewer is free; [Jump Desktop](https://jumpdesktop.com/) or Screens are paid and noticeably smoother. Add a connection to `my-mac` (or the device's `100.x` tailnet IP), port 5900. As long as the Tailscale app is running, the VNC traffic rides the tailnet automatically — exactly like your SSH client does.
+**From a phone or tablet (mobile):** install a VNC client — RealVNC Viewer is free; [Jump Desktop](https://jumpdesktop.com/) or Screens are paid and noticeably smoother. Add a connection to `my-mac` (or the `100.x.y.z` tailnet IP), port 5900. As long as the Tailscale app is running, the VNC traffic rides the tailnet automatically — exactly like your SSH client does.
+
+**Authentication.** Sign in with your **Mac account** — your macOS username and login password (the "Allow access for" list controls who's permitted; Administrators by default). macOS prefers this account-based scheme. If your client only speaks *classic VNC password auth* and rejects the login, toggle on **"VNC viewers may control screen with password"** in the Screen Sharing settings, set a password there, and use that instead. It's a weaker, 8-character legacy scheme — but fine here, because Tailscale already encrypts the whole channel; the encryption that matters is at the transport layer, not VNC's own.
 
 <Callout tone="tip">
 **Desktop on a phone is a fallback, not a workflow.** A full Mac desktop on a phone screen is fiddly — the tmux flow above is far better for real work. Reach for remote desktop from a tablet or laptop, or from your phone only for the occasional "I just need to click that one GUI thing."
