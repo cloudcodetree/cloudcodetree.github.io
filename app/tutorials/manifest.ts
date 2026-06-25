@@ -139,6 +139,19 @@ export const tutorials: Tutorial[] = [
     readTime: 8,
     image: '/tutorials/covers/serve-with-vllm.png',
   },
+  {
+    slug: 'dev-machine-in-your-pocket',
+    title: 'Your Whole Dev Machine, In Your Pocket',
+    series: 'Claude Code Anywhere',
+    part: 1,
+    excerpt:
+      'Self-host a free, secure pipeline from your phone to your real Mac with Tailscale, tmux, and one isolated Claude Code session per project. Your actual files and full toolchain — not a cloud sandbox.',
+    date: '06-25-2026',
+    tags: ['Tutorial', 'Claude Code', 'tmux', 'Tailscale', 'SSH'],
+    order: 10,
+    readTime: 12,
+    image: '/tutorials/covers/dev-machine-in-your-pocket.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */

@@ -1,0 +1,271 @@
+export const metadata = {
+  title: 'Claude Code Anywhere: Your Whole Dev Machine, In Your Pocket (Part 1 of 1) · Tutorials',
+  description:
+    'Self-host a free, secure pipeline from your phone to your real Mac with Tailscale, tmux, and one isolated Claude Code session per project. Your actual files and full toolchain — not a cloud sandbox.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dev-machine-in-your-pocket/' },
+  openGraph: {
+    title: 'Claude Code Anywhere: Your Whole Dev Machine, In Your Pocket (Part 1 of 1)',
+    description: 'Self-host a free, secure pipeline from your phone to your real Mac with Tailscale, tmux, and one isolated Claude Code session per project. Your actual files and full toolchain — not a cloud sandbox.',
+    url: 'https://cloudcodetree.com/tutorials/dev-machine-in-your-pocket/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dev-machine-in-your-pocket.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dev-machine-in-your-pocket.png'] },
+};
+
+<TutorialHero slug="dev-machine-in-your-pocket" />
+
+# Your Whole Dev Machine, In Your Pocket
+
+**TL;DR: Wire your phone to your real Mac with Tailscale, then run Claude Code in a persistent tmux session — one isolated window per project. You get your actual files and full local toolchain from anywhere, free, with no ports exposed to the internet.**
+
+There are good hosted ways to use Claude Code away from your desk — Dispatch, the mobile experience, remote-control sessions. They all run in Anthropic's cloud against a sandbox or a paired session. This tutorial does the opposite: it turns *your own machine* into the thing you reach. Every uncommitted file, every locally-installed tool, every one of your real projects — driven from your phone over an encrypted private network you own.
+
+<Callout tone="note">
+**The differentiator: your real machine, not a sandbox.** A cloud session starts from a clone of a repo. This setup SSHes into the Mac sitting on your desk, so what you see on your phone is the exact working tree you left — half-finished edits included. That's the whole point.
+</Callout>
+
+<Callout tone="tip">
+**This is a setup walkthrough, and the commands are real.** Every command and output below was captured from a live build on a Mac mini (M1). Your device names, Tailscale IPs, and tailnet domain will differ — substitute your own. There's no repo to clone; the "code" here is a handful of short scripts you'll paste onto your Mac.
+</Callout>
+
+## What you'll be able to do after this
+
+- Reach your Mac from your phone over Tailscale — no port forwarding, no public IP, no SSH keys to manage.
+- Survive reboots and power cuts: the Mac comes back online and rejoins the network unattended.
+- Open any project in its own Claude Code session from a one-tap menu, with each project's context fully isolated from the rest.
+- Detach and walk away — every conversation keeps running, ready to resume.
+
+## The two layers
+
+The trick is to keep two concerns completely separate:
+
+```text
+ phone (SSH app) --SSH over Tailscale--> your Mac --> tmux "dev" session
+                                                       |- hub         (lean, no claude)
+                                                       |- web-app     (its own claude)
+                                                       |- api-server  (its own claude)
+                                                       \- ... one window per project, on demand
+```
+
+**Layer 1 — transport:** how the phone reaches the Mac. **Layer 2 — session:** what's running when you arrive, and how each project stays in its own context. Keep them independent and each becomes simple.
+
+## Layer 1 — Transport: Tailscale (no ports, no keys)
+
+[Tailscale](https://tailscale.com) is a mesh VPN built on WireGuard. Install it on the Mac and the phone, sign both into the same account, and they can reach each other directly — as if on the same LAN — no matter what network either is on. Nothing is exposed to the public internet.
+
+On the Mac:
+
+```bash
+brew install tailscale
+sudo brew services start tailscale     # runs tailscaled as a system daemon
+sudo tailscale up --ssh                # prints a login URL; sign in
+```
+
+The `--ssh` flag is the part that saves you the most work:
+
+<Callout tone="tip">
+**Tailscale SSH means no SSH keys.** With `--ssh`, Tailscale authenticates the SSH connection using your tailnet identity, so there are no keypairs to generate or copy and no `sshd` to expose. Port 22 is never opened to the internet — only your own devices on the tailnet can reach it.
+</Callout>
+
+Confirm both devices are on the tailnet:
+
+```bash
+tailscale status
+```
+
+```text
+100.x.y.z   my-mac     you@  macOS    -
+100.x.y.w   my-phone   you@  android  -
+```
+
+The first column is each device's stable tailnet IP; the second is its **MagicDNS** name. From the phone you connect to that name (here, `my-mac`) — you never have to memorize an address.
+
+On the phone: install the **Tailscale** app (same account), plus any SSH client. On Android, [ConnectBot](https://connectbot.org/) is free and works well; on iOS, [Blink Shell](https://blink.sh/) or Termius. Add a host pointing at your Mac's MagicDNS name with your Mac username, and connect. Tailscale's app is a system-wide VPN, so the SSH client's traffic rides the tailnet automatically.
+
+## Make it survive reboots and power cuts
+
+A pocket dev machine is only useful if it's reliably *there*. Three settings turn a desktop Mac into a dependable always-on box. (A laptop rides outages on its battery, so this section matters most for a Mac mini or iMac.)
+
+**Auto-start Tailscale at boot.** Because you started it with `sudo brew services start`, Homebrew installed a root LaunchDaemon at `/Library/LaunchDaemons/homebrew.mxcl.tailscale.plist` that runs at boot — before any GUI login. Nothing more to do; just confirm the daemon is running:
+
+```bash
+pgrep -fl tailscaled
+```
+
+**Power back on after an outage, and never sleep.** Check the current state, then fix it:
+
+```bash
+pmset -g | grep -E "autorestart|sleep"
+```
+
+```text
+ sleep                1
+ autorestart          0
+```
+
+`autorestart 0` means the Mac stays off after a power cut, and `sleep 1` means it naps after a minute idle — both fatal for remote access. Flip them:
+
+```bash
+sudo pmset -a autorestart 1    # power on automatically after a power failure
+sudo pmset -a sleep 0          # never sleep — stay reachable
+```
+
+```text
+ sleep                0
+ autorestart          1
+```
+
+<Callout tone="warn">
+**FileVault is the silent blocker.** If full-disk encryption is on, a rebooted Mac stops at the unlock screen *before* any LaunchDaemon runs — so Tailscale never starts and you can't get in. For an unattended box, confirm `fdesetup status` reports **FileVault is Off**, or accept that every reboot needs someone to unlock the disk in person.
+</Callout>
+
+Why not rely on Wake-on-LAN instead of `sleep 0`? Wake-on-LAN only reliably wakes a Mac from another device on the *same local network* — it won't wake a sleeping mini from your phone over cellular. You can't wake what you can't reach, so for a remote box, simply don't let it sleep.
+
+## Layer 2 — A session that holds every project without bloating context
+
+Here's the problem that makes a naive setup miserable: if you start one Claude Code session at the root of a folder full of projects and wander between them, the context window fills with all of them. The fix is structural.
+
+<Callout tone="note">
+**One Claude process per project = one isolated context window.** Each Claude Code session loads only the project it starts in (plus any global config). So instead of one mega-session, run a *separate* `claude` per project, each in its own tmux window. Opening one project never loads the others. This works cleanly when there's no catch-all `CLAUDE.md` at the parent folder pulling everything in.
+</Callout>
+
+[tmux](https://github.com/tmux/tmux) is a terminal multiplexer: it keeps sessions alive on the Mac independent of whether your phone is attached. Install it (and `mosh`, used later):
+
+```bash
+brew install tmux mosh
+```
+
+Now four small scripts. Put them in `~/Development/.remote-control/`.
+
+**`dev`** — the single command you run after connecting. It creates the session once (with a deliberately empty "hub" window for quick navigation) and attaches to it:
+
+```bash
+#!/usr/bin/env bash
+# dev — attach to the persistent 'dev' tmux session (create it if needed).
+set -euo pipefail
+
+SESSION="dev"
+DEV="$HOME/Development"
+
+if ! tmux has-session -t "$SESSION" 2>/dev/null; then
+  tmux new-session -d -s "$SESSION" -c "$DEV" -n hub
+  tmux send-keys -t "$SESSION:hub" "echo 'dev hub - press: prefix then p to pick a project'" C-m
+fi
+
+if [ -n "${TMUX:-}" ]; then
+  tmux switch-client -t "$SESSION"
+else
+  exec tmux attach -t "$SESSION"
+fi
+```
+
+**`open.sh`** — opens (or jumps to) a project's window, launching `claude` scoped to that directory. Re-selecting a project you already opened just switches to it, so you never get duplicates or lose a conversation:
+
+```bash
+#!/usr/bin/env bash
+# open.sh <project-basename> - open/jump to a project's isolated claude window.
+set -euo pipefail
+
+base="${1:?usage: open.sh <project-basename>}"
+dir="$HOME/Development/$base"
+[ -d "$dir" ] || { tmux display-message "No such project: $base"; exit 1; }
+
+# tmux window names can't contain ':' or '.'; sanitize for the window name only.
+win="$(printf '%s' "$base" | tr -c 'A-Za-z0-9_-' '_')"
+
+if tmux list-windows -F '#W' 2>/dev/null | grep -qx "$win"; then
+  tmux select-window -t "=$win"
+else
+  # Drop to a shell when claude exits so the window (and scrollback) survives.
+  tmux new-window -c "$dir" -n "$win" "claude; exec ${SHELL:-/bin/zsh} -l"
+fi
+```
+
+**`pick.sh`** — the menu. It auto-discovers every project under `~/Development` and assigns each a single shortcut key, so on a phone you pick with one tap — no arrow keys (which most phone keyboards lack):
+
+```bash
+#!/usr/bin/env bash
+# pick.sh - pop-up menu of all projects; one shortcut key each.
+set -euo pipefail
+
+RC="$HOME/Development/.remote-control"
+DEV="$HOME/Development"
+keys="123456789abcdefg"           # 'h' reserved for hub; 'q'/Esc cancel
+
+i=0; args=()
+for d in "$DEV"/*/; do
+  base="$(basename "${d%/}")"
+  args+=("$base" "${keys:$i:1}" "run-shell -b \"$RC/open.sh $base\"")
+  i=$((i + 1))
+done
+args+=("" "" "")
+args+=("hub (lean nav)" "h" "select-window -t =hub")
+
+tmux display-menu -x C -y C -T "#[align=centre,fg=green] pick a project " "${args[@]}"
+```
+
+**`tmux.conf`** — phone-tuned tmux, sourced from `~/.tmux.conf`. The highlights: a **backtick second prefix** so you never need Ctrl, the picker bound to `p`, and a red **PREFIX** badge so you get visual confirmation the prefix registered:
+
+```bash
+# Backtick as a SECOND prefix so a phone never needs Ctrl. Ctrl-b still works.
+set -g prefix2 `
+set -g mouse on
+set -g history-limit 50000
+set -g base-index 1
+set -g renumber-windows on
+set -sg escape-time 10
+
+# Flash a red PREFIX badge when the prefix is active - then press the next key.
+set -g status-right "#{?client_prefix,#[bg=red#,fg=white#,bold] PREFIX #[default] ,}#[fg=colour245]%a %H:%M "
+
+# prefix p (or P) -> the project picker
+bind p run-shell -b "$HOME/Development/.remote-control/pick.sh"
+bind P run-shell -b "$HOME/Development/.remote-control/pick.sh"
+```
+
+Wire it up and make the scripts executable:
+
+```bash
+chmod +x ~/Development/.remote-control/{dev,open.sh,pick.sh}
+echo "source ~/Development/.remote-control/tmux.conf" > ~/.tmux.conf
+echo 'alias dev="$HOME/Development/.remote-control/dev"' >> ~/.zshrc
+```
+
+That's the whole system. Type `dev`, hit the prefix then `p`, tap a number, and you're in a project-scoped Claude session.
+
+## The phone side — three gotchas, solved
+
+Phone keyboards make terminal work fiddly. These are the snags worth knowing up front.
+
+**The prefix is silent.** tmux commands start with a *prefix* keypress (`Ctrl-b`, or backtick in this config) that produces no visible output — it just arms tmux for the next key. The number-one beginner confusion is "I pressed the prefix and nothing happened." Nothing is *supposed* to happen until you press the second key. Press the prefix, then `p`, and the menu appears.
+
+**Soft keyboards send no Ctrl.** Android's Gboard has no Ctrl key at all, and terminal apps synthesize it with varying success. That's exactly why the config adds the backtick second prefix — backtick is a key you almost never type literally, so it's a safe no-Ctrl alternative. (To type a literal backtick, press it twice.) The red PREFIX badge tells you the moment it registers.
+
+**No arrow keys.** The picker assigns a digit or letter to each project precisely so you can select with one tap instead of arrowing through a list. Open project number two with: prefix, `p`, `2`.
+
+## Your daily loop
+
+```text
+Connect in your SSH app  ->  type:  dev
+Open / switch project    ->  prefix, then p, then a number
+Read long output         ->  prefix, then [   (arrow up; q to quit)
+Leave it all running     ->  prefix, then d   (detach)
+```
+
+<Callout tone="tip">
+**Detach, don't kill.** `prefix` then `d` detaches: it severs your phone's *view* while everything keeps running on the Mac. Close the app, lose signal, let your phone die — your Claude sessions are untouched. Reconnect, type `dev`, and you're exactly where you left off. (Force-closing the SSH app is equivalent to detaching — also safe.) Only `kill-session` actually tears things down.
+</Callout>
+
+Because the Mac auto-restarts and rejoins the tailnet on its own, even a power outage is a non-event: the box reboots, Tailscale comes back, you reconnect and type `dev`. The only thing a reboot clears is the in-memory tmux session itself — and `dev` rebuilds that in a fraction of a second.
+
+## Where this goes next
+
+- **Survive network changes with mosh.** Plain SSH dies when your phone roams from Wi-Fi to cellular (the IP changes); [mosh](https://mosh.org/) is UDP-based and roams with you. We installed it above — pair it with tmux for two layers of resilience.
+- **Multiple machines.** Tailscale's MagicDNS makes a second or third machine just another name to SSH to; the same `dev` script works on each.
+- **Lock it down further.** Tailscale ACLs and Access policies can scope exactly who and what may reach the Mac.
+
+---
+
+*Sources: [Tailscale docs — Tailscale SSH](https://tailscale.com/kb/1193/tailscale-ssh), [tmux wiki](https://github.com/tmux/tmux/wiki), [Apple `pmset` man page](https://ss64.com/osx/pmset.html), and a live build captured on a Mac mini (M1).*
