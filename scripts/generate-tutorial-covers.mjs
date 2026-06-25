@@ -5,26 +5,16 @@
 // These are committed (a small, fixed set), unlike the blog's CDN-hosted images.
 
 import sharp from 'sharp';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
+import { readTutorials, seriesTotal } from './lib/tutorials-data.mjs';
 
 const W = 1200, H = 675;
 const ACCENT = '#3fb950';
 const OUT = path.resolve('public/tutorials/covers');
 
-// Kept in sync with app/tutorials/manifest.ts (small fixed set).
-const SERIES = { 'RAG from Scratch': 6, 'Fine-Tuning & Serving': 3 };
-const tutorials = [
-  { slug: 'build-a-rag-over-your-blog', series: 'RAG from Scratch', title: 'Build a RAG Over Your Blog', part: 1 },
-  { slug: 'vector-database-for-rag', series: 'RAG from Scratch', title: 'Give Your RAG a Vector Database', part: 2 },
-  { slug: 'chunking-strategies-for-rag', series: 'RAG from Scratch', title: 'Chunking Strategies', part: 3 },
-  { slug: 'hybrid-search-for-rag', series: 'RAG from Scratch', title: 'Hybrid Search', part: 4 },
-  { slug: 'reranking-for-rag', series: 'RAG from Scratch', title: 'Reranking', part: 5 },
-  { slug: 'evaluating-rag', series: 'RAG from Scratch', title: 'Evaluating Retrieval', part: 6 },
-  { slug: 'fine-tuning-vs-rag', series: 'Fine-Tuning & Serving', title: 'Fine-Tuning vs RAG', part: 1 },
-  { slug: 'lora-qlora-fine-tuning', series: 'Fine-Tuning & Serving', title: 'LoRA & QLoRA on One GPU', part: 2 },
-  { slug: 'serve-with-vllm', series: 'Fine-Tuning & Serving', title: 'Serve a Model with vLLM', part: 3 },
-];
+// Single source of truth: the tutorials list comes from app/tutorials/manifest.ts.
+const tutorials = readTutorials();
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -63,7 +53,7 @@ function fitTitle(title, maxW, maxLines = 2) {
 }
 
 function svg({ series, title, part }) {
-  const total = SERIES[series];
+  const total = seriesTotal(tutorials, series);
   const pad = 90;
   const { fontPx, lines } = fitTitle(title, W - pad * 2, 2);
   const titleY = 312 - (lines.length - 1) * (fontPx * 0.58);

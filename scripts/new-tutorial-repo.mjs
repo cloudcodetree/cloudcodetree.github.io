@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
  * new-tutorial-repo.mjs — scaffold a step-tagged companion code repo for a
- * hands-on tutorial, following the convention in docs/tutorials-playbook.md.
+ * hands-on tutorial, following the convention in the create-tutorial skill
+ * (.claude/skills/create-tutorial/). For a whole tutorial (page + manifest +
+ * cover), prefer scripts/scaffold-tutorial.mjs --with-repo.
  *
  * Creates a sibling repo `tutorial-<slug>` with a standard README (step compare
  * table), starter files, and an initial `step-01` commit + annotated tag. The
@@ -105,4 +107,4 @@ console.log(`\nNext:`);
 console.log(`  1. Build the code, committing + 'git tag -a step-NN -m ...' per step; push --tags.`);
 console.log(`  2. Add README compare-table rows as you tag steps.`);
 console.log(`  3. Site side: create app/tutorials/(article)/${slug}/page.mdx and add an`);
-console.log(`     entry to app/tutorials/manifest.ts (see docs/tutorials-playbook.md).`);
+console.log(`     entry to app/tutorials/manifest.ts (or use scripts/scaffold-tutorial.mjs).`);
