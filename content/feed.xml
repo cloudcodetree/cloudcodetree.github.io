@@ -10,7 +10,160 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 24 Jun 2026 21:09:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 25 Jun 2026 12:05:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Claude Code 2.1.191: /rewind Lets You Branch from Before a /clear, Stopped Agents Stay Stopped, 37% Less CPU</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-06-25-02-claude-code-2191-rewind-cpu-mcp</guid>
+      <pubDate>Wed, 25 Jun 2026 12:05:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code 2.1.191 adds /rewind (restore context from before /clear), permanently fixes background agent resurrection on stop, cuts streaming CPU by 37%, and repairs comma-separated hook matchers that were silently never firing.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code 2.1.191 adds /rewind (resume from before you /cleared), permanently stops background agents when you say stop, and cuts streaming CPU by 37%.**
+
+The June 24 patch is more than bug fixes. Three things are actionable right now.
+
+## /rewind: Branch from before you /cleared
+
+`/clear` discards context that's gone forever — until now. `/rewind` reopens any prior conversation state, including the one just before you ran `/clear`. Use it to:
+
+- Restart from a known-good point when a session derails
+- Branch into a different approach without starting over
+- Recover context cleared accidentally mid-task
+
+Think of it as a checkpoint restore: `/compact` preserves and shrinks, `/rewind` restores and branches.
+
+## Background agents now actually stay stopped
+
+Stopping a background agent from the tasks panel would sometimes let it resurrect and continue running. Fixed: stopping is now permanent. For unattended multi-agent runs, your task panel now reflects actual agent state.
+
+## 37% less CPU during streaming
+
+The CLI was repainting the terminal on every token. 2.1.191 coalesces updates to a 100ms window, cutting streaming CPU by 37%. Fewer fan-spin moments on laptop-based long sessions.
+
+## Other fixes worth knowing
+
+- **Hooks with comma-separated matchers now fire**: if you had `"Bash,PowerShell"` as a hook matcher, it was silently never triggering. Check your `.claude/settings.json` if you used comma lists in matcher entries.
+- **Sandbox network permission persists per session**: no re-prompt on every connection to an already-allowed host during a sandboxed run.
+- **MCP capability discovery retries transient errors** — better stability for flaky MCP servers on slow networks.
+- **MCP OAuth headless**: CI environments skip the browser-open prompt and go straight to the paste-URL flow.
+- **Fixed: `/permissions` deny approvals now persist** on close instead of being silently discarded.
+
+Update with: `npm install -g @anthropic-ai/claude-code@latest`
+
+**Sources:** [Claude Code changelog — 2.1.191](https://code.claude.com/docs/en/changelog)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Better RAG: Use Metadata Filters to Scope Your Search Before Similarity Runs</title>
+      <link>https://www.pinecone.io/learn/vector-search-filtering/</link>
+      <guid isPermaLink="false">2026-06-25-01-metadata-filtering-rag-where-clause</guid>
+      <pubDate>Wed, 25 Jun 2026 12:04:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Embeddings</category>
+      <category>Best Practices</category>
+      <description>Metadata filters let you scope your vector search to the right subset before similarity runs — by category, date, source, or user. This is the WHERE clause your RAG pipeline is missing.</description>
+      <media:content url="https://cdn.sanity.io/images/vr8gru94/production/f2519e7d384ba86b7035ddeda034267924c45b3a-1920x1080.png" medium="image"/>
+      <media:thumbnail url="https://cdn.sanity.io/images/vr8gru94/production/f2519e7d384ba86b7035ddeda034267924c45b3a-1920x1080.png"/>
+      <content:encoded><![CDATA[
+**TL;DR: Stop searching your entire document store — use metadata filters to scope to the right subset before similarity runs, so you get faster and more accurate retrieval with one extra parameter.**
+
+**What you'll be able to do after this:**
+- Attach metadata fields (category, date, source, user) to your embeddings and filter them at query time using WHERE-style conditions
+- Implement pre-filtering in ChromaDB with the `where` parameter — no extra library needed
+- Combine metadata filters with vector search for queries like "most relevant chunk from Q4 2024 finance docs" instead of searching everything every time
+
+## Why this matters
+
+From the last two posts: hybrid search gives you better recall; reranking gives you better precision. But neither fixes a more fundamental problem: **you're searching all your documents on every query**.
+
+A 1M-chunk store with content from 50 different sources should not run an HR question through finance documents. A question about Q4 2024 numbers should not surface docs from 2022. Without filtering, you get noise crowding out signal, slower latency, and answers sourced from the wrong place.
+
+Metadata filtering is the WHERE clause your vector search is missing — and it's built into every major vector database.
+
+## Step 1: Attach metadata at ingest
+
+```python
+import chromadb
+from sentence_transformers import SentenceTransformer
+
+client = chromadb.Client()
+collection = client.create_collection("docs")
+encoder = SentenceTransformer('all-MiniLM-L6-v2')
+
+documents = [
+    "The Q4 2024 revenue was $2.3M, up 18% YoY.",
+    "The company PTO policy allows 15 days annually.",
+    "Q3 2024 operating expenses totaled $1.1M.",
+    "Remote work requires manager approval for trips over 2 weeks.",
+]
+metadatas = [
+    {"category": "finance", "quarter": "Q4-2024"},
+    {"category": "hr"},
+    {"category": "finance", "quarter": "Q3-2024"},
+    {"category": "hr"},
+]
+
+collection.add(
+    documents=documents,
+    embeddings=encoder.encode(documents).tolist(),
+    metadatas=metadatas,
+    ids=[f"doc-{i}" for i in range(len(documents))],
+)
+```
+
+## Step 2: Filter at query time
+
+```python
+query = "What was Q4 2024 revenue?"
+
+results = collection.query(
+    query_embeddings=encoder.encode([query]).tolist(),
+    n_results=3,
+    where={"category": {"$eq": "finance"}},   # <-- the WHERE clause
+)
+print(results["documents"])
+# → ['The Q4 2024 revenue was $2.3M...', 'Q3 2024 operating expenses...']
+# HR documents never appear — they were excluded before ANN ran.
+```
+
+The `where` parameter runs **pre-filtering**: ChromaDB applies it before approximate nearest-neighbor search, not after. Only the matching subset is searched — faster and more precise.
+
+## Filter operators (works the same across ChromaDB, Pinecone, Qdrant)
+
+| Operator | Example |
+|---|---|
+| `$eq` | `{"category": {"$eq": "finance"}}` |
+| `$ne` | `{"source": {"$ne": "archive"}}` |
+| `$gt` / `$gte` / `$lt` / `$lte` | `{"year": {"$gte": 2024}}` |
+| `$in` | `{"quarter": {"$in": ["Q3-2024", "Q4-2024"]}}` |
+| `$and` | `{"$and": [{"category": {"$eq": "finance"}}, {"year": {"$gte": 2024}}]}` |
+
+## Pre-filtering vs post-filtering
+
+- **Pre-filtering (default in ChromaDB, Pinecone, Qdrant)**: filter first, run ANN on the subset. Accurate; can return fewer than n_results if the subset is small.
+- **Post-filtering**: run ANN across everything, filter after. Risk of returning nothing if matching docs don't appear in top-k. Fails at scale.
+
+Pre-filtering is almost always what you want for RAG. Pinecone's "The Missing WHERE Clause in Vector Search" (linked below) has a clear visual of why post-filtering breaks on large indexes.
+
+## When to reach for it
+
+Add metadata filtering when users' questions are domain-scoped (HR vs finance vs legal), when you need access control (only docs this user can read), when freshness matters (docs from the last 90 days only), or when you have multi-tenant data on a shared index.
+
+Next up in Better RAG: **evaluating retrieval quality** — measuring whether your top-k results are actually relevant before they reach the LLM.
+
+**Sources:** [Pinecone: The Missing WHERE Clause in Vector Search](https://www.pinecone.io/learn/vector-search-filtering/), [ChromaDB: Metadata Filtering docs](https://docs.trychroma.com/docs/querying-collections/metadata-filtering), [YouTube: Smarter RAG Starts with Metadata](https://www.youtube.com/watch?v=lnm0PMi-4mE), [Dataquest: Metadata Filtering and Hybrid Search](https://www.dataquest.io/blog/metadata-filtering-and-hybrid-search-for-vector-databases/)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Give Claude a Verifier, Not Just a Task: /goal, Stop Hooks, and Evidence-Based Confirmation</title>
