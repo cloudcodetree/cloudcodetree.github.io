@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default function TutorialsPage() {
-  // Learning-path order (ascending). The list UI mirrors the blog's.
-  const ordered = [...tutorials].sort((a, b) => a.order - b.order);
+  // Newest first (descending order), mirroring the AI News blog.
+  const ordered = [...tutorials].sort((a, b) => b.order - a.order);
   return <TutorialsList tutorials={ordered} />;
 }
