@@ -36,6 +36,7 @@ There are good hosted ways to use Claude Code away from your desk — Dispatch, 
 - Survive reboots and power cuts: the Mac comes back online and rejoins the network unattended.
 - Open any project in its own Claude Code session from a one-tap menu, with each project's context fully isolated from the rest.
 - Detach and walk away — every conversation keeps running, ready to resume.
+- Pop open the full Mac desktop — GUI apps and all — directly and privately, from a tablet, laptop, or phone, when the terminal isn't enough.
 
 ## The two layers
 
@@ -259,6 +260,30 @@ Leave it all running     ->  prefix, then d   (detach)
 </Callout>
 
 Because the Mac auto-restarts and rejoins the tailnet on its own, even a power outage is a non-event: the box reboots, Tailscale comes back, you reconnect and type `dev`. The only thing a reboot clears is the in-memory tmux session itself — and `dev` rebuilds that in a fraction of a second.
+
+## Bonus: the GUI when you need it (remote desktop over Tailscale)
+
+The SSH-and-tmux flow above is for terminal work. Sometimes you need the actual desktop — a GUI app, a browser, drag-and-drop, watching something render. Tailscale makes that better than a service like Chrome Remote Desktop, which relays your screen through a third party. Here you connect **directly to your own Mac, end-to-end encrypted, with nothing in between.**
+
+macOS ships a built-in VNC server — **Screen Sharing** — so there's nothing extra to install on the Mac. Turn it on:
+
+> **System Settings → General → Sharing → enable Screen Sharing.**
+
+Now the Mac listens on port 5900, reachable over your tailnet as `my-mac:5900` — and *only* over your tailnet, never the public internet. The connection details are identical to SSH: same MagicDNS name, same private network.
+
+**From a Mac (desktop):** open the built-in **Screen Sharing** app, or in Finder press Cmd-K and enter `vnc://my-mac`. Mac-to-Mac, macOS negotiates its own efficient codec, so on a decent link it feels close to local.
+
+**From Windows or Linux (desktop):** any VNC client — [RealVNC Viewer](https://www.realvnc.com/en/connect/download/viewer/) or TigerVNC — pointed at `my-mac:5900`.
+
+**From a phone or tablet (mobile):** install a VNC client — RealVNC Viewer is free; [Jump Desktop](https://jumpdesktop.com/) or Screens are paid and noticeably smoother. Add a connection to `my-mac` (or the device's `100.x` tailnet IP), port 5900. As long as the Tailscale app is running, the VNC traffic rides the tailnet automatically — exactly like your SSH client does.
+
+<Callout tone="tip">
+**Desktop on a phone is a fallback, not a workflow.** A full Mac desktop on a phone screen is fiddly — the tmux flow above is far better for real work. Reach for remote desktop from a tablet or laptop, or from your phone only for the occasional "I just need to click that one GUI thing."
+</Callout>
+
+<Callout tone="warn">
+**Two notes before you rely on it.** Screen Sharing grants full control of your logged-in Mac — safe here because Tailscale keeps it private to your own devices, but never pair it with a public port-forward. And if you were using Chrome Remote Desktop, you can retire it now: it relays through Google's servers and keeps your display awake; native Screen Sharing over Tailscale does neither.
+</Callout>
 
 ## Where this goes next
 
