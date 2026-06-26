@@ -111,9 +111,11 @@ what gets written into the feed.
 >    **This blog is the reader's learning center for building and customizing AI**,
 >    so a teachable post is a co-priority with the practitioner one, not an extra.
 >    Each run, cover the next topic from the **Custom-model curriculum** (below)
->    that isn't yet well covered. **RAG/retrieval (curriculum topics 1–2) is already
->    heavily covered — rotate forward to fine-tuning and run & serve (topics 3–4);
->    add another RAG piece only as a distinctly deeper, hands-on follow-up.** Anchor it to ONE
+>    that isn't yet well covered. **Rotate across ALL facets of building, tuning, and
+>    optimizing AI so no single area dominates — each run pick the curriculum area
+>    least represented in the feed so far.** (RAG/retrieval is currently over-
+>    represented, so it's rarely the right pick — reach for it only as a distinctly
+>    deeper, hands-on follow-up.) Anchor it to ONE
 >    genuinely good hands-on resource: an official doc/tutorial, a Colab notebook,
 >    or a **YouTube video** (these fundamentals all have excellent free ones —
 >    find the best, don't settle for a thin aggregator post). Format: name **one**
@@ -130,13 +132,16 @@ what gets written into the feed.
 > Each run, pick the next topic NOT yet well covered (check the feed's existing
 > `Tutorial`/topic tags); revisit a topic only to add a distinctly better resource
 > or a deeper follow-up.
-> **Coverage balance (as of June 2026): the feed is RAG-heavy; topics 1–2 are well
-> covered.** Until fine-tuning and run & serve reach comparable depth, land the
-> teachable slot on **topic 3** (building a dataset, LoRA explained, QLoRA on a free
-> Colab, evaluating a fine-tune) and **topic 4** (Ollama, GGUF/4-bit quantization,
-> OpenRouter/Together/Fireworks routing, vLLM serving) far more often than RAG —
-> over any given week, fine-tuning/serving should get at least as many teachable
-> posts as retrieval. Only return to RAG for a genuinely deeper, hands-on follow-up.
+> **Coverage balance — keep all facets even.** The reader is going from AI-assisted
+> development to real AI development across the WHOLE arc: **creating, tuning, and
+> optimizing** AI systems. Spread the teachable slot evenly across the five
+> curriculum areas — foundations, retrieval, fine-tuning, run & serve, and
+> applied/agentic — rather than dwelling on any one. Each run, pick the area with
+> the FEWEST teachable posts so far (check the `Tutorial`/topic tags) and cycle
+> through all five before repeating an area. As of June 2026, retrieval/RAG (areas
+> 1–2) is over-represented while fine-tuning, run & serve, and applied/agentic are
+> under-covered — so those come first until the counts even out, after which keep
+> them balanced going forward.
 > 1. **Foundations:** what embeddings are & using an embedding model
 >    (sentence-transformers); vector similarity & vector databases
 >    (pgvector/Chroma/FAISS); document chunking; a minimal end-to-end RAG pipeline;
