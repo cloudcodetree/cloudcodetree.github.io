@@ -10,7 +10,211 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 26 Jun 2026 12:12:00 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 26 Jun 2026 19:15:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Stateful Sandboxes in Claude's API: Persistent REPL and In-Code Tool Calls</title>
+      <link>https://platform.claude.com/docs/en/docs/agents-and-tools/tool-use/code-execution-tool</link>
+      <guid isPermaLink="false">2026-06-26-06-code-execution-persistent-repl-programmatic-tools</guid>
+      <pubDate>Fri, 26 Jun 2026 19:15:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Upgrade one string — code_execution_20260120 — and Claude gets a Python REPL where variables persist across conversation turns, and can call your other tools directly from inside sandbox code.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Upgrade one string — `"type": "code_execution_20260120"` — and Claude gets a Python REPL where variables persist across conversation turns, and Claude can call your other API tools directly from inside sandbox code.**
+
+Most developers using Claude's API know the code execution tool for isolated Python/bash cells. The `20260120` version adds two capabilities that change how you structure multi-step agents: **REPL state persistence** and **programmatic tool calling from within sandbox code**.
+
+## What changes with code_execution_20260120
+
+The original `code_execution_20250825` runs isolated Python cells — each execution starts from scratch. With `code_execution_20260120`:
+
+- **Variables persist across turns.** `df = pd.read_csv("data.csv")` in turn 1 is still in scope when Claude does `df.describe()` in turn 5. No re-running expensive setup; Claude accumulates state across a whole conversation.
+- **Programmatic tool calling.** Code running in the sandbox can invoke your other tools directly via Claude's tool mechanism. Add `"allowed_callers": ["code_execution_20260120"]` to any tool and Claude can call it from inside Python or bash.
+
+## Minimal example
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=4096,
+    tools=[{"type": "code_execution_20260120", "name": "code_execution"}],
+    messages=[
+        {"role": "user", "content": "Load [1, 4, 9, 16, 25] and compute their square roots."}
+    ]
+)
+```
+
+Follow up in the same conversation — the `numbers` variable stays in scope:
+
+```python
+# Next turn — state persists
+{"role": "user", "content": "Now compute the mean of those square roots."}
+```
+
+## Programmatic tool calling from sandbox code
+
+To let Claude call your tools from within sandbox code, add `allowed_callers`:
+
+```python
+tools=[
+    {"type": "code_execution_20260120", "name": "code_execution"},
+    {
+        "name": "fetch_sales_data",
+        "description": "Retrieve daily sales by product SKU",
+        "input_schema": {
+            "type": "object",
+            "properties": {"sku": {"type": "string"}},
+            "required": ["sku"]
+        },
+        "allowed_callers": ["code_execution_20260120"]
+    }
+]
+```
+
+Claude can now write Python that calls `fetch_sales_data(sku="ABC123")`, chains the result with pandas transforms, and passes cleaned data to the next step — all in one agentic flow, no wrapper loop in your application code.
+
+## Model and version notes
+
+`code_execution_20260120` requires Sonnet 4.5+ or Opus 4.5+, Fable 5, or Mythos 5. Haiku 4.5 supports only the `20250825` version.
+
+Use `code_execution_20260521` if you also want Claude to see the 90-second per-cell time limit in the tool description — so it can budget long-running cells before hitting the timeout. Both `20260120` and `20260521` support the same REPL persistence and programmatic tool calling; the only difference is the time limit disclosure.
+
+**Sources:** [Claude code execution tool docs](https://platform.claude.com/docs/en/docs/agents-and-tools/tool-use/code-execution-tool) | [Anthropic programmatic tool calling](https://platform.claude.com/docs/en/agents-and-tools/tool-use/programmatic-tool-calling)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>OpenAI Previews GPT-5.6: Sol Flagship With Subagent Ultra Mode, Terra and Luna Join the Family</title>
+      <link>https://openai.com/index/previewing-gpt-5-6-sol/</link>
+      <guid isPermaLink="false">2026-06-26-05-openai-gpt56-sol-terra-luna-preview</guid>
+      <pubDate>Fri, 26 Jun 2026 19:14:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>OpenAI launched a government-coordinated limited preview of GPT-5.6 today: Sol at $5/$30 with max reasoning and subagent ultra mode, Terra at $2.50/$15, Luna at $1/$6.</description>
+      <content:encoded><![CDATA[
+**TL;DR: OpenAI launched a government-coordinated limited preview of GPT-5.6 today — Sol (flagship, $5/$30 per MTok) ships "max" reasoning and an ultra mode using subagents; Terra ($2.50/$15) matches GPT-5.5 at 2x lower cost; Luna ($1/$6) is the new speed/budget tier.**
+
+OpenAI announced three new models on June 26, rolling out to ~20 trusted partners with government approval before a broader launch in the coming weeks:
+
+**Sol** is the new flagship. It adds a `max` reasoning effort for deep analytical problems and an **ultra mode** that delegates complex work to subagents — similar in concept to Claude Code's multi-agent orchestration. Strongest coding, biology, and cybersecurity performance in the GPT line. Developer-customizable confirmation policy lets you define which high-risk API actions require user sign-off before execution.
+
+**Terra** targets the everyday workload. OpenAI says it matches GPT-5.5 performance at half the cost ($2.50/$15 vs. $5/$30). Practical default for teams that don't need Sol's ceiling.
+
+**Luna** is the fast, low-cost tier at $1/$6 — OpenAI's most affordable option with "strong capability" for high-volume throughput.
+
+All three include improved prompt caching: explicit cache breakpoints, 30-minute minimum retention, 1.25x write rate, and a 90% read discount.
+
+**Why it matters:** Pricing compression across the GPT line mirrors what's happened with Claude's model tiers — each new generation squeezes more capability into lower-cost models. Sol's ultra subagent mode is worth watching: if it reaches GA with a reliable API surface, multi-agent orchestration becomes a first-class feature across all major providers, not just Claude Code workflows.
+
+**Sources:** [OpenAI GPT-5.6 Sol preview](https://openai.com/index/previewing-gpt-5-6-sol/) | [9to5Mac coverage](https://9to5mac.com/2026/06/26/openai-upgrading-chatgpt-and-codex-with-new-gpt-5-6-models-in-limited-release/) | [GPT-5.6 System Card](https://deploymentsafety.openai.com/gpt-5-6-preview)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Run Your First Local LLM in 5 Minutes: Ollama From Install to REST API</title>
+      <link>https://docs.ollama.com/quickstart</link>
+      <guid isPermaLink="false">2026-06-26-04-ollama-local-llm-quickstart</guid>
+      <pubDate>Fri, 26 Jun 2026 19:13:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <description>One command installs Ollama, one more pulls a model, and you have a local LLM answering REST API calls in under 5 minutes — no cloud bill, no API key, OpenAI-compatible endpoint included.</description>
+      <media:content url="https://ollama.com/public/ollama.png" medium="image" />
+      <media:thumbnail url="https://ollama.com/public/ollama.png" />
+      <content:encoded><![CDATA[
+**TL;DR: One command installs Ollama, one more pulls a 2GB model, and within 5 minutes you have a local LLM responding to curl — no cloud bill, no API key, and an OpenAI-compatible endpoint your existing code can point at without changes.**
+
+**What you'll be able to do after this:**
+- Install Ollama and run a 7B model locally on CPU, Apple Silicon, or NVIDIA GPU with a single pull command
+- Query it over REST using the same request format as the OpenAI API — drop-in compatible at `/v1/chat/completions`
+- Know which models to start with given your hardware, and what the next step in local model serving looks like
+
+## Why local models matter
+
+Running a model locally means your data never leaves the machine, you pay nothing per token, and you can work offline. Ollama handles quantization, memory management, and GPU routing automatically — think of it like Docker for models: `pull` to download, `run` to use.
+
+## Install (60 seconds)
+
+**Linux / macOS:**
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+**Windows:** Download the installer at [ollama.com/download](https://ollama.com/download).
+
+Ollama starts a local server on port 11434 automatically. NVIDIA and AMD GPUs are auto-detected if drivers are present; CPU-only mode works too (slower, fine for experiments).
+
+## Pull and run your first model
+
+```bash
+# 2GB — runs on almost any machine, fast enough to start
+ollama pull llama3.2:3b
+ollama run llama3.2:3b
+```
+
+For more capable models (16GB+ RAM recommended):
+```bash
+ollama pull llama3.1:8b      # Meta 8B instruction model (~5GB)
+ollama pull qwen2.5:7b       # Alibaba 7B — strong code + reasoning (~4.7GB)
+ollama pull gemma3:4b        # Google 4B — punches above its weight (~3.3GB)
+```
+
+Browse all available models at [ollama.com/library](https://ollama.com/library).
+
+## Query via REST API
+
+Once a model is running, Ollama's server handles requests:
+
+```bash
+# Native Ollama chat API
+curl http://localhost:11434/api/chat \
+  -d '{"model": "llama3.2:3b", "messages": [{"role": "user", "content": "What is RAG?"}]}'
+
+# OpenAI-compatible endpoint
+curl http://localhost:11434/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model": "llama3.2:3b", "messages": [{"role": "user", "content": "What is RAG?"}]}'
+```
+
+## Drop-in for OpenAI SDK
+
+The `/v1` endpoint is a compatible replacement for the OpenAI API. Point your existing Python client at Ollama with two changed lines:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
+
+response = client.chat.completions.create(
+    model="llama3.2:3b",
+    messages=[{"role": "user", "content": "Explain embeddings in one paragraph."}]
+)
+print(response.choices[0].message.content)
+```
+
+This means you can prototype locally for free and switch to a hosted model by changing `base_url` and `api_key` — no other code changes required.
+
+## What's next in the Run & Serve track
+
+Once you have Ollama running, the next topics are **quantization** (what `q4_K_M` vs `q8_0` means for speed vs quality tradeoffs — most `ollama pull` models are pre-quantized; run `ollama show llama3.2:3b` to see the quant level) and **OpenRouter** (for routing between local Ollama models and hosted APIs from the same interface).
+
+**Sources:** [Ollama quickstart](https://docs.ollama.com/quickstart) | [Ollama GitHub](https://github.com/ollama/ollama) | [Ollama model library](https://ollama.com/library)
+      ]]></content:encoded>
+    </item>
+
 
     <item>
       <title>Claude Code Auto-Mode Config: Classify Every Shell Command and Audit Your Rules</title>
