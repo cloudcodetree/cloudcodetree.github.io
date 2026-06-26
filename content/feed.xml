@@ -10,7 +10,180 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 25 Jun 2026 21:07:00 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 26 Jun 2026 12:12:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Claude Code Auto-Mode Config: Classify Every Shell Command and Audit Your Rules</title>
+      <link>https://code.claude.com/docs/en/auto-mode-config</link>
+      <guid isPermaLink="false">2026-06-26-03-auto-mode-config-classify-shell-critique</guid>
+      <pubDate>Fri, 26 Jun 2026 12:12:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <category>Security</category>
+      <description>autoMode.classifyAllShell in Claude Code 2.1.193 routes every shell command through the safety classifier. Pair it with environment trust rules and claude auto-mode critique to audit your config.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code 2.1.193's `autoMode.classifyAllShell: true` routes every shell command through the safety classifier — pair it with `autoMode.environment` to avoid false positives, then run `claude auto-mode critique` to catch ambiguous rules before they block routine work.**
+
+Auto-mode's classifier previously focused on shell commands that matched arbitrary-code-execution patterns. With `classifyAllShell: true`, every Bash and PowerShell command goes through the classifier — catching edge cases like curl requests or file writes that didn't look like "arbitrary code" but could still be destructive.
+
+## Three settings to configure together
+
+**1. Enable full-shell classification**
+
+```json
+{
+  "autoMode": {
+    "classifyAllShell": true
+  }
+}
+```
+
+Set this in `~/.claude/settings.json` (personal) or in managed settings (org-wide). It takes effect immediately.
+
+**2. Tell the classifier what's trusted (or it will block routine work)**
+
+The classifier blocks anything "outside your environment" by default. Without context, your org's GitHub repos, internal S3 buckets, and CI endpoints look like external exfiltration targets. Fix this with `autoMode.environment`:
+
+```json
+{
+  "autoMode": {
+    "classifyAllShell": true,
+    "environment": [
+      "$defaults",
+      "Source control: github.com/acme-corp and all repos under it",
+      "Trusted cloud buckets: s3://acme-build-artifacts, s3://acme-logs",
+      "Trusted internal domains: *.corp.acme.com, api.internal.acme.com",
+      "Key internal services: Jenkins at ci.acme.com, Artifactory at artifacts.acme.com"
+    ]
+  }
+}
+```
+
+The `"$defaults"` entry keeps the built-in trust list (your current working repo and configured remotes). Entries are prose — write them the way you'd describe infrastructure to a new engineer; the classifier reads them as natural-language rules.
+
+**3. Inspect and audit your config**
+
+```bash
+claude auto-mode defaults   # print the built-in allow/deny/environment rules
+claude auto-mode config     # show effective config with $defaults expanded
+claude auto-mode critique   # get AI feedback on your custom rules
+```
+
+`claude auto-mode critique` is the standout: it reviews your custom `allow`, `soft_deny`, and `hard_deny` entries and flags rules that are ambiguous, redundant, or likely to cause false positives. Run it after every config change — it catches subtle gaps like "never run migrations outside the migrations CLI" (correct) vs. "never run migrations" (also blocks `list-migrations`).
+
+## Rollout pattern
+
+1. Add `environment` entries for your source-control org and key internal services — this resolves the most common false positives.
+2. Enable `classifyAllShell: true`.
+3. Run `claude auto-mode config` to verify the effective rules.
+4. Run `claude auto-mode critique` to check your custom rules for gaps.
+5. Add `allow` exceptions for patterns the classifier repeatedly flags but your team knows are safe.
+
+One caution: omitting `"$defaults"` from any override array replaces the *entire* default list for that section. A `soft_deny` without `"$defaults"` discards built-in protection for force push and `curl | bash`. Always include `"$defaults"` unless you intend to own the full list.
+
+**Sources:** [Claude Code changelog](https://code.claude.com/docs/en/changelog) | [Auto-mode config reference](https://code.claude.com/docs/en/auto-mode-config)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code 2.1.193 + ByteDance Seed 2.1: Shell Safety Upgrade and a New Coding-Focused Model Pair</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-06-26-02-claude-code-2193-bytedance-seed21</guid>
+      <pubDate>Fri, 26 Jun 2026 12:11:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>Claude Code 2.1.193 routes all shell commands through the safety classifier and adds OTel response logging. ByteDance Seed 2.1 Pro and Turbo launch as coding+agent-focused models.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code 2.1.193 ships full shell-command classification, bash path autocomplete, and OpenTelemetry response logging. ByteDance Seed 2.1 Pro/Turbo launches as a coding+agent-focused model pair at competitive API pricing.**
+
+**Claude Code 2.1.193 (June 25)** ships three additions relevant to teams building with agents:
+
+- `autoMode.classifyAllShell: true` routes every Bash/PowerShell command through the auto-mode classifier, not just commands that pattern-match as arbitrary-code-execution. This closes the most common gap in auto-mode deployments — commands that look benign but could write to unexpected destinations.
+- Live file-path autocomplete in bash mode (`!`) — type a partial path after `!` and Claude Code completes it.
+- A new `claude_code.assistant_response` OpenTelemetry log event captures the model's response text, useful for wiring Claude Code sessions into an existing observability pipeline.
+
+Also fixed: pinned background agents were being re-prompted after every auto-update, and auto-mode denial reasons now appear in the transcript, denial toast, and `/permissions` recent-denials tab.
+
+**ByteDance Seed 2.1 (June 24)** launches Pro and Turbo variants from the 2026 Volcano Engine FORCE conference. Both target "coding and agent era" workflows — long-chain task execution, complex engineering delivery, and multimodal understanding. Pricing: Turbo at $3/$15 per MTok (input/output); Pro at $6/$30 per MTok. ByteDance also shipped Ark CLI for one-command agent deployment alongside the Seed 2.1 release.
+
+**Why it matters:** `classifyAllShell` is a meaningful security hardening for any auto-mode deployment running broad shell work. On the model side, Seed 2.1 Turbo's pricing puts it in the same tier as other cost-optimized coding models — worth evaluating if you're running high-volume agentic pipelines and paying attention to per-token costs.
+
+**Sources:** [Claude Code changelog](https://code.claude.com/docs/en/changelog) | [ByteDance Seed 2.1](https://seed.bytedance.com/en/seed2_1) | [Pandaily coverage](https://pandaily.com/bytedance-doubao-2-1-seedance-2-5-jun2026)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>RAG vs Fine-Tuning: A Decision Framework for When Each Actually Wins</title>
+      <link>https://www.youtube.com/watch?v=00Q0G84kq3M</link>
+      <guid isPermaLink="false">2026-06-26-01-rag-vs-fine-tuning-decision-framework</guid>
+      <pubDate>Fri, 26 Jun 2026 12:10:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>Knowledge gap means RAG; behavior gap means fine-tune. The 5-question checklist and decision matrix tell you whether fine-tuning is even warranted before you write a single training example.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Knowledge gap → RAG; behavior gap → fine-tune. The IBM Technology video below explains the distinction in under 15 minutes, and the 5-question checklist stops you committing to fine-tuning before it's the right tool.**
+
+**What you'll be able to do after this:**
+- Diagnose whether your LLM's failure is a *knowledge* problem (RAG) or a *behavior* problem (fine-tuning) before writing a single training example
+- Apply the 5-question checklist that stops premature fine-tuning commits
+- Understand the hybrid pattern that most production systems converge on
+
+## Knowledge gap vs behavior gap
+
+The most expensive mistake in LLM customization is fine-tuning when RAG would have worked. The distinction is simple: **RAG fills knowledge gaps; fine-tuning changes behavior.**
+
+If your LLM is giving wrong or outdated answers, that's a knowledge gap — and RAG fills it faster, cheaper, and with better auditability. If your LLM is formatting output incorrectly, refusing things it shouldn't, or speaking in the wrong tone — that's a behavior gap, and fine-tuning is the right tool.
+
+**Fine-tuning is for form, not facts.** Fine-tuning bakes behavior into the model's weights. It degrades on volatile knowledge. If the failure mode is "the model doesn't know X," RAG is almost always the right answer.
+
+The core decision matrix:
+
+| Failure type | Stable signal | Volatile signal |
+|---|---|---|
+| Knowledge-bound | Continued pretraining (rare) | **RAG** |
+| Behavior-bound | **Fine-tune (LoRA/QLoRA)** | Prompt engineering + few-shot |
+
+## The 5-question checklist before committing to fine-tuning
+
+All five must be "yes" before touching a training dataset:
+
+1. Do you have an evaluation baseline that RAG + better prompts already fails?
+2. Is the failure a *behavior* problem, not a *knowledge* problem?
+3. Do you have hundreds of production-matched training examples ready?
+4. Does someone own the adapter lifecycle for the next 12+ months?
+5. Does the operational cost justify the performance gain?
+
+If any answer is "no," pursue RAG, better prompts, or stronger evals first. Fine-tuning requires ongoing maintenance — re-training when behavior drifts, versioning adapters, re-evaluating on each base model update — that RAG does not.
+
+## The hybrid pattern (what production converges on)
+
+The two approaches solve different problems and combine well. The winning pattern: **fine-tune the interface; retrieve the content.**
+
+- **Fine-tune adapters for:** query rewriting, citation formatting, refusal behavior, structured output schema — behaviors that are stable and must be consistent
+- **Retrieve all dynamic knowledge via RAG:** current facts, docs, prices, policies — anything that changes
+
+Updates to knowledge flow through your RAG pipeline continuously. Adapter updates happen quarterly (or only when the base model changes). This is why hybrid approaches consistently outperform either technique alone.
+
+## Walk-through
+
+Start with the IBM Technology video below — Cedric Clyburn walks through RAG vs fine-tuning with concrete examples in under 15 minutes. It's the clearest explanation of the knowledge/behavior distinction available for free. Then read the BigData Boutique 2026 write-up for the 5-point checklist and 2x2 decision matrix. Once you've confirmed fine-tuning is right for your case, see the [LoRA on a Free GPU post](https://cloudcodetree.com/ai-news/2026-06-17-08-lora-unsloth-colab-fine-tuning-beginner) for the hands-on QLoRA steps with Unsloth on a free Colab T4.
+
+**Sources:** [IBM Technology: RAG vs. Fine Tuning (YouTube)](https://www.youtube.com/watch?v=00Q0G84kq3M) | [BigData Boutique: Fine-Tuning LLMs: When RAG Isn't Enough (2026)](https://bigdataboutique.com/blog/fine-tuning-llms-when-rag-isnt-enough)
+      ]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/00Q0G84kq3M/maxresdefault.jpg" medium="image" type="image/jpeg" />
+      <media:thumbnail url="https://img.youtube.com/vi/00Q0G84kq3M/maxresdefault.jpg" />
+    </item>
 
     <item>
       <title>Run Claude Agents Inside Your Own Infrastructure: Self-Hosted Sandboxes and Private MCP Tunnels</title>
