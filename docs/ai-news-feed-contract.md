@@ -142,6 +142,12 @@ what gets written into the feed.
 > 1–2) is over-represented while fine-tuning, run & serve, and applied/agentic are
 > under-covered — so those come first until the counts even out, after which keep
 > them balanced going forward.
+> This rotation governs the **teachable (AI-engineering) slot only** — it does not
+> shrink the other buckets. **General industry news** (bucket 1) and **AI-assisted /
+> agentic development** (the practitioner bucket — Claude Code, subagents, MCP, agent
+> workflows) each stay a first-class, every-run topic, never displaced by the
+> curriculum balance. All three run side by side each day: news, agentic dev, and one
+> balanced AI-engineering teachable.
 > 1. **Foundations:** what embeddings are & using an embedding model
 >    (sentence-transformers); vector similarity & vector databases
 >    (pgvector/Chroma/FAISS); document chunking; a minimal end-to-end RAG pipeline;
