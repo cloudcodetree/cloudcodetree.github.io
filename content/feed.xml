@@ -10,7 +10,202 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 26 Jun 2026 20:06:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 27 Jun 2026 04:14:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Claude Code 2.1.195: Fix Your Hooks Now If You Use Hyphenated Tool Names</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-06-27-03-claude-code-2195-hook-matcher-fix</guid>
+      <pubDate>Sat, 27 Jun 2026 04:14:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code 2.1.195 (June 27) fixes a silent hook matcher bug: hyphenated names like mcp__brave-search or code-reviewer were substring-matching instead of exact-matching. Audit your hooks now.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code 2.1.195 fixes a silent hook matcher bug — hyphenated identifiers like `mcp__brave-search` were substring-matching instead of exact-matching; if you use hooks, audit them now.**
+
+Claude Code 2.1.195 shipped June 27 with a fix you'll want to act on if you maintain hooks: **hook matchers with hyphenated identifiers were doing substring matching** instead of exact matching. A matcher like `mcp__brave-search` would fire on any tool name that contained `brave-search` as a substring, not just the exact tool.
+
+## What to check
+
+If your `.claude/settings.json` hooks include matchers with hyphens — `code-reviewer`, `mcp__brave-search`, `mcp__github-actions`, or similar — they may have been matching a broader set of tools than intended. With 2.1.195, matching is now exact.
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__brave-search",
+        "hooks": [{ "type": "command", "command": "echo 'brave-search called'" }]
+      }
+    ]
+  }
+}
+```
+
+**Action:** audit any hook that uses a hyphenated matcher, then re-test it. If you were accidentally relying on the substring behavior, split it into explicit matchers for each tool you want to target.
+
+## Other changes in 2.1.195
+
+**`CLAUDE_CODE_DISABLE_MOUSE_CLICKS`** — new env var that disables mouse click interactions in fullscreen mode while keeping scroll wheel. Useful in tmux sessions and remote terminal environments where mouse clicks conflict with the host terminal.
+
+```bash
+export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
+```
+
+**Voice dictation fixes** — resolved issues on macOS and for CJK languages (Japanese, Chinese) and Thai, which don't use word-boundary spaces.
+
+**Stability** — fixes for plugins, background jobs, and agent daemons.
+
+## Update
+
+```bash
+npm update -g @anthropic-ai/claude-code
+# or
+claude update
+```
+
+**Sources:** [Claude Code changelog](https://code.claude.com/docs/en/changelog) | [Releasebot — Claude Code releases](https://releasebot.io/updates/anthropic/claude-code)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Vercel AI SDK 7 Ships Native MCP Support — Plus Anthropic Rate Limit Parity and Microsoft's New Copilot Model</title>
+      <link>https://vercel.com/blog/ai-sdk-7</link>
+      <guid isPermaLink="false">2026-06-27-02-vercel-sdk7-rate-parity-mai-code</guid>
+      <pubDate>Sat, 27 Jun 2026 04:13:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>MCP</category>
+      <description>Vercel AI SDK 7 adds native MCP support and durable WorkflowAgent (June 25). Anthropic equalized API rate limits: Sonnet and Haiku now match Opus throughput. Microsoft launched MAI-Code-1-Flash for Copilot.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Three dev-AI platform updates: Vercel AI SDK 7 adds native MCP and durable agents; Anthropic equalized rate limits across all Claude tiers; Microsoft launched its first proprietary coding model for Copilot Business/Enterprise.**
+
+## Vercel AI SDK 7 — native MCP, WorkflowAgent
+
+[Vercel AI SDK 7](https://vercel.com/blog/ai-sdk-7) (June 25) is the production TypeScript/React layer for building AI apps, with 16M+ weekly downloads. Version 7 adds:
+
+- **Native MCP support** — connect any MCP server with `experimental_createMCPClient()`; tool-level permission control per server
+- **WorkflowAgent** — durable agent workflows that persist state across steps and serverless function boundaries
+- **Tool approvals** — middleware to intercept and gate tool calls before execution, enabling human-in-the-loop patterns
+- **Provider files** — centralize model routing and fallback logic in a config file instead of scattering it across code
+
+Same `useChat`/`useCompletion` API whether you're targeting Claude, GPT-4o, or Gemini.
+
+**Why it matters:** MCP lands in the most widely used TypeScript AI SDK. Web apps built on AI SDK 7 can now directly consume MCP servers — including ones you write.
+
+## Anthropic API rate limit parity
+
+As of June 26, **Claude Sonnet and Haiku rate limits now match Claude Opus at every usage tier**. Sonnet 4.6 has been the price/performance favorite for most agent tasks; hitting its tighter rate ceiling (relative to Opus) was a common friction point for teams running high-throughput agent pipelines. That asymmetry is gone.
+
+**Why it matters:** You can route more agent traffic through Sonnet without hitting a rate cap that Opus wouldn't have.
+
+## MAI-Code-1-Flash for GitHub Copilot Business/Enterprise
+
+Microsoft AI's purpose-built coding model is [now GA for Copilot Business and Enterprise](https://github.blog/changelog/2026-06-26-mai-code-1-flash-for-copilot-business-and-enterprise/) (June 26). MAI-Code-1-Flash is optimized for low-latency, high-volume iterative agentic workflows — the pattern where a coding agent calls the model thousands of times per task. Org admins enable it via Copilot settings; billed on usage.
+
+**Why it matters:** Benchmark it on your actual tasks before switching — low latency is real, but capability tradeoffs exist for heavier reasoning.
+
+**Sources:** [Vercel AI SDK 7](https://vercel.com/blog/ai-sdk-7) | [MAI-Code-1-Flash — GitHub Blog](https://github.blog/changelog/2026-06-26-mai-code-1-flash-for-copilot-business-and-enterprise/) | [Anthropic platform updates — Releasebot](https://releasebot.io/updates/anthropic/claude-developer-platform)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Read the Filename: Which GGUF Quantization Level to Pull for Your Hardware</title>
+      <link>https://vucense.com/dev-corner/gguf-quantization-explained-q4-k-m-vs-q8-0-vs-f16-2026/</link>
+      <guid isPermaLink="false">2026-06-27-01-gguf-quantization-pick-the-right-model-size</guid>
+      <pubDate>Sat, 27 Jun 2026 04:12:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <description>Q4_K_M, Q5_K_M, Q8_0 — those Ollama tags decode to specific compression levels. This guide explains the GGUF naming system and gives you a VRAM table so you pull the right quant the first time.</description>
+      <content:encoded><![CDATA[
+**TL;DR: GGUF quantization compresses model weights from 32-bit floats to 4–8 bits — Q4_K_M is the default pick for 6–12 GB VRAM and retains ~94% of full-precision quality.**
+
+**What you'll be able to do after this:**
+- Decode any GGUF filename (`Q4_K_M`, `Q5_K_M`, `Q8_0`, `F16`) and know exactly what you're downloading
+- Match quantization level to your available VRAM without trial-and-error
+- Pull a specific GGUF quant in Ollama and confirm what you got
+
+## Why quantization exists
+
+A 7B-parameter model stores each weight as a 32-bit float by default: 7 billion × 4 bytes = **28 GB**. Most GPUs don't have that. Quantization compresses each weight to fewer bits:
+
+| Format | Bits/weight | 7B size | 13B size | Quality retained |
+|--------|-------------|---------|----------|-----------------|
+| F16 | 16 | 14 GB | 26 GB | 100% |
+| Q8_0 | 8 | 7.2 GB | 13.5 GB | ~99% |
+| Q6_K | 6 | 5.5 GB | 10.3 GB | ~97% |
+| Q5_K_M | 5 | 4.8 GB | 8.6 GB | ~96% |
+| **Q4_K_M** | **4** | **4.1 GB** | **7.9 GB** | **~94%** |
+| Q3_K_M | 3 | 3.2 GB | 6.0 GB | ~87% |
+| Q2_K | 2 | 2.7 GB | 5.2 GB | ~75% |
+
+The big quality cliff is between Q3 and Q4. Above Q4, returns diminish fast — Q8_0 costs nearly double the VRAM of Q4_K_M for under 5% measurable difference on most tasks.
+
+## Decoding the name
+
+`Q4_K_M` breaks down as:
+- **Q4** — 4 bits per weight
+- **_K** — K-quant method: groups weights by importance and quantizes each group differently, smarter than naive uniform rounding
+- **_M** — Medium variant (`_S` = Small, `_L` = Large); Medium is the standard recommendation
+
+`Q8_0`:
+- **Q8** — 8 bits per weight
+- **_0** — original simple quantization scheme (uniform, no grouping); works fine, just less nuanced than K-quant
+
+## Pick your level by VRAM
+
+| Available VRAM | Recommended |
+|----------------|-------------|
+| < 6 GB | Q3_K_M |
+| 6–12 GB | **Q4_K_M** ← default choice |
+| 12–16 GB | Q5_K_M or Q6_K |
+| 16–24 GB | Q8_0 |
+| 24 GB+ | F16 (full precision) |
+
+No GPU? CPU-only inference: Q4_K_M still applies — lower quant = faster generation, but Q2/Q3 quality degradation becomes noticeable in practice.
+
+## Pull a specific quant in Ollama
+
+```bash
+# Default pull (Ollama auto-selects based on your system — usually Q4_K_M for 7B)
+ollama pull llama3.2
+
+# Pull a specific quant
+ollama pull llama3.2:7b-instruct-q4_K_M
+ollama pull llama3.2:7b-instruct-q8_0
+
+# See what you have
+ollama list
+
+# Confirm which quant is running
+ollama show llama3.2:7b-instruct-q4_K_M
+# ...
+# quantization  Q4_K_M
+```
+
+Browse tags at [ollama.com/library/llama3.2](https://ollama.com/library/llama3.2). The format is `model:size-variant-QUANT`.
+
+## Pull GGUF models from Hugging Face directly
+
+For models not yet in the Ollama library:
+
+```bash
+ollama pull hf.co/bartowski/Llama-3.2-7B-Instruct-GGUF:Q4_K_M
+```
+
+Ollama supports the `hf.co/` scheme natively. Browse [GGUF models on Hugging Face](https://huggingface.co/models?library=gguf) — filter by `library:gguf` and the model name you want.
+
+**Sources:** [GGUF Quantization Explained — vucense.com](https://vucense.com/dev-corner/gguf-quantization-explained-q4-k-m-vs-q8-0-vs-f16-2026/) | [GGUF — Hugging Face Transformers docs](https://huggingface.co/docs/transformers/en/gguf) | [Ollama model library](https://ollama.com/library) | [Demystifying LLM Quantization Suffixes — Medium](https://medium.com/@paul.ilvez/demystifying-llm-quantization-suffixes-what-q4-k-m-q8-0-and-q6-k-really-mean-0ec2770f17d3)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>MCP Python SDK v2 Beta Drops June 30 — Pin mcp&lt;2 in Your Dependency File Today</title>
