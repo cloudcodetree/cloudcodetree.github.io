@@ -10,7 +10,178 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 27 Jun 2026 12:10:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 27 Jun 2026 20:02:00 GMT</lastBuildDate>
+
+    <item>
+      <title>Add One Field to Your System Prompt and Cut Your Claude API Bill by 90%</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/prompt-caching</link>
+      <guid isPermaLink="false">2026-06-27-08-claude-api-prompt-caching-90-percent-cost-cut</guid>
+      <pubDate>Sat, 27 Jun 2026 20:02:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Best Practices</category>
+      <category>LLM</category>
+      <description>cache_control: {type: ephemeral} caches your system prompt — subsequent calls pay 10% of base input-token price, with 85% latency reduction. One field, zero architecture changes.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Add `"cache_control": {"type": "ephemeral"}` to your system prompt block and every subsequent Claude API call within 5 minutes pays 10% of the normal input-token price — an 85% latency cut is included at no extra charge.**
+
+If your app sends the same system prompt with every request — and almost every app does — you're paying full input-token price every single time. Prompt caching eliminates that by storing the encoded state of a content block server-side and reusing it for 5 minutes (or 1 hour with extended TTL).
+
+## The one-line change
+
+```python
+import anthropic
+client = anthropic.Anthropic()
+
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": "<your full system prompt here>",
+            "cache_control": {"type": "ephemeral"}  # ← this is the entire change
+        }
+    ],
+    messages=[{"role": "user", "content": "What is the capital of France?"}]
+)
+```
+
+That's it. The first call is slightly more expensive (writing to cache costs 25% extra). Every call within the TTL window that sends the same bytes pays **10% of the base input-token price**.
+
+## What to cache
+
+Not everything is cache-worthy. The pattern that maximizes savings:
+
+1. **System prompt** — almost always worth caching; it's static, often long, sent on every call
+2. **Tool definitions** — if you inject 20+ tool schemas, cache the whole block
+3. **Retrieved documents / few-shot examples** — cache when the same set recurs across calls in a session
+4. **Conversation history** — mark the last stable turn; earlier turns stay cached as long as the prefix is unchanged
+
+Only one `cache_control` breakpoint can be active per content role type, so place it at the longest stable prefix.
+
+## 5-minute vs 1-hour TTL
+
+The standard `"ephemeral"` entry lives for a minimum of 5 minutes. For sustained traffic or long-lived chat sessions, use the 1-hour variant:
+
+```python
+"cache_control": {"type": "ephemeral", "ttl": 3600}
+```
+
+The 1-hour write costs more but pays off quickly on any server process that runs for more than a few minutes.
+
+## What it unlocks beyond cost
+
+- **85% latency reduction** on the cached prefix — the model skips re-encoding the system prompt and jumps straight to generation
+- **Richer system prompts** — a 30,000-token context document that cost ~$0.09 per call on Sonnet 4.6 costs ~$0.009 on a cache hit; you can finally include the whole reference doc
+- **Multi-turn conversations at scale** — cache the growing conversation history prefix to keep per-turn cost flat even as the transcript grows
+
+Verify cache activity with the response fields `cache_read_input_tokens` (savings realized) and `cache_creation_input_tokens` (write cost paid).
+
+**Sources:** [Prompt caching — Anthropic Platform Docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) | [Prompt caching announcement — Anthropic](https://www.anthropic.com/news/prompt-caching)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Build Your Fine-Tuning Dataset First: Alpaca Format, Chat Messages, and the Train/Eval Split</title>
+      <link>https://wandb.ai/capecape/alpaca_ft/reports/How-to-Fine-Tune-an-LLM-Part-1-Preparing-a-Dataset-for-Instruction-Tuning--Vmlldzo1NTcxNzE2</link>
+      <guid isPermaLink="false">2026-06-27-07-build-fine-tuning-dataset-instruction-pairs</guid>
+      <pubDate>Sat, 27 Jun 2026 20:01:00 GMT</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>Fine-tuning quality is 80% data preparation. Build 100-500 instruction/response pairs in Alpaca or chat format, split with HuggingFace datasets, and push to Hub in 20 lines of Python.</description>
+      <content:encoded><![CDATA[
+**TL;DR: The training run takes 20 minutes; building the right dataset takes days — here is how to structure instruction/response pairs in the two formats every fine-tuning trainer expects, plus the HuggingFace split-and-push pattern.**
+
+**What you'll be able to do after this:**
+- Structure 100–500 instruction/response pairs in Alpaca format (instruction/input/output) and the newer chat messages format that modern trainers prefer
+- Split your dataset into train and eval sets with one HuggingFace `datasets` call
+- Push the result to the HuggingFace Hub so SFTTrainer can load it directly
+
+## Why the data step is the real fine-tuning work
+
+Every benchmark difference between "fine-tuned model that regresses on base tasks" and one that actually improves is traceable to dataset quality. Fine-tuning adjusts which output distribution the model reaches for given an input — so the dataset must demonstrate the *exact* input/output pattern you want repeated, consistently.
+
+## The two formats you will encounter
+
+**Alpaca format** (original Stanford Alpaca): three columns — `instruction`, `input` (optional context), `output`.
+
+```json
+{
+  "instruction": "Summarize this customer complaint in one sentence.",
+  "input": "I ordered a red jacket but received a blue one. Third time this month.",
+  "output": "Customer received the wrong color jacket for the third consecutive time."
+}
+```
+
+**Chat / messages format** (what modern trainers expect): a `messages` array with `role` and `content` keys.
+
+```json
+{
+  "messages": [
+    {"role": "system", "content": "You are a customer support summarizer."},
+    {"role": "user",   "content": "I ordered a red jacket but received a blue one..."},
+    {"role": "assistant", "content": "Customer received the wrong color jacket for the third consecutive time."}
+  ]
+}
+```
+
+HuggingFace `trl` SFTTrainer detects the `messages` key and automatically applies the base model's chat template — no custom preprocessing required. Prefer this format for any model trained with a chat template (Llama-3-Instruct, Mistral-Instruct, Qwen-2.5-Instruct, etc.).
+
+## Building and splitting your dataset in Python
+
+```python
+from datasets import Dataset
+
+rows = [
+    {
+        "messages": [
+            {"role": "user",      "content": "Summarize: customer said ..."},
+            {"role": "assistant", "content": "One-sentence summary here."}
+        ]
+    },
+    # ... 99–499 more rows
+]
+
+ds = Dataset.from_list(rows)
+
+# 90/10 train/eval split
+splits = ds.train_test_split(test_size=0.1, seed=42)
+train_ds = splits["train"]
+eval_ds  = splits["test"]
+
+# Pass directly to SFTTrainer
+# trainer = SFTTrainer(train_dataset=train_ds, eval_dataset=eval_ds, ...)
+
+# Optional: push to Hub for Colab workflows
+splits.push_to_hub("your-username/my-finetune-dataset", private=True)
+```
+
+## How much data do you need?
+
+| Goal | Volume |
+|------|--------|
+| Domain style / format adaptation | 100–500 high-quality examples |
+| Task specialization (classifier, extractor) | 500–2,000 |
+| Covering broad capabilities | 5,000+ |
+
+Quality beats volume at every scale. 200 carefully written examples will outperform 2,000 noisy ones. A good heuristic: if you would not be proud to label an example yourself, cut it.
+
+## Common pitfalls
+
+- **Label inconsistency** — the model cannot learn a mapping when similar inputs get different outputs. Run a quick `groupby instruction` check to catch contradictions.
+- **Leaking the eval set** — never fine-tune on your eval rows; the whole point of the split is to detect overfit.
+- **Output length mismatch** — if target outputs vary wildly (2 words vs 500 words), pad or pack carefully or you'll distort loss weighting.
+
+The W&B multi-part series linked below covers the full pipeline end-to-end: picking datasets, tokenizing, packing short sequences, setting train/eval splits, and debugging common issues — worth reading before you run your first training job.
+
+**Sources:** [How to Fine-Tune an LLM Part 1: Preparing a Dataset for Instruction Tuning — Weights & Biases](https://wandb.ai/capecape/alpaca_ft/reports/How-to-Fine-Tune-an-LLM-Part-1-Preparing-a-Dataset-for-Instruction-Tuning--Vmlldzo1NTcxNzE2) | [Dataset formats — HuggingFace TRL docs](https://huggingface.co/docs/trl/main/en/dataset_formats) | [HuggingFace Datasets library](https://huggingface.co/docs/datasets/en/index)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Your Tool Descriptions Are the #1 Lever for Agent Performance — Here&#39;s How to Write Them</title>
