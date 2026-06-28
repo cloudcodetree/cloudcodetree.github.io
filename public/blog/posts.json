@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-06-28-09-anthropic-message-batches-api-bulk-discount",
+    "title": "Process 100,000 Claude Requests at Half Price: The Message Batches API",
+    "excerpt": "Submit up to 100,000 Claude API requests asynchronously and pay 50% of standard rates. Stack with prompt caching for double savings. custom_id is your join key — results arrive unordered.",
+    "author": "Chris Harper",
+    "date": "06-28-2026",
+    "publishedAt": "2026-06-28T20:32:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Developer Tools",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://docs.anthropic.com/en/docs/build-with-claude/batch-processing",
+    "content": "**TL;DR: Submit up to 100,000 Claude API requests in a single batch, pay 50% of standard rates, get results back within an hour — no streaming required.**\n\nIf you're running document extraction pipelines, generating test suites, or classifying content at scale, Message Batches halves your API bill. Here's the minimal working pattern:\n\n```python\nimport anthropic, time\nfrom anthropic.types.message_create_params import MessageCreateParamsNonStreaming\nfrom anthropic.types.messages.batch_create_params import Request\n\nclient = anthropic.Anthropic()\n\n# Submit up to 100,000 requests in one call\nbatch = client.messages.batches.create(\n    requests=[\n        Request(\n            custom_id=\"doc-001\",          # your join key — results arrive unordered\n            params=MessageCreateParamsNonStreaming(\n                model=\"claude-sonnet-4-6\",\n                max_tokens=256,\n                messages=[{\"role\": \"user\", \"content\": \"Extract the invoice total from: ...\"}],\n            ),\n        ),\n        # ... more requests\n    ]\n)\n\n# Poll until done (most batches finish in under 1 hour)\nwhile True:\n    status = client.messages.batches.retrieve(batch.id)\n    if status.processing_status == \"ended\":\n        break\n    time.sleep(60)\n\n# Iterate results — match back via custom_id\nfor item in client.messages.batches.results(batch.id):\n    if item.result.type == \"succeeded\":\n        print(item.custom_id, item.result.message.content[0].text)\n```\n\n**Key numbers:**\n- Up to **100,000 requests** or 256 MB per batch\n- **50% off** all input and output tokens (e.g. Sonnet 4.6 drops to $1.50/$7.50 per MTok)\n- Hard limit: 24 hours processing; results stay accessible for **29 days**\n- Streaming, Fast mode, and threads are not supported in batches\n\n**Double savings with prompt caching.** If your requests share a large shared prefix (a system prompt, a reference document), add `cache_control` blocks — batch discounts and cache discounts stack. Cache entries expire after 5 minutes so keep a steady flow of batch requests to maintain a warm cache.\n\n**Use `custom_id` as your join key.** Results arrive in arbitrary order. Assign a meaningful id to each request up front and use it to stitch results back to your input records — don't rely on ordering.\n\n**Sources:** [Message Batches API — Anthropic Docs](https://docs.anthropic.com/en/docs/build-with-claude/batch-processing)"
+  },
+  {
+    "id": "2026-06-28-08-hf-vllm-jobs-copilot-harness-benchmark",
+    "title": "One Command to a vLLM Endpoint: HuggingFace Jobs; Copilot Benchmarks Its Harness Across Models",
+    "excerpt": "HuggingFace Jobs launches a one-command vLLM endpoint (A10G, $1.50/hr, OpenAI-compatible). GitHub benchmarks Copilot's agentic harness vs Sonnet 4.6, Opus 4.7, GPT-5.4, and 5.5 on TerminalBench 2.0.",
+    "author": "Chris Harper",
+    "date": "06-28-2026",
+    "publishedAt": "2026-06-28T20:31:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "Self-Hosting"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/blog/vllm-jobs",
+    "content": "**TL;DR: HuggingFace Jobs now spins up a private OpenAI-compatible vLLM endpoint in one shell command; GitHub's benchmark shows its agentic harness matches vendor harnesses while using fewer tokens.**\n\n**HuggingFace Jobs + vLLM.** A new [HuggingFace blog post](https://huggingface.co/blog/vllm-jobs) (June 26) shows how to launch a pay-per-second OpenAI-compatible inference endpoint with a single command:\n\n```bash\nhf jobs run --flavor a10g-large --expose 8000 --timeout 2h \\\n  vllm/vllm-openai:latest \\\n  vllm serve Qwen/Qwen3-4B --host 0.0.0.0 --port 8000\n```\n\nAn A10G instance runs at $1.50/hr with per-second billing — no servers to provision, no Kubernetes. The endpoint is OpenAI-compatible, so existing client code works unchanged. Run `hf jobs hardware` to see available flavors and pricing.\n\n**GitHub Copilot agentic harness benchmark.** GitHub [published benchmarks](https://github.blog/ai-and-ml/github-copilot/evaluating-performance-and-efficiency-of-the-github-copilot-agentic-harness-across-models-and-tasks/) (June 26) of its shared orchestration layer — the harness that powers Copilot CLI, code review, and IDE features — against Claude Sonnet 4.6, Opus 4.7, GPT-5.4, and GPT-5.5 on TerminalBench 2.0. Result: Copilot's harness matched or beat model-vendor-native harnesses on task completion while consuming fewer tokens.\n\n**Why it matters:** HF Jobs removes the last friction point for self-hosting — a private vLLM endpoint is now a one-liner at ~$1.50/hr, no infra knowledge needed. The Copilot harness data is worth internalizing: token-efficient orchestration (tool selection, context management) matters as much as model choice on real agentic tasks.\n\n**Sources:** [Run a vLLM Server on HF Jobs in One Command — HuggingFace Blog](https://huggingface.co/blog/vllm-jobs) | [Evaluating GitHub Copilot Agentic Harness Across Models — GitHub Blog](https://github.blog/ai-and-ml/github-copilot/evaluating-performance-and-efficiency-of-the-github-copilot-agentic-harness-across-models-and-tasks/)"
+  },
+  {
+    "id": "2026-06-28-07-evaluate-fine-tune-lm-eval-harness",
+    "title": "Did Your Fine-Tune Actually Work? Score Any Model in One Command with the LM Evaluation Harness",
+    "excerpt": "Install lm-evaluation-harness, run one lm_eval command against GSM8K or HellaSwag, and get a numeric accuracy score to compare base vs fine-tuned directly. Works on free Colab for 7B-and-under models.",
+    "author": "Chris Harper",
+    "date": "06-28-2026",
+    "publishedAt": "2026-06-28T20:30:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Fine-Tuning",
+      "HuggingFace"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.com/EleutherAI/lm-evaluation-harness",
+    "content": "**TL;DR: After fine-tuning with Unsloth + QLoRA, run one lm_eval command to get a numeric accuracy score and compare it directly against the base model — no custom eval code needed.**\n\n**What you'll be able to do after this:**\n- Install the EleutherAI LM Evaluation Harness in two commands and benchmark any HuggingFace model\n- Run the same command against your base and fine-tuned model to get a before/after accuracy number\n- Interpret the output: what the score means and how to pick the right benchmark task for your use case\n\n---\n\nYou finished training. Your loss curve looks good. But does the model actually perform better on your target task? The [EleutherAI LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness) gives you a reproducible, numeric answer with one CLI command — no custom eval scripts, no hand-labeling outputs.\n\n## Install\n\n```bash\ngit clone --depth 1 https://github.com/EleutherAI/lm-evaluation-harness\ncd lm-evaluation-harness\npip install -e \".[hf]\"\n```\n\nThe `[hf]` extra installs the HuggingFace backend — required to load models from the Hub or from a local checkpoint.\n\n## Evaluate base model, then your fine-tune\n\n```bash\n# Step 1: score the base model\nlm_eval --model hf \\\n  --model_args pretrained=meta-llama/Llama-3.2-3B \\\n  --tasks gsm8k \\\n  --device cuda:0 \\\n  --batch_size 8\n\n# Step 2: swap in your fine-tuned model (identical command)\nlm_eval --model hf \\\n  --model_args pretrained=your-username/llama-3-2-3b-finetuned \\\n  --tasks gsm8k \\\n  --device cuda:0 \\\n  --batch_size 8\n```\n\nOutput looks like: `gsm8k | flexible_extract | 0 | 0.4756` — that's 47.56% on grade school math. If your fine-tune scores meaningfully higher, training worked. Same or lower? Revisit your dataset quality and learning rate. Philschmid's [fine-tuning guide](https://www.philschmid.de/fine-tune-llms-in-2025) shows a concrete example: a 10K-sample dataset moved the score from 47% to 54%.\n\n## Good starter tasks\n\n| Task | What it tests | Speed |\n|------|--------------|-------|\n| `gsm8k` | Multi-step math reasoning | Medium |\n| `hellaswag` | Commonsense reasoning | Fast |\n| `arc_easy` / `arc_challenge` | Science QA | Fast |\n| `mmlu` | Broad knowledge (STEM, humanities) | Slow |\n\nPick a task that matches your training domain. If you fine-tuned on customer support data, use a task that tests instruction-following; if you fine-tuned on code, run `humaneval`.\n\n## Can't fit the model on Colab?\n\nIf your fine-tuned model is hosted on HuggingFace Hub and you're serving it with Ollama or vLLM, use the OpenAI-compatible backend to decouple the eval client from the inference server:\n\n```bash\nlm_eval --model local-chat-completions \\\n  --model_args model=your-ft-model,base_url=http://localhost:8000/v1 \\\n  --tasks gsm8k_cot\n```\n\nThis way the evaluation runs anywhere — even a CPU-only machine — and the GPU work stays on the server.\n\n**Sources:** [EleutherAI LM Evaluation Harness — GitHub](https://github.com/EleutherAI/lm-evaluation-harness) | [How to Fine-Tune Open LLMs in 2025 — Philschmid](https://www.philschmid.de/fine-tune-llms-in-2025)"
+  },
+  {
     "id": "2026-06-28-06-claude-code-worktree-native-pr-dotenv",
     "title": "Three claude --worktree Features That Make Parallel Claude Code Development Click",
     "excerpt": "The native --worktree flag creates an isolated branch session in one command. Combine it with .worktreeinclude (auto-copy .env), --worktree \"#1234\" (PR isolation), and subagent frontmatter for fric…",

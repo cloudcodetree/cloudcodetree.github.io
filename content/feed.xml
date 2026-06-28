@@ -10,7 +10,188 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 28 Jun 2026 12:15:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 28 Jun 2026 20:32:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Process 100,000 Claude Requests at Half Price: The Message Batches API</title>
+      <link>https://docs.anthropic.com/en/docs/build-with-claude/batch-processing</link>
+      <guid isPermaLink="false">2026-06-28-09-anthropic-message-batches-api-bulk-discount</guid>
+      <pubDate>Sun, 28 Jun 2026 20:32:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Developer Tools</category>
+      <category>Best Practices</category>
+      <description>Submit up to 100,000 Claude API requests asynchronously and pay 50% of standard rates. Stack with prompt caching for double savings. custom_id is your join key — results arrive unordered.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Submit up to 100,000 Claude API requests in a single batch, pay 50% of standard rates, get results back within an hour — no streaming required.**
+
+If you're running document extraction pipelines, generating test suites, or classifying content at scale, Message Batches halves your API bill. Here's the minimal working pattern:
+
+```python
+import anthropic, time
+from anthropic.types.message_create_params import MessageCreateParamsNonStreaming
+from anthropic.types.messages.batch_create_params import Request
+
+client = anthropic.Anthropic()
+
+# Submit up to 100,000 requests in one call
+batch = client.messages.batches.create(
+    requests=[
+        Request(
+            custom_id="doc-001",          # your join key — results arrive unordered
+            params=MessageCreateParamsNonStreaming(
+                model="claude-sonnet-4-6",
+                max_tokens=256,
+                messages=[{"role": "user", "content": "Extract the invoice total from: ..."}],
+            ),
+        ),
+        # ... more requests
+    ]
+)
+
+# Poll until done (most batches finish in under 1 hour)
+while True:
+    status = client.messages.batches.retrieve(batch.id)
+    if status.processing_status == "ended":
+        break
+    time.sleep(60)
+
+# Iterate results — match back via custom_id
+for item in client.messages.batches.results(batch.id):
+    if item.result.type == "succeeded":
+        print(item.custom_id, item.result.message.content[0].text)
+```
+
+**Key numbers:**
+- Up to **100,000 requests** or 256 MB per batch
+- **50% off** all input and output tokens (e.g. Sonnet 4.6 drops to $1.50/$7.50 per MTok)
+- Hard limit: 24 hours processing; results stay accessible for **29 days**
+- Streaming, Fast mode, and threads are not supported in batches
+
+**Double savings with prompt caching.** If your requests share a large shared prefix (a system prompt, a reference document), add `cache_control` blocks — batch discounts and cache discounts stack. Cache entries expire after 5 minutes so keep a steady flow of batch requests to maintain a warm cache.
+
+**Use `custom_id` as your join key.** Results arrive in arbitrary order. Assign a meaningful id to each request up front and use it to stitch results back to your input records — don't rely on ordering.
+
+**Sources:** [Message Batches API — Anthropic Docs](https://docs.anthropic.com/en/docs/build-with-claude/batch-processing)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>One Command to a vLLM Endpoint: HuggingFace Jobs; Copilot Benchmarks Its Harness Across Models</title>
+      <link>https://huggingface.co/blog/vllm-jobs</link>
+      <guid isPermaLink="false">2026-06-28-08-hf-vllm-jobs-copilot-harness-benchmark</guid>
+      <pubDate>Sun, 28 Jun 2026 20:31:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Self-Hosting</category>
+      <description>HuggingFace Jobs launches a one-command vLLM endpoint (A10G, $1.50/hr, OpenAI-compatible). GitHub benchmarks Copilot's agentic harness vs Sonnet 4.6, Opus 4.7, GPT-5.4, and 5.5 on TerminalBench 2.0.</description>
+      <content:encoded><![CDATA[
+**TL;DR: HuggingFace Jobs now spins up a private OpenAI-compatible vLLM endpoint in one shell command; GitHub's benchmark shows its agentic harness matches vendor harnesses while using fewer tokens.**
+
+**HuggingFace Jobs + vLLM.** A new [HuggingFace blog post](https://huggingface.co/blog/vllm-jobs) (June 26) shows how to launch a pay-per-second OpenAI-compatible inference endpoint with a single command:
+
+```bash
+hf jobs run --flavor a10g-large --expose 8000 --timeout 2h \
+  vllm/vllm-openai:latest \
+  vllm serve Qwen/Qwen3-4B --host 0.0.0.0 --port 8000
+```
+
+An A10G instance runs at $1.50/hr with per-second billing — no servers to provision, no Kubernetes. The endpoint is OpenAI-compatible, so existing client code works unchanged. Run `hf jobs hardware` to see available flavors and pricing.
+
+**GitHub Copilot agentic harness benchmark.** GitHub [published benchmarks](https://github.blog/ai-and-ml/github-copilot/evaluating-performance-and-efficiency-of-the-github-copilot-agentic-harness-across-models-and-tasks/) (June 26) of its shared orchestration layer — the harness that powers Copilot CLI, code review, and IDE features — against Claude Sonnet 4.6, Opus 4.7, GPT-5.4, and GPT-5.5 on TerminalBench 2.0. Result: Copilot's harness matched or beat model-vendor-native harnesses on task completion while consuming fewer tokens.
+
+**Why it matters:** HF Jobs removes the last friction point for self-hosting — a private vLLM endpoint is now a one-liner at ~$1.50/hr, no infra knowledge needed. The Copilot harness data is worth internalizing: token-efficient orchestration (tool selection, context management) matters as much as model choice on real agentic tasks.
+
+**Sources:** [Run a vLLM Server on HF Jobs in One Command — HuggingFace Blog](https://huggingface.co/blog/vllm-jobs) | [Evaluating GitHub Copilot Agentic Harness Across Models — GitHub Blog](https://github.blog/ai-and-ml/github-copilot/evaluating-performance-and-efficiency-of-the-github-copilot-agentic-harness-across-models-and-tasks/)
+      ]]></content:encoded>
+      <media:content url="https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.png" medium="image" />
+      <media:thumbnail url="https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.png" />
+    </item>
+
+    <item>
+      <title>Did Your Fine-Tune Actually Work? Score Any Model in One Command with the LM Evaluation Harness</title>
+      <link>https://github.com/EleutherAI/lm-evaluation-harness</link>
+      <guid isPermaLink="false">2026-06-28-07-evaluate-fine-tune-lm-eval-harness</guid>
+      <pubDate>Sun, 28 Jun 2026 20:30:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>Install lm-evaluation-harness, run one lm_eval command against GSM8K or HellaSwag, and get a numeric accuracy score to compare base vs fine-tuned directly. Works on free Colab for 7B-and-under models.</description>
+      <content:encoded><![CDATA[
+**TL;DR: After fine-tuning with Unsloth + QLoRA, run one lm_eval command to get a numeric accuracy score and compare it directly against the base model — no custom eval code needed.**
+
+**What you'll be able to do after this:**
+- Install the EleutherAI LM Evaluation Harness in two commands and benchmark any HuggingFace model
+- Run the same command against your base and fine-tuned model to get a before/after accuracy number
+- Interpret the output: what the score means and how to pick the right benchmark task for your use case
+
+---
+
+You finished training. Your loss curve looks good. But does the model actually perform better on your target task? The [EleutherAI LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness) gives you a reproducible, numeric answer with one CLI command — no custom eval scripts, no hand-labeling outputs.
+
+## Install
+
+```bash
+git clone --depth 1 https://github.com/EleutherAI/lm-evaluation-harness
+cd lm-evaluation-harness
+pip install -e ".[hf]"
+```
+
+The `[hf]` extra installs the HuggingFace backend — required to load models from the Hub or from a local checkpoint.
+
+## Evaluate base model, then your fine-tune
+
+```bash
+# Step 1: score the base model
+lm_eval --model hf \
+  --model_args pretrained=meta-llama/Llama-3.2-3B \
+  --tasks gsm8k \
+  --device cuda:0 \
+  --batch_size 8
+
+# Step 2: swap in your fine-tuned model (identical command)
+lm_eval --model hf \
+  --model_args pretrained=your-username/llama-3-2-3b-finetuned \
+  --tasks gsm8k \
+  --device cuda:0 \
+  --batch_size 8
+```
+
+Output looks like: `gsm8k | flexible_extract | 0 | 0.4756` — that's 47.56% on grade school math. If your fine-tune scores meaningfully higher, training worked. Same or lower? Revisit your dataset quality and learning rate. Philschmid's [fine-tuning guide](https://www.philschmid.de/fine-tune-llms-in-2025) shows a concrete example: a 10K-sample dataset moved the score from 47% to 54%.
+
+## Good starter tasks
+
+| Task | What it tests | Speed |
+|------|--------------|-------|
+| `gsm8k` | Multi-step math reasoning | Medium |
+| `hellaswag` | Commonsense reasoning | Fast |
+| `arc_easy` / `arc_challenge` | Science QA | Fast |
+| `mmlu` | Broad knowledge (STEM, humanities) | Slow |
+
+Pick a task that matches your training domain. If you fine-tuned on customer support data, use a task that tests instruction-following; if you fine-tuned on code, run `humaneval`.
+
+## Can't fit the model on Colab?
+
+If your fine-tuned model is hosted on HuggingFace Hub and you're serving it with Ollama or vLLM, use the OpenAI-compatible backend to decouple the eval client from the inference server:
+
+```bash
+lm_eval --model local-chat-completions \
+  --model_args model=your-ft-model,base_url=http://localhost:8000/v1 \
+  --tasks gsm8k_cot
+```
+
+This way the evaluation runs anywhere — even a CPU-only machine — and the GPU work stays on the server.
+
+**Sources:** [EleutherAI LM Evaluation Harness — GitHub](https://github.com/EleutherAI/lm-evaluation-harness) | [How to Fine-Tune Open LLMs in 2025 — Philschmid](https://www.philschmid.de/fine-tune-llms-in-2025)
+      ]]></content:encoded>
+      <media:content url="https://opengraph.githubassets.com/1/EleutherAI/lm-evaluation-harness" medium="image" />
+      <media:thumbnail url="https://opengraph.githubassets.com/1/EleutherAI/lm-evaluation-harness" />
+    </item>
 
     <item>
       <title>Three claude --worktree Features That Make Parallel Claude Code Development Click</title>
