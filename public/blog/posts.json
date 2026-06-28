@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-06-28-06-claude-code-worktree-native-pr-dotenv",
+    "title": "Three claude --worktree Features That Make Parallel Claude Code Development Click",
+    "excerpt": "The native --worktree flag creates an isolated branch session in one command. Combine it with .worktreeinclude (auto-copy .env), --worktree \"#1234\" (PR isolation), and subagent frontmatter for fric…",
+    "author": "Chris Harper",
+    "date": "06-28-2026",
+    "publishedAt": "2026-06-28T12:15:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/worktrees",
+    "content": "**TL;DR: The native `--worktree` flag creates an isolated branch session in one command; combine it with `.worktreeinclude`, PR numbers, and subagent frontmatter to eliminate parallel Claude Code setup friction.**\n\nBuilding on the basic parallel-worktree pattern, Claude Code's native `--worktree` flag has three lesser-known features that remove most of the setup friction:\n\n## 1. Open any PR in isolation\n\n```bash\nclaude --worktree \"#1234\"\n```\n\nClaude Code fetches `pull/1234/head` from origin, creates `.claude/worktrees/pr-1234`, and opens a session on that branch. Review code, run the test suite, apply a fix — all isolated from your main checkout. The worktree is removed automatically when you exit if you made no changes. No branch juggling, no stash, no risk of uncommitted changes mixing.\n\n## 2. Auto-copy `.env` into every worktree\n\nWorktrees start as bare checkouts — gitignored files like `.env` aren't present, so your dev server fails immediately on launch. Fix it once with a `.worktreeinclude` file at your repo root:\n\n```\n.env\n.env.local\nconfig/secrets.json\n```\n\nAny file that matches a pattern AND is gitignored gets copied into each new worktree automatically — including `--worktree` sessions, subagent worktrees, and desktop app parallel sessions.\n\n## 3. Branch subagents from your current work\n\nBy default, `--worktree` branches from `origin/HEAD` (the remote default branch). When you need subagents to operate on your in-progress commits and feature branch state, add one field to `.claude/settings.json`:\n\n```json\n{ \"worktree\": { \"baseRef\": \"head\" } }\n```\n\nOr add `isolation: worktree` to a [custom subagent's frontmatter](https://code.claude.com/docs/en/sub-agents#supported-frontmatter-fields) — each invocation gets its own worktree branched from your current state, cleaned up automatically when the agent finishes without changes.\n\n**Sources:** [Run parallel sessions with worktrees — Claude Code Docs](https://code.claude.com/docs/en/worktrees)"
+  },
+  {
+    "id": "2026-06-28-05-anthropic-api-breaking-temperature-mythos",
+    "title": "Claude API: temperature and top_p Now Return 400 on Opus 4.7+; Mythos Preview Retires June 30",
+    "excerpt": "Two Anthropic API breaking changes: temperature/top_p/top_k return 400 errors on Opus 4.7 and 4.8; claude-mythos-preview retires June 30. Remove the sampling params and check your model strings now.",
+    "author": "Chris Harper",
+    "date": "06-28-2026",
+    "publishedAt": "2026-06-28T12:14:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+    "content": "**TL;DR: Two Anthropic API breaking changes to act on now — temperature/top_p/top_k throw a 400 on Opus 4.7+ and claude-mythos-preview retires June 30.**\n\n**temperature, top_p, and top_k are deprecated on Opus 4.7 and Opus 4.8.** Passing any of these at a non-default value returns a 400 error — not a degraded response, a hard failure. If you carry over API call templates from older Claude models, remove these fields. Anthropic's guidance: use prompting to shape response style rather than numeric sampling parameters. Both `claude-opus-4-7` and `claude-opus-4-8` are affected; older model strings are not.\n\n**claude-mythos-preview retires June 30** (tomorrow). Requests to `claude-mythos-preview` will fail starting Sunday. Migrate to `claude-mythos-5` — see the migration guide linked below.\n\n**Why it matters:** Any wrapper, framework, or proxy that auto-injects `temperature` will throw 400s when routed to Opus 4.7 or 4.8 — check SDK option objects and middleware defaults before these failures surface in production.\n\n**Sources:** [Model and API parameter deprecations — Claude Platform Docs](https://platform.claude.com/docs/en/about-claude/model-deprecations) | [Migration guide — Claude Platform Docs](https://platform.claude.com/docs/en/about-claude/models/migration-guide)"
+  },
+  {
+    "id": "2026-06-28-04-langgraph-memory-checkpointer-thread-id",
+    "title": "Give Your LangGraph Agent Persistent Memory With Three Lines of Code",
+    "excerpt": "Add InMemorySaver and a thread_id config key; your LangGraph agent remembers every fact across turns and scales to PostgreSQL with a one-line swap. Covers trimming, summarization, and cross-session…",
+    "author": "Chris Harper",
+    "date": "06-28-2026",
+    "publishedAt": "2026-06-28T12:13:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Agents",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://docs.langchain.com/oss/python/langgraph/add-memory",
+    "content": "**TL;DR: Add an InMemorySaver checkpointer and a thread_id config key; your LangGraph agent remembers every fact across turns and scales to PostgreSQL with a one-line swap.**\n\n**What you'll be able to do after this:**\n- Build agents that remember names, preferences, and decisions across a full conversation session without any per-turn history management\n- Scale from in-process InMemorySaver to PostgreSQL in one line and keep memory across server restarts\n- Handle long conversations without hitting context limits using built-in message trimming and summarization\n\n## The core pattern\n\nA **checkpointer** saves full graph state after every step. The `thread_id` config key identifies which conversation to read from and write to:\n\n```python\nfrom langgraph.checkpoint.memory import InMemorySaver\nfrom langgraph.graph import StateGraph, MessagesState\n\ncheckpointer = InMemorySaver()\nbuilder = StateGraph(MessagesState)\n# ... add your nodes and edges ...\ngraph = builder.compile(checkpointer=checkpointer)\n\nconfig = {\"configurable\": {\"thread_id\": \"user-123\"}}\n\ngraph.invoke(\n    {\"messages\": [{\"role\": \"user\", \"content\": \"My name is Alex.\"}]},\n    config\n)\n# Same thread_id — the agent remembers:\nresult = graph.invoke(\n    {\"messages\": [{\"role\": \"user\", \"content\": \"What's my name?\"}]},\n    config\n)\n# → \"Your name is Alex.\"\n```\n\nChange `thread_id` to start a fresh conversation. Keep it and the checkpointer replays full state before every step — no explicit history management.\n\n## Scale to production — one swap\n\n```python\nfrom langgraph.checkpoint.postgres import PostgresSaver\n\ncheckpointer = PostgresSaver.from_conn_string(\"postgresql://user:pass@host/db\")\ncheckpointer.setup()  # run once; creates the schema\n```\n\nMongoDB, Redis, and Oracle checkpointers follow the same interface.\n\n## Handling context overflow\n\nLong threads eventually exceed the context window. The two patterns from the LangGraph docs:\n\n```python\nfrom langchain_core.messages import trim_messages\n\n# Keep only the most recent messages (by token count)\ntrimmed = trim_messages(state[\"messages\"], max_tokens=20, strategy=\"last\")\n```\n\nOr add a `SummarizationNode` to replace old turns with a compact AI-generated summary — the agent retains the gist of earlier conversation without paying for every token of raw history.\n\n## Cross-session long-term memory\n\nFor facts that survive across different `thread_id`s (user preferences, past decisions), add a `store` alongside the checkpointer:\n\n```python\nfrom langgraph.store.memory import InMemoryStore\n\nstore = InMemoryStore()\ngraph = builder.compile(store=store, checkpointer=checkpointer)\n```\n\nInside nodes, call `store.search(namespace, query=text)` to retrieve relevant facts semantically and `store.put(namespace, key, value)` to save new ones. Swap `InMemoryStore` for a vector-backed store (pgvector, Redis) for semantic recall across thousands of entries.\n\n**Sources:** [How to add memory to your graph — LangGraph Docs](https://docs.langchain.com/oss/python/langgraph/add-memory) | [LangGraph persistence overview](https://docs.langchain.com/oss/python/langgraph/persistence)"
+  },
+  {
     "id": "2026-06-28-03-langsmith-tracing-claude-code-plugin",
     "title": "See Inside Every Claude Code Session: LangSmith Tracing in Three Commands",
     "excerpt": "The LangSmith Claude Code plugin traces every tool call, subagent run, and context compaction event to a visual dashboard — three commands to install, one env var to enable.",
