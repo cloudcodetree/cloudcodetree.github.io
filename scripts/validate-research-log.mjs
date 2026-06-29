@@ -6,8 +6,14 @@
  * The daily routine writes a research log claiming which posts it published. If
  * its commit drops content/feed.xml / posts.json (a real bug we hit), the log
  * looks healthy while the posts are gone. This guard makes that impossible to
- * ship: every post-guid listed under a '### Published' section in
+ * ship: every post listed under a '### Published' section in
  * content/research-log/*.md MUST exist in content/feed.xml. Exit 1 otherwise.
+ *
+ * Matching is by the YYYY-MM-DD-NN PREFIX (run-date + item number), not the full
+ * guid: the routine sometimes logs a slightly different slug tail than the id
+ * that ends up in the feed (cosmetic drift). The prefix still uniquely ties a log
+ * entry to its post, so a genuinely-dropped post (no matching prefix in the feed)
+ * still fails — while harmless slug drift no longer blocks the deploy.
  *
  * Runs in CI next to validate-blog.mjs.
  */
@@ -22,13 +28,19 @@ const FEED = path.join(ROOT, 'content', 'feed.xml');
 
 // A blog guid: YYYY-MM-DD-NN-slug
 const GUID = /\b(\d{4}-\d{2}-\d{2}-\d{2}-[a-z0-9-]+)\b/g;
+// Run-date + item number — the stable part a log entry and its post always share.
+const PREFIX = /^(\d{4}-\d{2}-\d{2}-\d{2})/;
 
 async function main() {
   if (!existsSync(LOG_DIR)) { console.log('✓ research-log: no log dir, nothing to check'); return; }
   if (!existsSync(FEED)) { console.error('✗ content/feed.xml missing'); process.exit(1); }
 
   const feed = await readFile(FEED, 'utf8');
-  const feedGuids = new Set([...feed.matchAll(/<guid[^>]*>([^<]+)<\/guid>/g)].map((m) => m[1].trim()));
+  const feedPrefixes = new Set(
+    [...feed.matchAll(/<guid[^>]*>([^<]+)<\/guid>/g)]
+      .map((m) => (m[1].trim().match(PREFIX) || [])[1])
+      .filter(Boolean),
+  );
 
   const files = (await readdir(LOG_DIR)).filter((f) => /^\d{4}-\d{2}-\d{2}\.md$/.test(f));
   const missing = [];
@@ -38,7 +50,8 @@ async function main() {
     for (const part of text.split(/^###\s+Published\s*$/mi).slice(1)) {
       const section = part.split(/^#{2,3}\s/m)[0];
       for (const m of section.matchAll(GUID)) {
-        if (!feedGuids.has(m[1])) missing.push(`${f}: ${m[1]}`);
+        const pfx = (m[1].match(PREFIX) || [])[1];
+        if (!pfx || !feedPrefixes.has(pfx)) missing.push(`${f}: ${m[1]}`);
       }
     }
   }
