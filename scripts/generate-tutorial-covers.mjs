@@ -10,8 +10,31 @@ import path from 'node:path';
 import { readTutorials, seriesTotal } from './lib/tutorials-data.mjs';
 
 const W = 1200, H = 675;
-const ACCENT = '#3fb950';
 const OUT = path.resolve('public/tutorials/covers');
+
+// Per-series visual identity: an accent color + a topic glyph, keyed by SERIES
+// so every part of a series shares one look and different series look distinct.
+const DEFAULT_STYLE = { accent: '#3fb950', glyph: null };
+const SERIES_STYLE = {
+  'RAG from Scratch': { accent: '#3fb950', glyph: 'database' },
+  'Fine-Tuning & Serving': { accent: '#d29922', glyph: 'sliders' },
+  'Claude Code Anywhere': { accent: '#2f81f7', glyph: 'terminal' },
+};
+
+// Large faint line-art glyphs on the right, clear of the title and PART x/y row.
+const GLYPHS = {
+  database: (a) => `<g transform="translate(965,355)" fill="none" stroke="${a}" stroke-width="6" opacity="0.45">
+    <ellipse cx="0" cy="-78" rx="100" ry="32"/><path d="M-100,-78 V78 a100,32 0 0 0 200,0 V-78"/>
+    <path d="M-100,-26 a100,32 0 0 0 200,0"/><path d="M-100,26 a100,32 0 0 0 200,0"/></g>`,
+  sliders: (a) => `<g transform="translate(885,255)" stroke="${a}" stroke-width="6" fill="${a}" opacity="0.45">
+    <line x1="0" y1="0" x2="0" y2="230"/><circle cx="0" cy="60" r="15"/>
+    <line x1="72" y1="0" x2="72" y2="230"/><circle cx="72" cy="160" r="15"/>
+    <line x1="144" y1="0" x2="144" y2="230"/><circle cx="144" cy="110" r="15"/>
+    <line x1="216" y1="0" x2="216" y2="230"/><circle cx="216" cy="40" r="15"/></g>`,
+  terminal: (a) => `<g transform="translate(875,285)" fill="none" stroke="${a}" stroke-width="6" opacity="0.45">
+    <rect x="0" y="0" width="230" height="160" rx="12"/><line x1="0" y1="42" x2="230" y2="42"/>
+    <polyline points="34,86 64,112 34,138"/><line x1="86" y1="138" x2="160" y2="138"/></g>`,
+};
 
 // Single source of truth: the tutorials list comes from app/tutorials/manifest.ts.
 const tutorials = readTutorials();
@@ -54,27 +77,31 @@ function fitTitle(title, maxW, maxLines = 2) {
 
 function svg({ series, title, part }) {
   const total = seriesTotal(tutorials, series);
+  const style = SERIES_STYLE[series] || DEFAULT_STYLE;
+  const accent = style.accent;
   const pad = 90;
-  const { fontPx, lines } = fitTitle(title, W - pad * 2, 2);
+  const { fontPx, lines } = fitTitle(title, W - pad * 2 - 250, 2); // reserve right space for the glyph
   const titleY = 312 - (lines.length - 1) * (fontPx * 0.58);
   const tspans = lines
     .map((l, i) => `<tspan x="${pad}" dy="${i === 0 ? 0 : fontPx * 1.16}">${esc(l)}</tspan>`)
     .join('');
+  const glyph = style.glyph && GLYPHS[style.glyph] ? GLYPHS[style.glyph](accent) : '';
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0d1117"/><stop offset="1" stop-color="#161b22"/>
     </linearGradient>
-    <radialGradient id="glow" cx="0.82" cy="0.18" r="0.6">
-      <stop offset="0" stop-color="${ACCENT}" stop-opacity="0.16"/>
-      <stop offset="1" stop-color="${ACCENT}" stop-opacity="0"/>
+    <radialGradient id="glow" cx="0.82" cy="0.2" r="0.7">
+      <stop offset="0" stop-color="${accent}" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="${accent}" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="${W}" height="${H}" fill="url(#bg)"/>
   <rect width="${W}" height="${H}" fill="url(#glow)"/>
-  <rect x="${pad}" y="150" width="56" height="4" fill="${ACCENT}"/>
-  <text x="${pad}" y="200" font-family="Menlo, monospace" font-size="22" letter-spacing="5" fill="${ACCENT}">${esc(series.toUpperCase())}</text>
+  ${glyph}
+  <rect x="${pad}" y="150" width="56" height="4" fill="${accent}"/>
+  <text x="${pad}" y="200" font-family="Menlo, monospace" font-size="22" letter-spacing="5" fill="${accent}">${esc(series.toUpperCase())}</text>
   <text x="${W - pad}" y="200" text-anchor="end" font-family="Menlo, monospace" font-size="22" letter-spacing="3" fill="#8b98a8">PART ${part} / ${total}</text>
   <text y="${titleY}" font-family="Georgia, serif" font-weight="bold" font-size="${fontPx}" fill="#ffffff">${tspans}</text>
   <text x="${pad}" y="601" font-family="Menlo, monospace" font-size="20" fill="#8b98a8">cloudcodetree.com/tutorials</text>
