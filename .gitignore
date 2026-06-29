@@ -109,3 +109,6 @@ Thumbs.db
 
 # Playwright MCP session artifacts
 /.playwright-mcp/
+
+# Brainstorm visual-companion artifacts
+/.superpowers/

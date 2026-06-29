@@ -16,6 +16,11 @@
   **Private until launch.** The deploy workflow checks out with `submodules: false`, so the
   public static build never needs it. Submodule wiring lives on the `draft/dealfinder`
   branch; site `main` stays clean until launch.
+- **Dev/test environment is a devcontainer (Python 3.11).** The committed
+  `companions/dealfinder/.devcontainer/` powers VS Code Dev Containers + "Open in
+  Codespaces" (a planned course feature). Host Python is irrelevant. Locally, the
+  test loop runs inside a `python:3.11` container via `docker exec` (fast iteration);
+  CI runs the same tests in 3.11. `requires-python = ">=3.11"`.
 - **Verified tutorial:** every code block + output shown in the MDX must come from a real run. No fabricated output.
 - Tests must be deterministic and offline: live-API and scraper connectors are tested against recorded fixtures/mocks, never the network.
 - The reproducible **dataset connector is the spine**; API + scraper are additional connectors. Dataset lives in the repo (`data/sample/`).
@@ -46,13 +51,31 @@ gh repo create cloudcodetree/tutorial-dealfinder --private \
   --description "Companion code for the DealFinder AI-engineering tutorial series"   # outward; confirm first
 git submodule add git@github.com:cloudcodetree/tutorial-dealfinder.git companions/dealfinder
 cd companions/dealfinder
-mkdir -p dealfinder tests data/sample data/fixtures
-python3.11 -m venv .venv && source .venv/bin/activate
+mkdir -p dealfinder tests data/sample data/fixtures .devcontainer
 ```
 
-Add `companions/*/.venv/` to the site repo's `.gitignore` so the submodule's venv is never tracked.
-All remaining Task-N steps run **inside `companions/dealfinder/`** (its own repo); the site repo
-only records the submodule pointer (Task 8) on the `draft/dealfinder` branch.
+Write `.devcontainer/devcontainer.json`:
+
+```json
+{
+  "name": "DealFinder",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "postCreateCommand": "pip install -e '.[dev]'",
+  "customizations": { "vscode": { "extensions": ["ms-python.python", "charliermarsh.ruff"] } }
+}
+```
+
+Start a long-lived dev container for the local TDD loop (real Python 3.11, fast iteration):
+
+```bash
+docker run -d --name df-dev -v "$PWD":/work -w /work python:3.11-slim sleep infinity
+docker exec df-dev pip install -e ".[dev]"
+# each test run:  docker exec df-dev pytest -q
+```
+
+All remaining Task-N steps run **inside `companions/dealfinder/`** (its own repo), tests via
+`docker exec df-dev pytest`; the site repo only records the submodule pointer (Task 8) on
+`draft/dealfinder`.
 
 - [ ] **Step 2: Write `pyproject.toml`**
 
@@ -73,9 +96,9 @@ testpaths = ["tests"]
 line-length = 100
 ```
 
-- [ ] **Step 3: Install + verify tooling**
+- [ ] **Step 3: Verify tooling in the container**
 
-Run: `pip install -e ".[dev]" && pytest -q`
+Run: `docker exec df-dev pytest -q`  (all later `pytest` runs use this `docker exec df-dev …` form)
 Expected: `no tests ran` (exit 0) — tooling works.
 
 - [ ] **Step 4: Commit + tag**
