@@ -10,7 +10,12 @@
 
 ## Global Constraints
 
-- Companion repo: `github.com/cloudcodetree/tutorial-dealfinder` (public), Python 3.11, one annotated git tag per step (`step-01` … ), `main` = finished.
+- Companion repo: its own independent repo `cloudcodetree/tutorial-dealfinder` (Python
+  3.11, one annotated git tag per step `step-01` …, `main` = finished), **wired into the
+  site repo as a git submodule at `companions/dealfinder/`** for local dev/testing.
+  **Private until launch.** The deploy workflow checks out with `submodules: false`, so the
+  public static build never needs it. Submodule wiring lives on the `draft/dealfinder`
+  branch; site `main` stays clean until launch.
 - **Verified tutorial:** every code block + output shown in the MDX must come from a real run. No fabricated output.
 - Tests must be deterministic and offline: live-API and scraper connectors are tested against recorded fixtures/mocks, never the network.
 - The reproducible **dataset connector is the spine**; API + scraper are additional connectors. Dataset lives in the repo (`data/sample/`).
@@ -32,14 +37,22 @@
 **Interfaces:**
 - Produces: an installable package `dealfinder` with `pytest` + `ruff` configured.
 
-- [ ] **Step 1: Create the repo + structure**
+- [ ] **Step 1: Create the companion repo as a submodule of the site repo**
 
 ```bash
-node scripts/new-tutorial-repo.mjs dealfinder --title "DealFinder — AI Engineering: Build the Data Layer"
-cd ../tutorial-dealfinder
+# in the SITE repo
+git checkout -b draft/dealfinder
+gh repo create cloudcodetree/tutorial-dealfinder --private \
+  --description "Companion code for the DealFinder AI-engineering tutorial series"   # outward; confirm first
+git submodule add git@github.com:cloudcodetree/tutorial-dealfinder.git companions/dealfinder
+cd companions/dealfinder
 mkdir -p dealfinder tests data/sample data/fixtures
 python3.11 -m venv .venv && source .venv/bin/activate
 ```
+
+Add `companions/*/.venv/` to the site repo's `.gitignore` so the submodule's venv is never tracked.
+All remaining Task-N steps run **inside `companions/dealfinder/`** (its own repo); the site repo
+only records the submodule pointer (Task 8) on the `draft/dealfinder` branch.
 
 - [ ] **Step 2: Write `pyproject.toml`**
 
@@ -539,14 +552,22 @@ git checkout step-02   # then step-03 …
 `main` is the finished version.
 ```
 
-- [ ] **Step 2: Push repo + tags — PRIVATE until launch** (outward action — confirm with the user first)
+- [ ] **Step 2: Push the companion repo + record the submodule pointer**
 
 ```bash
-gh repo create cloudcodetree/tutorial-dealfinder --private --source . --remote origin --push
-git push origin --tags
+# inside companions/dealfinder (its own repo; created private in Task 1)
+git add -A && git commit -m "step 8: README + step table"
+git push -u origin main && git push origin --tags
+
+# back in the SITE repo on draft/dealfinder — record the submodule at this commit
+cd ../..
+git add .gitmodules companions/dealfinder
+git commit -m "chore: add DealFinder companion submodule (draft)"
 ```
 
-Flip to public at launch (after the user's walkthrough sign-off): `gh repo edit cloudcodetree/tutorial-dealfinder --visibility public`.
+Verify `.github/workflows/deploy.yml` does NOT set `submodules: true` on checkout (default is
+false — the public build must not require the private companion). Flip the companion public at
+launch after sign-off: `gh repo edit cloudcodetree/tutorial-dealfinder --visibility public`.
 
 ---
 
