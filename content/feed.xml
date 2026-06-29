@@ -10,7 +10,200 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 29 Jun 2026 12:08:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 29 Jun 2026 20:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Ship Agent Telemetry in Three Env Vars: Claude Agent SDK's Built-in OpenTelemetry</title>
+      <link>https://code.claude.com/docs/en/agent-sdk/observability</link>
+      <guid isPermaLink="false">2026-06-29-06-claude-agent-sdk-opentelemetry-export</guid>
+      <pubDate>Mon, 29 Jun 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <description>Three env vars activate the Claude Agent SDK's built-in OpenTelemetry export: token/cost metrics, structured log events, and span traces that link to your application's existing traces.</description>
+      <media:content url="https://opentelemetry.io/img/logos/opentelemetry-horizontal-color.png" medium="image" />
+      <media:thumbnail url="https://opentelemetry.io/img/logos/opentelemetry-horizontal-color.png" />
+      <content:encoded><![CDATA[
+**TL;DR: Three env vars activate the Agent SDK's built-in OpenTelemetry export — every tool call, model request, and token cost becomes a span in Grafana, Honeycomb, Datadog, or Jaeger without an extra library.**
+
+Every production service needs metrics, traces, and logs. If you're deploying agents via the Claude Agent SDK's `query()` API, you have all three — the CLI backing each call has OpenTelemetry instrumentation built in. No extra library; just env vars.
+
+## Enable telemetry
+
+```bash
+CLAUDE_CODE_ENABLE_TELEMETRY=1
+CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1   # required for span traces
+OTEL_TRACES_EXPORTER=otlp
+OTEL_METRICS_EXPORTER=otlp
+OTEL_LOGS_EXPORTER=otlp
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+OTEL_EXPORTER_OTLP_ENDPOINT=http://your-collector:4318
+```
+
+Set these in your shell, Dockerfile, or Kubernetes manifest and every `query()` call exports automatically. Or inject them per-call when different agents in the same process need different settings:
+
+```python
+from claude_agent_sdk import query, ClaudeAgentOptions
+
+options = ClaudeAgentOptions(env={
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "CLAUDE_CODE_ENHANCED_TELEMETRY_BETA": "1",
+    "OTEL_TRACES_EXPORTER": "otlp",
+    "OTEL_METRICS_EXPORTER": "otlp",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://your-collector:4318",
+})
+
+async for message in query("Summarize the diff in git HEAD", options=options):
+    print(message)
+```
+
+## What you get
+
+| Signal | Contents |
+|---|---|
+| Metrics | Token counters, cost, session counts, lines-of-code, tool decisions |
+| Log events | Structured records per prompt, API request, API error, tool result |
+| Traces | `claude_code.interaction` → child spans for each `llm_request` and `tool` |
+
+Traces give the most detail: one turn produces a parent `claude_code.interaction` span with child spans for every model call and tool invocation. When an agent spawns a subagent via the Task tool, the subagent's spans nest under the parent's `claude_code.tool` span — the full delegation chain appears as one connected tree.
+
+## Linked to your application's traces
+
+The SDK automatically propagates W3C trace context (`TRACEPARENT`) into the CLI subprocess. Call `query()` while an active OpenTelemetry span exists in your application and the agent's spans appear as children of your span — one connected trace, not two disconnected roots. This is the key advantage over external plugins: the agent run shows up inside your API request's trace, not as a separate stream.
+
+## For short-lived processes
+
+By default, metrics export every 60 seconds. Shorten the interval for batch jobs or CI steps so data isn't lost before the process exits:
+
+```bash
+OTEL_METRIC_EXPORT_INTERVAL=1000   # milliseconds
+OTEL_LOGS_EXPORT_INTERVAL=1000
+OTEL_TRACES_EXPORT_INTERVAL=1000
+```
+
+Content your agent reads and writes is **not** recorded by default — only structure (durations, model names, token counts). Set `OTEL_LOG_USER_PROMPTS=1` or `OTEL_LOG_TOOL_DETAILS=1` to opt in if your pipeline is approved to store that data.
+
+**Sources:** [Observability with OpenTelemetry — Claude Agent SDK Docs](https://code.claude.com/docs/en/agent-sdk/observability) | [Monitoring reference](https://code.claude.com/docs/en/monitoring-usage) | [Agent SDK overview](https://code.claude.com/docs/en/agent-sdk/overview)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Add Semantic Search to Postgres in 5 Commands: pgvector and the Supabase vecs Client</title>
+      <link>https://supabase.com/docs/guides/ai/vecs-python-client</link>
+      <guid isPermaLink="false">2026-06-29-07-pgvector-supabase-vecs-semantic-search</guid>
+      <pubDate>Mon, 29 Jun 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Embeddings</category>
+      <category>Vectors</category>
+      <description>pgvector extends Postgres with a native VECTOR column type; the Supabase vecs Python client makes create-collection, upsert, and cosine-similarity search a 10-line script.</description>
+      <media:content url="https://opengraph.githubassets.com/1/pgvector/pgvector" medium="image" />
+      <media:thumbnail url="https://opengraph.githubassets.com/1/pgvector/pgvector" />
+      <content:encoded><![CDATA[
+**TL;DR: pgvector extends Postgres with a native VECTOR column type; the Supabase vecs Python client turns create-collection, upsert, and cosine-similarity search into a 10-line script you can run against any Postgres instance.**
+
+**What you'll be able to do after this:**
+- Store float embeddings in your existing Postgres database using a native vector column — no separate vector DB to operate
+- Upsert embeddings with metadata and query by cosine similarity using the vecs Python client
+- Filter similarity searches by metadata conditions so vector search and structured queries run together
+
+## Why pgvector instead of a standalone vector database?
+
+ChromaDB and Pinecone are purpose-built, but they add a new service to operate and a new credential to manage. pgvector runs inside Postgres as an extension — your embeddings live in the same database as your application data, with regular Postgres transactions, row-level security, and backup semantics. On Supabase, pgvector is enabled on every project at no extra cost.
+
+## Step 1: Enable pgvector
+
+On Supabase Cloud, run this once in the SQL editor (or it's already enabled):
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+For self-hosted Postgres:
+
+```bash
+# Ubuntu / Debian
+sudo apt install postgresql-16-pgvector
+```
+
+## Step 2: Install the vecs Python client
+
+```bash
+pip install vecs
+```
+
+`vecs` is Supabase's Python client for unstructured vector stores. It wraps pgvector's `VECTOR` column type and handles index creation automatically.
+
+## Step 3: Connect and create a collection
+
+```python
+import vecs
+
+# Supabase connection string: Settings → Database → Connection string
+vx = vecs.create_client("postgresql://postgres:password@db.yourproject.supabase.co:5432/postgres")
+
+# Create (or open) a collection — 1536 dims for text-embedding-3-small
+docs = vx.get_or_create_collection(name="docs", dimension=1536)
+```
+
+`get_or_create_collection` is idempotent — safe to call on every startup.
+
+## Step 4: Embed your documents and upsert
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+def embed(text: str) -> list[float]:
+    return client.embeddings.create(
+        input=text, model="text-embedding-3-small"
+    ).data[0].embedding
+
+documents = [
+    ("doc-001", "Claude Code ships built-in OpenTelemetry telemetry.", {"source": "blog"}),
+    ("doc-002", "pgvector adds VECTOR columns to Postgres.", {"source": "docs"}),
+    ("doc-003", "vecs wraps pgvector for Python in 10 lines.", {"source": "docs"}),
+]
+
+vectors = [(id, embed(text), meta) for id, text, meta in documents]
+docs.upsert(vectors=vectors)
+```
+
+Each record is a tuple: `(id, embedding, metadata_dict)`. Metadata is plain JSON — any key/value pairs you want to filter on later.
+
+## Step 5: Create an index and query by similarity
+
+```python
+# One-time: create an approximate nearest-neighbor index
+docs.create_index()
+
+# Find the 2 most similar docs, limited to source=docs
+query_vec = embed("How do I add vector search to Postgres?")
+
+results = docs.query(
+    data=query_vec,
+    limit=2,
+    filters={"source": {"$eq": "docs"}},
+)
+print(results)
+# ['doc-002', 'doc-003']
+```
+
+`create_index()` builds an IVFFlat index (cosine similarity by default). Call it once after bulk-loading data, not on every upsert.
+
+## The big picture
+
+pgvector closes the gap between "I have embeddings" and "I need to search them" without adding a new service. Once your vectors are in Postgres, you can join them with your application tables, scope searches to a user's rows via metadata filters, and back everything up with your regular database backups.
+
+**Sources:** [Supabase vecs Python client docs](https://supabase.com/docs/guides/ai/vecs-python-client) | [pgvector GitHub](https://github.com/pgvector/pgvector) | [Supabase AI & Vectors guide](https://supabase.com/docs/guides/ai) | [DataCamp pgvector tutorial](https://www.datacamp.com/tutorial/pgvector-tutorial)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Run a Fleet of Cloud Bug-Hunters Before Every Merge with /code-review ultra</title>
