@@ -16,6 +16,9 @@ Each phase is itself a portfolio-worthy milestone. The end state is a multi-surf
 production-shaped system the learner can deploy, demo, and put on a résumé — the
 "I shipped a real, evaluated AI system" proof the market rewards over certificates.
 
+It is delivered as an **interactive course** — in-browser playgrounds, runnable code,
+one-click environments, and per-part quizzes with progress tracking — not a series of posts.
+
 ## Audience & prerequisites
 
 - **For:** working software engineers, **new to AI engineering**. Comfortable with
@@ -168,6 +171,43 @@ Each phase is a standalone milestone. Type: **verified** (CPU, tested locally) o
 | Docker, IaC, cloud, CI/CD | 13 |
 | Observability/tracing, AI FinOps, drift→retrain, experiment tracking/registry | 3,7,14 |
 | AI system design | intro + 15 |
+
+## Interactivity & tooling (more than posts)
+
+Everything is **client-side or embeds** — no backend — so it fits the static export and
+dogfoods in-browser AI (a site teaching in-browser AI should run it). Reusable components
+live in `app/components/mdx/` (like `Callout`/`TutorialHero`), registered in
+`mdx-components.tsx`, and are **lazy-loaded** so pages stay light — heavy WASM
+(transformers.js, Pyodide) loads on demand only on the pages that use it. WebGPU features
+degrade gracefully to WASM or precomputed data (~70% WebGPU support).
+
+**Committed (built into the series, alongside the part that needs each):**
+
+- **Interactive widgets** (client-side, reused across parts) — start with: an **embeddings
+  playground** (transformers.js: type two phrases → live cosine similarity), a **chunking
+  visualizer** (size/overlap sliders → chunks), and a **tokenizer + cost calculator**
+  (tokens, counts, $/call). Add per-part widgets (hybrid/RRF demo, deal-scorer sandbox)
+  where they earn their keep.
+- **Quizzes + progress** — per-part knowledge checks (instant feedback + explanations) and
+  `localStorage` progress ("you are here", % complete) → course feel.
+- **One-click environments** — "Open in Colab" (GPU parts: fine-tune, vLLM) and "Open in
+  Codespaces / StackBlitz" (the companion repo ships a devcontainer) buttons per part.
+- **Run-a-model-in-your-browser** demo via transformers.js (reuses the embeddings infra) —
+  a concrete "no server" wow moment and dogfooding.
+
+**Phase-2 enhancements (listed, not committed):**
+
+- **BYO-key "ask about this page" AI tutor** — a chat widget doing client-side RAG over the
+  current tutorial (learner's own key in `localStorage`, or keyless via WebLLM); the help
+  system is itself the kind of app they're building. Zero-maintenance interim: an "I'm stuck"
+  button that deep-links to Claude with the section as context.
+- **Embedded JupyterLite notebooks** for the data + classic-ML parts (full in-browser Python,
+  zero install).
+- **WebLLM** in-page LLM chat for the LLM/agent parts.
+- **Completion badge / "interview-ready" self-assessment** mapped to the skill→part table.
+
+**Build discipline:** each widget is reusable engineering — built incrementally with the
+phase that first needs it, not all up front.
 
 ## Delivery strategy
 
