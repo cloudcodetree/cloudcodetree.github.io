@@ -10,8 +10,185 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 28 Jun 2026 20:32:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 29 Jun 2026 04:05:00 +0000</lastBuildDate>
 
+    <item>
+      <title>Ship a Read-Only Code Reviewer as a Claude Sub-Agent in 15 Lines</title>
+      <link>https://code.claude.com/docs/en/sub-agents</link>
+      <guid isPermaLink="false">2026-06-29-03-define-scoped-subagents-claude-agents-directory</guid>
+      <pubDate>Mon, 29 Jun 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>A markdown file in .claude/agents/ creates a named sub-agent Claude auto-delegates to — with scoped tool access, a focused system prompt, and optional model routing to Haiku.</description>
+      <content:encoded><![CDATA[
+**TL;DR: A 15-line markdown file in .claude/agents/ creates a reusable named sub-agent with its own tool restrictions, system prompt, and model — and Claude auto-delegates to it without being told.**
+
+Every time you write `> review the diff for bugs` or `> search the codebase for usages of X`, you're manually orchestrating a throwaway sub-agent. If you repeat that instruction more than twice a week, bake it into a reusable agent definition instead. Here's how.
+
+## The format
+
+A sub-agent is a Markdown file in `.claude/agents/` (project scope, checked into your repo) or `~/.claude/agents/` (user scope, all your projects):
+
+```markdown
+---
+name: code-reviewer
+description: Use when asked to review code for bugs, performance, or style issues. Reads files and returns findings — does not write anything.
+tools: Read, Grep, Glob, Bash
+model: claude-haiku-4-5-20251001
+---
+
+You are a strict code reviewer. Given a list of changed files, identify:
+1. Bugs — logic errors, edge cases, null dereferences
+2. Performance problems — N+1 queries, unnecessary allocations
+3. Style violations — dead code, overly complex conditionals
+
+Return findings as a numbered list: file path + line range, problem, minimal fix. Do not modify any files.
+```
+
+That is it. Drop it into `.claude/agents/code-reviewer.md` and Claude will start delegating code review tasks to it automatically.
+
+## Why the description field drives everything
+
+Claude reads `description:` to decide when to delegate. A vague description (`"use for reviewing code"`) leads to under-delegation. Write it as a precise delegation trigger: `"Use when asked to review code for bugs, performance, or style issues."` The more exact the trigger, the more reliably Claude reaches for it.
+
+## Restrict tools to match the job
+
+The `tools:` field is a comma-separated list of tool names (`Read`, `Edit`, `Write`, `Bash`, `Grep`, `Glob`, `Agent`). Omitting `Edit` and `Write` from a reviewer keeps it read-only even when the parent session has full edit permissions. This is the right default for any sub-agent that should not mutate state.
+
+## Route cheap tasks to a cheaper model
+
+Set `model:` to `claude-haiku-4-5-20251001` for fast, low-cost passes — summaries, linting, pattern searches, test generation. Leave it at the default (Sonnet or Opus) only for tasks requiring deep reasoning. On high-volume workflows, this alone can cut sub-agent costs dramatically.
+
+## Project vs user scope
+
+| Location | Scope | When to use |
+|---|---|---|
+| `.claude/agents/` | This repo only | Team-shared agents; check in to the repo |
+| `~/.claude/agents/` | All your projects | Personal agents for your own workflows |
+
+Project-level agents get checked into the repo so the whole team benefits from the same reusable workers. The `blog-editor` and `frontend-reviewer` in this blog's own `.claude/agents/` directory are live examples of exactly this pattern.
+
+**Sources:** [Create custom subagents — Claude Code Docs](https://code.claude.com/docs/en/sub-agents) · [Configure permissions — Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/permissions)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>OpenAI Codex Remote Goes GA for All Paid Plans; Unsloth Bridges to vLLM and Ollama</title>
+      <link>https://openai.com/index/work-with-codex-from-anywhere/</link>
+      <guid isPermaLink="false">2026-06-29-02-openai-codex-remote-ga-unsloth-vllm-backend</guid>
+      <pubDate>Mon, 29 Jun 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Self-Hosting</category>
+      <description>Codex Remote went GA June 25 for all paid ChatGPT tiers with QR-relay architecture. Unsloth v2026.6.7 adds an inference bridge to vLLM, Ollama, and llama-server for the fine-tune-to-serve pipeline.</description>
+      <content:encoded><![CDATA[
+**TL;DR: OpenAI Codex Remote is now GA for all paid plans with QR-paired phone control; Unsloth v2026.6.7 adds a bridge to vLLM/Ollama so you can fine-tune locally and route inference out.**
+
+## OpenAI Codex Remote — GA for all paid tiers
+
+[Codex Remote](https://openai.com/index/work-with-codex-from-anywhere/) reached general availability on June 25 for every paid ChatGPT plan (Plus, Pro, Business, Enterprise, Education). The feature lets you start, review, and approve long-running Codex coding sessions from the ChatGPT mobile app while the agent runs on your Mac or Windows host.
+
+The architecture change is the key detail: the old remote-shell approach required opening your dev machine to inbound connections. The new release replaces it with an authenticated QR-relay — each phone pairs one-to-one with one host, and your machine stays inaccessible to the public internet.
+
+**Why it matters:** For Claude Code users, Codex Remote closes the mobile-control parity gap. Phone-based steering of AI coding agents is now table stakes across both platforms — useful context if you're evaluating a dual-tool workflow or pitching AI tooling to a team.
+
+## Unsloth + external inference backends
+
+[Unsloth v2026.6.7](https://unsloth.ai/docs/new/changelog) added a bridge to external inference backends: after fine-tuning locally in Unsloth, you can now route inference to a vLLM server, Ollama, or llama-server without re-loading the model weights. This closes the local fine-tune to remote serve gap for teams that want GPU-accelerated training but hosted inference.
+
+**Sources:** [Work with Codex from anywhere — OpenAI](https://openai.com/index/work-with-codex-from-anywhere/) · [Codex Remote Connections — OpenAI Docs](https://developers.openai.com/codex/remote-connections) · [Unsloth Changelog](https://unsloth.ai/docs/new/changelog)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Run Any Open-Weight LLM in One Command: vLLM's OpenAI-Compatible Server</title>
+      <link>https://docs.vllm.ai/en/stable/getting_started/quickstart/</link>
+      <guid isPermaLink="false">2026-06-29-01-vllm-self-hosting-openai-api-quickstart</guid>
+      <pubDate>Mon, 29 Jun 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <description>Install vLLM, serve any HuggingFace model as an OpenAI-compatible endpoint on localhost:8000, and query it with your existing OpenAI SDK code unchanged. Full quickstart walk-through.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Install vLLM in one command, serve any HuggingFace model as an OpenAI-compatible endpoint, and query it with your existing OpenAI SDK code — no changes required.**
+
+**What you'll be able to do after this:**
+
+- Spin up a private LLM inference server on any NVIDIA or AMD GPU — local machine, cloud VM, or bare metal
+- Drop your existing OpenAI SDK code into a self-hosted setup by changing one line (`base_url`)
+- Understand why vLLM is 10–24x faster than naive HuggingFace Transformers for concurrent requests
+
+**Key takeaways:**
+
+- **PagedAttention**: vLLM manages the GPU KV-cache the way an OS pages RAM — non-contiguous physical blocks, zero fragmentation. More requests fit at once.
+- **Continuous batching**: new requests join the inference batch at each decode step rather than waiting for the whole batch to finish. GPU stays saturated.
+- **OpenAI-compatible API**: swap `base_url` from `https://api.openai.com/v1` to `http://localhost:8000/v1` and your `chat.completions.create()` calls work unchanged.
+
+## Walk-through
+
+**1. Install** (Python 3.10–3.12; NVIDIA GPU required for CUDA; AMD also supported)
+
+```bash
+uv venv --python 3.12 --seed && source .venv/bin/activate
+uv pip install vllm --torch-backend=auto   # pulls the right CUDA wheels automatically
+```
+
+For AMD/ROCm: `uv pip install vllm --extra-index-url https://wheels.vllm.ai/rocm/`
+
+**2. Serve a model**
+
+```bash
+# 1.5B param model — ~3 GB VRAM, good for testing
+vllm serve Qwen/Qwen2.5-1.5B-Instruct
+
+# 8B model at 4-bit quantization — ~6 GB VRAM
+vllm serve meta-llama/Llama-3.1-8B-Instruct --quantization awq
+```
+
+vLLM downloads the model from HuggingFace Hub on first run. The server starts on `http://localhost:8000` and prints the available routes.
+
+**3. Query it — zero code changes from the OpenAI SDK**
+
+```python
+from openai import OpenAI
+
+client = OpenAI(api_key="EMPTY", base_url="http://localhost:8000/v1")
+
+resp = client.chat.completions.create(
+    model="Qwen/Qwen2.5-1.5B-Instruct",
+    messages=[{"role": "user", "content": "What is PagedAttention?"}],
+    max_tokens=256,
+)
+print(resp.choices[0].message.content)
+```
+
+List available models: `curl http://localhost:8000/v1/models`
+
+**4. Key production flags**
+
+```bash
+vllm serve meta-llama/Llama-3.1-8B-Instruct   --gpu-memory-utilization 0.90   --max-model-len 4096   --dtype float16   --max-num-seqs 128
+```
+
+- `--gpu-memory-utilization 0.90` — leave 10% headroom for the OS
+- `--max-model-len 4096` — limit context window to reduce peak VRAM
+- `--dtype float16` — roughly half the VRAM of bfloat16
+- `--max-num-seqs 128` — cap concurrent sequences for predictable latency
+
+**Hardware floor:** ~3 GB VRAM for a 1.5B model; ~6–8 GB for an 8B model at INT4 quantization; ~18 GB for a full-precision 8B model in BF16.
+
+**Where to go next:** The [Online Serving docs](https://docs.vllm.ai/en/stable/serving/openai_compatible_server/) cover multi-GPU tensor parallelism (`--tensor-parallel-size`), LoRA adapter hot-loading, and structured output (grammar-constrained generation).
+
+**Sources:** [vLLM Quickstart — Official Docs](https://docs.vllm.ai/en/stable/getting_started/quickstart/) · [vLLM Online Serving](https://docs.vllm.ai/en/stable/serving/openai_compatible_server/)
+      ]]></content:encoded>
+    </item>
     <item>
       <title>Process 100,000 Claude Requests at Half Price: The Message Batches API</title>
       <link>https://docs.anthropic.com/en/docs/build-with-claude/batch-processing</link>
@@ -5360,6 +5537,7 @@ For engineers building App Intents integrations or features that hook into Siri 
       <media:content url="https://www.apple.com/newsroom/images/default/apple-logo-og.jpg" medium="image" type="image/jpeg" />
       <media:thumbnail url="https://www.apple.com/newsroom/images/default/apple-logo-og.jpg" />
     </item>
+
 
   </channel>
 </rss>
