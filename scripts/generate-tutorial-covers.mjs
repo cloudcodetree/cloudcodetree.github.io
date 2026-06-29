@@ -19,6 +19,7 @@ const SERIES_STYLE = {
   'RAG from Scratch': { accent: '#3fb950', glyph: 'database' },
   'Fine-Tuning & Serving': { accent: '#d29922', glyph: 'sliders' },
   'Claude Code Anywhere': { accent: '#2f81f7', glyph: 'terminal' },
+  'DealFinder — AI Engineering': { accent: '#0ea5e9', glyph: 'tag' },
 };
 
 // Large faint line-art glyphs on the right, clear of the title and PART x/y row.
@@ -34,6 +35,9 @@ const GLYPHS = {
   terminal: (a) => `<g transform="translate(875,285)" fill="none" stroke="${a}" stroke-width="6" opacity="0.45">
     <rect x="0" y="0" width="230" height="160" rx="12"/><line x1="0" y1="42" x2="230" y2="42"/>
     <polyline points="34,86 64,112 34,138"/><line x1="86" y1="138" x2="160" y2="138"/></g>`,
+  tag: (a) => `<g transform="translate(905,300)" fill="none" stroke="${a}" stroke-width="6" opacity="0.45">
+    <path d="M10,15 L120,15 L205,100 a16,16 0 0 1 0,22 L122,205 a16,16 0 0 1 -22,0 L15,120 a16,16 0 0 1 0,-22 Z"/>
+    <circle cx="62" cy="62" r="13" fill="${a}"/></g>`,
 };
 
 // Single source of truth: the tutorials list comes from app/tutorials/manifest.ts.

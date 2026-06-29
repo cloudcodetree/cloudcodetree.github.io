@@ -152,6 +152,19 @@ export const tutorials: Tutorial[] = [
     readTime: 12,
     image: '/tutorials/covers/dev-machine-in-your-pocket.png',
   },
+  {
+    slug: 'dealfinder-data-layer',
+    title: 'Build the Data Layer',
+    series: 'DealFinder — AI Engineering',
+    part: 1,
+    excerpt:
+      'Ingest messy product/price data from a dataset, a live API, and a scraper behind one DealSource interface; normalize, dedup, and store it — the foundation of an AI deal-finder.',
+    date: '06-29-2026',
+    tags: ['Tutorial', 'DealFinder', 'Data Engineering', 'Python'],
+    order: 11,
+    readTime: 10,
+    image: '/tutorials/covers/dealfinder-data-layer.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */

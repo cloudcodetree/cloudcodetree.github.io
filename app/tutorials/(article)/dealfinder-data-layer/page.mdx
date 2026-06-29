@@ -1,0 +1,147 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Build the Data Layer (Part 1 of 1) · Tutorials',
+  description:
+    'Ingest messy product/price data from a dataset, a live API, and a scraper behind one DealSource interface; normalize, dedup, and store it — the foundation of an AI deal-finder.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-data-layer/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Build the Data Layer (Part 1 of 1)',
+    description: 'Ingest messy product/price data from a dataset, a live API, and a scraper behind one DealSource interface; normalize, dedup, and store it — the foundation of an AI deal-finder.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-data-layer/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-data-layer.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-data-layer.png'] },
+};
+
+<TutorialHero slug="dealfinder-data-layer" />
+
+# Build the Data Layer
+
+**TL;DR: AI systems live or die on their data. Build a pluggable `DealSource` interface that pulls product/price data from a dataset, a live API, and a scraper — and normalizes all of it into one schema you can dedup and store.**
+
+This kicks off **DealFinder**, where you build a real AI deal-finder end to end — and it starts where every production AI system actually starts: getting messy, real-world data into a clean, queryable shape. Employers screen for exactly this ("RAG that survives messy data"), and it's the foundation the later parts (search, the deal-scoring model, the agent) all stand on.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Each step is a git tag — `git checkout step-01`, `step-02`, … — or [diff what each adds](https://github.com/cloudcodetree/tutorial-dealfinder#steps-and-what-each-adds).
+A `.devcontainer/` gives you Python 3.11 in one click (locally or in Codespaces).
+</Callout>
+
+## What you'll be able to do after this
+
+- Design a **connector (adapter) interface** so wildly different data sources look identical to the rest of your app.
+- Normalize heterogeneous records into **one typed schema** and **dedup** across sources.
+- Run a one-command **ingest pipeline** into a local store you can query.
+
+## The problem: many messy sources, one clean shape
+
+Deal data comes from everywhere — a bulk dataset, a retailer's API, a scraped page — each with different field names, shapes, and gaps. If every part of your app has to know those differences, you've lost. The fix is an **adapter**: one interface, many implementations. Everything downstream sees a single `Product`.
+
+## One schema everything speaks
+
+```python
+# dealfinder/schema.py
+class PricePoint(BaseModel):
+    day: date
+    price: float
+
+class Product(BaseModel):
+    id: str
+    title: str
+    brand: str | None
+    category: str
+    price: float
+    currency: str = "USD"
+    url: str
+    source: str
+    image_url: str | None = None
+    specs: dict[str, str] = {}
+    price_history: list[PricePoint] = []
+```
+
+Pydantic validates and coerces on the way in (note `price_history` is typed — strings like `"2026-06-01"` become real `date`s). This `Product` is the contract every later part of DealFinder depends on.
+
+## One interface, three sources
+
+```python
+# dealfinder/sources.py
+@runtime_checkable
+class DealSource(Protocol):
+    name: str
+    def products(self) -> Iterator[Product]: ...
+```
+
+Each connector implements `products()` and does its own normalization. The **dataset** connector (our reproducible spine):
+
+```python
+class DatasetSource:
+    name = "dataset"
+    def __init__(self, path: str): self.path = path
+    def products(self) -> Iterator[Product]:
+        for r in json.loads(open(self.path).read()):
+            yield Product(
+                id=r["sku"], title=r["name"], brand=r.get("make"), category=r["cat"],
+                price=r["usd"], url=r["link"], source=self.name,
+                specs={k: str(r[k]) for k in ("weight_kg", "capacity") if k in r},
+                price_history=[PricePoint(day=d, price=p) for d, p in r.get("history", [])],
+            )
+```
+
+The **API** connector (`ApiSource`, over httpx) and **scraper** connector (`ScraperSource`, parsing HTML with selectolax) look completely different inside, but expose the *same* `products()` — so the rest of the app never knows which is which. The scraper is taught against a saved HTML fixture; in production you'd fetch live pages while respecting robots.txt, rate limits, and each site's terms.
+
+<Callout tone="note">
+**Tests stay offline and deterministic.** The API connector is exercised with a mocked HTTP response (`respx`) and the scraper against a saved fixture — so the suite never touches the network and gives the same result every run. That's what makes a tutorial's output trustworthy and a CI pipeline reliable.
+</Callout>
+
+## Merge and dedup across sources
+
+The same tent can appear in two sources at different prices. Collapse duplicates and keep the best:
+
+```python
+# dealfinder/ingest.py
+def dedup_key(p: Product) -> str:
+    return f"{(p.brand or '').strip().lower()}|{p.title.strip().lower()}"
+
+def ingest(sources: list[DealSource]) -> list[Product]:
+    best: dict[str, Product] = {}
+    for src in sources:
+        for p in src.products():
+            k = dedup_key(p)
+            if k not in best or p.price < best[k].price:
+                best[k] = p
+    return list(best.values())
+```
+
+## Persist it, then run the pipeline
+
+`store.py` round-trips products to SQLite; `run_ingest.py` wires it together. Run it:
+
+```
+$ python -m dealfinder.run_ingest
+ingested 2 products -> dealfinder.sqlite (2 rows)
+```
+
+## It's all tested
+
+Every connector, the dedup, and the store have tests — built test-first:
+
+```
+$ pytest -q
+.........                                         [100%]
+9 passed in 0.11s
+```
+
+<Callout tone="note">
+**How this scales in production.** Here it's a JSON dataset + SQLite so it runs anywhere. The same shape scales up: swap the file connector for a warehouse/lake (BigQuery, Snowflake, Iceberg), run ingest on a schedule with an orchestrator (Airflow/Prefect/Dagster), stream high-volume sources through Kafka, and store vectors + metadata in Postgres/pgvector (next parts). The `DealSource` interface stays the same — only the implementations change.
+</Callout>
+
+## Where this goes next
+
+- **Part 2 — How LLMs actually work:** the literacy (tokenization, embeddings, attention) you need before wiring an LLM into this catalog.
+- **Then:** semantic + hybrid search over these products, a "good deal?" model trained on the price history, and the agent that ties it together.
+
+---
+
+*Sources: [pydantic](https://docs.pydantic.dev/) · [httpx](https://www.python-httpx.org/) · [selectolax](https://github.com/rushter/selectolax) · [respx](https://lundberg.github.io/respx/)*
