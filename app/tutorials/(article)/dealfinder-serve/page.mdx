@@ -1,0 +1,103 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Serve It Fast and Cheap (Part 12 of 12) · Tutorials',
+  description:
+    'Wrap DealFinder in a FastAPI service, add a semantic cache that serves paraphrased queries for almost nothing, and learn the levers that cut inference cost and latency — batching, quantization, vLLM, streaming.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-serve/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Serve It Fast and Cheap (Part 12 of 12)',
+    description: 'Wrap DealFinder in a FastAPI service, add a semantic cache that serves paraphrased queries for almost nothing, and learn the levers that cut inference cost and latency — batching, quantization, vLLM, streaming.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-serve/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-serve.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-serve.png'] },
+};
+
+<TutorialHero slug="dealfinder-serve" />
+
+# Serve It Fast and Cheap
+
+**TL;DR: A working model nobody can call isn't a product. Wrap DealFinder in a FastAPI service, then learn the levers that make inference fast and cheap: a semantic cache that answers paraphrased queries for ~$0, request batching, quantization, vLLM, and streaming. Serving cost is its own hireable skill.**
+
+You've built the brains; now make them reachable and affordable. At scale, *how* you serve a model often matters more than the model — the same quality at a tenth of the cost is a real engineering win.
+
+<Callout tone="tip">
+**Code along, version by version.** Shared course repo
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at step **27**.
+</Callout>
+
+## What you'll be able to do after this
+
+- Expose DealFinder as a **FastAPI** service with real endpoints.
+- Add a **semantic cache** that serves reworded queries instantly.
+- Explain **batching**, **quantization**, and **vLLM** for LLM serving.
+- Know when to **stream** tokens for perceived latency.
+
+## A real endpoint
+
+FastAPI turns the pipeline into a service. The endpoints are testable with `TestClient` — no running server needed, so they go straight into CI:
+
+```python
+# dealfinder/serve.py
+app = FastAPI(title="DealFinder")
+
+@app.get("/deal/{product_id}")
+def deal(product_id: str):
+    if product_id not in _idx:
+        raise HTTPException(404, "unknown product")
+    p = _catalog[_idx[product_id]]
+    return {"id": p.id, "price": p.price,
+            "deal_score": round(deal_score(p.price, _fair[p.id]), 3)}
+```
+
+## The cheapest win: a semantic cache
+
+A plain cache only helps on *identical* requests. A **semantic cache** keys on the query's embedding, so "cheap 2-person tent" and "affordable two-person tent" share an answer — a huge saving on repetitive traffic:
+
+<SemanticCacheViz />
+
+```python
+# dealfinder/cache.py
+class SemanticCache:
+    def get(self, vec):
+        sims = (V @ vec) / (norms + 1e-9)          # cosine to every cached query
+        i = int(np.argmax(sims))
+        return self._vals[i] if sims[i] >= self.threshold else None
+```
+
+## Throughput: batch the work
+
+GPUs are wasted serving one request at a time. **Continuous batching** packs many in-flight requests into each forward pass — the core trick behind high-throughput servers like **vLLM**:
+
+<Batching />
+
+## The serving levers, in one place
+
+- **Quantization** — run the model in 8-bit/4-bit: less memory, faster, a tiny quality cost. Often the first lever.
+- **vLLM** — continuous batching + paged-attention KV cache (Part 2) for many× the throughput, behind an OpenAI-compatible API (see [Serve a Model with vLLM](https://cloudcodetree.com/tutorials/serve-with-vllm/)).
+- **Streaming** — send tokens as they're generated. Same total time, but *perceived* latency drops because the user sees output immediately.
+- **Pick the smallest model that passes your eval** (Part 11) — the cheapest token is the one you don't spend on an oversized model.
+
+<Callout tone="note">
+**How this scales in production.** Put the API behind an autoscaling gateway, serve LLMs on vLLM/TGI with quantization, back the semantic cache with Redis + a vector index, add the **periodic suggestions job** as a scheduled worker that precomputes recommendations off the hot path, and stream responses to the web UI. Every lever here is independent — stack the ones your traffic needs.
+</Callout>
+
+## It's all tested
+
+The endpoints (via `TestClient`) and the semantic cache are test-first:
+
+```
+$ pytest -q
+...............................................   [100%]
+47 passed in 0.45s
+```
+
+## Where this goes next
+
+- **Part 13 — Containerize & deploy:** Docker, a touch of Terraform, and GitHub Actions CD.
+- **Then:** observability & cost (FinOps), and shipping with a case study + mock interview.
+
+---
+
+*Sources: [FastAPI](https://fastapi.tiangolo.com/) · [vLLM](https://docs.vllm.ai/) · [GPTCache (semantic caching)](https://github.com/zilliztech/GPTCache)*

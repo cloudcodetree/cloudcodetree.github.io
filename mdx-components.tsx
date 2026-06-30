@@ -27,6 +27,8 @@ import InjectionShield from './app/components/mdx/InjectionShield';
 import GuardrailStack from './app/components/mdx/GuardrailStack';
 import EvalGauntlet from './app/components/mdx/EvalGauntlet';
 import ABCompare from './app/components/mdx/ABCompare';
+import SemanticCacheViz from './app/components/mdx/SemanticCacheViz';
+import Batching from './app/components/mdx/Batching';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -48,5 +50,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     MCPBridge, MCPPrimitives,
     InjectionShield, GuardrailStack,
     EvalGauntlet, ABCompare,
+    SemanticCacheViz, Batching,
   };
 }

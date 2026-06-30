@@ -295,6 +295,19 @@ export const tutorials: Tutorial[] = [
     readTime: 9,
     image: '/tutorials/covers/dealfinder-eval.png',
   },
+  {
+    slug: 'dealfinder-serve',
+    title: 'Serve It Fast and Cheap',
+    series: 'DealFinder — AI Engineering',
+    part: 12,
+    excerpt:
+      'Wrap DealFinder in a FastAPI service, add a semantic cache that serves paraphrased queries for almost nothing, and learn the levers that cut inference cost and latency — batching, quantization, vLLM, streaming.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Serving', 'FastAPI', 'Python'],
+    order: 22,
+    readTime: 10,
+    image: '/tutorials/covers/dealfinder-serve.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */
