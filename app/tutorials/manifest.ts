@@ -165,6 +165,19 @@ export const tutorials: Tutorial[] = [
     readTime: 10,
     image: '/tutorials/covers/dealfinder-data-layer.png',
   },
+  {
+    slug: 'dealfinder-how-llms-work',
+    title: 'How LLMs Actually Work',
+    series: 'DealFinder — AI Engineering',
+    part: 2,
+    excerpt:
+      'The LLM literacy you need before wiring a model into DealFinder: tokenization, embeddings, attention, and sampling — shown, not just described.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'LLMs', 'Concepts'],
+    order: 12,
+    readTime: 12,
+    image: '/tutorials/covers/dealfinder-how-llms-work.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */
@@ -176,6 +189,10 @@ export const SERIES_INFO: Record<string, { blurb: string }> = {
   'Fine-Tuning & Serving': {
     blurb:
       'Change the model itself: when to fine-tune vs. retrieve, how LoRA/QLoRA work, and how to serve the result behind an OpenAI-compatible API.',
+  },
+  'DealFinder — AI Engineering': {
+    blurb:
+      'Build a real AI deal-finder end to end — data, LLM literacy, an ML scoring model, retrieval, an agent, and shipping it — the capstone that ties every skill together.',
   },
 };
 

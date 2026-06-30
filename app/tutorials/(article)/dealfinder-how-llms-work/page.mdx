@@ -1,0 +1,87 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: How LLMs Actually Work (Part 2 of 2) · Tutorials',
+  description:
+    'The LLM literacy you need before wiring a model into DealFinder: tokenization, embeddings, attention, and sampling — shown, not just described.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-how-llms-work/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: How LLMs Actually Work (Part 2 of 2)',
+    description: 'The LLM literacy you need before wiring a model into DealFinder: tokenization, embeddings, attention, and sampling — shown, not just described.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-how-llms-work/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-how-llms-work.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-how-llms-work.png'] },
+};
+
+<TutorialHero slug="dealfinder-how-llms-work" />
+
+# How LLMs Actually Work
+
+**TL;DR: Before you wire an LLM into DealFinder, you need four mental models — tokenization, embeddings, attention, and sampling. This part shows each one, in motion, using DealFinder's own product data.**
+
+In Part 1 you built a clean `Product` catalog. Soon you'll search it semantically, extract specs from messy listings, and let an agent reason over it — all with an LLM. But "the model figures it out" is not an engineering answer. The four ideas below are what separate someone who *calls* an API from someone who can debug it, control its cost, and make it reliable.
+
+<Callout tone="note">
+**No GPU, no install — these concepts run in your browser.** This part is conceptual literacy, not a build, so there's no companion repo. The animations are interactive illustrations; to poke the *real* thing, the official playgrounds are linked in each section and in Sources.
+</Callout>
+
+## What you'll be able to do after this
+
+- Explain why an LLM sees **tokens, not words** — and why that drives cost, context limits, and odd failures.
+- Describe what an **embedding** is and why it makes semantic search possible (the engine of Part 5).
+- Read an **attention** pattern and say, in one sentence, what "context" really means.
+- Choose a **temperature** on purpose: deterministic extraction vs. creative generation.
+
+## 1. Tokenization — the model reads tokens, not words
+
+An LLM never sees your text. A tokenizer first chops it into **subword tokens**, each mapped to an integer id. Spaces ride along with the next word, numbers fragment, and casing splits — so token count rarely matches word count.
+
+<Tokenizer />
+
+Why an engineer cares: **you're billed per token** (input *and* output), the **context window** is measured in tokens, and tokenization explains classic failures — why models miscount letters, fumble arithmetic, and choke on long IDs. A title that looks short can be surprisingly expensive at scale. Poke a real tokenizer at [Tiktokenizer](https://tiktokenizer.vercel.app/).
+
+## 2. Embeddings — meaning becomes geometry
+
+Whole texts become **vectors** — long lists of numbers — positioned so that *similar meaning lands nearby*. Camping gear clusters together; unrelated electronics sit far away. Crucially, a free-text query is embedded into the *same* space, so you can find products by **meaning, not keywords**.
+
+<EmbeddingSpace />
+
+This is the single most important idea for DealFinder: it's exactly how **semantic search** works in Part 5. "lightweight shelter for backpacking" finds the tent even though it shares no words with the listing — because their vectors are close. Explore a real embedding space in the [TensorFlow Embedding Projector](https://projector.tensorflow.org/).
+
+## 3. Attention — context decides meaning
+
+A token's meaning depends on the tokens around it. **Attention** is the mechanism: while processing one token, the model weighs how much to "look at" every other token. The strong links land on the words that actually qualify it.
+
+<AttentionView />
+
+"tent" leans on "2-person" and "ultralight" and ignores "for" — which is why an LLM grasps *"is this 2-person tent actually lightweight?"* in a way keyword search never could. This is what powers the structured extraction in a later part. See attention in a real model with [BertViz](https://github.com/jessevig/bertviz).
+
+## 4. Sampling — temperature is a dial you control
+
+The model doesn't emit a word; it emits a **probability for every possible next token**. How you pick from that distribution is *your* choice. **Temperature** reshapes the odds before sampling: low temperature sharpens them (predictable), high temperature flattens them (creative).
+
+<TemperatureSampler />
+
+This dial is an engineering decision. For DealFinder's **JSON spec extraction** you want `temperature = 0` — same listing in, same structured output out (deterministic, like the tests in Part 1). For generating a friendly "why we think you'll like this" blurb, a little heat helps. Play with it in the [Transformer Explainer](https://poloclub.github.io/transformer-explainer/).
+
+## Cost & latency intuition (the part that gets you hired)
+
+Tie it together with the numbers that show up in production:
+
+- **Prefill vs. decode.** The prompt is processed in parallel (fast); output tokens are generated **one at a time** (the slow part). Fewer output tokens = lower latency *and* cost.
+- **The KV cache** is why generation isn't quadratic per step: the model stores the keys/values of tokens it's already seen, so each new token attends to the cached past instead of recomputing it. It trades memory for speed — and that memory is a real serving cost (Part 12).
+- **Context window = working memory.** Everything — system prompt, retrieved products, history — competes for the same token budget. This is *why* you retrieve a handful of relevant products (Part 5) instead of stuffing the whole catalog in.
+
+<Callout tone="note">
+**How this scales in production.** The toy here is one title and a hand-laid 2D map. In DealFinder you'll embed the whole catalog with a real model, store vectors in `pgvector`, and call a hosted LLM with `temperature=0` for extraction — but the four mental models are identical at any scale.
+</Callout>
+
+## Where this goes next
+
+- **Part 5 — Semantic search:** turn the embedding idea into real retrieval over your `Product` catalog (pgvector + hybrid search).
+- **Then:** structured extraction (attention + `temperature=0`), the deal-scoring model, and the agent that ties it together.
+
+---
+
+*Sources: [Tiktokenizer](https://tiktokenizer.vercel.app/) · [TensorFlow Embedding Projector](https://projector.tensorflow.org/) · [BertViz](https://github.com/jessevig/bertviz) · [Transformer Explainer](https://poloclub.github.io/transformer-explainer/) · [The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)*
