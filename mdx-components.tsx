@@ -23,6 +23,8 @@ import AgentLoop from './app/components/mdx/AgentLoop';
 import ToolBelt from './app/components/mdx/ToolBelt';
 import MCPBridge from './app/components/mdx/MCPBridge';
 import MCPPrimitives from './app/components/mdx/MCPPrimitives';
+import InjectionShield from './app/components/mdx/InjectionShield';
+import GuardrailStack from './app/components/mdx/GuardrailStack';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -42,5 +44,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     LoRAAdapter, FineTuneGain,
     AgentLoop, ToolBelt,
     MCPBridge, MCPPrimitives,
+    InjectionShield, GuardrailStack,
   };
 }

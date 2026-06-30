@@ -1,0 +1,106 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Safety, Security & Governance (Part 10 of 10) · Tutorials',
+  description:
+    'The boring-but-hireable layer: detect prompt injection, redact PII, validate model output beyond types, keep an audit log, and write a model card — defense in depth around DealFinder.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-safety/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Safety, Security & Governance (Part 10 of 10)',
+    description: 'The boring-but-hireable layer: detect prompt injection, redact PII, validate model output beyond types, keep an audit log, and write a model card — defense in depth around DealFinder.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-safety/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-safety.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-safety.png'] },
+};
+
+<TutorialHero slug="dealfinder-safety" />
+
+# Safety, Security & Governance
+
+**TL;DR: The work that separates a demo from a system you can ship: treat all input as hostile (prompt injection), all model output as unvalidated, strip PII before you log it, keep an audit trail, and document the model's limits in a model card. Defense in depth, each layer cheap.**
+
+DealFinder now searches, scores, recommends, extracts, and acts — and it ingests *untrusted* text (scraped listings, user queries) and emits text you might log or act on. That's the exact surface where AI systems get burned. This is a genuinely hireable specialty in 2026; here's the practical core.
+
+<Callout tone="tip">
+**Code along, version by version.** Shared course repo
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at step **25**.
+</Callout>
+
+## What you'll be able to do after this
+
+- Detect **prompt injection** in untrusted text before it reaches the model.
+- **Redact PII** (emails, phones, cards) before logging or prompting.
+- **Validate model output** beyond types — sane ranges, not just `int`.
+- Keep an **audit log**, and write a **model card** documenting limits.
+
+## Never trust the input
+
+Scraped listings and user queries can carry instructions aimed at *your* model ("ignore previous instructions…"). A first-line filter flags the obvious attempts; the deeper fix is never letting untrusted text occupy a privileged position in your prompt:
+
+<InjectionShield />
+
+```python
+# dealfinder/safety.py
+def detect_prompt_injection(text):
+    return any(re.search(p, text, re.I) for p in _INJECTION)  # "ignore previous", …
+```
+
+## Defense in depth
+
+No single check is enough. Order cheap guardrails around the model so a miss at one layer is caught at the next — and the model never sits at the trust boundary:
+
+<GuardrailStack />
+
+## Never trust the output, either
+
+The schema from Part 6 enforces *types*; governance adds *sanity*. A model can return a perfectly-typed `capacity: 99` — valid JSON, nonsense data. Range checks stop it poisoning the catalog:
+
+```python
+def validate_listing_specs(specs):
+    errors = []
+    if specs.capacity is not None and not (1 <= specs.capacity <= 12):
+        errors.append("capacity out of range")
+    if specs.weight_kg is not None and not (0 < specs.weight_kg < 50):
+        errors.append("weight_kg out of range")
+    return errors
+```
+
+## Redact PII, then log everything
+
+You want an audit trail — but not one full of personal data. Redact first, then record who did what:
+
+```python
+redact_pii("mail me at jo@example.com or 555-123-4567")
+# → "mail me at [email] or [phone]"
+
+audit = AuditLog()
+audit.record("tool_call", tool="score_deal", user="u1")
+```
+
+## Write a model card
+
+Governance isn't only code. A **model card** is a short doc that states, plainly: what the system does, its training data and assumptions, where it fails, and known biases. For DealFinder: "the price model is trained on synthetic tents; deal scores are estimates, not appraisals; not for high-stakes purchases." It's the artifact reviewers (and future you) rely on.
+
+<Callout tone="note">
+**How this scales in production.** Add a dedicated injection classifier and content moderation, scope tool permissions per user, rate-limit and sandbox tool execution, encrypt logs and set retention, run **bias/fairness** checks on recommendations, and keep the model card under version control with sign-off. Map it all to a framework like the [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework).
+</Callout>
+
+## It's all tested
+
+Injection detection, PII redaction, range validation, and the audit log are test-first:
+
+```
+$ pytest -q
+.........................................         [100%]
+41 passed in 0.06s
+```
+
+## Where this goes next
+
+- **Part 11 — Evaluation harness:** stop eyeballing quality — golden sets, LLM-as-judge, metrics in CI.
+- **Then:** efficient serving, deployment, observability/cost, and shipping.
+
+---
+
+*Sources: [OWASP Top 10 for LLM Apps](https://owasp.org/www-project-top-10-for-large-language-model-applications/) · [Model Cards (Mitchell et al.)](https://arxiv.org/abs/1810.03993) · [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)*

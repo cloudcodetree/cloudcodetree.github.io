@@ -269,6 +269,19 @@ export const tutorials: Tutorial[] = [
     readTime: 9,
     image: '/tutorials/covers/dealfinder-mcp.png',
   },
+  {
+    slug: 'dealfinder-safety',
+    title: 'Safety, Security & Governance',
+    series: 'DealFinder — AI Engineering',
+    part: 10,
+    excerpt:
+      'The boring-but-hireable layer: detect prompt injection, redact PII, validate model output beyond types, keep an audit log, and write a model card — defense in depth around DealFinder.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Safety', 'Security', 'Python'],
+    order: 20,
+    readTime: 10,
+    image: '/tutorials/covers/dealfinder-safety.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */
