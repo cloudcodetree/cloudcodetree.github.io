@@ -1,0 +1,69 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Fine-Tune the Extractor with QLoRA (Part 7 of 7) · Tutorials',
+  description:
+    'When prompting hits its limits, fine-tune a small model on your own extraction data with QLoRA — beating the prompted base on accuracy, cost, and latency. Concept here; run it in a GPU notebook.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-finetune/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Fine-Tune the Extractor with QLoRA (Part 7 of 7)',
+    description: 'When prompting hits its limits, fine-tune a small model on your own extraction data with QLoRA — beating the prompted base on accuracy, cost, and latency. Concept here; run it in a GPU notebook.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-finetune/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-finetune.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-finetune.png'] },
+};
+
+<TutorialHero slug="dealfinder-finetune" />
+
+# Fine-Tune the Extractor with QLoRA
+
+**TL;DR: Prompting a big general model for every extraction is accurate but slow and expensive at scale. When you have a narrow, repeated task and example data, fine-tune a *small* model with QLoRA — it can beat the prompted base on accuracy, cost, and latency at once. This part is the concept; you run it in a GPU notebook.**
+
+By Part 6 you can extract specs by prompting. But DealFinder will run that on every listing, forever — and a giant model per call is the expensive way to do a narrow job. Fine-tuning teaches a small model *your* task from *your* examples. This is a genuinely hireable skill, and QLoRA makes it possible on a single free GPU.
+
+<Callout tone="warn">
+**This one needs a GPU — read here, run in a notebook.** Fine-tuning needs CUDA, so unlike the rest of the course it isn't in the CPU devcontainer. The concepts and decisions are here; the runnable training loop is in the linked notebooks. This page ships no "tested locally" output — its numbers are illustrative.
+</Callout>
+
+## When to fine-tune (and when not to)
+
+Reach for fine-tuning when **all** of these hold: the task is narrow and repeated, you have (or can synthesize) example input→output pairs, and prompting is too slow/expensive/inconsistent at your volume. If you mainly need *fresh knowledge*, that's retrieval (Part 5), not fine-tuning — see [Fine-Tuning vs RAG](https://cloudcodetree.com/tutorials/fine-tuning-vs-rag/). DealFinder's extraction is the textbook fit: one narrow job, millions of times.
+
+<FineTuneGain />
+
+## How QLoRA works: train a tiny adapter
+
+Full fine-tuning updates all of a model's billions of weights — costly and memory-hungry. **LoRA** freezes the base and trains only a small low-rank adapter (`B·A`) added alongside each weight matrix. **QLoRA** goes further and 4-bit *quantizes* the frozen base, so the whole thing fits one consumer GPU:
+
+<LoRAAdapter />
+
+The result is a few megabytes of adapter weights you load on top of the base — not a new multi-gigabyte model. The mechanics (ranks, target modules, training loop) are covered step-by-step in [LoRA & QLoRA on One GPU](https://cloudcodetree.com/tutorials/lora-qlora-fine-tuning/).
+
+## The DealFinder recipe
+
+1. **Build the dataset.** Turn Part 6's listings into `{prompt: listing, completion: JSON}` pairs. Where data is thin, *synthesize* more by prompting a strong model — then validate every completion through the Part-6 schema so training data is clean.
+2. **Train the adapter.** QLoRA on a small base (e.g., Llama-3.1-8B or a 3B), a few hundred steps.
+3. **Evaluate vs base.** Score the fine-tuned model against the prompted base on a held-out set with the **same exact-match metric** you'll formalize in Part 11. Fine-tune only "wins" if the numbers say so.
+4. **Track & register.** Log runs, params, and metrics to **MLflow / Weights & Biases**, and register the winning adapter so a deploy pulls a known version — not a mystery file.
+
+<Callout tone="tip">
+**Run it — real QLoRA notebooks:** [Unsloth's free Colab notebooks](https://github.com/unslothai/unsloth) (fastest path), or build it from [Hugging Face PEFT](https://huggingface.co/docs/peft) + [TRL](https://huggingface.co/docs/trl). Background: the [QLoRA paper](https://arxiv.org/abs/2305.14314).
+</Callout>
+
+## Beyond supervised: a note on DPO
+
+Supervised fine-tuning teaches "imitate these outputs." When you instead have *preferences* — output A is better than output B (e.g., a cleaner extraction, a friendlier blurb) — **DPO** (Direct Preference Optimization) tunes the model toward the preferred one without a separate reward model. It's the lightweight cousin of RLHF and a natural next step once you're collecting feedback in production.
+
+<Callout tone="note">
+**How this scales in production.** Keep a **continuous loop**: log corrections from real use, periodically retrain the adapter, eval against the current champion, and only promote on a win (Parts 11 & 14). Serve the adapter merged or hot-swappable behind your inference server (Part 12). The base model is a frozen dependency; your *adapter* is the asset you version.
+</Callout>
+
+## Where this goes next
+
+- **Part 8 — The agent:** wire search, scoring, extraction, and recs together as tools an LLM agent can plan over (LangGraph).
+- **Then:** expose it as an MCP server, harden it, and ship.
+
+---
+
+*Sources: [QLoRA paper (Dettmers et al.)](https://arxiv.org/abs/2305.14314) · [Hugging Face PEFT](https://huggingface.co/docs/peft) · [TRL (SFT/DPO)](https://huggingface.co/docs/trl) · [Unsloth](https://github.com/unslothai/unsloth) · [DPO paper](https://arxiv.org/abs/2305.18290)*

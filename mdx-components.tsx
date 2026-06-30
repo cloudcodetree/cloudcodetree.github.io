@@ -17,6 +17,8 @@ import HybridFusion from './app/components/mdx/HybridFusion';
 import ValueRerank from './app/components/mdx/ValueRerank';
 import ExtractFlow from './app/components/mdx/ExtractFlow';
 import SchemaGate from './app/components/mdx/SchemaGate';
+import LoRAAdapter from './app/components/mdx/LoRAAdapter';
+import FineTuneGain from './app/components/mdx/FineTuneGain';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -33,5 +35,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     RecStrategies, RankingMetric,
     HybridFusion, ValueRerank,
     ExtractFlow, SchemaGate,
+    LoRAAdapter, FineTuneGain,
   };
 }

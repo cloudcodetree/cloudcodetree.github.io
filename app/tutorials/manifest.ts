@@ -230,6 +230,19 @@ export const tutorials: Tutorial[] = [
     readTime: 10,
     image: '/tutorials/covers/dealfinder-extraction.png',
   },
+  {
+    slug: 'dealfinder-finetune',
+    title: 'Fine-Tune the Extractor with QLoRA',
+    series: 'DealFinder — AI Engineering',
+    part: 7,
+    excerpt:
+      'When prompting hits its limits, fine-tune a small model on your own extraction data with QLoRA — beating the prompted base on accuracy, cost, and latency. Concept here; run it in a GPU notebook.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Fine-tuning', 'QLoRA'],
+    order: 17,
+    readTime: 10,
+    image: '/tutorials/covers/dealfinder-finetune.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */
