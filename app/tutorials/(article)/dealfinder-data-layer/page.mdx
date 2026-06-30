@@ -39,6 +39,17 @@ A `.devcontainer/` gives you Python 3.11 in one click (locally or in Codespaces)
 
 Deal data comes from everywhere — a bulk dataset, a retailer's API, a scraped page — each with different field names, shapes, and gaps. If every part of your app has to know those differences, you've lost. The fix is an **adapter**: one interface, many implementations. Everything downstream sees a single `Product`.
 
+<ConceptFlow
+  label="One interface, many sources"
+  inputs={[
+    { label: 'Dataset', sub: '{ sku, name, usd }', color: '#3fb950' },
+    { label: 'Live API', sub: '{ id, title, price }', color: '#2f81f7' },
+    { label: 'Scraper', sub: 'data-id · .title', color: '#d29922' },
+  ]}
+  hub={{ label: 'DealSource', sub: 'normalize()' }}
+  output={{ label: 'Product', sub: 'id · title · brand\nprice · source · specs' }}
+/>
+
 ## One schema everything speaks
 
 ```python
@@ -95,6 +106,15 @@ The **API** connector (`ApiSource`, over httpx) and **scraper** connector (`Scra
 **Tests stay offline and deterministic.** The API connector is exercised with a mocked HTTP response (`respx`) and the scraper against a saved fixture — so the suite never touches the network and gives the same result every run. That's what makes a tutorial's output trustworthy and a CI pipeline reliable.
 </Callout>
 
+<DeterministicRun
+  label="Why the suite is trustworthy"
+  result="9 passed"
+  sources={[
+    { label: 'respx mock', sub: 'fake HTTP for the API' },
+    { label: 'saved fixture', sub: 'tent.html on disk' },
+  ]}
+/>
+
 ## Merge and dedup across sources
 
 The same tent can appear in two sources at different prices. Collapse duplicates and keep the best:
@@ -113,6 +133,16 @@ def ingest(sources: list[DealSource]) -> list[Product]:
                 best[k] = p
     return list(best.values())
 ```
+
+<ConceptFlow
+  label="Same product, two sources → keep the cheaper"
+  inputs={[
+    { label: 'dataset', sub: 'TrailLite Tent · $205', color: '#3fb950' },
+    { label: 'scraper', sub: 'TrailLite Tent · $189', color: '#d29922' },
+  ]}
+  hub={{ label: 'dedup_key', sub: 'min(price)' }}
+  output={{ label: 'TrailLite Tent', sub: '$189\none row, best price' }}
+/>
 
 ## Persist it, then run the pipeline
 
