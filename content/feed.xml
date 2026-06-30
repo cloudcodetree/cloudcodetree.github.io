@@ -10,7 +10,162 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 29 Jun 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 30 Jun 2026 04:13:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Encode Any Multi-Step Workflow as a Slash Command: Claude Code Skills</title>
+      <link>https://code.claude.com/docs/en/slash-commands</link>
+      <guid isPermaLink="false">2026-06-30-02-claude-code-skills-custom-slash-commands</guid>
+      <pubDate>Tue, 30 Jun 2026 04:13:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Drop a Markdown file into .claude/skills/name/SKILL.md and /name becomes a reusable team command — with $ARGUMENTS, tool restrictions, and invocation control built in.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Drop a Markdown file into `.claude/skills/name/SKILL.md` and `/name` becomes a reusable team command — `$ARGUMENTS` passes text from the call, frontmatter restricts tools, and `disable-model-invocation: true` gates side-effect workflows.**
+
+Claude Code ships with `/code-review`, `/debug`, and a handful of built-ins. Every file you add to `.claude/skills/` creates your own `/command` — committed to git so your whole team gets it, loaded only when called (no CLAUDE.md bloat).
+
+## File structure
+
+```
+.claude/
+  skills/
+    pr-review/
+      SKILL.md      →  /pr-review
+    changelog/
+      SKILL.md      →  /changelog
+  commands/         # legacy flat .md files still work
+    commit.md       →  /commit
+```
+
+User-level skills go in `~/.claude/skills/` and are available across all your projects.
+
+## A complete example
+
+Save this as `.claude/skills/review/SKILL.md`:
+
+```markdown
+---
+description: "Review a specific file or module for correctness and security"
+tools: Read, Grep, Glob
+disable-model-invocation: true
+---
+
+Review the code at $ARGUMENTS for:
+1. Logic errors and off-by-one edge cases
+2. Security issues (injection, auth bypass, exposed secrets)
+3. Missing error handling
+
+For each finding: file path, line number, severity (high/medium/low), one-line description.
+```
+
+Invoke it with:
+
+```
+/review src/auth/login.ts
+```
+
+`$ARGUMENTS` receives everything after the command name — a file path, a task description, a ticket number, whatever fits the workflow.
+
+## Frontmatter options that matter
+
+| Field | Effect |
+|---|---|
+| `description: "..."` | Shown in `/help` and used for Claude's auto-invocation decisions |
+| `tools: Read, Bash` | Restrict which tools Claude can call inside this skill |
+| `disable-model-invocation: true` | Only you can trigger it — Claude won't auto-run it |
+
+`disable-model-invocation: true` is the one to know for side-effect workflows like `/deploy` or `/push` — you want to be the one pulling that trigger, not Claude deciding the moment is right.
+
+## Commit and share
+
+Skills in `.claude/` are just files. Commit a useful `/pr-review` skill with your codebase and every contributor gets the same workflow on clone. No configuration, no onboarding step.
+
+Claude Code skills follow the [Agent Skills](https://agentskills.io) open standard, so well-formed `SKILL.md` files work across other compatible AI dev tools too.
+
+**Sources:**
+- [Claude Code Skills docs](https://code.claude.com/docs/en/slash-commands)
+- [Agent Skills standard](https://agentskills.io)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Sub-200ms Open-Model Inference Without a Server: Fireworks.ai Quickstart</title>
+      <link>https://docs.fireworks.ai/getting-started/quickstart</link>
+      <guid isPermaLink="false">2026-06-30-01-fireworks-ai-serverless-open-model-inference</guid>
+      <pubDate>Tue, 30 Jun 2026 04:11:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <description>Fireworks.ai hosts 200+ open models behind an OpenAI-compatible API with three latency tiers. Change base_url and get 100+ tokens/second with no GPU to manage.</description>
+      <media:content url="https://cdn.sanity.io/images/pv37i0yn/production/069db543682dcf96ff55f138c4b3aa16fc98439a-1272x716.png" medium="image" />
+      <media:thumbnail url="https://cdn.sanity.io/images/pv37i0yn/production/069db543682dcf96ff55f138c4b3aa16fc98439a-1272x716.png" />
+      <content:encoded><![CDATA[
+**TL;DR: Fireworks.ai hosts 200+ open models behind an OpenAI-compatible API with three latency tiers — change `base_url` and your existing SDK code gets 100+ tokens/second with no GPU to manage.**
+
+**What you'll be able to do after this:**
+- Call DeepSeek V3.1, Kimi K2, Llama 3.3 70B, Qwen, and 200+ open models via REST with no infrastructure
+- Pick Standard, Priority, or Fast tier to trade cost for latency guarantees
+- Drop Fireworks into any existing OpenAI SDK codebase by changing two lines
+
+After covering vLLM (self-hosted) and OpenRouter (multi-provider routing), the missing piece of the hosted-inference picture is **Fireworks.ai** — they own and optimize the GPU stack, processing 30T+ tokens per day. Notion reported dropping latency from 2 seconds to 350ms after switching.
+
+## Three service tiers, one API surface
+
+| Tier | Pricing | Best for |
+|---|---|---|
+| Standard | Cheapest | Batch jobs, cost-sensitive workloads |
+| Priority | ~1.5× Standard | Production; 0% 503s vs 0.082% on Standard over 14 days |
+| Fast | Standard price, `-fast` model suffix | Real-time agent loops needing 100+ tokens/sec |
+
+## Quickstart walkthrough
+
+```bash
+# 1. Create a free account at fireworks.ai → Settings → API Keys
+export FIREWORKS_API_KEY="fw_..."
+
+pip install fireworks-client   # OpenAI and Anthropic SDK also work natively
+```
+
+```python
+from fireworks.client import Fireworks
+
+client = Fireworks()   # reads FIREWORKS_API_KEY from env
+
+response = client.chat.completions.create(
+    model="accounts/fireworks/models/deepseek-v3p1",
+    messages=[{"role": "user", "content": "Explain QLoRA in two sentences."}],
+    max_tokens=256,
+)
+print(response.choices[0].message.content)
+```
+
+Already using the OpenAI SDK? Change two lines — nothing else:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="fw_...",
+    base_url="https://api.fireworks.ai/inference/v1",
+)
+# Streaming, tool calls, structured output — all work exactly as before
+```
+
+For the Priority tier: add `extra_body={"service_tier": "priority"}` to your `.create()` call. For the Fast tier: use a model ID ending in `-fast` (e.g., `glm-5p2-fast`).
+
+Browse available models and per-token pricing at [fireworks.ai/models](https://fireworks.ai/models). New accounts start with $1 in free credits.
+
+**Sources:**
+- [Fireworks Serverless Quickstart](https://docs.fireworks.ai/getting-started/quickstart)
+- [Serverless 2.0: Three Ways to Run Inference, One API](https://fireworks.ai/blog/serverless-2)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Ship Agent Telemetry in Three Env Vars: Claude Agent SDK's Built-in OpenTelemetry</title>
