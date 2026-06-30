@@ -1,0 +1,122 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Messy Listings Into Clean JSON (Part 6 of 6) · Tutorials',
+  description:
+    'Use an LLM to turn unstructured product listings into schema-validated JSON specs — prompt patterns, Pydantic structured output, temperature 0, and a deterministic offline path the tests run.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-extraction/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Messy Listings Into Clean JSON (Part 6 of 6)',
+    description: 'Use an LLM to turn unstructured product listings into schema-validated JSON specs — prompt patterns, Pydantic structured output, temperature 0, and a deterministic offline path the tests run.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-extraction/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-extraction.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-extraction.png'] },
+};
+
+<TutorialHero slug="dealfinder-extraction" />
+
+# Messy Listings Into Clean JSON
+
+**TL;DR: Real listings are prose, not fields. Use an LLM to extract `{brand, capacity, weight_kg, season}` from a messy blurb — and make it *trustworthy* by validating the output against a Pydantic schema, so a wrong-typed field is rejected, not ingested. Tested with a deterministic offline extractor.**
+
+DealFinder's catalog (Part 1) assumed clean specs. Reality ships a sentence like *"TrailLite UL2 — ultralight 2-person tent, just 1.1kg, 3-season."* This is the classic LLM-for-data job: turn that into structured data your price model and search can use. The skill that gets hired isn't "call the API" — it's making the output reliable.
+
+<Callout tone="tip">
+**Code along, version by version.** Shared course repo
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at steps **20–21**.
+The tests run a deterministic extractor; the LLM path is shown and runs when you wire a client.
+</Callout>
+
+## What you'll be able to do after this
+
+- Define a **Pydantic schema** as the contract for extracted data.
+- Write an **extraction prompt** that returns JSON, at `temperature=0`.
+- **Validate** model output against the schema — and understand why that's the whole game.
+- Keep the pipeline **testable** with a deterministic fallback.
+
+## The task: prose → typed fields
+
+Extraction means pulling specific, typed values out of free text:
+
+<ExtractFlow />
+
+The target is a schema — this is the contract everything downstream relies on:
+
+```python
+# dealfinder/extract.py
+class ListingSpecs(BaseModel):
+    brand: str | None = None
+    capacity: int | None = None
+    weight_kg: float | None = None
+    season: int | None = None
+```
+
+## The prompt: ask for JSON, at temperature 0
+
+The prompt names every field and its type, says "null if absent," and "return ONLY the JSON." Temperature 0 (from Part 2) makes it deterministic — the same listing yields the same JSON every time, which is exactly what a data pipeline needs:
+
+```python
+def build_prompt(text):
+    return ("Extract tent specs as JSON with keys brand (string|null), "
+            "capacity (int|null), weight_kg (float|null), season (int|null). "
+            "Use null if absent. Return ONLY the JSON.\n\nListing: " + text)
+
+def llm_extract(text, client, model="gpt-4o-mini"):
+    resp = client.chat.completions.create(
+        model=model, temperature=0,
+        messages=[{"role": "user", "content": build_prompt(text)}])
+    return parse_llm_json(resp.choices[0].message.content)   # ← validated
+```
+
+## The part that matters: validate, don't trust
+
+An LLM returns *text*. "I asked for JSON" is not "I have valid data." The Pydantic schema is a **gate**: parse the model's text into `ListingSpecs`, and a wrong-typed field raises instead of silently poisoning your catalog. On failure you retry (or fall back) — never ingest garbage:
+
+<SchemaGate />
+
+```python
+def parse_llm_json(raw):
+    return ListingSpecs.model_validate(json.loads(raw))   # raises on bad types
+```
+
+This is why "structured output" features (JSON mode, tool schemas, libraries like Instructor) exist: they make the gate part of the request. The schema is the difference between a demo and a pipeline.
+
+## Keep it testable
+
+Hitting a paid, non-deterministic API in your test suite is a trap. We keep a deterministic `rule_extract` (regex heuristics) as the offline path — the LLM is a drop-in upgrade behind the same schema. Running the offline extractor over messy listings:
+
+```
+$ python -m dealfinder.run_extract
+• TrailLite UL2 — ultralight 2-person tent, just 1.1kg, 3-season
+  → {"brand":"TrailLite","capacity":2,"weight_kg":1.1,"season":3}
+• SummitPro 4-season expedition tent, sleeps 4, 3.2 kg
+  → {"brand":"SummitPro","capacity":4,"weight_kg":3.2,"season":4}
+• BasecampCo family tent (sleeps 3), 2-season, 2400 g
+  → {"brand":"BasecampCo","capacity":3,"weight_kg":2.4,"season":2}
+```
+
+Note the last one: `2400 g` became `2.4` kg — normalization the schema's `float` type makes safe.
+
+<Callout tone="note">
+**How this scales in production.** Use the provider's **structured-output / JSON-schema mode** so validation happens server-side, batch listings for throughput, cache by listing hash (don't re-extract unchanged text), pick the **cheapest model that passes your eval** (Part 11), and log every rejection to find prompt gaps. The schema-as-contract never changes.
+</Callout>
+
+## It's all tested
+
+The extractor, the schema's type enforcement, and JSON parsing are test-first:
+
+```
+$ pytest -q
+...............................                    [100%]
+31 passed in 0.15s
+```
+
+## Where this goes next
+
+- **Part 7 — QLoRA fine-tune:** when prompting isn't enough, teach a small model your extraction/voice (GPU notebook).
+- **Then:** the agent that calls search, scoring, and extraction as tools — and shipping it.
+
+---
+
+*Sources: [Pydantic](https://docs.pydantic.dev/) · [OpenAI structured outputs](https://platform.openai.com/docs/guides/structured-outputs) · [Instructor](https://python.useinstructor.com/)*

@@ -217,6 +217,19 @@ export const tutorials: Tutorial[] = [
     readTime: 12,
     image: '/tutorials/covers/dealfinder-search.png',
   },
+  {
+    slug: 'dealfinder-extraction',
+    title: 'Messy Listings Into Clean JSON',
+    series: 'DealFinder — AI Engineering',
+    part: 6,
+    excerpt:
+      'Use an LLM to turn unstructured product listings into schema-validated JSON specs — prompt patterns, Pydantic structured output, temperature 0, and a deterministic offline path the tests run.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'LLMs', 'Structured Output', 'Python'],
+    order: 16,
+    readTime: 10,
+    image: '/tutorials/covers/dealfinder-extraction.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */
