@@ -308,6 +308,19 @@ export const tutorials: Tutorial[] = [
     readTime: 10,
     image: '/tutorials/covers/dealfinder-serve.png',
   },
+  {
+    slug: 'dealfinder-deploy',
+    title: 'Containerize and Ship It',
+    series: 'DealFinder — AI Engineering',
+    part: 13,
+    excerpt:
+      'Package DealFinder in a Docker image that runs identically everywhere, wire up GitHub Actions CD with the eval gate from Part 11, and deploy to a PaaS with a health check.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Docker', 'CICD', 'Python'],
+    order: 23,
+    readTime: 9,
+    image: '/tutorials/covers/dealfinder-deploy.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */

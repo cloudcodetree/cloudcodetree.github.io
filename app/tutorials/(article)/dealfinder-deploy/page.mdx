@@ -1,0 +1,118 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Containerize and Ship It (Part 13 of 13) · Tutorials',
+  description:
+    'Package DealFinder in a Docker image that runs identically everywhere, wire up GitHub Actions CD with the eval gate from Part 11, and deploy to a PaaS with a health check.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-deploy/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Containerize and Ship It (Part 13 of 13)',
+    description: 'Package DealFinder in a Docker image that runs identically everywhere, wire up GitHub Actions CD with the eval gate from Part 11, and deploy to a PaaS with a health check.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-deploy/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-deploy.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-deploy.png'] },
+};
+
+<TutorialHero slug="dealfinder-deploy" />
+
+# Containerize and Ship It
+
+**TL;DR: Package DealFinder in a Docker image that runs identically on every machine, wire GitHub Actions to test → eval-gate → build → deploy on every push to main, and ship to a PaaS with a health check. This is the boundary between "it works on my laptop" and "it's live."**
+
+You have a tested service (Part 12). Deployment is the unglamorous skill that makes it real — and reliable. The goal: a push to `main` ends with new, *verified* code running in production, automatically.
+
+<Callout tone="tip">
+**Code along, version by version.** Shared course repo
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at step **28**.
+</Callout>
+
+## What you'll be able to do after this
+
+- Containerize the service so it runs **identically everywhere**.
+- Set up **GitHub Actions CD** with the eval gate as a required check.
+- Deploy to a **PaaS** with a health check.
+- Keep config and code in sync so "works locally" means "works in prod."
+
+## One image, every environment
+
+A Docker image pins the OS, Python, and every dependency — so the bytes that pass CI are the bytes that run in prod. No more "works on my machine":
+
+<ContainerParity />
+
+```dockerfile
+# Dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY . .
+RUN pip install --no-cache-dir .
+EXPOSE 8000
+CMD ["uvicorn", "dealfinder.serve:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+A cheap test keeps the Dockerfile honest — the `CMD` must point at the real ASGI app, and the deploy config's health check must be a real route:
+
+```python
+def test_dockerfile_cmd_matches_the_app():
+    assert "dealfinder.serve:app" in Path("Dockerfile").read_text()
+```
+
+## Continuous delivery, with a quality gate
+
+Every push runs the pipeline; only a green build — including the **eval gate from Part 11** — reaches production:
+
+<CDPipeline />
+
+```yaml
+# .github/workflows/ci.yml
+jobs:
+  test:
+    steps:
+      - run: ruff check .
+      - run: pytest -q
+      - run: python -m dealfinder.run_evals   # quality gate
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - run: # build image, push, release
+```
+
+Tests *and* evals gate the deploy — a code bug or a quality regression both stop the release.
+
+## Deploy with a health check
+
+Point a PaaS at the image and give it `/healthz` to watch. If a release stops answering, the platform rolls back instead of serving errors:
+
+```yaml
+# render.yaml
+services:
+  - type: web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeploy: true
+```
+
+<Callout tone="note">
+**How this scales in production.** Swap the single PaaS service for **infrastructure as code** (Terraform) defining the cluster, database, and secrets; deploy to Kubernetes/ECS/Cloud Run; add staged rollouts (canary/blue-green) and automatic rollback on health or eval-metric regression; and store secrets in a vault, never in the repo. The push → test → gate → deploy spine stays the same — only the targets grow up.
+</Callout>
+
+## It's all tested
+
+The container/deploy config is checked against the code so they can't drift:
+
+```
+$ pytest -q
+..................................................[100%]
+50 passed in 0.46s
+```
+
+## Where this goes next
+
+- **Part 14 — Observability, cost & ops:** trace requests, build a cost/FinOps dashboard, and watch for drift.
+- **Then:** ship it — a case study, résumé framing, and a mock system-design interview on your own build.
+
+---
+
+*Sources: [Docker](https://docs.docker.com/) · [GitHub Actions](https://docs.github.com/actions) · [Terraform](https://developer.hashicorp.com/terraform) · [The Twelve-Factor App](https://12factor.net/)*
