@@ -1,0 +1,126 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: The Agent That Ties It Together (Part 8 of 8) · Tutorials',
+  description:
+    'Build a ReAct agent that plans over tools — text-to-SQL filtering and deal ranking — to answer a goal end to end, with a human-in-the-loop gate on risky actions. The loop is offline-tested; the LLM policy is the production swap.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-agent/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: The Agent That Ties It Together (Part 8 of 8)',
+    description: 'Build a ReAct agent that plans over tools — text-to-SQL filtering and deal ranking — to answer a goal end to end, with a human-in-the-loop gate on risky actions. The loop is offline-tested; the LLM policy is the production swap.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-agent/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-agent.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-agent.png'] },
+};
+
+<TutorialHero slug="dealfinder-agent" />
+
+# The Agent That Ties It Together
+
+**TL;DR: An agent is a loop: reason about the goal, call one tool, read the result, repeat — until it can answer. Build a ReAct loop over DealFinder's tools (text-to-SQL, deal ranking), with a human-in-the-loop gate on risky actions. The loop is tested offline with a scripted policy; in production you swap in an LLM (LangGraph) and the loop is unchanged.**
+
+So far you've built capabilities — search, a price model, recs, extraction. An **agent** is what *orchestrates* them: given "find me a good 2-person tent under $400," it decides which tools to call, in what order, using each result to choose the next move. This is the most in-demand AI-engineering skill of all, and it's simpler than it looks.
+
+<Callout tone="tip">
+**Code along, version by version.** Shared course repo
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at steps **22–23**.
+`git checkout step-22`, `step-23` — or [diff what each adds](https://github.com/cloudcodetree/tutorial-dealfinder#steps-and-what-each-adds).
+</Callout>
+
+## What you'll be able to do after this
+
+- Implement the **ReAct loop** (reason → act → observe) over a tool registry.
+- Write a **text-to-SQL** tool and chain tools to answer a real goal.
+- Add a **human-in-the-loop** gate so risky actions need approval.
+- See why swapping the rule-based policy for an **LLM (LangGraph)** changes nothing else.
+
+## An agent is a loop
+
+Strip away the hype and an agent is a small control loop. Each turn it *reasons* about what to do, *acts* by calling one tool, and *observes* the result — then loops, carrying the growing trace, until it can answer:
+
+<AgentLoop />
+
+The loop itself is tiny. The only pluggable part is the **policy** — the thing that picks the next action:
+
+```python
+# dealfinder/agent.py
+class Agent:
+    def run(self, goal):
+        trace = []
+        for _ in range(self.max_steps):
+            action = self.policy(goal, trace)      # ← rule-based or an LLM
+            if action.tool is None:
+                return action.answer, trace        # finish
+            tool = self.tools[action.tool]
+            if tool.requires_approval and not self.approve(action.tool, action.args):
+                trace.append(Step(action.thought, action.tool, action.args, "BLOCKED: needs human approval"))
+                continue
+            obs = tool.fn(**action.args)
+            trace.append(Step(action.thought, action.tool, action.args, obs))
+```
+
+Because the policy is injected, the **tests script it** for a deterministic, offline run; production passes an LLM. Same loop, same tools, same HITL gate.
+
+## Tools — and a gate on the risky ones
+
+The agent's power is its tools. Reads (search, scoring, SQL) can run freely; anything that **changes state or spends money** stops for a human — the human-in-the-loop pattern that keeps autonomous systems safe:
+
+<ToolBelt />
+
+One of those tools is **text-to-SQL** — turning a request into a query over the catalog:
+
+```python
+# dealfinder/tools.py
+def nl_to_sql(question, table="catalog"):
+    clauses = []
+    if m := re.search(r"under \$?(\d+)", question): clauses.append(f"price < {m.group(1)}")
+    if m := re.search(r"(\d+)\s*-?\s*person|sleeps?\s+(\d+)", question):
+        clauses.append(f"capacity = {m.group(1) or m.group(2)}")
+    # … brand, etc.
+    return f"SELECT * FROM {table} WHERE {' AND '.join(clauses) or '1=1'}"
+```
+
+## Watch it reason
+
+Give the agent a goal and it chains tools, using each observation to choose the next step — then answers. This is the real trace from the run:
+
+```
+$ python -m dealfinder.run_agent
+goal: "find me a good 2-person tent under $400"
+
+step 1 · think: Translate the request into SQL and filter the catalog
+         act:   sql_search → SELECT * FROM catalog WHERE price < 400 AND capacity = 2
+         obs:   3 tents match
+step 2 · think: Rank those matches by how good a deal each is
+         act:   rank_deals(3 ids)
+         obs:   best = tent-03 (27% under fair)
+step 3 · answer: tent-03 at $288 (27% under fair)
+
+✓ tent-03 at $288 (27% under fair)
+```
+
+It found the same underpriced tent the search and price model surfaced earlier — but this time it got there *by itself*, planning the steps from a plain-English goal.
+
+<Callout tone="note">
+**How this scales in production.** Swap the rule-based policy for an LLM via **LangGraph**: nodes for reason/act/observe, the tools as bound functions, persistent **memory** across turns, and `interrupt()` for the HITL gate. Add retries, timeouts, and tracing (Part 14). The structure you built here *is* the production structure — LangGraph just makes the policy an LLM and adds durability.
+</Callout>
+
+## It's all tested
+
+The loop, the HITL gate, and the text-to-SQL tool are tested with a scripted policy — no LLM, fully deterministic:
+
+```
+$ pytest -q
+..................................                [100%]
+34 passed in 0.16s
+```
+
+## Where this goes next
+
+- **Part 9 — Expose it as an MCP server:** make these tools callable from Claude Code and any MCP client.
+- **Then:** safety & governance, an evaluation harness, serving, deploy, and shipping.
+
+---
+
+*Sources: [ReAct (Yao et al.)](https://arxiv.org/abs/2210.03629) · [LangGraph](https://langchain-ai.github.io/langgraph/) · [Human-in-the-loop (LangGraph)](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)*

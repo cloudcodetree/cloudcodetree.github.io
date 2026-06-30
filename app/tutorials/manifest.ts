@@ -243,6 +243,19 @@ export const tutorials: Tutorial[] = [
     readTime: 10,
     image: '/tutorials/covers/dealfinder-finetune.png',
   },
+  {
+    slug: 'dealfinder-agent',
+    title: 'The Agent That Ties It Together',
+    series: 'DealFinder — AI Engineering',
+    part: 8,
+    excerpt:
+      'Build a ReAct agent that plans over tools — text-to-SQL filtering and deal ranking — to answer a goal end to end, with a human-in-the-loop gate on risky actions. The loop is offline-tested; the LLM policy is the production swap.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Agents', 'LangGraph', 'Python'],
+    order: 18,
+    readTime: 12,
+    image: '/tutorials/covers/dealfinder-agent.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */
