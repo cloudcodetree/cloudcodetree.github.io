@@ -13,6 +13,8 @@ import RegressionFit from './app/components/mdx/RegressionFit';
 import DealResidual from './app/components/mdx/DealResidual';
 import RecStrategies from './app/components/mdx/RecStrategies';
 import RankingMetric from './app/components/mdx/RankingMetric';
+import HybridFusion from './app/components/mdx/HybridFusion';
+import ValueRerank from './app/components/mdx/ValueRerank';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -27,5 +29,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     Tokenizer, EmbeddingSpace, AttentionView, TemperatureSampler,
     RegressionFit, DealResidual,
     RecStrategies, RankingMetric,
+    HybridFusion, ValueRerank,
   };
 }

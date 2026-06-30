@@ -204,6 +204,19 @@ export const tutorials: Tutorial[] = [
     readTime: 11,
     image: '/tutorials/covers/dealfinder-recommender.png',
   },
+  {
+    slug: 'dealfinder-search',
+    title: 'Semantic Search That Knows a Deal',
+    series: 'DealFinder — AI Engineering',
+    part: 5,
+    excerpt:
+      'Retrieve over the catalog four ways: real neural embeddings (fastembed, CPU) for meaning, BM25 for exact terms, Reciprocal Rank Fusion to combine them, then rerank by value so good deals rise.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Search', 'Embeddings', 'Python'],
+    order: 15,
+    readTime: 12,
+    image: '/tutorials/covers/dealfinder-search.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */

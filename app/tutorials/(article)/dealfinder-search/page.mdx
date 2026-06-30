@@ -1,0 +1,146 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Semantic Search That Knows a Deal (Part 5 of 5) · Tutorials',
+  description:
+    'Retrieve over the catalog four ways: real neural embeddings (fastembed, CPU) for meaning, BM25 for exact terms, Reciprocal Rank Fusion to combine them, then rerank by value so good deals rise.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-search/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Semantic Search That Knows a Deal (Part 5 of 5)',
+    description: 'Retrieve over the catalog four ways: real neural embeddings (fastembed, CPU) for meaning, BM25 for exact terms, Reciprocal Rank Fusion to combine them, then rerank by value so good deals rise.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-search/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-search.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-search.png'] },
+};
+
+<TutorialHero slug="dealfinder-search" />
+
+# Semantic Search That Knows a Deal
+
+**TL;DR: Make Part 2's embeddings real. Retrieve over the catalog with neural embeddings (on CPU, no API key), add BM25 for exact terms, fuse the two with Reciprocal Rank Fusion, then rerank by *value* so a relevant result that's also a great deal rises to the top.**
+
+This is where the course's threads converge: the embedding idea from Part 2 and the deal score from Part 3 become one search box. By the end you can take a plain-English query and return results that are both *relevant* and *good deals* — the heart of DealFinder.
+
+<Callout tone="tip">
+**Code along, version by version.** Shared course repo
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at steps **17–19**.
+`git checkout step-17`, `step-18`, … — or [diff what each adds](https://github.com/cloudcodetree/tutorial-dealfinder#steps-and-what-each-adds).
+The embedding model downloads once, then runs **offline on CPU**.
+</Callout>
+
+## What you'll be able to do after this
+
+- Embed text with a real model **on CPU** (fastembed/ONNX — no GPU, no API key).
+- Run **semantic** search and understand why it beats keywords for meaning.
+- Add **BM25** keyword search and fuse both with **Reciprocal Rank Fusion**.
+- **Rerank by value**, blending relevance with the Part-3 deal score.
+
+## Embeddings, for real this time
+
+Part 2 showed embeddings as a concept; now we generate them. `fastembed` runs a small model through ONNX on the CPU — it downloads once, then it's offline and deterministic:
+
+```python
+# dealfinder/embed.py
+from fastembed import TextEmbedding
+
+_model = TextEmbedding("BAAI/bge-small-en-v1.5")   # 384-dim, CPU
+
+def embed_texts(texts):
+    return np.array(list(_model.embed(texts)), dtype=float)
+```
+
+Semantic search is then just cosine similarity between the query vector and the catalog vectors:
+
+```python
+# dealfinder/search.py
+def cosine_rank(query_vec, doc_vecs, k):
+    q = query_vec / (np.linalg.norm(query_vec) or 1)
+    D = doc_vecs / (np.linalg.norm(doc_vecs, axis=1, keepdims=True) + 1e-9)
+    return sorted(enumerate(D @ q), key=lambda x: -x[1])[:k]
+```
+
+It matches **meaning**: "2-person" finds "2P" tents with no shared keyword.
+
+```
+query: "ultralight 2-person tent for backpacking"
+
+semantic (meaning):
+  tent-13: SummitPro 2P Tent        $   500  (1% over fair)
+  tent-04: BudgetTrail 2P Tent      $   340  (14% over fair)
+  tent-03: RidgeRunner 2P Tent      $   288  (27% under fair)
+```
+
+## Keyword search still matters
+
+Embeddings can miss an exact token — a model number, a brand, "4-season". **BM25** nails those: it scores by term frequency with saturation and rewards rare terms. Each retriever has a blind spot the other covers.
+
+```python
+class BM25:
+    def search(self, query, k):
+        # term-frequency × idf, length-normalized (Okapi BM25)
+        ...
+```
+
+## Fuse them: Reciprocal Rank Fusion
+
+Rather than tuning a weight between two different score scales, **RRF** combines by *rank*: each item scores `1/(k + rank)` in each list, summed. Items strong in both lists win — no tuning.
+
+<HybridFusion />
+
+```python
+def rrf_fuse(rankings, k=60):
+    scores = Counter()
+    for r in rankings:
+        for rank, doc in enumerate(r):
+            scores[doc] += 1.0 / (k + rank + 1)
+    return [d for d, _ in sorted(scores.items(), key=lambda x: -x[1])]
+```
+
+## The DealFinder twist: rerank by value
+
+Relevance isn't the whole story for a deal-finder. The final stage blends each result's relevance with its **deal score** from Part 3, so an item that's both relevant *and* underpriced climbs:
+
+<ValueRerank />
+
+```python
+def value_rerank(doc_ids, deal_scores, alpha=0.5):
+    rel = {d: 1 - i / (len(doc_ids) - 1) for i, d in enumerate(doc_ids)}
+    return sorted(doc_ids, key=lambda d:
+                  -((1 - alpha) * rel[d] + alpha * max(0.0, deal_scores.get(d, 0))))
+```
+
+Running the full four-stage pipeline, `tent-03` (27% under fair) climbs from the bottom of the relevant set up the value ranking:
+
+```
+$ python -m dealfinder.run_search
+reranked by value (relevance + deal):
+  tent-04: BudgetTrail 2P Tent      $   340  (14% over fair)
+  tent-13: SummitPro 2P Tent        $   500  (1% over fair)
+  tent-21: RidgeRunner 2P Tent      $   379  (8% over fair)
+  tent-03: RidgeRunner 2P Tent      $   288  (27% under fair)   ← the deal, promoted
+  tent-07: SummitPro 4P Tent        $   602  (8% over fair)
+```
+
+<Callout tone="note">
+**How this scales in production.** Swap the in-memory cosine for **pgvector** or a dedicated vector DB (Qdrant/Weaviate) with an ANN index, keep BM25 in Postgres or OpenSearch, fuse with the same RRF, and add a cross-encoder reranker (see the RAG track) before the value step. `alpha` becomes a tuned, A/B-tested business knob. The four-stage shape — embed → keyword → fuse → rerank — is exactly what production retrieval looks like.
+</Callout>
+
+## It's all tested
+
+The ranking math (cosine, BM25, RRF, value rerank) is unit-tested offline; the neural model runs in the demo:
+
+```
+$ pytest -q
+...........................                        [100%]
+27 passed in 0.14s
+```
+
+## Where this goes next
+
+- **Part 6 — Structured extraction:** turn a messy listing into clean JSON specs with an LLM (attention + `temperature=0` from Part 2).
+- **Then:** a QLoRA fine-tune, the agent, and shipping the whole thing.
+
+---
+
+*Sources: [fastembed](https://github.com/qdrant/fastembed) · [BM25 (Okapi)](https://en.wikipedia.org/wiki/Okapi_BM25) · [Reciprocal Rank Fusion (Cormack et al.)](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf) · [pgvector](https://github.com/pgvector/pgvector)*
