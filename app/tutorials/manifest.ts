@@ -178,6 +178,19 @@ export const tutorials: Tutorial[] = [
     readTime: 12,
     image: '/tutorials/covers/dealfinder-how-llms-work.png',
   },
+  {
+    slug: 'dealfinder-deal-model',
+    title: 'Is It a Good Deal?',
+    series: 'DealFinder — AI Engineering',
+    part: 3,
+    excerpt:
+      'Train a price model from scratch (the normal equation, no scikit-learn) on DealFinder\'s catalog, evaluate it with MAE and R-squared, and use it to flag underpriced listings.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Machine Learning', 'Python'],
+    order: 13,
+    readTime: 12,
+    image: '/tutorials/covers/dealfinder-deal-model.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */

@@ -9,6 +9,8 @@ import Tokenizer from './app/components/mdx/Tokenizer';
 import EmbeddingSpace from './app/components/mdx/EmbeddingSpace';
 import AttentionView from './app/components/mdx/AttentionView';
 import TemperatureSampler from './app/components/mdx/TemperatureSampler';
+import RegressionFit from './app/components/mdx/RegressionFit';
+import DealResidual from './app/components/mdx/DealResidual';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -21,5 +23,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     Callout, TutorialHero,
     SchemaMap, DedupMerge, RunHistory, ScaleSwap,
     Tokenizer, EmbeddingSpace, AttentionView, TemperatureSampler,
+    RegressionFit, DealResidual,
   };
 }

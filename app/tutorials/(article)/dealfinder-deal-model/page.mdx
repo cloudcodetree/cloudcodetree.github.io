@@ -1,0 +1,166 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Is It a Good Deal? (Part 3 of 3) · Tutorials',
+  description:
+    'Train a price model from scratch (the normal equation, no scikit-learn) on DealFinder\'s catalog, evaluate it with MAE and R-squared, and use it to flag underpriced listings.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-deal-model/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Is It a Good Deal? (Part 3 of 3)',
+    description: 'Train a price model from scratch (the normal equation, no scikit-learn) on DealFinder\'s catalog, evaluate it with MAE and R-squared, and use it to flag underpriced listings.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-deal-model/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-deal-model.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-deal-model.png'] },
+};
+
+<TutorialHero slug="dealfinder-deal-model" />
+
+# Is It a Good Deal?
+
+**TL;DR: A "deal" is a price below what a thing is *worth*. So teach a model to predict the fair price from a product's features — using linear regression you build from scratch — then flag anything priced well under the line. No scikit-learn; you'll see the actual math.**
+
+DealFinder's whole promise is finding *good* deals, and that means having an opinion about fair value. In this part you build the first piece of ML brain: a price model. You'll engineer features, fit a linear model with the **normal equation**, measure it honestly on held-out data, and turn its predictions into a deal score — all on CPU, fully tested.
+
+<Callout tone="tip">
+**Code along, version by version.** This part lives in the shared course repo
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at steps **08–12**.
+`git checkout step-08`, `step-09`, … — or [diff what each adds](https://github.com/cloudcodetree/tutorial-dealfinder#steps-and-what-each-adds).
+The `.devcontainer/` gives you Python 3.11 in one click.
+</Callout>
+
+## What you'll be able to do after this
+
+- Turn a `Product` into a **feature vector** — the only thing a model ever sees.
+- Fit linear regression **from scratch** with the normal equation, and explain every term.
+- Evaluate honestly with a **train/test split**, **MAE**, and **R²** — and say what each means.
+- Convert predictions into a **deal score** and surface underpriced listings.
+
+## Features: what the model actually sees
+
+A model never sees "a tent." It sees numbers. **Feature engineering** is choosing which numbers — this is where your domain knowledge enters the model:
+
+```python
+# dealfinder/features.py
+FEATURE_NAMES = ["capacity", "weight_kg", "season", "brand_tier"]
+
+def featurize(p: Product) -> list[float]:
+    s = p.specs
+    return [
+        float(s.get("capacity", 0)),
+        float(s.get("weight_kg", 0)),
+        float(s.get("season", 3)),
+        float(BRAND_TIER.get(p.brand or "", 1)),
+    ]
+```
+
+Four columns: size, weight, season rating, and a brand tier. Everything the model learns, it learns through these.
+
+## The model: linear regression, from scratch
+
+A linear model predicts price as a weighted sum of features plus an intercept. "Training" means finding the weights `θ` that minimize the total squared error — and there's a closed-form answer, the **normal equation**:
+
+```
+θ = (Xᵀ X)⁻¹ Xᵀ y
+```
+
+where `X` is your feature matrix with a leading column of 1s (so `θ₀` is the intercept). That's the entire algorithm — no gradient descent, no library:
+
+```python
+# dealfinder/dealmodel.py
+class LinearModel:
+    def fit(self, X, y):
+        Xb = _with_bias(X)                              # prepend a column of 1s
+        self.coef_ = np.linalg.pinv(Xb.T @ Xb) @ Xb.T @ y   # the normal equation
+        return self
+
+    def predict(self, X):
+        return _with_bias(X) @ self.coef_
+```
+
+Geometrically, you're finding the line (well, hyperplane) that sits as close as possible to every point. The thing it minimizes is the sum of squared **residuals** — the vertical gaps:
+
+<RegressionFit />
+
+<Callout tone="note">
+**Why this is testable.** Because the math is exact, a test can hand the model data generated from *known* weights and assert it recovers them — the strongest kind of correctness check. That's the first test in the suite.
+</Callout>
+
+## Evaluate honestly: split, then score
+
+Scoring a model on the data it trained on flatters it. So we hold out a quarter of the catalog, train on the rest, and measure on what it never saw — with **MAE** (average dollars off) and **R²** (fraction of price variance explained):
+
+```python
+train_idx, test_idx = train_test_split(len(products), test_frac=0.25, seed=0)
+model = LinearModel().fit(X[train_idx], [y[i] for i in train_idx])
+print(f"MAE = ${mae(actual_test, model.predict(X[test_idx])):.2f}")
+print(f"R^2 = {r2(actual_test, model.predict(X[test_idx])):.3f}")
+```
+
+Running the full pipeline on the catalog:
+
+```
+$ python -m dealfinder.train_model
+trained on 21 tents, tested on 7
+  MAE  = $29.50
+  R^2  = 0.886
+
+learned price drivers (intercept + per-feature $):
+  intercept   -44.3
+  capacity    +59.1
+  weight_kg   -47.1
+  season      +83.7
+  brand_tier  +72.5
+```
+
+Read the coefficients — they're interpretable, which is a big reason linear models survive in production: **+\$59 per person** of capacity, **−\$47 per kg** (lighter gear costs more), and a strong premium for 4-season tents and top brands. The signs all match intuition; the model learned the market.
+
+## From prediction to a deal score
+
+Now the payoff. For every product, the model predicts a fair price; a **deal** is a real price meaningfully below it:
+
+```python
+# dealfinder/deal.py
+def deal_score(actual, predicted):
+    return (predicted - actual) / predicted     # positive = underpriced
+
+def is_deal(actual, predicted, threshold=0.10):
+    return deal_score(actual, predicted) >= threshold
+```
+
+Scored across the catalog, the model surfaces exactly the tents that are underpriced for what they are:
+
+```
+deals found (>= 15% under fair price): 4
+  tent-09: $360 vs fair $499  →  28% off
+  tent-03: $288 vs fair $393  →  27% off
+  tent-17: $284 vs fair $343  →  17% off
+  tent-24: $328 vs fair $395  →  17% off
+```
+
+<DealResidual />
+
+These four are precisely the listings the catalog generator marked down — the model rediscovered them with no idea they were special. That's the core DealFinder loop: *predict fair value, flag the gap.*
+
+<Callout tone="note">
+**How this scales in production.** The math is identical at scale; the engineering grows up. You'd swap the from-scratch model for gradient-boosted trees (XGBoost/LightGBM) on hundreds of features, track every run with **MLflow or Weights & Biases**, register the winning model, and monitor for **drift** as prices move (Part 14). The `featurize → fit → score` shape stays the same.
+</Callout>
+
+## It's all tested
+
+Feature extraction, the normal-equation math, the metrics, the split, and deal scoring — all test-first:
+
+```
+$ pytest -q
+.................                                  [100%]
+17 passed in 0.12s
+```
+
+## Where this goes next
+
+- **Part 4 — Recommender:** go from "is this a good deal?" to "you'll like *this* one" (content + collaborative filtering).
+- **Then:** semantic search over the catalog (the embeddings from Part 2 made real), structured extraction, and the agent that ties it together.
+
+---
+
+*Sources: [Normal equation (Stanford CS229)](https://cs229.stanford.edu/notes2022fall/main_notes.pdf) · [numpy.linalg.pinv](https://numpy.org/doc/stable/reference/generated/numpy.linalg.pinv.html) · [scikit-learn: model evaluation](https://scikit-learn.org/stable/modules/model_evaluation.html)*
