@@ -21,6 +21,8 @@ import LoRAAdapter from './app/components/mdx/LoRAAdapter';
 import FineTuneGain from './app/components/mdx/FineTuneGain';
 import AgentLoop from './app/components/mdx/AgentLoop';
 import ToolBelt from './app/components/mdx/ToolBelt';
+import MCPBridge from './app/components/mdx/MCPBridge';
+import MCPPrimitives from './app/components/mdx/MCPPrimitives';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -39,5 +41,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ExtractFlow, SchemaGate,
     LoRAAdapter, FineTuneGain,
     AgentLoop, ToolBelt,
+    MCPBridge, MCPPrimitives,
   };
 }

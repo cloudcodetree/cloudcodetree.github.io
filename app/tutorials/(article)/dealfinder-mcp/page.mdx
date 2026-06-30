@@ -1,0 +1,117 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Expose It as an MCP Server (Part 9 of 9) · Tutorials',
+  description:
+    'Wrap DealFinder\'s tools in a Model Context Protocol server so Claude Code and any MCP client can call them — tools, a resource, and a prompt, in a few lines with the official SDK.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-mcp/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Expose It as an MCP Server (Part 9 of 9)',
+    description: 'Wrap DealFinder\'s tools in a Model Context Protocol server so Claude Code and any MCP client can call them — tools, a resource, and a prompt, in a few lines with the official SDK.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-mcp/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-mcp.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-mcp.png'] },
+};
+
+<TutorialHero slug="dealfinder-mcp" />
+
+# Expose It as an MCP Server
+
+**TL;DR: You built tools; now make them callable from any AI client. The Model Context Protocol is the "USB-C for AI tools" — write your server once and Claude Code, Claude Desktop, or any MCP client can use DealFinder's `score_deal`, `recommend`, and `search_deals`. A few lines with the official SDK.**
+
+In Part 8 your agent called DealFinder's tools internally. MCP turns those same tools *outward* — into a standard interface other AI apps consume. This is fast-becoming table stakes for AI engineers: shipping capabilities as MCP servers instead of bespoke integrations.
+
+<Callout tone="tip">
+**Code along, version by version.** Shared course repo
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at step **24**.
+</Callout>
+
+## What you'll be able to do after this
+
+- Explain MCP and why "one protocol, many clients" matters.
+- Expose functions as MCP **tools** with the official Python SDK.
+- Add a **resource** and a **prompt**, the other two MCP primitives.
+- Wire the server into **Claude Code** and call it.
+
+## Why MCP: write once, call from anywhere
+
+Before MCP, every AI app needed a custom integration for every tool. MCP standardizes the contract, so your server works with any compliant client:
+
+<MCPBridge />
+
+## Three things a server exposes
+
+An MCP server offers three kinds of capability — and who "drives" each differs:
+
+<MCPPrimitives />
+
+## The server, in a few lines
+
+`FastMCP` turns a typed function into a tool: the name, docstring, and type hints become the schema the client sees. Here's the whole server (abridged):
+
+```python
+# dealfinder/mcp_server.py
+from mcp.server.fastmcp import FastMCP
+mcp = FastMCP("dealfinder")
+
+@mcp.tool()
+def score_deal(product_id: str) -> dict:
+    """Price, predicted fair price, and deal score (positive = under fair)."""
+    p = _catalog[_idx[product_id]]
+    return {"id": product_id, "price": p.price,
+            "deal_score": round(deal_score(p.price, _fair[product_id]), 3)}
+
+@mcp.resource("dealfinder://catalog/stats")
+def catalog_stats() -> str:
+    return f"{len(_catalog)} products; average price ${_avg:.0f}"
+
+@mcp.prompt()
+def find_a_deal(category: str = "tent") -> str:
+    return f"Find the best-value {category} and explain why it's a good deal."
+
+if __name__ == "__main__":
+    mcp.run()
+```
+
+Every tool you built earlier — search, scoring, recs — registers the same way. The type hints *are* the API contract; no separate schema to maintain.
+
+## Use it from Claude Code
+
+Point an MCP client at the server. For Claude Code, add it to your MCP config:
+
+```json
+{
+  "mcpServers": {
+    "dealfinder": {
+      "command": "python",
+      "args": ["-m", "dealfinder.mcp_server"]
+    }
+  }
+}
+```
+
+Now `score_deal`, `recommend`, and `search_deals` show up as callable tools in your AI client — your whole DealFinder backend, one protocol away.
+
+<Callout tone="note">
+**How this scales in production.** Serve over HTTP/SSE instead of stdio for remote clients, add auth (OAuth) and per-tool rate limits, validate every argument (Part 10), and emit traces for each call (Part 14). Publish to an MCP registry so others can discover it. The tool definitions don't change — only the transport and the guardrails around them.
+</Callout>
+
+## It's all tested
+
+The server's tool registration and behavior are tested (the SDK lets us introspect the registry):
+
+```
+$ pytest -q
+.....................................             [100%]
+37 passed in 0.36s
+```
+
+## Where this goes next
+
+- **Part 10 — Safety, security & governance:** prompt injection, output validation, PII, audit logs, a model card.
+- **Then:** an evaluation harness, efficient serving, deployment, observability, and shipping.
+
+---
+
+*Sources: [Model Context Protocol](https://modelcontextprotocol.io/) · [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) · [Connect MCP to Claude Code](https://docs.claude.com/en/docs/claude-code/mcp)*

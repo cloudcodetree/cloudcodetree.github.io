@@ -256,6 +256,19 @@ export const tutorials: Tutorial[] = [
     readTime: 12,
     image: '/tutorials/covers/dealfinder-agent.png',
   },
+  {
+    slug: 'dealfinder-mcp',
+    title: 'Expose It as an MCP Server',
+    series: 'DealFinder — AI Engineering',
+    part: 9,
+    excerpt:
+      'Wrap DealFinder\'s tools in a Model Context Protocol server so Claude Code and any MCP client can call them — tools, a resource, and a prompt, in a few lines with the official SDK.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'MCP', 'Python'],
+    order: 19,
+    readTime: 9,
+    image: '/tutorials/covers/dealfinder-mcp.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */
