@@ -191,6 +191,19 @@ export const tutorials: Tutorial[] = [
     readTime: 12,
     image: '/tutorials/covers/dealfinder-deal-model.png',
   },
+  {
+    slug: 'dealfinder-recommender',
+    title: 'What You\'ll Like Next',
+    series: 'DealFinder — AI Engineering',
+    part: 4,
+    excerpt:
+      'Build two recommenders on the DealFinder catalog — content-based and collaborative filtering — and score them offline with precision@k and NDCG against a popularity baseline.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Recommenders', 'Python'],
+    order: 14,
+    readTime: 11,
+    image: '/tutorials/covers/dealfinder-recommender.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */

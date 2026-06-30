@@ -1,0 +1,123 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: What You\'ll Like Next (Part 4 of 4) · Tutorials',
+  description:
+    'Build two recommenders on the DealFinder catalog — content-based and collaborative filtering — and score them offline with precision@k and NDCG against a popularity baseline.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-recommender/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: What You\'ll Like Next (Part 4 of 4)',
+    description: 'Build two recommenders on the DealFinder catalog — content-based and collaborative filtering — and score them offline with precision@k and NDCG against a popularity baseline.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-recommender/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-recommender.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-recommender.png'] },
+};
+
+<TutorialHero slug="dealfinder-recommender" />
+
+# What You'll Like Next
+
+**TL;DR: A deal-finder shouldn't wait to be asked. Build two recommenders — content-based ("more like this") and collaborative ("people who liked this also liked…") — then prove they work with offline ranking metrics, beating a popularity baseline. All from scratch, all tested.**
+
+Part 3 told you whether a price is good. This part makes DealFinder *proactive*: surfacing tents you'll probably want. You'll build the two foundational recsys approaches, learn the metrics that let you compare recommenders without shipping them, and measure a real lift over the obvious baseline.
+
+<Callout tone="tip">
+**Code along, version by version.** This part lives in the shared course repo
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at steps **13–16**.
+`git checkout step-13`, `step-14`, … — or [diff what each adds](https://github.com/cloudcodetree/tutorial-dealfinder#steps-and-what-each-adds).
+</Callout>
+
+## What you'll be able to do after this
+
+- Build a **content-based** recommender from feature similarity (no user history required).
+- Build a **collaborative-filtering** recommender from a likes matrix (no features required).
+- Score a ranked list with **precision@k**, **recall@k**, and **NDCG**.
+- Run an **offline evaluation** (leave-one-out) and compare against a baseline.
+
+## Two strategies, two blind spots
+
+The two classic approaches are complementary. **Content-based** asks "what's similar to this item?" using the item's own features — it works on day one, even for a brand-new user. **Collaborative filtering** ignores features entirely and asks "what did similar *people* like?" — it captures taste that specs can't, but needs interaction data.
+
+<RecStrategies />
+
+## Content-based: similar by features
+
+Reuse the feature vectors from Part 3, standardize them, and rank by cosine similarity:
+
+```python
+# dealfinder/recommend.py
+def content_recommend(idx, X, k=3):
+    sims = _cosine_sim(_standardize(X))[idx]
+    order = np.argsort(-sims)
+    return [int(j) for j in order if j != idx][:k]
+```
+
+Standardizing matters: without it, a large-magnitude feature would dominate the distance and the rest would barely register. Ask for tents like an ultralight model:
+
+```
+content-based — more like "BudgetTrail 4P UL Tent":
+  tent-02: BudgetTrail 3P UL Tent
+  tent-26: BudgetTrail 3P Tent
+  tent-22: BasecampCo 4P Tent
+```
+
+## Collaborative: similar by taste
+
+Given a user×item matrix of likes, item-item CF scores a candidate by how similar it is to things the user already liked — where "similar" means "liked by the same people":
+
+```python
+def collaborative_recommend(user_row, R, k=3):
+    item_sim = _cosine_sim(R.T)            # items × items, from co-likes
+    liked = np.where(np.asarray(user_row) > 0)[0]
+    scores = item_sim[liked].sum(axis=0)
+    scores[liked] = -np.inf                # don't re-recommend owned items
+    return [int(j) for j in np.argsort(-scores) if np.isfinite(scores[j])][:k]
+```
+
+```
+collaborative — user 0 liked: BudgetTrail 3P UL Tent, ValueOutdoors 1P Tent, BasecampCo 3P Tent, BasecampCo 4P Tent …
+  tent-26: BudgetTrail 3P Tent
+  tent-14: ValueOutdoors 4P Tent
+  tent-17: ValueOutdoors 3P Tent
+```
+
+## How do you know it's any good? Offline metrics
+
+You can't A/B test on day one, so you measure offline. **Precision@k** is the fraction of the top-k that's relevant; **NDCG** adds a rank discount so a hit near the top counts more than one further down:
+
+<RankingMetric />
+
+The evaluation trick is **leave-one-out**: hide one tent each user actually liked, recommend from the rest, and check whether the held-out tent comes back near the top — then compare against just recommending the most popular tents:
+
+```
+$ python -m dealfinder.run_recs
+offline eval (leave-one-out, k=5, 56 users):
+  collaborative  precision@5 = 0.168   ndcg@5 = 0.688
+  popularity     precision@5 = 0.132   (baseline)
+```
+
+That's the whole point of the exercise: collaborative filtering **beats popularity** (0.168 vs 0.132). With a single held-out item, precision@5 tops out at 0.20 — so 0.168 is most of the way to the ceiling, and an NDCG of 0.69 says the hit usually lands high in the list.
+
+<Callout tone="note">
+**How this scales in production.** Item-item cosine is fine for a tutorial catalog; at scale you'd switch to **matrix factorization** (ALS) or a two-tower neural retriever, serve nearest-neighbours from an ANN index (FAISS/pgvector), blend content + collaborative into a **hybrid** to fix cold-start, and validate with a real **A/B test**, not just offline metrics. The `similarity → rank → evaluate` shape is unchanged.
+</Callout>
+
+## It's all tested
+
+The recommenders and every ranking metric are test-first (NDCG checked against its closed form):
+
+```
+$ pytest -q
+.......................                            [100%]
+23 passed in 0.17s
+```
+
+## Where this goes next
+
+- **Part 5 — Semantic search:** make the embeddings from Part 2 real — retrieve over the catalog with pgvector and hybrid search.
+- **Then:** structured extraction, a QLoRA fine-tune, and the agent that ties scoring, recs, and search together.
+
+---
+
+*Sources: [Google ML — Recommendation Systems](https://developers.google.com/machine-learning/recommendation) · [NDCG (Wikipedia)](https://en.wikipedia.org/wiki/Discounted_cumulative_gain) · [numpy.argsort](https://numpy.org/doc/stable/reference/generated/numpy.argsort.html)*
