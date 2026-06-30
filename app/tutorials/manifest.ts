@@ -321,6 +321,19 @@ export const tutorials: Tutorial[] = [
     readTime: 9,
     image: '/tutorials/covers/dealfinder-deploy.png',
   },
+  {
+    slug: 'dealfinder-observability',
+    title: 'Observability, Cost & Ops',
+    series: 'DealFinder — AI Engineering',
+    part: 14,
+    excerpt:
+      'Trace every request, attribute spend per model and feature with budgets and alerts (FinOps), and detect input drift with PSI so a scheduled retrain fires before quality rots.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Observability', 'FinOps', 'Python'],
+    order: 24,
+    readTime: 10,
+    image: '/tutorials/covers/dealfinder-observability.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */

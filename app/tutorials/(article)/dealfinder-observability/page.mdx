@@ -1,0 +1,93 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Observability, Cost & Ops (Part 14 of 14) · Tutorials',
+  description:
+    'Trace every request, attribute spend per model and feature with budgets and alerts (FinOps), and detect input drift with PSI so a scheduled retrain fires before quality rots.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-observability/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Observability, Cost & Ops (Part 14 of 14)',
+    description: 'Trace every request, attribute spend per model and feature with budgets and alerts (FinOps), and detect input drift with PSI so a scheduled retrain fires before quality rots.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-observability/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-observability.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-observability.png'] },
+};
+
+<TutorialHero slug="dealfinder-observability" />
+
+# Observability, Cost & Ops
+
+**TL;DR: A live AI system you can't see is a liability. Trace every request, attribute spend per model so a budget alert fires before the bill surprises you (FinOps), and watch input distributions for drift so a retrain triggers before deal scores quietly rot. Cost/FinOps is its own hireable skill in 2026.**
+
+DealFinder is deployed (Part 13). Now keep it healthy and affordable in production — the ops discipline that separates a side project from a system a business trusts.
+
+<Callout tone="tip">
+**Code along, version by version.** Shared course repo
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at step **29**.
+</Callout>
+
+## What you'll be able to do after this
+
+- **Trace** requests end to end (tools, tokens, latency) with Langfuse.
+- **Attribute cost** per model/feature, with budgets and alerts (FinOps).
+- Detect **input drift** with PSI and trigger a scheduled retrain.
+- Close the loop: monitoring feeds the next training run.
+
+## See every request: tracing
+
+You can't debug what you can't see. **Langfuse** (or LangSmith/OpenTelemetry) records a trace per request — each tool call, token count, latency, and cost — so a slow or wrong answer is a span you can open, not a mystery. Wrap your agent/LLM calls and every run becomes inspectable.
+
+## Know what it costs: FinOps
+
+LLM bills surprise teams because cost is invisible until the invoice. Attribute every call to a model (and feature), total it, and alert as you approach budget:
+
+<CostDashboard />
+
+```python
+# dealfinder/ops.py
+class CostTracker:
+    def record(self, model, in_tok, out_tok):
+        p_in, p_out = PRICES[model]
+        cost = (in_tok * p_in + out_tok * p_out) / 1e6
+        self.calls.append({"model": model, "cost": cost}); return cost
+
+budget_status(spent=88, budget=100)   # → "warn" at 80%+
+```
+
+Cost attribution is what lets you answer "which feature is burning the budget?" — and act (cache it, shrink the model, batch it) before finance asks.
+
+## Catch decay: drift detection
+
+A model is trained on a snapshot of the world; the world moves. If buyers shift toward premium tents, the price model's assumptions go stale and deal scores rot — silently. A **population stability index (PSI)** compares this week's input distribution to the training baseline and flags significant drift:
+
+<DriftMonitor />
+
+```python
+def has_drifted(ref, cur, threshold=0.2):     # PSI > 0.2 = significant drift
+    return population_stability_index(ref, cur) >= threshold
+```
+
+When PSI trips, you trigger the **retrain** job — orchestrated (Airflow/Prefect), evaluated against the champion (Part 11), and promoted only on a win. That's the full MLOps loop closing on itself.
+
+<Callout tone="note">
+**How this scales in production.** Ship traces to Langfuse with dashboards and alerting (PagerDuty/Slack), break cost down by model, feature, and customer, set per-team budgets, monitor drift per feature on a schedule, and wire drift/eval regressions to an **orchestrated retrain → eval → canary** pipeline. Observability isn't an add-on — it's how the system stays correct after launch.
+</Callout>
+
+## It's all tested
+
+Cost attribution, budget thresholds, and the PSI drift detector are test-first:
+
+```
+$ pytest -q
+.................................................. [100%]
+53 passed in 0.46s
+```
+
+## Where this goes next
+
+- **Part 15 — Ship it & get hired:** turn this build into a case study, résumé bullets, and a mock system-design interview on your own system.
+
+---
+
+*Sources: [Langfuse](https://langfuse.com/) · [PSI for drift](https://www.evidentlyai.com/) · [FinOps Foundation](https://www.finops.org/) · [Google MLOps](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning)*
