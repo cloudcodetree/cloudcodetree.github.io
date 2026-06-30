@@ -1,0 +1,76 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Ship It and Get Hired (Part 15 of 15) · Tutorials',
+  description:
+    'Turn the whole DealFinder build into career capital: a metrics-driven case study, resume bullets that read as outcomes, and a mock AI system-design interview walked through on your own system.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-ship/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Ship It and Get Hired (Part 15 of 15)',
+    description: 'Turn the whole DealFinder build into career capital: a metrics-driven case study, resume bullets that read as outcomes, and a mock AI system-design interview walked through on your own system.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-ship/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-ship.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-ship.png'] },
+};
+
+<TutorialHero slug="dealfinder-ship" />
+
+# Ship It and Get Hired
+
+**TL;DR: You built a real, tested, deployed AI system end to end. This final part turns that into career capital — a metrics-driven case study, résumé bullets that read as outcomes, and a mock system-design interview you can run on your own build. The work is done; now learn to talk about it like a senior engineer.**
+
+Across fourteen parts you took DealFinder from raw data to a deployed, observable, governed AI system. That's more than most candidates have ever shipped. The last skill is **packaging** it — because in 2026 the people who get hired aren't the ones who *took a course*, they're the ones who can show a system and reason about it.
+
+## The system you built
+
+Step back and see the whole thing. Every box here is a part you implemented and tested:
+
+<SystemMap />
+
+## The skills it proves
+
+Map it to what employers screen for — and note you have *evidence* for each, not just a line on a résumé:
+
+<SkillsMap />
+
+## Write it up as a case study
+
+A good case study is four beats: **problem → approach → results → what you'd do next.** For DealFinder:
+
+- **Problem.** Find genuinely good deals from messy, multi-source product data — relevance *and* value, not just keyword matches.
+- **Approach.** A typed ingestion layer behind one interface; a from-scratch price model for fair value; hybrid semantic+keyword search reranked by deal score; an agent orchestrating it; shipped behind an API/MCP with guardrails, evals, and observability.
+- **Results (use real numbers).** Price model R² 0.886; semantic search surfaces relevant tents with zero keyword overlap; the agent answers a plain-English goal end to end; CF beats the popularity baseline; 53 tests + an eval gate in CI.
+- **Next.** Real retailer data, a learned reranker, a production vector DB, online A/B testing.
+
+## Résumé bullets that read as outcomes
+
+Lead with the result, not the tool. Weak: *"Used Python and FastAPI."* Strong:
+
+- *Built an end-to-end AI deal-finder: hybrid retrieval (embeddings + BM25 + RRF) reranked by a from-scratch price model (R² 0.886), served behind a FastAPI/MCP API.*
+- *Shipped it production-grade: prompt-injection & PII guardrails, a golden-set eval gate in CI, Dockerized CD, and FinOps cost + PSI drift monitoring.*
+- *Designed it as composable services with 53 tests and a step-by-step public repo.*
+
+## The mock system-design interview
+
+Practice on your own build — you already know every tradeoff. Walk through these the way an interviewer would probe:
+
+<Callout tone="tip">
+**Drill these out loud.**
+1. *"Design a system that finds good deals for a user."* — start with requirements and the data, not the model.
+2. *"Why hybrid search instead of just embeddings?"* — each retriever's blind spot; RRF needs no tuning.
+3. *"How do you know it works — and won't regress?"* — golden set, metrics, the CI eval gate.
+4. *"It's too slow / expensive. What do you do?"* — semantic cache, batching, quantization, smaller model that still passes eval.
+5. *"A user reports a wrong deal. Walk me through debugging."* — the trace, the audit log, reproduce, add a golden case.
+6. *"How does it stay correct after launch?"* — drift detection → orchestrated retrain → eval → canary.
+</Callout>
+
+Each question maps to a part you built — so your answer is a story with a repo behind it, not a textbook recital. That's the difference that gets the offer.
+
+## You're done — and you're an AI engineer now
+
+You started this track to cross from AI-*assisted* development to AI *engineering*. You've now built, tested, and shipped every layer of a real AI system, and you can reason about each decision. Put the repo on your profile, write the case study, run the mock interview a few times — and go get hired.
+
+---
+
+*Sources: [System Design Primer](https://github.com/donnemartin/system-design-primer) · [Chip Huyen — ML interviews](https://huyenchip.com/ml-interviews-book/) · [STAR method](https://en.wikipedia.org/wiki/Situation,_task,_action,_result)*

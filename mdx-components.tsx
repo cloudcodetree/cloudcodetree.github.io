@@ -33,6 +33,8 @@ import CDPipeline from './app/components/mdx/CDPipeline';
 import ContainerParity from './app/components/mdx/ContainerParity';
 import CostDashboard from './app/components/mdx/CostDashboard';
 import DriftMonitor from './app/components/mdx/DriftMonitor';
+import SystemMap from './app/components/mdx/SystemMap';
+import SkillsMap from './app/components/mdx/SkillsMap';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -57,5 +59,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     SemanticCacheViz, Batching,
     CDPipeline, ContainerParity,
     CostDashboard, DriftMonitor,
+    SystemMap, SkillsMap,
   };
 }

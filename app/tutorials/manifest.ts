@@ -334,6 +334,19 @@ export const tutorials: Tutorial[] = [
     readTime: 10,
     image: '/tutorials/covers/dealfinder-observability.png',
   },
+  {
+    slug: 'dealfinder-ship',
+    title: 'Ship It and Get Hired',
+    series: 'DealFinder — AI Engineering',
+    part: 15,
+    excerpt:
+      'Turn the whole DealFinder build into career capital: a metrics-driven case study, resume bullets that read as outcomes, and a mock AI system-design interview walked through on your own system.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Career', 'System Design'],
+    order: 25,
+    readTime: 11,
+    image: '/tutorials/covers/dealfinder-ship.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */
