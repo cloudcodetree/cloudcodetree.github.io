@@ -4,6 +4,7 @@ import TutorialHero from './app/components/mdx/TutorialHero';
 import SchemaMap from './app/components/mdx/SchemaMap';
 import DedupMerge from './app/components/mdx/DedupMerge';
 import RunHistory from './app/components/mdx/RunHistory';
+import ScaleSwap from './app/components/mdx/ScaleSwap';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -11,5 +12,5 @@ import RunHistory from './app/components/mdx/RunHistory';
 // Concept animations are bespoke per concept (not one reused shape): SchemaMap
 // (adapter/normalization), DedupMerge (dedup), RunHistory (deterministic tests).
 export function useMDXComponents(components: MDXComponents): MDXComponents {
-  return { ...components, Callout, TutorialHero, SchemaMap, DedupMerge, RunHistory };
+  return { ...components, Callout, TutorialHero, SchemaMap, DedupMerge, RunHistory, ScaleSwap };
 }

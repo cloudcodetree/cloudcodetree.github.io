@@ -143,6 +143,8 @@ $ pytest -q
 **How this scales in production.** Here it's a JSON dataset + SQLite so it runs anywhere. The same shape scales up: swap the file connector for a warehouse/lake (BigQuery, Snowflake, Iceberg), run ingest on a schedule with an orchestrator (Airflow/Prefect/Dagster), stream high-volume sources through Kafka, and store vectors + metadata in Postgres/pgvector (next parts). The `DealSource` interface stays the same — only the implementations change.
 </Callout>
 
+<ScaleSwap />
+
 ## Where this goes next
 
 - **Part 2 — How LLMs actually work:** the literacy (tokenization, embeddings, attention) you need before wiring an LLM into this catalog.
