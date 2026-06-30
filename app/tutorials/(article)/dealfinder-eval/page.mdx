@@ -1,0 +1,97 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Prove It Works: An Eval Harness (Part 11 of 11) · Tutorials',
+  description:
+    'Stop eyeballing quality. Build a golden set, score the extractor with exact-match and field accuracy, A/B against a baseline, and gate the build in CI so regressions can\'t merge.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-eval/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Prove It Works: An Eval Harness (Part 11 of 11)',
+    description: 'Stop eyeballing quality. Build a golden set, score the extractor with exact-match and field accuracy, A/B against a baseline, and gate the build in CI so regressions can\'t merge.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-eval/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-eval.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-eval.png'] },
+};
+
+<TutorialHero slug="dealfinder-eval" />
+
+# Prove It Works: An Eval Harness
+
+**TL;DR: "Looks better" is not engineering. Build a golden set of inputs with known-correct answers, score the system with exact-match and field accuracy, A/B new versions against a baseline, and gate the build in CI so a regression literally can't merge. This is how AI teams move fast without breaking quality.**
+
+You've built a lot. How do you *know* a change improves it — and won't quietly regress next week? Every mature AI team runs on evals. It's an unglamorous, deeply hireable skill, and it's the difference between shipping confidently and praying.
+
+<Callout tone="tip">
+**Code along, version by version.** Shared course repo
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at step **26**.
+</Callout>
+
+## What you'll be able to do after this
+
+- Build a **golden set** — inputs paired with known-correct outputs.
+- Score with **exact-match** and **field accuracy**.
+- **A/B** a new version against a baseline and read the delta.
+- **Gate CI** so quality regressions fail the build.
+
+## A golden set turns opinion into a number
+
+Pick representative inputs, label the correct answer once, and you can score any version automatically. Here it's extraction (Part 6), but the pattern fits search, recs, anything:
+
+<EvalGauntlet />
+
+```python
+# dealfinder/evals.py
+def evaluate(extractor, cases=GOLDEN):
+    preds = [extractor(text) for text, _ in cases]
+    em = [exact_match(p, g) for p, (_, g) in zip(preds, cases)]
+    return {"exact_match": sum(em) / len(em), ...}
+```
+
+## A/B, then gate the build
+
+A metric only matters against a baseline. Compare variants, keep the winner, and — crucially — wire the number into CI so the build **fails** if quality drops below the bar:
+
+<ABCompare />
+
+Running the harness:
+
+```
+$ python -m dealfinder.run_evals
+golden set: 4 cases
+
+  rule_extract   exact_match = 1.00   field_acc = 1.00
+  brand_only     exact_match = 0.00   field_acc = 0.25
+
+A/B: winner = rule_extract (+0.75 field accuracy)
+CI gate (exact_match >= 0.90): PASS ✓
+```
+
+That last line is the point: make `run_evals` exit non-zero below threshold and a regression can't be merged — the same discipline as unit tests, applied to model quality.
+
+## LLM-as-judge: scoring open-ended output
+
+Exact-match works when there's one right answer. For open-ended output (a "why you'll like this" blurb), you can't string-compare. The pattern is **LLM-as-judge**: a second model scores the output against a rubric (helpful? accurate? grounded?). Frameworks like **RAGAS** apply this to retrieval (faithfulness, answer relevancy). Keep judges deterministic where you can (temperature 0) and spot-check them against human labels — a judge is itself something you evaluate.
+
+<Callout tone="note">
+**How this scales in production.** Grow the golden set from real traffic (especially failures), track metrics over time on a dashboard, run evals as a **required CI check** and nightly, add **LLM-as-judge** and **RAGAS** for generative parts, and close the loop: production failures become tomorrow's golden cases. Evals are a living asset, not a one-off.
+</Callout>
+
+## It's all tested
+
+The metrics, the golden-set evaluation, and the A/B comparison are themselves test-first:
+
+```
+$ pytest -q
+............................................      [100%]
+44 passed in 0.07s
+```
+
+## Where this goes next
+
+- **Part 12 — Serve efficiently:** a streaming API + web UI, quantization/batching, and semantic caching.
+- **Then:** containerize & deploy, observability & cost, and shipping with a case study.
+
+---
+
+*Sources: [RAGAS](https://docs.ragas.io/) · [OpenAI Evals](https://github.com/openai/evals) · [LLM-as-a-judge (Zheng et al.)](https://arxiv.org/abs/2306.05685)*

@@ -282,6 +282,19 @@ export const tutorials: Tutorial[] = [
     readTime: 10,
     image: '/tutorials/covers/dealfinder-safety.png',
   },
+  {
+    slug: 'dealfinder-eval',
+    title: 'Prove It Works: An Eval Harness',
+    series: 'DealFinder — AI Engineering',
+    part: 11,
+    excerpt:
+      'Stop eyeballing quality. Build a golden set, score the extractor with exact-match and field accuracy, A/B against a baseline, and gate the build in CI so regressions can\'t merge.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Evaluation', 'CI', 'Python'],
+    order: 21,
+    readTime: 9,
+    image: '/tutorials/covers/dealfinder-eval.png',
+  },
 ];
 
 /** One-line description of each series, shown in the course header. */
