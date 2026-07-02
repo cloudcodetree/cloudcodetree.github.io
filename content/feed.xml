@@ -10,7 +10,116 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 02 Jul 2026 12:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 02 Jul 2026 20:08:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Turn a Claude Code Session into a Shared Page: Five Artifacts Patterns That Actually Get Used</title>
+      <link>https://code.claude.com/docs/en/artifacts</link>
+      <guid isPermaLink="false">2026-07-02-09-claude-code-artifacts-session-pages</guid>
+      <pubDate>Thu, 02 Jul 2026 20:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code Artifacts turns session output into a live private URL on claude.ai that auto-updates and teammates can share — five prompt patterns that cover the most common use cases.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code Artifacts turns session output into a live, auto-updating page at a private URL — share it with teammates instead of pasting terminal text.**
+
+Available on Pro, Max, Team, and Enterprise plans (sign in with `/login`). Claude publishes an artifact on its own when output suits a page — or ask directly. The five patterns teams reach for most:
+
+**1. PR walkthrough:**
+```
+Make an artifact that walks through this PR with the diff annotated inline, color-coded by severity.
+```
+
+**2. Live dashboard while a task runs:**
+```
+Build a dashboard artifact of last week's deploy failures by service. Keep it updated as you investigate.
+```
+
+**3. Side-by-side option comparison:**
+```
+Make an artifact with four layout variants for the settings panel — lay them out as a grid with a one-line tradeoff under each.
+```
+
+**4. Interactive controls for tuning:**
+```
+Build an artifact with sliders for easing, duration, and delay so I can try animation values live.
+```
+
+**5. In-progress task checklist:**
+```
+Turn this migration plan into a checklist artifact. Check items off as you complete them.
+```
+
+**Key details to know:**
+- First publish requires your approval; subsequent republishes to the same artifact skip the prompt.
+- Reopen the most recent artifact from any terminal: **`Ctrl+]`**
+- Disable auto-open on publish: `CLAUDE_CODE_ARTIFACT_AUTO_OPEN=0`
+- Each publish is a versioned snapshot; teammates see updates in place at the same URL.
+- On Team/Enterprise: share from the page header; sharing is org-scoped only (no public links).
+- Artifacts are static pages — no backend, no external requests. Claude inlines all CSS and JS.
+- On Team/Enterprise you can set retention policies and audit artifact activity via the Compliance API.
+
+**Sources:** [Claude Code Artifacts docs](https://code.claude.com/docs/en/artifacts) · [Anthropic blog: Artifacts in Claude Code](https://claude.com/blog/artifacts-in-claude-code)
+]]></content:encoded>
+      <media:content url="https://mintcdn.com/claude-code/kaHIYYMIYMYPxQg9/images/artifacts-viewer.png" medium="image" />
+      <media:thumbnail url="https://mintcdn.com/claude-code/kaHIYYMIYMYPxQg9/images/artifacts-viewer.png" />
+    </item>
+
+    <item>
+      <title>Did Your Fine-Tune Actually Improve? Benchmark It Against Standard Tasks with Lighteval</title>
+      <link>https://huggingface.co/learn/llm-course/en/chapter11/5</link>
+      <guid isPermaLink="false">2026-07-02-08-benchmark-fine-tune-lighteval</guid>
+      <pubDate>Thu, 02 Jul 2026 20:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>Score your fine-tuned model on MMLU, GSM8K, and HumanEval with one Lighteval command — catch regressions on general capabilities before shipping. HuggingFace LLM Course Chapter 11.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Use Lighteval to run MMLU, GSM8K, and HumanEval on your fine-tuned model in one command — catch regressions before you ship it.**
+
+**What you'll be able to do after this:**
+- Compare your fine-tuned model against the base on benchmarks that match your task
+- Catch regressions on general capabilities you didn't train for (the most common fine-tune failure mode)
+- Add a custom eval task for behavior your standard benchmarks don't cover
+
+---
+
+A fine-tune that "feels better" on your test prompts can still regress on general capabilities. Systematic benchmarking is your regression suite. **HuggingFace's [LLM Course Chapter 11.5: Evaluation](https://huggingface.co/learn/llm-course/en/chapter11/5)** walks through picking the right benchmarks, running them with [Lighteval](https://huggingface.co/docs/lighteval/en/index), and interpreting the results — it's the clearest practical intro in the official HF curriculum.
+
+**Install and run:**
+
+```bash
+pip install lighteval
+
+# Evaluate a HF Hub model or a local merged checkpoint
+lighteval accelerate   "pretrained=your-org/your-fine-tuned-model"   "humaneval|0|0"   "gsm8k|5|0"   "mmlu|abstract_algebra|0|0"   --max_samples 100   --output_path "./eval-results"
+```
+
+For a local checkpoint (e.g., after a LoRA merge), replace the Hub name with the local path: `pretrained=/path/to/merged-model`.
+
+Task format: `{suite}|{task}|{num_few_shot}|{auto_reduce}`
+
+**Match benchmarks to your use case:**
+
+| Task | Benchmark |
+|---|---|
+| General knowledge / chat | MMLU (57 subjects), TruthfulQA |
+| Code generation | HumanEval (164 Python problems) |
+| Math / multi-step reasoning | GSM8K, BBH |
+| Instruction following | Alpaca Eval (GPT-4 as judge) |
+
+**Always add a task-specific eval.** Standard benchmarks test generic capabilities. If you fine-tuned for function calling, tool format adherence, or domain tone — also write a custom Lighteval task on your holdout set. The HF course chapter covers how to define custom tasks. Compare your fine-tune vs the base model on the same run to spot exactly where you gained and where you regressed.
+
+**Sources:** [HuggingFace LLM Course — Evaluation](https://huggingface.co/learn/llm-course/en/chapter11/5) · [Lighteval docs](https://huggingface.co/docs/lighteval/en/index) · [philschmid: Evaluate LLMs with lm-eval + vLLM](https://www.philschmid.de/evaluate-llms-with-lm-eval-and-tgi-vllm)
+]]></content:encoded>
+      <media:content url="https://opengraph.githubassets.com/1/huggingface/lighteval" medium="image" />
+      <media:thumbnail url="https://opengraph.githubassets.com/1/huggingface/lighteval" />
+    </item>
 
 
     <item>
