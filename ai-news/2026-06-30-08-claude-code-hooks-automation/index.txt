@@ -1,0 +1,146 @@
+1:"$Sreact.fragment"
+2:I[68977,["5914","static/chunks/5914-78fa75be6ca6de8c.js","1860","static/chunks/1860-1e5afbc2d94aafa0.js","7177","static/chunks/app/layout-226110c5f1d969af.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/26dc4a78f0c7af7f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e0f4b1ebfdbd83f9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e4af272ccee01ff0-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/e2dabe4f14a0dbf4.css","style"]
+0:{"P":null,"b":"bKQ0ZfCB0cZ5etYLAQC-s","p":"https://cloudcodetree.com","c":["","ai-news","2026-06-30-08-claude-code-hooks-automation",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-06-30-08-claude-code-hooks-automation","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/e2dabe4f14a0dbf4.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_f5e841 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_c9a639","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-06-30-08-claude-code-hooks-automation","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[17655,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+11:I[82566,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+12:Tf79,**TL;DR: Claude Code hooks run any shell command before or after every tool call — wire them in `.claude/settings.json` to auto-format code, block unsafe operations, or send a notification when a multi-hour task completes.**
+
+Hooks are configured in `.claude/settings.json` (project-level, git-committed, shared by the team) or `~/.claude/settings.json` (user-level, all projects). Each entry names an event, an optional tool matcher, and the command to run:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "bash .claude/hooks/secret-scan.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "bash .claude/hooks/format.sh" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## The four hook events
+
+| Event | Fires | Can block? |
+|---|---|---|
+| `PreToolUse` | Before any tool call | Yes — `exit 2` blocks the tool |
+| `PostToolUse` | After a tool succeeds | No |
+| `PostToolUseFailure` | After a tool errors | No |
+| `Stop` | When Claude finishes a turn | No |
+
+## Hook input and exit codes
+
+Every hook receives the tool's full JSON payload on **stdin** (read it with `cat`):
+
+```bash
+input="$(cat)"
+# Extract the Bash command being run
+cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
+# For Edit/Write hooks, use .tool_input.file_path instead
+```
+
+Exit codes:
+- `0` → proceed normally
+- `2` → block the tool; your stderr becomes Claude's feedback so it can adjust
+- anything else → proceed, error is logged
+
+## Pattern 1 — Block commits containing secrets
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+input="$(cat)"
+cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
+
+case "$cmd" in
+  *"git commit"*|*"git push"*)
+    diff="$(git diff --cached 2>/dev/null || true)"
+    if printf '%s' "$diff" \
+      | grep -Eq 'sk-ant-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}'; then
+      echo "Blocked: secret detected in staged diff." >&2
+      exit 2
+    fi
+    ;;
+esac
+exit 0
+```
+
+Wire as a `PreToolUse` hook with `"matcher": "Bash"`. When Claude tries to commit, the hook checks the diff; if a key is found, it exits 2 — Claude sees the block reason and will offer to remove the secret before retrying.
+
+## Pattern 2 — Auto-format after every file edit
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+fp=$(cat | jq -r '.tool_input.file_path // empty')
+[ -z "$fp" ] && exit 0
+
+case "$fp" in
+  *.py)           black "$fp" 2>/dev/null ;;
+  *.ts|*.tsx|*.js) prettier --write "$fp" 2>/dev/null ;;
+  *.go)            gofmt -w "$fp" ;;
+esac
+exit 0
+```
+
+Wire as `PostToolUse` with `"matcher": "Write|Edit|MultiEdit"`. Claude's next read of that file sees the formatted version — no separate "please format" prompt needed.
+
+## Pattern 3 — Desktop notification when a long task finishes
+
+```bash
+#!/usr/bin/env bash
+# macOS / Linux
+osascript -e 'display notification "Task complete" with title "Claude Code"' \
+  2>/dev/null \
+|| notify-send "Claude Code" "Task complete" 2>/dev/null
+exit 0
+```
+
+Wire as a `Stop` hook (no matcher — `Stop` has no tool to filter). After every session turn, the notification fires. Set `timeout: 0` if the notification command might exceed the default 10-second limit.
+
+## Matchers
+
+The `matcher` field is a regex matched against the tool name:
+
+```
+"Bash"                   # shell commands only
+"Write|Edit|MultiEdit"   # any file-writing tool
+"mcp__github__.*"        # all GitHub MCP tools
+```
+
+Omit `matcher` to match all tools for that event.
+
+Project hooks (`.claude/settings.json`) and user hooks (`~/.claude/settings.json`) both run — they stack. To temporarily disable all hooks without deleting them, set `"disableAllHooks": true` in either file.
+
+**Sources:** [Hooks reference](https://code.claude.com/docs/en/hooks) | [Automate actions with hooks](https://code.claude.com/docs/en/hooks-guide)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-06-30-08-claude-code-hooks-automation","title":"Claude Code Hooks: Auto-Format, Block Secrets, and Notify — Wired in settings.json","excerpt":"Claude Code hooks run shell commands before and after every tool use — use them to auto-format edits, block dangerous operations, or send a desktop notification when a long task finishes.","author":"Chris Harper","date":"06-30-2026","publishedAt":"2026-06-30T20:13:00.000Z","tags":["AI","Workflow","Claude Code","Best Practices"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-08-claude-code-hooks-automation.jpg","imageSource":"https://code.claude.com/docs/en/hooks","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Claude Code Hooks: Auto-Format, Block Secrets, and Notify — Wired in settings.json | AI News"}],["$","meta","1",{"name":"description","content":"Claude Code hooks run shell commands before and after every tool use — use them to auto-format edits, block dangerous operations, or send a desktop notification when a long task finishes."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-06-30-08-claude-code-hooks-automation/"}],["$","meta","3",{"property":"og:title","content":"Claude Code Hooks: Auto-Format, Block Secrets, and Notify — Wired in settings.json"}],["$","meta","4",{"property":"og:description","content":"Claude Code hooks run shell commands before and after every tool use — use them to auto-format edits, block dangerous operations, or send a desktop notification when a long task finishes."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-06-30-08-claude-code-hooks-automation/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-08-claude-code-hooks-automation.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Claude Code Hooks: Auto-Format, Block Secrets, and Notify — Wired in settings.json"}],["$","meta","13",{"name":"twitter:description","content":"Claude Code hooks run shell commands before and after every tool use — use them to auto-format edits, block dangerous operations, or send a desktop notification when a long task finishes."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-08-claude-code-hooks-automation.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

@@ -1,0 +1,1116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>AI News · CloudCodeTree</title>
+    <link>https://cloudcodetree.com/ai-news/</link>
+    <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
+    <description>Daily field notes on AI-assisted engineering.</description>
+    <language>en-us</language>
+    <generator>cloudcodetree generate-feeds.mjs</generator>
+    <lastBuildDate>Thu, 02 Jul 2026 12:16:59 GMT</lastBuildDate>
+  <item>
+    <title><![CDATA[Fine-Tune a 2B Open Model for Function Calling — Cut Tool-Call Costs 10x With TRL SFTTrainer]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-02-07-fine-tune-function-calling-trl-sfttrainer/</link>
+    <guid isPermaLink="false">2026-07-02-07-fine-tune-function-calling-trl-sfttrainer</guid>
+    <pubDate>Thu, 02 Jul 2026 12:06:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Fine-Tuning]]></category>
+    <category><![CDATA[HuggingFace]]></category>
+    <description><![CDATA[Route expensive function calls to a fine-tuned 2B open model instead of proprietary APIs. TRL SFTTrainer has native tool_calls column support — one afternoon on a free Colab T4.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-07-fine-tune-function-calling-trl-sfttrainer.jpg" alt="" /></p>
+<p><strong>TL;DR: Use TRL's SFTTrainer to fine-tune a 2B model for function calling in one Colab afternoon — dedicate it to tool routing and cut API costs by 10x.</strong></p>
+<p>When your agent pipeline handles structured tool routing — pick a function, fill in args — a fine-tuned 2–8B open model matches proprietary APIs on that specific task at a fraction of the cost. TRL's <code>SFTTrainer</code> has native <code>tool_calls</code> column support (as of v0.24), so there's no preprocessing ceremony.</p>
+<p>## The data format</p>
+<p>Each training example needs messages with tool calls and the tool schema:</p>
+<p>``<code>python
+{
+    &quot;messages&quot;: [
+        {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;What's the weather in Tokyo?&quot;},
+        {&quot;role&quot;: &quot;assistant&quot;, &quot;tool_calls&quot;: [{
+            &quot;type&quot;: &quot;function&quot;,
+            &quot;function&quot;: {
+                &quot;name&quot;: &quot;get_weather&quot;,
+                &quot;arguments&quot;: &quot;{&quot;city&quot;: &quot;Tokyo&quot;, &quot;unit&quot;: &quot;C&quot;}&quot;
+            }
+        }]}
+    ],
+    &quot;tools&quot;: [weather_tool_json_schema]   # list of JSON schema objects
+}
+</code>``</p>
+<p>A ready-made dataset: <strong>NousResearch/hermes-function-calling-v1</strong> (~11k instruction-following examples in Hermes chat format).</p>
+<p>## Training (free Colab T4 GPU)</p>
+<p>```python
+from datasets import load_dataset
+from trl import SFTTrainer, SFTConfig
+from peft import LoraConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig</p>
+<p>model_id = &quot;Qwen/Qwen3-2B-Instruct&quot;
+dataset = load_dataset(&quot;NousResearch/hermes-function-calling-v1&quot;, split=&quot;train&quot;)</p>
+<p>bnb_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type=&quot;nf4&quot;)
+model = AutoModelForCausalLM.from_pretrained(
+    model_id, quantization_config=bnb_config, device_map=&quot;auto&quot;
+)
+tokenizer = AutoTokenizer.from_pretrained(model_id)</p>
+<p>trainer = SFTTrainer(
+    model=model,
+    tokenizer=tokenizer,
+    train_dataset=dataset,
+    args=SFTConfig(
+        output_dir=&quot;./qwen-fn-caller&quot;,
+        num_train_epochs=2,
+        per_device_train_batch_size=2,
+    ),
+    peft_config=LoraConfig(
+        r=16, lora_alpha=32, target_modules=&quot;all-linear&quot;, task_type=&quot;CAUSAL_LM&quot;
+    ),
+)
+trainer.train()
+trainer.push_to_hub(&quot;your-org/qwen-fn-caller&quot;)
+```</p>
+<p>Runs in ~1–2 hours on a free Colab T4.</p>
+<p>## Serve the fine-tuned adapter with vLLM</p>
+<p>``<code>bash
+python -m vllm.entrypoints.openai.api_server   --model Qwen/Qwen3-2B-Instruct   --enable-lora   --lora-modules fn-caller=your-org/qwen-fn-caller   --enable-auto-tool-choice   --tool-call-parser qwen3
+</code>``</p>
+<p>Pair this with vLLM's strict mode (covered in today's teachable post) to guarantee schema-valid arguments from every call.</p>
+<p>## When to reach for this pattern</p>
+<p>- Your pipeline routes &gt;1M tool calls/month — cost break-even vs. Claude/GPT arrives fast
+- Your tool set is bounded and stable, not a dynamic schema that changes weekly
+- Per-call latency matters and a 2B local model runs faster than an API round-trip</p>
+<p>The HuggingFace agents-course bonus unit (linked below) includes the full walkthrough, including evaluation with a held-out test set to verify the fine-tune actually works.</p>
+<p><strong>Sources:</strong> <a href="https://huggingface.co/learn/agents-course/bonus-unit1/fine-tuning">HuggingFace agents-course: Fine-Tune for Function Calling</a> | <a href="https://huggingface.co/docs/trl/sft_trainer">TRL SFTTrainer docs</a> | <a href="https://huggingface.co/datasets/NousResearch/hermes-function-calling-v1">hermes-function-calling-v1 dataset</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-07-fine-tune-function-calling-trl-sfttrainer.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-07-fine-tune-function-calling-trl-sfttrainer.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Anthropic's SpaceX Deal Doubles Claude Code Limits and 16x Opus API Throughput]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-02-05-anthropic-spacex-doubled-limits/</link>
+    <guid isPermaLink="false">2026-07-02-05-anthropic-spacex-doubled-limits</guid>
+    <pubDate>Thu, 02 Jul 2026 12:05:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[LLM]]></category>
+    <description><![CDATA[Anthropic's SpaceX Colossus deal doubles Claude Code 5-hr limits for all paid plans and raises Tier 1 Opus API throughput 16x to 500k tokens/minute. Removes peak-hours cap for Pro/Max.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-05-anthropic-spacex-doubled-limits.jpg" alt="" /></p>
+<p><strong>TL;DR: SpaceX's Colossus 1 data center (220k GPUs) gives Anthropic 300MW of new capacity — Claude Code's 5-hour limits are now doubled and Tier 1 Opus API throughput jumped 16x overnight.</strong></p>
+<p>Anthropic signed an agreement to access all compute capacity at SpaceX's Colossus 1 data center — 300+ megawatts and over 220,000 NVIDIA GPUs — with capacity coming online within the month.</p>
+<p>The limit changes are live:</p>
+<p><strong>Claude Code (all paid plans):</strong>
+- 5-hour rate limits <strong>doubled</strong> across Pro, Max, Team, and seat-based Enterprise
+- Peak-hours limit reduction <strong>removed</strong> for Pro and Max accounts</p>
+<p><strong>Claude API — Opus models:</strong>
+- Tier 1: 30,000 → 500,000 tokens/minute (<strong>16x increase</strong>)
+- Higher tiers: proportional boosts</p>
+<p>This joins a stack of compute commitments: 5 GW from Amazon (1 GW online end-of-2026), 5 GW from Google + Broadcom (2027), and $30B in Azure capacity via Microsoft + NVIDIA.</p>
+<p><strong>Why it matters:</strong> For automated pipelines, the Opus API jump is the most actionable change — tasks that previously hit Tier 1 ceilings on complex code review or long-context reasoning can now run at full speed on Opus without upgrading your tier. Doubled Claude Code limits mean background agents can run more work per rolling window.</p>
+<p><strong>Sources:</strong> <a href="https://www.anthropic.com/news/higher-limits-spacex">Anthropic announcement</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-05-anthropic-spacex-doubled-limits.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-05-anthropic-spacex-doubled-limits.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Make Tool Calls Reliable in Self-Hosted Models: vLLM's Strict Mode and Streaming Parser Engine]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-02-06-vllm-strict-tool-calling-streaming-parser/</link>
+    <guid isPermaLink="false">2026-07-02-06-vllm-strict-tool-calling-streaming-parser</guid>
+    <pubDate>Thu, 02 Jul 2026 12:04:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[Self-Hosting]]></category>
+    <category><![CDATA[Agents]]></category>
+    <description><![CDATA[vLLM v0.24 ships VLLM_ENFORCE_STRICT_TOOL_CALLING (default: true) and a unified Streaming Parser Engine. Two flags that make self-hosted model tool calls schema-valid and streamable.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-06-vllm-strict-tool-calling-streaming-parser.jpg" alt="" /></p>
+<p><strong>TL;DR: vLLM v0.24 makes strict tool calling the default — add <code>strict: true</code> to your tool definition and arguments are guaranteed to be schema-valid JSON.</strong></p>
+<p><strong>What you'll be able to do after this:</strong>
+- Launch a vLLM server that produces schema-valid JSON tool call arguments (strict mode, default in v0.24)
+- Stream tool-call responses token-by-token — no waiting for the complete argument block
+- Select the right parser for your model family and know the three schema rules for strict mode</p>
+<hr />
+<p>The failure mode: open models sometimes generate malformed JSON when calling tools — argument generation isn't constrained, so <code>{city: &quot;Tokyo&quot;}</code> (missing quotes) slips through and crashes your agent's parse step.</p>
+<p><strong>vLLM v0.24 fixes this with strict tool calling mode.</strong> Two conditions activate schema-level constraint at the sampler:
+1. <code>VLLM_ENFORCE_STRICT_TOOL_CALLING=true</code> — <strong>default in v0.24</strong>, no action needed
+2. Each tool in your API request has <code>&quot;strict&quot;: true</code> in its function definition</p>
+<p>When both are true and the selected parser supports structural tags, vLLM constrains argument token generation to valid JSON matching the schema.</p>
+<p>## Start the server</p>
+<p>``<code>bash
+python -m vllm.entrypoints.openai.api_server   --model Qwen/Qwen3-8B-Instruct   --enable-auto-tool-choice   --tool-call-parser qwen3
+</code>``</p>
+<p><code>--enable-auto-tool-choice</code> is mandatory — it tells vLLM the model may decide when to call a tool.</p>
+<p>## Add <code>strict: true</code> to your tool definitions</p>
+<p>``<code>python
+tools = [{
+    &quot;type&quot;: &quot;function&quot;,
+    &quot;function&quot;: {
+        &quot;name&quot;: &quot;search_files&quot;,
+        &quot;description&quot;: &quot;Search for files matching a query&quot;,
+        &quot;parameters&quot;: {
+            &quot;type&quot;: &quot;object&quot;,
+            &quot;properties&quot;: {
+                &quot;query&quot;: {&quot;type&quot;: &quot;string&quot;},
+                &quot;top_k&quot;: {&quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;]}
+            },
+            &quot;required&quot;: [&quot;query&quot;, &quot;top_k&quot;],
+            &quot;additionalProperties&quot;: False   # required for strict schemas
+        },
+        &quot;strict&quot;: True   # activates schema-level constraint in vLLM
+    }
+}]
+</code>``</p>
+<p>Three schema rules for strict mode: set <code>additionalProperties: false</code>, list every field in <code>required</code>, represent optional fields as <code>{&quot;type&quot;: [&quot;string&quot;, &quot;null&quot;]}</code> rather than omitting them from <code>required</code>.</p>
+<p>## Parser cheat sheet</p>
+<p>| Model family | <code>--tool-call-parser</code> value |
+|---|---|
+| Qwen3 | <code>qwen3</code> |
+| Llama 3.1 / 3.3 | <code>llama3_json</code> |
+| Mistral v0.3+ | <code>mistral</code> |
+| Hermes 2 Pro / Nous | <code>hermes</code> |
+| DeepSeek V3 | <code>deepseek_v3</code> |</p>
+<p>## The Streaming Parser Engine (v0.24 unification)</p>
+<p>Previously each model family had its own streaming tool-call parser — thousands of lines of independent state machines with duplicated tokenization, argument buffering, and schema tracking. v0.24 unifies these under a single engine: token ID scanning → incremental lexing → state-machine semantic event emission.</p>
+<p>The result: arguments stream token-by-token instead of buffering until the closing brace, and argument validation happens continuously. Parsers for Qwen3, MiniMax-M2, GLM-4.x, and Nemotron V3 are included in v0.24.</p>
+<p>## Disable strict mode for debugging</p>
+<p>``<code>bash
+VLLM_ENFORCE_STRICT_TOOL_CALLING=false python -m vllm.entrypoints.openai.api_server ...
+</code>``</p>
+<p>Lets you inspect raw model output before the constraint layer kicks in.</p>
+<p><strong>Sources:</strong> <a href="https://github.com/vllm-project/vllm/releases/tag/v0.24.0">vLLM v0.24.0 release</a> | <a href="https://docs.vllm.ai/en/latest/features/tool_calling/">vLLM tool calling docs</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-06-vllm-strict-tool-calling-streaming-parser.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-06-vllm-strict-tool-calling-streaming-parser.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Kick Off a Task, Walk Away, Find a PR: Claude Code's Auto-PR Background Agents]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-02-04-background-agents-auto-pr-close-the-loop/</link>
+    <guid isPermaLink="false">2026-07-02-04-background-agents-auto-pr-close-the-loop</guid>
+    <pubDate>Thu, 02 Jul 2026 04:06:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Agents]]></category>
+    <description><![CDATA[Claude Code v2.1.198 background agents now commit, push, and open a draft PR automatically when they finish code work in a worktree. Here's exactly how to use the pattern — and wire a notification…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-04-background-agents-auto-pr-close-the-loop.jpg" alt="" /></p>
+<p><strong>TL;DR: Spawn a background agent in a worktree, walk away — v2.1.198 will commit, push, and open a draft PR when the work is done. Add a Notification hook to get pinged without polling.</strong></p>
+<p>Background agents in Claude Code have always been useful for parallel work. The new auto-PR step closes the loop: when a background agent completes code work in a git worktree, it automatically commits all changes, pushes to origin, and opens a draft pull request — no manual <code>git push &amp;&amp; gh pr create</code> step needed.</p>
+<p>Here's the full workflow.</p>
+<p>## Step 1: Spawn the background agent</p>
+<p>``<code>bash
+# From the shell
+claude agents spawn &quot;Refactor the UserService class to use constructor injection and add unit tests&quot;
+</code>``</p>
+<p>Or from inside an interactive Claude Code session:
+``<code>
+/agents
+&gt; New background agent: Fix all TypeScript errors in src/auth/ — don't change the public API
+</code>``</p>
+<p>Claude automatically creates an isolated git worktree for the agent's work.</p>
+<p>## Step 2: Wire a Notification hook (optional but recommended)</p>
+<p>Add to <code>.claude/settings.json</code>:</p>
+<p>``<code>json
+{
+  &quot;hooks&quot;: {
+    &quot;Notification&quot;: [{
+      &quot;matcher&quot;: &quot;&quot;,
+      &quot;hooks&quot;: [{
+        &quot;type&quot;: &quot;command&quot;,
+        &quot;command&quot;: &quot;notify-send \&quot;Claude: $CLAUDE_NOTIFICATION_MESSAGE\&quot;&quot;
+      }]
+    }]
+  }
+}
+</code>``</p>
+<p>Two events now fire through this hook:
+- <strong><code>agent_needs_input</code></strong> — the agent is blocked and needs you to intervene (it won't silently fail)
+- <strong><code>agent_completed</code></strong> — the agent finished; look for the PR</p>
+<p>On macOS, swap <code>notify-send</code> for <code>osascript -e 'display notification &quot;...&quot; with title &quot;Claude Code&quot;'</code>. On a server or in CI, post to a webhook instead.</p>
+<p>## Step 3: Review the PR</p>
+<p>When the agent finishes, it commits, pushes to <code>origin</code>, and opens a draft PR with the task description as the title. No extra step on your end. Open GitHub, review the diff, and merge when ready.</p>
+<p>## When this works well</p>
+<p>- Refactors with a well-bounded scope (&quot;convert all <code>fetch</code> calls in this module to use our API client&quot;)
+- Adding tests to existing, well-typed code with clear specs
+- Bug fixes with a concrete reproduction step in the task description</p>
+<p>## When to skip it</p>
+<p>- Tasks that require architectural decisions mid-way — the agent will surface those via <code>agent_needs_input</code> rather than making the call itself
+- Work where you want to review intermediate states before the agent commits direction
+- Anything touching infra or deployment — let humans push those buttons</p>
+<p>The pattern pairs naturally with the 1M-token context window: a background agent can accumulate a full trace of reads, edits, and tool calls across a large codebase without hitting a context wall, then close with a reviewable PR.</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/changelog">Claude Code changelog v2.1.198</a> | <a href="https://code.claude.com/docs/en/agents">Background agents docs</a> | <a href="https://code.claude.com/docs/en/hooks">Hooks configuration</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-04-background-agents-auto-pr-close-the-loop.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-04-background-agents-auto-pr-close-the-loop.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[GitHub's Biggest Copilot Day Yet: Vision GA, Browser Tools, Kimi K2.7, Auto-Model Routing — and GitHub Models Retiring July 30]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-02-03-github-copilot-vscode-july1-vision-browser-models-retirement/</link>
+    <guid isPermaLink="false">2026-07-02-03-github-copilot-vscode-july1-vision-browser-models-retirement</guid>
+    <pubDate>Thu, 02 Jul 2026 04:05:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <category><![CDATA[Agents]]></category>
+    <description><![CDATA[July 1: Copilot Vision GA (paste images into chat on all plans), Browser Tools for VS Code GA (agents browse and validate in-IDE), Kimi K2.7 open-weight model in Copilot picker, auto model routing…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-03-github-copilot-vscode-july1-vision-browser-models-retirement.jpg" alt="" /></p>
+<p><strong>TL;DR: GitHub shipped eight Copilot + VS Code 1.127 updates on July 1 — the headline is Copilot Vision on all plans and Browser Tools GA. If you use GitHub Models, it shuts down July 30.</strong></p>
+<p><strong>Copilot Vision: GA on all tiers.</strong> Attach images (JPEG, PNG, GIF, WebP) and PDFs directly to Copilot chat in VS Code, github.com, and the CLI — paste, drag-and-drop, or right-click. Available on Free, Pro, Pro+, Business, and Enterprise. No policy needed.</p>
+<p><strong>Browser Tools for VS Code: GA.</strong> Copilot agents can now open pages, click, type, take screenshots, and read console errors in an integrated browser — isolated from your own tabs. Admins can restrict with the <code>BrowserChatTools</code> policy or a domain allowlist. The VS Code 1.127 release also ships a terminal sandboxing feature (macOS/Linux): agent-run commands execute with filesystem and network restrictions; only elevated commands surface for approval.</p>
+<p><strong>Kimi K2.7 in the model picker.</strong> The first open-weight model available as a selectable choice in Copilot's model picker. Available on Pro, Pro+, and Max plans across VS Code, JetBrains, and Xcode. Off by default for Business (admin opt-in).</p>
+<p><strong>Copilot CLI: auto model routing.</strong> Routes each request to the best model based on reasoning complexity, code generation difficulty, and tool orchestration needs. 10% discount for paid subscribers; billing at each model's published rate. Use <code>/model</code> to switch to Auto.</p>
+<p><strong>GitHub Models retiring July 30.</strong> The playground, catalog, inference API, and BYOK endpoints all shut down — with brownouts on July 16 and 23 as warnings. Migrate to Azure AI Foundry (for the model catalog) or GitHub Copilot (for integrated workflows) before July 30.</p>
+<p><strong>Why it matters:</strong> Copilot can now see what it built (Browser Tools) and what you're looking at (Vision) — two missing links for truly agentic IDE workflows. If you built anything on GitHub Models' inference API, you have four weeks to migrate.</p>
+<p><strong>Sources:</strong> <a href="https://github.blog/changelog/">GitHub Changelog — July 1</a> | <a href="https://code.visualstudio.com/updates/v1_127">VS Code 1.127 release notes</a> | <a href="https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026">GitHub Models retirement</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-03-github-copilot-vscode-july1-vision-browser-models-retirement.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-03-github-copilot-vscode-july1-vision-browser-models-retirement.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Claude Code v2.1.198: Background Agents Auto-Open PRs, Chrome Extension Goes GA, Notification Hooks Land]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-02-02-claude-code-2198-bg-agents-auto-pr-news/</link>
+    <guid isPermaLink="false">2026-07-02-02-claude-code-2198-bg-agents-auto-pr-news</guid>
+    <pubDate>Thu, 02 Jul 2026 04:04:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Agents]]></category>
+    <description><![CDATA[v2.1.198 (July 1): background agents in worktrees now auto-commit, push, and open a draft PR. Claude in Chrome exits beta. Notification hooks fire agent_needs_input and agent_completed events. Ente…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-02-claude-code-2198-bg-agents-auto-pr-news.jpg" alt="" /></p>
+<p><strong>TL;DR: Claude Code v2.1.198 (July 1) ships background agents that close their own loop — commit, push, draft PR — plus notification hooks for status, Chrome extension GA, and enterprise model governance.</strong></p>
+<p>Four changes in the July 1 release worth knowing:</p>
+<p><strong>Background agents auto-PR.</strong> When a background agent finishes code work in a git worktree, it now automatically commits all changes, pushes to origin, and opens a draft pull request. No human step to close the loop. (See the companion post for the full setup workflow.)</p>
+<p><strong>Claude in Chrome: generally available.</strong> The browser extension exits beta. No action required if you were already in the preview.</p>
+<p><strong>Notification hooks.</strong> Two new events fire through the <code>Notification</code> hook: <code>agent_needs_input</code> (the session is blocked and needs you) and <code>agent_completed</code> (the agent finished its work). Wire them to a desktop notification, Slack webhook, or any shell command — and stop polling the agents panel.</p>
+<p><strong>Enterprise model entitlements (beta).</strong> Org admins can now restrict which models and effort levels users in their organization can access. Set in the admin console.</p>
+<p>Also shipped: subagents and context compaction now inherit the session's extended thinking config; the AWS <code>anthropicAws</code> gateway provider is available for failover routing; the <code>/agents</code> creation wizard is removed — create agents via natural language or by editing <code>.claude/agents/</code> directly.</p>
+<p><strong>Why it matters:</strong> Auto-PR completes the background agent automation arc. A fully hands-off task now ends with a reviewable artifact, not a &quot;go check the terminal.&quot;</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/changelog">Claude Code changelog</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-02-claude-code-2198-bg-agents-auto-pr-news.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-02-claude-code-2198-bg-agents-auto-pr-news.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Give Your Agent a Long-Term Memory: Semantic Recall with LangGraph and LangMem]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-02-01-langgraph-langmem-semantic-agent-memory/</link>
+    <guid isPermaLink="false">2026-07-02-01-langgraph-langmem-semantic-agent-memory</guid>
+    <pubDate>Thu, 02 Jul 2026 04:03:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[Agents]]></category>
+    <category><![CDATA[LLM]]></category>
+    <description><![CDATA[Your agent forgets everything when the conversation ends. Semantic memory fixes that: store observations as embeddings, retrieve by relevance — not by session ID. Free 1-hour course by LangChain's…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-01-langgraph-langmem-semantic-agent-memory.jpg" alt="" /></p>
+<p><strong>TL;DR: Semantic memory lets an agent recall what it learned about a user in past sessions — retrieved by relevance, not session ID. This free 1-hour course by the LangChain CEO builds it step-by-step with runnable notebooks.</strong></p>
+<p><strong>What you'll be able to do after this:</strong>
+- Store agent observations as embeddings in a LangGraph <code>InMemoryStore</code> — not tied to a thread ID
+- Retrieve past facts by semantic similarity so an agent can recall &quot;this user prefers bullet-point answers&quot; in a brand-new session
+- Layer episodic memory (past examples) and procedural memory (evolved system prompts) to build agents that improve with use</p>
+<hr />
+<p>Most agent memory is ephemeral. The conversation ends, the context clears, and the agent starts fresh. The <code>checkpointer</code> pattern (covered previously) gives you session continuity via thread IDs — but to retrieve a memory, you need the thread ID from that exact session. <strong>Semantic memory</strong> breaks that constraint: facts are stored as vector embeddings and retrieved by <em>relevance to the current moment</em>, not by lookup. An agent with semantic memory can recall &quot;this user dislikes long explanations&quot; in a new session it has never seen before.</p>
+<p>This free DeepLearning.AI course by <strong>Harrison Chase</strong> (co-founder and CEO of LangChain) builds a real email-routing agent that layers three memory types on progressively:</p>
+<p>| Lesson | What gets added |
+|---|---|
+| 3 (baseline) | Stateless agent — establishes the starting point |
+| 4 | <strong>Semantic memory</strong> — store user facts as embeddings; retrieve by similarity |
+| 5 | + <strong>Episodic memory</strong> — past interactions as few-shot examples, retrieved semantically |
+| 6 | + <strong>Procedural memory</strong> — system prompt updates based on learned preferences |</p>
+<p>Each lesson is under 16 minutes and runs in a hosted notebook — no local setup.</p>
+<p>## The core pattern (Lesson 4)</p>
+<p>LangGraph's <code>InMemoryStore</code> (or any compatible backend store) supports vector indexing:</p>
+<p>```python
+from langgraph.store.memory import InMemoryStore
+from langchain_openai import OpenAIEmbeddings</p>
+<p># Create a vector-backed store
+store = InMemoryStore(
+    index={&quot;embed&quot;: OpenAIEmbeddings(), &quot;dims&quot;: 1536}
+)</p>
+<p># Store a memory during an agent interaction
+store.put(
+    namespace=(&quot;user_facts&quot;, &quot;alice&quot;),  # scoped by user
+    key=&quot;format_pref&quot;,
+    value={&quot;content&quot;: &quot;Prefers bullet-point summaries over paragraphs&quot;}
+)</p>
+<p># Later — a new session, no shared thread ID
+results = store.search(
+    namespace=(&quot;user_facts&quot;, &quot;alice&quot;),
+    query=&quot;How should I format my response?&quot;,
+    limit=3
+)
+for r in results:
+    print(r.value[&quot;content&quot;])
+# → &quot;Prefers bullet-point summaries over paragraphs&quot;
+```</p>
+<p>The <code>namespace</code> scopes memories by user or context. <code>search()</code> runs a cosine similarity query against the embeddings — no thread ID, no exact-key match required.</p>
+<p>The agent wires this into its context at the start of each turn:</p>
+<p>```python
+def call_model(state, config, *, store):
+    user_id = config[&quot;configurable&quot;][&quot;user_id&quot;]</p>
+<p># Pull relevant memories from the store
+    memories = store.search(
+        namespace=(&quot;user_facts&quot;, user_id),
+        query=state[&quot;messages&quot;][-1].content,
+        limit=3
+    )
+    mem_context = &quot;\n&quot;.join(m.value[&quot;content&quot;] for m in memories)</p>
+<p>system = f&quot;User preferences:\n{mem_context}\n\nAssistant instructions...&quot;
+    return {&quot;messages&quot;: [model.invoke([SystemMessage(system)] + state[&quot;messages&quot;])]}
+```</p>
+<p>## What's different from the LangGraph checkpointer post</p>
+<p>The <a href="https://cloudcodetree.com/ai-news/2026-06-28-04-langgraph-memory-checkpointer-thread-id">earlier post on LangGraph memory</a> covered session-scoped memory: checkpointing conversation state tied to a <code>thread_id</code>. That's episodic/short-term — &quot;what happened in this session.&quot; Semantic memory is long-term: &quot;what do I know about this user across all sessions.&quot; Both are complementary; Lesson 5 uses them together.</p>
+<p><strong>Sources:</strong> <a href="https://www.deeplearning.ai/courses/long-term-agentic-memory-with-langgraph/">Long-Term Agentic Memory With LangGraph — DeepLearning.AI</a> | <a href="https://langchain-ai.github.io/langmem/hot_path_quickstart/">LangMem quickstart</a> | <a href="https://langchain-ai.github.io/langgraph/concepts/memory/">LangGraph memory concepts</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-01-langgraph-langmem-semantic-agent-memory.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-02-01-langgraph-langmem-semantic-agent-memory.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Write a CLAUDE.md That Actually Changes How Claude Code Works on Your Project]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-01-08-claude-md-project-instructions-guide/</link>
+    <guid isPermaLink="false">2026-07-01-08-claude-md-project-instructions-guide</guid>
+    <pubDate>Wed, 01 Jul 2026 20:05:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Best Practices]]></category>
+    <description><![CDATA[Most CLAUDE.md files get ignored because they're too vague. Five patterns that give Claude Code mechanically-followable instructions: constraints, commands, project layout, coding standards, and an…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-08-claude-md-project-instructions-guide.jpg" alt="" /></p>
+<p><strong>TL;DR: CLAUDE.md only changes Claude Code's behavior when it contains mechanically-followable instructions — constraints, exact commands, file paths, and anti-patterns, not descriptions of intent.</strong></p>
+<p><code>CLAUDE.md</code> is Claude Code's project memory — read at the start of every session and consulted before every action. But most developers write it like a README: &quot;This is a Next.js app using TypeScript and Tailwind.&quot; That describes the project; it doesn't constrain behavior. Claude already knows what TypeScript looks like. The patterns that actually work are ones Claude can check against mechanically.</p>
+<hr />
+<p>## 1. Hard constraints (the most powerful)</p>
+<p>Tell Claude what it must never touch. These are checked before any edit:</p>
+<p>``<code>markdown
+## Constraints
+- Never edit </code>public/blog/posts.json<code> directly — all blog content goes through </code>scripts/publish-post.mjs<code>
+- Never commit </code>.env*<code> files
+- Never install a package without asking first — the pnpm workspace has strict version pins
+</code>``</p>
+<p>## 2. Default commands</p>
+<p>Claude Code tries to run tests and lint on its own. Tell it exactly what to use:</p>
+<p>``<code>markdown
+## Commands
+- Test: </code>pnpm test<code>
+- Lint: </code>pnpm run lint<code>
+- Build: </code>pnpm run build<code> (runs type-check; never skip errors)
+- Dev server: </code>pnpm run dev<code> at http://localhost:3000
+</code>``</p>
+<p>## 3. Architecture that isn't obvious from filenames</p>
+<p>Patterns Claude can't infer from structure alone:</p>
+<p>``<code>markdown
+## Architecture notes
+- App Router is the live code (</code>app/<code>). The legacy </code>src/<code> tree is retired — don't touch it.
+- Blog posts render from </code>posts.json<code>; there are no per-post </code>.md<code> files.
+- All images live on the GitHub Release CDN, never in the repo.
+</code>``</p>
+<p>## 4. Coding standards as negative rules</p>
+<p>&quot;Prefer X&quot; is weak. &quot;Never do Y&quot; is strong:</p>
+<p>``<code>markdown
+## Code standards
+- No default exports in component files — named exports only
+- Never add console.log to committed code
+- No </code>any<code> in TypeScript without a comment explaining why
+</code>``</p>
+<p>## 5. Scope the file to this project</p>
+<p>Project-agnostic preferences go in <code>~/.claude/CLAUDE.md</code> (global). Your project file should only contain what is specific and different about <em>this</em> codebase. Mixing global preferences with project rules dilutes both.</p>
+<hr />
+<p><strong>What doesn't work:</strong>
+- Long prose descriptions of the tech stack (Claude knows what React is)
+- &quot;Prefer readable code over clever code&quot; (unmeasurable)
+- Rules about things Claude doesn't touch (wasted tokens on every session start)
+- Historical decisions (&quot;We switched from X to Y because...&quot;) — put those in git commit messages</p>
+<p>Keep it short. Every sentence costs tokens at the start of every session. The best CLAUDE.md files are 20–40 lines of precise constraints, not a 200-line architectural doc.</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/memory">Claude Code project memory docs</a> | <a href="https://code.claude.com/docs/en/best-practices">Claude Code best practices</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-08-claude-md-project-instructions-guide.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-08-claude-md-project-instructions-guide.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Keep Your RAG Knowledge Base Fresh: LlamaIndex Document Management for Real Apps]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-01-07-llamaindex-knowledge-base-document-management/</link>
+    <guid isPermaLink="false">2026-07-01-07-llamaindex-knowledge-base-document-management</guid>
+    <pubDate>Wed, 01 Jul 2026 20:03:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[RAG]]></category>
+    <category><![CDATA[Embeddings]]></category>
+    <description><![CDATA[Track, update, and delete documents in your vector store without rebuilding from scratch — LlamaIndex's insert/update/delete/refresh_ref_docs API in a runnable walk-through.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-07-llamaindex-knowledge-base-document-management.jpg" alt="" /></p>
+<p><strong>TL;DR: Your RAG pipeline's first job is ingestion; its second is staying current — use LlamaIndex's insert/update/delete/refresh_ref_docs API to add, change, and remove docs without rebuilding your whole index.</strong></p>
+<p><strong>What you'll be able to do after this:</strong></p>
+<p>- Add new documents to an existing index without re-embedding everything from scratch
+- Update or delete specific documents when content changes or goes stale
+- Use <code>refresh_ref_docs</code> to batch-update only the documents that have actually changed — saving embed API calls</p>
+<hr />
+<p>Once your basic RAG pipeline works, you hit the real challenge: keeping it current. Source documents change, new ones arrive, old ones get revoked. Rebuilding the whole index from scratch is fine for demos — at production scale it's too slow and wastes money re-embedding unchanged content.</p>
+<p>LlamaIndex's document management API gives you surgical control. Install and build your index with persistence so it survives between runs:</p>
+<p>``<code>bash
+pip install llama-index llama-index-core
+</code>``</p>
+<p>```python
+from llama_index.core import VectorStoreIndex, Document, StorageContext
+from llama_index.core.storage.docstore import SimpleDocumentStore</p>
+<p># Build once with a persistent doc_id per document
+docs = [
+    Document(text=&quot;Q4 earnings report content...&quot;, doc_id=&quot;doc-001&quot;),
+    Document(text=&quot;Company policy document...&quot;,    doc_id=&quot;doc-002&quot;),
+]
+storage_ctx = StorageContext.from_defaults(docstore=SimpleDocumentStore())
+index = VectorStoreIndex.from_documents(docs, storage_context=storage_ctx)
+index.storage_context.persist(&quot;./storage&quot;)
+```</p>
+<p><strong>Reload later and update without rebuilding:</strong></p>
+<p>```python
+from llama_index.core import load_index_from_storage</p>
+<p>storage = StorageContext.from_defaults(persist_dir=&quot;./storage&quot;)
+index = load_index_from_storage(storage)</p>
+<p># Add a new document
+index.insert(Document(text=&quot;New policy added today&quot;, doc_id=&quot;doc-042&quot;))</p>
+<p># Update content that changed (LlamaIndex deletes + re-embeds under the hood)
+index.update_ref_doc(Document(text=&quot;Updated Q4 report — revised figures&quot;, doc_id=&quot;doc-001&quot;))</p>
+<p># Delete a stale or revoked document
+index.delete_ref_doc(&quot;doc-002&quot;, delete_from_docstore=True)
+```</p>
+<p><strong>Batch refresh: only re-embed what changed</strong></p>
+<p><code>refresh_ref_docs</code> is the workhorse for scheduled syncs. It hashes each document's content against what's stored — if unchanged, it skips the embed call entirely:</p>
+<p>``<code>python
+# Pass the current version of every document in your source
+current_docs = [
+    Document(text=read_file(&quot;q4-report.md&quot;),  doc_id=&quot;doc-001&quot;),
+    Document(text=read_file(&quot;policy.md&quot;),     doc_id=&quot;doc-002&quot;),
+]
+refreshed = index.refresh_ref_docs(current_docs)
+# refreshed[i] = True if doc i was re-indexed, False if unchanged
+print(f&quot;Re-indexed {sum(refreshed)}/{len(refreshed)} docs&quot;)
+</code>``</p>
+<p><strong>The production maintenance loop:</strong></p>
+<p>1. Build the index once with <code>persist_dir</code> set
+2. Nightly job: call <code>refresh_ref_docs</code> with the latest version of every source document
+3. Hard deletes (revoked docs): call <code>delete_ref_doc</code> immediately, don't wait for the nightly run
+4. New documents: <code>index.insert()</code> any time — no rebuild required</p>
+<p>This turns your knowledge base from a one-time build artifact into a long-running service that stays synchronized with your source content.</p>
+<p><strong>Sources:</strong> <a href="https://docs.llamaindex.ai/en/stable/module_guides/indexing/document_management/">LlamaIndex Document Management docs</a> | <a href="https://realpython.com/llamaindex-examples/">LlamaIndex in Python — Real Python</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-07-llamaindex-knowledge-base-document-management.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-07-llamaindex-knowledge-base-document-management.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Four Commands That Rescue Any Claude Code Session: /rewind, /compact, --continue, --resume]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-01-06-claude-code-session-recovery-rewind/</link>
+    <guid isPermaLink="false">2026-07-01-06-claude-code-session-recovery-rewind</guid>
+    <pubDate>Wed, 01 Jul 2026 12:05:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Best Practices]]></category>
+    <description><![CDATA[Context full? Wrong /clear? Closed the terminal? Lost the thread? Four Claude Code commands cover every session-recovery scenario — with the exact keystrokes for each.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-06-claude-code-session-recovery-rewind.jpg" alt="" /></p>
+<p><strong>TL;DR: /compact when context fills, /rewind when you overshoot, claude --continue when you closed the terminal — four commands cover every session-recovery scenario in Claude Code.</strong></p>
+<p>Every Claude Code engineer eventually hits one of four session-ending moments. Here's the fix for each.</p>
+<hr />
+<p>## 1. Context window is filling up — <code>/compact</code></p>
+<p>Run <code>/compact</code> to compress the conversation into a structured summary while keeping file and tool state intact. Add an instruction to control what's preserved:</p>
+<p>``<code>
+/compact keep the migration plan, the list of failing tests, and the current file state
+</code>``</p>
+<p>Check <code>/context</code> first to see your live token breakdown. Aim to compact at <strong>40–50% window usage</strong> — waiting until 80% means the resulting summary is already degraded.</p>
+<hr />
+<p>## 2. Made a mistake, or ran <code>/clear</code> and regretted it — <code>/rewind</code></p>
+<p>Press <strong>Esc Esc</strong> or type <code>/rewind</code> to open the rewind menu. As of Week 26 (v2.1.185+), you can now rewind past a <code>/clear</code> to recover the conversation and file state from before it ran. Choose from:</p>
+<p>- Restore conversation only
+- Restore files only
+- Restore both</p>
+<p>``<code>
+Esc Esc  →  rewind menu  →  pick a checkpoint before /clear
+</code>``</p>
+<p>Note: <code>/rewind</code> can't undo external effects (git pushes, npm installs, API calls). It restores Claude's state, not the outside world.</p>
+<hr />
+<p>## 3. Closed the terminal — <code>claude --continue</code></p>
+<p>Claude Code persists every session locally. Resume the most recent session exactly where you left it:</p>
+<p>``<code>bash
+claude --continue       # resumes the most recent session
+claude --resume         # shows a list of sessions to pick from
+</code>``</p>
+<p>Checkpoints survive across terminal restarts, so closing a tab mid-task isn't the end.</p>
+<hr />
+<p>## 4. Session has lost the thread — summarize and restart</p>
+<p>When a session has accumulated too many wrong turns, <code>/compact</code> it with a tight instruction, then open a fresh session with the compact summary as the opening message. Cleaner than fighting a degraded context:</p>
+<p>```
+# In the dying session:
+/compact extract: the goal, what we've tried, current file state, next step</p>
+<p># In a new session:
+claude --new
+[paste the compact summary as your first message]
+```</p>
+<p>Keep <code>/usage</code> in your toolkit — it shows what's driving your plan limits (skills, subagents, MCP calls) so you can see when to compact before things get bad.</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/best-practices">Claude Code best practices</a> | <a href="https://code.claude.com/docs/en/whats-new">Week 26 what's new</a> | <a href="https://code.claude.com/docs/en/whats-new/2026-w26">Session management</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-06-claude-code-session-recovery-rewind.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-06-claude-code-session-recovery-rewind.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Three Claude Code Week 26 Upgrades Worth Knowing: Shell MCP Auth, Rewind Past /clear, Background Prompt Relay]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-01-05-claude-code-w26-mcp-login-rewind-clear/</link>
+    <guid isPermaLink="false">2026-07-01-05-claude-code-w26-mcp-login-rewind-clear</guid>
+    <pubDate>Wed, 01 Jul 2026 12:04:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[MCP]]></category>
+    <description><![CDATA[Week 26 (v2.1.185-v2.1.193) ships three workflow fixes: authenticate MCP servers from the shell, rewind past a /clear, and catch background agent prompts in the main session.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-05-claude-code-w26-mcp-login-rewind-clear.jpg" alt="" /></p>
+<p><strong>TL;DR: Claude Code Week 26 ships MCP shell auth, /rewind past /clear, and background agent permission prompts that reach you instead of silently dying — update to v2.1.185+.</strong></p>
+<p>Three Week 26 (June 22–26) changes that fix real papercuts in multi-agent and MCP workflows:</p>
+<p><strong><code>claude mcp login &lt;server-name&gt;</code></strong> — authenticate a configured MCP server directly from your shell instead of navigating the interactive <code>/mcp</code> menu. Clear stored credentials later with <code>claude mcp logout</code>. Useful when scripting environment setup or onboarding teammates.</p>
+<p><strong><code>/rewind</code> now reaches past <code>/clear</code></strong> — previously, clearing context was permanent within a session. You can now open the rewind menu after <code>/clear</code> and step back to before it ran, recovering both the conversation and the file state at that checkpoint.</p>
+<p><strong>Background subagents relay permission prompts</strong> — instead of auto-denying and failing silently, background agents now surface permission prompts in your main session. Long overnight runs that hit an unexpected file write or shell command will pause and ask rather than halt with a cryptic error.</p>
+<p><strong>Why it matters:</strong> These three changes together make multi-session, background-agent workflows substantially more reliable. A background task that hits a prompt no longer silently fails; a context clear is no longer irreversible; and MCP setup is one command instead of a menu hunt.</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/whats-new">Claude Code what's new — Week 26</a> | <a href="https://code.claude.com/docs/en/changelog">Claude Code changelog</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-05-claude-code-w26-mcp-login-rewind-clear.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-05-claude-code-w26-mcp-login-rewind-clear.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Your First Complete RAG Pipeline: Ingestion, Retrieval, and Generation in 50 Lines]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-01-04-rag-pipeline-end-to-end-from-scratch/</link>
+    <guid isPermaLink="false">2026-07-01-04-rag-pipeline-end-to-end-from-scratch</guid>
+    <pubDate>Wed, 01 Jul 2026 12:03:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[RAG]]></category>
+    <category><![CDATA[Embeddings]]></category>
+    <description><![CDATA[Wire everything together: load documents, embed into ChromaDB, retrieve by semantic similarity, generate with citations. The end-to-end RAG loop in under 50 lines of Python.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-04-rag-pipeline-end-to-end-from-scratch.jpg" alt="" /></p>
+<p><strong>TL;DR: Build a working RAG system from scratch — load docs, embed into a vector store, retrieve by semantic similarity, generate with context. Under 50 lines, no framework magic.</strong></p>
+<p><strong>What you'll be able to do after this:</strong></p>
+<p>- Ingest any document into a local vector store and retrieve semantically relevant chunks on any query
+- Wire retrieval into a generation step to get grounded answers with source citations
+- Understand each stage of the pipeline so you can tune chunk size, swap models, or move to a hosted vector DB</p>
+<hr />
+<p>You've seen embeddings, vector stores, and chunking in isolation. This is where they connect. Every production RAG system — whether it's a customer support bot, a codebase Q&amp;A tool, or a document search API — runs the same five-stage loop:</p>
+<p><strong>Load → Split → Embed → Retrieve → Generate</strong></p>
+<p>Here's the runnable version using LangChain, ChromaDB, and OpenAI. Set <code>OPENAI_API_KEY</code>, then:</p>
+<p>``<code>bash
+pip install langchain langchain-openai langchain-chroma langchain-community
+</code>``</p>
+<p>```python
+from langchain_community.document_loaders import WebBaseLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough</p>
+<p># 1. Load — swap WebBaseLoader for PyPDFLoader, CSVLoader, etc.
+loader = WebBaseLoader(&quot;https://lilianweng.github.io/posts/2023-06-23-agent/&quot;)
+docs = loader.load()</p>
+<p># 2. Split — 1000-char chunks, 200-char overlap
+splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+splits = splitter.split_documents(docs)</p>
+<p># 3. Embed + Store — ChromaDB persists locally by default
+vectorstore = Chroma.from_documents(splits, OpenAIEmbeddings())</p>
+<p># 4. Retrieve — top-k semantic search (default k=4)
+retriever = vectorstore.as_retriever()</p>
+<p># 5. Generate — prompt injects retrieved context
+llm = ChatOpenAI(model=&quot;gpt-4o-mini&quot;)
+prompt = ChatPromptTemplate.from_template(
+    &quot;Answer based only on the context below.\n\nContext:\n{context}\n\nQuestion: {question}&quot;
+)
+rag_chain = (
+    {&quot;context&quot;: retriever, &quot;question&quot;: RunnablePassthrough()}
+    | prompt | llm | StrOutputParser()
+)</p>
+<p>print(rag_chain.invoke(&quot;What is an LLM agent?&quot;))
+```</p>
+<p><strong>What to try next:</strong></p>
+<p>- Swap the loader: <code>PyPDFLoader(&quot;my_doc.pdf&quot;)</code> or <code>DirectoryLoader(&quot;./docs&quot;)</code> for local files
+- Add a <code>persist_directory</code> to ChromaDB so the vector store survives between runs
+- Raise <code>k</code> in <code>as_retriever(search_kwargs={&quot;k&quot;: 8})</code> to widen recall on dense docs
+- Try a sentence-transformers embedding model instead of OpenAI to run fully local</p>
+<p>The video linked below walks through this pattern step by step, explains why each piece exists, and covers advanced query translation strategies once the basic pipeline is working.</p>
+<p><strong>Sources:</strong> <a href="https://www.freecodecamp.org/news/mastering-rag-from-scratch/">Learn RAG From Scratch — freeCodeCamp</a> | <a href="https://www.youtube.com/watch?v=sVcwVQRHIc8">YouTube walkthrough (2.5 hr, Lance Martin / LangChain)</a> | <a href="https://docs.langchain.com/oss/python/langchain/rag">LangChain RAG tutorial</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-04-rag-pipeline-end-to-end-from-scratch.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-04-rag-pipeline-end-to-end-from-scratch.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[A 1M-Token Context Window Is Now Claude Code's Default — Here's What to Do With It]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-01-03-sonnet5-1m-context-claude-code-workflows/</link>
+    <guid isPermaLink="false">2026-07-01-03-sonnet5-1m-context-claude-code-workflows</guid>
+    <pubDate>Wed, 01 Jul 2026 04:10:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <description><![CDATA[Claude Sonnet 5 is now Claude Code's default model with a 1M-token context window — large enough for your entire codebase. Here are three workflows that weren't practical before.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-03-sonnet5-1m-context-claude-code-workflows.jpg" alt="" /></p>
+<p><strong>TL;DR: Claude Sonnet 5 is Claude Code's new default with a 1M-token context window — large enough for your whole codebase; here are three workflows that weren't practical before.</strong></p>
+<p>Sonnet 5 shipped June 30 and became Claude Code's default on July 1 (v2.1.197). The model is a meaningful upgrade in agentic ability, but the headline for day-to-day use is the context window: <strong>1 million tokens</strong> — roughly 750,000 words, or a typical medium-sized codebase in one shot.</p>
+<p>Here's what that changes in practice:</p>
+<p>## 1 — Full-codebase questions without CLAUDE.md gymnastics</p>
+<p>Before, you'd maintain a <code>CLAUDE.md</code> that carefully trimmed what Claude needed to &quot;remember&quot; so sessions didn't overflow. With a 1M window you can feed an entire <code>src/</code> tree directly and ask cross-file questions without any manual summarization:</p>
+<p>``<code>bash
+# Pull in everything under src/ in one shot
+cat $(git ls-files 'src/**/*.ts') | claude -p &quot;Find every place we handle auth tokens and summarize the flow&quot;
+</code>``</p>
+<p>This isn't practical with an 8K or 200K window — it's practical with 1M.</p>
+<p>## 2 — Multi-file refactors with full dependency context</p>
+<p>Before, a large refactor required breaking the task into sub-sessions or relying on summarized CLAUDE.md state. Now you can tell Claude Code to open every file touching the API layer, understand the full call graph, and produce the refactor plan in one pass:</p>
+<p>``<code>
+/chat Show me every file that imports from lib/api.ts, then propose a migration plan to the new fetchClient interface — load all of them, no partial reads
+</code>``</p>
+<p>The model holds the full dependency graph in context and reasons about impact before touching anything.</p>
+<p>## 3 — Long-running background sessions with rich context</p>
+<p>Claude Code's background sessions (stabilized in Week 27, v2.1.196) combine naturally with the 1M context window. Start a background session on a long task and it can accumulate a full trace of tool calls and file reads without context getting trimmed mid-run:</p>
+<p>``<code>bash
+claude --session long-migration --background \
+  &quot;Migrate all 47 service files from legacy-client to new-client. Stage each file's changes before moving to the next.&quot;
+</code>``</p>
+<p><strong>On pricing:</strong> Sonnet 5 is at introductory rates ($2/$10 per Mtok) through August 31 — after that it moves to $3/$15. Large context reads are cheap right now; build the workflows while pricing is promotional.</p>
+<p><strong>Sources:</strong> <a href="https://www.anthropic.com/news/claude-sonnet-5">Introducing Claude Sonnet 5</a> | <a href="https://code.claude.com/docs/en/whats-new">Claude Code changelog</a> | <a href="https://www.anthropic.com/pricing">Sonnet 5 pricing</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-03-sonnet5-1m-context-claude-code-workflows.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-03-sonnet5-1m-context-claude-code-workflows.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Fable 5 Is Back and Sonnet 5 Is the New Default: Two Major Launches on July 1]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-01-02-fable5-returns-sonnet5-news/</link>
+    <guid isPermaLink="false">2026-07-01-02-fable5-returns-sonnet5-news</guid>
+    <pubDate>Wed, 01 Jul 2026 04:09:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[LLM]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <description><![CDATA[US export controls on Claude Fable 5 and Mythos 5 are lifted as of today; Claude Sonnet 5 simultaneously becomes Claude Code's default with a 1M-token context window at $2/$10 per Mtok through Augu…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-02-fable5-returns-sonnet5-news.jpg" alt="" /></p>
+<p><strong>TL;DR: Fable 5 and Mythos 5 are back globally today; Claude Sonnet 5 is simultaneously Claude Code's new default with a 1M-token context window and promotional pricing.</strong></p>
+<p><strong>Fable 5 and Mythos 5 return globally.</strong> Anthropic announced today that the US Department of Commerce has lifted the export restrictions imposed on June 12 after a White House-directed security review. Access to both models is being restored as of July 1 — the restrictions, which blocked all non-US users from the models, lasted 19 days.</p>
+<p><strong>Why it matters:</strong> If Fable 5 is in your stack or in your customers' environments, it's available again today.</p>
+<p><strong>Claude Sonnet 5 is now Claude Code's default.</strong> Anthropic launched Sonnet 5 on June 30; it became the default for Free and Pro users on claude.ai and in Claude Code on July 1. Key specs: 1M-token native context window, sharper agentic coding and tool use, improved vision. Introductory pricing: <strong>$2/$10 per million input/output tokens through August 31</strong>, then $3/$15. API model ID: <code>claude-sonnet-5-20260630</code>. Also live in Cursor, VS Code Copilot, and GitHub Copilot.</p>
+<p><strong>Why it matters:</strong> Sonnet 5 at roughly half Opus's price with a matching 1M context window changes the default choice for agentic pipelines — most Claude Code users pick it up automatically today.</p>
+<p><strong>Sources:</strong> <a href="https://www.anthropic.com/news/claude-fable-5-mythos-5">Anthropic: Fable 5 &amp;amp; Mythos 5</a> | <a href="https://www.aljazeera.com/economy/2026/7/1/us-lifts-restrictions-on-powerful-ai-models-fable-mythos-anthropic-says">Al Jazeera: US lifts export controls</a> | <a href="https://www.anthropic.com/news/claude-sonnet-5">Introducing Claude Sonnet 5</a> | <a href="https://code.claude.com/docs/en/whats-new">Claude Code changelog</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-02-fable5-returns-sonnet5-news.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-02-fable5-returns-sonnet5-news.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Cut Your Chunks Right: The 5 Levels of Text Splitting Every RAG Builder Needs to Know]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-07-01-01-document-chunking-5-levels-rag/</link>
+    <guid isPermaLink="false">2026-07-01-01-document-chunking-5-levels-rag</guid>
+    <pubDate>Wed, 01 Jul 2026 04:08:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[RAG]]></category>
+    <category><![CDATA[Embeddings]]></category>
+    <description><![CDATA[Before you pick a vector database or a reranker, your chunking strategy determines retrieval quality. Greg Kamradt's 5-level framework gives you the decision ladder from fixed splits to agentic chu…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-01-document-chunking-5-levels-rag.jpg" alt="" /></p>
+<p><strong>TL;DR: How you chunk documents determines 80% of RAG retrieval quality — start with RecursiveCharacterTextSplitter, then climb the 5-level framework as your use case demands.</strong></p>
+<p><strong>What you'll be able to do after this:</strong>
+- Pick the right chunking strategy for any document type — code, prose, structured data
+- Tune <code>chunk_size</code> and <code>chunk_overlap</code> to match your embedding model and query patterns
+- Know when to graduate from fixed splits to semantic or agentic chunking</p>
+<p>## Why chunking is the first thing that matters</p>
+<p>A RAG pipeline retrieves by vector similarity: your question embedding is compared to every chunk embedding, and the closest chunks are sent to the LLM. If a good answer is split across two chunks, neither chunk ranks highly — and the LLM never sees the full context. Get chunking wrong and no amount of reranking or prompt engineering fixes it.</p>
+<p>Greg Kamradt laid out the definitive framework in his <a href="https://www.youtube.com/watch?v=8OJC21T2SL4">5 Levels of Text Splitting</a> walkthrough. Here's the ladder:</p>
+<p>## Level 1 — Fixed character splits (naive baseline)</p>
+<p>Split every N characters regardless of content:</p>
+<p>```python
+from langchain_text_splitters import CharacterTextSplitter</p>
+<p>splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+docs = splitter.split_text(raw_text)
+```</p>
+<p>Simplest to implement. Breaks mid-sentence constantly. Use only as a quick sanity-check — never ship this.</p>
+<p>## Level 2 — Recursive character splitting (your default)</p>
+<p>Try paragraph breaks first (`</p>
+<p>`), then line breaks, then sentence endings, then words — recursively re-splitting with the next separator until chunks are small enough:</p>
+<p>```python
+from langchain_text_splitters import RecursiveCharacterTextSplitter</p>
+<p>splitter = RecursiveCharacterTextSplitter(
+    chunk_size=512,
+    chunk_overlap=64,      # ~12% overlap — a reliable starting point
+    separators=[&quot;</p>
+<p>&quot;, &quot;
+&quot;, &quot;. &quot;, &quot; &quot;, &quot;&quot;],
+)
+docs = splitter.create_documents([raw_text])
+```</p>
+<p>This is the &quot;swiss army knife&quot; — respects natural text boundaries without needing schema knowledge. <strong>Start here for any new project.</strong></p>
+<p><strong>Choosing chunk_size:</strong> factoid Q&amp;A → 256–512 tokens; analytical queries → 1024+. If unsure, 512 with 64-token overlap is your default.</p>
+<p>## Level 3 — Document-specific splitting</p>
+<p>Code, Markdown, HTML, and PDFs each have structure worth preserving:</p>
+<p>```python
+from langchain_text_splitters import MarkdownHeaderTextSplitter</p>
+<p>headers = [(&quot;#&quot;, &quot;h1&quot;), (&quot;##&quot;, &quot;h2&quot;), (&quot;###&quot;, &quot;h3&quot;)]
+splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers)
+md_docs = splitter.split_text(markdown_content)
+# Each chunk carries metadata: {&quot;h1&quot;: &quot;Installation&quot;, &quot;h2&quot;: &quot;Quick Start&quot;}
+```</p>
+<p>The metadata matters: you can later filter on <code>h1 == &quot;API Reference&quot;</code> to scope retrieval to the right section before any similarity search runs.</p>
+<p>## Level 4 — Semantic splitting</p>
+<p>Group sentences by meaning — embed adjacent sentences, split when similarity drops sharply:</p>
+<p>```python
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_openai import OpenAIEmbeddings  # or any embedder</p>
+<p>splitter = SemanticChunker(
+    OpenAIEmbeddings(),
+    breakpoint_threshold_type=&quot;percentile&quot;,  # split at bottom 10% similarity drops
+)
+docs = splitter.create_documents([raw_text])
+```</p>
+<p>Benchmarks show up to ~70% lift in retrieval recall over naive fixed splits. The cost: each sentence gets embedded during the split phase, roughly doubling ingestion time. Worth it for unstructured corpora with varied topic density.</p>
+<p>## Level 5 — Agentic splitting</p>
+<p>Use an LLM to extract <em>propositions</em> — atomic, self-contained statements — from a passage, then embed each proposition. The chunk becomes a semantic unit the model decided was standalone.</p>
+<p>Highest precision, highest cost. Use it when queries are very specific and documents are dense (research papers, legal contracts).</p>
+<p>## What to ship</p>
+<p>Start at Level 2. Measure retrieval quality with a small eval set (see the <a href="https://cloudcodetree.com/ai-news/2026-06-25-03-rag-evaluation-ragas-faithfulness-recall">RAGAS post</a> if you missed it). If recall is below ~0.7, move up the ladder — Level 3 if your docs have structure, Level 4 if topics shift inside documents, Level 5 for high-stakes dense corpora.</p>
+<p><strong>Sources:</strong> <a href="https://www.youtube.com/watch?v=8OJC21T2SL4">5 Levels of Text Splitting — YouTube</a> | <a href="https://docs.langchain.com/oss/python/integrations/splitters/recursive_text_splitter">LangChain RecursiveCharacterTextSplitter docs</a> | <a href="https://unstructured.io/blog/chunking-for-rag-best-practices">Unstructured.io chunking best practices</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-01-document-chunking-5-levels-rag.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-01-01-document-chunking-5-levels-rag.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Claude Code Hooks: Auto-Format, Block Secrets, and Notify — Wired in settings.json]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-06-30-08-claude-code-hooks-automation/</link>
+    <guid isPermaLink="false">2026-06-30-08-claude-code-hooks-automation</guid>
+    <pubDate>Tue, 30 Jun 2026 20:13:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Best Practices]]></category>
+    <description><![CDATA[Claude Code hooks run shell commands before and after every tool use — use them to auto-format edits, block dangerous operations, or send a desktop notification when a long task finishes.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-08-claude-code-hooks-automation.jpg" alt="" /></p>
+<p><strong>TL;DR: Claude Code hooks run any shell command before or after every tool call — wire them in <code>.claude/settings.json</code> to auto-format code, block unsafe operations, or send a notification when a multi-hour task completes.</strong></p>
+<p>Hooks are configured in <code>.claude/settings.json</code> (project-level, git-committed, shared by the team) or <code>~/.claude/settings.json</code> (user-level, all projects). Each entry names an event, an optional tool matcher, and the command to run:</p>
+<p>``<code>json
+{
+  &quot;hooks&quot;: {
+    &quot;PreToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Bash&quot;,
+        &quot;hooks&quot;: [
+          { &quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;bash .claude/hooks/secret-scan.sh&quot; }
+        ]
+      }
+    ],
+    &quot;PostToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Write|Edit|MultiEdit&quot;,
+        &quot;hooks&quot;: [
+          { &quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;bash .claude/hooks/format.sh&quot; }
+        ]
+      }
+    ]
+  }
+}
+</code>``</p>
+<p>## The four hook events</p>
+<p>| Event | Fires | Can block? |
+|---|---|---|
+| <code>PreToolUse</code> | Before any tool call | Yes — <code>exit 2</code> blocks the tool |
+| <code>PostToolUse</code> | After a tool succeeds | No |
+| <code>PostToolUseFailure</code> | After a tool errors | No |
+| <code>Stop</code> | When Claude finishes a turn | No |</p>
+<p>## Hook input and exit codes</p>
+<p>Every hook receives the tool's full JSON payload on <strong>stdin</strong> (read it with <code>cat</code>):</p>
+<p>``<code>bash
+input=&quot;$(cat)&quot;
+# Extract the Bash command being run
+cmd=$(printf '%s' &quot;$input&quot; | jq -r '.tool_input.command // empty')
+# For Edit/Write hooks, use .tool_input.file_path instead
+</code>``</p>
+<p>Exit codes:
+- <code>0</code> → proceed normally
+- <code>2</code> → block the tool; your stderr becomes Claude's feedback so it can adjust
+- anything else → proceed, error is logged</p>
+<p>## Pattern 1 — Block commits containing secrets</p>
+<p>```bash
+#!/usr/bin/env bash
+set -euo pipefail
+input=&quot;$(cat)&quot;
+cmd=$(printf '%s' &quot;$input&quot; | jq -r '.tool_input.command // empty')</p>
+<p>case &quot;$cmd&quot; in
+  <em>&quot;git commit&quot;</em>|<em>&quot;git push&quot;</em>)
+    diff=&quot;$(git diff --cached 2&gt;/dev/null || true)&quot;
+    if printf '%s' &quot;$diff&quot; \
+      | grep -Eq 'sk-ant-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}'; then
+      echo &quot;Blocked: secret detected in staged diff.&quot; &gt;&amp;2
+      exit 2
+    fi
+    ;;
+esac
+exit 0
+```</p>
+<p>Wire as a <code>PreToolUse</code> hook with <code>&quot;matcher&quot;: &quot;Bash&quot;</code>. When Claude tries to commit, the hook checks the diff; if a key is found, it exits 2 — Claude sees the block reason and will offer to remove the secret before retrying.</p>
+<p>## Pattern 2 — Auto-format after every file edit</p>
+<p>```bash
+#!/usr/bin/env bash
+set -euo pipefail
+fp=$(cat | jq -r '.tool_input.file_path // empty')
+[ -z &quot;$fp&quot; ] &amp;&amp; exit 0</p>
+<p>case &quot;$fp&quot; in
+  <em>.py)           black &quot;$fp&quot; 2&gt;/dev/null ;;
+  </em>.ts|<em>.tsx|</em>.js) prettier --write &quot;$fp&quot; 2&gt;/dev/null ;;
+  *.go)            gofmt -w &quot;$fp&quot; ;;
+esac
+exit 0
+```</p>
+<p>Wire as <code>PostToolUse</code> with <code>&quot;matcher&quot;: &quot;Write|Edit|MultiEdit&quot;</code>. Claude's next read of that file sees the formatted version — no separate &quot;please format&quot; prompt needed.</p>
+<p>## Pattern 3 — Desktop notification when a long task finishes</p>
+<p>``<code>bash
+#!/usr/bin/env bash
+# macOS / Linux
+osascript -e 'display notification &quot;Task complete&quot; with title &quot;Claude Code&quot;' \
+  2&gt;/dev/null \
+|| notify-send &quot;Claude Code&quot; &quot;Task complete&quot; 2&gt;/dev/null
+exit 0
+</code>``</p>
+<p>Wire as a <code>Stop</code> hook (no matcher — <code>Stop</code> has no tool to filter). After every session turn, the notification fires. Set <code>timeout: 0</code> if the notification command might exceed the default 10-second limit.</p>
+<p>## Matchers</p>
+<p>The <code>matcher</code> field is a regex matched against the tool name:</p>
+<p>``<code>
+&quot;Bash&quot;                   # shell commands only
+&quot;Write|Edit|MultiEdit&quot;   # any file-writing tool
+&quot;mcp__github__.*&quot;        # all GitHub MCP tools
+</code>``</p>
+<p>Omit <code>matcher</code> to match all tools for that event.</p>
+<p>Project hooks (<code>.claude/settings.json</code>) and user hooks (<code>~/.claude/settings.json</code>) both run — they stack. To temporarily disable all hooks without deleting them, set <code>&quot;disableAllHooks&quot;: true</code> in either file.</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/hooks">Hooks reference</a> | <a href="https://code.claude.com/docs/en/hooks-guide">Automate actions with hooks</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-08-claude-code-hooks-automation.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-08-claude-code-hooks-automation.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Claude Science Launches in Beta; Week 27 Delivers Background Reliability; Gemini 3.5 Pro Slips to July]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-06-30-07-claude-science-week27-gemini-delay/</link>
+    <guid isPermaLink="false">2026-06-30-07-claude-science-week27-gemini-delay</guid>
+    <pubDate>Tue, 30 Jun 2026 20:12:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[LLM]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <description><![CDATA[Anthropic launches Claude Science, a biopharma research workbench with 60+ database connectors. Claude Code Week 27 ships background session reliability. Gemini 3.5 Pro delayed to July.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-07-claude-science-week27-gemini-delay.jpg" alt="" /></p>
+<p><strong>TL;DR: Anthropic's Claude Science workbench launches in beta today with 60+ science database connectors; Claude Code Week 27 ships background session reliability; Gemini 3.5 Pro is confirmed delayed to July.</strong></p>
+<p><strong>Claude Science is live.</strong> Anthropic launched <a href="https://www.anthropic.com/news/claude-science">Claude Science</a> today at &quot;The Briefing: AI for Science,&quot; announcing a research workbench that puts Claude alongside 60+ pre-configured scientific databases — genomics, proteomics, structural biology, single-cell, and cheminformatics — in one auditable environment. It runs Opus 4.8 (not a new model) and is open in beta to Pro/Max/Team/Enterprise subscribers. Anthropic is also funding up to 50 external research projects at $30K each (apply by July 15). The architecture — curated domain connectors + Claude + auditable, re-runnable results — is the same pattern teams are already building with MCP. Seeing Anthropic ship it as a vertical product confirms that connector-first workbenches are the template for domain AI.</p>
+<p><strong>Why it matters:</strong> The connector ecosystem model validates the MCP-plus-Claude architecture for domain verticals; if you're building a specialized AI product, this is Anthropic's playbook.</p>
+<p><strong>Claude Code Week 27 (v2.1.196).</strong> Long-running background sessions now survive process restarts, updates, and stops on all platforms (including Windows). New: org admins can set a default model in the console, visible as &quot;Org default&quot; in <code>/model</code>; sessions get readable auto-generated names; file attachments are Cmd/Ctrl-clickable to reveal locally. See the <a href="https://code.claude.com/docs/en/changelog">full changelog</a>.</p>
+<p><strong>Why it matters:</strong> Background session reliability directly unblocks long-running agent tasks in CI pipelines that previously needed restart logic.</p>
+<p><strong>Gemini 3.5 Pro slips to July.</strong> Google's 2M-context frontier model, promised at I/O for June, is confirmed delayed. <a href="https://ai.google.dev/">Gemini Flash 3.5</a> (launched May 19, $1.50/$9.00 per million tokens) remains the live API option.</p>
+<p><strong>Sources:</strong> <a href="https://www.anthropic.com/news/claude-science">Claude Science announcement</a> | <a href="https://techcrunch.com/2026/06/30/anthropics-claude-science-bets-on-workflow-not-a-new-model-to-win-over-scientists/">TechCrunch</a> | <a href="https://code.claude.com/docs/en/changelog">Claude Code changelog</a> | <a href="https://cryptobriefing.com/google-delays-gemini-35-pro-launch-to-july-2026/">Gemini delay</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-07-claude-science-week27-gemini-delay.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-07-claude-science-week27-gemini-delay.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Get Typed Python Objects from Any LLM: Structured Output with instructor]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-06-30-06-instructor-structured-output-pydantic/</link>
+    <guid isPermaLink="false">2026-06-30-06-instructor-structured-output-pydantic</guid>
+    <pubDate>Tue, 30 Jun 2026 20:11:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[Agents]]></category>
+    <category><![CDATA[LLM]]></category>
+    <description><![CDATA[Wrap any LLM call with instructor and a Pydantic model — the library validates the schema, auto-retries on failure, and returns a typed Python object with no manual JSON parsing.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-06-instructor-structured-output-pydantic.jpg" alt="" /></p>
+<p><strong>TL;DR: Wrap any LLM client with <code>instructor</code> and a Pydantic model — the library validates the response schema, auto-retries on validation failure, and returns a typed Python object with zero JSON parsing.</strong></p>
+<p><strong>What you'll be able to do after this:</strong>
+- Define exactly what data you need from an LLM as a Python dataclass — no prompt-engineering around output format
+- Get typed, validated Python objects back with no try/except JSON parsing loops
+- Build extraction pipelines that self-heal when the model returns a bad response</p>
+<p>## The problem instructor solves</p>
+<p>Every agent and extraction pipeline hits the same wall: you ask Claude to return JSON and it responds with slightly-wrong JSON — a missing field, a string where you expected an int, or a stray comment. You add a try/except, then a retry, and soon the retry logic outweighs the feature.</p>
+<p><code>instructor</code> handles this at the library level. Define your output as a Pydantic <code>BaseModel</code>, and the library takes care of schema enforcement, retries, and parsing.</p>
+<p>## Install and wire up Claude</p>
+<p>``<code>bash
+pip install instructor anthropic
+</code>``</p>
+<p>```python
+import instructor
+from anthropic import Anthropic
+from pydantic import BaseModel</p>
+<p># Wrap the Anthropic client once at startup
+client = instructor.from_anthropic(Anthropic())
+```</p>
+<p>## Basic extraction</p>
+<p>```python
+from typing import Literal</p>
+<p>class BugReport(BaseModel):
+    title: str
+    severity: Literal[&quot;low&quot;, &quot;medium&quot;, &quot;high&quot;, &quot;critical&quot;]
+    affected_files: list[str]
+    suggested_fix: str</p>
+<p>bug = client.messages.create(
+    model=&quot;claude-opus-4-8&quot;,
+    max_tokens=1024,
+    messages=[{
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: f&quot;Analyze this diff and extract a bug report:\n\n{diff}&quot;
+    }],
+    response_model=BugReport,
+)</p>
+<p># bug is a validated BugReport instance — no JSON.loads(), no KeyError
+print(bug.severity)          # &quot;critical&quot;
+print(bug.affected_files)    # [&quot;src/auth.py&quot;, &quot;src/middleware.py&quot;]
+```</p>
+<p>Under the hood, <code>instructor</code> converts <code>response_model</code> into a tool definition, calls Claude with <code>tool_use</code>, parses the result into your Pydantic model, and retries automatically when validation fails. You never see the tool call plumbing.</p>
+<p>## Extracting a list of entities</p>
+<p>```python
+class Dependency(BaseModel):
+    name: str
+    version: str
+    is_dev: bool</p>
+<p>class Dependencies(BaseModel):
+    packages: list[Dependency]</p>
+<p>result = client.messages.create(
+    model=&quot;claude-haiku-4-5&quot;,
+    max_tokens=2048,
+    messages=[{
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: f&quot;Extract all dependencies from this package.json:\n\n{package_json}&quot;
+    }],
+    response_model=Dependencies,
+)</p>
+<p>for pkg in result.packages:
+    print(f&quot;{pkg.name}@{pkg.version}{'  [dev]' if pkg.is_dev else ''}&quot;)
+```</p>
+<p>## Self-healing with Pydantic validators</p>
+<p>When validation fails, <code>instructor</code> re-prompts the model with the error message and it self-corrects:</p>
+<p>```python
+from pydantic import field_validator</p>
+<p>class CodeReview(BaseModel):
+    issues: list[str]
+    overall_score: int</p>
+<p>@field_validator(&quot;overall_score&quot;)
+    @classmethod
+    def score_in_range(cls, v: int) -&gt; int:
+        if not 1 &lt;= v &lt;= 10:
+            raise ValueError(f&quot;Score must be 1–10, got {v}&quot;)
+        return v
+```</p>
+<p>If Claude returns <code>overall_score: 15</code>, Pydantic raises a <code>ValidationError</code>, <code>instructor</code> re-prompts with the error, and the next response self-corrects. Default: 3 retries (set <code>max_retries=n</code> in <code>from_anthropic()</code>).</p>
+<p>## Same pattern, any provider</p>
+<p>```python
+# Switch to a local Ollama model — same Pydantic schema, same code
+import instructor
+from openai import OpenAI</p>
+<p>local = instructor.from_openai(
+    OpenAI(base_url=&quot;http://localhost:11434/v1&quot;, api_key=&quot;ollama&quot;)
+)
+result = local.chat.completions.create(
+    model=&quot;llama3.2&quot;,
+    response_model=BugReport,
+    messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: prompt}],
+)
+```</p>
+<p><code>instructor</code> supports 15+ providers (Claude, GPT-4o, Gemini, Ollama, DeepSeek, OpenRouter, Fireworks) with the same <code>response_model</code> interface — swap the underlying model without touching business logic.</p>
+<p><strong>Sources:</strong> <a href="https://python.useinstructor.com/">instructor docs</a> | <a href="https://python.useinstructor.com/integrations/anthropic/">Anthropic integration</a> | <a href="https://www.youtube.com/watch?v=3xUW1Do9zOs">YouTube tutorial (Aug 2025)</a> | <a href="https://github.com/567-labs/instructor">GitHub</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-06-instructor-structured-output-pydantic.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-06-instructor-structured-output-pydantic.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Drive Claude from Shell Scripts: claude -p, Piped Input, and --output-format json]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-06-30-05-claude-p-non-interactive-json-pipeline/</link>
+    <guid isPermaLink="false">2026-06-30-05-claude-p-non-interactive-json-pipeline</guid>
+    <pubDate>Tue, 30 Jun 2026 12:13:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Best Practices]]></category>
+    <description><![CDATA[claude -p exits after one turn and --output-format json returns a machine-readable envelope — the building block for integrating Claude into CI/CD pipelines and shell scripts.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-05-claude-p-non-interactive-json-pipeline.jpg" alt="" /></p>
+<p><strong>TL;DR: <code>claude -p &quot;task&quot;</code> exits after one turn; add <code>--output-format json</code> and stdout becomes a machine-readable envelope with the result, token counts, and session ID — the building block for Claude in CI pipelines and scripts.</strong></p>
+<p>Claude Code's interactive session is powerful for exploratory work, but CI pipelines, pre-commit hooks, and shell scripts need a different pattern: input in, result out, process exits. <code>claude -p</code> (print mode) is that pattern.</p>
+<p>## The basics</p>
+<p>```bash
+# Ask Claude about piped content and exit
+git diff HEAD~1 | claude -p &quot;Summarize the breaking changes in this diff&quot;</p>
+<p># Process a specific file
+claude -p &quot;Does this code have any security issues?&quot; &lt; src/auth.ts</p>
+<p># Combine command output with a prompt
+npm test 2&gt;&amp;1 | claude -p &quot;Explain these failures and suggest fixes for each&quot;
+```</p>
+<p><code>-p</code> runs one turn and exits with code 0 on success, non-zero on error.</p>
+<p>## <code>--output-format json</code> for scripting</p>
+<p>By default, <code>claude -p</code> writes the model's response to stdout as plain text. Add <code>--output-format json</code> and you get a structured envelope:</p>
+<p>```bash
+result=$(claude -p &quot;List the three most critical TODOs&quot; \
+  --output-format json &lt; README.md)</p>
+<p>echo &quot;$result&quot; | jq -r '.result'              # model's full response text
+echo &quot;$result&quot; | jq '.usage.input_tokens'     # token usage
+echo &quot;$result&quot; | jq -r '.session_id'          # for logging / correlation
+```</p>
+<p>The JSON envelope fields: <code>result</code> (response text), <code>usage</code> (<code>input_tokens</code>, <code>output_tokens</code>), <code>session_id</code>.</p>
+<p>## <code>--output-format stream-json</code> for long outputs</p>
+<p>For tasks that produce large or time-sensitive output, <code>stream-json</code> emits one JSON object per line as the model generates:</p>
+<p>``<code>bash
+claude -p &quot;Audit every exported function for missing docs&quot; \
+  --output-format stream-json \
+  2&gt;/dev/null \
+  | while IFS= read -r line; do
+      type=$(echo &quot;$line&quot; | jq -r '.type // empty')
+      if [ &quot;$type&quot; = &quot;text&quot; ]; then
+        echo &quot;$line&quot; | jq -r '.text'
+      fi
+    done
+</code>``</p>
+<p>Each line carries a <code>type</code> field: <code>text</code>, <code>tool_use</code>, <code>tool_result</code>, <code>usage</code>. Redirect stderr to suppress the interactive spinner.</p>
+<p>## CI pattern: pass/fail from Claude's output</p>
+<p>``<code>yaml
+# .github/workflows/security-check.yml
+- name: AI security review
+  run: |
+    git diff origin/main...HEAD \
+      | claude -p &quot;Review for security issues. Last line must be PASS or FAIL.&quot; \
+        --output-format json \
+      | jq -r '.result' \
+      | tail -1 \
+      | grep -q &quot;^PASS&quot;
+</code>``</p>
+<p>Claude's exit code reflects process success, not Claude's verdict — parse the output to drive your CI gate.</p>
+<p>## Restrict tools for read-only analysis</p>
+<p>By default, <code>claude -p</code> can use all tools. Limit it for safer CI runs:</p>
+<p>``<code>bash
+claude -p &quot;Review this file for logic errors&quot; \
+  --allowedTools &quot;Read,Grep,Glob&quot; \
+  --output-format json \
+  &lt; src/service.ts
+</code>``</p>
+<p><code>--allowedTools</code> is a comma-separated list. A read-only set (<code>Read,Grep,Glob</code>) gives Claude full text analysis with no filesystem writes, no shell execution, no network.</p>
+<p><strong>Sources:</strong>
+- <a href="https://code.claude.com/docs/en/cli-reference">Claude Code CLI reference</a>
+- <a href="https://code.claude.com/docs/en/common-workflows">Common workflows — non-interactive use</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-05-claude-p-non-interactive-json-pipeline.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-05-claude-p-non-interactive-json-pipeline.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Claude in Microsoft Foundry Is Now Generally Available on Azure]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-06-30-03-claude-microsoft-foundry-ga-azure/</link>
+    <guid isPermaLink="false">2026-06-30-03-claude-microsoft-foundry-ga-azure</guid>
+    <pubDate>Tue, 30 Jun 2026 12:11:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[LLM]]></category>
+    <category><![CDATA[Cloud]]></category>
+    <description><![CDATA[Claude Opus 4.8 and Haiku 4.5 are GA in Microsoft Foundry — Azure Entra ID auth, US data zone option, Foundry Agent Service for orchestration, NVIDIA GB300 Blackwell Ultra GPUs.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-03-claude-microsoft-foundry-ga-azure.jpg" alt="" /></p>
+<p><strong>TL;DR: Claude Opus 4.8 and Haiku 4.5 are now GA in Microsoft Foundry on Azure — same Messages API, Azure Entra ID auth, US data zone option, and Foundry Agent Service for multi-step orchestration.</strong></p>
+<p><a href="https://azure.microsoft.com/en-us/blog/claude-in-microsoft-foundry-is-now-generally-available/">Claude is now generally available in Microsoft Foundry</a> (announced June 29), giving Azure-first teams a production path to Anthropic models through infrastructure they already manage.</p>
+<p><strong>Available now:</strong>
+- <strong>Claude Opus 4.8</strong> and <strong>Claude Haiku 4.5</strong> via the Messages API — same JSON schema as the Anthropic API, with prompt caching, extended thinking, and tool streaming
+- <strong>Foundry Agent Service</strong> to orchestrate multi-step Claude workflows alongside other Azure tools and knowledge sources
+- Running on <strong>NVIDIA GB300 Blackwell Ultra</strong> GPU infrastructure (NVL72 systems, Quantum-X800 InfiniBand)</p>
+<p><strong>Enterprise controls baked in:</strong>
+- Auth via <strong>Microsoft Entra ID</strong> — existing Azure identity, no new credential to manage or rotate
+- Azure RBAC for model access
+- <strong>Global or US data zone</strong> for data residency requirements
+- <strong>Zero data retention</strong> option: prompts and completions not retained after the API call</p>
+<p><strong>Why it matters:</strong> For engineering teams with existing Azure security postures and compliance reviews, Claude now slots into the same governance layer as everything else — Azure Key Vault, Entra ID, Azure Monitor, Azure DevOps pipelines. No second vendor review, no separate billing relationship. If your organization has already approved Azure, using Claude through Foundry carries over that approval.</p>
+<p><strong>Sources:</strong> <a href="https://azure.microsoft.com/en-us/blog/claude-in-microsoft-foundry-is-now-generally-available/">Microsoft Azure Blog</a> | <a href="https://www.anthropic.com/news/claude-in-microsoft-foundry">Anthropic announcement</a> | <a href="https://learn.microsoft.com/en-us/azure/foundry/foundry-models/how-to/use-foundry-models-claude">Foundry docs: Claude models</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-03-claude-microsoft-foundry-ga-azure.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-30-03-claude-microsoft-foundry-ga-azure.jpg" />
+  </item>
+  </channel>
+</rss>
