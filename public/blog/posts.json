@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-07-02-07-fine-tune-function-calling-trl-sfttrainer",
+    "title": "Fine-Tune a 2B Open Model for Function Calling — Cut Tool-Call Costs 10x With TRL SFTTrainer",
+    "excerpt": "Route expensive function calls to a fine-tuned 2B open model instead of proprietary APIs. TRL SFTTrainer has native tool_calls column support — one afternoon on a free Colab T4.",
+    "author": "Chris Harper",
+    "date": "07-02-2026",
+    "publishedAt": "2026-07-02T12:06:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Fine-Tuning",
+      "HuggingFace"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/learn/agents-course/bonus-unit1/fine-tuning",
+    "content": "**TL;DR: Use TRL's SFTTrainer to fine-tune a 2B model for function calling in one Colab afternoon — dedicate it to tool routing and cut API costs by 10x.**\n\nWhen your agent pipeline handles structured tool routing — pick a function, fill in args — a fine-tuned 2–8B open model matches proprietary APIs on that specific task at a fraction of the cost. TRL's `SFTTrainer` has native `tool_calls` column support (as of v0.24), so there's no preprocessing ceremony.\n\n## The data format\n\nEach training example needs messages with tool calls and the tool schema:\n\n```python\n{\n    \"messages\": [\n        {\"role\": \"user\", \"content\": \"What's the weather in Tokyo?\"},\n        {\"role\": \"assistant\", \"tool_calls\": [{\n            \"type\": \"function\",\n            \"function\": {\n                \"name\": \"get_weather\",\n                \"arguments\": \"{\"city\": \"Tokyo\", \"unit\": \"C\"}\"\n            }\n        }]}\n    ],\n    \"tools\": [weather_tool_json_schema]   # list of JSON schema objects\n}\n```\n\nA ready-made dataset: **NousResearch/hermes-function-calling-v1** (~11k instruction-following examples in Hermes chat format).\n\n## Training (free Colab T4 GPU)\n\n```python\nfrom datasets import load_dataset\nfrom trl import SFTTrainer, SFTConfig\nfrom peft import LoraConfig\nfrom transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig\n\nmodel_id = \"Qwen/Qwen3-2B-Instruct\"\ndataset = load_dataset(\"NousResearch/hermes-function-calling-v1\", split=\"train\")\n\nbnb_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type=\"nf4\")\nmodel = AutoModelForCausalLM.from_pretrained(\n    model_id, quantization_config=bnb_config, device_map=\"auto\"\n)\ntokenizer = AutoTokenizer.from_pretrained(model_id)\n\ntrainer = SFTTrainer(\n    model=model,\n    tokenizer=tokenizer,\n    train_dataset=dataset,\n    args=SFTConfig(\n        output_dir=\"./qwen-fn-caller\",\n        num_train_epochs=2,\n        per_device_train_batch_size=2,\n    ),\n    peft_config=LoraConfig(\n        r=16, lora_alpha=32, target_modules=\"all-linear\", task_type=\"CAUSAL_LM\"\n    ),\n)\ntrainer.train()\ntrainer.push_to_hub(\"your-org/qwen-fn-caller\")\n```\n\nRuns in ~1–2 hours on a free Colab T4.\n\n## Serve the fine-tuned adapter with vLLM\n\n```bash\npython -m vllm.entrypoints.openai.api_server   --model Qwen/Qwen3-2B-Instruct   --enable-lora   --lora-modules fn-caller=your-org/qwen-fn-caller   --enable-auto-tool-choice   --tool-call-parser qwen3\n```\n\nPair this with vLLM's strict mode (covered in today's teachable post) to guarantee schema-valid arguments from every call.\n\n## When to reach for this pattern\n\n- Your pipeline routes >1M tool calls/month — cost break-even vs. Claude/GPT arrives fast\n- Your tool set is bounded and stable, not a dynamic schema that changes weekly\n- Per-call latency matters and a 2B local model runs faster than an API round-trip\n\nThe HuggingFace agents-course bonus unit (linked below) includes the full walkthrough, including evaluation with a held-out test set to verify the fine-tune actually works.\n\n**Sources:** [HuggingFace agents-course: Fine-Tune for Function Calling](https://huggingface.co/learn/agents-course/bonus-unit1/fine-tuning) | [TRL SFTTrainer docs](https://huggingface.co/docs/trl/sft_trainer) | [hermes-function-calling-v1 dataset](https://huggingface.co/datasets/NousResearch/hermes-function-calling-v1)"
+  },
+  {
+    "id": "2026-07-02-05-anthropic-spacex-doubled-limits",
+    "title": "Anthropic's SpaceX Deal Doubles Claude Code Limits and 16x Opus API Throughput",
+    "excerpt": "Anthropic's SpaceX Colossus deal doubles Claude Code 5-hr limits for all paid plans and raises Tier 1 Opus API throughput 16x to 500k tokens/minute. Removes peak-hours cap for Pro/Max.",
+    "author": "Chris Harper",
+    "date": "07-02-2026",
+    "publishedAt": "2026-07-02T12:05:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Claude Code",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.anthropic.com/news/higher-limits-spacex",
+    "content": "**TL;DR: SpaceX's Colossus 1 data center (220k GPUs) gives Anthropic 300MW of new capacity — Claude Code's 5-hour limits are now doubled and Tier 1 Opus API throughput jumped 16x overnight.**\n\nAnthropic signed an agreement to access all compute capacity at SpaceX's Colossus 1 data center — 300+ megawatts and over 220,000 NVIDIA GPUs — with capacity coming online within the month.\n\nThe limit changes are live:\n\n**Claude Code (all paid plans):**\n- 5-hour rate limits **doubled** across Pro, Max, Team, and seat-based Enterprise\n- Peak-hours limit reduction **removed** for Pro and Max accounts\n\n**Claude API — Opus models:**\n- Tier 1: 30,000 → 500,000 tokens/minute (**16x increase**)\n- Higher tiers: proportional boosts\n\nThis joins a stack of compute commitments: 5 GW from Amazon (1 GW online end-of-2026), 5 GW from Google + Broadcom (2027), and $30B in Azure capacity via Microsoft + NVIDIA.\n\n**Why it matters:** For automated pipelines, the Opus API jump is the most actionable change — tasks that previously hit Tier 1 ceilings on complex code review or long-context reasoning can now run at full speed on Opus without upgrading your tier. Doubled Claude Code limits mean background agents can run more work per rolling window.\n\n**Sources:** [Anthropic announcement](https://www.anthropic.com/news/higher-limits-spacex)"
+  },
+  {
+    "id": "2026-07-02-06-vllm-strict-tool-calling-streaming-parser",
+    "title": "Make Tool Calls Reliable in Self-Hosted Models: vLLM's Strict Mode and Streaming Parser Engine",
+    "excerpt": "vLLM v0.24 ships VLLM_ENFORCE_STRICT_TOOL_CALLING (default: true) and a unified Streaming Parser Engine. Two flags that make self-hosted model tool calls schema-valid and streamable.",
+    "author": "Chris Harper",
+    "date": "07-02-2026",
+    "publishedAt": "2026-07-02T12:04:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Self-Hosting",
+      "Agents"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://docs.vllm.ai/en/latest/features/tool_calling/",
+    "content": "**TL;DR: vLLM v0.24 makes strict tool calling the default — add `strict: true` to your tool definition and arguments are guaranteed to be schema-valid JSON.**\n\n**What you'll be able to do after this:**\n- Launch a vLLM server that produces schema-valid JSON tool call arguments (strict mode, default in v0.24)\n- Stream tool-call responses token-by-token — no waiting for the complete argument block\n- Select the right parser for your model family and know the three schema rules for strict mode\n\n---\n\nThe failure mode: open models sometimes generate malformed JSON when calling tools — argument generation isn't constrained, so `{city: \"Tokyo\"}` (missing quotes) slips through and crashes your agent's parse step.\n\n**vLLM v0.24 fixes this with strict tool calling mode.** Two conditions activate schema-level constraint at the sampler:\n1. `VLLM_ENFORCE_STRICT_TOOL_CALLING=true` — **default in v0.24**, no action needed\n2. Each tool in your API request has `\"strict\": true` in its function definition\n\nWhen both are true and the selected parser supports structural tags, vLLM constrains argument token generation to valid JSON matching the schema.\n\n## Start the server\n\n```bash\npython -m vllm.entrypoints.openai.api_server   --model Qwen/Qwen3-8B-Instruct   --enable-auto-tool-choice   --tool-call-parser qwen3\n```\n\n`--enable-auto-tool-choice` is mandatory — it tells vLLM the model may decide when to call a tool.\n\n## Add `strict: true` to your tool definitions\n\n```python\ntools = [{\n    \"type\": \"function\",\n    \"function\": {\n        \"name\": \"search_files\",\n        \"description\": \"Search for files matching a query\",\n        \"parameters\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"query\": {\"type\": \"string\"},\n                \"top_k\": {\"type\": [\"integer\", \"null\"]}\n            },\n            \"required\": [\"query\", \"top_k\"],\n            \"additionalProperties\": False   # required for strict schemas\n        },\n        \"strict\": True   # activates schema-level constraint in vLLM\n    }\n}]\n```\n\nThree schema rules for strict mode: set `additionalProperties: false`, list every field in `required`, represent optional fields as `{\"type\": [\"string\", \"null\"]}` rather than omitting them from `required`.\n\n## Parser cheat sheet\n\n| Model family | `--tool-call-parser` value |\n|---|---|\n| Qwen3 | `qwen3` |\n| Llama 3.1 / 3.3 | `llama3_json` |\n| Mistral v0.3+ | `mistral` |\n| Hermes 2 Pro / Nous | `hermes` |\n| DeepSeek V3 | `deepseek_v3` |\n\n## The Streaming Parser Engine (v0.24 unification)\n\nPreviously each model family had its own streaming tool-call parser — thousands of lines of independent state machines with duplicated tokenization, argument buffering, and schema tracking. v0.24 unifies these under a single engine: token ID scanning → incremental lexing → state-machine semantic event emission.\n\nThe result: arguments stream token-by-token instead of buffering until the closing brace, and argument validation happens continuously. Parsers for Qwen3, MiniMax-M2, GLM-4.x, and Nemotron V3 are included in v0.24.\n\n## Disable strict mode for debugging\n\n```bash\nVLLM_ENFORCE_STRICT_TOOL_CALLING=false python -m vllm.entrypoints.openai.api_server ...\n```\n\nLets you inspect raw model output before the constraint layer kicks in.\n\n**Sources:** [vLLM v0.24.0 release](https://github.com/vllm-project/vllm/releases/tag/v0.24.0) | [vLLM tool calling docs](https://docs.vllm.ai/en/latest/features/tool_calling/)"
+  },
+  {
     "id": "2026-07-02-04-background-agents-auto-pr-close-the-loop",
     "title": "Kick Off a Task, Walk Away, Find a PR: Claude Code's Auto-PR Background Agents",
     "excerpt": "Claude Code v2.1.198 background agents now commit, push, and open a draft PR automatically when they finish code work in a worktree. Here's exactly how to use the pattern — and wire a notification…",
