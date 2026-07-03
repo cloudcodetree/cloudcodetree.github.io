@@ -10,7 +10,165 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 03 Jul 2026 04:04:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 03 Jul 2026 12:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Chain Five Skills in One Claude Code Command: v2.1.199's Stacked Slash Invocations</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-07-03-06-claude-code-2-1-199-stacked-skills</guid>
+      <pubDate>Fri, 03 Jul 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.199 stacks up to 5 skills in one /skill-a /skill-b command. Plus: subagents now return partial work on rate limits, mid-stream errors preserve partial responses, and SSL cert issues fast-fail with fix hints.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code v2.1.199 lets you stack up to five skills in one command — /review /fix /commit — and fixes three silent failure modes that were losing agent work.**
+
+**Stacked skill invocations**
+
+Before v2.1.199, `/skill-a /skill-b` only loaded the first skill; the rest were silently ignored. Now all leading skills (up to 5) load in order. This enables multi-phase workflows in a single command:
+
+```
+# Review then share results — two skills, one invocation
+/code-review /share-findings
+
+# Multi-phase workflow in one shot
+/plan /implement
+
+# Chain your team's custom skills
+/company-style-check /pr-template /request-review
+```
+
+Skills run sequentially in the order listed. If a skill modifies Claude's context (e.g., loads project conventions), subsequent skills in the same invocation see those modifications.
+
+**Three reliability fixes worth knowing**
+
+1. **Subagents that hit a rate limit or server error now return their partial work** to the parent agent instead of failing silently. Previously, a subagent hitting a 429 mid-task would vanish — no output, no error.
+
+2. **Mid-stream server error no longer discards a partial response.** The partial is kept and you see an "incomplete response" notice. Before: if the API errored after 80% of a response, you lost all of it.
+
+3. **SSL certificate errors now fail immediately with the fix hint** instead of burning retries. TLS-inspecting proxies and missing `NODE_EXTRA_CA_CERTS` were silently exhausting retries. Now: first failure, immediate actionable message.
+
+**Also in v2.1.199:** Fixed the Linux background-agent daemon crashing every ~50s after an unclean shutdown (killing all running agents); fixed JetBrains terminal flickering on 2026.1+; fixed Shift+non-ASCII characters dropped in Kitty keyboard protocol terminals.
+
+**Update:**
+
+```bash
+npm install -g @anthropic-ai/claude-code@latest
+claude --version   # 2.1.199
+```
+
+**Sources:** [Claude Code changelog](https://code.claude.com/docs/en/changelog) · [v2.1.199 release notes — GitHub](https://github.com/anthropics/claude-code/releases/tag/v2.1.199)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Moonshot's Kimi K2.7 Code Is Now GA in GitHub Copilot — First Open-Weight Model in the Picker</title>
+      <link>https://github.blog/changelog/2026-07-01-kimi-k2-7-is-now-available-in-github-copilot/</link>
+      <guid isPermaLink="false">2026-07-03-05-kimi-k27-code-github-copilot-ga</guid>
+      <pubDate>Fri, 03 Jul 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <description>Kimi K2.7 Code is the first open-weight model in the GitHub Copilot model picker — 1T parameters, 32B active (MoE), MIT-licensed, full weights on HuggingFace, GA since July 1.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Kimi K2.7 Code from Moonshot AI is now GA in GitHub Copilot — 1T-parameter MoE, MIT-licensed, and the first open-weight model in any major IDE coding assistant.**
+
+As of July 1, Copilot Pro, Pro+, and Max users can select Kimi K2.7 Code from the model picker. The model uses a Mixture-of-Experts architecture (1T total parameters, 32B active per token); the full weights are public on HuggingFace under the MIT license — GitHub runs a hosted copy on Azure. It completes a five-lab Copilot roster (OpenAI, Anthropic, Google, Microsoft, Moonshot AI). Billed at provider list pricing under usage-based billing; Copilot Business and Enterprise organizations require admin opt-in before users can select it.
+
+**Why it matters:** The first open-weight model in a major IDE assistant changes the audit and cost calculus. For teams on usage-based billing, routing lighter tasks to Kimi K2.7 costs less than frontier models. For orgs where model provenance matters, MIT-licensed weights with a public HuggingFace release answers the "what model are we actually using?" question in a way closed models can't.
+
+**Sources:** [Kimi K2.7 Code GA in GitHub Copilot — GitHub Changelog](https://github.blog/changelog/2026-07-01-kimi-k2-7-is-now-available-in-github-copilot/) · [Open-Weight AI Enters GitHub Copilot — TechTimes](https://www.techtimes.com/articles/319556/20260702/open-weight-ai-enters-github-copilot-kimi-k27-code-costs-less-audits-differently.htm)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Unit-Test Your LLM App in 5 Minutes: DeepEval's Answer Relevancy, Faithfulness, and G-Eval</title>
+      <link>https://deepeval.com/docs/getting-started</link>
+      <guid isPermaLink="false">2026-07-03-04-deepeval-llm-unit-tests-geval</guid>
+      <pubDate>Fri, 03 Jul 2026 12:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>DeepEval turns LLM quality into a pytest test suite — check answer relevancy, faithfulness, and any custom criterion with an LLM judge in 15 lines. Catches regressions before users do.</description>
+      <content:encoded><![CDATA[
+**TL;DR: DeepEval brings pytest-style unit testing to LLM apps — score answer relevancy, faithfulness, and custom criteria with an LLM judge in under 15 lines of Python.**
+
+**What you'll be able to do after this:**
+- Write a test case that automatically scores your LLM's response on answer relevancy and faithfulness
+- Define a custom G-Eval metric for any criterion your standard benchmarks don't cover (tone, format, safety)
+- Run your eval suite in CI to catch output regressions before they reach users
+
+---
+
+Your LLM "worked in testing" often means "you read some outputs and they looked fine." That doesn't scale. [DeepEval](https://deepeval.com) is an open-source evaluation framework that works like pytest for LLM outputs — define test cases, pick metrics, run `deepeval test run`. The metrics use an LLM judge internally, so they handle nuanced quality criteria that string matching can't.
+
+**Install:**
+
+```bash
+pip install -U deepeval
+export OPENAI_API_KEY=sk-...   # used as the default judge model (GPT-4o); swap via config
+```
+
+**Write your first test case:**
+
+```python
+# test_my_llm.py
+from deepeval import evaluate
+from deepeval.test_case import LLMTestCase, LLMTestCaseParams
+from deepeval.metrics import AnswerRelevancyMetric, FaithfulnessMetric, GEval
+
+test_case = LLMTestCase(
+    input="What are the benefits of prompt caching?",
+    actual_output=your_llm_response,         # the string you're testing
+    retrieval_context=["Prompt caching stores the KV cache..."]  # for RAG; omit if not RAG
+)
+```
+
+**Run built-in metrics:**
+
+```python
+relevancy   = AnswerRelevancyMetric(threshold=0.7)
+faithfulness = FaithfulnessMetric(threshold=0.5)
+
+evaluate([test_case], [relevancy, faithfulness])
+```
+
+`AnswerRelevancyMetric` checks whether the response actually answers the question. `FaithfulnessMetric` checks whether claims are grounded in the provided context — it flags hallucinated facts. Both score 0–1; the threshold sets pass/fail.
+
+**Add a custom G-Eval metric for anything else:**
+
+When no built-in metric fits, G-Eval lets you write the criterion in plain English. It uses chain-of-thought prompting to reason before scoring:
+
+```python
+tone_check = GEval(
+    name="Professional Tone",
+    criteria="Determine if the response is professional and avoids colloquial language.",
+    evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
+    threshold=0.6
+)
+evaluate([test_case], [tone_check])
+```
+
+**Run in pytest (CI-ready):**
+
+```bash
+deepeval test run test_my_llm.py
+```
+
+Each failed metric prints the judge's reasoning, not just a score — so you see *why* it failed. Gate your CI on eval pass rate the same way you gate it on unit tests.
+
+**Sources:** [DeepEval 5-min Quickstart](https://deepeval.com/docs/getting-started) · [G-Eval metric](https://deepeval.com/docs/metrics-llm-evals) · [AnswerRelevancy metric](https://deepeval.com/docs/metrics-answer-relevancy) · [Faithfulness metric](https://deepeval.com/docs/metrics-faithfulness)
+]]></content:encoded>
+      <media:content url="https://opengraph.githubassets.com/1/confident-ai/deepeval" medium="image" />
+      <media:thumbnail url="https://opengraph.githubassets.com/1/confident-ai/deepeval" />
+    </item>
+
     <item>
       <title>Call Claude with Your Azure Credentials: Microsoft Foundry Setup in 5 Minutes</title>
       <link>https://claude.com/blog/claude-in-microsoft-foundry</link>
