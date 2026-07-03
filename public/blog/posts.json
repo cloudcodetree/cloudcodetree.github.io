@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-07-03-03-claude-microsoft-foundry-azure-entra-id",
+    "title": "Call Claude with Your Azure Credentials: Microsoft Foundry Setup in 5 Minutes",
+    "excerpt": "Claude Opus 4.8, Haiku 4.5, and Sonnet 5 are now live in Microsoft Foundry. This guide shows how to call them with Entra ID auth and the Anthropic SDK in under 10 lines.",
+    "author": "Chris Harper",
+    "date": "07-03-2026",
+    "publishedAt": "2026-07-03T04:04:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Developer Tools",
+      "Claude Code"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://claude.com/blog/claude-in-microsoft-foundry",
+    "content": "**TL;DR: Claude Opus 4.8, Haiku 4.5, and Sonnet 5 are generally available in Microsoft Foundry — Azure shops can now call them via Entra ID with no separate Anthropic contract.**\n\nPreviously, calling Claude from an Azure workload meant a separate Anthropic API key, separate billing, and routing traffic outside your Azure perimeter. With the [Microsoft Foundry GA](https://azure.microsoft.com/en-us/blog/claude-in-microsoft-foundry-is-now-generally-available/) (June 29), that changes: deploy Claude once via the Foundry portal, then call it with your existing Azure identity, inside your Azure network, on your existing invoice.\n\n**What's included at GA**\n- Claude Opus 4.8 and Haiku 4.5 on Azure infrastructure (East US2, Sweden Central); Sonnet 5 via Global Standard\n- Opus 4.8 also supports US Data Zone Standard for data-residency requirements\n- Microsoft Enterprise Agreement drawdown, Entra ID auth, VNet integration\n- Full Anthropic Messages API parity: prompt caching, extended thinking, streaming\n\n**Setup**\n\n```bash\npip install \"anthropic\" \"azure-identity\"\n```\n\nIn the Foundry portal (ai.azure.com): Discover → Models → pick your Claude model → Deploy → Custom settings → accept Azure Marketplace terms. Note your **resource name** and **deployment name** from the Details tab.\n\n**Keyless auth with Entra ID (recommended for production)**\n\n```python\nfrom anthropic import AnthropicFoundry\nfrom azure.identity import DefaultAzureCredential, get_bearer_token_provider\n\nclient = AnthropicFoundry(\n    azure_ad_token_provider=get_bearer_token_provider(\n        DefaultAzureCredential(),\n        \"https://ai.cognitiveservices.com/.default\"\n    ),\n    base_url=\"https://<resource-name>.services.ai.azure.com/anthropic\"\n)\n\nmsg = client.messages.create(\n    model=\"claude-sonnet-4-6\",   # use your deployment name\n    messages=[{\"role\": \"user\", \"content\": \"Summarize this PR diff: ...\"}],\n    max_tokens=1024\n)\nprint(msg.content)\n```\n\n`DefaultAzureCredential` picks up `az login` locally and managed identity in production — no credential rotation to manage.\n\n**Wire Claude Code to your Foundry endpoint**\n\n```bash\nexport ANTHROPIC_BASE_URL=\"https://<resource-name>.services.ai.azure.com/anthropic\"\nexport AZURE_AUTH_TOKEN=\"$(az account get-access-token \\\n  --resource https://ai.cognitiveservices.com --query accessToken -o tsv)\"\nclaude --model claude-sonnet-4-6\n```\n\nFor the fastest path, the [Claude on Foundry starter kit](https://github.com/Azure-Samples/claude) provisions the whole stack with `azd up`.\n\n**Sources:** [Claude in Microsoft Foundry — Anthropic Blog](https://claude.com/blog/claude-in-microsoft-foundry) · [Deploy and use Claude in Microsoft Foundry — Microsoft Learn](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/how-to/use-foundry-models-claude) · [Claude on Foundry starter kit — GitHub](https://github.com/Azure-Samples/claude)"
+  },
+  {
+    "id": "2026-07-03-02-claude-foundry-ga-claude-tag-slack-news",
+    "title": "Claude Lands in Azure and Slack: Foundry Goes GA, Claude Tag Launches in Beta",
+    "excerpt": "Claude is now generally available in Microsoft Foundry on Azure and live as Claude Tag in Slack — two deployments expanding where Claude shows up in your engineering stack.",
+    "author": "Chris Harper",
+    "date": "07-03-2026",
+    "publishedAt": "2026-07-03T04:03:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Agents",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.anthropic.com/news/introducing-claude-tag",
+    "content": "**TL;DR: Claude is now a first-class Azure service (Foundry GA, June 29) and a persistent Slack agent (Claude Tag, now in beta) — two deployments that change where Claude lives in your stack.**\n\n**Claude in Microsoft Foundry — GA.** As of June 29, Claude Opus 4.8 and Haiku 4.5 are generally available in Microsoft Foundry (Claude Sonnet 5 followed on July 1). Enterprise teams get single-invoice Azure billing, Entra ID authentication, VNet integration, and an optional US data zone — no separate Anthropic account required. For Azure shops that have been prototyping with the Anthropic API and waiting for governance controls before going to production, this removes the last blocker. The [Claude on Foundry starter kit](https://github.com/Azure-Samples/claude) (`azd up`) stands up the full stack — Foundry account, project, and deployment — in one command.\n\n**Claude Tag — persistent Slack agent, now in beta.** Launched June 23 for Claude Team and Enterprise, Claude Tag is a Slack member with its own identity, credentials, and audit trail — not just a chatbot. Summon it with `@Claude` for async tasks (draft a PR, pull metrics, run an analysis) or enable ambient mode and it monitors channels proactively. It connects to GitHub, data warehouses, and external services via its own service accounts. The existing Claude in Slack app is retiring August 3 — affected teams should opt in via their admin settings now.\n\n**Why it matters:** Both moves signal the same shift — Claude moving from \"API you explicitly call\" to \"service that lives where your infrastructure already is.\" Foundry closes the enterprise procurement gap; Claude Tag demonstrates the agentic patterns (ambient context, cross-tool identity, persistent memory) you can build yourself with the Agents API.\n\n**Sources:** [Claude in Microsoft Foundry is now generally available — Microsoft Azure Blog](https://azure.microsoft.com/en-us/blog/claude-in-microsoft-foundry-is-now-generally-available/) · [Introducing Claude Tag — Anthropic](https://www.anthropic.com/news/introducing-claude-tag) · [VentureBeat coverage](https://venturebeat.com/technology/anthropic-launches-claude-tag-replacing-its-slack-app-with-a-persistent-ai-teammate-that-learns-monitors-and-works-autonomously)"
+  },
+  {
+    "id": "2026-07-03-01-pgvector-supabase-hnsw-semantic-search",
+    "title": "Add Semantic Search to Your Existing Postgres: pgvector + Supabase with HNSW Indexes",
+    "excerpt": "pgvector turns any Postgres table into a vector store. This guide covers enabling the extension, storing embeddings, and querying fast with HNSW indexes on Supabase.",
+    "author": "Chris Harper",
+    "date": "07-03-2026",
+    "publishedAt": "2026-07-03T04:02:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Vectors",
+      "Embeddings"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://supabase.com/docs/guides/ai/vector-columns",
+    "content": "**TL;DR: pgvector turns any Postgres table into a vector store; HNSW indexes keep similarity queries under 10ms at scale — no separate vector database required.**\n\n**What you'll be able to do after this:**\n- Add a `vector` column to an existing Postgres table and store embeddings alongside your application data\n- Build an HNSW index that stays fast as your collection grows to millions of rows\n- Write a reusable match function that returns nearest-neighbor results with cosine similarity scores, callable from any Supabase client\n\nMost tutorials reach for a standalone vector database (Chroma, Pinecone, Qdrant) for semantic search. If your app already runs on Postgres or Supabase, pgvector gives you the same capability inside the database you already have — one connection pool, one backup, one set of permissions, zero extra infrastructure.\n\n**Step 1 — Enable pgvector**\n\n```sql\ncreate extension if not exists vector with schema extensions;\n```\n\nIn Supabase: Dashboard → Database → Extensions → search \"vector\" → enable.\n\n**Step 2 — Add an embedding column**\n\nSet the dimension to match your model (384 for `Supabase/gte-small`, 1536 for OpenAI `text-embedding-3-small`):\n\n```sql\ncreate table documents (\n  id        serial primary key,\n  title     text not null,\n  body      text not null,\n  embedding extensions.vector(384)\n);\n```\n\n**Step 3 — Insert embeddings**\n\nUsing Transformers.js and the Supabase JS client:\n\n```js\nconst pipe = await pipeline('feature-extraction', 'Supabase/gte-small')\nconst output = await pipe(body, { pooling: 'mean', normalize: true })\nawait supabase.from('documents').insert({\n  title, body, embedding: Array.from(output.data)\n})\n```\n\n**Step 4 — Create an HNSW index**\n\nHNSW is the recommended index type in 2026. Unlike IVFFlat, it can be created on an empty table and improves automatically as data arrives. Pick the operator that matches your distance metric:\n\n```sql\n-- cosine distance (use with normalized embeddings — most common)\ncreate index on documents using hnsw (embedding vector_cosine_ops);\n\n-- Euclidean / L2 (for unnormalized embeddings)\ncreate index on documents using hnsw (embedding vector_l2_ops);\n```\n\nHNSW scales to ~5–10 million vectors on a standard Supabase Pro instance. For models with >2,000 dimensions, switch to the `halfvec` type to support up to 4,000 dims (pgvector 0.7.0+).\n\n**Step 5 — Query by semantic similarity**\n\nThe `<=>` operator is cosine distance; `1 - distance` gives a 0-to-1 similarity score:\n\n```sql\ncreate or replace function match_documents(\n  query_embedding extensions.vector(384),\n  match_threshold float,\n  match_count     int\n) returns table(id bigint, title text, body text, similarity float)\nlanguage sql stable as $$\n  select id, title, body,\n         1 - (embedding <=> query_embedding) as similarity\n  from documents\n  where 1 - (embedding <=> query_embedding) > match_threshold\n  order by embedding <=> query_embedding\n  limit match_count;\n$$;\n```\n\nCall it from your app:\n\n```ts\nconst { data } = await supabase.rpc('match_documents', {\n  query_embedding: embedding,   // float[] from your embedding model\n  match_threshold: 0.75,        // tune per use case; 0.75-0.85 is a good start\n  match_count: 10\n})\n```\n\n**Sources:** [Vector columns — Supabase Docs](https://supabase.com/docs/guides/ai/vector-columns) · [HNSW indexes — Supabase Docs](https://supabase.com/docs/guides/ai/vector-indexes/hnsw-indexes) · [AI &amp; Vectors overview — Supabase Docs](https://supabase.com/docs/guides/ai)"
+  },
+  {
     "id": "2026-07-02-09-claude-code-artifacts-session-pages",
     "title": "Turn a Claude Code Session into a Shared Page: Five Artifacts Patterns That Actually Get Used",
     "excerpt": "Claude Code Artifacts turns session output into a live private URL on claude.ai that auto-updates and teammates can share — five prompt patterns that cover the most common use cases.",
