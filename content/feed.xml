@@ -10,7 +10,192 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 03 Jul 2026 12:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 03 Jul 2026 20:04:00 +0000</lastBuildDate>
+
+    <item>
+      <title>One API Key, 200+ Open Models: Run Serverless Inference with Together AI</title>
+      <link>https://docs.together.ai/docs/quickstart</link>
+      <guid isPermaLink="false">2026-07-03-07-together-ai-serverless-open-models</guid>
+      <pubDate>Fri, 03 Jul 2026 20:02:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <description>Together AI gives you Llama, DeepSeek, Qwen, and 200+ open models via an OpenAI-compatible API with serverless pay-per-token pricing. From install to first completion in under 2 minutes.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Together AI is pay-per-token serverless inference for 200+ open models — OpenAI SDK-compatible, no infra to manage, from $0.05/1M tokens (GPT-OSS 20B) to $7.00/1M (DeepSeek R1).**
+
+**What you'll be able to do after this:**
+- Hit Llama 4, DeepSeek V3.1, Qwen 3.6, Kimi K2, and 200+ open models through one REST endpoint
+- Swap from the OpenAI SDK to Together in seconds — change one base URL, keep everything else
+- Pick the right model for your cost/quality tradeoff using a live pricing catalog
+
+---
+
+The "run & serve" problem for open models: you want production inference without managing GPUs. Together AI solves this with shared, serverless compute — you call an API, tokens run on their hardware, you pay per token. No provisioning, no replicas to size, no minimum spend.
+
+**Install and set your key**
+
+```bash
+pip install together
+export TOGETHER_API_KEY=your_key_here   # get yours at api.together.ai
+```
+
+**Make your first request — Together SDK**
+
+```python
+from together import Together
+
+client = Together()
+response = client.chat.completions.create(
+    model="meta-llama/Llama-4-Scout-17B-16E-Instruct",
+    messages=[{"role": "user", "content": "Explain HNSW indexing in 2 sentences."}]
+)
+print(response.choices[0].message.content)
+```
+
+**Already using the OpenAI SDK? Swap one line**
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["TOGETHER_API_KEY"],
+    base_url="https://api.together.xyz/v1",   # ← the only change
+)
+
+response = client.chat.completions.create(
+    model="deepseek-ai/DeepSeek-V3-1",
+    messages=[{"role": "user", "content": "What is LoRA?"}]
+)
+print(response.choices[0].message.content)
+```
+
+All OpenAI SDK features — streaming, function/tool calls, structured output — work unchanged. Any code that calls OpenAI today can point at Together with one environment variable swap.
+
+**Streaming**
+
+```python
+stream = client.chat.completions.create(
+    model="meta-llama/Llama-4-Scout-17B-16E-Instruct",
+    messages=[{"role": "user", "content": "Name 3 open-model inference providers."}],
+    stream=True,
+)
+for chunk in stream:
+    print(chunk.choices[0].delta.content or "", end="", flush=True)
+```
+
+**Model picker — 2026 price anchors**
+
+The full catalog is at [together.ai/models](https://www.together.ai/models). A few anchors:
+
+| Model | Best for | Input / Output per 1M tokens |
+|---|---|---|
+| GPT-OSS 20B | Cheap, fast general tasks | $0.05 / $0.20 |
+| Llama 4 Scout 17B | Balanced quality/cost | ~$0.18 / $0.59 |
+| DeepSeek V3.1 | Flagship open-weight quality | $0.60 / $1.70 |
+| Qwen 3.6 Plus | Multilingual / code | $0.50 / $3.00 |
+| DeepSeek R1 | Deep reasoning | $3.00 / $7.00 |
+
+**Together vs Fireworks vs OpenRouter:** Together wins on raw inference speed (they run their own inference research); Fireworks has a tighter fine-tune-to-deploy pipeline; OpenRouter is best when you want to route across providers to find the cheapest live rate. All three use OpenAI-compatible APIs, so switching is a one-line change. Run your first 1M tokens on each and compare latency for your model and use case.
+
+**Sources:** [Together AI Quickstart](https://docs.together.ai/docs/quickstart) · [Serverless Inference docs](https://www.together.ai/serverless-inference) · [Model catalog](https://www.together.ai/models) · [Debugger Cafe walkthrough](https://debuggercafe.com/serverless-inference-with-together-ai/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Cloudflare Splits AI Bots Into Three Lanes; Anthropic Eyes Custom Silicon</title>
+      <link>https://blog.cloudflare.com/content-independence-day-ai-options/</link>
+      <guid isPermaLink="false">2026-07-03-08-cloudflare-ai-crawl-control-anthropic-samsung-chip</guid>
+      <pubDate>Fri, 03 Jul 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Security</category>
+      <description>Cloudflare's new AI Crawl Control lets you allow Search crawlers while blocking Training and Agent bots independently. Also: Anthropic is in early talks with Samsung on a 2nm inference chip.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Cloudflare now lets you block AI training scrapers and agentic browsers independently from search indexers — free for all plans. Anthropic is in early-stage talks with Samsung on a custom 2nm inference chip.**
+
+**Cloudflare AI Crawl Control (all plans, including Free)**
+
+Cloudflare rolled out granular AI bot controls across all tiers. The dashboard now classifies crawlers into three buckets — **Search** (AI-powered search indexers), **Agent** (live autonomous browsing agents), and **Training** (scraping for model training data) — and lets you allow or block each independently. A new "BotBase" directory lists every known verified bot so you can see exactly who's classified where.
+
+Important edge case: multi-purpose crawlers that combine search and training (including some major ones) are evaluated under *both* policies. If you block Training, those crawlers are also blocked even when Search is allowed.
+
+On September 15, 2026, Cloudflare will flip new defaults on ad-monetized pages: Training and Agent bots blocked; Search stays open. You can override either direction before that date.
+
+Controls are at **Security > Bots > AI Crawl Control** in the Cloudflare dashboard. No WAF rules needed.
+
+**Why it matters:** If you ship a site that gets scraped for training data or hit by agentic browsers, you now have per-category controls with no custom rule-writing required.
+
+**Anthropic / Samsung chip (early stage)**
+
+Separately, Anthropic is in early-stage talks with Samsung Foundry to manufacture a custom inference chip targeting Samsung's upcoming 2nm (SF2P) process, per The Information. Anthropic hired Clive Chan (formerly on OpenAI's chip team) and is exploring Samsung's advanced packaging facilities. No timeline or commitment — this is pre-design-decision — but it's another frontier lab moving toward Nvidia independence, following OpenAI's Jalapeño chip with Broadcom.
+
+**Why it matters:** Compute cost is the ceiling on inference pricing. Own silicon is the long game for cost reduction; watch this space.
+
+**Sources:** [Cloudflare blog: Your site, your rules](https://blog.cloudflare.com/content-independence-day-ai-options/) · [AI Crawl Control docs](https://developers.cloudflare.com/ai-crawl-control/) · [Anthropic/Samsung — SiliconANGLE](https://siliconangle.com/2026/07/02/anthropic-reportedly-talks-samsung-manufacture-custom-ai-chip/) · [The Information (paywalled)](https://www.theinformation.com/articles/anthropic-talks-samsung-manufacture-custom-ai-chip)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Corporate SSO for Claude Code in One Container: The Claude Apps Gateway</title>
+      <link>https://claude.com/blog/introducing-the-claude-apps-gateway</link>
+      <guid isPermaLink="false">2026-07-03-09-claude-apps-gateway-sso-bedrock</guid>
+      <pubDate>Fri, 03 Jul 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <description>Anthropic's Claude Apps Gateway is a self-hosted OIDC proxy that swaps per-dev API keys for corporate SSO, spend caps, and enforced policies — works on Bedrock or Google Cloud without sending inference traffic to Anthropic.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Anthropic's new Claude Apps Gateway is a single stateless container that gives org-wide Claude Code deployments corporate SSO, per-user spend caps, and centrally enforced policies — no per-dev API keys, data stays on Bedrock or Google Cloud.**
+
+The standard Claude Code enterprise rollout hits a wall fast: every developer has their own API key, there's no central visibility into who's spending what, IT can't enforce usage policies, and off-boarding means hunting down credentials. The Apps Gateway fixes all of this.
+
+**What it is**
+
+A self-hosted control plane: one stateless Linux container backed by a PostgreSQL database. It sits between your developers and the Claude inference backend (Claude API, Amazon Bedrock, or Google Cloud Vertex AI). You deploy it once; your developers authenticate to it via corporate SSO and get short-lived sessions automatically.
+
+**What it does**
+
+- **Identity:** Acts as an OpenID Connect (OIDC) relying party. Works with Google Workspace, Microsoft Entra ID, Okta, or any OIDC-compliant identity provider. No long-lived API keys on developer machines.
+- **Credential management:** Holds your upstream API key or cloud credential centrally. Rotation happens in one place, not across every developer machine.
+- **Policy enforcement:** Distributes managed Claude Code settings to all developers automatically. IT can enforce project-level or team-level configuration without relying on developers to update files.
+- **Spend caps:** Set daily, weekly, or monthly token limits per organization, group, or individual user. Limits enforce before spend happens, not after.
+- **Usage reporting:** Reports per-user token consumption to a collector you operate. Integrates with standard observability tooling.
+- **Routing & failover:** Routes inference to Claude API, Bedrock, or Google Cloud — with optional failover between providers for reliability.
+
+**Data residency**
+
+For Bedrock or Google Cloud routing, inference traffic never reaches Anthropic servers. Only model capability metadata calls home. For compliance-sensitive teams, this is a significant difference from direct API key usage.
+
+**Quickstart (high-level — full config in the docs)**
+
+```bash
+# 1. Pull and run the gateway container (Docker or Kubernetes)
+docker pull public.ecr.aws/anthropic/claude-apps-gateway:latest
+
+# 2. Configure OIDC client credentials and upstream provider
+#    (full env-var reference in the docs)
+docker run   -e OIDC_CLIENT_ID=your_client_id   -e OIDC_CLIENT_SECRET=your_secret   -e OIDC_ISSUER_URL=https://accounts.google.com   -e UPSTREAM_PROVIDER=bedrock   -e DATABASE_URL=postgres://...   -p 8080:8080   public.ecr.aws/anthropic/claude-apps-gateway:latest
+
+# 3. Point Claude Code at your gateway
+claude config set apiBaseUrl https://your-gateway.internal
+```
+
+Developers authenticate via `claude auth login` — they see your corporate IdP, not an Anthropic sign-in page.
+
+**When to use this vs. direct Bedrock/Google Cloud integration:** Direct cloud integration (no gateway) is fine for small teams where everyone already has cloud credentials. The gateway pays off once you have >10 developers, need central policy enforcement, or have compliance requirements around credential management and spend visibility.
+
+**Sources:** [Anthropic blog: Introducing the Claude apps gateway](https://claude.com/blog/introducing-the-claude-apps-gateway) · [Claude Code docs: Claude apps gateway](https://code.claude.com/docs/en/claude-apps-gateway) · [DevOps.com coverage](https://devops.com/anthropic-adds-enterprise-gateway-to-simplify-claude-code-access-on-aws-and-google-cloud/)
+]]></content:encoded>
+    </item>
+
 
     <item>
       <title>Chain Five Skills in One Claude Code Command: v2.1.199's Stacked Slash Invocations</title>
