@@ -10,7 +10,181 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 04 Jul 2026 04:14:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 04 Jul 2026 12:08:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Claude Code Cost Control: Agent Teams vs Subagents, Model Tiering, and the /clear Trick</title>
+      <link>https://code.claude.com/docs/en/costs</link>
+      <guid isPermaLink="false">2026-07-04-06-claude-code-agent-teams-costs-model-tiering</guid>
+      <pubDate>Sat, 04 Jul 2026 12:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Three levers cut Claude Code agent spend by 40-50%: tier models by task (Opus orchestrator, Sonnet workers, Haiku formatters), run /clear between tasks, and pick subagents over agent teams for independent parallel work.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Three levers cut Claude Code agent spend 40-50%: tier models by task role, run /clear between unrelated tasks to reset stale context, and choose subagents over agent teams when agents don't need to communicate mid-run.**
+
+Running multi-agent Claude Code workflows can get expensive fast. Three techniques that consistently move the needle:
+
+## 1. Tier models by task, not by preference
+
+Opus for decisions; Sonnet for implementation; Haiku for mechanical tasks (formatting, linting, summarizing). Lock models in your subagent YAML so the choice is enforced rather than left to each developer:
+
+```yaml
+# .claude/agents/code-reviewer.md
+---
+model: claude-sonnet-5-20260629   # Sonnet, not Opus
+tools:
+  - Read
+  - Grep
+---
+Review changed files for bugs. Return findings as JSON.
+```
+
+One team running tiered models costs ~40% less than all-Opus with minimal capability loss on worker tasks.
+
+## 2. Run /clear between unrelated tasks
+
+Agents accumulate conversation history across a session. Every turn re-sends that history — a 30-turn session sends 30× the tokens of turn 1. `/clear` resets the context window mid-session without ending it. Use it before switching to a new file or a new feature, and cut per-message token cost by 30–50%.
+
+## 3. Choose subagents over agent teams when agents don't need to talk
+
+Agent teams (experimental; enable with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=true`) are powerful but expensive: each teammate maintains its own full context window, making them ~7× more token-intensive than a standard session. They're worth the cost when teammates need to coordinate mid-task — one agent flagging an API change that another agent's code must handle.
+
+For independent parallel work — each agent reviewing a separate file, scanning a different module — use subagents instead. The orchestrator manages context; workers stay lightweight.
+
+**Rule of thumb:** Independent parallel tasks → subagents. Mid-run coordination between agents → agent teams.
+
+Track per-session usage with `/usage` and set org-level spend limits from the [costs page](https://code.claude.com/docs/en/costs).
+
+**Sources:** [Manage costs effectively — Claude Code Docs](https://code.claude.com/docs/en/costs) · [Orchestrate teams — Claude Code Docs](https://code.claude.com/docs/en/agent-teams) · [Create custom subagents — Claude Code Docs](https://code.claude.com/docs/en/sub-agents)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Google Opens Generative Media APIs: Nano Banana 2 Lite at $0.034/K Images, Gemini Omni Flash at $0.10/sec Video</title>
+      <link>https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-omni-flash-nano-banana-2-lite/</link>
+      <guid isPermaLink="false">2026-07-04-05-google-nano-banana-gemini-omni-flash</guid>
+      <pubDate>Sat, 04 Jul 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>Google shipped two generative media APIs on June 30: Nano Banana 2 Lite ($0.034/K images, ~4s) and Gemini Omni Flash ($0.10/sec video gen/edit) — both now in the Gemini API. Also: gemini-2.5-flash-preview deprecated July 9.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Google released two generative media APIs on June 30 — Nano Banana 2 Lite (fastest/cheapest image model at $0.034/K images) and Gemini Omni Flash (video generation at $0.10/sec) — both callable from the Gemini API now.**
+
+Google shipped two generative media APIs on June 30, both available via Google AI Studio and the Gemini API:
+
+**Nano Banana 2 Lite** replaces the original Nano Banana as the recommended image generation model. It generates images in ~4 seconds at $0.034 per 1,000 images — competitive with the cheapest third-party image APIs while staying in the Google ecosystem. Available across AI Studio, Gemini API, and the Gemini Enterprise Agent Platform.
+
+**Gemini Omni Flash** brings video generation and conversational editing to the API. Pass text, images, or video clips; get back short video clips. Clips are capped at 10 seconds at launch, priced at $0.10/sec of output (matching Veo 3.1 Fast). Use case: programmatic video generation pipelines, video-to-video editing, and multimodal agent workflows that need to produce video artifacts.
+
+**Why it matters:** Both models are API-first — not limited to Google's consumer apps. If you're building multimodal pipelines (image gen as a step, video summarization, AI-generated product media), Nano Banana 2 Lite's pricing makes image generation a cheap add-on step rather than a budget line item.
+
+**Action required:** The `gemini-2.5-flash-preview-09-2025` model is deprecated July 9. Migrate to `gemini-2.5-flash` now if you're using the preview endpoint.
+
+**Sources:** [Google blog: Start building with Nano Banana 2 Lite and Gemini Omni Flash](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-omni-flash-nano-banana-2-lite/) · [Google Cloud Blog](https://cloud.google.com/blog/products/ai-machine-learning/nano-banana-2-lite-and-gemini-omni-flash-available/) · [Gemini API changelog](https://ai.google.dev/gemini-api/docs/changelog)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Ground Your Claude RAG Answers in Sources: A Practical Guide to the Citations API</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/citations</link>
+      <guid isPermaLink="false">2026-07-04-04-citations-api-rag-source-attribution</guid>
+      <pubDate>Sat, 04 Jul 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>The Anthropic Citations API lets Claude automatically attribute each answer sentence to an exact source passage. Set citations.enabled: true per document and get structured citation objects back — no prompt engineering required.</description>
+      <content:encoded><![CDATA[
+**TL;DR: The Anthropic Citations API lets Claude attribute each sentence of its answer to the exact passage it came from — add `"citations": {"enabled": true}` to each document you pass and get structured citation objects back, no format prompting required.**
+
+**What you'll be able to do after this:**
+- Pass retrieved documents to Claude and get back answers where every claim is linked to an exact source passage — character ranges, page numbers, or custom chunk IDs depending on document type
+- Replace brittle prompt-engineered attribution ("cite your sources in [n] format") with a first-class API feature that Claude evaluates more accurately
+- Render inline footnotes, "cited from doc X, lines Y–Z" callouts, or source panels directly from the structured citation objects Claude returns
+
+## Why citations matter in RAG
+
+Every RAG app has the same trust problem: Claude generates a plausible-sounding answer, but which parts came from your documents and which are interpolated? Prompt-engineering your way to citations is inconsistent — Claude sometimes over-cites, sometimes skips attribution entirely.
+
+The Citations API moves attribution into the model call itself. Claude returns a structured `citations` array alongside each response text block, pointing at exact character ranges (or pages, or custom chunks) in your source documents. In Anthropic's own evaluations, the Citations API cites the most relevant quotes significantly more reliably than purely prompt-based approaches.
+
+## Enabling citations — one field change
+
+Add `"citations": {"enabled": true}` to each document object. Citations must be enabled on all documents in a request or none.
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+# Chunks retrieved from your vector DB
+chunks = [
+    {
+        "type": "document",
+        "source": {
+            "type": "text",
+            "media_type": "text/plain",
+            "data": "The context window for Claude Sonnet 5 is 1 million tokens."
+        },
+        "title": "claude-models.md",
+        "citations": {"enabled": True}   # <-- the only change
+    },
+    {
+        "type": "document",
+        "source": {
+            "type": "text",
+            "media_type": "text/plain",
+            "data": "Claude Code uses Sonnet 5 as its default model as of June 2026."
+        },
+        "title": "claude-code-changelog.md",
+        "citations": {"enabled": True}
+    }
+]
+
+response = client.messages.create(
+    model="claude-sonnet-5-20260629",
+    max_tokens=512,
+    messages=[{
+        "role": "user",
+        "content": chunks + [{"type": "text", "text": "What model does Claude Code use by default?"}]
+    }]
+)
+
+for block in response.content:
+    if block.type == "text":
+        print(block.text)
+        for c in getattr(block, "citations", []):
+            print(f"  [{c.document_title}] chars {c.start_char_index}–{c.end_char_index}")
+```
+
+Output: Claude's answer text, plus one citation object per attributed sentence pointing at the exact character span in `claude-code-changelog.md`.
+
+## Three granularity levels
+
+| Document type | Citation type | What you get |
+|---|---|---|
+| Plain text | `char_location` | `start_char_index`, `end_char_index` |
+| PDF | `page_location` | `start_page_number`, `end_page_number` |
+| Custom chunks | `content_block_location` | `start_block_index`, `end_block_index` |
+
+For plain text, Claude cites at the sentence level by default — or chains consecutive sentences together when the claim spans a paragraph. For PDFs, it cites by page. If you chunk documents yourself (by section header, by paragraph), pass them as custom content blocks and get back citations that point to your own chunk IDs.
+
+## RAG search results as first-class inputs
+
+The API includes a `search_results` document type that wires directly into tool-use RAG patterns. Your tool returns search results as structured content blocks; citations flow through automatically — no prompt glue needed between your retrieval and generation steps.
+
+**Sources:** [Citations — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/citations) · [Introducing Citations on the Anthropic API — Anthropic](https://www.anthropic.com/news/introducing-citations-api) · [Simon Willison's deep dive](https://simonwillison.net/2025/Jan/24/anthropics-new-citations-api/)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Claude Code v2.1.200: Manual Is the New Default Mode — What Changed and How to Adapt</title>
