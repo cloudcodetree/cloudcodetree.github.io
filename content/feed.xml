@@ -10,7 +10,174 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 04 Jul 2026 12:08:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 04 Jul 2026 20:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Write a Custom Claude Code Subagent in 10 Lines: Constrain, Scope, and Auto-Delegate Specialists</title>
+      <link>https://code.claude.com/docs/en/sub-agents</link>
+      <guid isPermaLink="false">2026-07-04-08-custom-subagent-types-claude-code</guid>
+      <pubDate>Sat, 04 Jul 2026 20:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>A .claude/agents/ Markdown file with five frontmatter fields gives you a reusable, model-constrained specialist that Claude delegates to automatically — no per-task prompting, no context overflow.</description>
+      <content:encoded><![CDATA[
+**A `.claude/agents/` Markdown file with five frontmatter fields creates a reusable, model-constrained specialist Claude delegates to automatically — no per-task prompting, no context overflow.**
+
+The built-in subagents — Explore, Plan, and general-purpose — cover most delegation patterns, but once you find yourself repeatedly typing the same context ("you are a read-only reviewer who...") you're leaving a custom subagent on the table.
+
+## The file format
+
+```markdown
+---
+name: doc-reviewer
+description: Reviews docs, README files, and docstrings for clarity and completeness. Use proactively whenever documentation quality is in question.
+tools: Read, Grep, Glob
+model: haiku
+---
+
+You are a technical writing reviewer. For each file you review:
+- Flag unclear descriptions and suggest rewrites
+- Check that all public APIs have docstrings
+- Mentally trace code examples to verify they compile
+
+Return a bulleted list of issues, not prose. Be brief.
+```
+
+Save to `.claude/agents/doc-reviewer.md` in your project (or `~/.claude/agents/` for a user-level agent available everywhere). Done.
+
+## Why each field matters
+
+**`name`** — The identifier; also how you request it manually ("use the doc-reviewer agent").
+
+**`description`** — The delegation signal. Claude reads this to decide when to automatically hand off a task. Write it behaviorally: *"Use when asked to X"* or *"Triggers when documentation quality is in question."* Vague descriptions make Claude guess wrong.
+
+**`tools`** — Constrain to exactly what the job needs. A read-only reviewer doesn't need `Bash` or `Edit`. Narrower tool sets also let you trust the output more — if a reviewer can only `Read`, it can't accidentally modify anything.
+
+**`model: haiku`** — Route mechanical tasks (formatting checks, doc reviews, log summarization) to Haiku. This is the same model-tiering trick from cost control, baked into the agent file so it's enforced automatically.
+
+**The system prompt (rest of the file)** — What the agent does when delegated to. Keep it focused: one job, clear output format.
+
+## Project vs. user scope
+
+`.claude/agents/` is committed alongside your code — it ships your team's shared specialists with the repo and appears in every collaborator's session. `~/.claude/agents/` is personal and available in every project on your machine. When both define an agent with the same name, the project version wins.
+
+## Three subagents worth building today
+
+**Security scanner** — `tools: Read, Grep, Bash`, `model: sonnet`, prompt: check changed files for hardcoded credentials, SQL injection risks, and missing input validation; return findings as a JSON array.
+
+**Test gap finder** — `tools: Read, Glob, Grep`, `model: haiku`, prompt: list functions and methods in changed files that have no corresponding test coverage; be concise.
+
+**Changelog writer** — `tools: Read, Bash` (for `git log`), `model: haiku`, prompt: draft a CHANGELOG entry from the last N commits in Keep a Changelog format.
+
+Each of these keeps its work in its own context window, so search results and file trees never flood your main session. And because the model and tool constraints are in the file, they're consistent whether you invoke them manually or Claude delegates automatically.
+
+**Sources:** [Create custom subagents — Claude Code Docs](https://code.claude.com/docs/en/sub-agents) · [Built-in subagents reference](https://code.claude.com/docs/en/sub-agents#built-in-subagents) · [Manage costs — Claude Code Docs](https://code.claude.com/docs/en/costs)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>FAISS From Scratch: Three Index Types Every AI Engineer Should Know</title>
+      <link>https://www.pinecone.io/learn/series/faiss/faiss-tutorial/</link>
+      <guid isPermaLink="false">2026-07-04-07-faiss-vector-index-types-python</guid>
+      <pubDate>Sat, 04 Jul 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Embeddings</category>
+      <category>Vectors</category>
+      <category>RAG</category>
+      <description>Build IndexFlatL2, IVFFlat, and IVFPQ in Python — understand the exact vs. approximate search trade-off and pick the right FAISS index for your dataset size.</description>
+      <content:encoded><![CDATA[
+**FAISS is Meta's in-process vector search library — IndexFlatL2 for exact results, IVFFlat for 4× faster approximate search, IVFPQ for memory-compressed million-scale retrieval.**
+
+**What you'll be able to do after this:**
+- Build a FAISS index from scratch, add embeddings, and run similarity queries in under 20 lines of Python
+- Choose between exact (Flat), partitioned (IVF), and compressed (PQ) indexes based on dataset size and latency budget
+- Tune `nlist` and `nprobe` to trade recall for speed without a single extra dependency
+
+If you're building semantic search, RAG retrieval, deduplication, or recommendations — you'll eventually need to pick a vector index. FAISS (Facebook AI Similarity Search) is the workhorse behind many production ML systems and runs entirely in-process: no server, no database, no network call.
+
+---
+
+## Install
+
+```bash
+pip install faiss-cpu        # CPU (works anywhere)
+# pip install faiss-gpu      # if you have CUDA
+```
+
+FAISS expects `float32` NumPy arrays. If you're using sentence-transformers or OpenAI embeddings, cast with `.astype('float32')` before adding.
+
+## Index 1: IndexFlatL2 — exact search
+
+Computes L2 (Euclidean) distance from your query to **every** vector. Always 100% accurate; fast up to ~100K vectors.
+
+```python
+import faiss
+import numpy as np
+
+d = 768  # embedding dimension (match your model)
+
+index = faiss.IndexFlatL2(d)
+index.add(sentence_embeddings)            # shape: (N, d), float32
+D, I = index.search(query_embedding, k=5) # D = distances, I = indices
+```
+
+Use IndexFlatL2 when you need exact results (benchmarks, evaluation) or your corpus is small.
+
+## Index 2: IndexIVFFlat — partitioned approximate search
+
+Clusters vectors into `nlist` Voronoi cells. At query time only `nprobe` cells are searched — a 4–10× speedup at the cost of a small recall drop.
+
+```python
+nlist = 50                              # number of clusters ≈ sqrt(N)
+quantizer = faiss.IndexFlatL2(d)
+index = faiss.IndexIVFFlat(quantizer, d, nlist)
+index.train(sentence_embeddings)        # IVF requires a training pass
+index.add(sentence_embeddings)
+index.nprobe = 10                       # search 10 of 50 cells; raise for better recall
+D, I = index.search(query_embedding, k=5)
+```
+
+Rule of thumb: `nlist ≈ sqrt(N)`. Start `nprobe` at 10–20% of `nlist` and tune from there — doubling `nprobe` roughly doubles latency but meaningfully improves recall.
+
+## Index 3: IndexIVFPQ — memory-compressed at scale
+
+Adds **Product Quantization** (PQ) on top of IVF. Each 768-float vector is compressed into `m × bits` bytes — a 96× memory reduction at the cost of another recall step.
+
+```python
+m    = 8   # sub-quantizers (d must be divisible by m)
+bits = 8   # bits per sub-quantizer → 8 bytes per vector (vs. 3072 for float32)
+quantizer = faiss.IndexFlatL2(d)
+index = faiss.IndexIVFPQ(quantizer, d, nlist, m, bits)
+index.train(sentence_embeddings)
+index.add(sentence_embeddings)
+D, I = index.search(query_embedding, k=5)
+```
+
+Use IVFPQ when you have > 1M vectors or can't fit embeddings in RAM.
+
+## Picking your index
+
+| Dataset size | Index | Why |
+|---|---|---|
+| < 100K | `IndexFlatL2` | Exact, no tuning, no training |
+| 100K – 1M | `IndexIVFFlat` | 4–10× faster, negligible accuracy loss |
+| > 1M or RAM-limited | `IndexIVFPQ` | 96× memory savings, still high recall |
+
+The underlying speed vs. accuracy trade-off is the same one HNSW and other ANN indexes make — FAISS just makes the parameters explicit and tunable.
+
+**Anchor resource:** [Pinecone's FAISS tutorial series](https://www.pinecone.io/learn/series/faiss/faiss-tutorial/) walks through all three index types with real sentence-transformer data, explains the Voronoi cell intuition behind IVF, and includes chapters on HNSW and Product Quantization.
+
+**Sources:** [Pinecone FAISS tutorial](https://www.pinecone.io/learn/series/faiss/faiss-tutorial/) · [FAISS GitHub (facebookresearch)](https://github.com/facebookresearch/faiss) · [Meta Engineering: FAISS intro](https://engineering.fb.com/2017/03/29/data-infrastructure/faiss-a-library-for-efficient-similarity-search/)
+]]></content:encoded>
+      <media:content url="https://engineering.fb.com/wp-content/uploads/2017/03/faiss_logo.png" medium="image"/>
+      <media:thumbnail url="https://engineering.fb.com/wp-content/uploads/2017/03/faiss_logo.png"/>
+    </item>
 
     <item>
       <title>Claude Code Cost Control: Agent Teams vs Subagents, Model Tiering, and the /clear Trick</title>
