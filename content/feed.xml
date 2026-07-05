@@ -10,7 +10,186 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 04 Jul 2026 20:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 05 Jul 2026 04:15:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Let Claude Decide How Hard to Think: Adaptive Reasoning and Task Budgets in Your Agent Loop</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking</link>
+      <guid isPermaLink="false">2026-07-05-03-adaptive-thinking-task-budget-claude-api</guid>
+      <pubDate>Sun, 05 Jul 2026 04:15:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>LLM</category>
+      <category>Best Practices</category>
+      <description>Replace fixed extended-thinking budgets with thinking: {type: "adaptive"} — Claude scales reasoning depth per request; the task_budget beta header caps an entire agent loop's token spend.</description>
+      <content:encoded><![CDATA[
+**Replace fixed extended-thinking budgets with `thinking: {type: "adaptive"}` — Claude scales reasoning depth per request, and the `task_budget` beta header prevents runaway agent loops.**
+
+If you've used Claude's extended thinking API, you've hit the guessing game: `budget_tokens: 4000` is wasteful on easy questions and too small on hard ones. Adaptive thinking eliminates the guess.
+
+## Drop-in replacement
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+response = client.messages.create(
+    model="claude-opus-4-8-20250922",
+    max_tokens=16384,
+    thinking={"type": "adaptive", "effort": "high"},
+    messages=[{"role": "user", "content": your_prompt}]
+)
+```
+
+The `effort` levels (`low`, `medium`, `high`, `max`) nudge how aggressively Claude applies reasoning — use `high` for complex agent tasks, `medium` for day-to-day coding, `low` for routing and classification where speed beats depth. On Opus 4.7+, `xhigh` is also available.
+
+**Note:** For Opus 4.7 and later models, the old `budget_tokens` field returns a 400 error — switch to adaptive + effort entirely.
+
+## Why it matters for agents: interleaved thinking
+
+Adaptive mode auto-enables *interleaved* thinking — Claude reasons **between** tool calls, not just at the start of the turn. A search-retrieve-summarize loop becomes:
+
+1. Think → plan the search
+2. Call `search(query)` → get results
+3. Think → evaluate results, plan next call
+4. Call `read(url)` → get content
+5. Think → draft summary
+6. Output
+
+Without interleaved thinking, Claude forms its whole plan upfront before seeing any tool results. Adaptive mode fixes this at no extra config cost.
+
+## task_budget beta: cap an entire loop
+
+For long-running agent loops, add the `task-budgets-2026-03-13` beta header and enable task budgets:
+
+```python
+response = client.beta.messages.create(
+    model="claude-opus-4-8-20250922",
+    max_tokens=16384,
+    thinking={"type": "adaptive", "effort": "high"},
+    task_budget={"type": "enabled"},
+    betas=["task-budgets-2026-03-13"],
+    messages=conversation_history,
+)
+```
+
+Claude sees a server-injected countdown showing remaining tokens across the loop — it self-moderates and wraps up gracefully when budget runs low, rather than truncating mid-thought. Check `usage.task_budget_tokens_used` in the response to profile your loops.
+
+**Sources:** [Adaptive thinking — Anthropic Platform Docs](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking) | [Task budgets — Anthropic Platform Docs](https://platform.claude.com/docs/en/build-with-claude/task-budgets)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Copilot: Fable 5's 50% Usage Cap Lifts July 7 — Set a Hard Spending Cap First</title>
+      <link>https://github.blog/changelog/2026-06-09-claude-fable-5-is-generally-available-for-github-copilot/</link>
+      <guid isPermaLink="false">2026-07-05-02-copilot-fable5-cap-agentic-billing</guid>
+      <pubDate>Sun, 05 Jul 2026 04:14:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Claude Code</category>
+      <description>Fable 5's 50% weekly cap in GitHub Copilot ends July 7 — full access restores, but it bills at Anthropic token rates, not flat credits. Agentic sessions are already triggering 10x-50x bills.</description>
+      <content:encoded><![CDATA[
+**Fable 5 in GitHub Copilot exits its 50% weekly usage cap on July 7 — full access restores, but it bills at Anthropic token rates and requires 30-day data retention. Set a hard spending cap before you run agents.**
+
+**Fable 5 cap ends July 7.** When Fable 5 was re-enabled in GitHub Copilot on July 1 (following the US export-control lift), access was capped at 50% of weekly usage limits. That cap ends July 7. Copilot Pro+, Max, Business, and Enterprise users will have uncapped access to Fable 5 from that point. Two things to know before enabling it:
+
+- **Token-rate billing, not flat credits.** Fable 5 bills at Anthropic's published rates ($10/MTok input, $50/MTok output) under Copilot's usage-based plan — not the flat premium-request credits used for Sonnet or Opus. A single long agentic session can run $50–500+ depending on context size and iteration count.
+- **Data retention required.** Anthropic's safety classifiers for Fable 5 require retaining prompts and outputs for up to 30 days. All other Claude models in Copilot (Opus 4.8, Sonnet 4.5, Haiku 4.5) still operate under Zero Data Retention.
+
+**Agentic billing warning.** Since Copilot moved to token-based AI Credits on June 1, teams running agentic sessions on frontier models are reporting bills 10x–50x above their previous flat-rate spend. GitHub's own research found agentic tasks can consume ~1,000× more tokens than single-turn queries; at token-rate pricing, an unmonitored overnight agent run can exhaust a month's budget.
+
+**Action:** Go to **Settings → Billing → GitHub Copilot → spending limit** and set a hard cap now — before July 7, before running any Fable 5 agent session.
+
+**Why it matters:** Fable 5 is the most capable model in the Copilot picker; it's now fully unleashed. The billing model means it's also the most expensive, with no ceiling unless you set one.
+
+**Sources:** [GitHub Changelog: Fable 5 GA for Copilot](https://github.blog/changelog/2026-06-09-claude-fable-5-is-generally-available-for-github-copilot/) | [Fable 5 on GitHub Copilot — fable5.app](https://fable5.app/fable-5-github-copilot/) | [GitHub Copilot Billing Shock: Agentic Users Face 10x Cost Surge — TechTimes](https://www.techtimes.com/articles/319340/20260629/github-copilot-billing-shock-confirmed-agentic-users-face-10x-cost-surge.htm) | [GitHub Docs: usage-based billing](https://docs.github.com/en/copilot/concepts/billing/usage-based-billing-for-individuals)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Beyond SFT: Align Your Model With Human Preferences Using DPO and TRL</title>
+      <link>https://huggingface.co/learn/smol-course/unit2/2</link>
+      <guid isPermaLink="false">2026-07-05-01-dpo-preference-optimization-trl</guid>
+      <pubDate>Sun, 05 Jul 2026 04:13:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>DPO replaces the reward model in RLHF with a simpler loss on chosen/rejected pairs. TRL's DPOTrainer + QLoRA runs the whole thing on a free Colab T4 GPU in under 50 lines.</description>
+      <media:content url="https://raw.githubusercontent.com/huggingface/smol-course/main/banner.png" medium="image" />
+      <media:thumbnail url="https://raw.githubusercontent.com/huggingface/smol-course/main/banner.png" />
+      <content:encoded><![CDATA[
+**DPO (Direct Preference Optimization) replaces the reward-model step in RLHF with a single stable objective on chosen/rejected pairs — and HuggingFace's TRL makes it a one-class swap from SFT, runnable on a free Colab T4 GPU.**
+
+**What you'll be able to do after this:**
+- Build a preference dataset in `chosen`/`rejected` format and understand why pair quality matters more than quantity
+- Run `DPOTrainer` with 4-bit QLoRA in under 50 lines on a free T4 GPU
+- Read `eval/reward_margin` to verify your fine-tune is pulling the model toward preferred outputs
+
+## Why DPO after SFT
+
+Your SFT model generates correct outputs but may still default to verbose, hedged, or off-topic completions when multiple answers are plausible. DPO trains on pairs — a preferred completion and a rejected one for the same prompt — and directly optimizes the log-ratio between them. No separate reward model, no RL training loop, no PPO instability.
+
+## The dataset format
+
+```json
+{
+  "prompt": "Summarize this article in two sentences.",
+  "chosen": [{"role": "assistant", "content": "The article covers the impact..."}],
+  "rejected": [{"role": "assistant", "content": "Sure! I'd be happy to help summarize..."}]
+}
+```
+
+`chosen` and `rejected` are full chat turns. HuggingFace's [`Digish/huggingface-smol-course-preference-tuning-dataset`](https://huggingface.co/datasets/Digish/huggingface-smol-course-preference-tuning-dataset) is a working starter dataset.
+
+## Running DPOTrainer
+
+```python
+from trl import DPOConfig, DPOTrainer
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import LoraConfig
+
+model = AutoModelForCausalLM.from_pretrained(
+    "HuggingFaceTB/SmolLM3-3B-Instruct",
+    load_in_4bit=True,
+)
+tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM3-3B-Instruct")
+
+training_args = DPOConfig(
+    output_dir="./dpo_smollm3",
+    num_train_epochs=1,
+    per_device_train_batch_size=2,
+    beta=0.1,       # KL penalty vs reference model — 0.1 is a safe start; higher = stay closer to SFT
+    logging_steps=10,
+)
+
+lora_config = LoraConfig(r=16, lora_alpha=32, target_modules="all-linear")
+
+trainer = DPOTrainer(
+    model=model,
+    ref_model=None,      # None = TRL keeps a frozen reference copy in memory (PEFT-efficient)
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
+    peft_config=lora_config,
+    processing_class=tokenizer,
+)
+trainer.train()
+```
+
+`beta` is the KL divergence penalty: lower values let the model deviate more from the reference SFT checkpoint; higher values keep it closer but limit how much it can shift. Start at 0.1 and watch `eval/reward_margin` — positive and growing means the model is separating chosen from rejected as expected.
+
+The smol-course hands-on exercise at [unit2/3](https://huggingface.co/learn/smol-course/unit2/3) walks through loading the preference dataset, training, and checking metrics on a real SmolLM3 run.
+
+**Sources:** [HuggingFace smol-course: DPO unit](https://huggingface.co/learn/smol-course/unit2/2) | [Hands-on exercise with SmolLM3](https://huggingface.co/learn/smol-course/unit2/3) | [TRL DPO Trainer docs](https://huggingface.co/docs/trl/dpo_trainer)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Write a Custom Claude Code Subagent in 10 Lines: Constrain, Scope, and Auto-Delegate Specialists</title>
