@@ -1,5 +1,62 @@
 [
   {
+    "id": "2026-07-06-05-copilot-cli-auto-allow-mcp-manager",
+    "title": "Copilot CLI Gets LLM-Judged Auto-Approvals, Mid-Turn MCP Swapping, and GitHub Actions GITHUB_TOKEN Support",
+    "excerpt": "Copilot CLI v1.0.69-1 (July 4) adds LLM-judged auto-approvals, mid-turn MCP server management, stayInAutopilot mode, and GITHUB_TOKEN auth in Actions — no PAT required.",
+    "author": "Chris Harper",
+    "date": "07-06-2026",
+    "publishedAt": "2026-07-06T12:08:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Developer Tools",
+      "MCP",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://releasebot.io/updates/github",
+    "content": "**TL;DR: GitHub Copilot CLI v1.0.69-1 adds LLM-judged auto-approvals, the ability to enable/disable MCP servers mid-turn, stayInAutopilot mode, and GITHUB_TOKEN support in GitHub Actions — no personal access token needed.**\n\nGitHub Copilot CLI v1.0.69-1 (July 4) ships four features that change how long agent sessions feel in practice.\n\n## Auto allow-all mode\n\nInstead of approving every tool call manually, Copilot CLI can now run an LLM judge to evaluate each request against your stated intent and auto-approve acceptable ones. This mirrors Claude Code's Auto permission mode — the right choice for well-understood, repetitive agentic tasks where you trust the CLI's judgment. Like Claude Code's implementation, you stay in control by defining the scope upfront rather than rubber-stamping each step.\n\n## /mcp manager mid-turn\n\nThe `/mcp` panel can now be opened while the agent is working. You can enable or disable MCP servers on the fly; add/edit/delete/re-auth operations queue and execute after the current turn finishes. The new `/mcp list` command shows all attached servers and their live status — no more killing the session to check what's connected.\n\nThis is particularly useful when you're debugging a multi-tool workflow: if one server is misbehaving, you can disable it mid-run without losing the session context you've built up.\n\n## stayInAutopilot\n\nBy default, Copilot CLI drops back to interactive mode when an autopilot task completes. A new `stayInAutopilot` option keeps it in autopilot after a task, which matters when you're chaining tasks or watching a long pipeline run to completion without re-prompting between steps.\n\n## GITHUB_TOKEN in Actions (July 2)\n\nCopilot CLI can now authenticate in GitHub Actions using the built-in `GITHUB_TOKEN` directly — no personal access token or separate repository secret required. This removes the most common security anti-pattern in CI agent setups: long-lived credentials tied to an individual developer that need rotation and break when that person leaves.\n\n```yaml\n- name: Run Copilot CLI agent\n  uses: github/copilot-cli-action@v1\n  with:\n    github-token: ${{ secrets.GITHUB_TOKEN }}\n    prompt: \"Review the diff and flag any security issues\"\n```\n\n**Sources:** [Copilot CLI releases — GitHub Releasebot](https://releasebot.io/updates/github) · [Adding MCP servers for GitHub Copilot CLI — GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers) · [Configuring GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/set-up-copilot-cli/configure-copilot-cli)"
+  },
+  {
+    "id": "2026-07-06-06-hf-service-accounts-hw-filter-transformers",
+    "title": "HuggingFace Gets Service Accounts for CI/CD, a Hardware-Fit Model Filter, and Transformers v5.13.0",
+    "excerpt": "HuggingFace adds service accounts for enterprise CI/CD, a hardware-fit model filter, and Transformers v5.13.0 with Kimi 2.5, Nemotron ASR, and unified HfExporter support.",
+    "author": "Chris Harper",
+    "date": "07-06-2026",
+    "publishedAt": "2026-07-06T12:07:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "HuggingFace",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/blog",
+    "content": "**TL;DR: HuggingFace ships service accounts for org CI/CD (no more person-tied tokens), a hardware-fit model filter, and Transformers v5.13.0 with Kimi 2.5, Nemotron 3.5 ASR, and unified HfExporter.**\n\n**Service accounts for enterprise orgs (July 3):** Enterprise Hub organizations can now create service accounts — organization-owned identities for automation, CI/CD, and backend integrations that aren't tied to any individual. Automated pipelines and token rotation no longer break when team members leave or change roles; service accounts show up in audit logs under the org rather than a person's account. This closes the most common ML-team CI/CD anti-pattern.\n\n**Hardware filter on Models page:** A new Hardware filter on the HuggingFace Models page lets you filter to models that fit your specific GPU, CPU, or Apple Silicon chip. If you're picking a local model for Ollama or vLLM, you now only see what will actually run on your machine before downloading.\n\n**Transformers v5.13.0:** Adds Kimi 2.5 (Moonshot AI), MiMo-V2-Flash, and Nemotron 3.5 ASR; unified `HfExporter` for PyTorch, ONNX, and ExecuTorch in one call; and a batch of generation, quantization, cache, and attention fixes.\n\n**Why it matters:** Service accounts finally close the \"CI token tied to a person\" anti-pattern that causes silent breakage in every ML team's automation stack.\n\n**Sources:** [HuggingFace blog](https://huggingface.co/blog) · [HuggingFace Releasebot — July 2026](https://releasebot.io/updates/huggingface)"
+  },
+  {
+    "id": "2026-07-06-07-hybrid-search-bm25-vector-rrf-rag",
+    "title": "Why Your RAG Retriever Is Missing Half the Answers: Hybrid Search With BM25, Vectors, and Reciprocal Rank Fusion",
+    "excerpt": "Pure vector search misses exact keywords; pure BM25 misses semantic meaning. Hybrid search runs both and merges with Reciprocal Rank Fusion — typically 15-20% better recall with no extra infrastruc…",
+    "author": "Chris Harper",
+    "date": "07-06-2026",
+    "publishedAt": "2026-07-06T12:06:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "RAG",
+      "Embeddings",
+      "Vectors",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://machinelearningmastery.com/implementing-hybrid-semantic-lexical-search-in-rag/",
+    "content": "**TL;DR: Pure vector search misses exact keywords; pure BM25 misses semantic meaning. Hybrid search runs both in parallel and merges ranks with Reciprocal Rank Fusion — consistently better recall than either alone, with no new infrastructure.**\n\n**What you'll be able to do after this:**\n- Understand when dense vector search fails and when BM25 catches it (and vice versa)\n- Run both retrievers in parallel and merge results with Reciprocal Rank Fusion (RRF)\n- Add a cross-encoder reranker as a precision layer on top of hybrid retrieval\n\n## The problem with pure vector search\n\nMost RAG pipelines use only dense vector search. That means they fail on exact-match queries — ask \"what is the FDA approval date for drug X?\" and an embedding model compresses the specific date out of the comparison. BM25 has the reverse problem: it matches exact tokens but misses \"vehicle\" when the document says \"car.\"\n\nHybrid search fixes this by running both retrievers independently and fusing their ranked results.\n\n## Implementation: rank_bm25 + sentence-transformers + RRF\n\n```python\npip install rank_bm25 sentence-transformers\n```\n\n```python\nfrom rank_bm25 import BM25Okapi\nfrom sentence_transformers import SentenceTransformer, util\n\n# BM25 side\ntokenized_docs = [doc.split() for doc in documents]\nbm25 = BM25Okapi(tokenized_docs)\nbm25_scores = bm25.get_scores(query.split())\nbm25_ranked = sorted(range(len(documents)), key=lambda i: bm25_scores[i], reverse=True)\n\n# Vector side\nmodel = SentenceTransformer('all-MiniLM-L6-v2')\ndoc_embeddings = model.encode(documents, convert_to_tensor=True)\nquery_emb = model.encode(query, convert_to_tensor=True)\ncos_scores = util.cos_sim(query_emb, doc_embeddings)[0]\nvec_ranked = sorted(range(len(documents)), key=lambda i: cos_scores[i].item(), reverse=True)\n\n# Reciprocal Rank Fusion (k=60 is standard)\nk = 60\nrrf_scores = {}\nfor rank, idx in enumerate(bm25_ranked):\n    rrf_scores[idx] = rrf_scores.get(idx, 0) + 1 / (k + rank + 1)\nfor rank, idx in enumerate(vec_ranked):\n    rrf_scores[idx] = rrf_scores.get(idx, 0) + 1 / (k + rank + 1)\n\nhybrid_ranked = sorted(rrf_scores, key=rrf_scores.get, reverse=True)\ntop_docs = [documents[i] for i in hybrid_ranked[:top_k]]\n```\n\nRRF is rank-only — no score normalization, no tuning the relative weights of BM25 vs vector scores. Both lists vote by rank, and documents that rank well in both float to the top.\n\n## Optional third layer: cross-encoder reranking\n\nAfter retrieving top-50 with hybrid search, pass all 50 to a cross-encoder (e.g., `cross-encoder/ms-marco-MiniLM-L-6-v2`). The cross-encoder sees the full query + document pair together — far richer context than any bi-encoder. The standard production pattern is: retrieve-1000 → hybrid-50 → rerank-10.\n\nThe retrieve-then-rerank approach keeps latency acceptable (the cross-encoder only scores 50 candidates, not thousands) while giving the final ranking the precision of a model that understands the query-document relationship directly.\n\n**Sources:** [Implementing Hybrid Semantic-Lexical Search in RAG — MachineLearningMastery.com](https://machinelearningmastery.com/implementing-hybrid-semantic-lexical-search-in-rag/) · [The Complete Guide to Hybrid Search in RAG (BM25 + Embeddings + Reranker) — YouTube](https://www.youtube.com/watch?v=XvKiTfd6Xvo) · [Hybrid Search and Re-Ranking in Production RAG — Towards Data Science](https://towardsdatascience.com/hybrid-search-and-re-ranking-in-production-rag/)"
+  },
+  {
     "id": "2026-07-06-01-grafana-claude-code-metrics-otlp",
     "title": "Wire Claude Code Into Your Observability Stack: Metrics, Cost Dashboards, and Spike Alerts With Grafana Cloud",
     "excerpt": "Two Grafana Cloud integrations surface Claude and Claude Code spend before the invoice: an Admin API scrape path (paste a key, get a dashboard + 3 alerts) and a Claude Code OTLP path for session-le…",
