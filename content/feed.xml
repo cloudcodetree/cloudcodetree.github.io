@@ -10,7 +10,222 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 06 Jul 2026 12:08:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 06 Jul 2026 20:04:00 +0000</lastBuildDate>
+
+    <item>
+      <title>One Parameter, Infinite Conversations: Server-Side Context Compaction in the Claude API</title>
+      <link>https://platform.claude.com/cookbook/tool-use-automatic-context-compaction</link>
+      <guid isPermaLink="false">2026-07-06-08-claude-api-context-compaction-server-side</guid>
+      <pubDate>Mon, 06 Jul 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Add compact_20260112 to context_management.edits and Claude automatically summarizes the conversation when it approaches your token threshold — no client-side rolling-summary code required.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Add one beta parameter to your Messages API call and Claude handles infinite-length agent conversations automatically — no client-side summarization loop, no session-splitting boilerplate.**
+
+Every long-running agent eventually hits the same wall: the context window fills up. The classic workaround is a client-side rolling summary — extract the conversation history, summarize it with a separate model call, replace the messages array, and continue. It works, but it's state management you have to build, test, and maintain.
+
+Claude's server-side compaction removes that entire class of work. You opt in with one API edit, and the model handles it.
+
+## The API call
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+response = client.beta.messages.create(
+    model="claude-sonnet-5-20260630",
+    max_tokens=8096,
+    betas=["interleaved-thinking-2025-05-14"],
+    extra_headers={"anthropic-beta": "compact-2026-01-12"},
+    context_management={
+        "edits": [
+            {
+                "type": "compact_20260112",
+                "instructions": "Preserve all code snippets, variable names, function signatures, and technical decisions. Summarize reasoning steps briefly.",
+                "trigger_token_count": 80000   # fire when input reaches 80k tokens
+            }
+        ]
+    },
+    messages=conversation_history,
+)
+```
+
+The beta header is `compact-2026-01-12`. The `context_management.edits` array takes a single `compact_20260112` edit. The `trigger_token_count` sets when compaction fires — leave it out to use Claude's default (near-window-limit).
+
+## What happens when it fires
+
+1. Claude detects that input tokens reached `trigger_token_count`
+2. Generates a high-fidelity summary of the full conversation up to that point
+3. Replaces the conversation history with a compaction block containing the summary
+4. Continues the current response seamlessly — no visible break in the session
+
+The resulting compaction block appears in `response.content` as a `compaction_result` type. Your next message turn picks it up automatically.
+
+## Tuning the instructions
+
+The `instructions` field steers what the summary preserves. The default is generic; for code-heavy sessions, be explicit:
+
+```python
+"instructions": "Always preserve: exact function names, class hierarchies, file paths, error messages, and any decision rationale. Summarize prose reasoning at high level."
+```
+
+For research agents: `"Preserve all URLs, citations, data points, and factual claims verbatim. Compress narrative context."`
+
+## When this matters most
+
+- **Multi-hour coding sessions**: a typical Claude Code session runs 30–120 tool calls with verbose outputs. Compaction fires once or twice per session and keeps quality high throughout.
+- **Document-processing pipelines**: chunked ingestion where each chunk adds to a growing context; compaction prevents runaway growth.
+- **Customer support agents**: long multi-turn conversations where you need to preserve facts stated early but not every word of the exchange.
+
+## What it doesn't replace
+
+Compaction is for managing conversation history length. It doesn't clear stale tool outputs that are still in the messages array — for that, use context editing (remove specific message IDs from a turn). And it's not a substitute for good context hygiene upfront: keep system prompts tight, don't send large files when a summary will do, and use `tool_result` outputs judiciously.
+
+**Sources:** [Automatic context compaction — Claude Cookbook](https://platform.claude.com/cookbook/tool-use-automatic-context-compaction) · [Compaction — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/compaction) · [Context editing — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/context-editing)
+]]></content:encoded>
+      <media:content url="https://www.anthropic.com/images/index/og-api.jpg" medium="image" />
+      <media:thumbnail url="https://www.anthropic.com/images/index/og-api.jpg" />
+    </item>
+
+    <item>
+      <title>Context Engineering: Three Strategies for Managing What Goes Into an Agent's Context Window</title>
+      <link>https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents</link>
+      <guid isPermaLink="false">2026-07-06-09-context-engineering-memory-compaction-tool-clearing</guid>
+      <pubDate>Mon, 06 Jul 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <category>MCP</category>
+      <description>Context engineering is the discipline of deciding what tokens go into an agent's context window each turn. Three strategies — memory retrieval, compaction, and tool clearing — cover the full problem space.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Context engineering is what prompt engineering grows into when you build agents — managing a finite window across dozens of turns with memory retrieval, rolling compaction, and per-turn tool clearing.**
+
+**What you'll be able to do after this:**
+- Identify which of three context strategies (memory, compaction, tool clearing) applies to your agent's specific problem
+- Write a just-in-time retrieval step that injects only relevant context at each turn instead of accumulating everything
+- Apply compaction and tool clearing to keep a long agent session from degrading as the window fills
+
+---
+
+## Why context engineering exists
+
+Prompt engineering optimizes a single call: what do I put in the system prompt and user message to get the output I want? Context engineering is the harder problem that emerges once you're building agents: across 50 turns of tool calls, retrieved documents, and model responses, **what tokens should actually be in the context window at any given moment?**
+
+Anthropic's engineering team defines it precisely: "the art and science of curating what will go into the limited context window from that constantly evolving universe of possible information." The curation happens on every turn, not once.
+
+The three strategies address three distinct sources of context bloat.
+
+---
+
+## Strategy 1: Memory (just-in-time retrieval)
+
+Instead of accumulating everything in the messages array, store facts externally and retrieve only what's relevant to the current moment.
+
+```python
+# Bad: append every observation to context
+messages.append({"role": "assistant", "content": "User prefers bullet lists."})
+messages.append({"role": "assistant", "content": "User's timezone is UTC+9."})
+# ... 100 messages later, this is still taking up tokens
+
+# Better: store observations in a vector store; retrieve on each turn
+relevant_memories = memory_store.search(query=current_user_message, top_k=5)
+system_prompt = base_system + "\n\n## Relevant context:\n" + "\n".join(relevant_memories)
+```
+
+This is what Mem0, LangMem, and similar libraries do. The context window sees only the 5 most relevant memories for this turn, not every fact the agent has ever observed.
+
+**When to use it:** User preferences, long-term facts, project-level context that grows unboundedly across sessions.
+
+---
+
+## Strategy 2: Compaction (rolling summary)
+
+When conversation history gets long, summarize it. The Claude API's `compact_20260112` does this server-side in one parameter; for other providers, implement it yourself:
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic()
+
+def maybe_compact(messages, threshold=60000):
+    """Summarize conversation history when it approaches the context limit."""
+    token_estimate = sum(len(m["content"]) // 4 for m in messages)
+    if token_estimate < threshold:
+        return messages
+
+    history_text = "\n".join(
+        f"{m['role'].upper()}: {m['content']}" for m in messages[:-2]
+    )
+    summary_response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=2048,
+        system="Summarize this conversation. Preserve all code snippets, function names, file paths, and factual decisions verbatim. Compress reasoning and narrative.",
+        messages=[{"role": "user", "content": history_text}],
+    )
+    summary = summary_response.content[0].text
+    # Keep summary + last 2 turns
+    return [
+        {"role": "user", "content": f"[CONVERSATION SUMMARY]\n{summary}"},
+        *messages[-2:],
+    ]
+```
+
+The Claude Cookbook's [Context engineering recipe](https://platform.claude.com/cookbook/tool-use-context-engineering-context-engineering-tools) has the production version with automatic trigger, quality-focused instructions, and the server-side `compact_20260112` variant.
+
+**When to use it:** Single-session agent runs that accumulate turn history. Aim to compact at 40–50% window usage — waiting until 80% means the summary is already degraded.
+
+---
+
+## Strategy 3: Tool-result clearing
+
+Tool outputs are often the biggest context killer. A web search returns 3,000 tokens; a file read another 2,000; a code execution result 1,500. By turn 20 your messages array is dominated by tool outputs that informed earlier decisions but add no value now.
+
+```python
+# Use context editing to clear stale tool results
+response = client.messages.create(
+    model="claude-sonnet-5-20260630",
+    max_tokens=8096,
+    context_management={
+        "edits": [
+            {
+                "type": "clear_tool_result",
+                "message_id": stale_message_id,  # the assistant turn that used the tool
+                "tool_use_id": stale_tool_use_id   # the specific tool call to clear
+            }
+        ]
+    },
+    messages=messages,
+)
+```
+
+The decision model is simple: if a tool result informed a decision that's now reflected in a subsequent summary or code change, clear it. If the raw data might still be needed, keep it.
+
+**When to use it:** Any agent that makes tool calls. Run a compaction + tool-clearing pass together every N turns.
+
+---
+
+## The practical pattern
+
+In production, all three strategies layer:
+1. **Before each turn:** retrieve relevant memories from your vector store → inject as system context
+2. **Every 10–15 turns (or at 40% window):** compact the conversation history
+3. **Same pass:** scan tool results older than K turns → clear ones that've been acted on
+
+This is what "context engineering" means in practice: not a clever prompt, but a maintenance loop that keeps the context window a precise, high-signal slice of everything that's happened.
+
+**Sources:** [Effective context engineering for AI agents — Anthropic Engineering Blog](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) · [Context engineering: memory, compaction, and tool clearing — Claude Cookbook](https://platform.claude.com/cookbook/tool-use-context-engineering-context-engineering-tools) · [Context editing — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/context-editing)
+]]></content:encoded>
+      <media:content url="https://cdn.sanity.io/images/4zrzovbb/website/ea2bf01aa874d7ab776453e97dfeed5d2bf5a116-2400x1260.png" medium="image" />
+      <media:thumbnail url="https://cdn.sanity.io/images/4zrzovbb/website/ea2bf01aa874d7ab776453e97dfeed5d2bf5a116-2400x1260.png" />
+    </item>
 
     <item>
       <title>Copilot CLI Gets LLM-Judged Auto-Approvals, Mid-Turn MCP Swapping, and GitHub Actions GITHUB_TOKEN Support</title>
