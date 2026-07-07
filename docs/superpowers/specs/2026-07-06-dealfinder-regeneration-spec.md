@@ -222,3 +222,83 @@ Legend — **Data:** `SNAP` (frozen snapshot) · `LIVE` (live APIs) · `CONCEPT`
   contradictions/redundancy) — plus a `frontend-reviewer` static-export/a11y pass.
 
 Nothing ships until the user walks it.
+
+---
+
+## 9. Pinned hero-cast facts & cross-cutting conventions (AUTHORITATIVE)
+
+Every part MUST cite these values. **This table overrides any conflicting number
+in a part-spec.** No part may invent a hero-cast number. All values are computed
+by the re-spined companion against the committed snapshot and pinned in
+`tests/test_dealscore.py`.
+
+### 9.1 Hero-cast facts table
+Anchor query **"noise cancelling headphones"**, snapshot median **$162.97**,
+headphones subset size **15** items. Price model = the from-scratch linear
+baseline fit on the **audio** category (Part 17 upgrades it to gradient boosting;
+the *numbers below are the pinned baseline* and any GBDT part must re-pin from a
+committed test, not invent).
+
+| Item | actual | model fair price | residual ($ = fair−actual) | residual_frac | median_signal | verdict |
+|---|---|---|---|---|---|---|
+| Sony WH-1000XM5 | $162.97 | $285.15 | +$122.18 | +0.428 | +0.000 | **fair** |
+| Anker Soundcore Q20i | $44.99 | $108.33 | +$63.34 | +0.585 | +0.724 | **deal** |
+| Bose QuietComfort 45 | $46.00 | $285.15 | +$239.15 | +0.839 | +0.718 | **suspicious** |
+| Sony WH-1000XM6 | $399.99 | $285.15 | −$114.84 | −0.403 | −1.454 | overpriced |
+
+Note the teaching crux: Bose and XM5 share the **same $285.15 fair price** (both
+tier-4 flagships → identical features), which is *why* Bose-at-$46 reads as the
+trap. Anker and Bose are both ~72% under median at ~$45; **only the residual
+(0.585 vs 0.839) separates them.**
+
+### 9.2 Residual sign convention (define once, use everywhere)
+`residual = predicted_fair − actual`; `residual_frac = residual / predicted_fair`.
+**Large POSITIVE residual = suspiciously cheap.** A listing is **suspicious** when
+`median_signal ≥ 0.70` AND `residual_frac > 0.70`. Parts 12 & 14 (which inverted
+the sign) MUST conform. There is no dollar-residual with a negative "trap" sign.
+
+### 9.3 Condition
+The Bose QC45 title has **no condition token → `condition = "new"` (default)**.
+The trap is caught by the **model residual, never by a parsed condition flag.**
+No part may assert `condition="refurb"` for the Bose (fixes Parts 16/17/20).
+
+### 9.4 Evaluation golden set & the one eval-gate metric
+Golden set = **20 hand-labeled items** drawn from the snapshot (all 15 headphones
++ 5 cross-category), each labeled `deal|fair|suspicious|overpriced`. Golden-set
+sizes are always **subsets of the snapshot** (a 54-item headphones golden set is
+impossible — the subset is 15). **The eval gate is `precision@5 ≥ 0.80` on the
+golden set** — used identically in Parts 19, 20, 24, 32. No other k/threshold.
+
+### 9.5 Embeddings (one model, clear provenance)
+One embedding model course-wide: **fastembed `BAAI/bge-small-en-v1.5` (384-dim)**,
+including Part 22's query path + semantic cache (NOT OpenAI — reproducibility).
+Provenance: **Part 4 introduces + caches** title embeddings; **Part 5 reuses**
+them; **Part 13 persists** them in pgvector. Any quoted cosine similarity comes
+from one committed embedding run and is test-pinned; Parts 5 and 13 use the same run.
+
+### 9.6 Dedup lineage & threshold
+`canonical_id` = normalized `title_brand + model` key, introduced in **Part 1**.
+**Part 1** = `dedup_by_normalized_title` (exact/normalized key). **Part 9** =
+`dedup_by_embedding` (cross-source near-duplicates). One dedup **cosine threshold
+= 0.90 course-wide** (Parts 9/33). The Sony WH-1000XM5 at $162.97 (Costco) and
+$248 (Macy's) is the canonical dedup example.
+
+### 9.7 Badge taxonomy (drives UI + Playwright selectors)
+Exactly four badges, mapping 1:1 to verdict labels: **`DEAL`** (green) ·
+**`FAIR`** (neutral) · **`SUSPICIOUS`** (amber warning) · **`OVERPRICED`** (grey).
+No synonyms ("Genuine deal"/"Verify condition"/"no Deal badge" are banned).
+Parts 14/27/32/33 use these exact tokens.
+
+### 9.8 Safety split (Part 21 vs Part 31)
+**Part 21** owns single-request model-surface hardening as reusable modules
+(injection detection, `PIIScrubber`, output validation, model card, OWASP-LLM
+map). **Part 31 IMPORTS and EXTENDS** them for multi-tenant/at-scale (GDPR
+data-subject requests, sliding-window rate limiting, abuse detection, audit at
+scale). Part 31 re-implements nothing; both specs state this explicitly.
+
+### 9.9 Snapshot provenance & minor pins
+The snapshot came from **RapidAPI + Apify** (real Google Shopping); state it
+consistently (Parts 1/8). The messiness catalogue is retailer-as-brand pollution
+(154/270) and median-signal outliers — **no "price-in-brand leak"** (drop Part
+10's invented `brand="46"`). Part 27 animation is **`SearchStateMachine`** (no
+Cyrillic). Frontend batch counts must match their Playwright fixtures.
