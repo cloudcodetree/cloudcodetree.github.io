@@ -14,14 +14,18 @@ import { MONO, ACCENT } from '../blogShared';
  * shape render with no JS; the label explains the swing.
  */
 
-const PROMPT = 'This ultralight tent is';
+// Prompt simulates two use-cases from the DealFinder pipeline:
+// temp=0 for deterministic JSON extraction; temp>0 for user-facing summaries.
+const PROMPT = 'Is the Bose QC45 at $46 a genuine deal?';
 // [low-temp width%, high-temp width%] per candidate next token
+// Low-temp: the model almost always picks the structured/cautious answer.
+// High-temp: creative outputs ("possibly refurbished", "check seller rating") emerge.
 const CANDIDATES = [
-  { t: 'lightweight', lo: 90, hi: 34 },
-  { t: 'durable', lo: 6, hi: 24 },
-  { t: 'spacious', lo: 2, hi: 18 },
-  { t: 'waterproof', lo: 1.5, hi: 14 },
-  { t: 'pink', lo: 0.5, hi: 10 },
+  { t: '{"deal":false}', lo: 88, hi: 32 },
+  { t: 'possibly refurbished', lo: 7, hi: 26 },
+  { t: 'check seller rating', lo: 3, hi: 20 },
+  { t: 'suspiciously cheap', lo: 1.5, hi: 14 },
+  { t: 'yes, grab it', lo: 0.5, hi: 8 },
 ];
 
 export default function TemperatureSampler({ accent = ACCENT }: { accent?: string }) {
@@ -66,7 +70,7 @@ export default function TemperatureSampler({ accent = ACCENT }: { accent?: strin
           viewport={{ amount: 0.4 }}
           transition={loop}
         >
-          temperature <b>0.2</b> — peaked → picks <b>lightweight</b> almost every time (predictable)
+          temperature <b>0</b> — peaked → picks <b>{'{'}&#34;deal&#34;:false{'}'}</b> every time (deterministic, testable)
         </motion.div>
         <motion.div
           style={{ position: 'absolute', inset: 0, fontFamily: MONO, fontSize: 11, color: '#d29922' }}
@@ -75,7 +79,7 @@ export default function TemperatureSampler({ accent = ACCENT }: { accent?: strin
           viewport={{ amount: 0.4 }}
           transition={loop}
         >
-          temperature <b>1.2</b> — flattened → any of them could win (creative / random)
+          temperature <b>0.9</b> — flattened → varied prose: &ldquo;possibly refurbished&rdquo;, &ldquo;check seller rating&rdquo;&hellip;
         </motion.div>
       </div>
 

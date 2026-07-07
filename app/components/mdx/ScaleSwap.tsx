@@ -12,13 +12,17 @@ import { MONO, ACCENT } from '../blogShared';
  *
  * Both dev and prod labels stay visible — informative and static-safe (the real
  * swap targets read with no JS); the animation only adds emphasis.
+ *
+ * Electronics context: the dev path uses the frozen snapshot; the prod path uses
+ * the live RapidAPI + Apify aggregator on a schedule, storing into pgvector.
+ * The DealSource interface is the fixed contract at every stage.
  */
 
 const STAGES = [
-  { role: 'Source', dev: 'JSON file', prod: 'BigQuery · Iceberg' },
-  { role: 'Schedule', dev: 'manual run', prod: 'Airflow · Prefect' },
-  { role: 'Throughput', dev: 'in-process loop', prod: 'Kafka stream' },
-  { role: 'Store', dev: 'SQLite', prod: 'Postgres · pgvector' },
+  { role: 'Source', dev: 'electronics-2026-07.json', prod: 'RapidAPI · Apify live' },
+  { role: 'Schedule', dev: 'manual run', prod: 'Prefect · daily cron' },
+  { role: 'Throughput', dev: 'in-process loop', prod: 'async batch + circuit breaker' },
+  { role: 'Store', dev: 'dict + JSON', prod: 'Postgres · pgvector' },
 ];
 
 function Stage({ s, i, accent }: { s: typeof STAGES[number]; i: number; accent: string }) {
@@ -99,7 +103,7 @@ export default function ScaleSwap({ accent = ACCENT }: { accent?: string }) {
         animate={{ opacity: [0.8, 1, 0.8] }}
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <span style={{ color: accent, fontWeight: 700 }}>DealSource.products()</span> · ingest() · save() — interface unchanged, only the implementations swap
+        <span style={{ color: accent, fontWeight: 700 }}>DealSource interface</span> · normalize() · ingest() — unchanged at every stage; only the implementations swap
       </motion.div>
     </div>
   );

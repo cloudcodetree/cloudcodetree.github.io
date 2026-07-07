@@ -3,6 +3,7 @@ import Callout from './app/components/mdx/Callout';
 import TutorialHero from './app/components/mdx/TutorialHero';
 import SchemaMap from './app/components/mdx/SchemaMap';
 import DedupMerge from './app/components/mdx/DedupMerge';
+import RetailerBrandSplit from './app/components/mdx/RetailerBrandSplit';
 import RunHistory from './app/components/mdx/RunHistory';
 import ScaleSwap from './app/components/mdx/ScaleSwap';
 import Tokenizer from './app/components/mdx/Tokenizer';
@@ -45,7 +46,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ...components,
     Callout, TutorialHero,
-    SchemaMap, DedupMerge, RunHistory, ScaleSwap,
+    SchemaMap, DedupMerge, RetailerBrandSplit, RunHistory, ScaleSwap,
     Tokenizer, EmbeddingSpace, AttentionView, TemperatureSampler,
     RegressionFit, DealResidual,
     RecStrategies, RankingMetric,

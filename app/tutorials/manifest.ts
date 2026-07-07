@@ -154,11 +154,11 @@ export const tutorials: Tutorial[] = [
   },
   {
     slug: 'dealfinder-data-layer',
-    title: 'Build the Data Layer',
+    title: 'Data layer, normalization & the snapshot',
     series: 'DealFinder — AI Engineering',
     part: 1,
     excerpt:
-      'Ingest messy product/price data from a dataset, a live API, and a scraper behind one DealSource interface; normalize, dedup, and store it — the foundation of an AI deal-finder.',
+      'Build the Google Shopping connector, normalize the retailer-polluted brand field, dedup the same headphones listed at two prices, and freeze the 270-item electronics snapshot the whole course runs on.',
     date: '06-29-2026',
     tags: ['Tutorial', 'DealFinder', 'Data Engineering', 'Python'],
     order: 11,
@@ -167,11 +167,11 @@ export const tutorials: Tutorial[] = [
   },
   {
     slug: 'dealfinder-how-llms-work',
-    title: 'How LLMs Actually Work',
+    title: 'How LLMs actually work',
     series: 'DealFinder — AI Engineering',
     part: 2,
     excerpt:
-      'The LLM literacy you need before wiring a model into DealFinder: tokenization, embeddings, attention, and sampling — shown, not just described.',
+      'The LLM literacy you need before wiring a model into DealFinder: tokenization, embeddings, attention, and sampling — shown with real consumer-electronics data, not just described.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'LLMs', 'Concepts'],
     order: 12,
@@ -180,11 +180,11 @@ export const tutorials: Tutorial[] = [
   },
   {
     slug: 'dealfinder-deal-model',
-    title: 'Is It a Good Deal?',
+    title: 'Is it a good deal? — median vs. model',
     series: 'DealFinder — AI Engineering',
     part: 3,
     excerpt:
-      'Train a price model from scratch (the normal equation, no scikit-learn) on DealFinder\'s catalog, evaluate it with MAE and R-squared, and use it to flag underpriced listings.',
+      'Train a price model from scratch (the normal equation, no scikit-learn) on the electronics snapshot, then blend its residual with the naive median signal to separate a genuine budget pick from a too-good-to-be-true trap.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'Machine Learning', 'Python'],
     order: 13,

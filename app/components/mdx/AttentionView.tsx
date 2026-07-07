@@ -7,31 +7,35 @@ import { MONO, ACCENT } from '../blogShared';
  * Bespoke illustration of attention (BertViz head-view style): while the model
  * processes one token, it "looks at" the others by a learned weight — drawn as
  * connecting lines whose thickness/opacity is the attention weight. Here, while
- * reading "tent", the strongest links are to "2-person" and "ultralight" — the
- * words that actually qualify it — and almost nothing to "for".
+ * reading "$46", the strongest links are to "Bose" and "45" — the model links
+ * the price to the brand and model number. This explains both why an LLM extractor
+ * can pull price=46 and model=QC45 from a messy title, and why it can hallucinate
+ * brand=Bose when the snapshot's brand field says "Target" (the retailer).
  *
  * Self-contained SVG (fixed viewBox, scales responsively). Lines draw in then
  * pulse by weight. Weights are illustrative; the *pattern* (content words win)
  * is the lesson. Static-safe: tokens are real <text> in the DOM.
  */
 
+// Sequence: ["Bose", "QuietComfort", "45", "@", "$46"]
+// Focus token: "$46" — which tokens does it attend to?
 const TOK = [
-  { t: 'ultralight', w: 0.42 },
-  { t: '2-person', w: 0.70 },
-  { t: 'tent', w: 0.18 },
-  { t: 'for', w: 0.05 },
-  { t: 'backpacking', w: 0.33 },
+  { t: 'Bose', w: 0.68 },
+  { t: 'QuietComfort', w: 0.38 },
+  { t: '45', w: 0.72 },
+  { t: '@', w: 0.06 },
+  { t: '$46', w: 0.18 },
 ];
 
 const W = 600, H = 200;
 const xs = TOK.map((_, i) => 60 + i * ((W - 120) / (TOK.length - 1)));
-const focusX = xs[2]; // "tent"
+const focusX = xs[4]; // "$46"
 
 export default function AttentionView({ accent = ACCENT }: { accent?: string }) {
   return (
     <div style={{ border: '1px solid rgba(148,163,184,0.14)', borderRadius: 14, padding: '20px 18px', margin: '24px 0', background: 'rgba(13,17,23,0.4)' }}>
       <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: accent, marginBottom: 4 }}>
-        Attention: which words does &quot;tent&quot; look at?
+        Attention: which tokens does &quot;$46&quot; look at?
       </div>
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginBottom: 12 }}>
         thicker line = more attention
@@ -65,8 +69,8 @@ export default function AttentionView({ accent = ACCENT }: { accent?: string }) 
               transition={{ delay: i * 0.08 }}
             >
               <rect x={xs[i] - w / 2} y={36} width={w} height={28} rx={7}
-                fill={i === 2 ? `${accent}1a` : 'rgba(148,163,184,0.06)'}
-                stroke={i === 2 ? `${accent}73` : 'rgba(148,163,184,0.2)'} />
+                fill={i === 4 ? `${accent}1a` : 'rgba(148,163,184,0.06)'}
+                stroke={i === 4 ? `${accent}73` : 'rgba(148,163,184,0.2)'} />
               <text x={xs[i]} y={54} textAnchor="middle" fontFamily="Menlo, monospace" fontSize={13} fill="#cdd7e2">{tok.t}</text>
               <text x={xs[i]} y={24} textAnchor="middle" fontFamily="Menlo, monospace" fontSize={10} fill={accent} opacity={0.9}>{tok.w.toFixed(2)}</text>
             </motion.g>
@@ -75,15 +79,16 @@ export default function AttentionView({ accent = ACCENT }: { accent?: string }) 
 
         {/* focus token (bottom) */}
         <g>
-          <rect x={focusX - 95} y={150} width={190} height={32} rx={9} fill={`${accent}14`} stroke={`${accent}73`} />
-          <text x={focusX} y={171} textAnchor="middle" fontFamily="Menlo, monospace" fontSize={13} fill="#fff">
-            processing: <tspan fill={accent} fontWeight="700">tent</tspan>
+          <rect x={focusX - 130} y={150} width={190} height={32} rx={9} fill={`${accent}14`} stroke={`${accent}73`} />
+          <text x={focusX - 35} y={171} textAnchor="middle" fontFamily="Menlo, monospace" fontSize={13} fill="#fff">
+            processing: <tspan fill={accent} fontWeight="700">$46</tspan>
           </text>
         </g>
       </svg>
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 12 }}>
-        The qualifiers (<span style={{ color: '#cdd7e2' }}>2-person</span>, <span style={{ color: '#cdd7e2' }}>ultralight</span>) win; the filler (<span style={{ color: '#cdd7e2' }}>for</span>) is ignored. That&apos;s how context, not just the word, shapes meaning.
+        The identifiers (<span style={{ color: '#cdd7e2' }}>Bose</span>, <span style={{ color: '#cdd7e2' }}>45</span>) win; the filler (<span style={{ color: '#cdd7e2' }}>@</span>) is ignored. Attention links the $46 price to the brand and model — but it cannot tell you whether $46 is a real deal or a trap. That guard comes from the deal scorer in Part 3.
+        <br /><em style={{ fontSize: 10, opacity: 0.7 }}>Note: the weights shown are illustrative; real production attention weights are high-dimensional and not directly inspectable this way.</em>
       </div>
     </div>
   );

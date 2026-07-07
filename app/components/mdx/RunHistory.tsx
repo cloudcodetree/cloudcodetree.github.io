@@ -8,25 +8,26 @@ import { MONO, ACCENT } from '../blogShared';
  * visible as pass/fail CYCLES across runs, so this mirrors how CI dashboards
  * (Datadog, Atlassian) actually show flakiness — a run-history strip.
  *
- * Two lanes run the same suite N times:
- *   - live network → mixed results (a timeout, a flake) = can't trust red
- *   - offline (respx + fixture) → identical green every run = deterministic
+ * Two lanes run the same connector test suite N times:
+ *   - live RapidAPI → mixed results (quota hit, timeout, rate-limit 429) = can't trust red
+ *   - snapshot (electronics-2026-07.json) → identical green every run = deterministic
  *
  * The contrast IS the lesson. Cells stamp in left→right on a loop. Static-safe:
  * the cells and verdicts are real text, so the point survives with no JS.
+ * Electronics context: the suite tests the Google Shopping connector + normalizer.
  */
 
 type Cell = { ok: boolean; note: string };
 
 const LIVE: Cell[] = [
-  { ok: true, note: '1.2s' },
+  { ok: true, note: '1.3s' },
+  { ok: false, note: '429 quota' },
+  { ok: true, note: '1.1s' },
   { ok: false, note: 'timeout' },
-  { ok: true, note: '0.9s' },
-  { ok: false, note: 'flake' },
-  { ok: true, note: '1.4s' },
+  { ok: true, note: '1.5s' },
 ];
 
-const OFFLINE: Cell[] = Array.from({ length: 5 }, () => ({ ok: true, note: '9 passed' }));
+const OFFLINE: Cell[] = Array.from({ length: 5 }, () => ({ ok: true, note: '270 items' }));
 
 function Strip({ cells, accent }: { cells: Cell[]; accent: string }) {
   return (
@@ -81,24 +82,24 @@ export default function RunHistory({ accent = ACCENT }: { accent?: string }) {
   return (
     <div style={{ border: '1px solid rgba(148,163,184,0.14)', borderRadius: 14, padding: '20px 18px', margin: '24px 0', background: 'rgba(13,17,23,0.4)' }}>
       <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: accent, marginBottom: 4 }}>
-        Same suite, five runs
+        Connector test suite, five runs
       </div>
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginBottom: 18 }}>
-        determinism is only visible across runs
+        determinism is only visible across runs — live APIs are not a stable test surface
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         <Lane
-          tag="🌐 live network"
+          tag="live RapidAPI"
           tagColor="#f85149"
           cells={LIVE}
-          verdict="⚠ flaky — red ≠ real bug"
+          verdict="⚠ flaky — red ≠ real bug (quota / timeout)"
           verdictColor="#f85149"
           accent={accent}
         />
         <div style={{ height: 1, background: 'rgba(148,163,184,0.12)' }} />
         <Lane
-          tag="⃠ offline (respx + fixture)"
+          tag="snapshot (270 items)"
           tagColor={accent}
           cells={OFFLINE}
           verdict="✓ deterministic — identical every run"
@@ -108,7 +109,7 @@ export default function RunHistory({ accent = ACCENT }: { accent?: string }) {
       </div>
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 18 }}>
-        Mocking the network (and using a saved fixture) turns the right lane from <span style={{ color: '#f85149' }}>noise</span> into <span style={{ color: accent }}>signal</span>.
+        The snapshot is the stable test surface. Live connectors are tested separately, against mocked responses — so <span style={{ color: '#f85149' }}>quota errors</span> never mask <span style={{ color: accent }}>real normalizer bugs</span>.
       </div>
     </div>
   );

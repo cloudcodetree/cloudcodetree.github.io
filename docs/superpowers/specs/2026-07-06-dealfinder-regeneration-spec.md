@@ -302,3 +302,14 @@ consistently (Parts 1/8). The messiness catalogue is retailer-as-brand pollution
 (154/270) and median-signal outliers — **no "price-in-brand leak"** (drop Part
 10's invented `brand="46"`). Part 27 animation is **`SearchStateMachine`** (no
 Cyrillic). Frontend batch counts must match their Playwright fixtures.
+
+**Retailer-brand pollution count = 154** (of 270), defined as: `brand` contains a
+known-retailer token (walmart, target, best buy, kohl's, costco, macy's, amazon,
+newegg, ebay). This is the pinned figure and matches the companion docstrings.
+The broader `title_brand(brand) != title_brand(title)` definition yields ~220 —
+that is NOT the pinned number; any illustrative assertion must use the
+known-retailer-token definition so it reproduces 154.
+
+**Test-file references must be real.** Cite actual companion test files
+(`tests/test_snapshot.py`, `tests/test_dealscore.py`, `tests/test_features.py`,
+etc.) — never invent `test_partNN.py` names.

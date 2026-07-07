@@ -15,12 +15,13 @@ import { MONO, ACCENT } from '../blogShared';
 
 // A BPE-style split of a product title. text includes the leading space where the
 // real tokenizer keeps it; we render '·' for a leading space so it's visible.
+// Input: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones"
+// Note how the model-number identifier WH-1000XM5 fragments into 6 tokens.
 const TOKENS: { t: string; id: number }[] = [
-  { t: 'Trail', id: 24013 }, { t: 'Lite', id: 4419 }, { t: ' UL', id: 17861 },
-  { t: '2', id: 17 }, { t: ' Tent', id: 41139 }, { t: ' —', id: 2001 },
-  { t: ' 2', id: 220 }, { t: '-', id: 12 }, { t: 'person', id: 6259 },
-  { t: ',', id: 11 }, { t: ' 1', id: 220 }, { t: '.', id: 13 },
-  { t: '1', id: 16 }, { t: 'kg', id: 7501 },
+  { t: 'Sony', id: 23056 }, { t: ' WH', id: 6155 }, { t: '-', id: 12 },
+  { t: '1000', id: 9104 }, { t: 'X', id: 55 }, { t: 'M', id: 44 },
+  { t: '5', id: 20 }, { t: ' Wireless', id: 34501 }, { t: ' Noise', id: 43047 },
+  { t: ' Cancelling', id: 41809 }, { t: ' Head', id: 12690 }, { t: 'phones', id: 14601 },
 ];
 
 const PALETTE = ['#3fb95033', '#2f81f733', '#d2992233', '#a371f733', '#f0598333'];
@@ -33,7 +34,7 @@ export default function Tokenizer({ accent = ACCENT }: { accent?: string }) {
         Text → tokens (what the model — and your bill — actually sees)
       </div>
       <div style={{ fontFamily: MONO, fontSize: 12, color: '#cdd7e2', marginBottom: 14 }}>
-        &quot;TrailLite UL2 Tent — 2-person, 1.1kg&quot;
+        &quot;Sony WH-1000XM5 Wireless Noise Cancelling Headphones&quot;
       </div>
 
       <motion.div
@@ -63,9 +64,9 @@ export default function Tokenizer({ accent = ACCENT }: { accent?: string }) {
       </motion.div>
 
       <div style={{ display: 'flex', gap: 18, marginTop: 16, flexWrap: 'wrap', fontFamily: MONO, fontSize: 11, color: '#8b98a8' }}>
-        <span><span style={{ color: accent, fontWeight: 700 }}>{TOKENS.length} tokens</span> · 4 words</span>
+        <span><span style={{ color: accent, fontWeight: 700 }}>{TOKENS.length} tokens</span> · 7 words</span>
         <span>· <code style={{ color: '#cdd7e2' }}>·</code> = leading space</span>
-        <span>· numbers &amp; casing fragment</span>
+        <span>· &ldquo;WH-1000XM5&rdquo; alone = 6 tokens</span>
         <span>· billed per token, in <em>and</em> out</span>
       </div>
     </div>

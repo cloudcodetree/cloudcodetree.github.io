@@ -4,14 +4,16 @@ import { motion } from 'framer-motion';
 import { MONO, ACCENT } from '../blogShared';
 
 /**
- * Bespoke illustration for dedup: the SAME product arrives from two sources at
- * different prices. They share a dedup_key, so they collapse to one row and the
- * cheaper price wins. The visual shows the comparison and the collapse — the
- * loser's price is struck through, the winner is kept with its source recorded.
+ * Bespoke illustration for dedup: the SAME electronics product arrives from two
+ * sources at different prices. They share a dedup_key (after title-brand extraction),
+ * so they collapse to one row and the cheaper price wins.
  *
- * Looping: the strikethrough draws across the losing price, then the kept card
- * pulses. Static-safe (the resolved state — $189 kept — reads correctly with no
- * JS), so the export still teaches the point.
+ * Default example: Sony WH-1000XM5 at Costco ($162.97) vs Macy's ($248.00) —
+ * the canonical dedup case from the electronics-2026-07.json snapshot (Part 1 §9.6).
+ * The higher-price card gets a strikethrough + "dropped" treatment; the Costco
+ * card pulses green as the survivor.
+ *
+ * Static-safe: the resolved state ($162.97 kept) reads correctly with no JS.
  */
 
 type Cand = { source: string; color: string; price: string; loser?: boolean };
@@ -24,10 +26,10 @@ const card = {
 };
 
 export default function DedupMerge({
-  title = 'TrailLite Tent',
+  title = 'Sony WH-1000XM5',
   candidates = [
-    { source: 'dataset', color: '#3fb950', price: '$205', loser: true },
-    { source: 'scraper', color: '#d29922', price: '$189' },
+    { source: "Macy's", color: '#f85149', price: '$248.00', loser: true },
+    { source: 'Costco', color: '#3fb950', price: '$162.97' },
   ],
   accent = ACCENT,
 }: {
@@ -73,7 +75,7 @@ export default function DedupMerge({
             </motion.div>
           ))}
           <div style={{ fontFamily: MONO, fontSize: 10, color: '#8b98a8', textAlign: 'center' }}>
-            dedup_key = brand|title — identical
+            dedup_key: title_brand(title)|normalize(title) — identical
           </div>
         </div>
 
@@ -102,7 +104,7 @@ export default function DedupMerge({
             <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 14, color: accent, fontWeight: 700 }}>{winner.price}</span>
           </div>
           <div style={{ fontFamily: MONO, fontSize: 10, color: '#8b98a8', marginTop: 3 }}>
-            one row · kept {winner.source}&apos;s price
+            one row · {winner.source} · cheapest wins
           </div>
         </motion.div>
       </div>

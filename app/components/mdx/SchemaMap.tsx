@@ -15,16 +15,17 @@ import { MONO, ACCENT } from '../blogShared';
  */
 
 const SRC = [
-  { key: 'dataset', label: 'Dataset', color: '#3fb950' },
-  { key: 'api', label: 'Live API', color: '#2f81f7' },
-  { key: 'scraper', label: 'Scraper', color: '#d29922' },
+  { key: 'rapidapi', label: 'RapidAPI', color: '#3fb950' },
+  { key: 'apify', label: 'Apify', color: '#2f81f7' },
+  { key: 'bestbuy', label: 'Best Buy', color: '#d29922' },
 ];
 
 // canonical field ← the alias each source happens to call it
+// (real field names from live_sources.py + Best Buy API)
 const ROWS = [
-  { canon: 'id', aliases: ['sku', 'id', 'data-id'] },
-  { canon: 'title', aliases: ['name', 'title', '.title'] },
-  { canon: 'price', aliases: ['usd', 'price', 'span.price'] },
+  { canon: 'id', aliases: ['product_id', 'itemId', 'sku'] },
+  { canon: 'title', aliases: ['product_title', 'title', 'name'] },
+  { canon: 'price', aliases: ['price', 'priceNumeric', 'salePrice'] },
 ];
 
 const chip = {
@@ -78,7 +79,7 @@ export default function SchemaMap({ accent = ACCENT }: { accent?: string }) {
       </motion.div>
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 14 }}>
-        Every source names things differently. <span style={{ color: accent }}>normalize()</span> maps each alias onto the same canonical field.
+        RapidAPI, Apify, and Best Buy each name the same concept differently. <span style={{ color: accent }}>to_products()</span> maps every alias onto one canonical <span style={{ color: accent }}>Product</span> field.
       </div>
     </div>
   );
