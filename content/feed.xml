@@ -10,7 +10,222 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 07 Jul 2026 04:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 07 Jul 2026 12:06:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Lock Down Claude Code for CI: allowedTools, permissionMode, and managed-settings.json</title>
+      <link>https://code.claude.com/docs/en/permissions</link>
+      <guid isPermaLink="false">2026-07-07-06-claude-code-permission-profiles-ci</guid>
+      <pubDate>Tue, 07 Jul 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <category>Security</category>
+      <description>Use allowedTools + permissionMode dontAsk in settings.json to create a minimal-permission profile for unattended CI runs — Claude gets only the tools the task needs, nothing more.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Pair `allowedTools` with `permissionMode: "dontAsk"` in `.claude/settings.json` to give unattended Claude Code runs only the permissions they need — nothing more, no prompts.**
+
+When Claude Code runs in an unattended pipeline — a GitHub Action, a scheduled routine, a deploy hook — the default permission model (prompt on anything unexpected) breaks automation. Here's how to build a minimal-permission profile where Claude can only do what the task actually requires.
+
+## The four settings layers
+
+```
+managed-settings.json               ← enterprise-wide, cannot be overridden
+└─ .claude/settings.json            ← shared project (checked in)
+   └─ .claude/settings.local.json   ← per-developer overrides (gitignored)
+      └─ CLI flags (--allowedTools, --permission-mode)
+```
+
+A `deny` at any level is final — lower levels can't override it.
+
+## Minimal CI profile
+
+Add this to `.claude/settings.json` for a build/review agent that can stage and commit but cannot push or reach external services:
+
+```json
+{
+  "permissionMode": "dontAsk",
+  "allowedTools": [
+    "Read", "Glob", "Grep", "Edit", "Write",
+    "Bash(git status)",
+    "Bash(git diff:*)",
+    "Bash(git add:*)",
+    "Bash(git commit:*)"
+  ],
+  "denyTools": [
+    "Bash(git push:*)",
+    "mcp__*"
+  ]
+}
+```
+
+`permissionMode: "dontAsk"` means any tool **not** in `allowedTools` fails immediately rather than prompting. Combine with `denyTools` for an explicit blocklist that overrides any allow rule: even if an MCP tool appears in `allowedTools`, the `mcp__*` deny wins.
+
+## Narrowing further with CLI flags
+
+For a read-only audit agent — no writes, no shell commands:
+
+```bash
+claude --permission-mode dontAsk \
+       --allowedTools "Read,Glob,Grep" \
+       --output-format json \
+       -p "List every file that hardcodes an API key"
+```
+
+Swap different `--allowedTools` sets to build task-specific profiles: one for code review, one for generating docs, one for running tests.
+
+## Enterprise enforcement via managed-settings.json
+
+Admins can distribute a `managed-settings.json` that no project or user config can override:
+
+```json
+{
+  "policySettings": {
+    "disableBypassPermissionsMode": "disable"
+  },
+  "denyTools": [
+    "Bash(rm -rf:*)",
+    "Bash(curl:*)",
+    "Bash(wget:*)"
+  ]
+}
+```
+
+`disableBypassPermissionsMode: "disable"` blocks the `--dangerously-skip-permissions` flag for all users in the org. The `denyTools` here are global: no project, no user, no flag can undo them.
+
+**Sources:** [Claude Code permissions docs](https://code.claude.com/docs/en/permissions), [Claude Agent SDK permissions](https://platform.claude.com/docs/en/agent-sdk/permissions)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>OpenAI's Voice Agent API Upgrades: gpt-realtime-2.1 Cuts Tail Latency 25%, Adds Reasoning Effort</title>
+      <link>https://openai.com/index/introducing-gpt-realtime/</link>
+      <guid isPermaLink="false">2026-07-07-05-openai-realtime-2-1-voice-api</guid>
+      <pubDate>Tue, 07 Jul 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>OpenAI released gpt-realtime-2.1 and gpt-realtime-2.1-mini on July 6: 25% lower p95 latency, better alphanumeric recognition, and configurable reasoning effort for voice agents.</description>
+      <content:encoded><![CDATA[
+**TL;DR: OpenAI's Realtime API voice models just got sharper — 25% lower tail latency, better number recognition, configurable reasoning effort, and a mini variant that now includes reasoning and tool use.**
+
+Released July 6, `gpt-realtime-2.1` and `gpt-realtime-2.1-mini` update OpenAI's speech-to-speech Realtime API for production voice agents.
+
+Key improvements over the previous generation:
+
+- **Alphanumeric recognition**: better accuracy on serial numbers, order codes, and short strings — a common failure mode in customer-support and data-entry voice agents
+- **Interruption and silence handling**: cleaner turn-taking with less spurious cut-off and false-silence detection
+- **Configurable reasoning effort**: `gpt-realtime-2.1` supports the same `reasoning_effort` parameter as o-series models, letting you trade latency for answer quality on a per-turn basis
+- **25% lower p95 latency** across both new models via improved response caching
+- `gpt-realtime-2.1-mini` is a cost-parity upgrade from the old `gpt-realtime-mini` that now adds reasoning and tool use at the same price
+
+To switch, update the `model` parameter in your Realtime API session:
+```json
+{ "model": "gpt-realtime-2.1" }
+```
+
+**Why it matters:** For engineers building phone-based agents, IVR replacements, or transcription-with-tool-use pipelines, the tail latency cut and recognition improvements remove two of the most common production blockers — spiky response times and mangled alphanumeric input.
+
+**Sources:** [OpenAI announcement](https://openai.com/index/introducing-gpt-realtime/), [OpenAI Developer Community](https://community.openai.com/t/introducing-gpt-realtime-and-realtime-api-updates-for-production-voice-agents/1355039)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Stop Embedding the Wrong Thing: Better RAG With Multi-Query Retrieval and HyDE</title>
+      <link>https://blog.langchain.com/query-transformations/</link>
+      <guid isPermaLink="false">2026-07-07-04-query-transform-multi-query-hyde-rag</guid>
+      <pubDate>Tue, 07 Jul 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Embeddings</category>
+      <category>Best Practices</category>
+      <description>Multi-Query Retrieval and HyDE fix the vocabulary mismatch between user questions and your documents — generate query variants or a hypothetical answer before hitting the vector store.</description>
+      <media:content url="https://img.youtube.com/vi/JChPi0CRnDY/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/JChPi0CRnDY/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**TL;DR: Your user's question is often a poor embedding match for your documents — generate multiple rephrasings (Multi-Query) or a hypothetical answer (HyDE) before hitting the vector store.**
+
+**What you'll be able to do after this:**
+- Generate 3–5 query variants with `MultiQueryRetriever` and merge deduplicated results so a narrowly-phrased question still finds the right chunk
+- Use HyDE (Hypothetical Document Embeddings) to embed a fake *answer* instead of the raw question, dramatically improving retrieval on dense technical corpora
+- Wire both techniques into a LangChain retriever in under 20 lines of Python
+
+---
+
+The most common RAG failure is a vocabulary mismatch: the user asks "how do I reset my password?" but the docs say "changing your credentials." The embedding model won't bridge that gap without help. Query transformation fixes it before any vector search runs.
+
+**Video resource:** [LangChain RAG from Scratch — Part 5: Multi-Query](https://www.youtube.com/watch?v=JChPi0CRnDY) and [Part 9: HyDE](https://www.youtube.com/watch?v=SaDzIVkYqyY) (each ~8 minutes, code linked in description)
+
+---
+
+## Multi-Query Retrieval
+
+LangChain's `MultiQueryRetriever` asks the LLM to rewrite your query from multiple perspectives, runs all variants against the vector store in parallel, and returns the unique union of results.
+
+```python
+from langchain.retrievers.multi_query import MultiQueryRetriever
+from langchain_anthropic import ChatAnthropic
+from langchain_chroma import Chroma
+
+vectorstore = Chroma(...)  # your existing store
+llm = ChatAnthropic(model="claude-haiku-4-5-20251001", temperature=0)
+
+retriever = MultiQueryRetriever.from_llm(
+    retriever=vectorstore.as_retriever(search_kwargs={"k": 5}),
+    llm=llm,
+)
+
+# LLM generates 3 variants; unique docs from all 3 are merged
+docs = retriever.invoke("What's your refund policy for digital goods?")
+```
+
+The default prompt generates 3 rewrites. Pass your own prompt via the `prompt` argument if your domain needs more specific paraphrasing. Overhead: one extra LLM call per query — cheap with Haiku or a small open-weight model.
+
+---
+
+## HyDE: Hypothetical Document Embeddings
+
+HyDE inverts the query. Instead of embedding the question and searching for similar chunks, you ask the LLM to write a hypothetical *answer* document, then embed that. The intuition: a fake answer and real answers share vocabulary in a way that short questions don't.
+
+```python
+from langchain.chains import HypotheticalDocumentEmbedder
+from langchain_openai import OpenAIEmbeddings
+
+base_embeddings = OpenAIEmbeddings()
+hyde_embeddings = HypotheticalDocumentEmbedder.from_llm(
+    llm=llm,
+    base_embeddings=base_embeddings,
+    prompt_key="web_search",  # built-in prompt to generate a hypothetical doc
+)
+
+# Build a vectorstore that embeds using HyDE at query time
+vectorstore = FAISS.from_texts(corpus, hyde_embeddings)
+results = vectorstore.similarity_search(query)
+```
+
+HyDE consistently improves precision on technical docs, API references, and medical or legal text — anywhere the gap between question style and document style is large.
+
+---
+
+## When to use each
+
+| Technique | Best for | Overhead |
+|---|---|---|
+| Multi-Query | Vague, ambiguous, or multi-part questions | 1 LLM call/query |
+| HyDE | Dense technical corpora; short questions vs. long answers | 1 LLM call/query |
+| Both | High-recall + high-precision requirements | 2 LLM calls/query |
+
+Combine with reranking for best results: query transformation broadens recall, a cross-encoder reranker sharpens precision on the merged candidate set.
+
+**Sources:** [LangChain blog: Query Transformations](https://blog.langchain.com/query-transformations/), [RAG from Scratch Part 5 (Multi-Query)](https://www.youtube.com/watch?v=JChPi0CRnDY), [RAG from Scratch Part 9 (HyDE)](https://www.youtube.com/watch?v=SaDzIVkYqyY)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Right-Size Your Agent Fleet: Dynamic Workflow Sizing and OTel Tracing in Claude Code v2.1.202</title>
