@@ -1,0 +1,479 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Live Multi-Source Connectors (Part 7 of 33) · Tutorials',
+  description:
+    'Wire eBay Browse (OAuth 2.0), RapidAPI Google Shopping (key-auth), and BestBuy Affiliate (key-auth) behind a unified Source protocol — so a single query returns live listings from all three with one interface.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-live-sources/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Live Multi-Source Connectors (Part 7 of 33)',
+    description:
+      'Wire eBay Browse (OAuth 2.0), RapidAPI Google Shopping (key-auth), and BestBuy Affiliate (key-auth) behind a unified Source protocol — so a single query returns live listings from all three with one interface.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-live-sources/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-live-sources.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-live-sources.png'] },
+};
+
+<TutorialHero slug="dealfinder-live-sources" />
+
+# Live Multi-Source Connectors
+
+**TL;DR: The snapshot in Part 1 came entirely from Google Shopping (via RapidAPI and Apify) — eBay and BestBuy contributed zero rows. This part adds them. You will obtain and cache OAuth tokens for eBay Browse, add BestBuy with a simple API key, and wire both alongside the existing RapidAPI connector behind a shared `Source` protocol so a single `"noise cancelling headphones"` query returns live listings from all three simultaneously.**
+
+The frozen snapshot is reproducible and tests run against it offline — but the snapshot has a blind spot. Open `electronics-2026-07.json`, filter to `"noise cancelling headphones"`, and count by `source`. You will find 15 items, every one tagged `RapidAPI:<store>` (Google Shopping offers surfaced through RapidAPI; the snapshot's other provider, Apify, is also Google Shopping). eBay's resale market and BestBuy's in-store prices are invisible. This part fixes that by connecting the sources the snapshot missed.
+
+<Callout tone="tip">
+**Code along, step by step.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Step tags: `step-07a` (eBay OAuth + unit tests) · `step-07b` (BestBuy + RapidAPI refactor + smoke test).
+Diff the changes at `github.com/cloudcodetree/tutorial-dealfinder/compare/step-06...step-07b`.
+</Callout>
+
+## Course summary
+
+This is Part 7 of the **DealFinder — AI Engineering** series (33 parts). The full arc:
+
+- **Phase 1 (Parts 1–9) — Real data & the aggregator:** data layer (Part 1), LLM literacy (Part 2), deal-score model (Part 3), recommender (Part 4), semantic search (Part 5), structured extraction (Part 6), live multi-source connectors (here), scraping responsibly (Part 8), tiered aggregation and resilience (Part 9).
+- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor, ReAct agent, MCP server, pgvector persistence, web UI.
+- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration with Prefect, dbt, data contracts.
+- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** experiment tracking, evaluation as a discipline, MLOps loop.
+- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI, inference optimization, containerization, Kubernetes, observability.
+- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth, saved searches, Stripe payments, security at scale.
+- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, system-design case study.
+
+## Table of contents
+
+1. [Why three sources](#why-three-sources)
+2. [The Source protocol](#the-source-protocol)
+3. [eBay Browse: OAuth client-credentials](#ebay-browse-oauth-client-credentials)
+4. [Proof: eBay unit test](#proof-ebay-unit-test)
+5. [BestBuy Affiliate: key-auth](#bestbuy-affiliate-key-auth)
+6. [RapidAPI Google Shopping: protocol conformance](#rapidapi-google-shopping-protocol-conformance)
+7. [Live smoke test: all three sources](#live-smoke-test-all-three-sources)
+8. [The Bose QC45 contrast: source trust matters](#the-bose-qc45-contrast-source-trust-matters)
+9. [Reproducibility checks](#reproducibility-checks)
+10. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Obtain a production eBay Browse API app, implement the OAuth 2.0 client-credentials grant, and cache the token so it survives across `search()` calls without re-authenticating every request.
+- Query RapidAPI Google Shopping and BestBuy Affiliate with API-key auth; read and respect rate-limit headers (`X-RateLimit-Remaining`, `Retry-After`) on 429 responses.
+- Implement the `Source` abstract base class with a uniform `search(query, limit) -> list[Product]` return type so new sources drop in without touching the aggregator.
+- Map each source's raw JSON onto the shared item schema (`id, title, brand, price, currency, source, marketplace, url, image_url`), with field-presence guards for missing keys.
+- Run an end-to-end smoke test that hits all three live APIs and confirms at least one result per source for the query `"noise cancelling headphones"`.
+
+---
+
+## Why three sources
+
+The snapshot contains 270 items across 18 queries. For the anchor query `"noise cancelling headphones"` the subset is 15 items — all sourced from Google Shopping via RapidAPI and Apify. eBay (zero rows) and BestBuy (zero rows) are missing from the snapshot by construction: the snapshot used only the sources available at capture time.
+
+That gap matters for two reasons:
+
+**Price diversity.** The 15-item headphones subset has a median of $162.97. eBay's resale market introduces used and refurbished listings (often $40–$100 below retail), and BestBuy's direct prices reflect the current in-store sale price — a different signal from the marketplace aggregation Google Shopping performs. One source is not a market.
+
+**Source-trust calibration.** Part 9 will weight sources differently when computing the deal score. You cannot build that weighting without multiple live sources. This part provides them.
+
+<MultiSourceFunnel />
+
+Each source returns a differently-shaped raw JSON object. The `normalize()` step maps every shape onto the same flat schema so the aggregator receives identical `Product` objects regardless of origin. The `source` field preserves provenance; `deal_pct` is left `null` at ingestion and filled by the aggregator after cross-source merging.
+
+---
+
+## The Source protocol
+
+Part 1 introduced the `DealSource` interface used by `ingest()`. This part formalizes it as an abstract base class and adds `available()` — a guard that lets the aggregator skip sources whose credentials are absent, instead of raising at runtime:
+
+```python
+# dealfinder/live_sources.py
+class RapidApiSource:
+    name = "RapidAPI"
+    tier = 1  # fast, generous limits — try first
+
+    def available(self) -> bool:
+        return bool(os.getenv("RAPIDAPI_KEY"))
+
+    def search(self, query: str, limit: int = 15) -> list[Product]:
+        key = os.getenv("RAPIDAPI_KEY")
+        if not key:
+            return []
+        r = httpx.get(
+            f"https://{self._host}/search",
+            params={"q": query, "country": "us", "limit": str(limit)},
+            headers={"X-RapidAPI-Key": key, "X-RapidAPI-Host": self._host},
+            timeout=20,
+        )
+        ...
+```
+
+The contract is intentionally minimal: `available()` returns a bool, `search()` returns a list of `Product`. The aggregator calls `available()` first and skips silently if credentials are absent. New sources drop in by implementing these two methods — nothing downstream changes.
+
+The `tier` attribute is advisory metadata for Part 9's tiered aggregator: tier 1 sources are tried first, and their results short-circuit the tier-2 and tier-3 sources if enough results are found. Part 9 owns that logic; here you only need to set the `tier` correctly.
+
+---
+
+## eBay Browse: OAuth client-credentials
+
+The eBay Browse API uses OAuth 2.0 client-credentials — the grant type designed for machine-to-machine access where no user is involved. Your app proves its identity with a client ID and secret, receives a short-lived access token, and uses that token as a Bearer credential on every Browse API call.
+
+<OAuthFlow />
+
+The flow has three moving parts: token acquisition, token caching, and proactive refresh.
+
+**Token acquisition.** The `_get_token()` method in `EbaySource` Base64-encodes `client_id:client_secret`, POSTs to `/identity/v1/oauth2/token` with `grant_type=client_credentials`, and extracts `access_token` and `expires_in` from the response:
+
+```python
+# dealfinder/live_sources.py — EbaySource
+def _get_token(self) -> str:
+    if self._token and time.monotonic() < self._expires:
+        return self._token
+    creds = f"{os.getenv('EBAY_APP_ID')}:{os.getenv('EBAY_CERT_ID')}"
+    b64 = base64.b64encode(creds.encode()).decode()
+    r = httpx.post(
+        self._base() + "/identity/v1/oauth2/token",
+        headers={
+            "Authorization": f"Basic {b64}",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        data={
+            "grant_type": "client_credentials",
+            "scope": "https://api.ebay.com/oauth/api_scope",
+        },
+        timeout=30,
+    )
+    r.raise_for_status()
+    j = r.json()
+    self._token = j["access_token"]
+    self._expires = time.monotonic() + j.get("expires_in", 7200) - 60
+    return self._token
+```
+
+**Token caching.** The token is stored in `self._token` and `self._expires`. The guard `time.monotonic() < self._expires` short-circuits the HTTP call on every subsequent request within the TTL window. One re-authentication per ~two hours, not one per query.
+
+**Proactive refresh.** The 60-second buffer (`expires_in - 60`) means the token is considered expired one minute before eBay actually invalidates it. That buffer absorbs clock skew and network jitter, so a call never fails mid-flight because the token expired between the check and the request.
+
+**Sandbox vs. production.** The `_base()` method reads `EBAY_ENV` and the app ID suffix to choose the endpoint. If `EBAY_ENV=sandbox` or your app ID contains `SBX`, requests go to `api.sandbox.ebay.com`. For this tutorial, use the Production environment — sandbox data is sparse and does not reflect real prices.
+
+```bash
+# .env (never commit)
+EBAY_APP_ID=YourApp-ProductionID-PRD-...
+EBAY_CERT_ID=PRD-yourapp-cert-id...
+# Optional affiliate commission attribution:
+EBAY_CAMPAIGN_ID=123456789
+```
+
+<Callout tone="note">
+**Create the app at developer.ebay.com.** Under "My Account" select "Application Keys", create a new app, and copy the Production App ID (client ID) and Cert ID (client secret). The Browse API scope is included in the default Production key set — no additional scope request is required.
+</Callout>
+
+With the env vars set, the `search()` method uses the cached token as a Bearer header:
+
+```python
+def search(self, query: str, limit: int = 15) -> list[Product]:
+    if not self.available():
+        return []
+    headers = {"Authorization": f"Bearer {self._get_token()}"}
+    campaign = os.getenv("EBAY_CAMPAIGN_ID")
+    if campaign:
+        headers["X-EBAY-C-ENDUSERCTX"] = f"affiliateCampaignId={campaign}"
+    r = httpx.get(
+        self._base() + "/buy/browse/v1/item_summary/search",
+        headers=headers,
+        params={"q": query, "limit": str(limit)},
+        timeout=30,
+    )
+    if r.status_code != 200:
+        return []
+    out = []
+    for it in (r.json().get("itemSummaries") or []):
+        price = _f((it.get("price") or {}).get("value"))
+        if not price:
+            continue
+        cond = it.get("condition") or "eBay"
+        out.append(Product(
+            id=f"ebay-{str(it.get('itemId', ''))[-40:]}",
+            title=(it.get("title") or query)[:120],
+            brand=None,
+            category="product",
+            price=price,
+            currency=(it.get("price") or {}).get("currency", "USD"),
+            url=it.get("itemAffiliateWebUrl") or it.get("itemWebUrl") or "",
+            source=f"{self.name}:{cond}",
+            image_url=(it.get("image") or {}).get("imageUrl"),
+        ))
+    return out
+```
+
+The `brand` field is set to `None` on eBay results because the Browse API does not reliably surface the manufacturer name in the `itemSummaries` response — only the listing title does. Part 6's `title_brand()` extractor fills the true manufacturer downstream. This is intentional: `brand=None` is honest; `brand="eBay"` would be misleading.
+
+When `EBAY_CAMPAIGN_ID` is set, the API returns an `itemAffiliateWebUrl` with your campaign attribution embedded. Use that URL in preference to `itemWebUrl`; the product page is identical and you earn a commission on purchases.
+
+A representative result for `"noise cancelling headphones"`:
+
+```json
+{
+  "id": "ebay-v1|271843901234",
+  "query": "noise cancelling headphones",
+  "category": null,
+  "title": "Sony WH-1000XM5 Wireless Noise Canceling Headphones - Black",
+  "brand": null,
+  "price": 159.99,
+  "currency": "USD",
+  "source": "eBay:New",
+  "marketplace": "ebay",
+  "url": "https://www.ebay.com/itm/271843901234",
+  "image_url": "https://i.ebayimg.com/images/…",
+  "deal_pct": null,
+  "median_price_at_capture": null
+}
+```
+
+`deal_pct` is `null` here. The aggregator (Part 9) computes it after merging results from all sources and calculating the cross-source median for the query. No individual connector knows the cross-source median; only the aggregator does.
+
+---
+
+## Proof: eBay unit test
+
+The offline tests mock the HTTP layer with [respx](https://lundberg.github.io/respx/) — a canned eBay Browse response is returned to the connector so CI verifies the OAuth-then-search flow and the normalization logic without a live network call:
+
+```python
+# tests/test_live_sources.py
+import httpx
+import respx
+from dealfinder.live_sources import EbaySource
+
+@respx.mock
+def test_ebay_oauth_then_browse_search(monkeypatch):
+    monkeypatch.setenv("EBAY_APP_ID", "chrishar-DealFind-SBX-abc")
+    monkeypatch.setenv("EBAY_CERT_ID", "SBX-secret")
+    respx.post("https://api.sandbox.ebay.com/identity/v1/oauth2/token").mock(
+        return_value=httpx.Response(200, json={"access_token": "t", "expires_in": 7200, "token_type": "App"}))
+    respx.get("https://api.sandbox.ebay.com/buy/browse/v1/item_summary/search").mock(
+        return_value=httpx.Response(200, json={"itemSummaries": [
+            {"itemId": "v1|123|0", "title": "Laptop", "price": {"value": "659.99", "currency": "USD"},
+             "condition": "New", "itemWebUrl": "https://ebay/x", "image": {"imageUrl": "http://img"}},
+        ]}))
+    out = EbaySource().search("laptop")
+    assert len(out) == 1
+    assert out[0].price == 659.99 and out[0].source == "eBay:New"
+```
+
+The SBX app id routes both the token POST and the search GET to the sandbox host, so the mock intercepts them and no real credentials are needed. Run it offline:
+
+```bash
+pytest tests/test_live_sources.py -v
+```
+
+The test runs in CI without network access. Equivalent respx-mocked tests in `tests/test_live_sources.py` cover `BestBuySource` (`test_bestbuy_search_maps_saleprice`), `ShopifySource`, and `FirecrawlSource`.
+
+---
+
+## BestBuy Affiliate: key-auth
+
+BestBuy's open Developer API is simpler than eBay's OAuth: pass `apiKey` as a query parameter. Registration is free at `developer.bestbuy.com` and approval takes 1–3 business days. While you wait, the respx-mocked test `test_bestbuy_search_maps_saleprice` in `tests/test_live_sources.py` lets you exercise the normalization path immediately — no key required.
+
+```python
+# dealfinder/live_sources.py — BestBuySource
+def search(self, query: str, limit: int = 15) -> list[Product]:
+    key = os.getenv("BESTBUY_API_KEY")
+    if not key:
+        return []
+    tokens = [t for t in re.findall(r"[a-z0-9]+", query.lower()) if len(t) > 1][:6]
+    if not tokens:
+        return []
+    pred = "&".join(f"search={t}" for t in tokens)
+    show = "sku,name,salePrice,regularPrice,url,image,manufacturer"
+    url = (
+        f"https://api.bestbuy.com/v1/products({pred})"
+        f"?apiKey={key}&format=json&show={show}&pageSize={limit}&sort=salePrice.asc"
+    )
+    r = httpx.get(url, timeout=20)
+    if r.status_code != 200:
+        return []
+    out = []
+    for p in r.json().get("products", []):
+        price = _f(p.get("salePrice"))
+        if not price:
+            continue
+        reg = p.get("regularPrice")
+        on_sale = bool(reg) and p.get("salePrice", reg) < reg
+        out.append(Product(
+            id=f"bestbuy-{p.get('sku')}",
+            title=(p.get("name") or query)[:120],
+            brand=p.get("manufacturer"),
+            category="product",
+            price=price,
+            url=p.get("url") or "",
+            source=self.name + (":sale" if on_sale else ""),
+            image_url=p.get("image"),
+        ))
+    return out
+```
+
+Two things to note:
+
+**Search predicate.** BestBuy's product search API uses a `(search=term&search=term)` filter syntax, not a single `q=` parameter. The code tokenizes the query into individual words and joins them with `&search=`. This is a quirk of the BestBuy API — the same approach works for any multi-word query.
+
+**Sale detection.** The API returns both `salePrice` and `regularPrice`. When `salePrice < regularPrice`, the connector appends `:sale` to the `source` string (`"BestBuy:sale"` vs `"BestBuy"`). Part 9 can use this signal when computing source-trust weighting.
+
+```bash
+# .env
+BESTBUY_API_KEY=your_key_here
+```
+
+---
+
+## RapidAPI Google Shopping: protocol conformance
+
+The `RapidApiSource` in `live_sources.py` was introduced in Part 1 as a standalone connector. This part places it behind the same `Source` protocol the other two connectors follow — the code is unchanged, but `available()` and `tier` are now the contract the aggregator depends on:
+
+```python
+class RapidApiSource:
+    name = "RapidAPI"
+    tier = 1
+
+    def available(self) -> bool:
+        return bool(os.getenv("RAPIDAPI_KEY"))
+
+    def search(self, query: str, limit: int = 15) -> list[Product]:
+        ...
+```
+
+No new signup is required. The `RAPIDAPI_KEY` from Part 1 is reused directly. This is the same key that produced the snapshot data, so the behavior is familiar.
+
+Rate limits on the free tier are 10 requests per second. The `search()` implementation does not add an explicit delay for RapidAPI — the default `httpx` timeout handles slow responses, and the aggregator (Part 9) manages concurrency across sources. If you hit a 429, the response will carry a `Retry-After` header; Part 9's tiered aggregator reads it before retrying.
+
+---
+
+## Live smoke test: all three sources
+
+With all three sources configured in `.env`, fire the smoke test:
+
+```python
+# tests/test_live_sources_smoke.py — marked @pytest.mark.live
+import asyncio, os, pytest
+from dealfinder.live_sources import EbaySource, RapidApiSource, BestBuySource
+
+QUERY = "noise cancelling headphones"
+
+@pytest.mark.live
+def test_all_sources_return_results():
+    sources = []
+    if os.getenv("EBAY_APP_ID"):
+        sources.append(EbaySource())
+    if os.getenv("RAPIDAPI_KEY"):
+        sources.append(RapidApiSource())
+    if os.getenv("BESTBUY_API_KEY"):
+        sources.append(BestBuySource())
+
+    assert sources, "No live credentials found — set at least one source env var"
+
+    for src in sources:
+        results = src.search(QUERY, limit=5)
+        assert len(results) >= 1, f"{src.name}: expected >= 1 result, got 0"
+        for p in results:
+            assert p.price > 0, f"{src.name}: price must be positive"
+            assert p.currency, f"{src.name}: currency must be set"
+```
+
+Run it with:
+
+```bash
+LIVE_TESTS=1 pytest -m live tests/test_live_sources_smoke.py -v
+```
+
+The `@pytest.mark.live` marker means CI skips this test by default (`LIVE_TESTS` is not set in CI). The offline unit tests in `tests/test_live_sources.py` run on every push and use respx to mock the HTTP layer. The smoke test is opt-in: run it locally before committing a connector change.
+
+Expected truncated output with all three configured:
+
+```
+tests/test_live_sources_smoke.py::test_all_sources_return_results PASSED
+
+---- EbaySource ("noise cancelling headphones") → 5 results
+  [0] Sony WH-1000XM5 Wireless Noise Canceling Headphones ...   $159.99  eBay:New
+  [1] Sony WH-1000XM5 Premium Headphones Certified Refurb ...   $127.00  eBay:Refurbished
+  ...
+
+---- RapidApiSource ("noise cancelling headphones") → 5 results
+  [0] Sony WH-1000XM5 Wireless Industry Leading Noise ...       $162.97  RapidAPI:Costco
+  [1] Anker Soundcore Q20i Active Noise Cancelling ...          $44.99   RapidAPI:Amazon
+  ...
+
+---- BestBuySource ("noise cancelling headphones") → 5 results
+  [0] Bose QuietComfort 45 Wireless Noise Cancelling ...        $199.99  BestBuy
+  [1] Sony WH-1000XM5 Wireless Noise Canceling Headphones ...   $248.00  BestBuy
+  ...
+```
+
+Live prices will differ from this example — the snapshot prices are the anchor, not a live guarantee.
+
+---
+
+## The Bose QC45 contrast: source trust matters
+
+The snapshot contains a Bose QuietComfort 45 at $46.00, sourced from a third-party Google Shopping listing. The deal-score model flags it as suspicious: at a fair value of $285.15, the residual is $239.15, giving `residual_frac = 0.839`. The thresholds for suspicious are `median_signal >= 0.70` AND `residual_frac > 0.70` — both conditions are met. The product has no condition token in its title, so `condition = "new"` by default (the model residual catches the trap, not a condition flag).
+
+Now look at what BestBuy returns for the same product. A direct BestBuy search for Bose QuietComfort 45 headphones returns `salePrice` values in the $199–$249 range — the legitimate current retail price for a flagship that carries a $329 MSRP.
+
+Same product. Same query. Very different prices: $46 from a third-party Google Shopping listing vs. $199–$249 from BestBuy's direct API.
+
+The $46 listing is not necessarily fraudulent — it could be a refurb, a bundle mislisting, or a marketplace error. But the gap between the two sources is information. Part 9's aggregator assigns a `source_trust_weight` to each source based on its historical signal quality. BestBuy's direct API carries higher trust than anonymous third-party Google Shopping listings — not because BestBuy is always cheaper, but because BestBuy's `source` tag is less likely to carry the kind of listing noise that produced the $46 anomaly.
+
+This contrast — the same model, two sources, a 4x price difference — is the empirical motivation for source-trust weighting. You cannot see it from one source alone.
+
+---
+
+## Reproducibility checks
+
+The following must hold against the committed snapshot and the respx-mocked connector tests. They are pinned in `tests/test_snapshot.py` and `tests/test_live_sources.py` and run in CI:
+
+```python
+# tests/test_snapshot.py (established in Part 1; must stay green)
+import statistics
+from dealfinder.snapshot import load_snapshot
+
+items = load_snapshot("data/snapshots/electronics-2026-07.json")
+ncb = [i for i in items if i["query"] == "noise cancelling headphones"]
+assert len(ncb) == 15
+prices = sorted(float(i["price"]) for i in ncb)
+assert abs(statistics.median(prices) - 162.97) < 0.01
+# All 15 are RapidAPI Google-Shopping offers — eBay and BestBuy contribute 0 to the snapshot
+assert all("rapidapi" in (i.get("source") or "").lower() for i in ncb)
+```
+
+```python
+# tests/test_live_sources.py — offline, HTTP mocked with respx
+@respx.mock
+def test_ebay_oauth_then_browse_search(monkeypatch):
+    # ... (shown in full above) — asserts price, source == "eBay:New"
+    ...
+
+@respx.mock
+def test_bestbuy_search_maps_saleprice(monkeypatch):
+    # Mocks the BestBuy products() response; asserts source == "BestBuy:sale"
+    ...
+
+# Plus ShopifySource and FirecrawlSource coverage in the same file.
+```
+
+Run the offline suite:
+
+```bash
+pytest tests/test_snapshot.py tests/test_live_sources.py -v
+```
+
+All assertions must pass without any live credential. The smoke test (`@pytest.mark.live`) is separate and opt-in.
+
+---
+
+## Where this goes next
+
+- **Part 8 — Scraping responsibly:** adds Apify and Firecrawl as additional `Source` implementations using the same ABC you built here. Part 8 also covers `robots.txt` obligations and ToS constraints for the scraping path — Shopify's public `/products.json` endpoint is the worked example of a keyless, structured, unblocked source.
+- **Part 9 — Tiered aggregation and resilience:** the three connectors from this part are the inputs. Part 9 runs them concurrently with `asyncio.gather`, applies `source_trust_weight`, deduplicates at cosine threshold 0.90, and computes `deal_pct` from the cross-source median — filling the `null` you left there deliberately in this part.
+
+---
+
+*Sources: [eBay Browse API](https://developer.ebay.com/api-docs/buy/browse/overview.html) · [RapidAPI Real-Time Product Search](https://rapidapi.com/letscrape-6bRBa3QguO5/api/real-time-product-search) · [BestBuy Developer API](https://developer.bestbuy.com/) · [httpx](https://www.python-httpx.org/) · [OAuth 2.0 client credentials](https://www.rfc-editor.org/rfc/rfc6749#section-4.4)*

@@ -36,6 +36,14 @@ import CostDashboard from './app/components/mdx/CostDashboard';
 import DriftMonitor from './app/components/mdx/DriftMonitor';
 import SystemMap from './app/components/mdx/SystemMap';
 import SkillsMap from './app/components/mdx/SkillsMap';
+import MultiSourceFunnel from './app/components/mdx/MultiSourceFunnel';
+import OAuthFlow from './app/components/mdx/OAuthFlow';
+import RateLimitGuard from './app/components/mdx/RateLimitGuard';
+import ScrapingPermissionTiers from './app/components/mdx/ScrapingPermissionTiers';
+import TierWaterfall from './app/components/mdx/TierWaterfall';
+import StoreVsMemory from './app/components/mdx/StoreVsMemory';
+import VectorIndex from './app/components/mdx/VectorIndex';
+import SSEStream from './app/components/mdx/SSEStream';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -61,5 +69,10 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     CDPipeline, ContainerParity,
     CostDashboard, DriftMonitor,
     SystemMap, SkillsMap,
+    MultiSourceFunnel, OAuthFlow,
+    RateLimitGuard, ScrapingPermissionTiers,
+    TierWaterfall,
+    StoreVsMemory, VectorIndex,
+    SSEStream,
   };
 }
