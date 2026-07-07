@@ -1,11 +1,11 @@
 export const metadata = {
-  title: 'DealFinder — AI Engineering: What You\'ll Like Next (Part 4 of 15) · Tutorials',
+  title: 'DealFinder — AI Engineering: What You\'ll Like Next — Recommenders (Part 4 of 33) · Tutorials',
   description:
-    'Build two recommenders on the DealFinder catalog — content-based and collaborative filtering — and score them offline with precision@k and NDCG against a popularity baseline.',
+    'Build a content-based recommender over fastembed title embeddings and an item–item collaborative filter over a real interaction log — the two recommenders every recsys starts with — and see why the same Sony WH-1000XM5 anchor yields two genuinely different neighborhoods.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-recommender/' },
   openGraph: {
-    title: 'DealFinder — AI Engineering: What You\'ll Like Next (Part 4 of 15)',
-    description: 'Build two recommenders on the DealFinder catalog — content-based and collaborative filtering — and score them offline with precision@k and NDCG against a popularity baseline.',
+    title: 'DealFinder — AI Engineering: What You\'ll Like Next — Recommenders (Part 4 of 33)',
+    description: 'Build a content-based recommender over fastembed title embeddings and an item–item collaborative filter over a real interaction log — the two recommenders every recsys starts with — and see why the same Sony WH-1000XM5 anchor yields two genuinely different neighborhoods.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-recommender/',
     siteName: 'CloudCodeTree',
     type: 'article',
@@ -18,106 +18,253 @@ export const metadata = {
 
 # What You'll Like Next
 
-**TL;DR: A deal-finder shouldn't wait to be asked. Build two recommenders — content-based ("more like this") and collaborative ("people who liked this also liked…") — then prove they work with offline ranking metrics, beating a popularity baseline. All from scratch, all tested.**
+**TL;DR: Part 3 told you whether a deal is real. This part makes DealFinder proactive — it exposes the two recommenders every recsys starts with, over the real snapshot. `content_recommend` ranks items by cosine over the cached `BAAI/bge-small-en-v1.5` title embeddings ("more like this"); `collaborative_recommend` ranks by item–item co-occurrence in the real interaction log ("people who liked this also liked…"). The two signals return genuinely different neighborhoods for the same Sony WH-1000XM5 anchor — and that contrast is the whole lesson.**
 
-Part 3 told you whether a price is good. This part makes DealFinder *proactive*: surfacing tents you'll probably want. You'll build the two foundational recsys approaches, learn the metrics that let you compare recommenders without shipping them, and measure a real lift over the obvious baseline.
+You'll see why each signal alone is incomplete: content similarity surfaces near-duplicate listings of the same product, while collaborative filtering needs interaction history it may not have. The primitives are representation-agnostic — the same two functions power the feature-vector demo, the title-embedding recommender, and the CF log.
 
 <Callout tone="tip">
-**Code along, version by version.** This part lives in the shared course repo
-[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at steps **13–16**.
-`git checkout step-13`, `step-14`, … — or [diff what each adds](https://github.com/cloudcodetree/tutorial-dealfinder#steps-and-what-each-adds).
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Step tags: `step-04a` (content recommender + `similar_products`) · `step-04b` (collaborative filter over the interaction log).
+A `.devcontainer/` gives you Python 3.11 in one click (locally or in Codespaces).
 </Callout>
 
-## What you'll be able to do after this
+## Course summary
 
-- Build a **content-based** recommender from feature similarity (no user history required).
-- Build a **collaborative-filtering** recommender from a likes matrix (no features required).
-- Score a ranked list with **precision@k**, **recall@k**, and **NDCG**.
-- Run an **offline evaluation** (leave-one-out) and compare against a baseline.
+This is Part 4 of the **DealFinder — AI Engineering** series (33 parts). The full arc:
 
-## Two strategies, two blind spots
+- **Phase 1 (Parts 1–9) — Real data & the aggregator:** build the data layer (Part 1), develop LLM literacy (Part 2), learn the deal-score model (Part 3), recommender (here), semantic search, structured extraction, and live multi-source connectors.
+- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor, build the ReAct agent, MCP server, pgvector persistence, and the web UI.
+- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration with Prefect, dbt, and data contracts.
+- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** gradient boosting upgrade, experiment tracking, evaluation as a discipline, MLOps loop.
+- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI serving, inference optimization, containerization, Kubernetes, observability.
+- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth, saved searches, Stripe payments, security at scale.
+- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, and a system-design case study on the running system.
 
-The two classic approaches are complementary. **Content-based** asks "what's similar to this item?" using the item's own features — it works on day one, even for a brand-new user. **Collaborative filtering** ignores features entirely and asks "what did similar *people* like?" — it captures taste that specs can't, but needs interaction data.
+## Table of contents
 
-<RecStrategies />
-
-## Content-based: similar by features
-
-Reuse the feature vectors from Part 3, standardize them, and rank by cosine similarity:
-
-```python
-# dealfinder/recommend.py
-def content_recommend(idx, X, k=3):
-    sims = _cosine_sim(_standardize(X))[idx]
-    order = np.argsort(-sims)
-    return [int(j) for j in order if j != idx][:k]
-```
-
-Standardizing matters: without it, a large-magnitude feature would dominate the distance and the rest would barely register. Ask for tents like an ultralight model:
-
-```
-content-based — more like "BudgetTrail 4P UL Tent":
-  tent-02: BudgetTrail 3P UL Tent
-  tent-26: BudgetTrail 3P Tent
-  tent-22: BasecampCo 4P Tent
-```
-
-## Collaborative: similar by taste
-
-Given a user×item matrix of likes, item-item CF scores a candidate by how similar it is to things the user already liked — where "similar" means "liked by the same people":
-
-```python
-def collaborative_recommend(user_row, R, k=3):
-    item_sim = _cosine_sim(R.T)            # items × items, from co-likes
-    liked = np.where(np.asarray(user_row) > 0)[0]
-    scores = item_sim[liked].sum(axis=0)
-    scores[liked] = -np.inf                # don't re-recommend owned items
-    return [int(j) for j in np.argsort(-scores) if np.isfinite(scores[j])][:k]
-```
-
-```
-collaborative — user 0 liked: BudgetTrail 3P UL Tent, ValueOutdoors 1P Tent, BasecampCo 3P Tent, BasecampCo 4P Tent …
-  tent-26: BudgetTrail 3P Tent
-  tent-14: ValueOutdoors 4P Tent
-  tent-17: ValueOutdoors 3P Tent
-```
-
-## How do you know it's any good? Offline metrics
-
-You can't A/B test on day one, so you measure offline. **Precision@k** is the fraction of the top-k that's relevant; **NDCG** adds a rank discount so a hit near the top counts more than one further down:
-
-<RankingMetric />
-
-The evaluation trick is **leave-one-out**: hide one tent each user actually liked, recommend from the rest, and check whether the held-out tent comes back near the top — then compare against just recommending the most popular tents:
-
-```
-$ python -m dealfinder.run_recs
-offline eval (leave-one-out, k=5, 56 users):
-  collaborative  precision@5 = 0.168   ndcg@5 = 0.688
-  popularity     precision@5 = 0.132   (baseline)
-```
-
-That's the whole point of the exercise: collaborative filtering **beats popularity** (0.168 vs 0.132). With a single held-out item, precision@5 tops out at 0.20 — so 0.168 is most of the way to the ceiling, and an NDCG of 0.69 says the hit usually lands high in the list.
-
-<Callout tone="note">
-**How this scales in production.** Item-item cosine is fine for a tutorial catalog; at scale you'd switch to **matrix factorization** (ALS) or a two-tower neural retriever, serve nearest-neighbours from an ANN index (FAISS/pgvector), blend content + collaborative into a **hybrid** to fix cold-start, and validate with a real **A/B test**, not just offline metrics. The `similarity → rank → evaluate` shape is unchanged.
-</Callout>
-
-## It's all tested
-
-The recommenders and every ranking metric are test-first (NDCG checked against its closed form):
-
-```
-$ pytest -q
-.......................                            [100%]
-23 passed in 0.17s
-```
-
-## Where this goes next
-
-- **Part 5 — Semantic search:** make the embeddings from Part 2 real — retrieve over the catalog with pgvector and hybrid search.
-- **Then:** structured extraction, a QLoRA fine-tune, and the agent that ties scoring, recs, and search together.
+1. [The recommendation problem](#the-recommendation-problem)
+2. [Two strategies, two blind spots](#two-strategies-two-blind-spots)
+3. [Content-based: embed titles, rank by cosine](#content-based-embed-titles-rank-by-cosine)
+4. [The near-duplicate neighbor](#the-near-duplicate-neighbor)
+5. [Collaborative filtering from the real interaction log](#collaborative-filtering-from-the-real-interaction-log)
+6. [Same anchor, two different neighborhoods](#same-anchor-two-different-neighborhoods)
+7. [Reproducibility checks](#reproducibility-checks)
+8. [Where this goes next](#where-this-goes-next)
 
 ---
 
-*Sources: [Google ML — Recommendation Systems](https://developers.google.com/machine-learning/recommendation) · [NDCG (Wikipedia)](https://en.wikipedia.org/wiki/Discounted_cumulative_gain) · [numpy.argsort](https://numpy.org/doc/stable/reference/generated/numpy.argsort.html)*
+## What you'll be able to do after this
+
+- Use the cached `BAAI/bge-small-en-v1.5` (384-dim) title embeddings for all 270 snapshot products, loaded from `data/embeddings/electronics-2026-07.title-bge-small.npz` — no model run at import time.
+- Run `similar_products("WH-1000XM5", k=5)` against the cached embeddings and read the raw cosine ranking, including why its #1 neighbor is a near-duplicate listing of the same product.
+- Explain why `content_recommend` uses `standardize=False` for dense embeddings (per-column z-scoring would distort already-normalized vectors).
+- Load the real interaction log with `load_interactions` (a 72×24 users×items matrix) and call `collaborative_recommend` over an item–item co-occurrence matrix.
+- Compare the two signals for the same Sony WH-1000XM5 anchor and see that they return genuinely different neighborhoods — content-based feature similarity vs. taste-driven co-likes.
+
+---
+
+## The recommendation problem
+
+Part 3 answered a binary question: is this price a deal? This part answers a different one: given one product a user is looking at, which five should you show them next?
+
+Two independent signals exist. **Content-based** asks "what is this product like?" using the item's own title embedding — it works on day one, even for a brand-new user. **Collaborative filtering** ignores features entirely and asks "what did users who looked at this also look at?" — it captures taste that specs can't, but needs interaction data.
+
+Neither signal alone is safe to serve over heterogeneous electronics data. You need both.
+
+<RecStrategies />
+
+---
+
+## Two strategies, two blind spots
+
+Content-based on a broad electronics catalog has a specific failure: it finds items that are *textually* similar, not items that are *useful* alternatives. The reference "Sony WH-1000XM5 Wireless Headphones" is textually closest to another Sony WH-1000XM5 listing — the "SONY WH-1000XM5 Wireless Noise-Canceling Headphones" at $248.00 — so a near-duplicate of the same product grabs rank 1 before you've offered a single genuine alternative.
+
+Collaborative filtering ignores item features entirely and asks who-liked-what, so it captures taste that specs can't — but it needs an interaction log, which for a one-day-old catalog you may not have. Neither signal alone is complete. Seeing the two side by side is the point.
+
+---
+
+## Content-based: embed titles, rank by cosine
+
+`dealfinder/embed.py` handles both the one-time embed run and loading the committed cache. `recommend.py` imports the cache and exposes `similar_products`:
+
+```python
+# dealfinder/recommend.py
+def load_catalog_embeddings(
+    products: list[Product] | None = None,
+) -> tuple[list[Product], np.ndarray]:
+    """Align the frozen snapshot's products to their cached title embeddings.
+
+    Reuses the Part-4 committed embedding cache (no model run), returning the
+    products and an (n, 384) matrix in the same order.
+    """
+    products = products if products is not None else load_products()
+    ids, vectors = load_title_embeddings()
+    pos = {pid: i for i, pid in enumerate(ids)}
+    rows = np.array([vectors[pos[p.id]] for p in products], dtype=float)
+    return products, rows
+
+
+def similar_products(title_substring: str, k: int = 5) -> list[dict]:
+    """"More like this" over real items — e.g. similar_products("WH-1000XM5").
+
+    Content-based on the cached title embeddings, so neighbors are semantically
+    close real listings (other Sony/premium audio), with their price attached.
+    """
+    products, emb = load_catalog_embeddings()
+    idx = next(i for i, p in enumerate(products) if title_substring.lower() in p.title.lower())
+    recs = content_recommend(idx, emb, k, standardize=False)
+    return [
+        {"id": products[j].id, "title": products[j].title,
+         "price": products[j].price, "category": products[j].category}
+        for j in recs
+    ]
+```
+
+`content_recommend` z-scores columns by default (right for small hand-built feature vectors of differing scale), but `similar_products` passes `standardize=False`: the bge-small embeddings are already dense and normalized, so per-column z-scoring would distort their geometry. The reference item is always excluded from its own results (the `j != idx` filter).
+
+The cache lives at `data/embeddings/electronics-2026-07.title-bge-small.npz` — committed, so CI never runs the model. It loads in milliseconds and returns a `(270, 384)` matrix.
+
+Now call it for the hero-cast anchor:
+
+```python
+from dealfinder.recommend import similar_products
+
+for r in similar_products("WH-1000XM5", k=5):
+    print(f"  ${r['price']:>7.2f}  [{r['category']}] {r['title']}")
+```
+
+```
+  $ 248.00  [audio] SONY WH-1000XM5 Wireless Noise-Canceling Headphones
+  $ 399.99  [audio] Sony WH-1000XM6 Wireless Noise Canceling Headphones
+  $ 129.99  [audio] Sony WH-CH720N/P Wireless Noise Canceling Headphones
+  $ 129.99  [audio] Sony WH-CH720N Noise Canceling Wireless Headphones
+  $  68.00  [audio] Sony WF-C510 Truly Wireless Earbuds
+```
+
+Every neighbor is a real Sony/premium audio listing — content similarity keeps you inside the right category. But rank 1 is telling: it is a *different listing of the same product*, the "SONY WH-1000XM5 Wireless Noise-Canceling Headphones" at $248.00, not a genuine alternative.
+
+---
+
+## The near-duplicate neighbor
+
+The #1 neighbor is another WH-1000XM5 listing — same product, different retailer entry, at $248.00. Its title is almost identical to the reference item's, so its embedding sits right next to it and it takes rank 1 before a single genuine alternative appears.
+
+This is not a model deficiency; it is a data property. The snapshot contains multiple XM5 listings because the live connectors return every offer for a query. Content similarity is doing its job — ranking by title-embedding cosine — it just has no notion of "this is the same product I'm already looking at" or of deal quality. That second gap is exactly what a taste signal covers: collaborative filtering ranks by who-liked-what, not by how the titles read.
+
+<Callout tone="note">
+**Content similarity is representation-agnostic.** `content_recommend` and `collaborative_recommend` take *any* matrix. Here `similar_products` feeds them the cached 384-dim title embeddings, but the same two functions would rank hand-built feature vectors or the CF co-like matrix — the geometry is the only thing that changes.
+</Callout>
+
+---
+
+## Collaborative filtering from the real interaction log
+
+`data/sample/interactions.json` is the real interaction log: a users × items matrix of 0/1 signals (view/like) keyed to snapshot `id` values. Load it with `load_interactions`:
+
+```python
+# dealfinder/recommend.py
+def load_interactions(path: Path | str | None = None) -> tuple[list[str], np.ndarray]:
+    """Load the real interaction log: (item_ids, users×items 0/1 matrix)."""
+    data = json.loads(Path(path or _INTERACTIONS).read_text())
+    return data["item_ids"], np.array(data["matrix"], dtype=float)
+```
+
+Then call `collaborative_recommend` with a single-item preference vector — a user who has only liked the XM5. `collaborative_recommend` builds an item–item co-occurrence matrix from `R.T`, sums similarity to the liked items, and sets already-liked items to `-inf` so it never recommends something you already have:
+
+```python
+from dealfinder.recommend import collaborative_recommend, load_interactions
+from dealfinder.snapshot import load_products
+import numpy as np
+
+item_ids, R = load_interactions()          # (72 users, 24 items)
+products = {p.id: p for p in load_products()}
+
+ref = "Sony WH-1000XM5 Wireless Headphones"
+xm5_id = next(p.id for p in products.values() if p.title == ref)
+xm5_idx = item_ids.index(xm5_id)
+
+user = np.zeros(len(item_ids))
+user[xm5_idx] = 1                           # liked only the XM5
+
+for j in collaborative_recommend(user, R, k=5):
+    p = products[item_ids[j]]
+    print(f"  {p.title}  ${p.price}")
+```
+
+```
+  Sony WH-1000XM6 Wireless Noise Canceling Headphones  $399.99
+  Beats Studio Pro Wireless Headphones  $249.99
+  Bose QuietComfort Ultra Headphones  $415.98
+  Sony WH-CH720N Noise Canceling Wireless Headphones  $129.99
+  Bose QuietComfort Noise Cancelling Wireless Headphones  $359.99
+```
+
+The collaborative signal surfaces a different, taste-driven neighborhood — co-likes across users, not embedding geometry. Notice it leans toward *premium/expensive* headphones (Beats Studio Pro, Bose QuietComfort Ultra) that the content list never surfaced: that is real purchase co-occurrence, not title similarity. The interaction log is small (72 users, 24 items) so the matrix is sparse; the part notes where you'd upgrade to ALS or a two-tower retriever once you have ≥10k items. At this scale a direct dot-product is fine.
+
+`run_recs.py` demonstrates the canonical invocation (`k=3`) and also runs a leave-one-out offline eval comparing CF `precision@5`/`ndcg@5` against a popularity baseline.
+
+<Callout tone="note">
+**The interaction log is hand-authored for this tutorial.** It is not presented as real user data — the lesson is the mechanics of co-occurrence, not the validity of the log. Every `item_id` in `data/sample/interactions.json` is a real `id` from the committed snapshot. In production you would replace this with live clickstream; Part 29 (Saved searches and suggestions worker) wires that signal.
+</Callout>
+
+---
+
+## Same anchor, two different neighborhoods
+
+Put the two lists side by side for the same Sony WH-1000XM5 anchor. This is the entire lesson of the part — one anchor, two signals, two different answers:
+
+| Rank | `similar_products` (content) | `collaborative_recommend` (co-likes) |
+|------|------------------------------|--------------------------------------|
+| 1 | SONY WH-1000XM5 (Noise-Canceling) — $248.00 | Sony WH-1000XM6 — $399.99 |
+| 2 | Sony WH-1000XM6 — $399.99 | Beats Studio Pro — $249.99 |
+| 3 | Sony WH-CH720N/P — $129.99 | Bose QuietComfort Ultra — $415.98 |
+| 4 | Sony WH-CH720N — $129.99 | Sony WH-CH720N — $129.99 |
+| 5 | Sony WF-C510 Earbuds — $68.00 | Bose QuietComfort — $359.99 |
+
+Content stays tightly inside Sony (it is reading the title text), and its #1 result is a near-duplicate of the anchor. Collaborative filtering crosses brands to Beats and Bose because *people who liked the XM5 also liked those* — a signal no title embedding can see. Only one item (Sony WH-CH720N) appears in both lists. That divergence is why a real system keeps both signals: content for cold-start and category coherence, collaborative for taste.
+
+<Callout tone="note">
+**Neither list knows about deal quality.** Both recommenders rank by similarity alone — the Part 3 deal score (median + model residual) is a separate signal. Fusing similarity *and* value into one ranking is the job of Part 5's `search_catalog`, which layers keyword + semantic retrieval and then re-ranks by deal score. Here in Part 4 the two recommenders stay pure: "more like this" and "people who liked this."
+</Callout>
+
+---
+
+## Reproducibility checks
+
+The recommender assertions run against the committed snapshot and interaction log. They live in `tests/test_recommend.py`:
+
+```python
+# tests/test_recommend.py
+from dealfinder.recommend import (
+    collaborative_recommend, content_recommend,
+    load_catalog_embeddings, load_interactions, similar_products,
+)
+```
+
+The five pinned tests:
+
+- `test_content_recommends_nearest_by_features` — `content_recommend` returns the nearest item by feature cosine on a small hand-built matrix.
+- `test_collaborative_recommends_co_liked_item` — `collaborative_recommend` surfaces a co-liked item and never re-recommends something already liked.
+- `test_collaborative_excludes_already_liked` — already-liked items (set to `-inf`) never appear in the results.
+- `test_similar_products_to_xm5_are_real_audio_items` — every neighbor of `similar_products("WH-1000XM5", 5)` is a real `audio` listing.
+- `test_collaborative_over_real_interaction_log` — CF over the committed `data/sample/interactions.json` returns real snapshot ids for the XM5 anchor.
+
+Run them with:
+
+```bash
+pytest tests/test_recommend.py -v
+```
+
+All pass against the committed snapshot. The embedding cache means no model is downloaded in CI.
+
+---
+
+## Where this goes next
+
+- **Back — Part 3 — Is it a good deal? Median vs. model:** Part 3 built the two-signal deal score that separates a genuine deal from a suspicious bargain. This part deliberately keeps the recommenders pure similarity — neither `similar_products` nor `collaborative_recommend` knows about deal quality. Combining *similarity* with *value* into one ranking is the next step.
+- **Forward — Part 5 — Semantic search: embeddings, BM25, RRF, rerank:** Part 5 reuses the `data/embeddings/electronics-2026-07.title-bge-small.npz` cache as its vector index, layers BM25 keyword retrieval and reciprocal-rank fusion on top of the same 384-dim vectors, and then re-ranks by deal score — so `search_catalog("noise cancelling headphones")` surfaces the honest Anker Soundcore Q20i ($44.99) at rank 1 and demotes the too-good-to-be-true Bose trap.
+
+---
+
+*Sources: [fastembed](https://github.com/qdrant/fastembed) · [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) · [numpy.argsort](https://numpy.org/doc/stable/reference/generated/numpy.argsort.html) · [Google ML — Recommendation Systems](https://developers.google.com/machine-learning/recommendation)*

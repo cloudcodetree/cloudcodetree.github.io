@@ -22,6 +22,7 @@ import LoRAAdapter from './app/components/mdx/LoRAAdapter';
 import FineTuneGain from './app/components/mdx/FineTuneGain';
 import AgentLoop from './app/components/mdx/AgentLoop';
 import ToolBelt from './app/components/mdx/ToolBelt';
+import TextToSQL from './app/components/mdx/TextToSQL';
 import MCPBridge from './app/components/mdx/MCPBridge';
 import MCPPrimitives from './app/components/mdx/MCPPrimitives';
 import InjectionShield from './app/components/mdx/InjectionShield';
@@ -44,6 +45,8 @@ import TierWaterfall from './app/components/mdx/TierWaterfall';
 import StoreVsMemory from './app/components/mdx/StoreVsMemory';
 import VectorIndex from './app/components/mdx/VectorIndex';
 import SSEStream from './app/components/mdx/SSEStream';
+import EchoFilter from './app/components/mdx/EchoFilter';
+import RankingLens from './app/components/mdx/RankingLens';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -61,7 +64,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     HybridFusion, ValueRerank,
     ExtractFlow, SchemaGate,
     LoRAAdapter, FineTuneGain,
-    AgentLoop, ToolBelt,
+    AgentLoop, ToolBelt, TextToSQL,
     MCPBridge, MCPPrimitives,
     InjectionShield, GuardrailStack,
     EvalGauntlet, ABCompare,
@@ -74,5 +77,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     TierWaterfall,
     StoreVsMemory, VectorIndex,
     SSEStream,
+    EchoFilter, RankingLens,
   };
 }

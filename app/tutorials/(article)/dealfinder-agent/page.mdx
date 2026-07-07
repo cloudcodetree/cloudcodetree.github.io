@@ -1,11 +1,11 @@
 export const metadata = {
-  title: 'DealFinder — AI Engineering: The Agent That Ties It Together (Part 8 of 15) · Tutorials',
+  title: 'DealFinder — AI Engineering: The Agent That Ties It Together (Part 11 of 33) · Tutorials',
   description:
-    'Build a ReAct agent that plans over tools — text-to-SQL filtering and deal ranking — to answer a goal end to end, with a human-in-the-loop gate on risky actions. The loop is offline-tested; the LLM policy is the production swap.',
+    'Build a ReAct agent that answers natural-language deal questions over the electronics snapshot — text-to-SQL filtering, deal-score lookup, and a human-in-the-loop gate on suspicious listings. Trace every reasoning step.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-agent/' },
   openGraph: {
-    title: 'DealFinder — AI Engineering: The Agent That Ties It Together (Part 8 of 15)',
-    description: 'Build a ReAct agent that plans over tools — text-to-SQL filtering and deal ranking — to answer a goal end to end, with a human-in-the-loop gate on risky actions. The loop is offline-tested; the LLM policy is the production swap.',
+    title: 'DealFinder — AI Engineering: The Agent That Ties It Together (Part 11 of 33)',
+    description: 'Build a ReAct agent that answers natural-language deal questions over the electronics snapshot — text-to-SQL filtering, deal-score lookup, and a human-in-the-loop gate on suspicious listings.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-agent/',
     siteName: 'CloudCodeTree',
     type: 'article',
@@ -18,109 +18,390 @@ export const metadata = {
 
 # The Agent That Ties It Together
 
-**TL;DR: An agent is a loop: reason about the goal, call one tool, read the result, repeat — until it can answer. Build a ReAct loop over DealFinder's tools (text-to-SQL, deal ranking), with a human-in-the-loop gate on risky actions. The loop is tested offline with a scripted policy; in production you swap in an LLM (LangGraph) and the loop is unchanged.**
+**TL;DR: An agent is a loop — reason about the goal, call one tool, read the result, repeat until it can answer. Build a ReAct loop over DealFinder's tools (`sql_search` for text-to-SQL filtering, `rank_deals` for two-signal deal scoring), trace it step by step against the electronics snapshot, and watch it surface the Anker Soundcore Q20i at $44.99 while the two-signal deal score demotes the too-good-to-be-true Bose QuietComfort 45 trap.**
 
-So far you've built capabilities — search, a price model, recs, extraction. An **agent** is what *orchestrates* them: given "find me a good 2-person tent under $400," it decides which tools to call, in what order, using each result to choose the next move. This is the most in-demand AI-engineering skill of all, and it's simpler than it looks.
+So far you have built capabilities in isolation — a snapshot loader, a two-signal deal score, a structured extractor, a fine-tuned LLM. An **agent** is what orchestrates them. Given "find a good noise-cancelling headphone under $120", it decides which tools to call, in what order, reading each result to choose the next move. This is the most in-demand AI engineering skill right now, and the loop itself — `Agent.run` in `dealfinder/agent.py` — is about twenty lines of Python.
 
 <Callout tone="tip">
-**Code along, version by version.** Shared course repo
-[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder) at steps **22–23**.
-`git checkout step-22`, `step-23` — or [diff what each adds](https://github.com/cloudcodetree/tutorial-dealfinder#steps-and-what-each-adds).
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Step tag for this part: `step-11`.
+Compare the diff: [step-10...step-11](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-10...step-11).
 </Callout>
 
-## What you'll be able to do after this
+## Course summary
 
-- Implement the **ReAct loop** (reason → act → observe) over a tool registry.
-- Write a **text-to-SQL** tool and chain tools to answer a real goal.
-- Add a **human-in-the-loop** gate so risky actions need approval.
-- See why swapping the rule-based policy for an **LLM (LangGraph)** changes nothing else.
+This is Part 11 of the **DealFinder — AI Engineering** series (33 parts). The full arc:
 
-## An agent is a loop
+- **Phase 1 (Parts 1–9) — Real data & the aggregator:** data layer (Part 1), LLM literacy (Part 2), deal-score model (Part 3), recommender (Part 4), semantic search (Part 5), structured extraction (Part 6), live multi-source connectors (Part 7), responsible scraping (Part 8), tiered aggregation & resilience (Part 9).
+- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor with QLoRA (Part 10), the ReAct agent (here), MCP server (Part 12), pgvector persistence (Part 13), web UI (Part 14).
+- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration, dbt, contracts.
+- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** experiment tracking, evaluation as a discipline, MLOps loop.
+- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI serving, inference optimization, containerization, Kubernetes, observability.
+- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth, saved searches, Stripe payments, security at scale.
+- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, system-design case study.
 
-Strip away the hype and an agent is a small control loop. Each turn it *reasons* about what to do, *acts* by calling one tool, and *observes* the result — then loops, carrying the growing trace, until it can answer:
+## Table of contents
 
-<AgentLoop />
-
-The loop itself is tiny. The only pluggable part is the **policy** — the thing that picks the next action:
-
-```python
-# dealfinder/agent.py
-class Agent:
-    def run(self, goal):
-        trace = []
-        for _ in range(self.max_steps):
-            action = self.policy(goal, trace)      # ← rule-based or an LLM
-            if action.tool is None:
-                return action.answer, trace        # finish
-            tool = self.tools[action.tool]
-            if tool.requires_approval and not self.approve(action.tool, action.args):
-                trace.append(Step(action.thought, action.tool, action.args, "BLOCKED: needs human approval"))
-                continue
-            obs = tool.fn(**action.args)
-            trace.append(Step(action.thought, action.tool, action.args, obs))
-```
-
-Because the policy is injected, the **tests script it** for a deterministic, offline run; production passes an LLM. Same loop, same tools, same HITL gate.
-
-## Tools — and a gate on the risky ones
-
-The agent's power is its tools. Reads (search, scoring, SQL) can run freely; anything that **changes state or spends money** stops for a human — the human-in-the-loop pattern that keeps autonomous systems safe:
-
-<ToolBelt />
-
-One of those tools is **text-to-SQL** — turning a request into a query over the catalog:
-
-```python
-# dealfinder/tools.py
-def nl_to_sql(question, table="catalog"):
-    clauses = []
-    if m := re.search(r"under \$?(\d+)", question): clauses.append(f"price < {m.group(1)}")
-    if m := re.search(r"(\d+)\s*-?\s*person|sleeps?\s+(\d+)", question):
-        clauses.append(f"capacity = {m.group(1) or m.group(2)}")
-    # … brand, etc.
-    return f"SELECT * FROM {table} WHERE {' AND '.join(clauses) or '1=1'}"
-```
-
-## Watch it reason
-
-Give the agent a goal and it chains tools, using each observation to choose the next step — then answers. This is the real trace from the run:
-
-```
-$ python -m dealfinder.run_agent
-goal: "find me a good 2-person tent under $400"
-
-step 1 · think: Translate the request into SQL and filter the catalog
-         act:   sql_search → SELECT * FROM catalog WHERE price < 400 AND capacity = 2
-         obs:   3 tents match
-step 2 · think: Rank those matches by how good a deal each is
-         act:   rank_deals(3 ids)
-         obs:   best = tent-03 (27% under fair)
-step 3 · answer: tent-03 at $288 (27% under fair)
-
-✓ tent-03 at $288 (27% under fair)
-```
-
-It found the same underpriced tent the search and price model surfaced earlier — but this time it got there *by itself*, planning the steps from a plain-English goal.
-
-<Callout tone="note">
-**How this scales in production.** Swap the rule-based policy for an LLM via **LangGraph**: nodes for reason/act/observe, the tools as bound functions, persistent **memory** across turns, and `interrupt()` for the HITL gate. Add retries, timeouts, and tracing (Part 14). The structure you built here *is* the production structure — LangGraph just makes the policy an LLM and adds durability.
-</Callout>
-
-## It's all tested
-
-The loop, the HITL gate, and the text-to-SQL tool are tested with a scripted policy — no LLM, fully deterministic:
-
-```
-$ pytest -q
-..................................                [100%]
-34 passed in 0.16s
-```
-
-## Where this goes next
-
-- **Part 9 — Expose it as an MCP server:** make these tools callable from Claude Code and any MCP client.
-- **Then:** safety & governance, an evaluation harness, serving, deploy, and shipping.
+1. [What you'll be able to do after this](#what-youll-be-able-to-do-after-this)
+2. [An agent is a loop](#an-agent-is-a-loop)
+3. [The tool registry](#the-tool-registry)
+4. [nl\_to\_sql — from intent to query](#nl_to_sql--from-intent-to-query)
+5. [rank\_deals — the two-signal deal score](#rank_deals--the-two-signal-deal-score)
+6. [The human-in-the-loop gate](#the-human-in-the-loop-gate)
+7. [Full trace: the worked example end to end](#full-trace-the-worked-example-end-to-end)
+8. [Testing the loop offline](#testing-the-loop-offline)
+9. [Where this goes next](#where-this-goes-next)
 
 ---
 
-*Sources: [ReAct (Yao et al.)](https://arxiv.org/abs/2210.03629) · [LangGraph](https://langchain-ai.github.io/langgraph/) · [Human-in-the-loop (LangGraph)](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)*
+## What you'll be able to do after this
+
+- Explain the ReAct loop (Reason → Act → Observe → repeat) and trace a multi-turn run step by step.
+- Implement a minimal `Tool`/`Agent` registry and wire two tools into a pluggable policy: `sql_search` (text-to-SQL) and `rank_deals` (two-signal deal scoring).
+- Write an `nl_to_sql` tool that translates a natural-language filter into a SQL query over the in-memory snapshot, keying brand off the *title* because the raw `brand` column holds the retailer.
+- Add a human-in-the-loop approval gate to the loop with `Tool(requires_approval=True)` and the `Agent`'s `approve` callback, and explain when HITL belongs in the loop.
+- Read an agent trace (a list of `Step` records) and identify each reasoning step, tool invocation, and the stopping condition.
+
+---
+
+## An agent is a loop
+
+Strip away the framing and an agent is a small control loop. Each turn it *reasons* about what to do next, *acts* by calling one tool, and *observes* the result — then loops, carrying the growing trace, until it can answer:
+
+<AgentLoop />
+
+The animation shows the Reason → Act → Observe cycle and the human-in-the-loop gate the framework supports: a listing that scores as `suspicious` (the $46 Bose QuietComfort 45, `residual_frac` 0.839) can be routed through the approval hexagon before it surfaces, while the honest Anker Soundcore Q20i (`residual_frac` 0.585, verdict `deal`) flows straight through. The worked example in `dealfinder/run_agent.py` uses the same loop with a two-tool policy; the HITL gate is exercised by the framework's tests (`test_hitl_blocks_unapproved_action`).
+
+The agent loop in `dealfinder/agent.py` is the same structure, implemented directly:
+
+```python
+# dealfinder/agent.py
+
+class Agent:
+    def __init__(self, tools, policy, approve=None, max_steps: int = 8):
+        self.tools   = {t.name: t for t in tools}
+        self.policy  = policy
+        self.approve = approve or (lambda name, args: True)
+        self.max_steps = max_steps
+
+    def run(self, goal: str):
+        trace: list[Step] = []
+        for _ in range(self.max_steps):
+            action = self.policy(goal, trace)
+            if action.tool is None:                    # stopping condition
+                trace.append(Step(action.thought, None, {}, action.answer))
+                return action.answer, trace
+            tool = self.tools[action.tool]
+            if tool.requires_approval and not self.approve(action.tool, action.args):
+                trace.append(Step(
+                    action.thought, action.tool, action.args,
+                    "BLOCKED: needs human approval"
+                ))
+                continue
+            obs = tool.fn(**action.args)
+            trace.append(Step(action.thought, action.tool, action.args, obs))
+        return None, trace                             # max_turns hard stop
+```
+
+The `policy` is the only pluggable part. Tests use a scripted policy for a fully deterministic, offline run. In production you swap in an LLM; the loop, the tools, and the HITL gate are unchanged.
+
+---
+
+## The tool registry
+
+The `run_agent.py` demo registers **two** tools. Each is a plain Python function; `Tool` wraps it with a name and a description (which becomes the schema an LLM policy would see). The `Tool` dataclass also carries a `requires_approval` flag — unused by these two read-only tools, but the mechanism behind the HITL gate we cover below:
+
+```python
+# dealfinder/run_agent.py — tool registration
+
+from dealfinder.agent import Action, Agent, Tool
+from dealfinder.tools import build_db, load_catalog, nl_to_sql, run_sql
+
+catalog = load_catalog()
+con     = build_db(catalog)
+by_id   = {p.id: p for p in catalog}
+
+def sql_search(question):
+    sql = nl_to_sql(question)
+    return {"sql": sql, "rows": run_sql(con, sql)}
+
+def rank_deals(ids):
+    scored = [{"id": i, "price": by_id[i].price, "deal": deal_of(i)} for i in ids]
+    return sorted(scored, key=lambda r: -r["deal"])
+
+tools = [
+    Tool("sql_search", sql_search, "NL → SQL over the catalog"),
+    Tool("rank_deals", rank_deals, "rank ids by two-signal deal score"),
+]
+```
+
+Both tools are read-only, so neither sets `requires_approval`. `sql_search` calls `nl_to_sql` then `run_sql` against the in-memory SQLite catalog; `rank_deals` scores each candidate id with the two-signal `deal_of` helper (built from `median_signal` + the model residual) and sorts best-first. The `deal_of` helper demotes traps: if the median says "great deal" but the model's fair price is far above the actual (`residual_frac > 0.70`), it subtracts 1.0 from the score.
+
+---
+
+## nl\_to\_sql — from intent to query
+
+The `sql_search` tool translates a natural-language shopping request into a SQL query over the in-memory snapshot, then executes it. The translation — `nl_to_sql` in `dealfinder/tools.py` — is rule-based so it is deterministic and offline; in production an LLM generates the same kind of WHERE clause.
+
+<TextToSQL />
+
+The animation shows the full flow: the user's phrase enters from the left, a rule-based translator maps price bounds, category, condition, brand, and a product-type keyword into WHERE clauses, and a SQL card slides out from the right. The matching rows fade up from the bottom — the candidates the next reasoning step scores.
+
+The actual `nl_to_sql` function from `dealfinder/tools.py`:
+
+```python
+# dealfinder/tools.py
+
+def nl_to_sql(question: str, table: str = "catalog") -> str:
+    """Translate a natural-language shopping request into a SQL query.
+
+    Recognizes price bounds, a category, a condition, and a brand (matched on the
+    title, since the raw ``brand`` column holds the retailer).
+    """
+    q = question.lower()
+    clauses: list[str] = []
+    if m := re.search(r"under \$?(\d+)", q):
+        clauses.append(f"price < {m.group(1)}")
+    if m := re.search(r"over \$?(\d+)", q):
+        clauses.append(f"price > {m.group(1)}")
+    # Category: an explicit category word, else infer it from the wording
+    # ("noise cancelling headphones" → audio) via the same hints the extractor uses.
+    category = next((c for c in KNOWN_CATEGORIES if c != "misc" and c in q), None) \
+        or guess_category(question)
+    if category:
+        clauses.append(f"category = '{category}'")
+    condition = next((v for k, v in _CONDITION_WORDS.items() if k in q), None)
+    if condition:
+        clauses.append(f"condition = '{condition}'")
+    brand = title_brand(question)  # e.g. "Sony", "Anker" — the true manufacturer
+    if brand and brand in _BRAND_LIST:
+        clauses.append(f"title LIKE '%{brand}%'")
+    # A product-type keyword narrows within a broad category.
+    for kw in ("headphone", "earbud", "speaker", "soundbar", "keyboard", "mouse",
+               "monitor", "laptop", "tablet", "watch", "webcam"):
+        if kw in q:
+            clauses.append(f"title LIKE '%{kw}%'")
+            break
+    where = " AND ".join(clauses) if clauses else "1=1"
+    return f"SELECT * FROM {table} WHERE {where}"
+```
+
+Note the brand rule keys off the *title*, not the raw `brand` column — that column holds the retailer in 154/270 snapshot rows ("Walmart - COWIN", "Target"), so `title_brand` extracts the true manufacturer and matches it with a `title LIKE`. Run it against the demo goal, "find a good noise-cancelling headphone under $120":
+
+```python
+from dealfinder.tools import nl_to_sql, load_catalog, build_db, run_sql
+
+products = load_catalog()
+con      = build_db(products)
+
+sql  = nl_to_sql("find a good noise-cancelling headphone under $120")
+rows = run_sql(con, sql)
+
+print(sql)
+for r in rows:
+    print(f"{r['title'][:52]:52s}  ${r['price']:.2f}")
+```
+
+```
+SELECT * FROM catalog WHERE price < 120 AND category = 'audio' AND title LIKE '%headphone%'
+Cowin SE7 Active Noise Cancelling Headphones Bluetoot  $27.99
+Anker Soundcore Q20i Hybrid Active Noise Cancelling H  $44.99
+Bose QuietComfort 45 Wireless Noise Cancelling Headph  $46.00
+JBL Tune 770NC Wireless Noise Cancelling Over-Ear Hea  $89.95
+```
+
+Four items match. The two cheapest — Cowin SE7 ($27.99) and Bose QC45 ($46.00) — both read as huge markdowns against the query median of $162.97. That number alone would make them look like the best deals. The next tool separates the honest bargains from the traps.
+
+<Callout tone="warn">
+The `nl_to_sql` approach here is **rule-based and deterministic** — no LLM in the loop for SQL generation, so the query shape is fully predictable. Production systems that use an LLM to generate SQL must validate that the emitted statement is a SELECT with no subqueries or stacked statements, and parameterize instead of string-interpolating user input. Part 21 (Safety, security & governance) covers full prompt-injection hardening.
+</Callout>
+
+---
+
+## rank\_deals — the two-signal deal score
+
+The `rank_deals` tool scores every candidate id with the two-signal deal score from Part 3 (`dealfinder/dealscore.py`) and sorts best-first. `run_agent.py` builds a `deal_of` helper around it: the `median_signal` (fraction below the same-query cross-source median) is the primary score, and the model residual is a *guard* that demotes traps.
+
+```python
+# dealfinder/run_agent.py — the deal-scoring helper behind rank_deals
+
+from dealfinder.dealscore import fair_price, median_signal, residual_fraction
+
+def deal_of(pid: str) -> float:
+    p = by_id[pid]
+    m = median_signal(p.price, medians.get(pid, 0.0))
+    model = models.get(p.category)
+    if model is None:
+        return m
+    rf = residual_fraction(p.price, fair_price(model, featurize(p)))
+    return m - 1.0 if (m >= 0.15 and rf > 0.70) else m  # demote traps
+```
+
+You can inspect the full verdict for a single listing through the MCP `score_deal` tool (built in Part 12 on the same `dealscore` primitives). For the Anker Q20i and the cheap Bose QC45:
+
+```python
+from dealfinder.mcp_server import score_deal, _catalog
+
+anker = next(p for p in _catalog if "Soundcore Q20i" in p.title)
+bose  = next(p for p in _catalog if "QuietComfort 45" in p.title and p.price < 60)
+
+print(score_deal(anker.id))
+print(score_deal(bose.id))
+```
+
+```
+{'title': 'Anker Soundcore Q20i ...', 'price': 44.99, 'fair_price': 108.33,
+ 'median_signal': 0.724, 'residual_frac': 0.585, 'verdict': 'deal'}
+{'title': 'Bose QuietComfort 45 ...', 'price': 46.0, 'fair_price': 285.15,
+ 'median_signal': 0.718, 'residual_frac': 0.839, 'verdict': 'suspicious'}
+```
+
+The teaching crux: both the Anker Q20i and the Bose QC45 sit at roughly $45 — both are about 72% under the query median (`median_signal` 0.724 vs 0.718). The median signal alone cannot separate them. The model residual does.
+
+The Bose QC45's model fair price is `$285.15` (a flagship feature vector); at $46 that's `residual_frac = 0.839`. It crosses both thresholds for `suspicious`: `median_signal ≥ 0.15` (`DEAL_MEDIAN_FRAC`) AND `residual_frac ≥ 0.70` (`SUSPICIOUS_RESIDUAL_FRAC`). The Anker Q20i's fair price is only `$108.33`, so at $44.99 its `residual_frac` is `0.585` — below that boundary, a genuine budget-tier `deal`. In `deal_of`, that means the Bose gets `m - 1.0` (demoted below zero) while the Anker keeps its full `0.72` score, so `rank_deals` puts the Anker on top.
+
+The `verdict` function returns one of four **lowercase** labels (from `dealfinder/dealscore.py`):
+
+| `verdict` label | Meaning |
+|---|---|
+| `deal` | `median_signal ≥ 0.15` and the model agrees the price is plausible |
+| `fair` | Priced near the market median, nothing special |
+| `suspicious` | `median_signal ≥ 0.15` AND `residual_frac ≥ 0.70` — implausibly far below the model's fair price |
+| `overpriced` | Below-zero median signal — above the market median |
+
+---
+
+## The human-in-the-loop gate
+
+The `Agent` framework has a built-in approval gate: any `Tool` marked `requires_approval=True` is checked against the `Agent`'s `approve(name, args)` callback before it runs. If approval is denied, the step is recorded as `BLOCKED: needs human approval` and the loop continues. This is the mechanism you would use to pause before surfacing a listing the deal score flagged as `suspicious`.
+
+The `run_agent.py` demo doesn't gate its two read-only tools, but the framework's behavior is pinned by a test. A tool that requires approval, with an `approve` callback that returns `False`, never executes:
+
+```python
+# tests/test_agent.py
+
+def test_hitl_blocks_unapproved_action():
+    tools = [Tool("purge", lambda: "gone", requires_approval=True)]
+    script = [Action("purge it", "purge", {}), Action("stop", None, answer="halted")]
+    answer, trace = Agent(tools, _scripted(script), approve=lambda name, args: False).run("clean up")
+    assert "BLOCKED" in str(trace[0].observation)
+    assert answer == "halted"
+```
+
+HITL belongs here for two reasons: the stakes (recommending a mislisted item to a user) and the signal quality (`suspicious` is a warning, not a certainty — the listing could be a real clearance sale). The gate lets a human's judgment close the loop the model cannot.
+
+<Callout tone="note">
+The `approve` callback defaults to `lambda name, args: True` — everything is allowed unless you pass a real gate. In production the callback is a webhook or a callback queue rather than a blocking prompt; that operational pattern is covered in later serving chapters.
+</Callout>
+
+---
+
+## Full trace: the worked example end to end
+
+Run the agent against the snapshot. `run_agent.py` has a fixed goal and a scripted policy, so the run is fully deterministic and offline:
+
+```bash
+python -m dealfinder.run_agent
+```
+
+```
+goal: "find a good noise-cancelling headphone under $120"
+
+step 1 · think: Translate the request into SQL and filter the catalog
+         act:   sql_search → SELECT * FROM catalog WHERE price < 120 AND category = 'audio' AND title LIKE '%headphone%'
+         obs:   4 items match
+step 2 · think: Rank those matches by how good a deal each is
+         act:   rank_deals(4 ids)
+         obs:   best = Anker Soundcore Q20i Hybrid Active Noise (72% under median)
+step 3 · answer: Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones at $44.99 (72% under median)
+```
+
+The pinned final answer:
+
+```
+Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones at $44.99 (72% under median)
+```
+
+The trace is a three-step ReAct run: `sql_search` → `rank_deals` → finish. Step 1's SQL returns 4 candidates (Cowin SE7, Anker Q20i, Bose QC45, JBL Tune 770NC). Step 2 ranks them by `deal_of`, which demotes the Bose QC45 trap (its `residual_frac` of 0.839 subtracts 1.0 from its score) and surfaces the honest Anker Q20i at $44.99 — 72% under the $162.97 median. This is the same result the deal-score model (Part 3) and the structured extractor (Part 6) each pointed to in their own domains. The agent is what connects them into a single reasoning run driven by a plain-English goal.
+
+---
+
+## Testing the loop offline
+
+All agent tests in `tests/test_agent.py` run offline. The scripted policy makes the loop deterministic; no API key, no cost, no blocking `input()` call. A `_scripted` helper replays a fixed list of `Action`s so each test drives the loop exactly:
+
+```python
+# tests/test_agent.py
+
+from dealfinder.agent import Action, Agent, Tool
+from dealfinder.tools import build_db, load_catalog, nl_to_sql, run_sql
+
+
+def _scripted(script):
+    return lambda goal, trace: script[len(trace)]
+
+
+def test_agent_runs_tool_then_finishes():
+    seen = []
+    tools = [Tool("add", lambda a, b: seen.append((a, b)) or (a + b))]
+    script = [Action("use add", "add", {"a": 2, "b": 3}), Action("done", None, answer=5)]
+    answer, trace = Agent(tools, _scripted(script)).run("sum 2 and 3")
+    assert answer == 5
+    assert trace[0].tool == "add" and trace[0].observation == 5
+    assert seen == [(2, 3)]
+
+
+def test_hitl_blocks_unapproved_action():
+    tools = [Tool("purge", lambda: "gone", requires_approval=True)]
+    script = [Action("purge it", "purge", {}), Action("stop", None, answer="halted")]
+    answer, trace = Agent(tools, _scripted(script), approve=lambda name, args: False).run("clean up")
+    assert "BLOCKED" in str(trace[0].observation)
+    assert answer == "halted"
+
+
+def test_nl_to_sql_builds_electronics_where_clause():
+    sql = nl_to_sql("find a good noise-cancelling headphone under $120 from Sony")
+    assert sql == (
+        "SELECT * FROM catalog WHERE price < 120 AND category = 'audio' "
+        "AND title LIKE '%Sony%' AND title LIKE '%headphone%'"
+    )
+
+
+def test_nl_to_sql_runs_against_the_real_catalog():
+    con = build_db(load_catalog())
+    rows = run_sql(con, nl_to_sql("noise-cancelling headphone under $120"))
+    assert rows                                   # the query returns real audio items
+    assert all(r["category"] == "audio" and r["price"] < 120 for r in rows)
+    assert all("headphone" in r["title"].lower() for r in rows)
+    # the honest Anker deal is in the result set
+    assert any("Q20i" in r["title"] for r in rows)
+```
+
+Run them:
+
+```bash
+pytest tests/test_agent.py -v
+```
+
+```
+tests/test_agent.py::test_agent_runs_tool_then_finishes             PASSED
+tests/test_agent.py::test_hitl_blocks_unapproved_action             PASSED
+tests/test_agent.py::test_nl_to_sql_builds_electronics_where_clause PASSED
+tests/test_agent.py::test_nl_to_sql_runs_against_the_real_catalog   PASSED
+
+4 passed in 0.08s
+```
+
+`test_agent_runs_tool_then_finishes` pins the loop mechanics (call one tool, then finish with an answer). `test_hitl_blocks_unapproved_action` pins the approval gate. The two `nl_to_sql` tests pin the text-to-SQL contract: the exact WHERE clause for a fully-specified query, and that it returns real audio items — including the honest Anker Q20i — when run against the frozen catalog.
+
+---
+
+## Where this goes next
+
+- **Part 10 — Fine-tune the extractor with QLoRA** established the LLM client pattern and structured-output convention that a production policy for this loop would reuse — the rule-based `nl_to_sql` and scripted policy here stand in for that LLM call so the demo stays deterministic and offline.
+- **Part 12 — Expose it as an MCP server** wraps the same `dealscore` primitives behind the Model Context Protocol. `dealfinder/mcp_server.py` registers three tools — `score_deal`, `recommend`, `search_deals` — a `catalog_stats` resource, and a `find_a_deal` prompt, so external clients like Claude Desktop can call them directly.
+
+---
+
+*Sources: [ReAct (Yao et al., 2022)](https://arxiv.org/abs/2210.03629) · [LangGraph human-in-the-loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/) · [SQLite Python docs](https://docs.python.org/3/library/sqlite3.html)*

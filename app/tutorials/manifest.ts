@@ -193,11 +193,11 @@ export const tutorials: Tutorial[] = [
   },
   {
     slug: 'dealfinder-recommender',
-    title: 'What You\'ll Like Next',
+    title: 'What you’ll like next — recommenders',
     series: 'DealFinder — AI Engineering',
     part: 4,
     excerpt:
-      'Build two recommenders on the DealFinder catalog — content-based and collaborative filtering — and score them offline with precision@k and NDCG against a popularity baseline.',
+      'Content + collaborative recommenders over real title embeddings: "more like the Sony WH-1000XM5" returns the XM6 and other real audio.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'Recommenders', 'Python'],
     order: 14,
@@ -206,11 +206,11 @@ export const tutorials: Tutorial[] = [
   },
   {
     slug: 'dealfinder-search',
-    title: 'Semantic Search That Knows a Deal',
+    title: 'Semantic search that knows a deal',
     series: 'DealFinder — AI Engineering',
     part: 5,
     excerpt:
-      'Retrieve over the catalog four ways: real neural embeddings (fastembed, CPU) for meaning, BM25 for exact terms, Reciprocal Rank Fusion to combine them, then rerank by value so good deals rise.',
+      'Cosine + BM25 + RRF over the snapshot, value-reranked by the two-signal deal score so relevant AND cheap rises: Anker Q20i tops the results.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'Search', 'Embeddings', 'Python'],
     order: 15,
@@ -219,11 +219,11 @@ export const tutorials: Tutorial[] = [
   },
   {
     slug: 'dealfinder-extraction',
-    title: 'Messy Listings Into Clean JSON',
+    title: 'Messy listings into clean JSON',
     series: 'DealFinder — AI Engineering',
     part: 6,
     excerpt:
-      'Use an LLM to turn unstructured product listings into schema-validated JSON specs — prompt patterns, Pydantic structured output, temperature 0, and a deterministic offline path the tests run.',
+      'Turn retailer-polluted titles into schema-validated specs: extract the true manufacturer from the title, with a deterministic rule fallback.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'LLMs', 'Structured Output', 'Python'],
     order: 16,
@@ -284,11 +284,11 @@ export const tutorials: Tutorial[] = [
   },
   {
     slug: 'dealfinder-agent',
-    title: 'The Agent That Ties It Together',
+    title: 'The agent that ties it together',
     series: 'DealFinder — AI Engineering',
     part: 11,
     excerpt:
-      'Build a ReAct agent that plans over tools — text-to-SQL filtering and deal ranking — to answer a goal end to end, with a human-in-the-loop gate on risky actions. The loop is offline-tested; the LLM policy is the production swap.',
+      'A ReAct loop with text-to-SQL + deal-ranking tools and a human-in-the-loop gate answers a plain-English goal over the real catalog.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'Agents', 'LangGraph', 'Python'],
     order: 21,
@@ -297,11 +297,11 @@ export const tutorials: Tutorial[] = [
   },
   {
     slug: 'dealfinder-mcp',
-    title: 'Expose It as an MCP Server',
+    title: 'Expose it as an MCP server',
     series: 'DealFinder — AI Engineering',
     part: 12,
     excerpt:
-      'Wrap DealFinder\'s tools in a Model Context Protocol server so Claude Code and any MCP client can call them — tools, a resource, and a prompt, in a few lines with the official SDK.',
+      'Wrap the catalog’s tools, a resource, and a prompt as an MCP server so any client (e.g. Claude Code) can search deals and score value.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'MCP', 'Python'],
     order: 22,

@@ -4,13 +4,13 @@ import { motion } from 'framer-motion';
 import { MONO, ACCENT } from '../blogShared';
 
 /**
- * Bespoke illustration contrasting the two recommender strategies:
- *  - content-based: "more like this" — similarity over a product's own features
- *    (works with zero user history).
- *  - collaborative: "people who liked this also liked…" — a bipartite co-like
- *    graph; no features at all, pure taste.
- * The CF panel animates the actual inference: you and another user both liked A;
- * they also liked C; so C is recommended to you. Static-safe (labels are real).
+ * Bespoke illustration contrasting the two recommender strategies over real
+ * electronics data (hero cast: Sony WH-1000XM5 anchor):
+ *  - content-based: "more like this" — cosine similarity over fastembed title
+ *    embeddings (384-dim, bge-small-en-v1.5). Works with zero user history.
+ *  - collaborative: "people who liked this also liked…" — item-item co-occurrence
+ *    from the real interaction log; captures taste a feature vector can't.
+ * Static-safe. Labels match the pinned snapshot hero cast.
  */
 
 const card = {
@@ -29,12 +29,12 @@ export default function RecStrategies({ accent = ACCENT }: { accent?: string }) 
         {/* content-based */}
         <div style={card}>
           <div style={{ fontFamily: MONO, fontSize: 12, color: '#fff', fontWeight: 700, marginBottom: 2 }}>content-based</div>
-          <div style={{ fontFamily: MONO, fontSize: 10, color: '#8b98a8', marginBottom: 12 }}>more like this — by features</div>
+          <div style={{ fontFamily: MONO, fontSize: 10, color: '#8b98a8', marginBottom: 12 }}>more like this — by title embedding</div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontFamily: MONO, fontSize: 11, color: '#fff', border: `1.5px solid ${accent}73`, background: `${accent}12`, borderRadius: 7, padding: '6px 10px' }}>UL 2P Tent · 1.1kg</span>
-            <motion.span style={{ color: accent, fontSize: 14 }} animate={{ y: [2, -2, 2], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.6, repeat: Infinity }}>▼ similar specs</motion.span>
+            <span style={{ fontFamily: MONO, fontSize: 11, color: '#fff', border: `1.5px solid ${accent}73`, background: `${accent}12`, borderRadius: 7, padding: '6px 10px' }}>Sony XM5 · $162.97</span>
+            <motion.span style={{ color: accent, fontSize: 14 }} animate={{ y: [2, -2, 2], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.6, repeat: Infinity }}>▼ cosine sim</motion.span>
             <div style={{ display: 'flex', gap: 6 }}>
-              {['UL 2P · 1.2kg', 'UL 3P · 1.4kg'].map((t, i) => (
+              {['XM6 · $399.99', 'Q20i · $44.99'].map((t, i) => (
                 <motion.span key={t}
                   style={{ fontFamily: MONO, fontSize: 10, color: '#cdd7e2', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 7, padding: '6px 8px' }}
                   initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ amount: 0.4 }} transition={{ delay: 0.3 + i * 0.15 }}
@@ -54,18 +54,18 @@ export default function RecStrategies({ accent = ACCENT }: { accent?: string }) 
             <motion.line x1="44" y1="46" x2="196" y2="32" stroke={accent} strokeWidth="2" initial={{ pathLength: 0, opacity: 0 }} whileInView={{ pathLength: 1, opacity: 0.7 }} viewport={{ amount: 0.4 }} transition={{ delay: 0.2, duration: 0.5 }} />
             <motion.line x1="44" y1="104" x2="196" y2="32" stroke="#8b98a8" strokeWidth="2" initial={{ pathLength: 0, opacity: 0 }} whileInView={{ pathLength: 1, opacity: 0.6 }} viewport={{ amount: 0.4 }} transition={{ delay: 0.45, duration: 0.5 }} />
             <motion.line x1="44" y1="104" x2="196" y2="116" stroke="#8b98a8" strokeWidth="2" strokeDasharray="4 3" initial={{ pathLength: 0, opacity: 0 }} whileInView={{ pathLength: 1, opacity: 0.6 }} viewport={{ amount: 0.4 }} transition={{ delay: 0.7, duration: 0.5 }} />
-            {/* recommendation edge you → C */}
+            {/* recommendation edge you → Q20i */}
             <motion.line x1="44" y1="46" x2="196" y2="116" stroke={accent} strokeWidth="2.5" strokeDasharray="3 3" initial={{ pathLength: 0, opacity: 0 }} whileInView={{ pathLength: 1, opacity: [0, 1, 0.5, 1] }} viewport={{ amount: 0.4 }} transition={{ pathLength: { delay: 1.1, duration: 0.5 }, opacity: { delay: 1.1, duration: 2, repeat: Infinity } }} />
 
             {/* users */}
-            <g fontFamily="Menlo, monospace" fontSize="10">
-              <circle cx="32" cy="46" r="12" fill={`${accent}22`} stroke={accent} /><text x="32" y="49" textAnchor="middle" fill="#fff">you</text>
-              <circle cx="32" cy="104" r="12" fill="rgba(148,163,184,0.1)" stroke="#8b98a8" /><text x="32" y="107" textAnchor="middle" fill="#cdd7e2">u2</text>
+            <g fontFamily="Menlo, monospace" fontSize="9">
+              <circle cx="32" cy="46" r="14" fill={`${accent}22`} stroke={accent} /><text x="32" y="49" textAnchor="middle" fill="#fff">you</text>
+              <circle cx="32" cy="104" r="14" fill="rgba(148,163,184,0.1)" stroke="#8b98a8" /><text x="32" y="107" textAnchor="middle" fill="#cdd7e2">u2</text>
               {/* items */}
-              <circle cx="208" cy="32" r="12" fill="rgba(148,163,184,0.1)" stroke="#8b98a8" /><text x="208" y="35" textAnchor="middle" fill="#cdd7e2">A</text>
-              <motion.circle cx="208" cy="116" r="13" fill={`${accent}22`} stroke={accent} strokeWidth="2"
+              <circle cx="208" cy="32" r="14" fill="rgba(148,163,184,0.1)" stroke="#8b98a8" /><text x="208" y="35" textAnchor="middle" fill="#cdd7e2">XM5</text>
+              <motion.circle cx="208" cy="116" r="15" fill={`${accent}22`} stroke={accent} strokeWidth="2"
                 animate={{ scale: [1, 1.18, 1] }} transition={{ duration: 1.6, repeat: Infinity, delay: 1.2 }} />
-              <text x="208" y="119" textAnchor="middle" fill="#fff">C</text>
+              <text x="208" y="119" textAnchor="middle" fill="#fff">Q20i</text>
               <text x="208" y="140" textAnchor="middle" fill={accent} fontSize="9">recommend →</text>
             </g>
           </svg>

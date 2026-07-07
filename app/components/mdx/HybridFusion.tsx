@@ -8,12 +8,17 @@ import { MONO, ACCENT } from '../blogShared';
  * ranking and a keyword (BM25) ranking are merged into one. Items that rank well
  * in BOTH float to the top of the fused list — the whole point of RRF. Consensus
  * items are highlighted; the fused column assembles last. Static-safe.
+ *
+ * Data: hero-cast headphones from the electronics-2026-07 snapshot.
+ * Semantic lane ranks Bose QC45 #1 (semantic halo) but misses XM5 keyword signal.
+ * BM25 lane ranks XM5 #1 (verbatim title match) and Anker Q20i #2.
+ * RRF fused: XM5 rises to top (consistent across both); Anker Q20i #2.
  */
 
-const SEMANTIC = ['tent-13', 'tent-04', 'tent-03'];
-const KEYWORD = ['tent-04', 'tent-07', 'tent-13'];
-const FUSED = ['tent-04', 'tent-13', 'tent-21'];
-const consensus = new Set(['tent-04', 'tent-13']); // in both source lists
+const SEMANTIC = ['Bose QC45', 'Sony XM5', 'Anker Q20i'];
+const KEYWORD = ['Sony XM5', 'Anker Q20i', 'Sony XM6'];
+const FUSED = ['Sony XM5', 'Anker Q20i', 'Bose QC45'];
+const consensus = new Set(['Sony XM5', 'Anker Q20i']); // strong in both lists
 
 function List({ title, items, accent, delay = 0 }: { title: string; items: string[]; accent: string; delay?: number }) {
   return (
@@ -81,7 +86,7 @@ export default function HybridFusion({ accent = ACCENT }: { accent?: string }) {
       </div>
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 14 }}>
-        Items strong in <span style={{ color: '#cdd7e2' }}>both</span> lists rise to the top — no weights to tune.
+        <span style={{ color: '#cdd7e2' }}>Sony XM5</span> and <span style={{ color: '#cdd7e2' }}>Anker Q20i</span> appear in both lanes — they rise to the top, no weights needed.
       </div>
     </div>
   );

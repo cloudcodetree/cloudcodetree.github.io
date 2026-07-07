@@ -11,8 +11,9 @@ import { MONO, ACCENT } from '../blogShared';
  */
 
 const CANDIDATES = [
-  { json: '{ "capacity": 2, "weight_kg": 1.1 }', ok: true, note: 'types match → accepted' },
-  { json: '{ "capacity": "lots", "weight_kg": 1.1 }', ok: false, note: 'capacity not int → rejected, retry' },
+  { json: '{ "brand": "Sony", "model": "WH-1000XM5", "condition": "new" }', ok: true, note: 'types match → accepted' },
+  { json: '{ "brand": 42, "model": "WH-1000XM5", "condition": "new" }', ok: false, note: 'brand not str → rejected' },
+  { json: '{ "brand": "Bose", "model": "QC45", "condition": "maybe" }', ok: false, note: 'condition invalid literal → rejected' },
 ];
 
 export default function SchemaGate({ accent = ACCENT }: { accent?: string }) {
@@ -22,7 +23,7 @@ export default function SchemaGate({ accent = ACCENT }: { accent?: string }) {
         The schema is a gate
       </div>
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginBottom: 16 }}>
-        capacity: int · weight_kg: float · season: int
+        brand: str|null · model: str|null · condition: &quot;new&quot;|&quot;refurb&quot;|&quot;used&quot; · category: str|null
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -54,7 +55,7 @@ export default function SchemaGate({ accent = ACCENT }: { accent?: string }) {
       </div>
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 16 }}>
-        &quot;Asked for JSON&quot; ≠ &quot;guaranteed typed data&quot; — the schema is what makes it <span style={{ color: accent }}>structured</span> output.
+        &quot;Asked for JSON&quot; ≠ &quot;guaranteed typed data&quot; — the schema is what makes it <span style={{ color: accent }}>structured</span> output. Bad field type or invalid literal: rejected before it enters the pipeline.
       </div>
     </div>
   );
