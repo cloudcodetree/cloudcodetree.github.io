@@ -47,7 +47,7 @@ Snapshot item shape: `id, query, category, title, brand, price, currency,
 source, marketplace, url, image_url, deal_pct, median_price_at_capture`.
 
 **Real-world messiness captured on purpose (this is the curriculum):**
-- `brand` holds the **retailer**, not the manufacturer, in 154/270 rows
+- `brand` holds the **retailer**, not the manufacturer, in 156/270 rows
   ("Walmart - COWIN", "Target", "mountainlifestyle.ca"). → true brand must be
   extracted from the *title*. Teaches normalization (Part 1) + extraction (Part 6).
 - The **naive median deal-signal is fooled**: a "$10.75 Kindle Paperwhite" reads
@@ -299,16 +299,16 @@ scale). Part 31 re-implements nothing; both specs state this explicitly.
 ### 9.9 Snapshot provenance & minor pins
 The snapshot came from **RapidAPI + Apify** (real Google Shopping); state it
 consistently (Parts 1/8). The messiness catalogue is retailer-as-brand pollution
-(154/270) and median-signal outliers — **no "price-in-brand leak"** (drop Part
+(156/270) and median-signal outliers — **no "price-in-brand leak"** (drop Part
 10's invented `brand="46"`). Part 27 animation is **`SearchStateMachine`** (no
 Cyrillic). Frontend batch counts must match their Playwright fixtures.
 
-**Retailer-brand pollution count = 154** (of 270), defined as: `brand` contains a
+**Retailer-brand pollution count = 156** (of 270), defined as: `brand` contains a
 known-retailer token (walmart, target, best buy, kohl's, costco, macy's, amazon,
 newegg, ebay). This is the pinned figure and matches the companion docstrings.
 The broader `title_brand(brand) != title_brand(title)` definition yields ~220 —
 that is NOT the pinned number; any illustrative assertion must use the
-known-retailer-token definition so it reproduces 154.
+known-retailer-token definition so it reproduces 156.
 
 **Test-file references must be real.** Cite actual companion test files
 (`tests/test_snapshot.py`, `tests/test_dealscore.py`, `tests/test_features.py`,
