@@ -10,7 +10,151 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 07 Jul 2026 12:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 07 Jul 2026 20:09:00 +0000</lastBuildDate>
+
+
+    <item>
+      <title>Your Agent's Failures Are Underutilized Training Data</title>
+      <link>https://www.langchain.com/blog/improving-agents-is-a-data-mining-problem</link>
+      <guid isPermaLink="false">2026-07-07-09-agent-failure-traces-improvement-loop</guid>
+      <pubDate>Tue, 07 Jul 2026 20:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Your agent's worst runs contain the highest-signal data for improvement. Filter production failures by status or user feedback, label 20 examples, and you'll find 3-4 root causes — fix those, not one-offs.</description>
+      <content:encoded><![CDATA[
+**Your agent's worst runs contain the highest-signal data for making it better — but most teams discard them as one-off bugs instead of mining them as a dataset.**
+
+LangChain's engineering team published a post today making the case that systematic trace mining — not more prompt iteration — is the highest-leverage improvement path for production LLM apps. The core shift: stop treating agent failures as individual bugs to patch, and start treating them as labeled examples in a dataset.
+
+**The loop that most teams skip:**
+
+**1. Instrument everything.** If you're using LangSmith, Langfuse, or the Claude SDK's built-in event hooks, every tool call and intermediate step is already being captured. If not, add structured logging to your agent loop now — you can't mine what you don't record.
+
+**2. Write the slice query, not just "look at logs."** Build a persistent filter that surfaces runs where your agent called the wrong tool, hallucinated a fact, failed to complete the task, or needed more than one retry. The pattern lives in the aggregate, not in any single run.
+
+**3. Label and build a dataset.** Each failure is a negative example. Find or write the corrected version. Now you have input/output pairs — raw material for few-shot examples, prompt guardrails, or (when the pattern is pervasive) a fine-tune.
+
+**4. Close the loop.** Update your prompt with concrete examples of the correct behavior. Add a guardrail for the top failure mode. If the same error appears in 30%+ of runs, that's a fine-tuning signal, not a prompt problem.
+
+**Applied to Claude Code automation.** If you run Claude Code in a CI pipeline, PR review bot, or daily routine, trace which tasks consistently need retries or human correction. Filter `status: error` runs, export 20 examples, and review them. You'll typically find 3–4 root causes: vague CLAUDE.md instructions, missing tool permissions, context that's too short or too long, or a recurring ambiguous case. Fix those four — not one-offs.
+
+A one-hour trace review session, done weekly, is worth more than a day of prompt iteration on examples that aren't drawn from production.
+
+**Sources:** [LangChain: Improving Agents is a Data Mining Problem](https://www.langchain.com/blog/improving-agents-is-a-data-mining-problem) | [LangSmith evaluation docs](https://docs.smith.langchain.com/evaluation) | [Langfuse tracing and evaluation](https://langfuse.com/docs)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Agentic Tools Open Up: Claude Cowork Hits Mobile, Copilot App Goes Free, HF Models Land on Azure</title>
+      <link>https://claude.com/blog/cowork-web-mobile</link>
+      <guid isPermaLink="false">2026-07-07-08-cowork-mobile-copilot-app-hf-foundry</guid>
+      <pubDate>Tue, 07 Jul 2026 20:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Agents</category>
+      <category>Developer Tools</category>
+      <description>Claude Cowork lands on mobile and web for Max subscribers; GitHub Copilot desktop app opens to all plans including Free with BYOK; HuggingFace open-weight models now deployable on Azure Foundry managed compute.</description>
+      <content:encoded><![CDATA[
+**Three agentic AI tools expanded their reach today: Claude Cowork lands on mobile and web, GitHub's Copilot app opens to all plans including Free, and HuggingFace open-weight models are now deployable on Azure Foundry managed compute.**
+
+**Claude Cowork goes mobile.** Anthropic's Cowork platform — which runs long-horizon agentic tasks while you're away — expanded from desktop-only to the Claude web interface and mobile app sidebar, rolling out to Max subscribers first. Sessions persist across devices; tasks run unattended even when no devices are online. Anthropic also doubled usage limits through August 5.
+
+**GitHub Copilot app goes free.** The Copilot desktop app (macOS/Windows/Linux) is now available on every plan — including Free and GitHub Education — not just paid tiers. Users without a Copilot subscription can BYOK (bring your own API key) to point it at any model provider. This removes the subscription barrier for persistent agentic coding sessions entirely.
+
+**HuggingFace models on Azure Foundry.** Open-weight models from the HuggingFace Hub are now deployable on Microsoft Azure Foundry's managed compute (A100/H100/MI300X). Microsoft handles infrastructure, security screening, and CVE patching; backends include vLLM, SGLang, and TensorRT-LLM with an OpenAI-compatible API — no GPU cluster management required.
+
+**Why it matters:** The floor for agentic AI tooling dropped today on two fronts. For Anthropic users, Cowork async tasks are now truly mobile-first. For GitHub users, the BYOK Copilot app removes the subscription barrier entirely — expect team adoption to accelerate faster than the paid-only era allowed.
+
+**Sources:** [Claude Cowork web and mobile](https://claude.com/blog/cowork-web-mobile) | [GitHub Copilot app available to all](https://github.blog/changelog/2026-07-07-github-copilot-app-available-to-all) | [HuggingFace models on Azure Foundry managed compute](https://huggingface.co/blog/microsoft/foundry-managed-compute)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>QLoRA on a Free T4: Fine-Tune Any Open-Weight LLM in an Hour With Unsloth</title>
+      <link>https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_(8B)-Alpaca.ipynb</link>
+      <guid isPermaLink="false">2026-07-07-07-qlora-unsloth-colab-free-gpu</guid>
+      <pubDate>Tue, 07 Jul 2026 20:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>Unsloth QLoRA fine-tunes Llama 3.1 8B on a free Colab T4 in about an hour — 2x faster and 60% less VRAM than standard LoRA. Open the official notebook and run four cells to fine-tune on your own data.</description>
+      <media:content url="https://img.youtube.com/vi/Lt7KrFMcCis/hqdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/Lt7KrFMcCis/hqdefault.jpg" />
+      <content:encoded><![CDATA[
+**Unsloth QLoRA fine-tunes Llama 3.1 8B on a free Colab T4 in about an hour — 2x faster and 60% less VRAM than standard HuggingFace LoRA.**
+
+**What you'll be able to do after this:**
+- Load a quantized 8B model onto a free Colab T4 using Unsloth's `FastLanguageModel`
+- Attach LoRA adapters and train on your own 1–5k examples in 15–60 minutes
+- Push the adapter (or a merged model) to HuggingFace Hub ready for inference
+
+The gap between "uses LLMs" and "builds custom LLMs" often comes down to one step: running your first fine-tune. Unsloth closes that gap — what previously required an expensive A100 now runs comfortably on the free T4 in Google Colab.
+
+**Open the [Llama 3.1 (8B) Alpaca notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_(8B)-Alpaca.ipynb) and run these four steps:**
+
+```python
+# 1. Install
+!pip install "unsloth[colab-new]" -q
+
+# 2. Load the 4-bit quantized base model (this is QLoRA)
+from unsloth import FastLanguageModel
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name="unsloth/Meta-Llama-3.1-8B",
+    max_seq_length=2048,
+    load_in_4bit=True,  # 4-bit quantization = QLoRA
+)
+
+# 3. Attach trainable LoRA adapters
+model = FastLanguageModel.get_peft_model(
+    model,
+    r=32,
+    target_modules=["q_proj","k_proj","v_proj","o_proj",
+                    "gate_proj","up_proj","down_proj"],
+    lora_alpha=32,
+    lora_dropout=0,
+    use_gradient_checkpointing="unsloth",
+)
+
+# 4. Fine-tune with HuggingFace TRL
+from trl import SFTTrainer
+from transformers import TrainingArguments
+
+trainer = SFTTrainer(
+    model=model,
+    train_dataset=your_dataset,     # HF Dataset with a "text" column
+    dataset_text_field="text",
+    max_seq_length=2048,
+    args=TrainingArguments(
+        per_device_train_batch_size=2,
+        gradient_accumulation_steps=4,
+        warmup_steps=10,
+        max_steps=200,              # smoke test; scale up for real runs
+        learning_rate=2e-4,
+        fp16=True,
+        output_dir="outputs",
+    ),
+)
+trainer.train()
+
+# Save adapter and optionally push to HuggingFace Hub
+model.save_pretrained("my-llama-adapter")
+# model.push_to_hub("your-username/my-llama-ft")
+```
+
+**How QLoRA makes this possible.** Standard LoRA loads the base model in FP16 — ~16 GB for Llama 8B, which overflows a T4's 15 GB. QLoRA quantizes the frozen base weights to 4-bit first (~5 GB), then trains only the tiny LoRA adapters in full precision. Unsloth's custom CUDA kernels run those quantized forward passes 2x faster than the standard bitsandbytes path with 60% less peak VRAM.
+
+**Realistic training time.** Don't try to fine-tune on the full 52k-example Alpaca dataset on a T4 — that would take ~47 hours. The practical approach: use 1k–5k high-quality examples from your own domain. At that scale, expect 15–60 minutes of training on a free T4. The adapter captures the behavior shift; you're not training from scratch, just steering.
+
+**Sources:** [Llama 3.1 (8B) Alpaca Colab notebook — run it now](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_(8B)-Alpaca.ipynb) | [Unsloth fine-tuning guide](https://unsloth.ai/docs/get-started/fine-tuning-llms-guide) | [HuggingFace + Unsloth TRL benchmark post](https://huggingface.co/blog/unsloth-trl) | [Unsloth blog: Finetune Llama 3.1](https://unsloth.ai/blog/llama3-1) | [GitHub: unslothai/unsloth](https://github.com/unslothai/unsloth) (67.9k stars)
+]]></content:encoded>
+    </item>
+
 
     <item>
       <title>Lock Down Claude Code for CI: allowedTools, permissionMode, and managed-settings.json</title>
