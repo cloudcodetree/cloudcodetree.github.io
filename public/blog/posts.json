@@ -1,5 +1,60 @@
 [
   {
+    "id": "2026-07-07-03-claude-code-workflow-size-otel-v2-1-202",
+    "title": "Right-Size Your Agent Fleet: Dynamic Workflow Sizing and OTel Tracing in Claude Code v2.1.202",
+    "excerpt": "Claude Code v2.1.202 adds a three-size fleet control for dynamic workflows (/config workflow.size=small/medium/large) and OTel span attributes for per-workflow cost and duration tracing.",
+    "author": "Chris Harper",
+    "date": "07-07-2026",
+    "publishedAt": "2026-07-07T04:07:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**TL;DR: Set `/config workflow.size=small` to cap dynamic workflow costs during testing; flip to `large` for big parallel sweeps; two new OTel attributes let you trace each run end-to-end.**\n\nClaude Code's dynamic workflows — where Claude plans a task and orchestrates parallel subagents to execute it — now expose two new controls in v2.1.202 (July 6, 2026).\n\n## Dynamic workflow sizing\n\nA new `workflow.size` setting in `/config` controls how many agents get spawned when Claude runs a dynamic workflow:\n\n```\n/config workflow.size=small    # 2–4 agents, cheapest\n/config workflow.size=medium   # 8–12 agents, default\n/config workflow.size=large    # full fleet, up to 100+ agents\n```\n\n**When to use each:**\n\n- `small` — test a new workflow script or audit that an agentic task does what you expect before spending real tokens. A workflow that sweeps 500 files on `large` might cost $30+; the same logic on `small` gives you representative output at a fraction of the cost.\n- `medium` — the default. Right for most feature work, code reviews, and multi-file refactors.\n- `large` — reserve for tasks where parallelism is the point: large-scale migrations, codebase-wide audits, or batch processing pipelines where wall-clock time matters. Monitor spend if you enable this on Opus.\n\nYou can also set it per session by passing `--workflow-size small` on the CLI, or set it permanently in your project's `.claude/settings.json`:\n\n```json\n{\n  \"workflow\": {\n    \"size\": \"small\"\n  }\n}\n```\n\n## OpenTelemetry workflow attributes\n\nTwo new span attributes make workflow telemetry actionable:\n\n| Attribute | Value |\n|---|---|\n| `workflow.run_id` | Unique ID for this workflow execution |\n| `workflow.name` | The `name` from the workflow script's `meta` block |\n\nIf you're already shipping Claude Code's OTLP traces to Grafana, Honeycomb, or Datadog, these attributes unlock per-workflow dashboards — filter by `workflow.name` to compare cost across runs of the same workflow, or drill into a specific failed run by its `workflow.run_id`. Combined with the existing `session.cost_usd` attribute, you can alert on workflow-level cost spikes independently from interactive sessions.\n\n## Other v2.1.202 changes\n\nThe same release fixes several notable bugs: session resume was taking minutes when many git worktrees were open, `/review <pr>` reverts to a fast single-pass review, Remote Control commands were failing with \"Unknown command,\" and re-invoking a loaded skill was appending duplicate instructions. Full list at the [changelog](https://code.claude.com/docs/en/changelog).\n\n**Sources:** [Claude Code changelog v2.1.202](https://code.claude.com/docs/en/changelog) · [Dynamic Workflows docs](https://code.claude.com/docs/en/settings/dynamic-workflows)"
+  },
+  {
+    "id": "2026-07-07-02-cursor-ios-team-mcp-bugbot",
+    "title": "Cursor Lands on Your Phone: iOS Beta, Centralized Team MCPs, and a Smarter Bugbot",
+    "excerpt": "Cursor 3.9 lands an iOS app for remote agent monitoring, centralized Team MCP distribution for orgs, and a faster Bugbot with pre-push /review and GitHub/GitLab sync.",
+    "author": "Chris Harper",
+    "date": "07-07-2026",
+    "publishedAt": "2026-07-07T04:06:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://cursor.com/changelog/ios-mobile-app",
+    "content": "**TL;DR: Cursor shipped three enterprise-grade quality-of-life improvements: an iOS app to monitor and redirect agents from your phone, centralized Team MCPs so one admin config reaches every developer, and a Bugbot that now runs pre-push and syncs with GitHub.**\n\n**Cursor for iOS (June 29, public beta on all paid plans).** The iOS app lets you launch, monitor, and redirect always-on cloud agents from anywhere — Remote Control sends instructions to a running desktop session, push notifications fire when an agent completes a task or hits a blocker, and you can review code diffs and merge PRs directly in the app. Useful for the \"laptop closed but agent still running\" scenario that's increasingly common with overnight agentic runs.\n\n**Team MCPs (June 30).** Admins can now configure Team MCP servers once from Dashboard → Integrations & MCP and push them to every team member's cloud agents, IDE, and CLI automatically. Organization groups are supported alongside SCIM directory groups, so access can be scoped by cost center or team. This eliminates the per-developer \"add this MCP server\" onboarding step that slows adoption in larger orgs.\n\n**Bugbot improvements.** Bugbot now runs faster and cheaper per review, supports `/review` before pushing so you catch bugs before they hit CI, lets you choose between a Bugbot pass and a Security Review from the same command, and syncs review state with both GitHub and GitLab.\n\n**Why it matters:** Team MCPs is the enterprise governance story: one config, zero per-dev setup. The iOS app closes the gap between \"running an overnight agent session\" and \"being on call for it.\"\n\n**Sources:** [Cursor for iOS changelog](https://cursor.com/changelog/ios-mobile-app) · [Team MCPs and organization support](https://cursor.com/changelog/team-marketplace-updates) · [Cursor changelog](https://cursor.com/changelog)"
+  },
+  {
+    "id": "2026-07-07-01-modal-serverless-gpu-llm-inference",
+    "title": "GPU in a Decorator: Run Any Open-Weight LLM on a Serverless H100 With Modal",
+    "excerpt": "Modal turns a Python function into a serverless GPU job with one decorator — no cluster to manage, auto-scaling, pay-per-second billing. Deploy any open-weight LLM in 10 lines.",
+    "author": "Chris Harper",
+    "date": "07-07-2026",
+    "publishedAt": "2026-07-07T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Self-Hosting",
+      "LLM"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://modal.com/docs/guide",
+    "content": "**TL;DR: Add @app.function(gpu=\"h100\") to any Python function and Modal runs it on a cloud GPU — no cluster, no idle costs, sub-5-second cold starts, scales to zero between requests.**\n\n**What you'll be able to do after this:**\n- Deploy an open-weight LLM (Llama, Qwen, Mistral) to a GPU-backed serverless endpoint in under 10 minutes, with no infrastructure to provision or maintain\n- Use Modal Volumes to cache model weights so cold starts don't re-download multi-gigabyte checkpoints on every scale-up\n- Ship a production-grade OpenAI-compatible inference endpoint using vLLM on Modal with `modal deploy`, billed per second of GPU time with zero idle cost\n\n---\n\n## Why Modal exists\n\nAfter you fine-tune a model or want to self-host an open-weight LLM, the deployment question hits: where does it run? The two common answers are managed API providers (OpenRouter, Fireworks, Together — fast but you're sharing infrastructure and someone else controls pricing) or a self-managed vLLM server (full control but you pay for the GPU whether traffic is flowing or not, and you handle cold starts, capacity, and restarts yourself).\n\nModal is a third option: **serverless GPU functions**. You write Python, decorate it with Modal annotations, and the cloud handles container builds, GPU allocation, sub-5-second cold starts, autoscaling, and teardown when idle. You pay per second of compute — an H100 at ~$0.001/sec, an A10G at ~$0.0003/sec. An idle endpoint costs nothing.\n\n## The minimal example\n\nThree commands to get started:\n\n```bash\npip install modal\nmodal setup        # opens browser, authenticates with your account\nmodal run inference.py\n```\n\n`inference.py`:\n\n```python\nimport modal\n\napp = modal.App(\"llm-inference\")\n\n# Define the container image — installs dependencies once, cached\nimage = modal.Image.debian_slim().uv_pip_install(\"transformers[torch]\")\n\n@app.function(gpu=\"h100\", image=image)\ndef generate(prompt: str) -> str:\n    from transformers import pipeline\n    pipe = pipeline(\n        \"text-generation\",\n        model=\"Qwen/Qwen3-1.7B\",\n        device_map=\"cuda\",\n        max_new_tokens=512,\n    )\n    result = pipe([{\"role\": \"user\", \"content\": prompt}])\n    return result[0][\"generated_text\"][-1][\"content\"]\n\n@app.local_entrypoint()\ndef main():\n    print(generate.remote(\"Explain attention mechanisms in one paragraph.\"))\n```\n\n`modal run inference.py` sends the function to Modal, allocates an H100, and returns the output. `modal deploy inference.py` makes it a persistent endpoint.\n\n## Production: vLLM + Modal Volume\n\nFor an OpenAI-compatible endpoint that handles concurrent requests, Modal's [vLLM example](https://modal.com/docs/examples/vllm_inference) is the reference implementation. The key additions over the minimal example:\n\n**Model weight caching with `modal.Volume`** — without caching, every cold start re-downloads the model (multi-gigabyte for anything useful). A Volume persists the weights on Modal's infrastructure:\n\n```python\nmodel_cache = modal.Volume.from_name(\"llm-model-cache\", create_if_missing=True)\n\nvllm_image = (\n    modal.Image.from_registry(\"nvidia/cuda:12.9.0-devel-ubuntu22.04\", add_python=\"3.12\")\n    .uv_pip_install(\"vllm==0.21.0\")\n)\n\n@app.function(gpu=\"A100\", image=vllm_image, volumes={\"/cache\": model_cache})\n@modal.web_server(8000)\ndef serve():\n    import subprocess\n    subprocess.Popen([\n        \"python\", \"-m\", \"vllm.entrypoints.openai.api_server\",\n        \"--model\", \"meta-llama/Llama-3.1-8B-Instruct\",\n        \"--download-dir\", \"/cache\",\n    ])\n```\n\n`modal deploy vllm_inference.py` publishes a public URL at `https://your-org--llm-inference-serve.modal.run` with a `/v1/chat/completions` endpoint. Use it with the `openai` Python client by setting `base_url`.\n\n## Cost model\n\n| GPU | Cost/sec | Cost per 10-sec call |\n|-----|----------|----------------------|\n| H100 | ~$0.001 | ~$0.01 |\n| A100 (40GB) | ~$0.0006 | ~$0.006 |\n| A10G | ~$0.0003 | ~$0.003 |\n\nIdle endpoints (no requests in flight) cost nothing. Compare to a dedicated A10G instance running 24/7: ~$26/day whether you use it or not.\n\n**Sources:** [Modal quickstart](https://modal.com/docs/guide) · [vLLM on Modal example](https://modal.com/docs/examples/vllm_inference) · [How Modal achieves truly serverless GPUs](https://modal.com/blog/truly-serverless-gpus)"
+  },
+  {
     "id": "2026-07-06-08-claude-api-context-compaction-server-side",
     "title": "One Parameter, Infinite Conversations: Server-Side Context Compaction in the Claude API",
     "excerpt": "Add compact_20260112 to context_management.edits and Claude automatically summarizes the conversation when it approaches your token threshold — no client-side rolling-summary code required.",
