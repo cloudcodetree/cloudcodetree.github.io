@@ -56,7 +56,7 @@ export default function GuardrailStack({ accent = ACCENT }: { accent?: string })
       </div>
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 16 }}>
-        Every layer is cheap; skipping one is how incidents happen. The model sits in the <span style={{ color: '#a371f7' }}>middle</span>, never at the edge.
+        Every layer is cheap; skipping one is how incidents happen. The model sits in the <span style={{ color: '#a371f7' }}>middle</span>, never at the trust boundary — untrusted listings and queries enter left, validated specs and redacted logs exit right.
       </div>
     </div>
   );

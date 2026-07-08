@@ -6,12 +6,12 @@ import { MONO, ACCENT } from '../blogShared';
 /**
  * Bespoke illustration of a semantic cache: a reworded query that *means* the
  * same as a cached one is served from cache (≈0ms, $0) instead of recomputing.
- * Two queries hit the cache; the second is a semantic hit. Static-safe.
+ * Two electronics queries hit the cache; the second is a semantic hit. Static-safe.
  */
 
 const ROWS = [
-  { q: '"cheap 2-person tent"', hit: false, note: 'miss → compute & store', cost: '420ms · $0.002' },
-  { q: '"affordable two-person tent"', hit: true, note: 'semantic hit → cached', cost: '3ms · $0' },
+  { q: '"noise cancelling headphones"', hit: false, note: 'miss → compute & store', cost: '420ms · $0.002' },
+  { q: '"wireless noise canceling headphones"', hit: true, note: 'semantic hit → cached', cost: '3ms · $0' },
 ];
 
 export default function SemanticCacheViz({ accent = ACCENT }: { accent?: string }) {

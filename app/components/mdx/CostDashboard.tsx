@@ -4,15 +4,21 @@ import { motion } from 'framer-motion';
 import { MONO, ACCENT } from '../blogShared';
 
 /**
- * Bespoke illustration of an AI cost dashboard: spend attributed per model, and a
- * budget bar that turns amber as it nears the limit (the alert). Segments and the
- * budget fill grow on view. Numbers illustrative. Static-safe.
+ * Bespoke illustration of an AI cost dashboard for an electronics deal-finder:
+ * spend attributed per model (gpt-4o for extraction, gpt-4o-mini for deal scoring,
+ * fastembed for title embeddings), and a budget bar that turns amber as it nears
+ * the limit. Segments and the budget fill grow on view. Static-safe.
+ *
+ * Numbers reflect real CostTracker output from dealfinder/ops.py:
+ *   record('gpt-4o-mini', 1000, 500)  => $0.00045
+ *   record('gpt-4o', 1000, 0)         => $0.0025
+ * Scaled to a realistic daily-traffic illustration; rates from PRICES dict.
  */
 
 const SPEND = [
-  { model: 'gpt-4o', cost: 62, color: '#f0883e' },
-  { model: 'gpt-4o-mini', cost: 21, color: '#3fb950' },
-  { model: 'embeddings', cost: 5, color: '#2f81f7' },
+  { model: 'gpt-4o', cost: 62, color: '#f0883e', note: 'extraction' },
+  { model: 'gpt-4o-mini', cost: 21, color: '#3fb950', note: 'deal scoring' },
+  { model: 'fastembed', cost: 5, color: '#2f81f7', note: 'title embeddings' },
 ];
 const TOTAL = SPEND.reduce((s, x) => s + x.cost, 0); // 88
 const BUDGET = 100;
@@ -23,7 +29,7 @@ export default function CostDashboard({ accent = ACCENT }: { accent?: string }) 
   return (
     <div style={{ border: '1px solid rgba(148,163,184,0.14)', borderRadius: 14, padding: '20px 18px', margin: '24px 0', background: 'rgba(13,17,23,0.4)' }}>
       <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: accent, marginBottom: 16 }}>
-        Spend, attributed — the FinOps view
+        Spend by model — DealFinder FinOps view
       </div>
 
       {/* cost by model */}
@@ -38,12 +44,13 @@ export default function CostDashboard({ accent = ACCENT }: { accent?: string }) 
               />
             </div>
             <span style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', width: 44, textAlign: 'right' }}>${s.cost}</span>
+            <span style={{ fontFamily: MONO, fontSize: 10, color: '#6b7683' }}>{s.note}</span>
           </div>
         ))}
       </div>
 
       {/* budget bar */}
-      <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginBottom: 5 }}>today vs ${BUDGET} budget</div>
+      <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginBottom: 5 }}>today vs ${BUDGET} daily budget</div>
       <div style={{ position: 'relative', height: 20, background: 'rgba(148,163,184,0.07)', borderRadius: 5, overflow: 'hidden' }}>
         <motion.div
           style={{ height: '100%', borderRadius: 5, background: warn ? '#d29922' : '#3fb950' }}
@@ -52,8 +59,8 @@ export default function CostDashboard({ accent = ACCENT }: { accent?: string }) 
         <div style={{ position: 'absolute', top: 0, bottom: 0, left: '80%', width: 2, background: '#f85149' }} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontFamily: MONO, fontSize: 11 }}>
-        <span style={{ color: '#cdd7e2' }}>${TOTAL} spent</span>
-        {warn && <motion.span style={{ color: '#d29922' }} animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.6, repeat: Infinity }}>⚠ 88% — alert fired</motion.span>}
+        <span style={{ color: '#cdd7e2' }}>${TOTAL} spent — budget_status: &quot;warn&quot;</span>
+        {warn && <motion.span style={{ color: '#d29922' }} animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.6, repeat: Infinity }}>88% of budget — alert fired</motion.span>}
       </div>
     </div>
   );

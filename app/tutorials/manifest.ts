@@ -336,83 +336,94 @@ export const tutorials: Tutorial[] = [
   },
   {
     slug: 'dealfinder-safety',
-    title: 'Safety, Security & Governance',
+    title: 'Safety, security & governance',
     series: 'DealFinder — AI Engineering',
-    part: 15,
+    part: 21,
     excerpt:
-      'The boring-but-hireable layer: detect prompt injection, redact PII, validate model output beyond types, keep an audit log, and write a model card — defense in depth around DealFinder.',
+      'Defense in depth for the model surface: prompt-injection detection, PII redaction, output validation on the electronics schema, and a model card.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'Safety', 'Security', 'Python'],
-    order: 25,
+    order: 31,
     readTime: 10,
     image: '/tutorials/covers/dealfinder-safety.png',
   },
   {
     slug: 'dealfinder-eval',
-    title: 'Prove It Works: An Eval Harness',
+    title: 'Prove it works — evaluation as a discipline',
     series: 'DealFinder — AI Engineering',
-    part: 16,
+    part: 19,
     excerpt:
-      'Stop eyeballing quality. Build a golden set, score the extractor with exact-match and field accuracy, A/B against a baseline, and gate the build in CI so regressions can\'t merge.',
+      'Golden sets, ranking metrics, LLM-as-judge and error analysis: the two-signal ranker scores precision@5 = 1.00 where median-only manages 0.40.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'Evaluation', 'CI', 'Python'],
-    order: 26,
+    order: 29,
     readTime: 9,
     image: '/tutorials/covers/dealfinder-eval.png',
   },
   {
     slug: 'dealfinder-serve',
-    title: 'Serve It Fast and Cheap',
+    title: 'Serve it fast and cheap',
     series: 'DealFinder — AI Engineering',
-    part: 17,
+    part: 22,
     excerpt:
-      'Wrap DealFinder in a FastAPI service, add a semantic cache that serves paraphrased queries for almost nothing, and learn the levers that cut inference cost and latency — batching, quantization, vLLM, streaming.',
+      'The FastAPI service behind the aggregator: real routes, a semantic cache, and batching — the levers that cut latency and cost.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'Serving', 'FastAPI', 'Python'],
-    order: 27,
+    order: 32,
     readTime: 10,
     image: '/tutorials/covers/dealfinder-serve.png',
   },
   {
     slug: 'dealfinder-deploy',
-    title: 'Containerize and Ship It',
+    title: 'Containerize and ship it',
     series: 'DealFinder — AI Engineering',
-    part: 18,
+    part: 24,
     excerpt:
-      'Package DealFinder in a Docker image that runs identically everywhere, wire up GitHub Actions CD with the eval gate from Part 16, and deploy to a PaaS with a health check.',
+      'A real Docker image, a CI/CD pipeline with the eval gate, and one-command infra via Terraform/OpenTofu (db + app).',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'Docker', 'CICD', 'Python'],
-    order: 28,
+    order: 34,
     readTime: 9,
     image: '/tutorials/covers/dealfinder-deploy.png',
   },
   {
     slug: 'dealfinder-observability',
-    title: 'Observability, Cost & Ops',
+    title: 'Observability, cost & ops',
     series: 'DealFinder — AI Engineering',
-    part: 19,
+    part: 26,
     excerpt:
-      'Trace every request, attribute spend per model and feature with budgets and alerts (FinOps), and detect input drift with PSI so a scheduled retrain fires before quality rots.',
+      'Trace requests, attribute real API/LLM cost (FinOps), and watch for drift with PSI — the ops layer that keeps the deal engine honest.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'Observability', 'FinOps', 'Python'],
-    order: 29,
+    order: 36,
     readTime: 10,
     image: '/tutorials/covers/dealfinder-observability.png',
   },
   {
     slug: 'dealfinder-ship',
-    title: 'Ship It and Get Hired',
+    title: 'Case study + system-design interview',
     series: 'DealFinder — AI Engineering',
-    part: 20,
+    part: 33,
     excerpt:
       'Turn the whole DealFinder build into career capital: a metrics-driven case study, resume bullets that read as outcomes, and a mock AI system-design interview walked through on your own system.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'Career', 'System Design'],
-    order: 30,
+    order: 43,
     readTime: 11,
     image: '/tutorials/covers/dealfinder-ship.png',
   },
 ];
+
+/**
+ * Fixed, canonical part count for a series — the "of N" total. Some series
+ * (notably DealFinder) have a locked syllabus whose total is larger than the
+ * number of built entries below; unbuilt parts have no manifest entry yet
+ * (numbering gaps are expected during construction). For series without an
+ * override, the total is derived from the number of entries (seriesTotal).
+ */
+export const SERIES_TOTAL_OVERRIDE: Record<string, number> = {
+  'DealFinder — AI Engineering': 33,
+};
 
 /** One-line description of each series, shown in the course header. */
 export const SERIES_INFO: Record<string, { blurb: string }> = {
@@ -430,9 +441,16 @@ export const SERIES_INFO: Record<string, { blurb: string }> = {
   },
 };
 
-/** Total parts in a tutorial's series. */
+/**
+ * Total parts in a tutorial's series — the canonical override when set
+ * (e.g. DealFinder = 33, a fixed syllabus with unbuilt parts), otherwise the
+ * number of built entries.
+ */
 export function seriesTotal(series: string): number {
-  return tutorials.filter((t) => t.series === series).length;
+  return (
+    SERIES_TOTAL_OVERRIDE[series] ??
+    tutorials.filter((t) => t.series === series).length
+  );
 }
 
 /** All parts of a series, in reading order. */

@@ -48,7 +48,7 @@ export default function CDPipeline({ accent = ACCENT }: { accent?: string }) {
       </div>
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 14 }}>
-        The <span style={{ color: accent }}>eval gate</span> (Part 11) sits inside CI — a quality regression fails the build before it ever ships.
+        The <span style={{ color: accent }}>eval gate</span> (Part 19) sits inside CI — a precision@5 regression fails the build before it ever ships.
       </div>
     </div>
   );
