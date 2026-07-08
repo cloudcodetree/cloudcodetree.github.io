@@ -79,7 +79,7 @@ function StepNode({
         initial={{ opacity: 0, x: -16 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ amount: 0.4 }}
-        transition={{ delay, duration: 0.4, ease: 'easeOut' }}
+        transition={{ delay, duration: 0.4, ease: 'easeOut' as const }}
       >
         {/* step number badge */}
         <div

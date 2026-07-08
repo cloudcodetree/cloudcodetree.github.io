@@ -127,7 +127,7 @@ export default function ScrapingPermissionTiers({ accent = ACCENT }: { accent?: 
                 boxShadow: `0 0 0 4px ${tier.color}28`,
               }}
               animate={{ opacity: [0.65, 1, 0.65] }}
-              transition={{ duration: 2.4 + i * 0.3, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
+              transition={{ duration: 2.4 + i * 0.3, repeat: Infinity, ease: 'easeInOut' as const, delay: i * 0.4 }}
             />
 
             {/* text */}

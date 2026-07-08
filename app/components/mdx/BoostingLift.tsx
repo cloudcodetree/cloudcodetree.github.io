@@ -118,7 +118,7 @@ export default function BoostingLift() {
                 initial={{ scaleY: 0, transformOrigin: 'bottom' }}
                 whileInView={{ scaleY: 1 }}
                 viewport={{ amount: 0.4 }}
-                transition={{ delay: 0.1 + i * 0.2, duration: 0.55, ease: 'easeOut' }}
+                transition={{ delay: 0.1 + i * 0.2, duration: 0.55, ease: 'easeOut' as const }}
               />
             </div>
           );

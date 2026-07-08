@@ -127,7 +127,7 @@ export default function AgentLoop({ accent = ACCENT }: { accent?: string }) {
             cx: [REASON.x, ACT.x, OBSERVE.x, REASON.x],
             cy: [REASON.y, ACT.y, OBSERVE.y, REASON.y],
           }}
-          transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut', times: [0, 0.33, 0.66, 1] }}
+          transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' as const, times: [0, 0.33, 0.66, 1] }}
         />
       </svg>
 

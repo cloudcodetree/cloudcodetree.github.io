@@ -48,7 +48,7 @@ function CpuBar({ pct }: { pct: number }) {
       <motion.div
         style={{ height: '100%', borderRadius: 3, background: color, originX: 0 }}
         animate={{ scaleX: pct / 100 }}
-        transition={{ duration: 0.55, ease: 'easeOut' }}
+        transition={{ duration: 0.55, ease: 'easeOut' as const }}
       />
     </div>
   );

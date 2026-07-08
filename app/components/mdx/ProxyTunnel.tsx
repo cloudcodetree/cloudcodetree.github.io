@@ -168,7 +168,7 @@ export default function ProxyTunnel({ accent = ACCENT }: { accent?: string }) {
               transition={{
                 duration: 1.4,
                 repeat: Infinity,
-                ease: 'linear',
+                ease: 'linear' as const,
                 delay: i * 0.35,
               }}
             />

@@ -86,7 +86,9 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ...components,
     // VSCode-style syntax highlighting for fenced code blocks (build-time Shiki).
-    pre: CodeBlock,
+    // Cast: async server components are valid MDX overrides but MDXComponents'
+    // types model only sync components returning ReactNode.
+    pre: CodeBlock as unknown as NonNullable<MDXComponents['pre']>,
     Callout, TutorialHero,
     SchemaMap, DedupMerge, RetailerBrandSplit, RunHistory, ScaleSwap,
     Tokenizer, EmbeddingSpace, AttentionView, TemperatureSampler,

@@ -60,7 +60,7 @@ export default function TextToSQL({ accent = ACCENT }: { accent?: string }) {
         <motion.div
           initial={{ x: -32, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.7, ease: 'easeOut' }}
+          transition={{ duration: 0.7, ease: 'easeOut' as const }}
           style={{
             fontFamily: MONO,
             fontSize: 12,
@@ -92,7 +92,7 @@ export default function TextToSQL({ accent = ACCENT }: { accent?: string }) {
         <motion.div
           initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.9, ease: 'easeOut' }}
+          transition={{ duration: 0.5, delay: 0.9, ease: 'easeOut' as const }}
           style={{
             fontFamily: MONO,
             fontSize: 10,
@@ -125,7 +125,7 @@ export default function TextToSQL({ accent = ACCENT }: { accent?: string }) {
         <motion.div
           initial={{ x: 32, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.7, delay: 1.5, ease: 'easeOut' }}
+          transition={{ duration: 0.7, delay: 1.5, ease: 'easeOut' as const }}
           style={{
             fontFamily: MONO,
             fontSize: 11,
@@ -152,7 +152,7 @@ export default function TextToSQL({ accent = ACCENT }: { accent?: string }) {
       <motion.div
         initial={{ y: 18, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, delay: 2.1, ease: 'easeOut' }}
+        transition={{ duration: 0.6, delay: 2.1, ease: 'easeOut' as const }}
         style={{ overflowX: 'auto' }}
       >
         <table

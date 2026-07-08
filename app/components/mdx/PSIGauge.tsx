@@ -63,7 +63,7 @@ function GaugeBar({
           initial={{ width: '0%' }}
           whileInView={{ width: `${fillPct}%` }}
           viewport={{ amount: 0.5 }}
-          transition={{ delay, duration: 0.8, ease: 'easeOut' }}
+          transition={{ delay, duration: 0.8, ease: 'easeOut' as const }}
         />
 
         {/* threshold line */}

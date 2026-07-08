@@ -48,7 +48,7 @@ function Stage({ s, i, accent }: { s: typeof STAGES[number]; i: number; accent: 
       <motion.div
         style={{ ...tile, borderColor: `${accent}73`, background: `${accent}12`, color: '#fff', textAlign: 'center' }}
         animate={{ boxShadow: [`0 0 0px ${accent}00`, `0 0 12px ${accent}66`, `0 0 0px ${accent}00`] }}
-        transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.45, ease: 'easeInOut' }}
+        transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.45, ease: 'easeInOut' as const }}
       >
         <span style={{ color: accent, fontWeight: 700 }}>prod</span> · {s.prod}
       </motion.div>
@@ -57,7 +57,7 @@ function Stage({ s, i, accent }: { s: typeof STAGES[number]; i: number; accent: 
       <motion.div
         style={{ textAlign: 'center', color: accent, fontSize: 13, lineHeight: 1 }}
         animate={{ y: [3, -3, 3], opacity: [0.35, 1, 0.35] }}
-        transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.45, ease: 'easeInOut' }}
+        transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.45, ease: 'easeInOut' as const }}
       >▲</motion.div>
 
       {/* dev tile (where the tutorial is now) */}
@@ -89,7 +89,7 @@ export default function ScaleSwap({ accent = ACCENT }: { accent?: string }) {
               <motion.span
                 style={{ fontFamily: MONO, fontSize: 16, color: '#8b98a8', flex: '0 0 auto' }}
                 animate={{ opacity: [0.3, 1, 0.3] }}
-                transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' }}
+                transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' as const }}
               >→</motion.span>
             )}
           </div>
@@ -101,7 +101,7 @@ export default function ScaleSwap({ accent = ACCENT }: { accent?: string }) {
         style={{ marginTop: 16, borderRadius: 8, padding: '8px 12px', textAlign: 'center', fontFamily: MONO, fontSize: 11,
                  border: `1px dashed ${accent}59`, background: `${accent}08`, color: '#cdd7e2', minWidth: 540 }}
         animate={{ opacity: [0.8, 1, 0.8] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' as const }}
       >
         <span style={{ color: accent, fontWeight: 700 }}>DealSource interface</span> · normalize() · ingest() — unchanged at every stage; only the implementations swap
       </motion.div>

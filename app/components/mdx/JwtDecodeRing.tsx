@@ -140,13 +140,13 @@ export default function JwtDecodeRing({ accent = ACCENT }: { accent?: string }) 
   /* Token pill animation: slides in from left, then fades as user card appears */
   const pillAnim = {
     hidden: { x: -24, opacity: 0 },
-    visible: { x: 0, opacity: 1, transition: { duration: 0.5, ease: 'easeOut' } },
+    visible: { x: 0, opacity: 1, transition: { duration: 0.5, ease: 'easeOut' as const } },
   };
 
   /* User card: emerges after all checks complete */
   const userCard = {
     hidden: { x: 24, opacity: 0 },
-    visible: { x: 0, opacity: 1, transition: { delay: 1.8, duration: 0.5, ease: 'easeOut' } },
+    visible: { x: 0, opacity: 1, transition: { delay: 1.8, duration: 0.5, ease: 'easeOut' as const } },
   };
 
   const segments = [

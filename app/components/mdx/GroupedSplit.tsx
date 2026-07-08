@@ -215,7 +215,7 @@ export default function GroupedSplit() {
             </div>
             <motion.div
               animate={{ x: [0, -6, 6, -4, 4, 0] }}
-              transition={{ delay: 1.6, duration: 0.4, ease: 'easeInOut' }}
+              transition={{ delay: 1.6, duration: 0.4, ease: 'easeInOut' as const }}
               style={{
                 fontFamily: MONO,
                 fontSize: 10,

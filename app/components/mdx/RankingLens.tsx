@@ -76,7 +76,7 @@ function BarRow({ label, value, color }: { label: string; value: number; color: 
           initial={{ width: 0 }}
           whileInView={{ width: `${value * 100}%` }}
           viewport={{ amount: 0.4 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={{ duration: 0.5, ease: 'easeOut' as const }}
         />
       </div>
       <span style={{ fontFamily: MONO, fontSize: 9, color, width: 26, textAlign: 'right', flexShrink: 0 }}>

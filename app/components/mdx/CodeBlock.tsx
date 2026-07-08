@@ -25,8 +25,8 @@ function textOf(node: unknown): string {
   return String(node);
 }
 
-export default async function CodeBlock({ children }: { children?: React.ReactElement }) {
-  const codeEl = children as { props?: { className?: string; children?: unknown } } | undefined;
+export default async function CodeBlock(props: React.ComponentPropsWithoutRef<'pre'>) {
+  const codeEl = props.children as { props?: { className?: string; children?: unknown } } | undefined;
   const className = codeEl?.props?.className ?? '';
   const lang = /language-([\w-]+)/.exec(className)?.[1] ?? 'text';
   const code = textOf(codeEl?.props?.children).replace(/\n$/, '');

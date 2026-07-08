@@ -91,7 +91,7 @@ export default function LabelImbalance() {
               initial={{ width: 0, opacity: 0 }}
               whileInView={{ width: `${pct}%`, opacity: 0.82 }}
               viewport={{ amount: 0.4 }}
-              transition={{ duration: 0.55, delay: i * 0.12, ease: 'easeOut' }}
+              transition={{ duration: 0.55, delay: i * 0.12, ease: 'easeOut' as const }}
               title={`${r.name}: ${r.count} / ${pct.toFixed(1)}%`}
             />
           );
@@ -141,7 +141,7 @@ export default function LabelImbalance() {
                   initial={{ width: 0 }}
                   whileInView={{ width: `${pct}%` }}
                   viewport={{ amount: 0.4 }}
-                  transition={{ duration: 0.5, delay: 0.1 + i * 0.1, ease: 'easeOut' }}
+                  transition={{ duration: 0.5, delay: 0.1 + i * 0.1, ease: 'easeOut' as const }}
                 />
               </div>
 

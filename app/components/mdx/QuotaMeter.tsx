@@ -83,7 +83,7 @@ function PlanGauge({ label, used, quota, color, blocked = false, ctrl, delay = 0
           variants={{
             visible: {
               scaleX: pct,
-              transition: { delay: delay + 0.2, duration: 0.9, ease: 'easeOut' },
+              transition: { delay: delay + 0.2, duration: 0.9, ease: 'easeOut' as const },
             },
           }}
           style={{

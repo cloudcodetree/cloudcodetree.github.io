@@ -39,7 +39,7 @@ export default function MCPBridge({ accent = ACCENT }: { accent?: string }) {
           <motion.span
             style={{ position: 'absolute', top: '50%', width: 8, height: 8, borderRadius: '50%', background: accent, marginTop: -4 }}
             animate={{ left: ['0%', '100%', '0%'], opacity: [1, 1, 0.3, 1] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' as const }}
           />
         </div>
 

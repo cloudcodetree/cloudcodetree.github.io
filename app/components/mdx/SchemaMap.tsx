@@ -105,7 +105,7 @@ function RowCells({ row, accent }: { row: { canon: string; aliases: string[] }; 
         <motion.span
           style={{ fontFamily: MONO, fontSize: 16 }}
           animate={{ x: [-2, 2, -2], opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' as const }}
         >→</motion.span>
       </motion.div>
       {/* canonical field — the one clean shape */}

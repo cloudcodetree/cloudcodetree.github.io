@@ -122,7 +122,7 @@ export default function ChaosBreaker({ accent = ACCENT }: { accent?: string }) {
                 <motion.div
                   style={{ marginTop: 7, height: 3, borderRadius: 2, background: `linear-gradient(90deg, ${col}00, ${col}, ${col}00)`, backgroundSize: '200%' }}
                   animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}
-                  transition={{ duration: 1.6, repeat: Infinity, ease: 'linear' }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: 'linear' as const }}
                 />
               )}
               {state === 'benched' && (

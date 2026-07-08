@@ -84,7 +84,7 @@ export default function RetailerBrandSplit({ accent = ACCENT }: { accent?: strin
             <motion.div
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent, fontFamily: MONO, fontSize: 15 }}
               animate={{ x: [-2, 2, -2], opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: i * 0.3 }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' as const, delay: i * 0.3 }}
             >
               →
             </motion.div>
@@ -93,7 +93,7 @@ export default function RetailerBrandSplit({ accent = ACCENT }: { accent?: strin
             <motion.div
               style={{ ...chip(accent, `${accent}18`), textAlign: 'center', color: '#fff', fontWeight: 700 }}
               animate={{ boxShadow: [`0 0 0px ${accent}00`, `0 0 8px ${accent}55`, `0 0 0px ${accent}00`] }}
-              transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' as const, delay: i * 0.4 }}
             >
               {p.extracted}
             </motion.div>

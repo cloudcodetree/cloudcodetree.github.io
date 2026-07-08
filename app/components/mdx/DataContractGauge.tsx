@@ -137,7 +137,7 @@ function ScenarioCard({ sc, i }: { sc: Scenario; i: number }) {
           initial={{ width: 0 }}
           whileInView={{ width: `${pct * 100}%` }}
           viewport={{ amount: 0.3 }}
-          transition={{ delay: 0.35 + i * 0.18, duration: 0.55, ease: 'easeOut' }}
+          transition={{ delay: 0.35 + i * 0.18, duration: 0.55, ease: 'easeOut' as const }}
           style={{ height: '100%', background: c.bar, borderRadius: 4 }}
         />
       </div>

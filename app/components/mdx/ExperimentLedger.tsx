@@ -59,7 +59,7 @@ function Row({ run, i }: { run: Run; i: number }) {
       initial={{ opacity: 0, x: -16 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ amount: 0.25 }}
-      transition={{ delay: 0.15 + i * 0.18, duration: 0.45, ease: 'easeOut' }}
+      transition={{ delay: 0.15 + i * 0.18, duration: 0.45, ease: 'easeOut' as const }}
       style={{
         display: 'flex',
         alignItems: 'center',

@@ -84,7 +84,7 @@ export default function TierWaterfall({ accent = ACCENT }: { accent?: string }) 
           x2={T2.x} y2={T2.y - TIER_R - 6}
           stroke="#8b98a8" strokeWidth="1.5" markerEnd="url(#tw-ah)"
           animate={{ opacity: [0.55, 0.55, 0.0, 0.55, 0.55] }}
-          transition={{ duration: 7, repeat: Infinity, times: [0, 0.38, 0.42, 0.48, 1], ease: 'linear' }}
+          transition={{ duration: 7, repeat: Infinity, times: [0, 0.38, 0.42, 0.48, 1], ease: 'linear' as const }}
         />
         {/* T2 → T3 */}
         <motion.line
@@ -92,7 +92,7 @@ export default function TierWaterfall({ accent = ACCENT }: { accent?: string }) 
           x2={T3.x} y2={T3.y - TIER_R - 6}
           stroke="#8b98a8" strokeWidth="1.5" markerEnd="url(#tw-ah)"
           animate={{ opacity: [0.0, 0.0, 0.55, 0.55, 0.0] }}
-          transition={{ duration: 7, repeat: Infinity, times: [0, 0.44, 0.50, 0.90, 1], ease: 'linear' }}
+          transition={{ duration: 7, repeat: Infinity, times: [0, 0.44, 0.50, 0.90, 1], ease: 'linear' as const }}
         />
         {/* T3 → Done */}
         <motion.line
@@ -100,7 +100,7 @@ export default function TierWaterfall({ accent = ACCENT }: { accent?: string }) 
           x2={DONE.x} y2={DONE.y - 10}
           stroke="#8b98a8" strokeWidth="1.5" markerEnd="url(#tw-ah)"
           animate={{ opacity: [0, 0, 0, 0.55, 0] }}
-          transition={{ duration: 7, repeat: Infinity, times: [0, 0.6, 0.64, 0.90, 1], ease: 'linear' }}
+          transition={{ duration: 7, repeat: Infinity, times: [0, 0.6, 0.64, 0.90, 1], ease: 'linear' as const }}
         />
 
         {/* ── Early-stop bypass: T1 → Done (dashed accent arc, right side) ──── */}
@@ -112,7 +112,7 @@ export default function TierWaterfall({ accent = ACCENT }: { accent?: string }) 
           strokeDasharray="5 3"
           markerEnd="url(#tw-ah-accent)"
           animate={{ opacity: [0.0, 0.85, 0.85, 0.0, 0.0] }}
-          transition={{ duration: 7, repeat: Infinity, times: [0, 0.10, 0.38, 0.42, 1], ease: 'linear' }}
+          transition={{ duration: 7, repeat: Infinity, times: [0, 0.10, 0.38, 0.42, 1], ease: 'linear' as const }}
         />
 
         {/* Early-stop label */}
@@ -123,7 +123,7 @@ export default function TierWaterfall({ accent = ACCENT }: { accent?: string }) 
           fontSize="9"
           fill={accent}
           animate={{ opacity: [0.0, 0.9, 0.9, 0.0, 0.0] }}
-          transition={{ duration: 7, repeat: Infinity, times: [0, 0.10, 0.38, 0.42, 1], ease: 'linear' }}
+          transition={{ duration: 7, repeat: Infinity, times: [0, 0.10, 0.38, 0.42, 1], ease: 'linear' as const }}
         >
           early-stop
         </motion.text>
@@ -138,7 +138,7 @@ export default function TierWaterfall({ accent = ACCENT }: { accent?: string }) 
           strokeDasharray="4 3"
           markerEnd="url(#tw-ah-red)"
           animate={{ opacity: [0.0, 0.0, 0.0, 0.80, 0.80, 0.0] }}
-          transition={{ duration: 7, repeat: Infinity, times: [0, 0.42, 0.48, 0.54, 0.96, 1], ease: 'linear' }}
+          transition={{ duration: 7, repeat: Infinity, times: [0, 0.42, 0.48, 0.54, 0.96, 1], ease: 'linear' as const }}
         />
 
         {/* OPEN label next to T1 when circuit broken */}
@@ -149,7 +149,7 @@ export default function TierWaterfall({ accent = ACCENT }: { accent?: string }) 
           fontSize="9"
           fill="#f85149"
           animate={{ opacity: [0.0, 0.0, 0.0, 0.95, 0.95, 0.0] }}
-          transition={{ duration: 7, repeat: Infinity, times: [0, 0.42, 0.48, 0.54, 0.96, 1], ease: 'linear' }}
+          transition={{ duration: 7, repeat: Infinity, times: [0, 0.42, 0.48, 0.54, 0.96, 1], ease: 'linear' as const }}
         >
           OPEN
         </motion.text>
@@ -174,7 +174,7 @@ export default function TierWaterfall({ accent = ACCENT }: { accent?: string }) 
                 }
                 transition={
                   breakerOpen
-                    ? { duration: 7, repeat: Infinity, times: [0, 0.42, 0.54, 0.96, 1], ease: 'linear' }
+                    ? { duration: 7, repeat: Infinity, times: [0, 0.42, 0.54, 0.96, 1], ease: 'linear' as const }
                     : {}
                 }
               />
@@ -194,7 +194,7 @@ export default function TierWaterfall({ accent = ACCENT }: { accent?: string }) 
                 }
                 transition={
                   breakerOpen
-                    ? { duration: 7, repeat: Infinity, times: [0, 0.42, 0.54, 0.96, 1], ease: 'linear' }
+                    ? { duration: 7, repeat: Infinity, times: [0, 0.42, 0.54, 0.96, 1], ease: 'linear' as const }
                     : {}
                 }
               />
@@ -233,7 +233,7 @@ export default function TierWaterfall({ accent = ACCENT }: { accent?: string }) 
                     duration: 7,
                     repeat: Infinity,
                     times: [0, 0.10, 0.38, 0.42, 1],
-                    ease: 'linear',
+                    ease: 'linear' as const,
                   }}
                 >
                   SKIPPED
@@ -254,7 +254,7 @@ export default function TierWaterfall({ accent = ACCENT }: { accent?: string }) 
           stroke={`${accent}80`}
           strokeWidth="1.5"
           animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' as const }}
         />
         <text
           x={DONE.x}

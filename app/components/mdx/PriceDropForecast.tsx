@@ -136,7 +136,7 @@ export default function PriceDropForecast() {
             initial={{ strokeDashoffset: totalLen, opacity: 0 }}
             whileInView={{ strokeDashoffset: 0, opacity: 1 }}
             viewport={{ amount: 0.4 }}
-            transition={{ duration: 1.0, ease: 'easeInOut' }}
+            transition={{ duration: 1.0, ease: 'easeInOut' as const }}
           />
 
           {/* connector dashed to forecast */}

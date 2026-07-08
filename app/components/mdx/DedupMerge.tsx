@@ -66,7 +66,7 @@ export default function DedupMerge({
                     <motion.span
                       style={{ position: 'absolute', left: 0, right: 0, top: '50%', height: 2, background: '#f85149', transformOrigin: 'left' }}
                       animate={{ scaleX: [0, 1, 1, 0] }}
-                      transition={{ duration: 3, times: [0, 0.25, 0.85, 1], repeat: Infinity, ease: 'easeInOut' }}
+                      transition={{ duration: 3, times: [0, 0.25, 0.85, 1], repeat: Infinity, ease: 'easeInOut' as const }}
                     />
                   )}
                 </span>
@@ -83,7 +83,7 @@ export default function DedupMerge({
         <motion.div
           style={{ fontFamily: MONO, fontSize: 20, color: accent, flex: '0 0 auto' }}
           animate={{ x: [-2, 3, -2], opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' as const }}
         >→</motion.div>
 
         {/* the single kept row */}
