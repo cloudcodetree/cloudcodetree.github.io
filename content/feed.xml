@@ -10,7 +10,169 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 08 Jul 2026 04:17:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 08 Jul 2026 12:06:00 +0000</lastBuildDate>
+
+    <item>
+      <title>The Description Field Is the Router: Writing Claude Code Subagents That Delegate Correctly</title>
+      <link>https://code.claude.com/docs/en/agent-sdk/subagents</link>
+      <guid isPermaLink="false">2026-07-08-06-subagent-description-routing-nesting</guid>
+      <pubDate>Wed, 08 Jul 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Claude routes to subagents purely on description text — vague descriptions cause missed delegations; nested spawning lets a subagent fan out its own verifiers without polluting your main context.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude routes to subagents purely by matching your prompt against each subagent's `description` field — bad descriptions miss delegations; nested spawning (v2.1.172+) lets a subagent fan out verifiers without ever touching your main context window.**
+
+## How routing actually works
+
+When Claude Code sees a task, it reads each loaded subagent's `description` field and decides whether to delegate. That's the entire routing mechanism — no magic, just text matching.
+
+**Bad description (misses delegations):**
+```yaml
+description: "Helps with code review."
+```
+
+**Good description (routes correctly):**
+```yaml
+description: "Use after writing or modifying code files. Reviews diffs for correctness bugs, security issues, and style violations. Invoke with the list of changed files."
+```
+
+Include three things: *when* to invoke, *what input* to provide, and *what the subagent returns*. Claude reads this like a function signature.
+
+## Nested subagents: fan-out without polluting context
+
+As of Claude Code v2.1.172, a subagent can spawn its own subagents. The canonical pattern: a reviewer reads a diff, produces findings, then dispatches a separate verifier per finding — only the top-level summary returns to your main session. All intermediate tool calls, logs, and reasoning stay inside the subagent's isolated context window.
+
+**Practical depth limit: 2–3 levels.** Token costs compound and debugging gets opaque beyond that.
+
+**A concrete chain:**
+```
+main session (Opus)
+  └─ triage-lead subagent (Opus) — reads issue, routes to fix or investigate
+       ├─ repro-runner subagent (Sonnet) — reproduces the bug
+       └─ log-summarizer subagent (Haiku) — reads logs, returns structured summary
+```
+
+**To prevent a subagent from spawning further:**
+```json
+{
+  "tools": ["Read", "Edit", "Bash"],
+  "disallowedTools": ["Agent"]
+}
+```
+
+## Cost and inheritance notes
+
+- Point Explore-style research subagents at **Haiku** via the `model` field; save Opus for the main thread.
+- Subagents do **not** inherit parent skills — list any required skills explicitly in the subagent's frontmatter.
+- A subagent 5 levels deep cannot spawn further regardless of settings.
+
+**Sources:** [Subagents in the SDK — Claude Code docs](https://code.claude.com/docs/en/agent-sdk/subagents) · [Anthropic's recommended subagent setup (XDA)](https://www.xda-developers.com/set-up-claude-way-anthropic-now-recommends-sub-agents/) · [Claude Code nested subagents guide](https://claudefa.st/blog/guide/agents/nested-subagents)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code and Cowork Enter FedRAMP High Government Beta</title>
+      <link>https://claude.com/blog/bringing-claude-code-and-claude-cowork-to-government</link>
+      <guid isPermaLink="false">2026-07-08-05-claude-code-cowork-government-fedramp</guid>
+      <pubDate>Wed, 08 Jul 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Security</category>
+      <description>Anthropic opened public beta of Claude Code and Cowork for government teams in a FedRAMP High authorized environment with tamper-evident audit logs, local conversation storage, and spend-governance controls.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code and Cowork are now in public beta inside Claude for Government Desktop — FedRAMP High authorized, with tamper-evident audit logs, local conversation storage, and hard per-seat spend caps.**
+
+Announced July 7, Anthropic opened access to **Claude Code and Claude Cowork** inside [Claude for Government Desktop](https://claude.com/blog/bringing-claude-code-and-claude-cowork-to-government) — the same application commercial teams use, delivered through a **FedRAMP High authorized** environment.
+
+**What's in scope for engineers:**
+- **Claude Code** — software modernization, system integration, and code review on FedRAMP-authorized infrastructure
+- **Cowork** — delegates memo drafts, RFP reviews, and document work; operates on desktop files
+- **Governance model**: tamper-evident audit logs that support the ATO process; conversation history stored locally on the agency-managed device (not server-side); admin spend controls down to per-seat token caps with hard not-to-exceed limits
+
+**Why it matters for the wider industry:** This is the first time agentic coding tools have cleared FedRAMP High — a signal that AI-assisted development is moving from productivity experiment to authorized infrastructure in regulated environments. The governance model (local storage, immutable audit trail, hard spend caps) previews what enterprise compliance controls for AI agents may look like in finance, healthcare, and critical infrastructure. Engineers at regulated organizations should watch this closely.
+
+Request access at [claude.com/solutions/government](https://claude.com/solutions/government).
+
+**Sources:** [Claude for Government announcement (claude.com)](https://claude.com/blog/bringing-claude-code-and-claude-cowork-to-government) · [Get started with Claude for Government (support.claude.com)](https://support.claude.com/en/articles/14503590-get-started-with-claude-for-government)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Don't Guess Your Embedding Model: Read the MTEB Leaderboard First</title>
+      <link>https://www.youtube.com/watch?v=6YrkXr-2cCc</link>
+      <guid isPermaLink="false">2026-07-08-04-mteb-leaderboard-embedding-model-selection</guid>
+      <pubDate>Wed, 08 Jul 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Embeddings</category>
+      <category>Vectors</category>
+      <category>Best Practices</category>
+      <description>MTEB ranks 5,000+ embedding models across retrieval, clustering, and classification — 10 minutes reading it tells you which model fits your RAG use case before you write a single line of code.</description>
+      <media:content url="https://img.youtube.com/vi/6YrkXr-2cCc/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/6YrkXr-2cCc/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**TL;DR: MTEB (Massive Text Embedding Benchmark) is the field-standard leaderboard with 5,000+ model submissions across 7 task categories — read the Retrieval tab before picking an embedding model for RAG; benchmark on your own data in 30 lines of Python.**
+
+**What you'll be able to do after this:**
+- Read the MTEB leaderboard's task tabs to find the best model for YOUR specific use case (retrieval vs. classification vs. clustering)
+- Trade off accuracy, latency, dimension count, and license for your constraints
+- Benchmark any candidate embedding model against your own private corpus in under 30 lines of Python
+
+## Why the leaderboard exists
+
+Every embedding model claims to be best at "semantic search." MTEB is the field's answer: a standardized suite of 56 tasks across 7 categories and 112 languages, with a public leaderboard that lets you compare models on the same ground. The [HuggingFace MTEB leaderboard](https://huggingface.co/mteb) is step zero before picking an embedding model.
+
+## How to read it
+
+**1. Open the right tab.** The default view shows average across all tasks. For RAG, click **Retrieval**. For document classification, click **Classification**. A model that tops the overall leaderboard may rank 15th for retrieval specifically — always filter to your task type.
+
+**2. Filter by practical constraints:**
+- **Max tokens** — does it handle your chunk size? `all-MiniLM` caps at 256 tokens; larger models go to 8,192+
+- **Embedding dimensions** — 768 is a sweet spot; 1,536+ improves quality but doubles vector store size and memory
+- **License** — Apache 2.0 vs. research-only matters for production deployments
+
+**3. Top retrieval picks (July 2026):**
+| Model | MTEB Retrieval | Context | License |
+|---|---|---|---|
+| BGE-M3 (BAAI) | ~63 avg | 8,192 tokens | Apache 2.0 |
+| text-embedding-3-large (OpenAI) | 64.6 | 8,191 tokens | Commercial |
+| Jina v5-text-small | strong | 8,192 tokens | Apache 2.0 |
+| Qwen3-Embedding-8B | 70.58 overall | 8,192 tokens | Apache 2.0 |
+
+## Benchmark on YOUR data
+
+Generic MTEB scores don't guarantee performance on your domain (legal, medical, code, support tickets all behave differently). Run MTEB's retrieval evaluation against your own corpus:
+
+```python
+from mteb import MTEB
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("BAAI/bge-m3")
+# Swap NFCorpus for any MTEB task, or plug in your own dataset
+evaluation = MTEB(tasks=["NFCorpus"])
+results = evaluation.run(model, output_folder="results/bge-m3/")
+```
+
+To compare two candidates side by side:
+```python
+for model_name in ["BAAI/bge-m3", "sentence-transformers/all-mpnet-base-v2"]:
+    model = SentenceTransformer(model_name)
+    MTEB(tasks=["NFCorpus"]).run(model, output_folder=f"results/{model_name}/")
+```
+
+The video below walks through this end-to-end on a real dataset. It's the best 20-minute starting point for calibrating which MTEB score actually predicts performance on your corpus — watch it before committing to a model.
+
+**Sources:** [MTEB Leaderboard (Hugging Face)](https://huggingface.co/mteb) · [Benchmark Embedding Models — MTEB Introduction (YouTube)](https://www.youtube.com/watch?v=6YrkXr-2cCc) · [MTEB Leaderboard: User Guide & Best Practices (HuggingFace blog)](https://huggingface.co/blog/lyon-nlp-group/mteb-leaderboard-best-practices) · [Top Embedding Models for RAG (Modal)](https://modal.com/blog/embedding-models-article)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Three Things That Break When You Bump Claude Sonnet 5's Model ID: Tokenizer, Thinking, and Sampling Params</title>
