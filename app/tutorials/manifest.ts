@@ -444,12 +444,25 @@ export const tutorials: Tutorial[] = [
     series: 'DealFinder — AI Engineering',
     part: 33,
     excerpt:
-      'Turn the whole DealFinder build into career capital: a metrics-driven case study, resume bullets that read as outcomes, and a mock AI system-design interview walked through on your own system.',
+      'Turn the finished, deployed DealFinder into career capital: a portfolio case study with real metrics, resume bullets, and a mock system-design interview on the real architecture.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'Career', 'System Design'],
     order: 43,
     readTime: 11,
     image: '/tutorials/covers/dealfinder-ship.png',
+  },
+  {
+    slug: 'dealfinder-ship-operate',
+    title: 'Ship & operate the real system',
+    series: 'DealFinder — AI Engineering',
+    part: 32,
+    excerpt:
+      'e2e tests that actually run, a real load profile, chaos-proven graceful degradation, and a production runbook — operating the deployed DealFinder for real.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Testing', 'SRE', 'Python'],
+    order: 42,
+    readTime: 12,
+    image: '/tutorials/covers/dealfinder-ship-operate.png',
   },
   {
     slug: 'dealfinder-dataset-engineering',

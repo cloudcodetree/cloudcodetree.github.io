@@ -1,11 +1,11 @@
 export const metadata = {
-  title: 'DealFinder — AI Engineering: Ship It and Get Hired (Part 33 of 33) · Tutorials',
+  title: 'DealFinder — AI Engineering: Case Study & System-Design Interview (Part 33 of 33) · Tutorials',
   description:
-    'Turn the whole DealFinder build into career capital: a metrics-driven case study, resume bullets that read as outcomes, and a mock AI system-design interview walked through on your own system.',
+    'Synthesis of the complete 33-part DealFinder capstone: a metrics-driven case study on the real deployed system, resume bullets from pinned course numbers, and a worked mock system-design interview on "design a cross-source deal aggregator."',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-ship/' },
   openGraph: {
-    title: 'DealFinder — AI Engineering: Ship It and Get Hired (Part 33 of 33)',
-    description: 'Turn the whole DealFinder build into career capital: a metrics-driven case study, resume bullets that read as outcomes, and a mock AI system-design interview walked through on your own system.',
+    title: 'DealFinder — AI Engineering: Case Study & System-Design Interview (Part 33 of 33)',
+    description: 'Synthesis of the complete 33-part DealFinder capstone: a metrics-driven case study on the real deployed system, resume bullets from pinned course numbers, and a worked mock system-design interview on "design a cross-source deal aggregator."',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-ship/',
     siteName: 'CloudCodeTree',
     type: 'article',
@@ -16,61 +16,190 @@ export const metadata = {
 
 <TutorialHero slug="dealfinder-ship" />
 
-# Ship It and Get Hired
+# Case Study & System-Design Interview
 
-**TL;DR: You built a real, tested, deployed AI system end to end. This final part turns that into career capital — a metrics-driven case study, résumé bullets that read as outcomes, and a mock system-design interview you can run on your own build. The work is done; now learn to talk about it like a senior engineer.**
+**TL;DR: You built a complete, tested, deployed AI deal-finding system across 32 parts. This final part synthesises the whole thing — a metrics-driven case study you can present, resume bullets drawn from pinned course numbers, and a worked mock system-design interview on "design a cross-source deal aggregator" answered entirely from the system you built.**
 
-Across fourteen parts you took DealFinder from raw data to a deployed, observable, governed AI system. That's more than most candidates have ever shipped. The last skill is **packaging** it — because in 2026 the people who get hired aren't the ones who *took a course*, they're the ones who can show a system and reason about it.
-
-## The system you built
-
-Step back and see the whole thing. Every box here is a part you implemented and tested:
-
-<SystemMap />
-
-## The skills it proves
-
-Map it to what employers screen for — and note you have *evidence* for each, not just a line on a résumé:
-
-<SkillsMap />
-
-## Write it up as a case study
-
-A good case study is four beats: **problem → approach → results → what you'd do next.** For DealFinder:
-
-- **Problem.** Find genuinely good deals from messy, multi-source product data — relevance *and* value, not just keyword matches.
-- **Approach.** A typed ingestion layer behind one interface; a from-scratch price model for fair value; hybrid semantic+keyword search reranked by deal score; an agent orchestrating it; shipped behind an API/MCP with guardrails, evals, and observability.
-- **Results (use real numbers).** Price model R² 0.886; semantic search surfaces relevant tents with zero keyword overlap; the agent answers a plain-English goal end to end; CF beats the popularity baseline; 53 tests + an eval gate in CI.
-- **Next.** Real retailer data, a learned reranker, a production vector DB, online A/B testing.
-
-## Résumé bullets that read as outcomes
-
-Lead with the result, not the tool. Weak: *"Used Python and FastAPI."* Strong:
-
-- *Built an end-to-end AI deal-finder: hybrid retrieval (embeddings + BM25 + RRF) reranked by a from-scratch price model (R² 0.886), served behind a FastAPI/MCP API.*
-- *Shipped it production-grade: prompt-injection & PII guardrails, a golden-set eval gate in CI, Dockerized CD, and FinOps cost + PSI drift monitoring.*
-- *Designed it as composable services with 53 tests and a step-by-step public repo.*
-
-## The mock system-design interview
-
-Practice on your own build — you already know every tradeoff. Walk through these the way an interviewer would probe:
+There is nothing to install and no new companion code for this part. The work was done in Parts 1 through 32. What remains is the harder skill for most engineers: reasoning clearly about a system you built, quantifying what it achieves, and answering a senior interviewer who wants tradeoffs, not feature lists.
 
 <Callout tone="tip">
-**Drill these out loud.**
-1. *"Design a system that finds good deals for a user."* — start with requirements and the data, not the model.
-2. *"Why hybrid search instead of just embeddings?"* — each retriever's blind spot; RRF needs no tuning.
-3. *"How do you know it works — and won't regress?"* — golden set, metrics, the CI eval gate.
-4. *"It's too slow / expensive. What do you do?"* — semantic cache, batching, quantization, smaller model that still passes eval.
-5. *"A user reports a wrong deal. Walk me through debugging."* — the trace, the audit log, reproduce, add a golden case.
-6. *"How does it stay correct after launch?"* — drift detection → orchestrated retrain → eval → canary.
+**Companion repo.** Every metric cited here is pinned in the companion test suite at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Run `pytest tests/test_models.py tests/test_tracking.py tests/test_evals.py tests/test_mlops.py tests/test_inference.py -v`
+to reproduce the 31/31 pass and verify every number before you quote it in an interview.
 </Callout>
 
-Each question maps to a part you built — so your answer is a story with a repo behind it, not a textbook recital. That's the difference that gets the offer.
+## Course summary
 
-## You're done — and you're an AI engineer now
+This is Part 33 of the **DealFinder — AI Engineering** series (33 parts). The full arc:
 
-You started this track to cross from AI-*assisted* development to AI *engineering*. You've now built, tested, and shipped every layer of a real AI system, and you can reason about each decision. Put the repo on your profile, write the case study, run the mock interview a few times — and go get hired.
+- **Phase 1 (Parts 1–9) — Real data & the aggregator:** data layer + normalization, LLM literacy, deal-score model, recommender, semantic search, structured extraction, live multi-source connectors, responsible scraping, tiered aggregation + circuit breaker.
+- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune with QLoRA, ReAct agent, MCP server, pgvector persistence, web UI with SSE.
+- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration, dbt, data contracts.
+- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** gradient boosting vs. linear vs. PyTorch, experiment tracking, evaluation discipline, MLOps drift-retrain-promote loop.
+- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** injection/PII hardening, FastAPI + semantic cache, inference optimization, Docker + Terraform, Kubernetes, observability + FinOps.
+- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Vite frontend, Supabase auth, saved searches, Stripe payments, OWASP security + GDPR + rate limiting.
+- **Phase 7 (Parts 32–33) — Ship:** Playwright e2e + load/chaos tests + RUNBOOK (Part 32); case study + system-design interview (this part).
+
+## Table of contents
+
+1. [The system you built](#the-system-you-built)
+2. [Course-wide results](#course-wide-results)
+3. [The hero cast: four items, one story](#the-hero-cast-four-items-one-story)
+4. [Write it up as a case study](#write-it-up-as-a-case-study)
+5. [Resume bullets from pinned numbers](#resume-bullets-from-pinned-numbers)
+6. [Mock system-design interview](#mock-system-design-interview)
+7. [Closing the arc](#closing-the-arc)
 
 ---
 
-*Sources: [System Design Primer](https://github.com/donnemartin/system-design-primer) · [Chip Huyen — ML interviews](https://huyenchip.com/ml-interviews-book/) · [STAR method](https://en.wikipedia.org/wiki/Situation,_task,_action,_result)*
+## What you'll be able to do after this
+
+- Articulate the full DealFinder architecture in one coherent narrative: data layer → aggregator → intelligence → persistence → MLOps loop → SaaS platform → infra.
+- Quote real, pinned course metrics in a case study or on a resume without rounding or invention.
+- Answer "design a cross-source deal aggregator" end to end — requirements, data, model, retrieval, serving, ops — from the system you ran.
+- Explain the key tradeoffs: why gradient boosting beat linear (and by how much), why the two-signal score is necessary, why semantic cache pays for itself.
+- Map every layer of the architecture to the OWASP-LLM, eval, and MLOps disciplines that govern it.
+
+---
+
+## The system you built
+
+Thirty-two parts later, the whole thing fits in one picture. Every band below is a layer you implemented, tested, and shipped.
+
+<ArchitectureFlow />
+
+The request path is simple: a query enters at the interfaces layer, the live aggregator fans out to real sources, the intelligence layer scores and ranks results, persistence serves embeddings and cached answers, the MLOps loop keeps the model honest as data drifts, the SaaS platform gates access and handles payment, and the infra band holds it together with containers, CI, and observability.
+
+What makes this system unusual for a tutorial is that none of it is synthetic. The data is a real 270-item electronics snapshot pulled from RapidAPI and Apify. The price model was trained on that data and its MAE is pinned to three decimal places. The circuit breaker has a real cooldown constant. The eval gate rejects candidates that don't reach precision@5 ≥ 0.80. None of those numbers were invented to look good.
+
+---
+
+## Course-wide results
+
+Every number in the table below is a real, test-pinned figure. PASS rows reproduce offline against the frozen snapshot. ANCHORED rows were measured against a running local server and are honest about that; re-run `scripts/loadtest.py` in your environment for your own baseline.
+
+<CourseResultsBoard />
+
+The two numbers to carry into any conversation about this system:
+
+- **GBDT MAE $138.11** (R² 0.727): the model that powers fair-price estimation, beating the linear baseline by 39.4%. Registered in MLflow; promoted via the eval gate.
+- **precision@5 = 1.00 (two-signal) vs 0.40 (median-only)**: the single number that justifies the full ML investment. The median signal alone misclassifies 60% of the top-5 deals. The two-signal score fixes that — at the cost of building and maintaining a price model, which is exactly what Parts 3, 17, 18, 19, and 20 teach.
+
+---
+
+## The hero cast: four items, one story
+
+The same four noise-cancelling headphone listings recur throughout the course because they show every edge case a deal-finding system must handle. The anchor query median for "noise cancelling headphones" in the snapshot is **$162.97**.
+
+| Item | Price | residual_frac | Verdict | Why it matters |
+|---|---|---|---|---|
+| Sony WH-1000XM5 | $162.97 | +0.428 | **FAIR** | Sits at the median. Also appears at $248 (Macy's) — the canonical dedup example. |
+| Anker Soundcore Q20i | $44.99 | +0.585 | **DEAL** | 72% below median, and the model confirms it: predicted fair $108.33. Genuine value. |
+| Bose QuietComfort 45 | $46.00 | +0.839 | **SUSPICIOUS** | Also 72% below median, but predicted fair $285.15. A $329-MSRP flagship at $46 with no condition token. The model catches what the median misses. |
+| Sony WH-1000XM6 | $399.99 | −0.403 | **OVERPRICED** | Above fair price. Premium anchor, legitimately above median. |
+
+The Bose and the Anker are at nearly the same price and both look like deals by median alone. Only the residual separates them: 0.585 for the Anker (honest budget headphones) vs 0.839 for the Bose (suspicious — model says that price is implausible for a tier-4 flagship). That gap is the entire motivation for the price model. You can see it live with:
+
+```bash
+pytest tests/test_dealscore.py -v
+```
+
+The sign convention is fixed course-wide: `residual = predicted_fair − actual`. Large positive residual means suspiciously cheap. The suspicious threshold is `median_signal ≥ 0.70 AND residual_frac > 0.70`. The Bose triggers both (median_signal 0.718, residual_frac 0.839). The Anker clears the median gate but not the model gate (residual_frac 0.585 < 0.70) — so it correctly lands as DEAL, not SUSPICIOUS.
+
+---
+
+## Write it up as a case study
+
+A strong case study is four beats: **problem → approach → results → what you'd do next**. Here is the version for DealFinder, using only real numbers from the course.
+
+**Problem.** Consumer electronics listings from Google Shopping are polluted: the `brand` field holds the retailer in 156 of 270 real snapshot rows, the same product appears at two prices across sources (Sony WH-1000XM5 at $162.97 and $248), and the naive deal signal — percentage below the query median — awards a 72% discount badge to a $329-MSRP flagship listed at $46 with no verifiable condition. A useful deal-finder must normalize the data, dedup across sources, and use a price model to guard against the false positive.
+
+**Approach.** Built in seven phases across 33 parts:
+
+1. A `DealSource` interface abstraction over five live sources (eBay, RapidAPI, Apify, Shopify, Firecrawl) with tiered early-stop and a 90-second circuit breaker. Sources that raise or timeout are benched for the cooldown period; a query with all sources down returns a well-formed empty envelope, never a 500.
+2. A two-signal deal score: a cross-source live median (fast, model-free) combined with a gradient-boosted price model trained on the real 270-item snapshot (MAE $138.11, R² 0.727, −39.4% vs. the linear baseline). The model residual is the guard that catches the Bose QC45 false positive.
+3. Hybrid retrieval: semantic search over 384-dim `BAAI/bge-small-en-v1.5` embeddings persisted in pgvector, BM25 keyword match, fused with RRF and reranked by deal score. Semantic cache at cosine threshold 0.90 gives a 0.500 cache hit rate over 14 test queries.
+4. A ReAct agent exposed as an MCP server; the web frontend streams results via SSE with a GET fallback.
+5. A full SaaS platform: Supabase JWT auth, Stripe plan gating (free 25 / pro 1,000 queries), sliding-window rate limiter, GDPR export and delete, abuse detection.
+6. An MLOps loop pinned to real numbers: PSI 0.043 holds, 0.318 triggers retrain; the eval gate (precision@5 ≥ 0.80) promotes the two-signal ranker (1.00) and rejects the median-only ranker (0.40).
+7. Deployed on Docker + Terraform + Kubernetes (HPA 2→10 pods at 70% CPU); 166 tests pass; 5 Playwright e2e scenarios pass; load measurements anchored locally at /healthz p50 2.4ms / 346 req/s, /search p50 10.1s (network-bound).
+
+**Results (all real, all test-pinned).** Linear MAE $227.89 → GBDT MAE $138.11 (−39.4%). Precision@5 on the 20-item golden set: 1.00 (two-signal) vs 0.40 (median-only). Semantic cache hit rate 0.500 at threshold 0.90. PSI-triggered retrain promotes with probability 1.00 on the 20-item gate. 166 tests pass across the full stack.
+
+**What comes next.** A learned reranker trained on user click signals would replace the heuristic RRF fusion. Real-time price-drop alerts from a Kafka stream would replace the batch MLOps loop. A production vector database (Pinecone or Qdrant) would replace the local pgvector instance for horizontal scale. The eval golden set should grow from 20 to 200+ items with user-labeled relevance, and the LLM judge (Part 19) should gate on that larger set.
+
+---
+
+## Resume bullets from pinned numbers
+
+Lead with the result, not the tool. Every number below is test-pinned and reproducible by anyone who clones the companion repo.
+
+- **Built an end-to-end AI deal-finder over real electronics data:** live multi-source aggregation (5 sources, tiered early-stop, 90s circuit breaker), a two-signal deal score (GBDT price model MAE $138.11, precision@5 1.00 vs 0.40 median-only), and hybrid semantic + BM25 + RRF retrieval reranked by deal score.
+- **Owned the full MLOps loop:** MLflow experiment tracking, PSI drift detection (threshold 0.318 → retrain), eval gate (precision@5 ≥ 0.80 gates promotion), canary rollout — all connected and exercised against the frozen snapshot.
+- **Shipped production-grade:** Supabase JWT auth, Stripe free/pro metering, OWASP-LLM injection/PII hardening, GDPR data-subject requests, sliding-window rate limiter — 166 tests pass, 5 Playwright e2e pass, deployed on K8s with HPA and Terraform IaC.
+- **Designed for reproducibility:** one committed 270-item electronics snapshot powers all training, CI evals, and golden sets; every quoted metric is pinned in a companion test that runs in CI.
+
+---
+
+## Mock system-design interview
+
+The question: **"Design a system that finds good deals for a user given a product query."**
+
+This is not a hypothetical. You built this system. The answers below map directly to decisions you made and code you ran.
+
+<Callout tone="tip">
+**Drill these out loud before an interview.** The goal is not to recite the architecture — it's to show you understand the tradeoffs and made deliberate choices. Each question below is a real probe a senior interviewer would use.
+</Callout>
+
+**Q: Walk me through the requirements and what makes this problem hard.**
+
+Start with the data, not the model. The raw listings are polluted: brand fields hold retailers (156/270 rows in the real snapshot), the same product appears at multiple prices across sources, and a naive deal signal — percentage below the query median — awards a 72% discount badge to a mispriced flagship. You need normalization, deduplication, and a price model before you can trust the signal. The model itself is hard: electronics span 11 categories from $8 USB cables to $3,000 laptops; a single linear model fails (R² 0.268, MAE $227.89) because the relationship is non-linear and category-specific. Gradient boosting on category + brand tier + title embeddings brings MAE to $138.11.
+
+**Q: How does the aggregator handle source failures?**
+
+Each source implements a `DealSource` interface. The aggregator runs them in tiers with early-stop: if the first tier returns enough results, lower tiers are skipped. Sources that raise exceptions or time out are added to a cooldown list for 90 seconds (`COOLDOWN_SECONDS = 90.0`). The chaos tests confirm the invariants: one bad source doesn't break the search (healthy sources still serve), and all sources down returns a well-formed empty envelope (`results == []`, `count == 0`, `sources_live == []`) — never a 500. `tests/test_chaos.py` runs 5/5 offline.
+
+**Q: Why hybrid search instead of just embeddings?**
+
+Embeddings capture semantic similarity but miss exact model numbers — "WH-1000XM5" and "WH-1000XM6" are neighbors in embedding space but very different products and price points. BM25 catches exact-match queries but fails on synonyms ("noise cancelling" vs "ANC"). RRF fuses the two rankings without a tuned weight parameter: each retriever contributes its rank, and the combined score is robust to either retriever misfiring. The deal score reranks on top of that, so the final order reflects both relevance and value. All embeddings are `BAAI/bge-small-en-v1.5` (384-dim, fastembed) — one model, course-wide, cached in pgvector from Part 4.
+
+**Q: How do you know the deal score is correct — and won't regress?**
+
+Two answers. First, a 20-item golden set (all 15 headphone snapshot items + 5 cross-category), hand-labeled `DEAL|FAIR|SUSPICIOUS|OVERPRICED`. Precision@5 on the golden set is 1.00 for the two-signal ranker, 0.40 for median-only. Second, the eval gate in CI: every model candidate must clear precision@5 ≥ 0.80 before it can reach production. The MLflow registry holds the lineage; `tests/test_evals.py` pins the numbers. If the score regresses, CI fails and the deploy stops.
+
+**Q: The system is too slow for real-time search. What do you do, in order?**
+
+First, look at where time is actually spent. The load test shows /healthz at p50 2.4ms and /search at p50 10.1s — the latency is network-bound (live source queries), not compute-bound. The first lever is the semantic cache: 384-dim embeddings from the query are compared to cached query vectors at cosine threshold 0.90; 7 of 14 test queries hit the cache (0.500 hit rate). That costs one vector comparison instead of 5 live API calls. Second, the tiered aggregator with early-stop means if tier-1 sources (RapidAPI + eBay) return sufficient results, tiers 2 and 3 are skipped entirely. Third, if the extractor or ranker model is the bottleneck, quantization (Part 23) reduces memory and speeds inference without changing the interface. Last resort: smaller embedding model that still passes the eval gate.
+
+**Q: A user reports a wrong deal badge. Walk me through debugging.**
+
+Every search request produces a trace via Langfuse (Part 26): the query, which sources responded, the raw offer list, the model inference inputs and outputs, the final ranked list with scores and badges. Start there. Find the session with that offer. Check the residual: `residual = predicted_fair − actual`, `residual_frac = residual / predicted_fair`. If the badge is SUSPICIOUS but should be DEAL, either the model overestimates fair price (brand tier or category feature wrong) or the title condition parsing misfired. Reproduce the specific inference with the offer dict, fix the feature extraction, add the offer to the golden set, and run the eval gate. If it passes, promote.
+
+**Q: How does the system stay correct after launch as data drifts?**
+
+Population Stability Index (PSI) runs periodically against the training distribution. PSI 0.043 means the new data looks like training data — hold. PSI 0.318 exceeds the retrain threshold (0.2) — trigger retrain on the new data, run the eval gate (precision@5 ≥ 0.80 on the golden set), and promote if it passes. The MLOps cycle in Part 20 runs this end to end and the promotion reason string is real: "promoted: two_signal passed the gate (p@5=1.0 ≥ 0.8) and beat champion median_only (0.4)". The canary rollout shifts traffic gradually rather than a hard cutover.
+
+**Q: What are the top three things you'd do differently in production?**
+
+First, the golden set is only 20 items. For a production system you'd need 200+ with user-labeled relevance, refreshed as inventory shifts, with LLM-judge scoring on the long tail. Second, the live aggregator timeout is fixed at 90 seconds; a production system would use adaptive timeouts per source based on observed p99 latency and budget these against the overall SLO. Third, the price model uses a frozen snapshot for training — a production system would retrain on a sliding window of live offers with temporal splits to prevent leakage, and the brand-tier vocabulary would be updated automatically from offer data rather than a hand-curated list.
+
+---
+
+## Closing the arc
+
+<Callout tone="note">
+This is the final part. The series is complete.
+</Callout>
+
+Part 1 started with a `brand` field that holds "Walmart - COWIN" instead of "COWIN", a 270-item snapshot of real electronics listings, and a naive deal signal that bottoms out at −3785%. Every part after that was motivated by the real messiness in that data.
+
+By Part 32 you had 166 passing tests, 5 Playwright e2e scenarios, a RUNBOOK with anchored load numbers, and a Kubernetes deployment with HPA scaling. By this part you have the case study, the numbers, and the interview prep to talk about it like the system it is.
+
+The companion repo is a public record of a real AI system built part by part. Put it on your profile. Quote the numbers. Answer the design question from the system you ran — not from a textbook.
+
+---
+
+*Back: [Part 32 — Ship & operate the real system](/tutorials/dealfinder-ship-operate)*
+
+*Sources: [fastembed BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) · [MLflow model registry](https://mlflow.org/docs/latest/model-registry.html) · [pgvector](https://github.com/pgvector/pgvector) · [Population Stability Index](https://www.listendata.com/2015/05/population-stability-index.html) · [OWASP Top-10 for LLMs](https://owasp.org/www-project-top-10-for-large-language-model-applications/)*

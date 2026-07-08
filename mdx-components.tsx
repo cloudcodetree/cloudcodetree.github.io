@@ -72,6 +72,10 @@ import JwtDecodeRing from './app/components/mdx/JwtDecodeRing';
 import RbacGate from './app/components/mdx/RbacGate';
 import CheckoutFlow from './app/components/mdx/CheckoutFlow';
 import QuotaMeter from './app/components/mdx/QuotaMeter';
+import CourseResultsBoard from './app/components/mdx/CourseResultsBoard';
+import ArchitectureFlow from './app/components/mdx/ArchitectureFlow';
+import ChaosBreaker from './app/components/mdx/ChaosBreaker';
+import E2ETestLattice from './app/components/mdx/E2ETestLattice';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -117,5 +121,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     K8sReplicaSpread, SecretFlow,
     JwtDecodeRing, RbacGate,
     CheckoutFlow, QuotaMeter,
+    CourseResultsBoard, ArchitectureFlow,
+    ChaosBreaker, E2ETestLattice,
   };
 }
