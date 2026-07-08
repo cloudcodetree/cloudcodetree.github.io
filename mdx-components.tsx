@@ -48,6 +48,10 @@ import VectorIndex from './app/components/mdx/VectorIndex';
 import SSEStream from './app/components/mdx/SSEStream';
 import EchoFilter from './app/components/mdx/EchoFilter';
 import RankingLens from './app/components/mdx/RankingLens';
+import GroupedSplit from './app/components/mdx/GroupedSplit';
+import LabelImbalance from './app/components/mdx/LabelImbalance';
+import BoostingLift from './app/components/mdx/BoostingLift';
+import PriceDropForecast from './app/components/mdx/PriceDropForecast';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -81,5 +85,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     StoreVsMemory, VectorIndex,
     SSEStream,
     EchoFilter, RankingLens,
+    GroupedSplit, LabelImbalance,
+    BoostingLift, PriceDropForecast,
   };
 }

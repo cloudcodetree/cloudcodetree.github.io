@@ -412,6 +412,32 @@ export const tutorials: Tutorial[] = [
     readTime: 11,
     image: '/tutorials/covers/dealfinder-ship.png',
   },
+  {
+    slug: 'dealfinder-dataset-engineering',
+    title: 'Dataset engineering',
+    series: 'DealFinder — AI Engineering',
+    part: 15,
+    excerpt:
+      'Turn the frozen snapshot into a labeled, leakage-safe dataset: two-signal labels, grouped splits by query, and honest class-imbalance handling.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Machine Learning', 'Python'],
+    order: 25,
+    readTime: 12,
+    image: '/tutorials/covers/dealfinder-dataset-engineering.png',
+  },
+  {
+    slug: 'dealfinder-ml-dl-breadth',
+    title: 'ML & DL breadth',
+    series: 'DealFinder — AI Engineering',
+    part: 17,
+    excerpt:
+      'Beyond the linear baseline: gradient-boosted fair prices, a price-drop forecaster, and a real PyTorch training loop — with the honest MAE deltas.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Machine Learning', 'Python'],
+    order: 27,
+    readTime: 12,
+    image: '/tutorials/covers/dealfinder-ml-dl-breadth.png',
+  },
 ];
 
 /**
