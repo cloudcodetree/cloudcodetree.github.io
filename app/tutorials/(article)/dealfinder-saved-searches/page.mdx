@@ -1,0 +1,452 @@
+import SavedSearchDiff from '@/app/components/mdx/SavedSearchDiff';
+import NotifierProtocol from '@/app/components/mdx/NotifierProtocol';
+
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Saved Searches & the Suggestions Worker (Part 29 of 33) · Tutorials',
+  description:
+    'Build the periodic-suggestions worker: save a query, diff against last-seen deals, and emit exactly one notification per genuinely new bargain — deterministic and offline.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-saved-searches/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Saved Searches & the Suggestions Worker (Part 29 of 33)',
+    description: 'Build the periodic-suggestions worker: save a query, diff against last-seen deals, and emit exactly one notification per genuinely new bargain — deterministic and offline.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-saved-searches/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-saved-searches.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-saved-searches.png'] },
+};
+
+<TutorialHero slug="dealfinder-saved-searches" />
+
+# Saved Searches & the Suggestions Worker
+
+**TL;DR: A user saves "noise cancelling headphones." A background job runs that query on a schedule, compares the results against what it already told the user, and emits exactly one notification for each genuinely new deal — no re-alerts, no missed ones. This part builds the deterministic, offline core of that job: `run_suggestions(saved, state) -> (notifications, new_state)`. No network, no email, no side effects. One real deal surfaces — the Anker Soundcore Q20i at $44.99, deal score +0.724 — and on the second run with the returned state, zero.**
+
+This is **Part 29 of DealFinder**, and it is the part where the course's deal-scoring machinery (Part 3), semantic search (Part 5), and SaaS account model (Part 28) finally converge into a single, deliverable user value: the notification that says "we found you a deal." The module you build here is the production-ready diffing logic — the delivery transport is a swappable Protocol, so you can plug in email, push, or a webhook later without touching the core.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Step tag: `step-29` (worker.py + tests/test_worker.py). Compare to the previous step:
+[step-28...step-29](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-28...step-29).
+</Callout>
+
+## Course summary
+
+This is Part 29 of the **DealFinder — AI Engineering** series (33 parts). The full arc:
+
+- **Phase 1 (Parts 1–9) — Real data & the aggregator:** data layer, LLM literacy, deal-score model, recommender, semantic search, extraction, live connectors.
+- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tuned extractor, ReAct agent, MCP server, pgvector persistence, web UI.
+- **Phase 3 (Parts 15–16) — Data engineering:** dataset engineering, Prefect orchestration, dbt, data contracts.
+- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** ML/DL breadth, experiment tracking, evaluation, MLOps loop.
+- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI serving, inference optimization, containerization, Kubernetes, observability.
+- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth & accounts, **saved searches & the suggestions worker (here)**, payments & SaaS mechanics, security & compliance at scale.
+- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, system-design case study.
+
+## Table of contents
+
+1. [What the suggestions worker does](#what-the-suggestions-worker-does)
+2. [SavedSearch and SuggestionState](#savedsearch-and-suggestionstate)
+3. [The Notifier protocol seam](#the-notifier-protocol-seam)
+4. [The Catalog and find_deals](#the-catalog-and-find-deals)
+5. [run_suggestions: the diff loop](#run_suggestions-the-diff-loop)
+6. [Worked example: hero cast, first and second run](#worked-example-hero-cast-first-and-second-run)
+7. [Idempotency proof](#idempotency-proof)
+8. [A newly covered saved search](#a-newly-covered-saved-search)
+9. [Tests](#tests)
+10. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Implement `run_suggestions(saved, state, *, catalog, notifier)` and explain exactly why it returns `(notifications, new_state)` rather than mutating state in place.
+- Explain the `SuggestionState` cursor pattern: why `already_seen` is a set of item ids, and why passing the returned state back into the next run makes re-notification impossible.
+- Write a `Notifier` as a `Protocol` and swap `ConsoleNotifier` for any delivery target without touching the diff logic.
+- Trace the hero cast through two runs: Anker Soundcore Q20i at $44.99 surfaces on run 1 (deal score +0.724 ≥ 0.30 threshold); zero notifications on run 2.
+- Cite the five tests in `tests/test_worker.py` and explain what each pins.
+
+---
+
+## What the suggestions worker does
+
+Price-tracker apps — Honey, Camelizer, Google Shopping alerts — share one abstraction: a background job that knows what you saved, knows what it already told you, and notifies you only about the rest. The interesting part is not the scheduler (a cron job, a Prefect flow, a Supabase Edge Function) nor the delivery channel (email, push, webhook). The interesting part is the **diff**: how do you make the core logic correct, testable, and re-runnable without surprise?
+
+The answer in `dealfinder/worker.py` is two small dataclasses and one pure function:
+
+```
+SavedSearch(user_id, query, k=5)      — what to watch and for whom
+SuggestionState(seen: dict → set[id]) — memory of what was already notified
+run_suggestions(saved, state) → (notifications, new_state)
+```
+
+The function takes state in, returns new state out. Nothing is mutated globally. The same inputs always produce the same outputs. Feed the returned state back in and the next run is idempotent. That property is the whole lesson.
+
+<SavedSearchDiff />
+
+---
+
+## SavedSearch and SuggestionState
+
+The two dataclasses are deliberately minimal.
+
+```python
+# dealfinder/worker.py
+from dataclasses import dataclass, field
+
+@dataclass(frozen=True)
+class SavedSearch:
+    user_id: str
+    query: str
+    k: int = 5
+```
+
+`SavedSearch` is frozen (hashable, no accidental mutation). `k` is how many top results the search pipeline surfaces per run; you rarely need more than five.
+
+```python
+@dataclass
+class SuggestionState:
+    seen: dict[tuple[str, str], set[str]] = field(default_factory=dict)
+
+    def key(self, s: SavedSearch) -> tuple[str, str]:
+        return (s.user_id, s.query)
+
+    def already_seen(self, s: SavedSearch) -> set[str]:
+        return self.seen.get(self.key(s), set())
+
+    def mark_seen(self, s: SavedSearch, ids: set[str]) -> None:
+        self.seen.setdefault(self.key(s), set()).update(ids)
+
+    def copy(self) -> "SuggestionState":
+        return SuggestionState(seen={k: set(v) for k, v in self.seen.items()})
+```
+
+The key is `(user_id, query)` — one slot per user per saved query. `already_seen` returns the set of item ids the user was previously notified about. `mark_seen` adds newly notified ids. `copy` returns a deep clone so the caller's original state is never touched.
+
+In production you persist `SuggestionState` to a key-value store (Redis, Supabase) between cron runs. In the test suite you pass a fresh `SuggestionState()` and inspect the returned copy.
+
+---
+
+## The Notifier protocol seam
+
+Delivery is behind a `Protocol`:
+
+```python
+from typing import Protocol, runtime_checkable
+
+@runtime_checkable
+class Notifier(Protocol):
+    def notify(self, notification: Notification) -> None: ...
+```
+
+The `runtime_checkable` decorator lets you assert `isinstance(obj, Notifier)` in tests — useful for verifying that a custom notifier satisfies the contract before wiring it in.
+
+The default implementation is `ConsoleNotifier`, which prints and records:
+
+```python
+class ConsoleNotifier:
+    def __init__(self) -> None:
+        self.sent: list[dict] = []
+
+    def notify(self, notification: Notification) -> None:
+        payload = notification.as_dict()
+        self.sent.append(payload)
+        print(
+            f"[deal] {payload['user_id']} · {payload['query']!r} → "
+            f"{payload['title'][:48]} ${payload['price']} "
+            f"(score {payload['deal_score']})"
+        )
+```
+
+`ConsoleNotifier.sent` accumulates the dict payloads so tests can assert on the exact notification without capturing stdout. The payload dict is what a real email or push notifier would serialize to JSON.
+
+<NotifierProtocol />
+
+The `Notification` dataclass itself:
+
+```python
+@dataclass
+class Notification:
+    user_id: str
+    query: str
+    item_id: str
+    title: str
+    price: float
+    deal_score: float
+
+    def as_dict(self) -> dict:
+        return {
+            "user_id": self.user_id,
+            "query": self.query,
+            "item_id": self.item_id,
+            "title": self.title,
+            "price": self.price,
+            "deal_score": round(self.deal_score, 4),
+        }
+```
+
+`deal_score` is rounded to four decimal places in the dict payload. That rounding is the number you quote when citing the Anker result (+0.7239), not a truncation that loses precision in the diff logic.
+
+---
+
+## The Catalog and find_deals
+
+`run_suggestions` needs something to search. Rather than embed snapshot I/O inside the diff logic, the module exposes a `Catalog` dataclass that bundles what the worker needs:
+
+```python
+@dataclass
+class Catalog:
+    products: list[Product]
+    embeddings: object        # np.ndarray aligned to products
+    medians: dict[str, float]
+```
+
+`load_catalog()` builds one from the committed snapshot (offline):
+
+```python
+def load_catalog(path: str | None = None) -> Catalog:
+    items = load_snapshot(path)
+    products, emb = load_catalog_embeddings(load_products(path))
+    medians = {r["id"]: float(r["median_price_at_capture"]) for r in items}
+    return Catalog(products=products, embeddings=emb, medians=medians)
+```
+
+Tests hand in a real `Catalog` (from the committed snapshot) or a slimmed one. No mocking of the catalog itself — the snapshot is the fixture.
+
+`find_deals` runs the full search pipeline from Part 5 and Part 3, then applies the threshold:
+
+```python
+DEAL_SCORE_THRESHOLD = 0.30
+
+def find_deals(catalog: Catalog, query: str, k: int) -> list[tuple[Product, float]]:
+    from .search import search_catalog
+
+    results = search_catalog(
+        query, catalog.products, catalog.embeddings, catalog.medians, k=k
+    )
+    return [(p, score) for _, p, score in results if score >= DEAL_SCORE_THRESHOLD]
+```
+
+`search_catalog` returns `(rank, product, score)` tuples; `find_deals` strips the rank and filters to the deals that clear the threshold. The threshold 0.30 is module-level so tests can import and verify it.
+
+<Callout tone="note">
+`search_catalog` is the same pipeline you built in Part 5 (semantic + BM25, RRF fusion) with the two-signal value rerank from Part 3 applied last. The worker does not re-implement any of that — it calls it. This is the payoff of building those parts as composable functions rather than scripts.
+</Callout>
+
+---
+
+## run_suggestions: the diff loop
+
+```python
+def run_suggestions(
+    saved: list[SavedSearch],
+    state: SuggestionState,
+    *,
+    catalog: Catalog | None = None,
+    notifier: Notifier | None = None,
+) -> tuple[list[Notification], SuggestionState]:
+    catalog = catalog if catalog is not None else load_catalog()
+    notifier = notifier if notifier is not None else ConsoleNotifier()
+    new_state = state.copy()
+
+    notifications: list[Notification] = []
+    for s in saved:
+        seen = new_state.already_seen(s)
+        deals = find_deals(catalog, s.query, s.k)
+        fresh_ids: set[str] = set()
+        for product, score in deals:
+            if product.id in seen:
+                continue
+            note = Notification(
+                user_id=s.user_id,
+                query=s.query,
+                item_id=product.id,
+                title=product.title,
+                price=product.price,
+                deal_score=score,
+            )
+            notifier.notify(note)
+            notifications.append(note)
+            fresh_ids.add(product.id)
+        if fresh_ids:
+            new_state.mark_seen(s, fresh_ids)
+
+    return notifications, new_state
+```
+
+Walk through the control flow:
+
+1. **Copy state first.** `new_state = state.copy()` means the caller's original `SuggestionState` is never mutated. The returned `new_state` is a separate object.
+2. **Per saved search, check already_seen.** Any `product.id` already in the set is skipped silently. No re-notification, no matter how many times the same deal appears in search results.
+3. **Notify and record fresh ids.** `fresh_ids` accumulates only ids not previously seen. After the inner loop, `mark_seen` updates `new_state` for this saved search.
+4. **Return both.** The caller feeds `new_state` back into the next invocation.
+
+The catalog and notifier are keyword-only with `None` defaults so they can be omitted in production (defaults load from disk / print to console) or injected in tests. The function signature is the interface; the defaults are the convenience.
+
+---
+
+## Worked example: hero cast, first and second run
+
+The hero cast anchor query is **"noise cancelling headphones"**, snapshot median **$162.97**.
+
+```python
+from dealfinder.worker import (
+    SavedSearch, SuggestionState, ConsoleNotifier, load_catalog, run_suggestions
+)
+
+catalog = load_catalog()
+notifier = ConsoleNotifier()
+
+saved = [SavedSearch(user_id="u1", query="noise cancelling headphones", k=5)]
+state = SuggestionState()
+
+notifications, new_state = run_suggestions(saved, state, catalog=catalog, notifier=notifier)
+```
+
+**First run output:**
+
+```
+[deal] u1 · 'noise cancelling headphones' → Anker Soundcore Q20i Hybrid Active Noise Cancell $44.99 (score 0.7239)
+```
+
+```python
+print(len(notifications))          # 1
+print(notifier.sent[0])
+```
+
+```
+{
+  "user_id": "u1",
+  "query": "noise cancelling headphones",
+  "item_id": "rapidapi-catalogid:4602286582194268609,productid:",
+  "title": "Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones",
+  "price": 44.99,
+  "deal_score": 0.7239
+}
+```
+
+The Anker Soundcore Q20i surfaces as the one notification. Its deal score +0.7239 clears the 0.30 threshold by a wide margin — it is 72% under the $162.97 query median and the model fair price ($108.33) also validates the discount as genuine rather than suspicious.
+
+<Callout tone="note">
+`title_brand()` on "Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones" resolves to **"Soundcore"** — the sub-brand Anker markets ANC headphones under. This is the same behavior pinned in `test_normalize_attaches_title_extracted_brand` from Part 16 (`true_brand == "Soundcore"`). The notification title includes the full listing title, not the extracted brand.
+</Callout>
+
+The Bose QuietComfort 45 at $46.00 has a median_signal of +0.718, which puts it above the threshold on that signal alone. But the two-signal score factors in the model residual: the price model's fair price for this flagship is $285.15 (the same as the XM5, since both are tier-4 flagships). The residual_frac +0.839 flags it as SUSPICIOUS, which the value rerank penalizes. It does not appear in the top-k deals that clear 0.30 on the blended score.
+
+The Sony WH-1000XM5 at $162.97 sits at the median: median_signal +0.000. Below threshold. No notification.
+
+**Second run — feed back the returned state:**
+
+```python
+notifications2, _ = run_suggestions(saved, new_state, catalog=catalog, notifier=notifier)
+print(len(notifications2))         # 0
+```
+
+Zero notifications. The Anker Q20i's item id is now in `new_state.already_seen(saved[0])`. The diff loop skips it. The function is idempotent with respect to the state it returns.
+
+---
+
+## Idempotency proof
+
+The idempotency guarantee is worth being explicit about. The function:
+
+1. Does not load state from any external store inside the call — state is an argument.
+2. Does not modify the input state — it copies it.
+3. Returns the updated copy — the caller controls persistence.
+
+This means you can call `run_suggestions` as many times as you want with the same `state` object and get the same `notifications` list back every time. Only by feeding back the returned `new_state` does the output change. The job scheduler's job is to persist and supply that state; the function's job is the diff and the notification. They are separated by the return type.
+
+In production the state is persisted to a key-value store between cron runs:
+
+```python
+# Illustrative production wrapper (not in worker.py — this lives in the scheduler)
+state = load_state_from_kv(user_id)           # fetch persisted state
+notifications, new_state = run_suggestions(saved, state, catalog=catalog)
+save_state_to_kv(user_id, new_state)          # persist new state
+dispatch_notifications(notifications)          # deliver
+```
+
+The core module stays pure. The infrastructure wrapper handles I/O.
+
+---
+
+## A newly covered saved search
+
+The third test in `tests/test_worker.py` covers a different scenario: a saved search for a query that was not previously run at all.
+
+```python
+from dealfinder.worker import SavedSearch, SuggestionState, ConsoleNotifier, load_catalog, run_suggestions
+
+catalog = load_catalog()
+saved = [SavedSearch(user_id="u2", query="bluetooth speaker", k=1)]
+state = SuggestionState()    # fresh — no prior "bluetooth speaker" run
+
+notifier = ConsoleNotifier()
+notifications, _ = run_suggestions(saved, state, catalog=catalog, notifier=notifier)
+
+assert len(notifications) == 1   # exactly one notification, k=1 so only one considered
+```
+
+With `k=1`, only the top-ranked deal is considered for notification. Because the state has no prior entry for this `(user_id, query)` key, whatever deal clears the threshold on the first result fires exactly one notification. This pins the boundary: `SuggestionState.already_seen()` returns an empty set for an unknown key (not a `KeyError`), so a brand-new saved search always gets its first notification.
+
+---
+
+## Tests
+
+Five tests in `tests/test_worker.py` pin every behavior described above. All five pass against the committed snapshot:
+
+```bash
+pytest tests/test_worker.py -v
+```
+
+```
+tests/test_worker.py::test_first_run_surfaces_the_anker_hero_deal            PASSED
+tests/test_worker.py::test_second_run_with_updated_state_emits_nothing        PASSED
+tests/test_worker.py::test_new_saved_search_triggers_exactly_one_new_notification PASSED
+tests/test_worker.py::test_console_notifier_satisfies_the_protocol            PASSED
+tests/test_worker.py::test_state_copy_does_not_mutate_input_state             PASSED
+
+5 passed in 5.94s
+```
+
+**What each test pins:**
+
+- `test_first_run_surfaces_the_anker_hero_deal` — asserts `price == 44.99` and `deal_score > 0.70` on the single notification.
+- `test_second_run_with_updated_state_emits_nothing` — feeds the returned state back in; asserts `len(notifications) == 0`.
+- `test_new_saved_search_triggers_exactly_one_new_notification` — "bluetooth speaker", `k=1`; asserts exactly 1 notification on a fresh state.
+- `test_console_notifier_satisfies_the_protocol` — `isinstance(ConsoleNotifier(), Notifier)` must be `True` (the `runtime_checkable` decorator on `Notifier` makes this possible).
+- `test_state_copy_does_not_mutate_input_state` — calls `run_suggestions`, then asserts the original `state.seen` is still empty.
+
+These tests are the reproducibility contract for this part. If any assertion fails against the committed snapshot, the snapshot or the implementation has changed.
+
+<Callout tone="warning">
+The 5.94s runtime reflects the full search pipeline running against the 270-item snapshot (fastembed inference, BM25, RRF, rerank). This is expected — the catalog load embeds 270 titles. In production you cache the catalog in memory across job runs rather than reloading it every invocation.
+</Callout>
+
+---
+
+## Companion repo
+
+The step tag for this part is `step-29` in the `tutorial-dealfinder` companion repo. The diff from the previous step:
+
+- **Added:** `dealfinder/worker.py` — `SavedSearch`, `SuggestionState`, `Notification`, `Notifier`, `ConsoleNotifier`, `Catalog`, `load_catalog`, `find_deals`, `run_suggestions`.
+- **Added:** `tests/test_worker.py` — five pinned tests (all pass).
+
+```bash
+git checkout step-29
+pytest tests/test_worker.py -v
+```
+
+The step uses the same committed snapshot (`data/snapshots/electronics-2026-07.json`) and no network access. The test suite is fully offline.
+
+---
+
+## Where this goes next
+
+- **Part 30 — Payments & SaaS mechanics:** the saved-search feature you built here is gated: free-tier users get one saved search; paid users get unlimited plus real-time notifications. Part 30 adds Stripe subscriptions, usage metering, and the plan-gating middleware that enforces the limit. The `user_id` on `SavedSearch` is the key that connects to the Stripe customer record.
+- **Part 31 — Security & compliance at scale:** Part 31 extends Part 21's `safety.py` (it imports `AuditLog` and `detect_prompt_injection` directly — no reimplementation). It adds `SlidingWindowRateLimiter`, `DataSubjectStore` (GDPR export + erasure), and `AbuseDetector` — the compliance layer that sits above the worker and the saved-search API. Part 31 is purely additive to what was built in Part 21.
+
+---
+
+*Sources: [Prefect](https://docs.prefect.io/) · [fastembed](https://github.com/qdrant/fastembed) · [Python dataclasses](https://docs.python.org/3/library/dataclasses.html) · [PEP 544 — Protocols](https://peps.python.org/pep-0544/)*

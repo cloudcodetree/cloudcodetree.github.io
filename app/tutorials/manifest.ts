@@ -477,6 +477,45 @@ export const tutorials: Tutorial[] = [
     readTime: 12,
     image: '/tutorials/covers/dealfinder-ml-dl-breadth.png',
   },
+  {
+    slug: 'dealfinder-orchestration',
+    title: 'Pipelines & orchestration',
+    series: 'DealFinder — AI Engineering',
+    part: 16,
+    excerpt:
+      'Turn the snapshot pipeline into a real Prefect flow with retries, caching, a data contract, and a dbt-style good-deals view.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Orchestration', 'Prefect', 'Python'],
+    order: 26,
+    readTime: 11,
+    image: '/tutorials/covers/dealfinder-orchestration.png',
+  },
+  {
+    slug: 'dealfinder-saved-searches',
+    title: 'Saved searches & the suggestions worker',
+    series: 'DealFinder — AI Engineering',
+    part: 29,
+    excerpt:
+      'A deterministic periodic job that watches saved searches and notifies on genuinely new deals — Part 5 retrieval + the Part 3 deal score, diffed against last-seen.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Workers', 'Notifications', 'Python'],
+    order: 39,
+    readTime: 11,
+    image: '/tutorials/covers/dealfinder-saved-searches.png',
+  },
+  {
+    slug: 'dealfinder-security-compliance',
+    title: 'Security & compliance at scale',
+    series: 'DealFinder — AI Engineering',
+    part: 31,
+    excerpt:
+      'Multi-tenant hardening that extends Part 21: a sliding-window rate limiter, GDPR export/delete, and abuse detection — importing the safety modules, not re-implementing them.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Security', 'Compliance', 'Python'],
+    order: 41,
+    readTime: 11,
+    image: '/tutorials/covers/dealfinder-security-compliance.png',
+  },
 ];
 
 /**

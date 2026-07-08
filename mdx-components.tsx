@@ -58,6 +58,12 @@ import CacheThresholdKnob from './app/components/mdx/CacheThresholdKnob';
 import CascadeEscalation from './app/components/mdx/CascadeEscalation';
 import MLOpsCycleTrace from './app/components/mdx/MLOpsCycleTrace';
 import PSIGauge from './app/components/mdx/PSIGauge';
+import SlidingWindowClock from './app/components/mdx/SlidingWindowClock';
+import GDPRAuditTrail from './app/components/mdx/GDPRAuditTrail';
+import PipelineDAG from './app/components/mdx/PipelineDAG';
+import DataContractGauge from './app/components/mdx/DataContractGauge';
+import SavedSearchDiff from './app/components/mdx/SavedSearchDiff';
+import NotifierProtocol from './app/components/mdx/NotifierProtocol';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -96,5 +102,8 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ExperimentLedger, FeatureContractGate,
     CacheThresholdKnob, CascadeEscalation,
     MLOpsCycleTrace, PSIGauge,
+    SlidingWindowClock, GDPRAuditTrail,
+    PipelineDAG, DataContractGauge,
+    SavedSearchDiff, NotifierProtocol,
   };
 }
