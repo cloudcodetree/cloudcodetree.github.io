@@ -1,0 +1,457 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: The Web Front End (Part 27 of 33) · Tutorials',
+  description:
+    'Build the Vite + React + TypeScript SPA that streams deal results in real time via SSE, renders DealBadges from the four §9 verdict tokens, and gates a pro affordance through Supabase Auth — all with a transparent fallback path.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-frontend/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: The Web Front End (Part 27 of 33)',
+    description: 'Build the Vite + React + TypeScript SPA that streams deal results in real time via SSE, renders DealBadges from the four §9 verdict tokens, and gates a pro affordance through Supabase Auth — all with a transparent fallback path.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-frontend/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-frontend.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-frontend.png'] },
+};
+
+<TutorialHero slug="dealfinder-frontend" />
+
+# The Web Front End
+
+**TL;DR: Wire a Vite + React + TypeScript SPA to the FastAPI backend you built in earlier parts. The `useSearch` hook opens an `EventSource` to `/search/stream`, renders result cards incrementally as each source responds, and backfills deal percentages when the terminal `done` frame arrives with the query median. When `EventSource` isn't available or the stream errors, the hook falls back silently to a plain `GET /search` fetch. Supabase Auth slots in separately — public search works with no keys at all.**
+
+This is **Part 27 of DealFinder**, the first part of Phase 6 (Full-stack SaaS). Every part before this one was backend: data, ML, serving, infrastructure. Here you build the surface that learners and customers actually touch. The SPA is a working, production-shaped application — not a demo wrapper.
+
+<Callout tone="tip">
+**Anchored working reference.** The companion code at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder)
+runs against real sources only if you supply your own API keys. The SSE tests (`tests/test_sse.py`)
+run fully offline against a stub source and pass on a clean clone. Step tags:
+`step-27a` (useSearch + DealBadge) · `step-27b` (Auth + /me) · `step-27c` (Vite proxy config).
+</Callout>
+
+## Course summary
+
+This is Part 27 of the **DealFinder — AI Engineering** series (33 parts). The full arc:
+
+- **Phase 1 (Parts 1–9) — Real data & the aggregator:** build the data layer, develop LLM literacy, learn the deal-score model, recommender, semantic search, structured extraction, and live multi-source connectors.
+- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor, build the ReAct agent, MCP server, pgvector persistence, and the web UI.
+- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration, dbt, and data contracts.
+- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** gradient boosting, experiment tracking, evaluation discipline, MLOps loop.
+- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI serving, inference optimization, Docker/Terraform, Kubernetes, observability.
+- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend (here), auth, saved searches, Stripe payments, security at scale.
+- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, and a system-design case study on the running system.
+
+## Table of contents
+
+1. [Why SSE beats polling for search UX](#why-sse-beats-polling-for-search-ux)
+2. [Project layout and build](#project-layout-and-build)
+3. [The Vite dev proxy: same-origin SSE without CORS](#the-vite-dev-proxy-same-origin-sse-without-cors)
+4. [SSE frame shapes from the backend](#sse-frame-shapes-from-the-backend)
+5. [The useSearch hook — a state machine](#the-usesearch-hook-a-state-machine)
+6. [DealBadge: four tokens, no synonyms](#dealbadge-four-tokens-no-synonyms)
+7. [Worked example: noise cancelling headphones](#worked-example-noise-cancelling-headphones)
+8. [Supabase Auth and the /me route](#supabase-auth-and-the-me-route)
+9. [What the SSE tests prove](#what-the-sse-tests-prove)
+10. [What this does not cover](#what-this-does-not-cover)
+11. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Stand up the Vite + React + TypeScript SPA from `frontend/`, run the dev server with the Vite proxy forwarding to FastAPI, and stream a live search.
+- Explain the `useSearch` hook as a five-state machine: idle → loading → streaming → done, with an error/fallback edge.
+- Read an SSE frame stream — `event: results` incremental rows, `event: done` terminal summary — and describe what the hook does with each.
+- Use `DealBadge` correctly: the four badge tokens (`DEAL`, `FAIR`, `SUSPICIOUS`, `OVERPRICED`) from §9.7 of the course bible, driven by `deal_pct` thresholds, with `data-badge` for Playwright selectors.
+- Configure Supabase Auth so the `/me` identity and pro affordance work with your own project keys, while public search remains keyless.
+
+---
+
+## Why SSE beats polling for search UX
+
+The DealFinder backend aggregates across multiple live sources. Each source has its own latency: one source may respond in 340 ms while another takes 890 ms. If the frontend waits for all sources before rendering anything, the user sees a blank screen for the duration of the slowest source.
+
+Server-Sent Events (SSE) solve this. The backend keeps the HTTP connection open and writes frames as each source finishes. The frontend renders each batch immediately. The user sees the first card at ~340 ms even though the full result set isn't ready until ~920 ms.
+
+<SSEStream />
+
+The total wall-clock time is the same either way. SSE halves *perceived* latency — which is what matters for a search product.
+
+---
+
+## Project layout and build
+
+The SPA lives in `companions/dealfinder/frontend/`:
+
+```
+frontend/
+├── index.html
+├── package.json          # name: dealfinder-frontend
+├── tsconfig.json         # strict TypeScript
+├── vite.config.ts        # dev proxy config
+└── src/
+    ├── main.tsx          # React root
+    ├── App.tsx           # top-level layout
+    ├── api.ts            # useSearch hook + wire shapes + fetchMe
+    ├── vite-env.d.ts
+    ├── components/
+    │   ├── Auth.tsx      # Supabase sign-in / session / sign-out
+    │   ├── DealBadge.tsx # four §9.7 tokens
+    │   ├── ResultCard.tsx
+    │   └── SearchBar.tsx
+    └── lib/
+        └── supabase.ts   # createClient; null when keys unset
+```
+
+The build runs TypeScript strict (`tsc -b`) then Vite:
+
+```bash
+cd frontend
+npm install
+npm run build          # tsc -b && vite build
+# → dist/  (78 modules transformed)
+```
+
+The build is clean: zero type errors, zero lint warnings. The `dist/` directory is present in the companion at the tagged steps.
+
+---
+
+## The Vite dev proxy: same-origin SSE without CORS
+
+`EventSource` follows the browser's same-origin policy. If your SPA is on `localhost:5173` and your FastAPI is on `localhost:8000`, an `EventSource` to `http://localhost:8000/search/stream` is cross-origin — the browser will block it unless the backend sends the right CORS headers for streaming responses, which is fiddly to get right.
+
+The Vite dev proxy is the simpler solution. `vite.config.ts` forwards three path prefixes to the FastAPI backend:
+
+```typescript
+// vite.config.ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+const API_TARGET = process.env.VITE_API_PROXY_TARGET || "http://localhost:8000";
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      "/search": { target: API_TARGET, changeOrigin: true },
+      "/me":     { target: API_TARGET, changeOrigin: true },
+      "/healthz":{ target: API_TARGET, changeOrigin: true },
+    },
+  },
+});
+```
+
+From the browser's perspective, every fetch and every `EventSource` goes to `localhost:5173` — same origin, no CORS. The proxy rewrites the request and forwards it. The SPA code uses bare paths (`/search/stream?q=…`) with no hardcoded port.
+
+In production, the SPA is a static bundle served from a CDN. Set `VITE_API_BASE=https://api.your-domain.com` — the API base is prepended to each request path in `api.ts` and the proxy is not involved. The Kubernetes ingress annotations from Part 25 (`proxy-buffering: off`, `proxy-read-timeout: 3600`) keep SSE alive through the load balancer.
+
+<ProxyTunnel />
+
+---
+
+## SSE frame shapes from the backend
+
+Before reading the hook code, understand exactly what the backend sends. `serve.py` emits three frame types:
+
+**`event: results`** — one frame per responding source, carrying a batch of raw offers:
+
+```
+event: results
+data: {"source": "google_shopping", "results": [{"id": "...", "title": "...", "price": 162.97, "source": "..."}]}
+```
+
+Note what the stream rows carry and what they omit. Each item has `id`, `title`, `price`, `source` — enough to render a card immediately. They do **not** carry `deal_pct`, `brand`, `url`, or `image_url`. Those fields are on the plain `/search` JSON response but are omitted from the stream to keep frames small. The hook backfills `deal_pct` from the median once the `done` frame arrives.
+
+**`event: done`** — one terminal frame after all sources finish:
+
+```
+event: done
+data: {"query": "noise cancelling headphones", "count": 20, "median_price": 162.97}
+```
+
+The `median_price` here is the pinned snapshot value for the "noise cancelling headphones" query: **$162.97**. Once this frame arrives, the hook can compute `deal_pct` for every result row.
+
+**`event: source_error`** — emitted when one source fails; the stream continues:
+
+```
+event: source_error
+data: {"source": "flaky_source"}
+```
+
+The hook ignores this event type — the stream is still live, other sources continue.
+
+---
+
+## The useSearch hook — a state machine
+
+`src/api.ts` exports `useSearch`, which manages all search state in one place. Think of it as a five-state machine:
+
+```
+idle  →  loading (SSE)  →  streaming  →  done
+              ↓
+         onerror (before done) → fetch fallback → done
+```
+
+<SearchStateMachine />
+
+The hook's `SearchState` shape:
+
+```typescript
+export interface SearchState {
+  results: Result[];
+  done: SearchDone | null;
+  loading: boolean;
+  error: string | null;
+  transport: "sse" | "fetch" | null;
+}
+```
+
+`transport` tracks which path is active so the UI can show "(fell back to /search)" if the stream errored. The `Result` type mirrors the stream row shape:
+
+```typescript
+export interface Result {
+  id: string;
+  title: string;
+  price: number;
+  source: string;
+  deal_pct?: number;   // absent until the done frame arrives
+}
+```
+
+The core of the hook:
+
+```typescript
+export function useSearch() {
+  const [state, setState] = useState<SearchState>(EMPTY);
+  const esRef = useRef<EventSource | null>(null);
+  const doneRef = useRef(false);
+
+  const search = useCallback((query: string) => {
+    const q = query.trim();
+    if (!q) return;
+    close();
+    doneRef.current = false;
+    setState({ ...EMPTY, loading: true, transport: "sse" });
+
+    if (typeof EventSource === "undefined") {
+      setState((s) => ({ ...s, transport: "fetch" }));
+      void fallbackFetch(q);
+      return;
+    }
+
+    const es = new EventSource(`${API_BASE}/search/stream?q=${encodeURIComponent(q)}`);
+    esRef.current = es;
+
+    es.addEventListener("results", (ev) => {
+      const payload = JSON.parse((ev as MessageEvent).data) as { results: Result[] };
+      setState((s) => {
+        const seen = new Set(s.results.map((r) => r.id));
+        const merged = [...s.results];
+        for (const r of payload.results ?? []) {
+          if (!seen.has(r.id)) merged.push(r);
+        }
+        return { ...s, results: merged };
+      });
+    });
+
+    es.addEventListener("done", (ev) => {
+      doneRef.current = true;
+      const done = JSON.parse((ev as MessageEvent).data) as SearchDone;
+      setState((s) => ({
+        ...s,
+        results: [...s.results]
+          .map((r) => ({
+            ...r,
+            deal_pct: r.deal_pct ?? dealPctFromMedian(r.price, done.median_price),
+          }))
+          .sort((a, b) => a.price - b.price),
+        done,
+        loading: false,
+        transport: "sse",
+      }));
+      close();
+    });
+
+    es.onerror = () => {
+      close();
+      if (!doneRef.current) {
+        setState((s) => ({ ...s, transport: "fetch" }));
+        void fallbackFetch(q);
+      }
+    };
+  }, [close, fallbackFetch]);
+
+  return { ...state, search, reset };
+}
+```
+
+Three design decisions are worth noting:
+
+**Dedup by id before merging.** Each `results` frame may carry items from a different source. The hook maintains a `Set` of seen ids and skips duplicates. The backend's `dedup_key` function (Part 1) already collapses same-product listings before they reach the stream, but the hook defends itself independently.
+
+**`deal_pct` is backfilled, not streamed.** Stream rows omit it to keep frames small. The `dealPctFromMedian` function computes it locally: `(median - price) / median * 100`, rounded to one decimal. After the `done` frame, every result row gets its `deal_pct`, the array is re-sorted cheapest-first, and React re-renders all cards at once with their badges.
+
+**`doneRef` guards the error handler.** If `EventSource` fires `onerror` *after* a `done` frame — which can happen when the server closes the connection normally — `doneRef.current` is already true and the hook does not trigger the fallback. The fallback only fires on a genuine failure before completion.
+
+---
+
+## DealBadge: four tokens, no synonyms
+
+`src/components/DealBadge.tsx` maps `deal_pct` to one of the four badge tokens defined in §9.7 of the course bible. The mapping is threshold-based:
+
+```typescript
+export type Badge = "DEAL" | "FAIR" | "SUSPICIOUS" | "OVERPRICED";
+
+export function badgeFor(dealPct: number | undefined): Badge {
+  const p = dealPct ?? 0;
+  if (p >= 60) return "SUSPICIOUS";  // too-good-to-be-true
+  if (p >= 10) return "DEAL";        // meaningfully under market
+  if (p > -10) return "FAIR";        // near the median
+  return "OVERPRICED";
+}
+```
+
+The thresholds carry the residual reasoning from Part 3. `deal_pct >= 60` maps to `SUSPICIOUS` rather than `DEAL` because the $46 Bose QuietComfort 45 — a flagship headphone with a median fair price of $285.15 — lands at 71.8% below the query median. Without the model residual (Part 3), a naive threshold would mark it `DEAL`. With the threshold set at 60%, it is already `SUSPICIOUS` on the median signal alone, before the model even runs.
+
+```typescript
+const STYLES: Record<Badge, { bg: string; fg: string }> = {
+  DEAL:       { bg: "#16a34a", fg: "#ffffff" },
+  FAIR:       { bg: "#e5e7eb", fg: "#111827" },
+  SUSPICIOUS: { bg: "#f59e0b", fg: "#111827" },
+  OVERPRICED: { bg: "#6b7280", fg: "#ffffff" },
+};
+
+export function DealBadge({ dealPct }: { dealPct?: number }) {
+  const badge = badgeFor(dealPct);
+  const s = STYLES[badge];
+  return (
+    <span
+      data-badge={badge}
+      style={{ /* pill styling */ background: s.bg, color: s.fg }}
+    >
+      {badge}
+    </span>
+  );
+}
+```
+
+The `data-badge` attribute is the Playwright selector hook. Part 32's end-to-end tests locate badges with `page.locator('[data-badge="SUSPICIOUS"]')` — the attribute value is one of the four exact tokens above, never a synonym or variant spelling.
+
+<Callout tone="warn">
+**Badge token discipline.** The four tokens are `DEAL`, `FAIR`, `SUSPICIOUS`, and `OVERPRICED` — all caps, exact spelling, no others. "Genuine deal", "Verify condition", "no Deal badge", "WARNING" are all wrong and will break Playwright selectors in Part 32. If you add a badge variant in a fork, update the `Badge` type, the `STYLES` map, and the test fixtures together.
+</Callout>
+
+---
+
+## Worked example: noise cancelling headphones
+
+With both the backend and frontend running (`python serve.py` + `npm run dev` in `frontend/`), search for "noise cancelling headphones". The stream carries the hero cast from the snapshot.
+
+The `done` frame for this query carries `median_price: 162.97` — the pinned snapshot median for the "noise cancelling headphones" query. After backfill:
+
+| Title | Price | deal_pct | badge |
+|---|---|---|---|
+| Sony WH-1000XM5 (Costco) | $162.97 | 0.0% | **FAIR** |
+| Anker Soundcore Q20i | $44.99 | 72.4% | **SUSPICIOUS** (≥60%) |
+| Bose QuietComfort 45 | $46.00 | 71.8% | **SUSPICIOUS** (≥60%) |
+| Sony WH-1000XM6 | $399.99 | −145.4% | **OVERPRICED** |
+
+<Callout tone="note">
+**Why are both Anker and Bose marked SUSPICIOUS?** The `deal_pct` threshold at 60% is a conservative heuristic — anything that far below the query median is unusual enough to warrant a second look. The Anker Q20i is a genuine budget deal that happens to cross that threshold. The full two-signal deal score from Part 3 (combining the median signal with the model residual) separates them: Anker's residual fraction is +0.585 (below model fair price of $108.33), while Bose's is +0.839 (below model fair price of $285.15). A UI that surfaces the model score would show Anker as `DEAL` and Bose as `SUSPICIOUS`. The badge in this part is median-only — Part 3 is where the two-signal separation happens.
+</Callout>
+
+The result array is sorted cheapest-first after backfill. The Sony WH-1000XM5 at $162.97 appears once — the backend's `_stream_search` deduplication (using `dedup_key`) already collapsed the $248 Macy's listing, keeping only the cheaper Costco price (Part 1 established this dedup pattern).
+
+<Callout tone="note">
+**Anchored, not live.** Running the SPA without real source API keys (`RAPIDAPI_KEY`, `APIFY_TOKEN`, etc.) returns no results — the backend's live sources return empty and the `done` frame carries `count: 0`. The median and badge logic still works correctly in the SSE tests because those tests use a stub source that returns real snapshot items. Never present a mocked/stub result as if it came from a live API call.
+</Callout>
+
+---
+
+## Supabase Auth and the /me route
+
+`src/lib/supabase.ts` creates the Supabase client from two env vars:
+
+```typescript
+const url     = import.meta.env.VITE_SUPABASE_URL;
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export const supabaseConfigured = Boolean(url && anonKey);
+
+export const supabase: SupabaseClient | null = supabaseConfigured
+  ? createClient(url as string, anonKey as string)
+  : null;
+```
+
+When either var is absent, `supabase` is `null`. The `Auth` component checks `supabaseConfigured` and renders an explanatory panel ("Auth is off. Set VITE_SUPABASE_URL …") instead of the sign-in form. Public search (`useSearch`) has no dependency on Supabase — it works whether auth is on or off.
+
+The sign-in flow:
+
+1. User submits email + password to `supabase.auth.signInWithPassword`.
+2. Supabase returns a session. The session's `access_token` is a JWT signed with your project's `SUPABASE_JWT_SECRET`.
+3. The `Auth` component calls `fetchMe(session.access_token)` — a `GET /me` with `Authorization: Bearer <token>`.
+4. The FastAPI backend (`serve.py:142`, `require_user` dependency) verifies the JWT locally using `SUPABASE_JWT_SECRET`, extracts the `sub` claim as the user id, and reads the role from `app_metadata.plan` or `app_metadata.role` (Part 28 covers the full claim resolution chain).
+5. `/me` returns `{ id, email, role }`. The component gates the "pro features unlocked" affordance on `me.role === "pro"`.
+
+This lives in Part 27's code but the backend auth module (`dealfinder/auth.py`) is the Part 28 topic. The `frontend/` code is deliberately thin on the auth side — it signs in, holds the session token, and passes it to the backend. The backend does all JWT verification.
+
+<Callout tone="tip">
+**To try auth locally:** create a free Supabase project, copy the project URL and anon key to `frontend/.env.local` as `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, set `SUPABASE_JWT_SECRET` in the backend's `.env`, and create a test user in the Supabase dashboard. Promote them to "pro" by setting `app_metadata: { plan: "pro" }` via the Supabase admin API or dashboard.
+</Callout>
+
+---
+
+## What the SSE tests prove
+
+`tests/test_sse.py` contains two tests that verify the backend SSE endpoint. Both tests run entirely offline using `_StubSource`, which returns two `Product` instances from the snapshot, and monkey-patch `LIVE_SOURCES`.
+
+**`test_stream_emits_data_events_and_done`** asserts:
+- Response status is 200.
+- `content-type` header starts with `text/event-stream`.
+- The response body contains `event: results` and `event: done`.
+- There are at least 2 `data:` frames.
+- The body contains the hero anchor: `Sony WH-1000XM5` and `162.97`.
+
+**`test_stream_still_terminates_when_no_sources`** asserts:
+- When `LIVE_SOURCES` is monkeypatched to an empty list, the stream still closes with `event: done` and `"count": 0`.
+
+These tests do not exercise the frontend React code — that is the domain of Playwright end-to-end tests in Part 32. What they prove is that the backend contract the frontend depends on is stable: frames arrive in the right format, the terminal `done` frame always fires (the hook's `doneRef` guard requires this), and the hero cast values are present.
+
+Run them:
+
+```bash
+# From the companion root (requires .venv activated)
+python -m pytest tests/test_sse.py -v
+```
+
+```
+tests/test_sse.py::test_stream_emits_data_events_and_done       PASSED
+tests/test_sse.py::test_stream_still_terminates_when_no_sources PASSED
+2 passed in 0.41s
+```
+
+The 16 tests across `tests/test_auth.py`, `tests/test_billing.py`, and `tests/test_sse.py` all pass on a clean clone against the committed companion code at the wave 8 ground-truth snapshot.
+
+---
+
+## What this does not cover
+
+This part builds the working SPA and proves the SSE contract. Three things are intentionally deferred:
+
+- **JWT verification in the backend** — `dealfinder/auth.py`, `require_user`, `require_role`, and the full claim resolution chain live in **Part 28 — Auth & accounts**.
+- **Plan gating and quota enforcement** — `dealfinder/billing.py`, the free (25 searches/month) and pro (1000 searches/month) plans, and the Stripe Checkout integration live in **Part 30 — Payments & SaaS mechanics**.
+- **Playwright end-to-end tests** — `[data-badge="DEAL"]` selectors, full search flow assertions, and the load/chaos suite live in **Part 32 — Ship & operate**.
+
+---
+
+## Where this goes next
+
+Coming from **Part 26 — Observability, cost & ops**, which set up Langfuse request tracing, Grafana cost dashboards, and the load-test baseline that confirms the backend can sustain concurrent SSE connections. The ingress SSE annotations (`proxy-buffering: off`, `proxy-read-timeout: 3600`) you saw in the Vite proxy section above were first applied in Part 25 and verified under load in Part 26.
+
+- **Part 28 — Auth & accounts:** the backend side of what you wired here. `dealfinder/auth.py` verifies Supabase JWTs, resolves roles from `app_metadata`, and gates routes with `require_user` and `require_role`. Six offline tests cover valid tokens, expired tokens, tampered tokens, wrong secrets, missing bearers, and role-based access.
+- **Part 30 — Payments & SaaS mechanics:** Stripe Checkout sessions, webhook signature verification, and the quota model that makes the "pro" affordance from this part actually mean something. The free plan allows 25 searches per month; the pro plan allows 1000.
+
+---
+
+*Sources: [Vite](https://vitejs.dev/) · [React](https://react.dev/) · [supabase-js](https://supabase.com/docs/reference/javascript) · [MDN EventSource](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) · [FastAPI StreamingResponse](https://fastapi.tiangolo.com/advanced/custom-response/#streamingresponse)*

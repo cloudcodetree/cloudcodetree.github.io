@@ -516,6 +516,58 @@ export const tutorials: Tutorial[] = [
     readTime: 11,
     image: '/tutorials/covers/dealfinder-security-compliance.png',
   },
+  {
+    slug: 'dealfinder-cloud-k8s',
+    title: 'Cloud & Kubernetes',
+    series: 'DealFinder — AI Engineering',
+    part: 25,
+    excerpt:
+      'Take the container to a cluster: applyable K8s manifests against a managed Postgres, with a Secret template, HPA, TLS ingress (SSE-aware), and secrets management.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Kubernetes', 'Cloud', 'DevOps'],
+    order: 35,
+    readTime: 11,
+    image: '/tutorials/covers/dealfinder-cloud-k8s.png',
+  },
+  {
+    slug: 'dealfinder-frontend',
+    title: 'The web front end',
+    series: 'DealFinder — AI Engineering',
+    part: 27,
+    excerpt:
+      'A real React/Vite SPA that streams results over SSE, renders DEAL/FAIR/SUSPICIOUS badges live, and signs in with Supabase — built clean with tsc + vite.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'React', 'Frontend', 'TypeScript'],
+    order: 37,
+    readTime: 12,
+    image: '/tutorials/covers/dealfinder-frontend.png',
+  },
+  {
+    slug: 'dealfinder-auth',
+    title: 'Auth & accounts',
+    series: 'DealFinder — AI Engineering',
+    part: 28,
+    excerpt:
+      'Verify Supabase JWTs in FastAPI, attach the user, and gate features by role — a real auth layer with six offline-tested cases.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Auth', 'FastAPI', 'Python'],
+    order: 38,
+    readTime: 11,
+    image: '/tutorials/covers/dealfinder-auth.png',
+  },
+  {
+    slug: 'dealfinder-payments',
+    title: 'Payments & SaaS mechanics',
+    series: 'DealFinder — AI Engineering',
+    part: 30,
+    excerpt:
+      'Stripe Checkout, signature-verified webhooks, and usage metering with plan gating — free 25 vs pro 1000 searches — all offline-tested with real crypto.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'Payments', 'Stripe', 'SaaS'],
+    order: 40,
+    readTime: 12,
+    image: '/tutorials/covers/dealfinder-payments.png',
+  },
 ];
 
 /**

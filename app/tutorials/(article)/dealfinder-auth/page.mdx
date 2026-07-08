@@ -1,0 +1,346 @@
+export const metadata = {
+  title: 'DealFinder — AI Engineering: Auth & Accounts (Part 28 of 33) · Tutorials',
+  description:
+    'Add Supabase JWT authentication and role-based access control to the DealFinder API. Verify HS256 tokens locally with no network round-trip on the hot path, gate routes by plan, and keep public search open.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-auth/' },
+  openGraph: {
+    title: 'DealFinder — AI Engineering: Auth & Accounts (Part 28 of 33)',
+    description: 'Add Supabase JWT authentication and role-based access control to the DealFinder API. Verify HS256 tokens locally with no network round-trip on the hot path, gate routes by plan, and keep public search open.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-auth/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-auth.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-auth.png'] },
+};
+
+<TutorialHero slug="dealfinder-auth" />
+
+# Auth & Accounts
+
+**TL;DR: Supabase Auth issues HS256 JWTs. Verify them locally in FastAPI with one dependency — no call back to Supabase on the hot path. Add a role gate on top for plan-based access. Public search stays open; protected routes are gated at the dependency level, not scattered through route handlers.**
+
+This is **Part 28 of DealFinder**. The React frontend you built in Part 27 already wires up Supabase sign-in and passes an access token to `GET /me`. Now you build the API side: the token verifier, the `User` model, and the RBAC factory. Six offline tests cover every failure mode — expired, tampered, wrong secret, missing bearer, and role mismatch — minting real HS256 tokens with a throwaway secret so the tests run without any live keys.
+
+<Callout tone="note">
+**Anchored working reference.** The code and tests run offline. Live use requires your own Supabase project — set `SUPABASE_JWT_SECRET` to the value from Project Settings → API → JWT Secret. Without it, the server raises HTTP 500 on protected routes and the tests skip the live path automatically. The 6-test offline suite passes with only the repo.
+</Callout>
+
+<Callout tone="tip">
+**Companion repo:** [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). Step tag for this part: `step-28`. Diff from Part 27: `step-27...step-28`.
+</Callout>
+
+## Course summary
+
+This is Part 28 of the **DealFinder — AI Engineering** series (33 parts). The full arc:
+
+- **Phase 1 (Parts 1–9) — Real data & the aggregator:** data layer, LLM literacy, deal model, recommender, semantic search, extraction, live connectors, scraping, and tiered aggregation.
+- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune, ReAct agent, MCP server, pgvector, and the web UI.
+- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration, dbt, and contracts.
+- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** experiment tracking, evaluation, MLOps loop.
+- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI serving, inference optimization, containerization, Kubernetes, and observability.
+- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend (Part 27), **auth and accounts (here)**, saved searches (Part 29), Stripe payments (Part 30), security at scale (Part 31).
+- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, and the system-design case study.
+
+## Table of contents
+
+1. [How Supabase Auth works](#how-supabase-auth-works)
+2. [The User model](#the-user-model)
+3. [Verifying the token locally](#verifying-the-token-locally)
+4. [Reading the app role from claims](#reading-the-app-role-from-claims)
+5. [The require_user dependency](#the-require_user-dependency)
+6. [RBAC: require_role](#rbac-require_role)
+7. [Wiring it into serve.py](#wiring-it-into-servepy)
+8. [Offline tests](#offline-tests)
+9. [Running with live keys](#running-with-live-keys)
+10. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Explain why Supabase JWT verification needs no network call on the hot path.
+- Implement `require_user` as a FastAPI dependency that returns a typed `User` or raises 401.
+- Read the app-level role from the correct custom claim (not the top-level Postgres `role` claim).
+- Build `require_role(role)` as an RBAC factory that 403s on mismatch and passes the `User` through on success.
+- Run 6 offline tests that cover every auth failure mode without touching a live Supabase project.
+- Keep public routes (search, health) open while gating personal and plan-gated routes at the dependency level.
+
+The routes you are protecting here serve the same deal data the course has been building since Part 1 — a search for "noise cancelling headphones" returns results anchored to the $162.97 snapshot median, surfacing the Anker Soundcore Q20i at $44.99 as a DEAL and the Bose QC45-at-$46 as SUSPICIOUS. Public search remains open to anonymous users; `GET /me`, saved searches, and pro exports are gated.
+
+---
+
+## How Supabase Auth works
+
+When a user signs in through the Supabase JS client, Supabase Auth issues a session JWT. That token is signed with your project's JWT secret using HS256 — the same standard algorithm your API can verify locally, without a network round-trip.
+
+The token carries:
+
+- `sub` — the stable user UUID (Supabase's internal identifier)
+- `email` — the user's email address
+- `aud` — always `"authenticated"` for Supabase session tokens
+- `exp` — expiry timestamp (verified by the JWT library)
+- `app_metadata` — a dict you control via Auth hooks, where you stamp the plan or role
+
+The frontend (Part 27) stores the token in a session and passes it on every authenticated request as `Authorization: Bearer <token>`. The API needs to do three things: verify the signature, check expiry and audience, and extract the fields that matter. All three happen locally.
+
+<JwtDecodeRing />
+
+---
+
+## The User model
+
+`dealfinder/auth.py` defines a small Pydantic model for the authenticated principal:
+
+```python
+from pydantic import BaseModel
+
+class User(BaseModel):
+    id: str          # Supabase `sub` — the stable user UUID
+    email: str | None = None
+    role: str = "free"   # app-level role; read from a custom claim
+```
+
+Three fields. `id` is the UUID Supabase assigned at signup — it is stable and globally unique within your project. `email` may be absent if the user signed in via a magic link that hasn't been confirmed. `role` defaults to `"free"` and is read from the JWT claims, not a database lookup. That means the role is always as fresh as the token — no extra query on the hot path.
+
+---
+
+## Verifying the token locally
+
+The module-level constants pin the algorithm and expected audience:
+
+```python
+_ALGO = "HS256"
+_AUDIENCE = "authenticated"
+_bearer = HTTPBearer(auto_error=True)
+```
+
+`HTTPBearer(auto_error=True)` is FastAPI's built-in scheme extractor. When a request arrives without an `Authorization: Bearer …` header, FastAPI returns `401 Not authenticated` before your code runs — no explicit header-check needed in each route.
+
+`_decode` does the actual verification:
+
+```python
+def _decode(token: str) -> dict:
+    try:
+        return jwt.decode(
+            token,
+            _jwt_secret(),
+            algorithms=[_ALGO],
+            audience=_AUDIENCE,
+        )
+    except jwt.ExpiredSignatureError as exc:
+        raise HTTPException(status_code=401, detail="token expired") from exc
+    except jwt.InvalidTokenError as exc:
+        raise HTTPException(status_code=401, detail="invalid token") from exc
+```
+
+`jwt.decode` from PyJWT does four things at once: checks the HS256 signature against the secret, validates expiry, checks that `aud == "authenticated"`, and decodes the payload. Any failure raises a `jwt.InvalidTokenError` subclass. The two except clauses map PyJWT exceptions to HTTP responses: `ExpiredSignatureError` gets its own `"token expired"` message (useful for the client to distinguish expired-refresh from genuinely bad tokens); everything else — tampered payload, wrong secret, bad audience, malformed base64 — becomes `"invalid token"`.
+
+`_jwt_secret()` reads the environment variable and fails loud:
+
+```python
+def _jwt_secret() -> str:
+    secret = os.getenv("SUPABASE_JWT_SECRET")
+    if not secret:
+        raise HTTPException(status_code=500, detail="SUPABASE_JWT_SECRET not configured")
+    return secret
+```
+
+A missing secret raises HTTP 500, not 401. That distinction is deliberate: a 401 on every request when the server is misconfigured looks like an auth bug to the client; a 500 makes it obvious the server needs configuration.
+
+---
+
+## Reading the app role from claims
+
+Supabase puts a `role` field in the JWT at the top level — but that field holds the Postgres role (`"authenticated"`), not your application's plan. Reading `claims["role"]` to determine whether a user is on a paid plan is a common mistake.
+
+The app role lives in a custom claim. The standard Supabase convention is to stamp it via an Auth hook into `app_metadata`:
+
+```python
+def _role_from_claims(claims: dict) -> str:
+    app_meta = claims.get("app_metadata") or {}
+    return (
+        claims.get("user_role")
+        or app_meta.get("plan")
+        or app_meta.get("role")
+        or "free"
+    )
+```
+
+The lookup order is: a top-level `user_role` custom claim (if you use that convention) → `app_metadata.plan` → `app_metadata.role` → `"free"`. If none of those are set, the user is a free-tier user. The Postgres-level `role` claim is never consulted.
+
+To promote a user to pro you update `app_metadata` via the Supabase Admin API (or an Auth hook triggered by a Stripe webhook — that is Part 30's job). The user's next token refresh picks up the new claim automatically.
+
+---
+
+## The require_user dependency
+
+`require_user` is the FastAPI dependency that ties verification and model construction together:
+
+```python
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+def require_user(
+    creds: HTTPAuthorizationCredentials = Depends(_bearer),
+) -> User:
+    claims = _decode(creds.credentials)
+    sub = claims.get("sub")
+    if not sub:
+        raise HTTPException(status_code=401, detail="token missing subject")
+    return User(id=sub, email=claims.get("email"), role=_role_from_claims(claims))
+```
+
+Drop it on any route that needs authentication:
+
+```python
+@app.get("/me")
+def me(user: User = Depends(require_user)):
+    return {"id": user.id, "email": user.email, "role": user.role}
+```
+
+Routes that do not declare `require_user` remain public — search, health check, and the SSE stream all stay open. Auth is opt-in per route, not a global middleware. That keeps search latency unaffected by token verification for the majority of traffic.
+
+---
+
+## RBAC: require_role
+
+`require_role` is a factory. Call it with the required role string; it returns a dependency:
+
+```python
+def require_role(role: str):
+    def _dep(user: User = Depends(require_user)) -> User:
+        if user.role != role:
+            raise HTTPException(status_code=403, detail=f"requires role '{role}'")
+        return user
+    return _dep
+```
+
+Usage:
+
+```python
+pro_only = require_role("pro")
+
+@app.get("/pro/export")
+def export(user: User = Depends(pro_only)):
+    ...
+```
+
+`require_role` calls `require_user` first — the JWT is always verified before the role is checked. A free-tier user with a valid token gets a 403, not a 401. The distinction is correct: 401 means "we do not know who you are"; 403 means "we know who you are and you do not have permission." Clients can use this to decide whether to prompt for upgrade versus re-login.
+
+<RbacGate />
+
+The factory pattern means you define each access tier once and reuse it:
+
+```python
+pro_only = require_role("pro")
+admin_only = require_role("admin")
+```
+
+Part 30 adds `require_plan_quota` on top of `require_user` for metered usage — same pattern, different check.
+
+---
+
+## Wiring it into serve.py
+
+`serve.py` mounts `require_user` on the `GET /me` route at line 142:
+
+```python
+# serve.py:142
+@app.get("/me")
+def me(user: User = Depends(require_user)):
+    return {"id": user.id, "email": user.email, "role": user.role}
+```
+
+The frontend's `Auth.tsx` calls `fetchMe(session.access_token)` after sign-in to populate the `Me` object (`{id, email, role}`) and gate the pro affordance on `me.role === "pro"`. When `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` are not configured, `Auth.tsx` shows an "Auth is off" panel and `fetchMe` is never called — public search continues to work.
+
+The Vite dev proxy (`vite.config.ts`) forwards `/me` to `http://localhost:8000` so the frontend and backend run same-origin in development. In production, `VITE_API_BASE` points at the deployed API.
+
+---
+
+## Offline tests
+
+`tests/test_auth.py` mints real HS256 tokens with a throwaway secret and runs against a minimal in-process FastAPI app. No network, no live Supabase project.
+
+```bash
+pytest tests/test_auth.py -v
+```
+
+```
+tests/test_auth.py::test_valid_token_returns_user          PASSED
+tests/test_auth.py::test_expired_token_is_401              PASSED
+tests/test_auth.py::test_tampered_token_is_401             PASSED
+tests/test_auth.py::test_wrong_secret_is_401               PASSED
+tests/test_auth.py::test_missing_bearer_is_rejected        PASSED
+tests/test_auth.py::test_require_role_allows_pro_blocks_free PASSED
+
+6 passed in 0.41s
+```
+
+The `_token()` helper in the test file mints tokens the same way Supabase does — HS256, `aud="authenticated"`, claims in `app_metadata`:
+
+```python
+SECRET = "test-jwt-secret-not-real"
+
+def _token(secret=SECRET, *, sub="user-123", email="a@b.com", role="free", exp_delta=3600, **extra):
+    now = int(time.time())
+    claims = {
+        "sub": sub,
+        "email": email,
+        "aud": "authenticated",
+        "iat": now,
+        "exp": now + exp_delta,
+        "app_metadata": {"plan": role},
+        **extra,
+    }
+    return jwt.encode(claims, secret, algorithm="HS256")
+```
+
+A `monkeypatch` fixture sets `SUPABASE_JWT_SECRET` to `SECRET` for every test — no env var needed on the host. Walk through what each test covers:
+
+**test_valid_token_returns_user** — a well-formed token with `role="pro"` yields HTTP 200 and the correct `User` dict. This confirms the happy path end-to-end.
+
+**test_expired_token_is_401** — `exp_delta=-10` puts expiry 10 seconds in the past. PyJWT raises `ExpiredSignatureError`; the handler maps it to `{"detail": "token expired"}`.
+
+**test_tampered_token_is_401** — the last three characters of the signature are replaced. The HMAC check fails; `InvalidTokenError` → `"invalid token"`.
+
+**test_wrong_secret_is_401** — token signed with `"some-other-secret"` while the server expects `SECRET`. Same failure path as tampering, from the verifier's perspective.
+
+**test_missing_bearer_is_rejected** — no `Authorization` header at all. `HTTPBearer(auto_error=True)` returns 401 before `require_user` is called.
+
+**test_require_role_allows_pro_blocks_free** — two requests to `GET /pro` (a route gated by `require_role("pro")`): one with `role="pro"` (200), one with `role="free"` (403, detail contains `"requires role 'pro'"`).
+
+<Callout tone="warn">
+The `InsecureKeyLengthWarning` from PyJWT in the test output is expected — the throwaway test secret is intentionally short. Production tokens use your full Supabase JWT secret (64+ bytes). The warning is not a test failure.
+</Callout>
+
+---
+
+## Running with live keys
+
+To exercise the auth flow against a real Supabase project:
+
+1. Create a project at [supabase.com](https://supabase.com) (free tier is enough).
+2. Copy the JWT secret from **Project Settings → API → JWT Secret**.
+3. Export it: `export SUPABASE_JWT_SECRET=<your-secret>`.
+4. Start the API: `uvicorn dealfinder.serve:app --reload`.
+5. Sign in via the frontend (`pnpm dev` in `frontend/`, with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` set).
+6. The frontend calls `GET /me` with the real session token; you should see your user UUID, email, and role.
+
+To promote a user to pro, update `app_metadata` via the Supabase dashboard (Table Editor → `auth.users` → edit `raw_app_meta_data`) or via the Admin API. The user's next token refresh will carry `"plan": "pro"` in the claims. Part 30 automates this promotion via a Stripe webhook.
+
+<Callout tone="note">
+**No in-cluster Supabase.** The `infra/k8s/secret.example.yaml` from Part 25 already has a `SUPABASE_JWT_SECRET` placeholder. Fill it with your project secret and apply the real `secret.yaml` out-of-band. The deployment picks it up via `envFrom: secretRef`.
+</Callout>
+
+---
+
+## Where this goes next
+
+- **Part 27 — The web front end:** the React/Vite frontend that calls `GET /me`, shows the auth panel, and gates the pro affordance on `me.role === "pro"`. Auth.tsx and `src/lib/supabase.ts` are the client-side counterparts of what you built here.
+- **Part 29 — Saved searches & the suggestions worker:** `require_user` gates the saved-search routes. The periodic worker reads user preferences from the database using the same stable `user.id` UUID as the row key. You will not need to change `auth.py` — the dependency composes.
+- **Part 30 — Payments & SaaS mechanics:** Stripe Checkout creates a session keyed by `user.id`. The webhook handler promotes `app_metadata.plan` to `"pro"` in Supabase, which flows into the next token refresh. `require_role("pro")` is already wired — no code change needed when a user upgrades.
+
+---
+
+*Sources: [PyJWT](https://pyjwt.readthedocs.io/) · [FastAPI security](https://fastapi.tiangolo.com/tutorial/security/) · [Supabase Auth](https://supabase.com/docs/guides/auth) · [Supabase JWT secret](https://supabase.com/docs/guides/auth/jwts)*

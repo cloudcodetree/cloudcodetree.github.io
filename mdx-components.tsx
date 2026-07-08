@@ -64,6 +64,14 @@ import PipelineDAG from './app/components/mdx/PipelineDAG';
 import DataContractGauge from './app/components/mdx/DataContractGauge';
 import SavedSearchDiff from './app/components/mdx/SavedSearchDiff';
 import NotifierProtocol from './app/components/mdx/NotifierProtocol';
+import SearchStateMachine from './app/components/mdx/SearchStateMachine';
+import ProxyTunnel from './app/components/mdx/ProxyTunnel';
+import K8sReplicaSpread from './app/components/mdx/K8sReplicaSpread';
+import SecretFlow from './app/components/mdx/SecretFlow';
+import JwtDecodeRing from './app/components/mdx/JwtDecodeRing';
+import RbacGate from './app/components/mdx/RbacGate';
+import CheckoutFlow from './app/components/mdx/CheckoutFlow';
+import QuotaMeter from './app/components/mdx/QuotaMeter';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -105,5 +113,9 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     SlidingWindowClock, GDPRAuditTrail,
     PipelineDAG, DataContractGauge,
     SavedSearchDiff, NotifierProtocol,
+    SearchStateMachine, ProxyTunnel,
+    K8sReplicaSpread, SecretFlow,
+    JwtDecodeRing, RbacGate,
+    CheckoutFlow, QuotaMeter,
   };
 }
