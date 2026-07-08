@@ -34,6 +34,10 @@ const nextConfig = {
 }
 
 const createMDX = require('@next/mdx').default ?? require('@next/mdx');
+// NB: Syntax highlighting is done via a Shiki server component (app/components/mdx/
+// CodeBlock.tsx, wired as the `pre` override in mdx-components.tsx), NOT a rehype
+// plugin — Turbopack (dev --turbo) can't serialize MDX plugin options. The component
+// highlights at build time, so it stays static-export-safe with zero runtime JS.
 const withMDX = createMDX({ extension: /\.mdx?$/ });
 
 module.exports = withMDX(nextConfig);

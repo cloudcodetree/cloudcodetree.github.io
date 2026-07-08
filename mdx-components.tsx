@@ -1,6 +1,7 @@
 import type { MDXComponents } from 'mdx/types';
 import Callout from './app/components/mdx/Callout';
 import TutorialHero from './app/components/mdx/TutorialHero';
+import CodeBlock from './app/components/mdx/CodeBlock';
 import SchemaMap from './app/components/mdx/SchemaMap';
 import DedupMerge from './app/components/mdx/DedupMerge';
 import RetailerBrandSplit from './app/components/mdx/RetailerBrandSplit';
@@ -56,6 +57,8 @@ import RankingLens from './app/components/mdx/RankingLens';
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ...components,
+    // VSCode-style syntax highlighting for fenced code blocks (build-time Shiki).
+    pre: CodeBlock,
     Callout, TutorialHero,
     SchemaMap, DedupMerge, RetailerBrandSplit, RunHistory, ScaleSwap,
     Tokenizer, EmbeddingSpace, AttentionView, TemperatureSampler,
