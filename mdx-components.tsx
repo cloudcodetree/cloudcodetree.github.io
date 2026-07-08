@@ -52,6 +52,12 @@ import GroupedSplit from './app/components/mdx/GroupedSplit';
 import LabelImbalance from './app/components/mdx/LabelImbalance';
 import BoostingLift from './app/components/mdx/BoostingLift';
 import PriceDropForecast from './app/components/mdx/PriceDropForecast';
+import ExperimentLedger from './app/components/mdx/ExperimentLedger';
+import FeatureContractGate from './app/components/mdx/FeatureContractGate';
+import CacheThresholdKnob from './app/components/mdx/CacheThresholdKnob';
+import CascadeEscalation from './app/components/mdx/CascadeEscalation';
+import MLOpsCycleTrace from './app/components/mdx/MLOpsCycleTrace';
+import PSIGauge from './app/components/mdx/PSIGauge';
 
 // Required by @next/mdx (App Router). MDX element styling is applied by the
 // tutorial article layout (markdownSx-style wrapper); here we expose custom
@@ -87,5 +93,8 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     EchoFilter, RankingLens,
     GroupedSplit, LabelImbalance,
     BoostingLift, PriceDropForecast,
+    ExperimentLedger, FeatureContractGate,
+    CacheThresholdKnob, CascadeEscalation,
+    MLOpsCycleTrace, PSIGauge,
   };
 }
