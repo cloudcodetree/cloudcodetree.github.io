@@ -1,5 +1,60 @@
 [
   {
+    "id": "2026-07-08-07-hook-types-async-http-prompt-agent",
+    "title": "One Command Isn't Enough: Claude Code's Four Hook Handler Types Explained",
+    "excerpt": "Claude Code now has four hook handler types — command, HTTP, prompt, and agent — plus async execution. Each is for a different job; the June 2026 intro only scratched the command type.",
+    "author": "Chris Harper",
+    "date": "07-08-2026",
+    "publishedAt": "2026-07-08T20:06:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/hooks",
+    "content": "**TL;DR: The June 2026 hooks intro covered only `command` (shell scripts) — there are now three more handler types (HTTP, prompt, agent) plus `async: true` to make any hook non-blocking.**\n\nThe June 30 post showed one hook type: `command` — a shell script that blocks until it exits. Three more handler types were added since, each solving a problem the `command` type can't handle cleanly.\n\n## The four handler types\n\n**`command`** — runs a shell script synchronously. Blocking by default; `exit 2` cancels the tool call. Best for: secret scanning, file formatting, linters.\n\n**`http`** — POSTs the hook event payload as JSON to a URL you control. Use this for:\n- centralized validation that multiple engineers share (no script to distribute)\n- logging directly to an observability stack (Datadog, Honeycomb, etc.)\n- cross-team policy enforcement from a single server\n\n```json\n{\n  \"type\": \"http\",\n  \"url\": \"https://your-api.example.com/hooks/validate\",\n  \"timeout\": 10\n}\n```\n\n**`prompt`** — sends the hook payload to a Claude model (Haiku by default) with your yes/no question. Claude returns allow/deny with a reason. No regex, no script — just plain English:\n\n```json\n{\n  \"type\": \"prompt\",\n  \"prompt\": \"Does this bash command delete or overwrite files irreversibly? Return deny with reason if so.\"\n}\n```\n\n**`agent`** — spawns a subagent with full tool access (up to 50 tool calls). Use when validation needs to *read something*: check a file before allowing an edit, run a linter before a commit, verify tests pass before pushing.\n\n```json\n{\n  \"type\": \"agent\",\n  \"prompt\": \"Read the file at tool_input.file_path and verify it passes ESLint. Return deny with lint errors if it fails.\"\n}\n```\n\n## Make any hook non-blocking: `async: true`\n\nAdd `\"async\": true` to any handler type to run it in the background — Claude doesn't wait for it. Use async for all logging, notification, and metrics hooks where you don't need to block:\n\n```json\n{\n  \"type\": \"http\",\n  \"url\": \"https://metrics.example.com/tool-events\",\n  \"async\": true\n}\n```\n\nBlocking hooks should stay synchronous (async PreToolUse can't veto). Everything else — PostToolUse logging, Notification hooks, session analytics — should be async.\n\n**Sources:** [Hooks reference — Claude Code Docs](https://code.claude.com/docs/en/hooks) · [Automate actions with hooks](https://code.claude.com/docs/en/hooks-guide) · [Claude Code Hooks: Complete 2026 Reference (The Prompt Shelf)](https://thepromptshelf.dev/blog/claude-code-hooks-complete-reference-2026/)"
+  },
+  {
+    "id": "2026-07-08-08-openai-gpt-live-full-duplex-voice",
+    "title": "OpenAI Launches GPT-Live: Full-Duplex Voice That Listens and Talks at the Same Time",
+    "excerpt": "OpenAI launched GPT-Live-1 and GPT-Live-1 mini on July 8 — full-duplex voice that can listen and speak simultaneously, replacing Advanced Voice Mode. API access is coming but not available yet.",
+    "author": "Chris Harper",
+    "date": "07-08-2026",
+    "publishedAt": "2026-07-08T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://openai.com/index/introducing-gpt-live/",
+    "content": "**TL;DR: OpenAI shipped GPT-Live on July 8 — GPT-Live-1 and GPT-Live-1 mini replace Advanced Voice Mode with a full-duplex architecture that listens and speaks simultaneously. API access is gated; `gpt-realtime-2.1` stays the developer path today.**\n\nOpenAI on July 8 launched GPT-Live: two voice models (GPT-Live-1 for paid ChatGPT tiers, GPT-Live-1 mini for free) that replace the old turn-based Advanced Voice Mode. The architecture is genuinely different: **full-duplex**, meaning the model processes incoming audio and generates speech at the same time. It can produce filler words (\"mhmm\", \"yeah\"), handle interruptions naturally, and delegate to GPT-5.5 in the background for complex reasoning while continuing to speak. Rolling out now on iOS, Android, and ChatGPT.com.\n\nAPI access is not yet available — developers can sign up at openai.com for notifications. A System Card was released the same day covering safety evaluations.\n\n**Why it matters:** GPT-Live is a ChatGPT product, not an API you can call today. If you're building voice-agent products, `gpt-realtime-2.1` (already shipping in the API) remains your production path. Keep an eye on the API release; when full-duplex voice arrives for developers, it changes what's possible for ambient and conversational agents.\n\n**Sources:** [Introducing GPT-Live (OpenAI)](https://openai.com/index/introducing-gpt-live/) · [VentureBeat: GPT-Live full-duplex launch](https://venturebeat.com/technology/openai-launches-gpt-live-a-full-duplex-voice-upgrade-that-lets-chatgpt-talk-more-like-a-person) · [9to5Mac: ChatGPT voice upgrade with GPT-Live](https://9to5mac.com/2026/07/08/openai-upgrading-chatgpt-with-all-new-voice-mode-experience-watch-here/)"
+  },
+  {
+    "id": "2026-07-08-09-gguf-gptq-awq-quantization-formats",
+    "title": "GGUF, GPTQ, or AWQ? Pick the Right Quantization Format Before You Download",
+    "excerpt": "GGUF is for local CPU/GPU inference (Ollama, llama.cpp); GPTQ and AWQ are NVIDIA GPU formats for vLLM; AWQ preserves quality better than GPTQ and is now the production default for 4-bit serving.",
+    "author": "Chris Harper",
+    "date": "07-08-2026",
+    "publishedAt": "2026-07-08T20:04:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Self-Hosting",
+      "LLM",
+      "HuggingFace"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.youtube.com/watch?v=WmvZwR4rKJg",
+    "content": "**TL;DR: Pick GGUF for local inference (Ollama, llama.cpp, any hardware), GPTQ for legacy NVIDIA checkpoints in vLLM, and AWQ for new production GPU deployments — AWQ preserves quality better at the same bit depth.**\n\nWhen you browse HuggingFace for an open-weight model, you see filenames like `Llama-3.3-70B-Instruct-Q4_K_M.gguf`, `Mistral-7B-v0.3-AWQ`, or `Qwen3-8B-GPTQ`. Pick wrong and you'll download the wrong file, fail to load it, or get worse quality than necessary.\n\n**What you'll be able to do after this:**\n- Read a HuggingFace model card and pick the right format for your hardware without trial and error\n- Know when Q4_K_M is good enough vs. when to reach for Q8_0 or AWQ\n- Swap formats correctly when moving from local laptop dev to GPU production serving\n\n## The three formats\n\n**GGUF** (the local inference format) — a single self-contained file (weights + tokenizer + config). Runs on CPU, Apple Silicon, and consumer NVIDIA/AMD GPUs. The format for Ollama and llama.cpp. Common quality tiers:\n- `Q4_K_M` — best size/quality balance; ~4 GB for a 7B model; start here\n- `Q8_0` — near-lossless; ~8 GB for a 7B model; use when quality matters more than speed\n- `Q2_K` / IQ variants — smallest, but noticeable quality loss; avoid unless you're severely VRAM-constrained\n\n**GPTQ** — GPU-native quantization that finds the optimal per-layer compression. Requires CUDA. Stored as HuggingFace safetensors. Has a massive back-catalog and wide support in vLLM and transformers, but largely superseded by AWQ for new releases.\n\n**AWQ** (Activation-aware Weight Quantization) — identifies the ~1% of weights that matter most for quality (via activation patterns) and keeps them at higher precision. Better output quality than GPTQ at the same bit depth. The new default for production 4-bit serving on NVIDIA GPUs.\n\n## Quickstart for each\n\n```bash\n# GGUF: pull directly via Ollama\nollama pull llama3.3:70b-instruct-q4_K_M\n\n# AWQ: serve via vLLM\npython -m vllm.entrypoints.openai.api_server \\\n  --model Qwen/Qwen3-8B-Instruct-AWQ \\\n  --quantization awq \\\n  --max-model-len 32768\n\n# GPTQ: serve via vLLM (legacy checkpoint)\npython -m vllm.entrypoints.openai.api_server \\\n  --model TheBloke/Mistral-7B-Instruct-v0.3-GPTQ \\\n  --quantization gptq\n```\n\n## Decision table\n\n| Goal | Hardware | Format |\n|---|---|---|\n| Local dev, any hardware | CPU / Apple Silicon / any GPU | GGUF Q4_K_M |\n| High quality local | GPU 8 GB+ | GGUF Q8_0 |\n| Production GPU (new model) | NVIDIA | AWQ |\n| Production GPU (existing checkpoint) | NVIDIA | GPTQ |\n| Max throughput, no quality loss | A100 / H100 | fp16 or fp8 |\n\nThe video below covers the math behind why AWQ beats GPTQ and walks through loading each format in a real session — the clearest 20-minute intro to quantization formats available.\n\n**Sources:** [LLM Quantization Explained: GPTQ, AWQ, QLoRA, GGUF and More (YouTube)](https://www.youtube.com/watch?v=WmvZwR4rKJg) · [A Visual Guide to Quantization (Maarten Grootendorst)](https://www.maartengrootendorst.com/blog/quantization/) · [GGUF vs GPTQ vs AWQ 2026 (Local AI Master)](https://localaimaster.com/blog/quantization-explained) · [vLLM Quantization Docs](https://docs.vllm.ai/en/latest/serving/quantization/)"
+  },
+  {
     "id": "2026-07-08-06-subagent-description-routing-nesting",
     "title": "The Description Field Is the Router: Writing Claude Code Subagents That Delegate Correctly",
     "excerpt": "Claude routes to subagents purely on description text — vague descriptions cause missed delegations; nested spawning lets a subagent fan out its own verifiers without polluting your main context.",
