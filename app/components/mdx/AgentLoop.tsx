@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { MONO, ACCENT } from '../blogShared';
 
 /**
@@ -82,37 +81,37 @@ export default function AgentLoop({ accent = ACCENT }: { accent?: string }) {
         <path d={`M${OBSERVE.x + 30},${OBSERVE.y + 14} Q ${(OBSERVE.x + ANSWER.x) / 2},${OBSERVE.y + 60} ${ANSWER.x - 36},${ANSWER.y}`} fill="none" stroke={DEAL_CLR} strokeWidth="1.5" markerEnd="url(#al-ah-deal)" opacity="0.85" />
 
         {/* ── Reason node ─────────────────────────────────────────── */}
-        <motion.g animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 3.2, repeat: Infinity, delay: 0, times: [0, 0.15, 0.4] }}>
+        <g style={{ opacity: 0.6, animation: 'al-pulse 3.2s 0s infinite' }}>
           <circle cx={REASON.x} cy={REASON.y} r="26" fill={`${accent}14`} stroke={`${accent}80`} strokeWidth="1.5" />
           <text x={REASON.x} y={REASON.y - 5} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="10" fontWeight="700" fill="#fff">Reason</text>
           <text x={REASON.x} y={REASON.y + 8} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="7.5" fill="#8b98a8">query &lt;$100</text>
           <text x={REASON.x} y={REASON.y + 18} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="7.5" fill="#8b98a8">text_to_sql →</text>
-        </motion.g>
+        </g>
 
         {/* ── Act node ────────────────────────────────────────────── */}
-        <motion.g animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 3.2, repeat: Infinity, delay: 1.0, times: [0, 0.15, 0.4] }}>
+        <g style={{ opacity: 0.6, animation: 'al-pulse 3.2s 1s infinite' }}>
           <circle cx={ACT.x} cy={ACT.y} r="26" fill={`${accent}14`} stroke={`${accent}80`} strokeWidth="1.5" />
           <text x={ACT.x} y={ACT.y - 5} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="10" fontWeight="700" fill="#fff">Act</text>
           <text x={ACT.x} y={ACT.y + 8} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="7.5" fill="#8b98a8">score_deal()</text>
           <text x={ACT.x} y={ACT.y + 18} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="7.5" fill="#8b98a8">2 rows → badges</text>
-        </motion.g>
+        </g>
 
         {/* ── Observe node ─────────────────────────────────────────── */}
-        <motion.g animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 3.2, repeat: Infinity, delay: 2.0, times: [0, 0.15, 0.4] }}>
+        <g style={{ opacity: 0.6, animation: 'al-pulse 3.2s 2s infinite' }}>
           <circle cx={OBSERVE.x} cy={OBSERVE.y} r="26" fill={`${accent}14`} stroke={`${accent}80`} strokeWidth="1.5" />
           <text x={OBSERVE.x} y={OBSERVE.y - 5} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="10" fontWeight="700" fill="#fff">Observe</text>
           <text x={OBSERVE.x} y={OBSERVE.y + 8} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="7.5" fill="#8b98a8">Anker: DEAL</text>
           <text x={OBSERVE.x} y={OBSERVE.y + 18} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="7.5" fill={DEAL_CLR}>→ answer</text>
-        </motion.g>
+        </g>
 
         {/* ── HITL hexagon (distinct shape — unique to this part) ─── */}
-        <motion.g animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 2.4, repeat: Infinity, delay: 1.4 }}>
+        <g style={{ opacity: 0.7, animation: 'al-pulse7 2.4s 1.4s infinite' }}>
           <Hex cx={HITL.x} cy={HITL.y} r={36} stroke={SUSPICIOUS_CLR} fill={`${SUSPICIOUS_CLR}12`} />
           <text x={HITL.x} y={HITL.y - 12} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="9" fontWeight="700" fill={SUSPICIOUS_CLR}>ask_human</text>
           <text x={HITL.x} y={HITL.y + 2} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="7.5" fill="#fff">Bose at $46</text>
           <text x={HITL.x} y={HITL.y + 14} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="7.5" fill="#fff">SUSPICIOUS — ok?</text>
           <text x={HITL.x} y={HITL.y + 26} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="7.5" fill={SUSPICIOUS_CLR}>→ "no"</text>
-        </motion.g>
+        </g>
 
         {/* ── Answer node (rounded rect, green) ───────────────────── */}
         <rect x={ANSWER.x - 74} y={ANSWER.y - 22} width="148" height="44" rx="8" fill={`${DEAL_CLR}14`} stroke={`${DEAL_CLR}80`} strokeWidth="1.5" />
@@ -120,15 +119,8 @@ export default function AgentLoop({ accent = ACCENT }: { accent?: string }) {
         <text x={ANSWER.x} y={ANSWER.y + 7} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="8" fill="#fff">badge: DEAL  resid_frac 0.585</text>
         <text x={ANSWER.x} y={ANSWER.y + 18} textAnchor="middle" fontFamily="Menlo, monospace" fontSize="8" fill={SUSPICIOUS_CLR}>Bose excluded (SUSPICIOUS)</text>
 
-        {/* circulating token */}
-        <motion.circle
-          r="5" fill={accent}
-          animate={{
-            cx: [REASON.x, ACT.x, OBSERVE.x, REASON.x],
-            cy: [REASON.y, ACT.y, OBSERVE.y, REASON.y],
-          }}
-          transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' as const, times: [0, 0.33, 0.66, 1] }}
-        />
+        {/* circulating token — CSS transform animation (static markup, hydration-safe) */}
+        <circle cx={REASON.x} cy={REASON.y} r="5" fill={accent} style={{ animation: 'al-orbit 3.2s ease-in-out infinite' }} />
       </svg>
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 8, textAlign: 'center' }}>
