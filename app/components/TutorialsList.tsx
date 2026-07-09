@@ -78,16 +78,23 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
   const showHome = !!flagship && selected.length === 0;
   const carouselGroups = showHome ? seriesGroups.filter((g) => g.series !== flagship!.series) : seriesGroups;
 
-  // Rolled-up: one carousel card per series, 2-up.
+  // The newest tutorial or course (highest order) is featured full-width; the
+  // rest are 2-up. seriesGroups is sorted newest-first, so [0] is the latest.
+  // Any new tutorial/course you add automatically takes the full-width hero.
+  const newestName = seriesGroups[0]?.series;
+
   const seriesCards = (
     <Grid container spacing={3}>
-      {carouselGroups.map(({ series, parts }) => (
-        <Grid size={{ xs: 12, sm: 6 }} key={series}>
-          <Box component={motion.div} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} sx={{ height: '100%' }}>
-            <SeriesCarouselCard series={series} parts={parts} />
-          </Box>
-        </Grid>
-      ))}
+      {carouselGroups.map(({ series, parts }) => {
+        const feat = series === newestName;
+        return (
+          <Grid size={{ xs: 12, sm: feat ? 12 : 6 }} key={series}>
+            <Box component={motion.div} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} sx={{ height: '100%' }}>
+              <SeriesCarouselCard series={series} parts={parts} featured={feat} />
+            </Box>
+          </Grid>
+        );
+      })}
     </Grid>
   );
 
