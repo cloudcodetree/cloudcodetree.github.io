@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { SERIF, MONO, ACCENT, LINK, formatLongDate } from './blogShared';
 import type { Tutorial } from '../tutorials/manifest';
 import { seriesTotal } from '../tutorials/manifest';
+import SeriesCarouselCard from './SeriesCarouselCard';
 
 type View = 'cards' | 'list';
 const VIEWS: View[] = ['cards', 'list'];
@@ -17,7 +18,7 @@ const border = '1px solid rgba(148,163,184,0.12)';
 const clamp = (n: number) => ({ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: n, overflow: 'hidden' } as const);
 const topicTags = (t: Tutorial) => t.tags.filter((x) => x.toLowerCase() !== 'ai' && x.toLowerCase() !== 'tutorial');
 
-export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) {
+export default function TutorialsList({ tutorials, variant = 'series' }: { tutorials: Tutorial[]; variant?: 'series' | 'all' }) {
   const [view, setView] = useState<View>('cards');
   const [size, setSize] = useState<number | null>(null);
   const [page, setPage] = useState(1);
@@ -39,6 +40,19 @@ export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) 
     [tutorials, selected],
   );
 
+  // Group the (filtered) tutorials by series, parts ascending, series ordered by
+  // their newest part — for the rolled-up carousel view.
+  const seriesGroups = useMemo(() => {
+    const m = new Map<string, Tutorial[]>();
+    for (const t of filtered) {
+      const arr = m.get(t.series);
+      if (arr) arr.push(t); else m.set(t.series, [t]);
+    }
+    return Array.from(m.entries())
+      .map(([series, parts]) => ({ series, parts: [...parts].sort((a, b) => a.part - b.part) }))
+      .sort((a, b) => Math.max(...b.parts.map((p) => p.order)) - Math.max(...a.parts.map((p) => p.order)));
+  }, [filtered]);
+
   const pageSize = size ?? PAGE_DEFAULT[view];
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pageCount);
@@ -54,6 +68,22 @@ export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) 
         <Chip key={tag} label={tag} size="small" sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(63,185,80,0.1)', color: ACCENT, border: '1px solid rgba(63,185,80,0.25)' }} />
       ))}
     </Box>
+  );
+
+  // Rolled-up: one carousel card per series (DealFinder-sized series featured full-width).
+  const seriesCards = (
+    <Grid container spacing={3}>
+      {seriesGroups.map(({ series, parts }) => {
+        const featured = parts.length > 10;
+        return (
+          <Grid size={{ xs: 12, sm: featured ? 12 : 6 }} key={series}>
+            <Box component={motion.div} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} sx={{ height: '100%' }}>
+              <SeriesCarouselCard series={series} parts={parts} featured={featured} />
+            </Box>
+          </Grid>
+        );
+      })}
+    </Grid>
   );
 
   const cards = (
@@ -99,28 +129,41 @@ export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) 
     </Box>
   );
 
+  const isSeries = variant === 'series';
+
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 9 } }}>
       <Box component={motion.div} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} sx={{ mb: { xs: 4, md: 6 } }}>
         <Typography sx={{ fontFamily: MONO, color: ACCENT, fontSize: 12, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', mb: 1.5 }}>CloudCodeTree&nbsp;·&nbsp;Learn</Typography>
-        <Typography component="h1" sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '3rem', md: '4.75rem' }, lineHeight: 0.95, letterSpacing: '-0.02em', m: 0, background: 'linear-gradient(180deg,#fff 0%,#cbd5e1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tutorials</Typography>
+        <Typography component="h1" sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '3rem', md: '4.75rem' }, lineHeight: 0.95, letterSpacing: '-0.02em', m: 0, background: 'linear-gradient(180deg,#fff 0%,#cbd5e1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{isSeries ? 'Tutorials' : 'All tutorials'}</Typography>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mt: 2.5, flexWrap: 'wrap' }}>
           <Box sx={{ height: 2, width: 56, background: ACCENT, alignSelf: 'center' }} />
-          <Typography sx={{ color: 'text.secondary', fontSize: { xs: '1rem', md: '1.12rem' }, maxWidth: 600 }}>Hands-on, hand-written guides to building and customizing AI — separate from the daily AI News feed.</Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: { xs: '1rem', md: '1.12rem' }, maxWidth: 600 }}>
+            {isSeries ? 'Hands-on, hand-written courses — each series rolled into one card you can flip through, part by part.' : 'Every tutorial as an individual card. ' }
+            {!isSeries && <Typography component={Link} href="/tutorials/" sx={{ color: ACCENT, textDecoration: 'none', fontFamily: MONO, fontSize: 14, '&:hover': { color: LINK } }}>← Back to series</Typography>}
+          </Typography>
         </Box>
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: { xs: 2, md: 3 }, flexWrap: 'wrap' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
-          <Select value={pageSize} onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }} size="small" sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(148,163,184,0.2)' }, '.MuiSvgIcon-root': { color: 'text.secondary' } }}>
-            {PAGE_OPTIONS.map((n) => <MenuItem key={n} value={n} sx={{ fontFamily: MONO, fontSize: 12 }}>{n}</MenuItem>)}
-          </Select>
-        </Box>
-        <ToggleButtonGroup value={view} exclusive size="small" onChange={(_, v) => chooseView(v)} aria-label="Choose layout" sx={{ '& .MuiToggleButton-root': { color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)', px: 1.25 }, '& .Mui-selected': { color: `${ACCENT} !important`, background: 'rgba(63,185,80,0.12) !important' } }}>
-          <ToggleButton value="cards" aria-label="Cards"><GridView fontSize="small" /></ToggleButton>
-          <ToggleButton value="list" aria-label="Compact list"><ViewList fontSize="small" /></ToggleButton>
-        </ToggleButtonGroup>
+        {isSeries ? (
+          <Typography component={Link} href="/tutorials/all/" sx={{ fontFamily: MONO, fontSize: 13, color: ACCENT, textDecoration: 'none', border: '1px solid rgba(63,185,80,0.3)', borderRadius: 1, px: 1.5, py: 0.75, '&:hover': { background: 'rgba(63,185,80,0.1)', color: LINK } }}>
+            {`See all ${tutorials.length} tutorials →`}
+          </Typography>
+        ) : (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
+            <Select value={pageSize} onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }} size="small" sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(148,163,184,0.2)' }, '.MuiSvgIcon-root': { color: 'text.secondary' } }}>
+              {PAGE_OPTIONS.map((n) => <MenuItem key={n} value={n} sx={{ fontFamily: MONO, fontSize: 12 }}>{n}</MenuItem>)}
+            </Select>
+          </Box>
+        )}
+        {!isSeries && (
+          <ToggleButtonGroup value={view} exclusive size="small" onChange={(_, v) => chooseView(v)} aria-label="Choose layout" sx={{ '& .MuiToggleButton-root': { color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)', px: 1.25 }, '& .Mui-selected': { color: `${ACCENT} !important`, background: 'rgba(63,185,80,0.12) !important' } }}>
+            <ToggleButton value="cards" aria-label="Cards"><GridView fontSize="small" /></ToggleButton>
+            <ToggleButton value="list" aria-label="Compact list"><ViewList fontSize="small" /></ToggleButton>
+          </ToggleButtonGroup>
+        )}
       </Box>
 
       {topics.length > 0 && (
@@ -136,6 +179,8 @@ export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) 
 
       {filtered.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10 }}><Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>{'// no tutorials yet'}</Typography></Box>
+      ) : isSeries ? (
+        seriesCards
       ) : (
         <>
           {view === 'cards' ? cards : list}
