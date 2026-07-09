@@ -9,6 +9,7 @@ import { SERIF, MONO, ACCENT, LINK, formatLongDate } from './blogShared';
 import type { Tutorial } from '../tutorials/manifest';
 import { seriesTotal } from '../tutorials/manifest';
 import SeriesCarouselCard from './SeriesCarouselCard';
+import CourseHomeCard from './CourseHomeCard';
 
 type View = 'cards' | 'list';
 const VIEWS: View[] = ['cards', 'list'];
@@ -70,19 +71,19 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
     </Box>
   );
 
-  // Rolled-up: one carousel card per series (DealFinder-sized series featured full-width).
+  // The flagship (largest) course gets the explainer "home" card up top.
+  const flagship = seriesGroups.find((g) => g.parts.length > 10) ?? null;
+
+  // Rolled-up: one carousel card per series, 2-up (the flagship's hero is the home card).
   const seriesCards = (
     <Grid container spacing={3}>
-      {seriesGroups.map(({ series, parts }) => {
-        const featured = parts.length > 10;
-        return (
-          <Grid size={{ xs: 12, sm: featured ? 12 : 6 }} key={series}>
-            <Box component={motion.div} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} sx={{ height: '100%' }}>
-              <SeriesCarouselCard series={series} parts={parts} featured={featured} />
-            </Box>
-          </Grid>
-        );
-      })}
+      {seriesGroups.map(({ series, parts }) => (
+        <Grid size={{ xs: 12, sm: 6 }} key={series}>
+          <Box component={motion.div} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} sx={{ height: '100%' }}>
+            <SeriesCarouselCard series={series} parts={parts} />
+          </Box>
+        </Grid>
+      ))}
     </Grid>
   );
 
@@ -180,7 +181,10 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
       {filtered.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10 }}><Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>{'// no tutorials yet'}</Typography></Box>
       ) : isSeries ? (
-        seriesCards
+        <>
+          {flagship && selected.length === 0 && <CourseHomeCard parts={flagship.parts} />}
+          {seriesCards}
+        </>
       ) : (
         <>
           {view === 'cards' ? cards : list}

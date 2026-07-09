@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'DealFinder — AI Engineering: Expose It as an MCP Server (Part 12 of 33) · Tutorials',
+  title: 'Become an AI Engineer: Expose It as an MCP Server (Part 12 of 33) · Tutorials',
   description:
     'Wrap DealFinder\'s score_deal, search_deals, and recommend tools in a standards-compliant MCP server — tools, a catalog resource, and a prompt template — so Claude Code and any MCP client can call them over the 270-item electronics snapshot.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-mcp/' },
   openGraph: {
-    title: 'DealFinder — AI Engineering: Expose It as an MCP Server (Part 12 of 33)',
+    title: 'Become an AI Engineer: Expose It as an MCP Server (Part 12 of 33)',
     description: 'Wrap DealFinder\'s score_deal, search_deals, and recommend tools in a standards-compliant MCP server — tools, a catalog resource, and a prompt template — so Claude Code and any MCP client can call them over the 270-item electronics snapshot.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-mcp/',
     siteName: 'CloudCodeTree',
@@ -20,7 +20,7 @@ export const metadata = {
 
 **TL;DR: The agent in Part 11 called `score_deal`, `search_deals`, and `recommend` as plain Python callables. MCP promotes those same functions to a standard protocol that Claude Code, Claude Desktop, or any MCP-speaking client understands — without rewriting them. You add decorators, wire `.mcp.json`, and your whole DealFinder backend is one protocol away from any tool-using model.**
 
-This is **Part 12 of DealFinder — AI Engineering**. The work here is the protocol layer, not new capability: the two-signal deal score from Part 3, the title-embedding recommender from Part 4, and the semantic search from Part 5 do not change. What changes is how a client finds and calls them.
+This is **Part 12 of Become an AI Engineer**. The work here is the protocol layer, not new capability: the two-signal deal score from Part 3, the title-embedding recommender from Part 4, and the semantic search from Part 5 do not change. What changes is how a client finds and calls them.
 
 <Callout tone="tip">
 **Code along, version by version.** Full project at
@@ -30,7 +30,7 @@ Step tag for this part: `step-12`. A `.devcontainer/` gives you Python 3.11 in o
 
 ## Course summary
 
-This is Part 12 of the **DealFinder — AI Engineering** series (33 parts). The full arc:
+This is Part 12 of the **Become an AI Engineer** series (33 parts). The full arc:
 
 - **Phase 1 (Parts 1–9) — Real data & the aggregator:** data layer (Part 1), LLM literacy (2), deal scoring (3), recommender (4), semantic search (5), structured extraction (6), live connectors (7), responsible scraping (8), tiered aggregation (9).
 - **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor (10), the ReAct agent (11), **MCP server (this part)**, pgvector persistence (13), the web UI (14).
