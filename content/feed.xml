@@ -10,7 +10,176 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 09 Jul 2026 12:09:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 09 Jul 2026 20:06:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Meta Enters the Developer API Market: Muse Spark 1.1 Ships With Native MCP, 1M Context, and a Drop-In SDK Swap</title>
+      <link>https://www.digitalapplied.com/blog/meta-muse-spark-1-1-agentic-model-api-2026</link>
+      <guid isPermaLink="false">2026-07-09-07-meta-muse-spark-mcp-api-drop-in</guid>
+      <pubDate>Thu, 09 Jul 2026 20:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>LLM</category>
+      <category>Agents</category>
+      <category>MCP</category>
+      <category>Developer Tools</category>
+      <description>Meta's first paid API model launched today — $1.25/$4.25 per M tokens, native MCP, 1M-token context, #1 on tool use benchmarks, and a base_url swap away from any existing OpenAI SDK integration.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Meta's first commercial API model ships today — $1.25/$4.25 per M input/output tokens, native MCP and parallel tool calling, 1M-token context, and a base_url swap away from any existing OpenAI SDK integration.**
+
+Meta Superintelligence Labs launched Muse Spark 1.1 today, the first time Meta has charged for API access to one of its models. Until now Meta's models were open-weight and free; Muse Spark 1.1 is closed-weights and built specifically for agentic tool use and coding at scale.
+
+## Pricing in context
+
+| Model | Input | Output (per M tokens) |
+|---|---|---|
+| Muse Spark 1.1 | $1.25 | $4.25 |
+| GPT-5.6 Sol | $5.00 | $30.00 |
+| Claude Opus 4.8 | $5.00 | $25.00 |
+
+Output is **6× cheaper than GPT-5.6 Sol** on sticker price. $20 in free credits for new API accounts; US-only preview at launch.
+
+## What makes it worth evaluating
+
+- **Native MCP:** speaks the Model Context Protocol natively — your existing MCP servers connect without a wrapper layer
+- **Parallel tool calling:** zero-shot generalization to new tools in structured output mode
+- **1M-token context** with self-managed compaction
+- **Computer use:** direct desktop and browser control via screenshots
+- **Benchmarks:** #1 on JobBench (professional tool use: 54.7 vs Opus 48.4) and MCP Atlas (88.1); trails on SWE-Bench Pro coding accuracy (61.5 vs Opus 69.2)
+
+## Drop it into your existing integration
+
+The API is compatible with both OpenAI Chat Completions and Anthropic Messages formats — a base URL change is all you need:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="YOUR_META_API_KEY",
+    base_url="https://api.meta.ai/v1"
+)
+
+response = client.chat.completions.create(
+    model="muse-spark-1.1",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Summarize this PR diff and suggest edge cases..."}]
+)
+```
+
+For MCP tool routing, pass your tool definitions in the same JSON schema format you use with Claude or GPT — Muse Spark 1.1 uses the same structure.
+
+## When to route to it
+
+Route to Muse Spark 1.1 for high-volume agentic pipelines where output token cost is the bottleneck and coding accuracy is secondary (MCP tool calls, document processing, multi-step research). Keep Claude for precision coding and multi-file refactors where the SWE-Bench gap (61.5 vs 69.2) represents real risk.
+
+**Why it matters:** A credible MCP-native competitor at 6× lower output cost forces every team building on GPT-5.x or Claude to reevaluate its routing strategy — today is a good day to benchmark your heaviest agentic workflows against Muse Spark's $4.25/M output.
+
+**Sources:** [Meta Muse Spark 1.1 Developer Guide (DigitalApplied)](https://www.digitalapplied.com/blog/meta-muse-spark-1-1-agentic-model-api-2026) · [Meta Starts Charging for AI With Muse Spark 1.1 (Bloomberg)](https://www.bloomberg.com/news/articles/2026-07-09/meta-starts-charging-for-ai-with-muse-spark-1-1-agentic-model) · [Muse Spark 1.1 pricing (AI Weekly)](https://aiweekly.co/alerts/meta-prices-muse-spark-11-api-at-125425-per-m-tokens)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Anthropic Launches Reflect: Visualize Your Claude Usage and Set AI Breaks</title>
+      <link>https://www.anthropic.com/news/reflect-with-claude</link>
+      <guid isPermaLink="false">2026-07-09-08-anthropic-reflect-usage-dashboard</guid>
+      <pubDate>Thu, 09 Jul 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>Reflect is Anthropic's new beta dashboard showing how you use Claude — topics, peak hours, total chats over 1-12 months — with optional break reminders and quiet hours. Available now on Free, Pro, and Max.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Anthropic launched Reflect in beta today — a usage dashboard inside Claude showing your most-used topics, peak hours, and total chats over 1-12 months, with optional break reminders and quiet hours.**
+
+Reflect is Anthropic's answer to screen-time dashboards. With Memory enabled, it summarizes the topics you've worked on with Claude, your most active day and hour, and total chat counts over selectable periods (1, 3, 6, or 12 months). It also surfaces guided reflection prompts ("What's one thing you'd want to keep doing yourself?") and lets you set quiet hours or break reminders via Settings > Reflect.
+
+Available now in beta for Free, Pro, and Max plans (Claude web and desktop; Memory must be on). Cowork conversation reflection is coming soon.
+
+**Why it matters:** For individual devs it's a quick audit of whether Claude time is going to high-leverage work. The broader signal: Anthropic is building usage-analytics infrastructure that spans Claude products — expect similar insights to land in the API and team console as the feature matures.
+
+**Sources:** [A new way to reflect on how you use Claude (Anthropic)](https://www.anthropic.com/news/reflect-with-claude) · [Anthropic's Reflection: AI gets its screen-time moment (Axios)](https://www.axios.com/2026/07/09/anthropic-reflection-ai-screen-time)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Get Up to 2.8x Faster Token Generation Without Changing Your Model: Enable Speculative Decoding in vLLM</title>
+      <link>https://www.digitalocean.com/community/tutorials/speculative-decoding-vllm-configuration-guide</link>
+      <guid isPermaLink="false">2026-07-09-06-speculative-decoding-vllm-draft-verify</guid>
+      <pubDate>Thu, 09 Jul 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <category>Best Practices</category>
+      <description>Pair a small draft model with your vLLM server using two flags — the large target verifies multiple proposed tokens in one parallel pass, cutting time-per-token by up to 2.8x on code and summarization workloads.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Add `--speculative-model` and `--num-speculative-tokens 5` to your vLLM serve command and get 2-3x faster output on low-temperature workloads like code generation and summarization — with zero change to output quality.**
+
+**What you'll be able to do after this:**
+
+- Enable speculative decoding in vLLM with two extra CLI flags, no model changes, no quality trade-off
+- Know when it cuts time-per-output-token by 2-3x vs when it slows you down (and why)
+- Pick a draft model for your target and track acceptance rate to tune `--num-speculative-tokens`
+
+## How speculative decoding works
+
+Standard LLMs generate one token per forward pass through the full model — each 70B-parameter pass produces exactly one token. Speculative decoding inserts a small, fast **draft model** (1-8B) before the expensive target:
+
+1. **Draft phase:** the small model proposes K tokens in a single cheap pass (default K=5)
+2. **Verify phase:** the large target model evaluates all K drafts in **one parallel forward pass** — the same compute cost as generating one token — and accepts those that match its own distribution
+
+When acceptance rates are high (0.65+), you get 3-5 tokens per expensive target pass instead of 1, cutting time-per-output-token (TPOT) by 2-3x. The accepted tokens are **mathematically identical** to what the target would have generated alone — no quality trade-off.
+
+## Enable it in vLLM
+
+The draft model must share the same vocabulary as the target (same model family works best):
+
+```bash
+python -m vllm.entrypoints.openai.api_server \
+  --model meta-llama/Llama-3.1-70B-Instruct \
+  --speculative-model meta-llama/Llama-3.1-8B-Instruct \
+  --num-speculative-tokens 5 \
+  --speculative-draft-tensor-parallel-size 1 \
+  --tensor-parallel-size 2 \
+  --gpu-memory-utilization 0.92 \
+  --dtype bfloat16
+```
+
+Key flags:
+- `--speculative-model` — HF hub name or local path of the draft model
+- `--num-speculative-tokens` — tokens proposed per round; 5 is a good start, raise to 8 for long low-temp outputs
+- `--speculative-draft-tensor-parallel-size 1` — keep draft on one GPU; target uses `--tensor-parallel-size`
+
+The draft model lives in VRAM alongside the target. On 2x H100, Llama-3.1-8B fits comfortably next to Llama-3.1-70B with `--gpu-memory-utilization 0.92`.
+
+## When to enable it — and when to skip it
+
+| Workload | Expected result |
+|---|---|
+| Code generation, temperature 0.5 or below | **2-3x faster TPOT** |
+| Summarization, long structured outputs | **up to 2.8x faster** |
+| Chat with temperature above 0.7 | minimal gain; draft acceptance drops |
+| GPU already saturated at high QPS | 1.4-1.8x **slower** — skip it |
+
+At high temperatures the target's distribution becomes too wide for the draft to predict, so most proposals get rejected — you pay for extra compute with no speedup.
+
+## Monitor acceptance rate
+
+After launch, check the metrics endpoint:
+
+```bash
+curl http://localhost:8000/metrics | grep spec_decode_draft_acceptance_rate
+# vllm:spec_decode_draft_acceptance_rate_perc{...} 0.72
+```
+
+Acceptance rate above 0.65 means real speedup. Below 0.5, try a draft model from the same model family or reduce `--num-speculative-tokens`.
+
+**Sources:** [Speculative Decoding on vLLM: A Configuration and Decision Framework (DigitalOcean)](https://www.digitalocean.com/community/tutorials/speculative-decoding-vllm-configuration-guide) · [vLLM Speculative Decoding Docs](https://docs.vllm.ai/en/latest/features/spec_decode.html) · [Speculative Decoding: 2-3x LLM Inference Speedup (Introl)](https://introl.com/blog/speculative-decoding-llm-inference-speedup-guide-2025)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Let Claude Close the Loop: Background Agents Now Auto-Commit, Push, and Open a Draft PR</title>
