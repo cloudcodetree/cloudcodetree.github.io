@@ -1,5 +1,42 @@
 [
   {
+    "id": "2026-07-09-05-background-agents-auto-pr-commit-push",
+    "title": "Let Claude Close the Loop: Background Agents Now Auto-Commit, Push, and Open a Draft PR",
+    "excerpt": "Since v2.1.198, Claude Code background agents in worktrees commit, push, and open a GitHub draft PR when they finish — then fire agent_completed so you can wire up a Slack or desktop notification.",
+    "author": "Chris Harper",
+    "date": "07-09-2026",
+    "publishedAt": "2026-07-09T12:09:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**TL;DR: Claude Code v2.1.198 (July 1) changed the default for worktree background agents — on finish, they auto-commit, auto-push, and open a GitHub draft PR, then fire an `agent_completed` hook you can wire to any notification channel.**\n\nBefore v2.1.198, a background agent launched with `claude agents` would pause at the end of code work and wait for you to confirm before committing. That pause was the main friction in fleet-style workflows — you couldn't walk away until you acknowledged each session.\n\nNow the agent closes the loop on its own:\n1. Finishes its edits in the isolated worktree\n2. Commits with a descriptive message\n3. Pushes the branch to the remote\n4. Opens a **draft** PR on GitHub — automatically\n\nThe draft flag is the guardrail: the agent stages the result, but the merge decision stays with you. No code ships until a human promotes the PR from draft to ready.\n\n## Wire up notifications with the new hooks\n\nv2.1.198 also added two `Notification` hook events for background agents:\n\n- **`agent_completed`** — fires when the agent finishes and the draft PR is open\n- **`agent_needs_input`** — fires when the agent is paused and blocked on your input\n\nAdd this to `.claude/settings.json` to trigger a macOS notification when a session completes (swap the `command` for a Slack webhook, ntfy.sh, or anything else):\n\n```json\n{\n  \"hooks\": {\n    \"Notification\": [\n      {\n        \"matcher\": \"agent_completed\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"osascript -e 'display notification \\\"Draft PR ready\\\" with title \\\"Claude Agent Done\\\"'\"\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\n## The fleet workflow this enables\n\nDispatch five background agents at once — each works in its own worktree on a different task. All five commit, push, and open draft PRs when done. You get five `agent_completed` notifications and five PRs waiting in your GitHub repo. Previously you had to babysit and manually commit each session.\n\nTo opt back in to the old \"ask before committing\" behavior, set `\"autoCommit\": false` in the agent session config — a setting added in response to [community feedback](https://github.com/anthropics/claude-code/issues/73197).\n\n**Sources:** [Claude Code changelog](https://code.claude.com/docs/en/changelog) · [v2.1.198 release notes](https://github.com/anthropics/claude-code/releases/tag/v2.1.198) · [Background agents deep dive](https://aiagentsfirst.com/claude-code-v2-1-198-background-agents)"
+  },
+  {
+    "id": "2026-07-09-04-multi-agent-langgraph-mcp-a2a-orchestration",
+    "title": "One LLM Isn't Enough: Build a Four-Agent System With LangGraph, MCP, and Cross-Framework Delegation",
+    "excerpt": "Multi-agent systems outperform single agents on complex tasks — build a four-agent system with LangGraph state graphs, MCP tool servers, and A2A cross-framework delegation, end to end.",
+    "author": "Chris Harper",
+    "date": "07-09-2026",
+    "publishedAt": "2026-07-09T12:07:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Agents",
+      "MCP",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.freecodecamp.org/news/how-to-build-a-multi-agent-ai-system-with-langgraph-mcp-and-a2a-full-book/",
+    "content": "**TL;DR: Multi-agent systems split complex tasks across specialists — LangGraph wires the state graph, MCP servers give each agent its tools, and the A2A protocol lets agents hand off work across frameworks.**\n\n**What you'll be able to do after this:**\n- Design a supervisor-worker multi-agent system where a coordinator routes tasks to specialized agents\n- Give each agent its tools via MCP servers — no hard-coded function lists, no code changes when tools change\n- Delegate sub-tasks to agents built in a different framework (CrewAI, OpenAI Agents) via the A2A protocol\n\n## The system at a glance\n\nThe [freeCodeCamp Full Book tutorial](https://www.freecodecamp.org/news/how-to-build-a-multi-agent-ai-system-with-langgraph-mcp-and-a2a-full-book/) builds a Learning Accelerator — four agents that plan a curriculum, explain topics, quiz the learner, and adapt based on results:\n\n| Agent | Role |\n|---|---|\n| **Curriculum Planner** | Takes a learning goal, returns a structured JSON roadmap |\n| **Explainer** | Queries MCP filesystem/notes servers, grounds answers in real docs |\n| **Quiz Generator** | Writes questions, grades responses, tracks weak areas |\n| **Progress Coach** | Synthesizes results; delegates to a CrewAI agent via A2A |\n\n## Run it yourself\n\n```bash\npip install langgraph mcp a2a-sdk langchain-ollama crewai langfuse deepeval\nollama pull llama3.2          # or any local model\ngit clone https://github.com/sandeepmb/freecodecamp-multi-agent-ai-system\n```\n\n**Step 1 — Define the state graph**\n\nEach agent is a LangGraph node: a Python function that receives `AgentState`, calls an LLM + tools, and returns updated state.\n\n```python\nfrom langgraph.graph import StateGraph\n\nbuilder = StateGraph(AgentState)\nbuilder.add_node(\"curriculum_planner\", curriculum_planner_node)\nbuilder.add_node(\"explainer\", explainer_node)\nbuilder.add_node(\"quiz_generator\", quiz_node)\nbuilder.add_node(\"progress_coach\", coach_node)\n# edges define routing between nodes\nbuilder.add_edge(\"curriculum_planner\", \"explainer\")\n```\n\n**Step 2 — Attach MCP servers as tool sources**\n\nInstead of hard-coded functions, each agent binds to a running MCP server. The Explainer reads the learner's actual notes:\n\n```python\nfrom langchain_mcp_adapters.client import MultiServerMCPClient\n\nmcp_client = MultiServerMCPClient({\n    \"filesystem\": {\"command\": \"python\", \"args\": [\"mcp_servers/filesystem_server.py\"]},\n    \"memory\":     {\"command\": \"python\", \"args\": [\"mcp_servers/memory_server.py\"]},\n})\ntools = await mcp_client.get_tools()\n```\n\n**Step 3 — Cross-framework delegation via A2A**\n\nThe Progress Coach can hand off work to a CrewAI agent running in a separate process. A2A makes this a standard HTTP call:\n\n```python\nfrom a2a.client import A2AClient\n\nasync def delegate_to_crewai(task: str) -> str:\n    client = A2AClient(\"http://localhost:8001\")\n    result = await client.send_task({\"message\": {\"parts\": [{\"text\": task}]}})\n    return result.artifact.parts[0].text\n```\n\n**Step 4 — Crash recovery with SQLite checkpoints**\n\n```python\nfrom langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver\n\nmemory = AsyncSqliteSaver.from_conn_string(\"checkpoints.db\")\ngraph = builder.compile(checkpointer=memory, interrupt_after=[\"curriculum_planner\"])\n```\n\nLangGraph serializes state after every node — a restart picks up at the last completed node, not from scratch.\n\n**Sources:** [How to Build a Multi-Agent AI System with LangGraph, MCP, and A2A [Full Book] — freeCodeCamp](https://www.freecodecamp.org/news/how-to-build-a-multi-agent-ai-system-with-langgraph-mcp-and-a2a-full-book/) · [GitHub companion repo](https://github.com/sandeepmb/freecodecamp-multi-agent-ai-system) · [LangGraph docs](https://www.langchain.com/langgraph)"
+  },
+  {
     "id": "2026-07-09-03-vscode-1128-parallel-agent-chats-fork",
     "title": "Don't Restart the Agent: Fork from Any Earlier Turn with VS Code 1.128's Parallel Claude Chats",
     "excerpt": "VS Code 1.128 adds parallel chat threads inside a Claude agent session — fork from any earlier turn, run tasks concurrently, and compare approaches without losing either history.",
