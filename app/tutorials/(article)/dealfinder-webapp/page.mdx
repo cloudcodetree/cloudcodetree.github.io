@@ -24,25 +24,13 @@ export const metadata = {
 This is **Part 14 of DealFinder**. By the end you have a running browser app at `localhost:8000`. It requires no Node, no bundler, and no separate web server — the same FastAPI process that powers the agent and MCP server serves the HTML, streams the results, and handles the badge logic.
 
 <Callout tone="tip">
-**Code along at step-30.** Full project at
+**Code along at step-14.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-This part is a single new step — `step-30` — which adds `dealfinder/static/index.html`,
+This part is a single new step — `step-14` — which adds `dealfinder/static/index.html`,
 the SSE endpoint in `dealfinder/serve.py`, and the `render_badge()` function in
 `dealfinder/dealscore.py`. Compare the diff:
-[step-29…step-30](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-29...step-30).
+[step-13…step-14](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-13...step-14).
 </Callout>
-
-## Course summary
-
-This is Part 14 of the **Become a Full-Stack AI Engineer** series (33 parts). The full arc:
-
-- **Phase 1 (Parts 1–9) — Real data & the aggregator:** data layer, LLM literacy, deal-score model, recommender, semantic search, structured extraction, live connectors, scraping, tiered aggregation.
-- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor, build the ReAct agent, MCP server, pgvector persistence, and the web app (here).
-- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration with Prefect, dbt, and data contracts.
-- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** gradient boosting, experiment tracking, evaluation, the MLOps loop.
-- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI serving, inference optimization, containerization, Kubernetes, observability.
-- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth, saved searches, Stripe payments, security at scale.
-- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, system-design case study.
 
 ## Table of contents
 
@@ -191,7 +179,7 @@ The browser's `EventSource` API is the right tool here because the data flows in
 Add the `/search/stream` endpoint to `serve.py`. It wraps the existing synchronous `aggregate()` call in an async generator that yields progress events as each source responds:
 
 ```python
-# dealfinder/serve.py  (step-30 addition)
+# dealfinder/serve.py  (step-14 addition)
 import asyncio
 import json
 from fastapi.responses import StreamingResponse
@@ -253,10 +241,10 @@ Key points:
 
 ## The EventSource client
 
-`dealfinder/static/index.html` already has the form, CSS, and a `run()` function that calls `/search` directly. The `step-30` change replaces that function with one that opens an `EventSource` connection and appends cards as events arrive:
+`dealfinder/static/index.html` already has the form, CSS, and a `run()` function that calls `/search` directly. The `step-14` change replaces that function with one that opens an `EventSource` connection and appends cards as events arrive:
 
 ```javascript
-// dealfinder/static/index.html  (step-30, SSE path in run())
+// dealfinder/static/index.html  (step-14, SSE path in run())
 async function run(q) {
   const m = mode();
   if (m === "meaning") {
@@ -319,10 +307,10 @@ If `DATABASE_URL` is not set, the `/semantic` endpoint returns a `503`. The Java
 
 ## Badge logic: render_badge()
 
-The deal cards need a human-readable verdict: **DEAL**, **FAIR**, **SUSPICIOUS**, or **OVERPRICED**. That logic lives in `dealfinder/dealscore.py`, which already has the `verdict()` function from Part 3. The `step-30` addition is a thin `render_badge()` wrapper that converts a `(deal_pct, residual_frac)` pair to the badge string:
+The deal cards need a human-readable verdict: **DEAL**, **FAIR**, **SUSPICIOUS**, or **OVERPRICED**. That logic lives in `dealfinder/dealscore.py`, which already has the `verdict()` function from Part 3. The `step-14` addition is a thin `render_badge()` wrapper that converts a `(deal_pct, residual_frac)` pair to the badge string:
 
 ```python
-# dealfinder/dealscore.py  (step-30 addition)
+# dealfinder/dealscore.py  (step-14 addition)
 SUSPICIOUS_RESIDUAL_FRAC = 0.70
 DEAL_MEDIAN_FRAC         = 0.15
 

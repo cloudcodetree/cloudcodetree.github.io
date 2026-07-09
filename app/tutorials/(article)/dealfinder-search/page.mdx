@@ -29,18 +29,6 @@ Step tag: `step-05`. Delta from `step-04`: add `dealfinder/search.py` (a self-co
 The fastembed model (~130 MB) was downloaded in Part 4 — Part 5 reuses the cache. First run after a clean clone takes ~30 s.
 </Callout>
 
-## Course summary
-
-This is Part 5 of the **Become a Full-Stack AI Engineer** series (33 parts). The full arc:
-
-- **Phase 1 (Parts 1–9) — Real data & the aggregator:** build the data layer (Part 1), develop LLM literacy (Part 2), learn the deal-score model (Part 3), recommender (Part 4), semantic search (here), structured extraction (Part 6), and live multi-source connectors (Parts 7–9).
-- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor, build the ReAct agent, MCP server, pgvector persistence, and the web UI.
-- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration with Prefect, dbt, and data contracts.
-- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** experiment tracking, evaluation as a discipline, MLOps loop.
-- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI serving, inference optimization, containerization, Kubernetes, observability.
-- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth, saved searches, Stripe payments, security at scale.
-- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, and a system-design case study on the running system.
-
 ## Table of contents
 
 1. [Why keyword search fails on electronics](#why-keyword-search-fails-on-electronics)
@@ -62,7 +50,7 @@ This is Part 5 of the **Become a Full-Stack AI Engineer** series (33 parts). The
 - Build a BM25 index over the 15 "noise cancelling headphones" titles and query it programmatically.
 - Reuse the Part 4 cached BAAI/bge-small-en-v1.5 title embeddings for dense retrieval — no second model download.
 - Fuse BM25 and dense ranked lists with Reciprocal Rank Fusion (`k=60`) and explain the `k` hyperparameter trade-off.
-- Apply the `_two_signal_deal_scores()` guard so suspicious listings (Bose QC45 at $46.00, residual_frac 0.807) are demoted below honest deals (Anker Q20i at $44.99, residual_frac 0.591).
+- Apply the `_two_signal_deal_scores()` guard so suspicious listings (Bose QC45 at $46.00, residual_frac 0.839) are demoted below honest deals (Anker Q20i at $44.99, residual_frac 0.585).
 - Explain why deal validation belongs in the deal-score layer (Part 3), not in the search layer.
 
 ---
@@ -257,12 +245,12 @@ The deal scores come from `_two_signal_deal_scores()`, which blends the same-que
 
 | Item | price | median_signal | residual_frac | two-signal score |
 |---|---|---|---|---|
-| Anker Q20i | $44.99 | +0.724 | +0.591 | +0.7239 (DEAL) |
-| Bose QC45 | $46.00 | +0.718 | +0.807 | demoted −1.0 (SUSPICIOUS) |
+| Anker Q20i | $44.99 | +0.724 | +0.585 | +0.7239 (DEAL) |
+| Bose QC45 | $46.00 | +0.718 | +0.839 | demoted −1.0 (SUSPICIOUS) |
 | Soundcore Space 2 | $129.99 | +0.202 | ≤0.70 | +0.2024 |
 | Bose QuietComfort | $359.99 | −1.209 | — | −1.2089 (OVERPRICED) |
 
-The guard is exactly `m - 1.0 if (m >= 0.15 and rf > 0.70) else m`. The Bose QC45 clears both bars — a big median signal (+0.718) *and* a residual fraction of 0.807 above the 0.70 threshold — so it is penalized by −1.0 and pushed below the honest Anker Q20i (+0.724, residual only 0.591, under the threshold). The two products are priced within a dollar of each other ($44.99 vs $46.00), but the residual guard tells them apart.
+The guard is exactly `m - 1.0 if (m >= 0.15 and rf > 0.70) else m`. The Bose QC45 clears both bars — a big median signal (+0.718) *and* a residual fraction of 0.839 above the 0.70 threshold — so it is penalized by −1.0 and pushed below the honest Anker Q20i (+0.724, residual only 0.585, under the threshold). The two products are priced within a dollar of each other ($44.99 vs $46.00), but the residual guard tells them apart.
 
 <ValueRerank />
 
@@ -329,9 +317,9 @@ Sony WH-CH720N/P Wireless Noise Canceling Headphones     $129.99  deal=+0.2024
 JBL Tune 770NC Wireless Noise Cancelling Over-Ear Headp   $89.95  deal=+0.4481
 ```
 
-The value rerank does exactly what it should: the honest **Anker Soundcore Q20i** ($44.99, residual_frac 0.591) rises to **rank 1**, even though it was only rank 4 on raw BM25 and never topped either lane. The too-good-to-be-true **Bose QC45** ($46.00, residual_frac 0.807) — priced within a dollar of the Anker but flagged SUSPICIOUS by the residual guard — is penalized −1.0 and sinks out of the visible top-5 entirely. What *does* survive to rank 3 is the legitimately expensive Bose QuietComfort ($359.99), carrying a strongly negative deal score (−1.2089): it is relevant, but it is no deal.
+The value rerank does exactly what it should: the honest **Anker Soundcore Q20i** ($44.99, residual_frac 0.585) rises to **rank 1**, even though it was only rank 4 on raw BM25 and never topped either lane. The too-good-to-be-true **Bose QC45** ($46.00, residual_frac 0.839) — priced within a dollar of the Anker but flagged SUSPICIOUS by the residual guard — is penalized −1.0 and sinks out of the visible top-5 entirely. What *does* survive to rank 3 is the legitimately expensive Bose QuietComfort ($359.99), carrying a strongly negative deal score (−1.2089): it is relevant, but it is no deal.
 
-Note that the demotion is a *ranking* effect, not a deletion. The QC45's price anomaly is visible to downstream deal scoring (its residual fraction of 0.807 exceeds the 0.70 threshold), but the search layer itself only re-sorts. Search's job is relevance; Part 3's residual guard, blended in here, is what catches the trap.
+Note that the demotion is a *ranking* effect, not a deletion. The QC45's price anomaly is visible to downstream deal scoring (its residual fraction of 0.839 exceeds the 0.70 threshold), but the search layer itself only re-sorts. Search's job is relevance; Part 3's residual guard, blended in here, is what catches the trap.
 
 The two Bose QuietComfort listings and the two Sony WH-CH720N variants ($129.99 each) hint at the dedup problem: several of these are near-duplicate products at different prices. Part 6's structured extraction pulls canonical brand/model/condition so a later dedup pass can collapse them before ranking.
 

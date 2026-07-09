@@ -19,25 +19,13 @@ export const metadata = {
 
 # Fine-Tune the Extractor with QLoRA
 
-**TL;DR: The Part 6 extractor works on clean titles, but 154 of the 270 snapshot rows have retailer tokens in the `brand` field that corrupt extraction. A 30-example QLoRA fine-tune on a 1B model cuts the retailer-bleed error rate from 29% to 4% and pushes manufacturer accuracy from 78% to 94%. Numbers are illustrative; the code is real and Colab-runnable.**
+**TL;DR: The Part 6 extractor works on clean titles, but 156 of the 270 snapshot rows have retailer tokens in the `brand` field that corrupt extraction. A 30-example QLoRA fine-tune on a 1B model cuts the retailer-bleed error rate from 29% to 4% and pushes manufacturer accuracy from 78% to 94%. Numbers are illustrative; the code is real and Colab-runnable.**
 
-The Part 6 `llm_extract` function builds a structured prompt, calls an API, and validates the JSON response into a `ListingSpecs` object. That works. The problem is what it does when the title is `"Walmart - COWIN E7 Active Noise Cancelling Headphones Bluetooth"` — the base extractor returns `{brand: "Walmart"}` because the prompt has never seen this pattern in volume. You have 154 listings where the title starts with a retailer prefix. Prompt engineering can handle a few examples, but when every third listing has a different retailer-bleed pattern, you need the model to learn the task, not memorize a list.
+The Part 6 `llm_extract` function builds a structured prompt, calls an API, and validates the JSON response into a `ListingSpecs` object. That works. The problem is what it does when the title is `"Walmart - COWIN E7 Active Noise Cancelling Headphones Bluetooth"` — the base extractor returns `{brand: "Walmart"}` because the prompt has never seen this pattern in volume. You have 156 listings where the title starts with a retailer prefix. Prompt engineering can handle a few examples, but when every third listing has a different retailer-bleed pattern, you need the model to learn the task, not memorize a list.
 
 <Callout tone="warn">
 **This part needs a GPU — read here, run in a notebook.** QLoRA training requires CUDA; the concepts, code, and dataset construction run offline, but the training loop needs a GPU session (free Colab T4 is enough for the 1B model). The numbers below are illustrative and consistently grounded in the snapshot. CI runs the eval script against the pre-trained adapter artifact, not a freshly trained one.
 </Callout>
-
-## Course summary
-
-This is Part 10 of the **Become a Full-Stack AI Engineer** series (33 parts). The full arc:
-
-- **Phase 1 (Parts 1–9) — Real data & the aggregator:** data layer and snapshot (Part 1), LLM literacy (Part 2), deal-score model (Part 3), recommender (Part 4), semantic search (Part 5), structured extraction (Part 6), live multi-source connectors (Part 7), responsible scraping (Part 8), tiered aggregation and resilience (Part 9).
-- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor (here), the ReAct agent (Part 11), MCP server (Part 12), pgvector persistence (Part 13), the web UI (Part 14).
-- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines and orchestration.
-- **Phase 4 (Parts 17–20) — ML rigor and MLOps:** experiment tracking, evaluation discipline, the MLOps loop.
-- **Phase 5 (Parts 21–26) — Safety, serving and cloud:** safety hardening, FastAPI serving, inference optimization, containerization, Kubernetes, observability.
-- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth, saved searches, Stripe, security.
-- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load and chaos, system-design case study.
 
 ## Table of contents
 
@@ -82,10 +70,10 @@ print(f"{len(polluted)} of {len(items)} rows have a retailer in 'brand'")
 ```
 
 ```
-154 of 270 rows have a retailer in 'brand'
+156 of 270 rows have a retailer in 'brand'
 ```
 
-This is the same 154/270 count the companion `snapshot.py` and `features.py` docstrings call out. The messy `brand` field is not a data-quality accident you can clean once — it is a structural property of how the Google Shopping API returns data. Every new listing from a retailer-sourced result will have the same problem.
+This is the same 156/270 count the companion `snapshot.py` and `features.py` docstrings call out. The messy `brand` field is not a data-quality accident you can clean once — it is a structural property of how the Google Shopping API returns data. Every new listing from a retailer-sourced result will have the same problem.
 
 The base `llm_extract` from Part 6 uses a prompt that describes the schema and asks for JSON. It handles clean titles well:
 
@@ -130,7 +118,7 @@ Base extractor output:  {manufacturer: "mountainlifestyle.ca"}
 Fine-tuned adapter output:  {manufacturer: "Anker"}
 ```
 
-Of the 270 snapshot titles, 29% that pass through the base extractor (illustrative, grounded in the 154/270 pollution rate) produce a retailer string as `manufacturer`. That is the number fine-tuning targets.
+Of the 270 snapshot titles, 29% that pass through the base extractor (illustrative, grounded in the 156/270 pollution rate) produce a retailer string as `manufacturer`. That is the number fine-tuning targets.
 
 <ExtractFlow />
 
@@ -389,13 +377,13 @@ Fine-tuning is not always the answer. Use it when the task is narrow, repeated a
 - **The error is in the prompt, not the model.** Audit a sample of base-extractor failures first. If most are fixable with a clearer prompt or a few-shot block, fix the prompt. Fine-tuning solves model-capacity gaps, not prompt-clarity gaps.
 - **The base model's knowledge needs updating.** Fine-tuning does not inject facts. For fresh product data or new brand names, use retrieval (Part 5) or update the known-brands vocabulary in `features.py`.
 
-The retailer-bleed problem is a strong fit: the pattern is structural (not prompt-fixable), the volume is high (154/270 rows in a 270-item corpus = every third listing), and the gold labels are derivable from the title vocabulary with a human review pass.
+The retailer-bleed problem is a strong fit: the pattern is structural (not prompt-fixable), the volume is high (156/270 rows in a 270-item corpus = every third listing), and the gold labels are derivable from the title vocabulary with a human review pass.
 
 ---
 
 ## Reproducibility checks
 
-Because this part's data mode is CONCEPT, the accuracy numbers in the table above are illustrative. Reproducibility lives at the code and adapter level. The `step-10-finetune` tag adds the tests below to the existing `tests/test_dealscore.py` and `tests/test_features.py` in the companion repo (the base extractor and the 154/270 pollution count are already exercised there today):
+Because this part's data mode is CONCEPT, the accuracy numbers in the table above are illustrative. Reproducibility lives at the code and adapter level. The `step-10-finetune` tag adds the tests below to the existing `tests/test_dealscore.py` and `tests/test_features.py` in the companion repo (the base extractor and the 156/270 pollution count are already exercised there today):
 
 ```python
 # tests/test_dealscore.py  (extended in step-10-finetune)
@@ -424,8 +412,8 @@ def test_base_extractor_bleed_documents_motivation():
 
     title = "Walmart - COWIN E7 Active Noise Cancelling Headphones Bluetooth"
     result = rule_extract(title)
-    # rule_extract uses KNOWN_TENT_BRANDS and will not match any electronics brand —
-    # brand comes back None here, not "Walmart". The LLM path is what bleeds.
+    # rule_extract matches against KNOWN_BRANDS (electronics); "Walmart" is not a
+    # known manufacturer, so brand comes back None here, not "Walmart". The LLM path is what bleeds.
     assert result.brand is None  # rule_extract is honest: unknown brand → None
 ```
 
@@ -433,7 +421,7 @@ def test_base_extractor_bleed_documents_motivation():
 # tests/test_features.py  (existing, extended)
 
 def test_retailer_pollution_count():
-    """154 of 270 snapshot rows have a known-retailer token in 'brand'."""
+    """156 of 270 snapshot rows have a known-retailer token in 'brand'."""
     from dealfinder.snapshot import load_snapshot
 
     items = load_snapshot("data/snapshots/electronics-2026-07.json")
@@ -442,7 +430,7 @@ def test_retailer_pollution_count():
         1 for i in items
         if any(tok in (i.get("brand") or "").lower() for tok in retailer_tokens)
     )
-    assert polluted == 154
+    assert polluted == 156
 ```
 
 The dataset construction script is deterministic given the snapshot and seed:
@@ -459,14 +447,14 @@ sha256sum data/finetune/train.jsonl data/finetune/eval.jsonl
 CI runs `--mock-base` on the eval script to avoid API calls during automated runs.
 
 <Callout tone="tip">
-**Companion repo step tag:** `step-10-finetune` in [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). New files: `dealfinder/finetune/build_dataset.py`, `dealfinder/finetune/train_qlora.py`, `dealfinder/finetune/eval_extractor.py`. Modified: `dealfinder/extract.py` (add `adapter_path` arg). Committed artifact: `adapters/extractor-v1/` (~6 MB LoRA adapter, r=16, Llama-3.2-1B-Instruct base). Compare from `step-06-extract`: [step-06-extract...step-10-finetune](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-06-extract...step-10-finetune).
+**Companion repo step tag:** `step-10-finetune` in [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). New files: `dealfinder/finetune/build_dataset.py`, `dealfinder/finetune/train_qlora.py`, `dealfinder/finetune/eval_extractor.py`. Modified: `dealfinder/extract.py` (add `adapter_path` arg). Committed artifact: `adapters/extractor-v1/` (~6 MB LoRA adapter, r=16, Llama-3.2-1B-Instruct base). Compare from the previous step: [step-09-aggregation...step-10-finetune](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-09-aggregation...step-10-finetune).
 </Callout>
 
 ---
 
 ## Where this goes next
 
-- **Part 9 — Tiered aggregation and resilience** (preceding) built the live multi-source pipeline that feeds raw titles into the extraction step — the same pipeline that surfaces the 154/270 retailer-bleed problem that motivates this part.
+- **Part 9 — Tiered aggregation and resilience** (preceding) built the live multi-source pipeline that feeds raw titles into the extraction step — the same pipeline that surfaces the 156/270 retailer-bleed problem that motivates this part.
 - **Part 11 — The agent (ReAct, text-to-SQL, tools, HITL):** the agent uses `llm_extract` as a tool it can call. Cleaner extracted manufacturer fields mean the agent's text-to-SQL queries over the snapshot return higher-precision results — a Bose QuietComfort 45 at $46.00 (SUSPICIOUS, residual fraction 0.839) needs the correct brand tier to score correctly.
 
 ---

@@ -18,25 +18,13 @@ export const metadata = {
 
 # Messy Listings Into Clean JSON
 
-**TL;DR: The snapshot's `brand` field holds the retailer in 154 of 270 rows — "costco.com", "Macy's", "Kohl's", "mountainlifestyle.ca" — not the manufacturer. Fix it by extracting the true brand from the title using a dual-path extractor: an LLM as the primary path, a deterministic regex fallback for offline tests. Pydantic validates both paths into the same `ListingSpecs` shape, so a wrong-typed field (a number where a string belongs) is rejected before it poisons the price model.**
+**TL;DR: The snapshot's `brand` field holds the retailer in 156 of 270 rows — "costco.com", "Macy's", "Kohl's", "mountainlifestyle.ca" — not the manufacturer. Fix it by extracting the true brand from the title using a dual-path extractor: an LLM as the primary path, a deterministic regex fallback for offline tests. Pydantic validates both paths into the same `ListingSpecs` shape, so a wrong-typed field (a number where a string belongs) is rejected before it poisons the price model.**
 
 <Callout tone="tip">
 **Code along, version by version.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder)
 at step tag **`step-06`**. The tests run entirely offline — no API key needed to follow along.
 </Callout>
-
-## Course summary
-
-This is Part 6 of the **Become a Full-Stack AI Engineer** series (33 parts). The full arc:
-
-- **Phase 1 (Parts 1–9) — Real data & the aggregator:** build the data layer (Part 1), develop LLM literacy (Part 2), learn the deal-score model (Part 3), recommender (Part 4), semantic search (Part 5), structured extraction (here), and live multi-source connectors (Part 7).
-- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor, build the ReAct agent, MCP server, pgvector persistence, and the web UI.
-- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration with Prefect, dbt, and data contracts.
-- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** experiment tracking, evaluation as a discipline, MLOps loop.
-- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI serving, inference optimization, containerization, Kubernetes, observability.
-- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth, saved searches, Stripe payments, security at scale.
-- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, and a system-design case study on the running system.
 
 ## Table of contents
 
@@ -55,7 +43,7 @@ This is Part 6 of the **Become a Full-Stack AI Engineer** series (33 parts). The
 
 ## What you'll be able to do after this
 
-- Explain why 154 of 270 snapshot `brand` rows hold a retailer string and why that corrupts the price model's `brand_tier` feature.
+- Explain why 156 of 270 snapshot `brand` rows hold a retailer string and why that corrupts the price model's `brand_tier` feature.
 - Write a Pydantic `ListingSpecs` schema with electronics fields (`brand`, `category`, `condition`, `model`) and validate LLM output into it, catching wrong-typed fields before they enter the pipeline.
 - Implement `rule_extract` as a deterministic offline fallback and test it without any API key.
 - Wire `llm_extract` to an OpenAI-compatible client with a graceful degradation chain: explicit client → OpenRouter → `rule_extract`.
@@ -65,7 +53,7 @@ This is Part 6 of the **Become a Full-Stack AI Engineer** series (33 parts). The
 
 ## The retailer-pollution problem
 
-Part 1 froze `electronics-2026-07.json` — 270 real items, 18 queries, 11 categories. One thing Part 1 flagged but didn't fully solve: the `brand` field is unreliable. It holds the **retailer**, not the manufacturer, in 154 of 270 rows.
+Part 1 froze `electronics-2026-07.json` — 270 real items, 18 queries, 11 categories. One thing Part 1 flagged but didn't fully solve: the `brand` field is unreliable. It holds the **retailer**, not the manufacturer, in 156 of 270 rows.
 
 You can verify this directly against the snapshot (the items live under the `"items"` key):
 
@@ -81,7 +69,7 @@ polluted = sum(
     1 for x in items
     if any(r.lower() in (x.get("brand") or "").lower() for r in retailers)
 )
-print(polluted, "of", len(items))   # → 154 of 270
+print(polluted, "of", len(items))   # → 156 of 270
 ```
 
 The Sony WH-1000XM5 at $162.97 — the anchor for the "noise cancelling headphones" query — has `brand="costco.com"`. A second WH-1000XM5 listing at $248.00 has `brand="Macy's"`. The Anker Soundcore Q20i, a genuine budget deal at $44.99, carries `brand="Kohl's"`; the Bose QuietComfort 45 at $46.00 carries `brand="mountainlifestyle.ca"`. Not one of those raw brand fields names the manufacturer.

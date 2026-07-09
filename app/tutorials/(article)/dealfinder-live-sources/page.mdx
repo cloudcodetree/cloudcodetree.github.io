@@ -30,18 +30,6 @@ Step tags: `step-07a` (eBay OAuth + unit tests) · `step-07b` (BestBuy + RapidAP
 Diff the changes at `github.com/cloudcodetree/tutorial-dealfinder/compare/step-06...step-07b`.
 </Callout>
 
-## Course summary
-
-This is Part 7 of the **Become a Full-Stack AI Engineer** series (33 parts). The full arc:
-
-- **Phase 1 (Parts 1–9) — Real data & the aggregator:** data layer (Part 1), LLM literacy (Part 2), deal-score model (Part 3), recommender (Part 4), semantic search (Part 5), structured extraction (Part 6), live multi-source connectors (here), scraping responsibly (Part 8), tiered aggregation and resilience (Part 9).
-- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor, ReAct agent, MCP server, pgvector persistence, web UI.
-- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration with Prefect, dbt, data contracts.
-- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** experiment tracking, evaluation as a discipline, MLOps loop.
-- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI, inference optimization, containerization, Kubernetes, observability.
-- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth, saved searches, Stripe payments, security at scale.
-- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, system-design case study.
-
 ## Table of contents
 
 1. [Why three sources](#why-three-sources)
@@ -267,7 +255,7 @@ The SBX app id routes both the token POST and the search GET to the sandbox host
 pytest tests/test_live_sources.py -v
 ```
 
-The test runs in CI without network access. Equivalent respx-mocked tests in `tests/test_live_sources.py` cover `BestBuySource` (`test_bestbuy_search_maps_saleprice`), `ShopifySource`, and `FirecrawlSource`.
+The test runs in CI without network access. An equivalent respx-mocked test in `tests/test_live_sources.py` covers `BestBuySource` (`test_bestbuy_search_maps_saleprice`); the scraping connectors added in a later part get the same treatment.
 
 ---
 
@@ -455,8 +443,6 @@ def test_ebay_oauth_then_browse_search(monkeypatch):
 def test_bestbuy_search_maps_saleprice(monkeypatch):
     # Mocks the BestBuy products() response; asserts source == "BestBuy:sale"
     ...
-
-# Plus ShopifySource and FirecrawlSource coverage in the same file.
 ```
 
 Run the offline suite:

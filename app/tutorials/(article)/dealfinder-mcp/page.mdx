@@ -28,18 +28,6 @@ This is **Part 12 of Become a Full-Stack AI Engineer**. The work here is the pro
 Step tag for this part: `step-12`. A `.devcontainer/` gives you Python 3.11 in one click.
 </Callout>
 
-## Course summary
-
-This is Part 12 of the **Become a Full-Stack AI Engineer** series (33 parts). The full arc:
-
-- **Phase 1 (Parts 1–9) — Real data & the aggregator:** data layer (Part 1), LLM literacy (2), deal scoring (3), recommender (4), semantic search (5), structured extraction (6), live connectors (7), responsible scraping (8), tiered aggregation (9).
-- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor (10), the ReAct agent (11), **MCP server (this part)**, pgvector persistence (13), the web UI (14).
-- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration with Prefect, dbt, and data contracts.
-- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** gradient boosting, experiment tracking, evaluation discipline, MLOps loop.
-- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI, inference optimization, containerization, Kubernetes, observability.
-- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth, saved searches, Stripe payments, security at scale.
-- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, and a system-design case study on the running system.
-
 ## Table of contents
 
 1. [Why MCP, not just an API](#why-mcp-not-just-an-api)
@@ -92,7 +80,7 @@ None of the three is a catch-all. Putting everything in tools is the wrong answe
 
 ## Install and initialize the server
 
-`mcp_server.py` lives in the `dealfinder/` package. It is introduced in `step-12` and does not touch `score.py`, `search.py`, `recommend.py`, or `snapshot.py`.
+`mcp_server.py` lives in the `dealfinder/` package. It is introduced in `step-12` and does not touch `dealscore.py`, `search.py`, `recommend.py`, or `snapshot.py`.
 
 ```bash
 pip install "mcp[fastmcp]>=1.0,<2"

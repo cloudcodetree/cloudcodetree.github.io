@@ -29,18 +29,6 @@ You have 166 passing unit/integration tests, a CI eval gate, and a deployed cont
 **Code along.** Companion repo: [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). Step tags for this part: `step-32a` (Playwright setup + `search.spec.ts`) · `step-32b` (`live.spec.ts` + fixtures) · `step-32c` (loadtest.py) · `step-32d` (chaos tests + RUNBOOK.md).
 </Callout>
 
-## Course summary
-
-This is Part 32 of the **Become a Full-Stack AI Engineer** series (33 parts). The full arc:
-
-- **Phase 1 (Parts 1–9) — Real data & the aggregator:** build the data layer, develop LLM literacy, learn the deal-score model, recommender, semantic search, structured extraction, and live multi-source connectors.
-- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor, build the ReAct agent, MCP server, pgvector persistence, and the web UI.
-- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration with Prefect, dbt, and data contracts.
-- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** gradient boosting, experiment tracking, evaluation as a discipline, the MLOps loop.
-- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI serving, inference optimization, containerization, Kubernetes, observability.
-- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth, saved searches, Stripe payments, security at scale.
-- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, runbook (here) → case study + system-design interview.
-
 ## Table of contents
 
 1. [What you'll be able to do after this](#what-youll-be-able-to-do-after-this)
@@ -139,9 +127,9 @@ export const BADGE_TOKENS = ['DEAL', 'FAIR', 'SUSPICIOUS', 'OVERPRICED'] as cons
 export const SEARCH_RESPONSE = {
   count: 4,
   results: [
-    { id: 'a', title: 'Sony WH-1000XM5',       price: 162.97, deal_pct:  80, verdict: 'SUSPICIOUS' },
-    { id: 'b', title: 'Anker Soundcore Q20i',   price:  44.99, deal_pct:  25, verdict: 'DEAL'       },
-    { id: 'c', title: 'Bose QuietComfort 45',   price:  46.00, deal_pct:   0, verdict: 'FAIR'       },
+    { id: 'a', title: 'Sony WH-1000XM5',       price: 162.97, deal_pct:   0, verdict: 'FAIR'       },
+    { id: 'b', title: 'Anker Soundcore Q20i',   price:  44.99, deal_pct:  72, verdict: 'DEAL'       },
+    { id: 'c', title: 'Bose QuietComfort 45',   price:  46.00, deal_pct:  72, verdict: 'SUSPICIOUS' },
     { id: 'd', title: 'Sony WH-1000XM6',        price: 399.99, deal_pct: -30, verdict: 'OVERPRICED' },
   ],
   median_price: 162.97,

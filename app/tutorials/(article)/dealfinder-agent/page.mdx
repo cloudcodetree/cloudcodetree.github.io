@@ -29,18 +29,6 @@ Step tag for this part: `step-11`.
 Compare the diff: [step-10...step-11](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-10...step-11).
 </Callout>
 
-## Course summary
-
-This is Part 11 of the **Become a Full-Stack AI Engineer** series (33 parts). The full arc:
-
-- **Phase 1 (Parts 1–9) — Real data & the aggregator:** data layer (Part 1), LLM literacy (Part 2), deal-score model (Part 3), recommender (Part 4), semantic search (Part 5), structured extraction (Part 6), live multi-source connectors (Part 7), responsible scraping (Part 8), tiered aggregation & resilience (Part 9).
-- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor with QLoRA (Part 10), the ReAct agent (here), MCP server (Part 12), pgvector persistence (Part 13), web UI (Part 14).
-- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration, dbt, contracts.
-- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** experiment tracking, evaluation as a discipline, MLOps loop.
-- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI serving, inference optimization, containerization, Kubernetes, observability.
-- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth, saved searches, Stripe payments, security at scale.
-- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, system-design case study.
-
 ## Table of contents
 
 1. [What you'll be able to do after this](#what-youll-be-able-to-do-after-this)
@@ -187,7 +175,7 @@ def nl_to_sql(question: str, table: str = "catalog") -> str:
     return f"SELECT * FROM {table} WHERE {where}"
 ```
 
-Note the brand rule keys off the *title*, not the raw `brand` column — that column holds the retailer in 154/270 snapshot rows ("Walmart - COWIN", "Target"), so `title_brand` extracts the true manufacturer and matches it with a `title LIKE`. Run it against the demo goal, "find a good noise-cancelling headphone under $120":
+Note the brand rule keys off the *title*, not the raw `brand` column — that column holds the retailer in 156/270 snapshot rows ("Walmart - COWIN", "Target"), so `title_brand` extracts the true manufacturer and matches it with a `title LIKE`. Run it against the demo goal, "find a good noise-cancelling headphone under $120":
 
 ```python
 from dealfinder.tools import nl_to_sql, load_catalog, build_db, run_sql
@@ -238,23 +226,22 @@ def deal_of(pid: str) -> float:
     return m - 1.0 if (m >= 0.15 and rf > 0.70) else m  # demote traps
 ```
 
-You can inspect the full verdict for a single listing through the MCP `score_deal` tool (built in Part 12 on the same `dealscore` primitives). For the Anker Q20i and the cheap Bose QC45:
+You can inspect the full verdict for a single listing by calling `verdict` from `dealfinder/dealscore.py` directly on the same primitives `deal_of` uses. For the Anker Q20i and the cheap Bose QC45:
 
 ```python
-from dealfinder.mcp_server import score_deal, _catalog
+from dealfinder.dealscore import verdict
 
-anker = next(p for p in _catalog if "Soundcore Q20i" in p.title)
-bose  = next(p for p in _catalog if "QuietComfort 45" in p.title and p.price < 60)
+# fair prices come from the per-category model; medians from the cross-source snapshot
+anker = verdict(actual=44.99, median=162.97, fair=108.33)
+bose  = verdict(actual=46.00, median=162.97, fair=285.15)
 
-print(score_deal(anker.id))
-print(score_deal(bose.id))
+print(anker.label, round(anker.median_signal, 3), round(anker.residual_frac, 3))
+print(bose.label,  round(bose.median_signal, 3),  round(bose.residual_frac, 3))
 ```
 
 ```
-{'title': 'Anker Soundcore Q20i ...', 'price': 44.99, 'fair_price': 108.33,
- 'median_signal': 0.724, 'residual_frac': 0.585, 'verdict': 'deal'}
-{'title': 'Bose QuietComfort 45 ...', 'price': 46.0, 'fair_price': 285.15,
- 'median_signal': 0.718, 'residual_frac': 0.839, 'verdict': 'suspicious'}
+deal 0.724 0.585
+suspicious 0.718 0.839
 ```
 
 The teaching crux: both the Anker Q20i and the Bose QC45 sit at roughly $45 — both are about 72% under the query median (`median_signal` 0.724 vs 0.718). The median signal alone cannot separate them. The model residual does.

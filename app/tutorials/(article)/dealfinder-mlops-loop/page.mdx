@@ -29,18 +29,6 @@ Step tag: `step-20` (mlops loop). Compare against `step-19` to see exactly what 
 Tests are in `tests/test_mlops.py` — seven functions, all passing.
 </Callout>
 
-## Course summary
-
-This is Part 20 of the **Become a Full-Stack AI Engineer** series (33 parts). The full arc:
-
-- **Phase 1 (Parts 1–9) — Real data & the aggregator:** build the data layer, develop LLM literacy, learn the deal-score model, recommender, semantic search, structured extraction, and live multi-source connectors.
-- **Phase 2 (Parts 10–14) — Intelligence layer:** fine-tune the extractor, build the ReAct agent, MCP server, pgvector persistence, and the web UI.
-- **Phase 3 (Parts 15–16) — Data engineering:** dataset pipelines, orchestration with Prefect, dbt, and data contracts.
-- **Phase 4 (Parts 17–20) — ML rigor & MLOps:** gradient boosting + price-drop forecaster (Part 17), experiment tracking (Part 18), evaluation as a discipline (Part 19), **closing the MLOps loop (this part)**.
-- **Phase 5 (Parts 21–26) — Safety, serving & cloud:** safety hardening, FastAPI serving, inference optimization, containerization, Kubernetes, observability.
-- **Phase 6 (Parts 27–31) — Full-stack SaaS:** React/Next.js frontend, auth, saved searches, Stripe payments, security at scale.
-- **Phase 7 (Parts 32–33) — Ship:** end-to-end testing, load/chaos, and a system-design case study on the running system.
-
 ## Table of contents
 
 1. [Why the loop, not the model, is the product](#why-the-loop-not-the-model-is-the-product)
@@ -217,7 +205,7 @@ The numbers reproduce because the snapshot is frozen and the split is determinis
 
 Retraining improves the price model. But the deal-finder's job is ranking — specifically, putting the genuine deals at the top of the list. A better R² on pricing does not automatically mean better deal ranking. You need to ask the ranking question directly.
 
-The gate from Part 19 is the answer: **precision@5 ≥ 0.80** on the golden set of noise-cancelling headphones. Five hand-labeled ground-truth deals; the ranker has to identify at least four of them in its top five.
+The gate from Part 19 is the answer: **precision@5 ≥ 0.80** on the 20-item golden set (15 noise-cancelling headphones plus 5 cross-category items: Kindle, Galaxy Tab, Armitron watch, Arlo, PNY RTX). Of the five listings the ranker surfaces first, at least four must be ground-truth deals.
 
 ```python
 @dataclass
@@ -372,14 +360,14 @@ Run them:
 pytest tests/test_mlops.py -v
 ```
 
-All seven pass. The complete suite across Parts 18, 20, and 23 is:
+All seven pass. Run them alongside Part 18's tracking suite:
 
 ```bash
-pytest tests/test_tracking.py tests/test_mlops.py tests/test_inference.py
+pytest tests/test_tracking.py tests/test_mlops.py
 ```
 
 ```
-20 passed in 6.81s
+11 passed
 ```
 
 The PSI values, MAE numbers, precision@5 scores, and promotion decisions are fixed by the committed snapshot. If they change, a test breaks — and a breaking test is the correct signal that something in the underlying data or model contract has changed.
