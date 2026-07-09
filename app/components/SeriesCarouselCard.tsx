@@ -33,7 +33,6 @@ export default function SeriesCarouselCard({ series, parts, featured = false }: 
   const idx = ((i % n) + n) % n;
   const t = parts[idx];
   const go = useCallback((d: number) => setState(([cur]) => [cur + d, d]), []);
-  const jump = useCallback((to: number) => setState(([cur]) => [to, to >= cur ? 1 : -1]), []);
   const multi = n > 1;
 
   return (
@@ -122,17 +121,15 @@ export default function SeriesCarouselCard({ series, parts, featured = false }: 
               <Box component={motion.div} animate={{ width: `${((idx + 1) / n) * 100}%` }} transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
                 sx={{ position: 'absolute', inset: 0, right: 'auto', background: ACCENT, borderRadius: 2 }} />
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
               <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>{`${idx + 1} / ${n}`}</Typography>
-              <Box sx={{ display: 'flex', gap: 1.5 }}>
+              <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
                 <Typography component={Link} href={`/tutorials/${parts[0].slug}/`} sx={{ fontFamily: MONO, fontSize: 11, color: ACCENT, textDecoration: 'none', '&:hover': { color: LINK } }}>
                   Start →
                 </Typography>
-                {idx !== n - 1 && (
-                  <Typography component="button" onClick={() => jump(n - 1)} sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', background: 'none', border: 'none', p: 0, cursor: 'pointer', '&:hover': { color: ACCENT } }}>
-                    Last
-                  </Typography>
-                )}
+                <Typography component={Link} href={`/tutorials/all/?series=${encodeURIComponent(series)}`} sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', textDecoration: 'none', '&:hover': { color: ACCENT } }}>
+                  {`Browse all ${total} parts →`}
+                </Typography>
               </Box>
             </Box>
           </Box>

@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 export default function AllTutorialsPage() {
-  // Newest first (descending order), mirroring the AI News blog.
-  const ordered = [...tutorials].sort((a, b) => b.order - a.order);
+  // Ascending (course order) so each course reads Part 1 -> last, not reversed.
+  const ordered = [...tutorials].sort((a, b) => a.order - b.order);
   return <TutorialsList tutorials={ordered} variant="all" />;
 }

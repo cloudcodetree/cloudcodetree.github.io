@@ -24,21 +24,35 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
   const [size, setSize] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<string[]>([]);
+  const [seriesFilter, setSeriesFilter] = useState<string | null>(null);
 
   useEffect(() => {
     const v = window.localStorage.getItem('tut-view') as View | null;
     if (v && VIEWS.includes(v)) setView(v);
   }, []);
 
+  // On the /all page, ?series= scopes the grid to a single course (client-only
+  // read so it stays static-export-safe without a Suspense boundary).
+  useEffect(() => {
+    if (variant !== 'all') return;
+    const s = new URLSearchParams(window.location.search).get('series');
+    if (s) setSeriesFilter(s);
+  }, [variant]);
+
+  const base = useMemo(
+    () => (seriesFilter ? tutorials.filter((t) => t.series === seriesFilter) : tutorials),
+    [tutorials, seriesFilter],
+  );
+
   const topics = useMemo(() => {
     const c: Record<string, number> = {};
-    for (const t of tutorials) for (const tag of topicTags(t)) c[tag] = (c[tag] || 0) + 1;
+    for (const t of base) for (const tag of topicTags(t)) c[tag] = (c[tag] || 0) + 1;
     return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count }));
-  }, [tutorials]);
+  }, [base]);
 
   const filtered = useMemo(
-    () => (selected.length ? tutorials.filter((t) => t.tags.some((x) => selected.includes(x))) : tutorials),
-    [tutorials, selected],
+    () => (selected.length ? base.filter((t) => t.tags.some((x) => selected.includes(x))) : base),
+    [base, selected],
   );
 
   // Group the (filtered) tutorials by series, parts ascending, series ordered by
@@ -147,12 +161,14 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 9 } }}>
       <Box component={motion.div} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} sx={{ mb: { xs: 4, md: 6 } }}>
         <Typography sx={{ fontFamily: MONO, color: ACCENT, fontSize: 12, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', mb: 1.5 }}>CloudCodeTree&nbsp;·&nbsp;Learn</Typography>
-        <Typography component="h1" sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '3rem', md: '4.75rem' }, lineHeight: 0.95, letterSpacing: '-0.02em', m: 0, background: 'linear-gradient(180deg,#fff 0%,#cbd5e1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{isSeries ? 'Tutorials' : 'All tutorials'}</Typography>
+        <Typography component="h1" sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '3rem', md: '4.75rem' }, lineHeight: 0.95, letterSpacing: '-0.02em', m: 0, background: 'linear-gradient(180deg,#fff 0%,#cbd5e1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{isSeries ? 'Tutorials' : (seriesFilter ?? 'All tutorials')}</Typography>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mt: 2.5, flexWrap: 'wrap' }}>
           <Box sx={{ height: 2, width: 56, background: ACCENT, alignSelf: 'center' }} />
           <Typography sx={{ color: 'text.secondary', fontSize: { xs: '1rem', md: '1.12rem' }, maxWidth: 600 }}>
-            {isSeries ? 'Hands-on, hand-written courses — each series rolled into one card you can flip through, part by part.' : 'Every tutorial as an individual card. ' }
-            {!isSeries && <Typography component={Link} href="/tutorials/" sx={{ color: ACCENT, textDecoration: 'none', fontFamily: MONO, fontSize: 14, '&:hover': { color: LINK } }}>← Back to series</Typography>}
+            {isSeries
+              ? 'Hands-on, hand-written courses — each series rolled into one card you can flip through, part by part.'
+              : seriesFilter ? `All ${filtered.length} parts of this course, in order. ` : 'Every tutorial as an individual card. '}
+            {!isSeries && <Typography component={Link} href={seriesFilter ? '/tutorials/all/' : '/tutorials/'} sx={{ color: ACCENT, textDecoration: 'none', fontFamily: MONO, fontSize: 14, '&:hover': { color: LINK } }}>{seriesFilter ? '← All tutorials' : '← Back to series'}</Typography>}
           </Typography>
         </Box>
       </Box>
@@ -193,7 +209,7 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
         <Box sx={{ textAlign: 'center', py: 10 }}><Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>{'// no tutorials yet'}</Typography></Box>
       ) : isSeries ? (
         <>
-          {showHome && <CourseHomeCard parts={flagship!.parts} />}
+          {showHome && <CourseHomeCard parts={flagship!.parts} allHref={`/tutorials/all/?series=${encodeURIComponent(flagship!.series)}`} />}
           {seriesCards}
         </>
       ) : (
