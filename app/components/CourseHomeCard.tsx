@@ -45,7 +45,7 @@ export default function CourseHomeCard({ parts, allHref = '/tutorials/all/' }: {
       </Typography>
 
       <Typography component="h2" sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.9rem', md: '2.9rem' }, lineHeight: 1.08, letterSpacing: '-0.01em', m: 0, maxWidth: 820, color: 'text.primary' }}>
-        Become an AI engineer by building one real product, end to end.
+        Become a full-stack AI engineer by building one real product, end to end.
       </Typography>
 
       <Typography sx={{ color: 'text.secondary', fontSize: { xs: '1rem', md: '1.1rem' }, lineHeight: 1.6, mt: 2, maxWidth: 780 }}>

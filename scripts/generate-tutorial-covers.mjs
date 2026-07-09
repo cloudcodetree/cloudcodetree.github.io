@@ -19,7 +19,7 @@ const SERIES_STYLE = {
   'RAG from Scratch': { accent: '#3fb950', glyph: 'database' },
   'Fine-Tuning & Serving': { accent: '#d29922', glyph: 'sliders' },
   'Claude Code Anywhere': { accent: '#2f81f7', glyph: 'terminal' },
-  'Become an AI Engineer': { accent: '#0ea5e9', glyph: 'tag' },
+  'Become a Full-Stack AI Engineer': { accent: '#0ea5e9', glyph: 'tag' },
 };
 
 // Large faint line-art glyphs on the right, clear of the title and PART x/y row.

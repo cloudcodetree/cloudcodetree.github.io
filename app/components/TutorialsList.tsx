@@ -71,13 +71,17 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
     </Box>
   );
 
-  // The flagship (largest) course gets the explainer "home" card up top.
+  // The flagship (largest) course gets the explainer "home" card up top, and is
+  // its ONLY card — no duplicate carousel. When a topic filter hides the home
+  // card, the flagship falls back to a carousel like the rest.
   const flagship = seriesGroups.find((g) => g.parts.length > 10) ?? null;
+  const showHome = !!flagship && selected.length === 0;
+  const carouselGroups = showHome ? seriesGroups.filter((g) => g.series !== flagship!.series) : seriesGroups;
 
-  // Rolled-up: one carousel card per series, 2-up (the flagship's hero is the home card).
+  // Rolled-up: one carousel card per series, 2-up.
   const seriesCards = (
     <Grid container spacing={3}>
-      {seriesGroups.map(({ series, parts }) => (
+      {carouselGroups.map(({ series, parts }) => (
         <Grid size={{ xs: 12, sm: 6 }} key={series}>
           <Box component={motion.div} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} sx={{ height: '100%' }}>
             <SeriesCarouselCard series={series} parts={parts} />
@@ -182,7 +186,7 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
         <Box sx={{ textAlign: 'center', py: 10 }}><Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>{'// no tutorials yet'}</Typography></Box>
       ) : isSeries ? (
         <>
-          {flagship && selected.length === 0 && <CourseHomeCard parts={flagship.parts} />}
+          {showHome && <CourseHomeCard parts={flagship!.parts} />}
           {seriesCards}
         </>
       ) : (
