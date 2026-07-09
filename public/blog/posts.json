@@ -1,5 +1,60 @@
 [
   {
+    "id": "2026-07-09-03-vscode-1128-parallel-agent-chats-fork",
+    "title": "Don't Restart the Agent: Fork from Any Earlier Turn with VS Code 1.128's Parallel Claude Chats",
+    "excerpt": "VS Code 1.128 adds parallel chat threads inside a Claude agent session — fork from any earlier turn, run tasks concurrently, and compare approaches without losing either history.",
+    "author": "Chris Harper",
+    "date": "07-09-2026",
+    "publishedAt": "2026-07-09T04:07:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.visualstudio.com/updates/v1_128",
+    "content": "**TL;DR: VS Code 1.128 (July 8) lets you run multiple Claude agent chats in parallel inside one session — fork from any earlier turn to compare approaches, run tasks concurrently, and pick the winner without losing either history.**\n\nBefore 1.128, if you wanted to try two implementation approaches in a Claude agent session, you either committed to one or started a second session from scratch and lost the shared context. Multi-chat in 1.128 fixes this: a session can contain peer chats grouped together, each with its own turn history, model selection, and title — without bleeding context between them.\n\n## Three workflows this enables\n\n**Branch-and-compare.** You reach a fork — \"use a class or functional approach?\" — and click fork from that turn. Each branch runs its own conversation. Compare both to completion, pick the winner. Neither is lost.\n\n**Parallel independent tasks.** Add peer chats to the same session and send turns concurrently. All run simultaneously with no context bleeding between chats.\n\n**Monitor a subagent without interrupting it.** Watch a subagent's progress in one read-only chat while your main conversation continues. No need to pause the agent to check what it's doing.\n\n## How to fork\n\nIn the Agents window, right-click any message → \"Fork from this turn.\" The new peer chat appears in the same session group and inherits context from the parent up to that point.\n\n## Copilot Vision is also GA in 1.128\n\nMicrosoft removed the admin policy gate for Copilot Vision — free-tier VS Code users can now paste, drag, or drop images and PDFs into chat without an IT ticket. Useful for sharing a failing test screenshot or a wireframe to implement.\n\n**Sources:** [VS Code 1.128 Release Notes](https://code.visualstudio.com/updates/v1_128) · [Claude AI boost in VS Code 1.128 — Visual Studio Magazine](https://visualstudiomagazine.com/articles/2026/07/08/claude-ai-gets-yet-another-boost-in-vs-code-1-128.aspx)"
+  },
+  {
+    "id": "2026-07-09-02-openai-gpt56-sol-terra-luna-launch",
+    "title": "OpenAI Ships Three Models at Once: GPT-5.6 Sol, Terra, and Luna Are Live Today",
+    "excerpt": "OpenAI launches GPT-5.6 Sol ($5/$30 per Mtok, flagship), Terra ($2.50/$15, midrange), and Luna ($1/$6, budget) publicly today, plus explicit prompt-cache breakpoints and 30-minute minimum cache win…",
+    "author": "Chris Harper",
+    "date": "07-09-2026",
+    "publishedAt": "2026-07-09T04:06:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://openai.com/index/previewing-gpt-5-6-sol/",
+    "content": "**TL;DR: OpenAI launched GPT-5.6 publicly today in three stable tiers — Sol ($5/$30/Mtok, flagship), Terra ($2.50/$15), Luna ($1/$6) — after a 30-day government security review, with explicit prompt-cache breakpoints that matter for RAG and agent apps.**\n\nAfter OpenAI submitted GPT-5.6 for government review on June 9, the Department of Commerce cleared it for broad release today. The three-tier naming (Sol, Terra, Luna) is designed to be stable: each tier advances independently on its own cadence rather than getting replaced by a version number, so \"Terra\" will always mean \"the midrange option.\"\n\nTerra is the key number for production teams: it targets GPT-5.5 performance at half the cost ($2.50/$15 vs. $5/$30). Benchmark it before the end of July if you're currently paying for GPT-5.5.\n\nDeveloper-side: GPT-5.6 introduces explicit cache breakpoints — set manually, not just auto-detected — with a 30-minute minimum guaranteed cache window. Cache writes cost 1.25x uncached input; reads are 90% off. For agent apps with large shared prefixes (system prompt + retrieval context), this makes caching far more predictable than automatic detection.\n\n**Why it matters:** Terra's 2x cost reduction at GPT-5.5 performance is a practical win for any production workload. Stable tier naming means you can pin \"Terra\" without chasing model-ID changes.\n\n**Sources:** [Previewing GPT-5.6 Sol — OpenAI](https://openai.com/index/previewing-gpt-5-6-sol/) · [GPT-5.6 pricing explained — eesel](https://www.eesel.ai/blog/gpt-5-6-pricing)"
+  },
+  {
+    "id": "2026-07-09-01-contextual-retrieval-chunk-context-prepend",
+    "title": "Cut Failed Retrievals by 49%: Add Document Context to Every Chunk Before Embedding",
+    "excerpt": "Chunks lose their document identity when split — Anthropic's Contextual Retrieval prepends a Claude-generated context summary to each chunk before embedding and BM25 indexing, cutting retrieval fai…",
+    "author": "Chris Harper",
+    "date": "07-09-2026",
+    "publishedAt": "2026-07-09T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "RAG",
+      "Embeddings",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.anthropic.com/engineering/contextual-retrieval",
+    "content": "**TL;DR: Chunks lose their document identity when split — Anthropic's Contextual Retrieval prepends a 50-100 token LLM-generated context summary to each chunk before embedding AND BM25 indexing, cutting retrieval failures by 49% (67% when you add a reranker).**\n\n**What you'll be able to do after this:**\n- Fix the core failure mode of RAG: chunks that retrieve for the wrong query because they carry no document context\n- Generate context summaries for thousands of chunks cheaply using prompt caching (90% cost cut vs. naive per-chunk API calls)\n- Stack Contextual Embeddings + Contextual BM25 + reranking to hit the full 67% failure reduction\n\n## Why chunks fail\n\nWhen you split a 40-page product spec and embed chunk #18 — \"The maximum payload is 2 MB\" — the embedding captures a generic constraint. It retrieves for every payload-related query regardless of product, version, or context. The fix: tell each chunk what document it came from before you embed it.\n\n## The technique: context-prepend before embed and BM25\n\nFor each chunk, ask Claude to generate a short (50-100 token) context summary explaining the chunk's role in its parent document. Prepend that summary to the chunk text. Use the enriched text for both the vector embedding and the BM25 keyword index.\n\n```python\nimport anthropic\n\nclient = anthropic.Anthropic()\n\nCONTEXT_PROMPT = \"\"\"<document>\n{document}\n</document>\n\nSituate this chunk for retrieval (50-100 tokens, no preamble):\n<chunk>\n{chunk}\n</chunk>\"\"\"\n\ndef add_context(document: str, chunk: str) -> str:\n    r = client.messages.create(\n        model=\"claude-haiku-4-5-20251001\",\n        max_tokens=150,\n        messages=[{\"role\": \"user\", \"content\": CONTEXT_PROMPT.format(\n            document=document, chunk=chunk)}]\n    )\n    return r.content[0].text\n\n# Enrich before BOTH your embed call and BM25 index:\ncontext = add_context(full_doc, chunk_text)\nenriched = f\"{context}\\n\\n{chunk_text}\"\n```\n\n## Cut the cost 90% with prompt caching\n\nFor a document with 500 chunks, calling Claude 500 times with the full document in every prompt is expensive. Use `cache_control` on the document prefix — you pay full price once; subsequent chunks hit the cache at ~10% of the input cost:\n\n```python\nr = client.messages.create(\n    model=\"claude-haiku-4-5-20251001\",\n    max_tokens=150,\n    messages=[{\"role\": \"user\", \"content\": [\n        {\"type\": \"text\", \"text\": f\"<document>\\n{document}\\n</document>\",\n         \"cache_control\": {\"type\": \"ephemeral\"}},\n        {\"type\": \"text\", \"text\": f\"Situate this chunk:\\n<chunk>\\n{chunk}\\n</chunk>\"}\n    ]}]\n)\n```\n\n## Stack it: Contextual BM25 + vector + reranking\n\nApply the same context prepending to your BM25 keyword index, not just embeddings. Anthropic's benchmarks across codebases, scientific papers, and fiction:\n\n| Configuration | Retrieval failure reduction |\n|---|---|\n| Contextual Embeddings + Contextual BM25 | 49% |\n| + Reranker | 67% |\n\nThe [Claude Cookbook](https://platform.claude.com/cookbook/capabilities-contextual-embeddings-guide) has the full implementation: BM25 indexing (via `bm25s`), Reciprocal Rank Fusion code, and the evaluation dataset.\n\n**Sources:** [Contextual Retrieval in AI Systems — Anthropic](https://www.anthropic.com/engineering/contextual-retrieval) · [Enhancing RAG with Contextual Retrieval — Claude Cookbook](https://platform.claude.com/cookbook/capabilities-contextual-embeddings-guide) · [DataCamp implementation guide](https://www.datacamp.com/tutorial/contextual-retrieval-anthropic)"
+  },
+  {
     "id": "2026-07-08-07-hook-types-async-http-prompt-agent",
     "title": "One Command Isn't Enough: Claude Code's Four Hook Handler Types Explained",
     "excerpt": "Claude Code now has four hook handler types — command, HTTP, prompt, and agent — plus async execution. Each is for a different job; the June 2026 intro only scratched the command type.",
