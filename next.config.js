@@ -38,6 +38,11 @@ const createMDX = require('@next/mdx').default ?? require('@next/mdx');
 // CodeBlock.tsx, wired as the `pre` override in mdx-components.tsx), NOT a rehype
 // plugin — Turbopack (dev --turbo) can't serialize MDX plugin options. The component
 // highlights at build time, so it stays static-export-safe with zero runtime JS.
-const withMDX = createMDX({ extension: /\.mdx?$/ });
+const withMDX = createMDX({
+  extension: /\.mdx?$/,
+  // GFM so markdown tables/strikethrough/task-lists render (string form for
+  // Turbopack serialization). Syntax highlighting stays a component (see above).
+  options: { remarkPlugins: [['remark-gfm']] },
+});
 
 module.exports = withMDX(nextConfig);

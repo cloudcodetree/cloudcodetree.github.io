@@ -16,20 +16,6 @@ export const metadata = {
 
 <TutorialHero slug="dealfinder-how-llms-work" />
 
-## DealFinder AI Engineering — 15-Part Course
-
-| # | Part | Status |
-|---|---|---|
-| 1 | [Data layer, normalization & the snapshot](/tutorials/dealfinder-data-layer) | ✓ |
-| **2** | **How LLMs actually work (literacy)** | **← you are here** |
-| 3 | [Is it a good deal? — median vs. model](/tutorials/dealfinder-deal-model) | |
-| 4 | [Recommender — content + collaborative](/tutorials/dealfinder-recommender) | |
-| 5 | [Semantic search — embeddings, BM25, RRF, rerank](/tutorials/dealfinder-search) | |
-| 6 | [Structured extraction — messy titles → schema](/tutorials/dealfinder-extraction) | |
-| 7–15 | Live connectors, agent, MCP, pgvector, web app, eval, safety, serve, ship | |
-
----
-
 # How LLMs Actually Work
 
 **TL;DR: The LLM call in Part 6 extracts brand from `"Walmart - COWIN E7 ANC"`. But even perfect extraction cannot distinguish a $46 trap from a genuine $44.99 deal — attention alone cannot do that. Before you write the extractor, understand what the LLM can and cannot do. This part shows four concepts — tokenization, embeddings, attention, and sampling — using real headphones from the DealFinder snapshot.**
