@@ -10,7 +10,174 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 10 Jul 2026 04:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 10 Jul 2026 12:12:00 +0000</lastBuildDate>
+
+    <item>
+      <title>The 90% Cost Cut You're Leaving on the Table: Claude API Prompt Caching With cache_control</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/prompt-caching</link>
+      <guid isPermaLink="false">2026-07-10-06-claude-api-prompt-caching-cache-control</guid>
+      <pubDate>Fri, 10 Jul 2026 12:12:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Best Practices</category>
+      <category>LLM</category>
+      <description>Add cache_control to your system prompt and tools to cut input token costs 90% in agentic loops — use the default 5-min TTL for tight loops, ttl:3600 for human-approval gaps.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Mark your system prompt and tool definitions with `cache_control` to cut input token costs 90% on every Claude API call after the first — the 5-minute default TTL covers agentic loops; add `"ttl": 3600` when a human-approval step gaps the session.**
+
+If you're calling the Claude API in an agentic loop — where every step re-sends the same system prompt, tool definitions, and possibly a large retrieval context — you're paying full input price on those repeated tokens every call. Prompt caching fixes this with one field.
+
+## How it works
+
+The Claude API caches everything up to and including the block you mark with `"cache_control": {"type": "ephemeral"}`. On the first call you pay a write premium (1.25×); every subsequent call within the TTL that hits the same prefix bills cached tokens at 0.1× — a 90% reduction.
+
+## Marking a cache point
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+response = client.messages.create(
+    model="claude-sonnet-5-20260630",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": "<your full system prompt here>",
+            "cache_control": {"type": "ephemeral"}   # caches everything up to here
+        }
+    ],
+    tools=[...],       # placed before the cache point — also gets cached
+    messages=[
+        {"role": "user", "content": user_message}    # not cached — changes each call
+    ]
+)
+
+print(response.usage.cache_read_input_tokens)       # tokens served from cache
+print(response.usage.cache_creation_input_tokens)   # tokens written to cache this call
+```
+
+## When to use each TTL
+
+| Scenario | Setting |
+|---|---|
+| Agentic loop where steps fire under 5 min apart | `{"type": "ephemeral"}` (5-min default) |
+| Human-approval steps or slow external calls | `{"type": "ephemeral", "ttl": 3600}` (1-hour, 2x write premium) |
+
+The 1-hour TTL costs a 2× write premium instead of 1.25×, but pays for itself the moment a single gap between calls would otherwise expire the cache. For a 10,000-token cached prefix on Claude Sonnet 5 ($3/M input), missing one cache window costs $0.03 vs the ~$0.009 extra you pay for the hourly TTL — the math favors the explicit TTL whenever gaps are plausible.
+
+## 2026 changes to know
+
+Anthropic changed the **default TTL from 1 hour to 5 minutes** in March 2026. Agent code written before that change may now miss cache windows without explicit `"ttl": 3600`. Also, since February 2026, caches are **per-workspace** (not per-org) — teams sharing an Anthropic organization no longer share a cache pool.
+
+**Sources:** [Prompt caching — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) · [1-hour TTL announcement — Anthropic on X](https://x.com/AnthropicAI/status/1925633128174899453) · [Prompt Caching Agent Cost Math — exploreagentic.ai](https://www.exploreagentic.ai/insights/prompt-caching-guide/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Ollama 0.31: Gemma 4 Runs 90% Faster on Apple Silicon With Zero-Config Multi-Token Prediction</title>
+      <link>https://ollama.com/blog/faster-gemma-4-mlx-mtp</link>
+      <guid isPermaLink="false">2026-07-10-05-ollama-031-gemma4-mtp-flash-attention</guid>
+      <pubDate>Fri, 10 Jul 2026 12:11:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Self-Hosting</category>
+      <category>Developer Tools</category>
+      <description>Ollama 0.31 ships zero-config multi-token prediction for Gemma 4 on Apple Silicon (50 to 95 tok/s) and enables flash attention on Pascal and Turing NVIDIA GPUs.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Ollama 0.31 makes Gemma 4 nearly 90% faster on Apple Silicon with zero-config multi-token prediction — no model file or configuration changes needed — and extends flash attention to older NVIDIA GPUs (compute capability 6.x).**
+
+Ollama 0.31 ships two performance upgrades worth knowing if you run local models for agentic workloads or code review.
+
+**Gemma 4 on Apple Silicon: ~50 to ~95 tok/s.** Google's Gemma 4 ships with a built-in draft model. Ollama 0.31 activates it via MLX multi-token prediction (MTP): the draft model proposes the next several tokens; the main model verifies in a single forward pass and keeps the ones it agrees with. Ollama auto-tunes the draft length based on observed acceptance rate — no configuration needed. On an M5 Max, the Aider coding benchmark lifts from ~50 to ~95 tok/s.
+
+**Flash attention on older NVIDIA GPUs.** Previously limited to Ampere and newer, flash attention now works on Pascal and Turing cards (compute capability 6.x — GTX 1080, RTX 2080, etc.), reducing memory bandwidth pressure and improving inference speed on older server hardware.
+
+Also in 0.31: iGPU can offload vision models with padding to fit available memory; structured output works correctly when thinking is disabled on thinking models.
+
+**Why it matters:** At 95 tok/s, Gemma 4 is fast enough for interactive agent loops on Apple Silicon without touching a cloud API. If local model speed has been the blocker, this update changes that calculus.
+
+**Sources:** [Faster Gemma 4 With Multi-Token Prediction — Ollama Blog](https://ollama.com/blog/faster-gemma-4-mlx-mtp) · [Ollama v0.31.2 release notes — GitHub](https://github.com/ollama/ollama/releases/tag/v0.31.2)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Retrieve 100, Keep 5: Cross-Encoder Reranking Closes the Precision Gap in RAG Pipelines</title>
+      <link>https://www.youtube.com/watch?v=XVZOQ6Fwz2c</link>
+      <guid isPermaLink="false">2026-07-10-04-cross-encoder-reranking-rag-precision</guid>
+      <pubDate>Fri, 10 Jul 2026 12:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Embeddings</category>
+      <description>Cross-encoder rerankers jointly score query-document pairs in a single pass, lifting RAG precision 5-15 NDCG points — wire one in with sentence-transformers in ~10 lines of Python.</description>
+      <media:content url="https://img.youtube.com/vi/XVZOQ6Fwz2c/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/XVZOQ6Fwz2c/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**TL;DR: Add a cross-encoder reranker after your vector search to re-score the top-N candidates jointly — this second stage cuts irrelevant chunks before the LLM ever sees them, typically lifting RAG precision by 5-15 NDCG points with ~10 lines of Python.**
+
+**What you'll be able to do after this:**
+- Understand why bi-encoder (vector) retrieval optimizes for recall but needs a second precision stage
+- Run `sentence-transformers` `CrossEncoder` to rerank top-N vector search results in ~10 lines of Python
+- Pick the right open-weight reranker model for your workload (size vs. quality trade-off)
+
+---
+
+The canonical RAG setup retrieves the top-50 or top-100 nearest chunks from a vector index and sends them to the LLM. Two problems: (1) many of those chunks aren't actually relevant to the query, and (2) they may not all fit in the LLM's context window. A bi-encoder (embedding model) optimizes for *recall* — it encodes query and document separately and compares their vectors. It never sees how the two texts relate to each other. A cross-encoder fixes this at the precision stage.
+
+## How a cross-encoder works
+
+A cross-encoder takes a `[query, document]` pair as one input sequence. Both texts flow through every transformer layer together, so attention can model their interaction directly. The output is a single relevance score. Cross-encoders are slower than bi-encoders — they can't precompute document representations ahead of time — so they run as a **second stage** only over the small candidate set the bi-encoder already retrieved.
+
+## Walk-through
+
+**Step 1: Vector search for top-50 candidates**
+
+Use any vector store you already have (Chroma, FAISS, pgvector). Nothing changes here.
+
+```python
+candidates = vector_store.similarity_search(query, k=50)
+```
+
+**Step 2: Rerank with a CrossEncoder**
+
+```python
+from sentence_transformers import CrossEncoder
+
+# BAAI/bge-reranker-v2-m3 is the best open-weight English + multilingual reranker
+# cross-encoder/ms-marco-MiniLM-L-6-v2 is smaller and faster — great default to start
+reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+
+pairs = [[query, doc.page_content] for doc in candidates]
+scores = reranker.predict(pairs)   # shape: (50,) — one float per pair
+ranked = sorted(zip(scores, candidates), reverse=True)
+top_k = [doc for _, doc in ranked[:5]]
+```
+
+**Step 3: Pass only the reranked top-5 to the LLM**
+
+```python
+context = "\n\n".join(doc.page_content for doc in top_k)
+# ... build your prompt and call the LLM as normal
+```
+
+## Choosing a reranker model
+
+| Model | Size | Best for |
+|---|---|---|
+| `cross-encoder/ms-marco-MiniLM-L-6-v2` | 22M | Speed-first; great default |
+| `BAAI/bge-reranker-v2-m3` | 568M | Best quality; multilingual |
+| Cohere Rerank API | hosted | Managed option ($2/1,000 queries) |
+
+On CPU, expect 100-300ms for 50 candidates with the MiniLM model. On GPU, under 50ms.
+
+**Sources:** [Reranking in RAG From Scratch (2026) — YouTube](https://www.youtube.com/watch?v=XVZOQ6Fwz2c) · [sentence-transformers CrossEncoder docs](https://www.sbert.net/docs/cross_encoder/usage/usage.html) · [BAAI/bge-reranker-v2-m3 — HuggingFace](https://huggingface.co/BAAI/bge-reranker-v2-m3)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Two Claude Code v2.1.206 Changes That Remove Friction From Automated Agent Workflows</title>
