@@ -10,7 +10,155 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 09 Jul 2026 20:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 10 Jul 2026 04:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Two Claude Code v2.1.206 Changes That Remove Friction From Automated Agent Workflows</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-07-10-03-claude-code-v2-1-206-workflow-fixes</guid>
+      <pubDate>Fri, 10 Jul 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.206 auto-approves git push in /commit-push-pr and adds a CLAUDE.md size audit to /doctor — two fixes that smooth automated agent workflows.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code v2.1.206 removes the git-push permission stop from `/commit-push-pr` and adds a `/doctor` check that flags oversized `CLAUDE.md` files before they bloat every session context.**
+
+Two small changes in yesterday's Claude Code v2.1.206 release (July 9) are worth knowing if you run background agents or scheduled routines.
+
+## 1. `/commit-push-pr` now auto-allows the git push
+
+Before v2.1.206, running `/commit-push-pr` in a background session would stall at the push step unless you had pre-approved `git push` in `.claude/settings.json` or accepted the manual permission prompt. Starting with v2.1.206, the command auto-allows `git push` to the repo's configured push remote — meaning the full commit → push → open-PR flow completes without any permission stop.
+
+For scheduled routines that end with a content publish step (like the AI News Publisher that produces this blog), you no longer need a separate `Bash(git push:*)` allowlist entry. The command handles it.
+
+## 2. `/doctor` now audits your `CLAUDE.md` size
+
+`/doctor` already checked things like MCP server connectivity and Node version. It now also scans your committed `CLAUDE.md` for size and proposes trimming when it's long enough to meaningfully inflate per-session context costs. Large `CLAUDE.md` files are a quiet performance tax — every session loads them in full before any tool call runs. Run `/doctor` to see if yours qualifies for a trim.
+
+**Bonus: background agents auto-upgrade.** Also in v2.1.206, background agents now download and apply new Claude Code versions automatically after the app updates — no more manual daemon restarts to get the latest fixes into a running routine.
+
+**Sources:** [Claude Code changelog — v2.1.206](https://code.claude.com/docs/en/changelog)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>GitHub Copilot Opens to All Plans and Gets Its First Open-Weight Model — Kimi K2.7 Code Now in Enterprise</title>
+      <link>https://github.blog/changelog/2026-07-07-kimi-k2-7-now-available-for-copilot-business-and-enterprise/</link>
+      <guid isPermaLink="false">2026-07-10-02-copilot-kimi-k27-enterprise-credit-pools</guid>
+      <pubDate>Fri, 10 Jul 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>Moonshot AI's open-weight Kimi K2.7 Code (1T total params) is now in GitHub Copilot Business and Enterprise, with AI credit pools for org-level spend control.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Kimi K2.7 Code — the first open-weight model in GitHub Copilot's model picker — expanded to Copilot Business and Enterprise this week, alongside a new AI credit pool feature that caps agentic spending per cost center.**
+
+Moonshot AI's Kimi K2.7 Code (1T total parameters, 32B active per token via a mixture-of-experts architecture) is now selectable in GitHub Copilot for Business and Enterprise plans. It's hosted by GitHub on Microsoft Azure and billed at provider list rates under usage-based billing — admins need to enable the policy before users can pick it.
+
+In the same window, GitHub launched AI credit pools: admins can set hard spending caps scoped to cost centers, addressing a real concern as agentic coding tasks consume roughly 1,000× more tokens than single-turn chat. The free Copilot desktop app also expanded to all plan tiers including Copilot Free, with each session running in an isolated git worktree.
+
+**Why it matters:** Enterprise teams can now run an auditable open-weight model through a managed SaaS tool — getting the model-weight transparency of open-weight AI without operating their own inference infrastructure.
+
+**Sources:** [Kimi K2.7 in Copilot Business/Enterprise — GitHub Changelog](https://github.blog/changelog/2026-07-07-kimi-k2-7-now-available-for-copilot-business-and-enterprise/) · [Copilot desktop app for all plans — GitHub Blog](https://github.blog/news-insights/product-news/github-copilot-app-the-agent-native-desktop-experience/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Agent Shouldn't Act Without Asking: Human-in-the-Loop Approval With LangGraph interrupt()</title>
+      <link>https://youtu.be/6t7YJcEFUIY</link>
+      <guid isPermaLink="false">2026-07-10-01-langgraph-interrupt-human-in-the-loop</guid>
+      <pubDate>Fri, 10 Jul 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Learn how LangGraph interrupt() pauses your agent at any node, snapshots state, and waits for human approval before continuing — with a complete Python walkthrough.</description>
+      <media:content url="https://img.youtube.com/vi/6t7YJcEFUIY/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/6t7YJcEFUIY/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**TL;DR: Call `interrupt()` inside any LangGraph node to freeze execution, snapshot state to a checkpointer, and wait for a human to approve or reject — then resume from exactly that line with `Command(resume=...)`.**
+
+**What you'll be able to do after this:**
+- Pause any agent before a risky action (file delete, email send, external API call) and gate it on human approval
+- Persist the paused state so you can resume from the exact checkpoint — even across server restarts — using a database-backed checkpointer
+- Accept, reject, or redirect an agent mid-run by passing any value through `Command(resume=...)`
+
+---
+
+Human-in-the-loop (HITL) is a critical pattern for production agents: let the model plan and propose, but require a human sign-off before anything irreversible happens. LangGraph's `interrupt()` function is the cleanest way to wire this in.
+
+## How it works
+
+`interrupt()` is a function you call *inside a node*. When the graph hits it, LangGraph raises a special exception that the runtime catches — it snapshots the full graph state to the checkpointer and returns control to the caller with the interrupt payload. No polling, no background thread: the graph simply pauses.
+
+```python
+from langgraph.types import interrupt, Command
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import StateGraph, MessagesState
+import os
+
+def risky_action_node(state: MessagesState):
+    # Pass a payload describing what we want to do
+    approved = interrupt({
+        "action": "delete_file",
+        "path": state["target"]
+    })
+    if not approved:
+        return {"messages": [{"role": "assistant", "content": "Action cancelled."}]}
+    os.remove(state["target"])
+    return {"messages": [{"role": "assistant", "content": f"Deleted {state['target']}."}]}
+
+builder = StateGraph(MessagesState)
+builder.add_node("risky", risky_action_node)
+builder.set_entry_point("risky")
+
+# A checkpointer is REQUIRED — it stores the paused state
+graph = builder.compile(checkpointer=InMemorySaver())
+```
+
+`InMemorySaver` is fine for development. Use `PostgresSaver` or `SqliteSaver` for production — the state survives process restarts.
+
+## Running and resuming
+
+```python
+config = {"configurable": {"thread_id": "session-1"}}
+
+# First call — runs until interrupt()
+result = graph.invoke({"target": "/tmp/important.log"}, config)
+# result contains the interrupt payload: {'action': 'delete_file', 'path': '/tmp/important.log'}
+
+# Human reviews and decides — resume with True (approve) or False (cancel)
+final = graph.invoke(Command(resume=True), config)
+```
+
+The value you pass to `Command(resume=...)` becomes the return value of `interrupt()` inside the node. So `approved = interrupt(...)` will be `True` after the first example above.
+
+## Compile-time breakpoints (for debugging)
+
+If you want the graph to pause *before* a node runs (without changing the node code), use `interrupt_before` at compile time:
+
+```python
+graph = builder.compile(
+    interrupt_before=["risky"],
+    checkpointer=InMemorySaver()
+)
+# Resume by passing None
+graph.invoke(None, config)
+```
+
+## The one gotcha
+
+When a node resumes after `interrupt()`, LangGraph re-runs **the entire node from the top**. Any code before the `interrupt()` call executes again — so keep pre-interrupt side effects idempotent (reads are fine; writes need guards).
+
+**Sources:** [LangGraph interrupt docs](https://docs.langchain.com/oss/python/langgraph/interrupts) · [LangChain blog: Making it easier to build human-in-the-loop agents with interrupt](https://www.langchain.com/blog/making-it-easier-to-build-human-in-the-loop-agents-with-interrupt) · [YouTube walkthrough: LangGraph interrupt](https://youtu.be/6t7YJcEFUIY)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Meta Enters the Developer API Market: Muse Spark 1.1 Ships With Native MCP, 1M Context, and a Drop-In SDK Swap</title>
