@@ -10,7 +10,239 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 10 Jul 2026 12:12:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 10 Jul 2026 20:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Stop Runaway Agent Bills: Use --max-turns and total_cost_usd to Cap and Track Every Claude Code Run</title>
+      <link>https://code.claude.com/docs/en/headless</link>
+      <guid isPermaLink="false">2026-07-10-09-claude-code-max-turns-cost-monitoring</guid>
+      <pubDate>Fri, 10 Jul 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Add --max-turns N to any headless Claude Code run to cap the agent loop, and --output-format json to get total_cost_usd back — the two flags that prevent surprise bills in CI automation.</description>
+      <content:encoded><![CDATA[
+**TL;DR: `--max-turns N` exits the agent loop after N turns so it can't spiral; `--output-format json` returns `total_cost_usd` in the result so you know exactly what every automated task cost — wire them together and your CI never surprises you with an unexpected bill.**
+
+Running Claude Code headlessly in a pipeline is powerful, but two failure modes bite teams early: (1) the agent gets stuck retrying a bad approach and burns through turns and tokens, and (2) nobody knows what any individual task cost until the monthly invoice arrives. Two flags fix both.
+
+## `--max-turns` — the hard stop
+
+```bash
+claude -p "refactor the payment module" \
+  --max-turns 10 \
+  --output-format json \
+  --allowedTools Edit,Read,Bash \
+  --permission-mode dontAsk
+```
+
+`--max-turns 10` means the agent completes at most 10 turns (a tool call + response counts as one turn). When the limit hits, Claude summarizes what it completed and exits — it doesn't leave you with partial, half-applied edits. Good defaults by task type:
+
+| Task | `--max-turns` |
+|---|---|
+| Single-file refactor | 5–8 |
+| Multi-file feature | 10–15 |
+| Security scan / read-only analysis | 3–5 |
+| Open-ended research | 20+ |
+
+Too low and Claude can't finish; too high and a confused agent runs up cost. Start conservative and tune up.
+
+## `total_cost_usd` — per-task spend tracking
+
+With `--output-format json`, the envelope Claude prints to stdout includes the cost field:
+
+```bash
+result=$(claude -p "write unit tests for auth.ts" \
+  --max-turns 8 \
+  --output-format json \
+  --allowedTools Read,Bash,Write \
+  --permission-mode dontAsk)
+
+cost=$(echo "$result" | jq -r '.total_cost_usd')
+session=$(echo "$result" | jq -r '.session_id')
+text=$(echo "$result" | jq -r '.result')
+
+echo "Session $session | Cost: \$${cost}"
+echo "$text"
+```
+
+## A cost-alert wrapper
+
+```bash
+#!/usr/bin/env bash
+# agent-run.sh — run a Claude Code task with cost ceiling
+PROMPT="$1"
+MAX_TURNS="${2:-10}"
+ALERT_THRESHOLD="${3:-0.25}"   # alert if task exceeds $0.25
+
+result=$(claude -p "$PROMPT" \
+  --max-turns "$MAX_TURNS" \
+  --output-format json \
+  --permission-mode dontAsk 2>&1)
+
+cost=$(echo "$result" | jq -r '.total_cost_usd // "0"')
+
+if (( $(echo "$cost > $ALERT_THRESHOLD" | bc -l) )); then
+  echo "COST ALERT: \$${cost} exceeds threshold of \$${ALERT_THRESHOLD}" >&2
+fi
+
+echo "$result" | jq -r '.result'
+```
+
+Usage: `./agent-run.sh "review the PR for security issues" 5 0.10`
+
+## Logging for cost attribution
+
+For CI pipelines, log `session_id` and `total_cost_usd` to your observability tool (Datadog, Grafana, or even a flat log file). After a week you'll see which task types cost most and can tune `--max-turns` accordingly. A task that should take 3 turns but is configured for 20 will keep finding new ways to spin.
+
+**Sources:** [Run Claude Code programmatically — Claude Code Docs](https://code.claude.com/docs/en/headless) · [Claude Code CI/CD Automation Guide — hidekazu-konishi.com](https://hidekazu-konishi.com/entry/claude_code_cicd_and_headless_automation.html) · [Claude Code Headless Mode CI/CD Playbook — Code With Seb](https://www.codewithseb.com/blog/claude-code-headless-mode-cicd-automation-playbook)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude's M365 Connector Gets Write Access: Draft Email, Create Calendar Events, Update SharePoint Files</title>
+      <link>https://support.claude.com/en/articles/15183774-connect-to-microsoft-365</link>
+      <guid isPermaLink="false">2026-07-10-08-claude-m365-write-tools-email-calendar-sharepoint</guid>
+      <pubDate>Fri, 10 Jul 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Agents</category>
+      <description>As of July 7, Claude's M365 connector can draft and send email, create and update calendar events, and create or update files in OneDrive and SharePoint — toggled per-org by an admin.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude's Microsoft 365 connector moved from read-only to read-write on July 7 — email draft/send, calendar create/update, and OneDrive/SharePoint file creation are now available; admins must enable write tools for existing connections.**
+
+The M365 connector has been search-and-read since launch: Claude could query your mailbox, read calendar, and browse SharePoint, but couldn't act. The July 7 update adds write tools.
+
+**What's new:**
+- **Email**: draft from scratch, send on your behalf, organize folders, and manage drafts — within your existing M365 permissions
+- **Calendar**: create, update, and delete events; schedule meetings, set reminders, manage recurring events
+- **OneDrive & SharePoint**: create and update Word documents, Excel spreadsheets, PowerPoint presentations, and raw files in your org's SharePoint environment
+- **Mailbox settings**: update rules, signatures, and configurations
+
+**What stays read-only:** Microsoft Teams — Claude can read messages and channels, but write access to Teams has not been enabled.
+
+**Admin rollout:** Organizations that already had the connector enabled have write tools **blocked by default** until an admin explicitly enables them in the connector settings. New connections can enable or disable write tools during setup.
+
+**Why it matters:** For engineering teams building Claude-powered internal workflows — weekly status reports drafted from project data, meetings scheduled from planning output, docs created from design decisions — the connector now closes the last step that previously required a separate M365 API integration.
+
+**Sources:** [Connect to Microsoft 365 — Claude Help Center](https://support.claude.com/en/articles/15183774-connect-to-microsoft-365) · [Microsoft 365 connector — Claude Docs](https://claude.com/docs/connectors/microsoft/365) · [Claude Can Now Send Your Email — THE D*AI*LY BRIEF](https://www.beri.net/article/claude-m365-write-tools-email-sharepoint-2026)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Wrong Format, Wasted GPU Hours: How Chat Templates Determine What Your Fine-Tuned Model Actually Learns</title>
+      <link>https://unsloth.ai/docs/basics/chat-templates</link>
+      <guid isPermaLink="false">2026-07-10-07-chat-templates-alpaca-chatml-sharegpt-fine-tuning</guid>
+      <pubDate>Fri, 10 Jul 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>Chat templates — Alpaca, ShareGPT, ChatML — control which special tokens wrap each training turn; the wrong format trains the model on noise. Pick and verify before burning GPU hours.</description>
+      <content:encoded><![CDATA[
+**TL;DR: The dataset format you choose — Alpaca, ShareGPT, or ChatML — determines which special tokens the tokenizer injects around each conversation turn; use the wrong one and you train on structured noise, not signal.**
+
+**What you'll be able to do after this:**
+- Understand which of the three dominant fine-tuning formats to use and why format affects what the model actually learns
+- Convert a ShareGPT dataset to ChatML in two lines with Unsloth's `standardize_sharegpt`
+- Verify your formatted examples before burning a single GPU minute
+
+---
+
+Every fine-tuning tutorial says "format your dataset correctly" without explaining why it matters. Here's why: the tokenizer wraps each conversation turn in **special tokens** that signal role boundaries. Pick the wrong format and the model sees those boundaries scrambled — it trains on noise rather than the instruction-response pattern you intended.
+
+## The three formats
+
+**Alpaca — single-turn, simple**
+```json
+{
+  "instruction": "Summarize this article in one sentence.",
+  "input": "<article text>",
+  "output": "The article describes..."
+}
+```
+Best for: classification, extraction, single-shot Q&A. Many older community datasets use this. Base (non-instruct) models prefer this format.
+
+**ShareGPT — multi-turn, community standard**
+```json
+{
+  "conversations": [
+    {"from": "human", "value": "What is LoRA?"},
+    {"from": "gpt", "value": "LoRA stands for Low-Rank Adaptation..."}
+  ]
+}
+```
+Best for: multi-turn chat datasets from HuggingFace Hub. Crucial difference: keys are `from`/`value`, not `role`/`content`. Many HuggingFace conversation datasets ship in this format.
+
+**ChatML — modern, recommended for new datasets**
+```json
+[
+  {"role": "system", "content": "You are a coding assistant."},
+  {"role": "user", "content": "What is LoRA?"},
+  {"role": "assistant", "content": "LoRA stands for..."}
+]
+```
+Best for: new datasets targeting OpenAI-compatible or modern open models. Uses `<|im_start|>` / `<|im_end|>` special tokens. The `role`/`content` keys map directly to the OpenAI messages format.
+
+## Applying a template in Unsloth
+
+```python
+from unsloth import FastLanguageModel
+from unsloth.chat_templates import get_chat_template, standardize_sharegpt
+
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name="unsloth/llama-3-8b-instruct",
+    max_seq_length=2048,
+    load_in_4bit=True,
+)
+
+# Step 1: if your dataset is ShareGPT format, normalize it to role/content
+dataset = standardize_sharegpt(dataset)  # converts from/value → role/content
+
+# Step 2: apply ChatML template — patches the tokenizer with correct special tokens
+tokenizer = get_chat_template(tokenizer, chat_template="chatml")
+
+# Step 3: format each sample into a single string with special tokens applied
+def format_prompts(examples):
+    texts = tokenizer.apply_chat_template(
+        examples["conversations"],
+        tokenize=False,
+    )
+    return {"text": texts}
+
+dataset = dataset.map(format_prompts, batched=True)
+
+# Step 4: ALWAYS inspect before training
+print(dataset[0]["text"])
+```
+
+Expected output for ChatML:
+```
+<|im_start|>system
+You are a coding assistant.<|im_end|>
+<|im_start|>user
+What is LoRA?<|im_end|>
+<|im_start|>assistant
+LoRA stands for Low-Rank Adaptation...<|im_end|>
+```
+
+## What to check before starting a training run
+
+Print two or three formatted samples and verify:
+- Special tokens appear at every role boundary (`<|im_start|>` / `<|im_end|>` for ChatML; `### Human:` / `### Assistant:` for Alpaca)
+- The assistant's turn ends with the model's EOS token — not mid-sentence, not missing
+- System prompt (if any) is the first turn and is correctly labeled
+
+If you see raw JSON or missing role markers, you applied the wrong template or forgot `standardize_sharegpt`. Fix this before training — not after eight GPU hours.
+
+**Sources:** [Chat Templates — Unsloth Docs](https://unsloth.ai/docs/basics/chat-templates) · [Datasets Guide — Unsloth Docs](https://unsloth.ai/docs/get-started/fine-tuning-llms-guide/datasets-guide) · [Fine-Tune Llama 3.1 with Unsloth — Towards Data Science](https://towardsdatascience.com/fine-tune-llama-3-1-ultra-efficiently-with-unsloth-7196c7165bab/)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>The 90% Cost Cut You're Leaving on the Table: Claude API Prompt Caching With cache_control</title>
