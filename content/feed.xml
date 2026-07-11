@@ -10,7 +10,252 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 10 Jul 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 11 Jul 2026 04:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Price Before You Send: Use Claude's count_tokens API to Gate Costs and Route by Size Before Spending a Single Token</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/token-counting</link>
+      <guid isPermaLink="false">2026-07-11-03-count-tokens-preflight-cost-gate</guid>
+      <pubDate>Sat, 11 Jul 2026 04:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Best Practices</category>
+      <category>LLM</category>
+      <description>Call client.messages.count_tokens() with your exact payload before sending it — the response gives you input_tokens so you can gate, warn, or route to a cheaper model before spending anything.</description>
+      <content:encoded><![CDATA[
+**TL;DR: `client.messages.count_tokens()` runs a zero-cost preflight on your exact payload and returns `input_tokens` — wire it into a cost gate, model router, or CI budget check before any dollar is spent.**
+
+Prompt caching cuts cost after the first call; token counting cuts cost before. The `count_tokens` endpoint accepts the same structure as `messages.create` — model, system prompt, messages, and tools — and returns the input token count without executing the prompt or consuming any credits. It takes tens of milliseconds. Use it for four things: cost gates, model routing by size, CI budget enforcement, and per-task attribution.
+
+## The endpoint
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+count = client.messages.count_tokens(
+    model="claude-sonnet-4-6",
+    system="You are a code reviewer. Be concise.",
+    messages=[
+        {"role": "user", "content": f"Review this file:\n\n{file_contents}"}
+    ]
+)
+
+print(f"Input tokens: {count.input_tokens}")
+# → Input tokens: 3847
+```
+
+No API call to Claude; no tokens consumed. The count is per-model (different tokenizers produce different counts), so pass the model you intend to use.
+
+## A cost gate
+
+```python
+PRICING = {
+    "claude-opus-4-8":              (5.00, 25.00),   # (input, output) per MTok
+    "claude-sonnet-4-6":            (3.00, 15.00),
+    "claude-haiku-4-5-20251001":    (1.00,  5.00),
+}
+
+def preflight(model, system, messages, output_estimate=500, budget_usd=0.10):
+    count = client.messages.count_tokens(
+        model=model, system=system, messages=messages
+    )
+    input_price, output_price = PRICING[model]
+    estimated = (
+        count.input_tokens / 1_000_000 * input_price
+        + output_estimate   / 1_000_000 * output_price
+    )
+    if estimated > budget_usd:
+        raise ValueError(
+            f"Preflight: ~${estimated:.4f} exceeds ${budget_usd} budget "
+            f"({count.input_tokens:,} input tokens). "
+            f"Summarize context or switch to a cheaper model."
+        )
+    return count.input_tokens
+```
+
+Call `preflight()` before `messages.create()`. If it raises, compress the context or re-route — no tokens wasted on a request that was going to blow the budget anyway.
+
+## Model routing by token count
+
+Large inputs on cheap tasks are a common source of waste. Count first, then pick the right model:
+
+```python
+def smart_model(system, messages):
+    count = client.messages.count_tokens(
+        model="claude-haiku-4-5-20251001",  # counts are close enough for routing
+        system=system,
+        messages=messages
+    )
+    tokens = count.input_tokens
+    if tokens < 8_000:
+        return "claude-haiku-4-5-20251001"     # fast + cheap for short tasks
+    elif tokens < 60_000:
+        return "claude-sonnet-4-6"             # standard for most tasks
+    else:
+        return "claude-opus-4-8"               # full context for large-codebase work
+
+model = smart_model(system_prompt, messages)
+response = client.messages.create(model=model, system=system_prompt, messages=messages)
+```
+
+## Tools and images count too
+
+Tool definitions add tokens (the JSON schema is billed as input). If you pass a large tool set, count them as part of the payload — they show up in `input_tokens` just like the messages do.
+
+```python
+count = client.messages.count_tokens(
+    model="claude-sonnet-4-6",
+    system=system,
+    messages=messages,
+    tools=tool_definitions   # include tools for an accurate count
+)
+```
+
+## One caveat
+
+`count_tokens` returns an estimate — final billed usage may differ by a small margin (typically < 1%). Use zone logic: "over 20k? warn. over 100k? re-route." Don't hard-gate on exact equality.
+
+**Sources:** [Token counting — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/token-counting) · [Count tokens in a Message — Claude API Reference](https://console.anthropic.com/docs/en/api/python/messages/count_tokens) · [How to Count Tokens and Estimate LLM Costs Before You Ship — ML Journey](https://mljourney.com/how-to-count-tokens-and-estimate-llm-costs-before-you-ship/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Grok 4.5 Is Live: xAI and Cursor's First Jointly Trained Coding Model Hits Opus-Class Performance at $2/MTok</title>
+      <link>https://x.ai/news/grok-4-5</link>
+      <guid isPermaLink="false">2026-07-11-02-grok-4-5-cursor-trained-coding-model-api</guid>
+      <pubDate>Sat, 11 Jul 2026 04:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>xAI launched Grok 4.5 on July 8 — an Opus-class coding model jointly trained with Cursor at $2/$6 per million tokens, available now in Cursor and the SpaceXAI API.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Grok 4.5 is xAI's first Cursor-trained coding model: Opus-class performance, 1M-token context, $2/$6 per million tokens — live today in Cursor and the SpaceXAI API.**
+
+xAI launched [Grok 4.5](https://x.ai/news/grok-4-5) on July 8, its strongest model to date and its first co-built with Cursor since the acquisition. The 1.5-trillion-parameter V9 foundation was fine-tuned on Cursor's engineering codebase and real-world coding interaction data — meaning it was trained on the same kinds of multi-file refactor, spec-to-code, and agentic debugging tasks that developers actually run in IDEs. According to xAI, it exceeds comparable frontier models on real engineering tasks with both intelligent and efficient reasoning.
+
+**Access**: available now in Grok Build, in Cursor on all plans (no upsell), and from the SpaceXAI API console. EU availability expected mid-July due to data regulation review.
+
+**Pricing**: $2/MTok input, $6/MTok output — undercutting Sonnet-tier pricing while claiming Opus-class performance. For teams routing agentic coding tasks through OpenRouter or a custom API client, Grok 4.5 is a legitimate benchmark target.
+
+**Why it matters:** The Cursor acquisition gave xAI training data that's unusually well-matched to how developers actually use code models. A $2 input price at Opus-class quality changes the economics for agentic loops that currently use Opus. Run your task distribution against it before committing.
+
+**Sources:** [Introducing Grok 4.5 — SpaceXAI](https://x.ai/news/grok-4-5) · [Grok 4.5: xAI and Cursor's First Jointly Trained Coding Model — MindStudio](https://www.mindstudio.ai/blog/what-is-grok-4-5-xai-cursor-coding-model) · [SpaceXAI launches Grok 4.5 — Axios](https://www.axios.com/2026/07/08/spacexai-grok-new-model)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your RAG Pipeline is Probably Wrong: Catch Hallucinations and Bad Retrieval With RAGAS in 10 Lines</title>
+      <link>https://docs.ragas.io/en/stable/getstarted/rag_eval/</link>
+      <guid isPermaLink="false">2026-07-11-01-ragas-rag-evaluation-faithfulness-context-precision</guid>
+      <pubDate>Sat, 11 Jul 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>RAGAS gives you four metrics — faithfulness, context precision, answer relevancy, context recall — that tell you whether your RAG is hallucinating or fetching the wrong chunks.</description>
+      <media:content url="https://img.youtube.com/vi/5fp6e5nhJRk/maxresdefault.jpg" medium="image"/>
+      <media:thumbnail url="https://img.youtube.com/vi/5fp6e5nhJRk/maxresdefault.jpg"/>
+      <content:encoded><![CDATA[
+**TL;DR: RAGAS scores faithfulness, context precision, answer relevancy, and context recall — four metrics that split your RAG's retrieval failures from its generation failures, so you know exactly which layer to fix.**
+
+You built a RAG pipeline, tuned your chunking, and it looks reasonable in demos. But manual spot-checks don't scale, and "it looks good" is how hallucinations ship to production. RAGAS (Retrieval Augmented Generation Assessment) is the standard open-source framework for automated, LLM-judged evaluation of RAG systems. It covers both the retriever and the generator with four independent metrics.
+
+**What you'll be able to do after this:**
+- Install RAGAS and score any RAG pipeline output in minutes with a single `evaluate()` call
+- Read the four metrics to know whether your failure is bad retrieval (wrong chunks) or bad generation (hallucination)
+- Build a repeatable CI eval loop to catch regressions when you change chunking, embedding model, or system prompt
+
+## The four metrics
+
+| Metric | What it catches | Layer |
+|---|---|---|
+| **Faithfulness** | LLM claims facts not supported by retrieved context | Generator |
+| **Answer Relevancy** | Answer doesn't address the question | Generator |
+| **Context Precision** | Relevant chunks are buried behind irrelevant ones | Retriever |
+| **Context Recall** | Retrieved context is missing key facts | Retriever |
+
+A faithfulness drop → your LLM is hallucinating. A context precision drop → your retriever is ranking noise above signal. Different diagnosis, different fix.
+
+## Install and run (10 lines)
+
+```bash
+pip install ragas langchain_openai
+```
+
+```python
+from ragas import evaluate
+from ragas.metrics import faithfulness, answer_relevancy, context_precision, context_recall
+from datasets import Dataset
+
+# Your RAG pipeline produces these four fields for each query
+data = {
+    "question":     ["What is RAG?", "How does FAISS work?"],
+    "answer":       ["RAG retrieves documents and uses them to generate answers.",
+                     "FAISS uses ANN search on dense vector embeddings."],
+    "contexts":     [["Retrieval Augmented Generation combines a retriever with a generator..."],
+                     ["Facebook AI Similarity Search indexes dense vectors for fast ANN lookup..."]],
+    "ground_truth": ["RAG retrieves relevant documents and generates answers grounded in them.",
+                     "FAISS performs approximate nearest neighbor search on dense embeddings."]
+}
+
+dataset = Dataset.from_dict(data)
+results = evaluate(dataset, metrics=[faithfulness, answer_relevancy, context_precision, context_recall])
+print(results)
+# {'faithfulness': 0.97, 'answer_relevancy': 0.85, 'context_precision': 0.62, 'context_recall': 0.78}
+```
+
+## Reading the scores
+
+| Score | What to do |
+|---|---|
+| faithfulness < 0.85 | Add a citation requirement to your system prompt; use the Claude Citations API |
+| answer_relevancy < 0.80 | Simplify your system prompt; check that the retrieved context isn't swamping the question |
+| context_precision < 0.70 | Add reranking (cross-encoder or Cohere Rerank) or switch to hybrid search |
+| context_recall < 0.70 | Increase `top_k`; review your chunking strategy; check for missed document types |
+
+## A CI-ready eval harness
+
+```python
+from ragas import evaluate
+from ragas.metrics import faithfulness, context_precision
+from datasets import Dataset
+
+THRESHOLDS = {"faithfulness": 0.85, "context_precision": 0.70}
+
+def assert_rag_quality(samples: dict):
+    """Run as part of CI — raises if any metric falls below threshold."""
+    scores = evaluate(Dataset.from_dict(samples),
+                      metrics=[faithfulness, context_precision])
+    failures = {k: round(v, 3) for k, v in scores.items()
+                if v < THRESHOLDS.get(k, 0)}
+    if failures:
+        raise AssertionError(f"RAG eval failed: {failures}")
+    return scores
+```
+
+Run this whenever you change chunking strategy, embedding model, reranker, or system prompt. Treat a faithfulness regression the same as a failing unit test — it means your pipeline is making things up.
+
+## Using Claude as the judge
+
+By default RAGAS uses OpenAI as the judge LLM. Switch to Claude with:
+
+```python
+from ragas.llms import LangchainLLMWrapper
+from langchain_anthropic import ChatAnthropic
+
+judge = LangchainLLMWrapper(ChatAnthropic(model="claude-sonnet-4-6"))
+results = evaluate(dataset, metrics=[faithfulness], llm=judge)
+```
+
+**Sources:** [Evaluate a simple RAG system — Ragas Docs](https://docs.ragas.io/en/stable/getstarted/rag_eval/) · [List of available metrics — Ragas](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/) · [RAGAS: Evaluate a RAG Application Like a Pro — YouTube](https://www.youtube.com/watch?v=5fp6e5nhJRk) · [Evaluation of RAG pipelines with Ragas — Langfuse Cookbook](https://langfuse.com/guides/cookbook/evaluation_of_rag_with_ragas)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Stop Runaway Agent Bills: Use --max-turns and total_cost_usd to Cap and Track Every Claude Code Run</title>
