@@ -10,7 +10,184 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 11 Jul 2026 04:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 11 Jul 2026 12:07:00 +0000</lastBuildDate>
+
+        <item>
+      <title>One API Key, 500+ Models: Use OpenRouter to Route, Fallback, and Benchmark Across Every Major LLM Provider</title>
+      <link>https://openrouter.ai/docs/quickstart</link>
+      <guid isPermaLink="false">2026-07-11-04-openrouter-hosted-inference-routing-fallbacks</guid>
+      <pubDate>Sat, 11 Jul 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <category>Best Practices</category>
+      <description>OpenRouter is a single base_url swap that gives you 500+ models from 60+ providers — Claude, GPT, Grok, Gemini, Mistral — with automatic fallbacks and cost routing, no SDK changes needed.</description>
+      <media:content url="https://img.youtube.com/vi/sgQwF1aOu9U/maxresdefault.jpg" medium="image"/>
+      <media:thumbnail url="https://img.youtube.com/vi/sgQwF1aOu9U/maxresdefault.jpg"/>
+      <content:encoded><![CDATA[
+**TL;DR: OpenRouter is one `base_url` swap that routes OpenAI-compatible calls to 500+ models across 60+ providers — with automatic provider failover, opt-in model fallbacks, and zero SDK changes.**
+
+Running production AI means choosing a model before you choose your provider — and that choice changes every few months. OpenRouter solves this by acting as a unified gateway: swap one URL and get access to Claude Opus 4.8, GPT-5.6, Grok 4.5, Gemini 2.5, Mistral, and 500 more models. Same SDK, same messages format, one API key, one bill.
+
+**What you'll be able to do after this:**
+- Swap any OpenAI SDK call to OpenRouter in under a minute and instantly access every major LLM provider
+- Set up automatic fallback chains so your agent degrades gracefully when a provider is rate-limited or down
+- Route by task type — cheap/fast models for drafts, capable/expensive for final output — with a simple dict
+
+## Setup (60 seconds)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key="sk-or-...",    # from openrouter.ai/keys
+)
+
+response = client.chat.completions.create(
+    model="anthropic/claude-sonnet-4-6",
+    messages=[{"role": "user", "content": "Explain embeddings in 2 sentences."}]
+)
+print(response.choices[0].message.content)
+print(f"Model: {response.model}, Tokens: {response.usage.total_tokens}")
+```
+
+Provider-level failover (within a single model, across its hosting providers) is automatic and always on. If Anthropic's own endpoint is rate-limited, OpenRouter silently retries via another provider offering the same model.
+
+## Model fallbacks (one extra parameter)
+
+When you want to fall back to a *different model* when the primary fails, pass `models` in `extra_body`:
+
+```python
+response = client.chat.completions.create(
+    model="anthropic/claude-opus-4-8",      # primary
+    extra_body={
+        "models": [
+            "anthropic/claude-sonnet-4-6",  # fallback 1 (cheaper, same family)
+            "openai/gpt-5.6-terra",          # fallback 2 (different provider)
+        ]
+    },
+    messages=[{"role": "user", "content": "..."}]
+)
+print(f"Model used: {response.model}")   # tells you which one actually ran
+```
+
+Fallbacks trigger on rate limits, context-length errors, content moderation refusals, and downtime. Order your list with a reliable floor model last. Only the model that ran is billed.
+
+## Route by task cost
+
+```python
+# Cheap/fast for drafts; capable for final output
+ROUTING = {
+    "draft":  "meta-llama/llama-3.3-8b-instruct",  # ~$0.05/MTok
+    "review": "anthropic/claude-sonnet-4-6",        # $3/$15
+    "final":  "anthropic/claude-opus-4-8",          # $5/$25
+}
+
+def run(task_type: str, messages: list) -> str:
+    resp = client.chat.completions.create(
+        model=ROUTING[task_type],
+        messages=messages
+    )
+    return resp.choices[0].message.content
+```
+
+Each call returns `response.usage` so you can log cost per task and benchmark quality at each tier.
+
+## What to use it for
+
+- **Benchmark**: same prompt, three models, compare outputs and `usage.total_tokens × price` — find the cheapest model that meets your quality bar
+- **Agent fallback chains**: primary = Claude Opus for quality; fallback = Sonnet for rate-limit safety; floor = Haiku for budget ceiling
+- **BYOK in coding agents**: Cursor, GitHub Copilot desktop (free tier), and most coding agents accept a custom `base_url` — point them at OpenRouter to swap models without changing your subscription
+
+**Sources:** [OpenRouter Quickstart](https://openrouter.ai/docs/quickstart) · [How OpenRouter Model Routing Works — official blog](https://openrouter.ai/blog/insights/model-routing/) · [Model Fallbacks guide](https://openrouter.ai/docs/guides/routing/model-fallbacks) · [Why You Should Use OpenRouter as Your Centralized LLM API — YouTube](https://www.youtube.com/watch?v=sgQwF1aOu9U) · [OpenRouter in Python — Real Python](https://realpython.com/openrouter-api/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>GitHub Copilot Desktop Goes Free for All and Lands in JetBrains With Codex Agent</title>
+      <link>https://github.blog/changelog/2026-07-07-github-copilot-app-available-to-all/</link>
+      <guid isPermaLink="false">2026-07-11-05-copilot-desktop-app-all-plans-jetbrains-codex</guid>
+      <pubDate>Sat, 11 Jul 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Agents</category>
+      <description>GitHub opened its agent-native Copilot desktop app to all tiers including Free on July 7, and shipped Codex as an agent provider in JetBrains IDEs — each session runs in an isolated git worktree.</description>
+      <content:encoded><![CDATA[
+**TL;DR: GitHub's Copilot desktop app — which runs agentic coding tasks in isolated git worktrees — is now free for all plan tiers, and JetBrains users get Codex as an agent provider.**
+
+On July 7, GitHub opened the Copilot desktop app (macOS, Windows, Linux) to every plan tier, including Copilot Free and GitHub Education accounts. The app runs each agentic session in a clean, isolated git worktree — tasks work in parallel without touching your active branch. Free users can also connect their own model credentials (BYOK), including OpenRouter, to use any model behind the same interface.
+
+In the same release, GitHub shipped Codex as an agent provider inside JetBrains IDEs (IntelliJ, PyCharm, WebStorm), closing the agent-mode gap with VS Code. Codex in JetBrains runs background tasks, writes and tests code, and opens pull requests — the same loop VS Code users have had since earlier this year.
+
+**Why it matters:** Free-tier agentic coding with worktree isolation removes two barriers at once — cost and branch safety. Developers who've been waiting to try agent-mode without risking main-branch state can now do it without a paid plan.
+
+**Sources:** [GitHub Changelog: Copilot app available to all](https://github.blog/changelog/2026-07-07-github-copilot-app-available-to-all/) · [GitHub Copilot Breaks Agent Barrier: Free Desktop App, JetBrains, Cost Controls — TechTimes](https://www.techtimes.com/articles/319988/20260709/github-copilot-breaks-agent-barrier-free-desktop-app-jetbrains-cost-controls.htm)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code Auto Mode Is Now On By Default on Bedrock, Vertex, and Foundry — Here's What to Configure</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-07-11-06-claude-code-auto-mode-default-bedrock-vertex-foundry</guid>
+      <pubDate>Sat, 11 Jul 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code auto mode is now enabled by default on AWS Bedrock, Google Vertex AI, and Azure Foundry — no env var needed. Bedrock also now defaults to Claude Opus 4.8. Here is how to configure it.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code auto mode is now on by default on Bedrock, Vertex AI, and Foundry — no env var needed; lock it off via `disableAutoMode` in settings. Bedrock now defaults to Claude Opus 4.8.**
+
+Auto mode replaces per-action permission prompts with a background safety classifier. On Claude.ai it has been available since May; on Bedrock, Vertex AI, and Foundry it previously required setting `CLAUDE_CODE_ENABLE_AUTO_MODE=1`. As of today's release, auto mode is on by default on all three cloud providers — no environment variable needed.
+
+## What changed
+
+| | Before | Now |
+|---|---|---|
+| Enable auto mode on Bedrock/Vertex/Foundry | Set `CLAUDE_CODE_ENABLE_AUTO_MODE=1` | On by default |
+| Disable auto mode | Remove the env var | Set `disableAutoMode` in settings |
+| Bedrock default model | Claude Opus 4.7 | Claude Opus 4.8 |
+| `autoMode` setting location | `.claude/settings.local.json` accepted | **Only** `~/.claude/settings.json` |
+
+## To disable in managed settings
+
+If your org requires human approval for every file write, shell command, or git push in a CI pipeline, auto mode bypasses those per-action checkpoints. Lock it off:
+
+```json
+// ~/.claude/settings.json  (user-level)
+// or your org's managed settings file
+{
+  "permissions": {
+    "disableAutoMode": "disable"
+  }
+}
+```
+
+Note: `autoMode` is no longer read from `.claude/settings.local.json` (the repo-resident file). Move any existing `autoMode` config to `~/.claude/settings.json`.
+
+## Bedrock default model
+
+Bedrock (plus Vertex and Claude Platform on AWS) now default to Claude Opus 4.8. If your BYOC or API client was implicitly using Opus 4.7 by not pinning a model, set it explicitly:
+
+```bash
+export ANTHROPIC_MODEL="claude-opus-4-8"   # or set model: in settings.json
+```
+
+## When to disable auto mode
+
+- **Regulated CI**: pipelines with change-control requirements need explicit approvals; use `--allowedTools` / `--disallowedTools` flags in your CI scripts instead
+- **Shared Bedrock accounts**: confirm team expectations before assuming auto mode is always safe for multi-user environments
+- **Audit trail**: auto mode decisions are logged — check CloudTrail (Bedrock) or Cloud Logging (Vertex) for the permission-decision audit trail if your compliance team needs it
+
+**Sources:** [Claude Code changelog — Anthropic](https://code.claude.com/docs/en/changelog) · [Claude Code auto mode explained — Developers Digest](https://www.developersdigest.tech/blog/claude-code-auto-mode-explained) · [Anthropic Release Notes July 2026 — Releasebot](https://releasebot.io/updates/anthropic)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Price Before You Send: Use Claude's count_tokens API to Gate Costs and Route by Size Before Spending a Single Token</title>
