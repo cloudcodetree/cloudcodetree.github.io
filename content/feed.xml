@@ -10,7 +10,206 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 11 Jul 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 12 Jul 2026 04:14:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Claude Code Now Has a Browser Built In: Read Docs, Click Designs, and Test Live Sites Without Leaving the App</title>
+      <link>https://code.claude.com/docs/en/desktop</link>
+      <guid isPermaLink="false">2026-07-12-02-claude-code-desktop-browser-sandboxed</guid>
+      <pubDate>Sun, 12 Jul 2026 04:14:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>Claude Code's desktop app now ships with a sandboxed in-app browser: Cmd+Shift+B opens a Chromium panel with an isolated profile, so Claude can read docs, click designs, and interact with live previews without touching your personal session.</description>
+      <content:encoded><![CDATA[
+**Claude Code's desktop app (v2.1.206+) now has a built-in sandboxed browser — hit Cmd+Shift+B and Claude can read docs, interact with your design files, and test live previews without leaving the app or touching your personal browsing profile.**
+
+Claude Code on desktop has long been able to interact with local dev server previews. That same capability has now expanded to any URL, wrapped in a sandboxed Chromium panel with a completely isolated browsing profile. The feature shipped quietly with v2.1.206 on July 10.
+
+## What it is
+
+A built-in browser panel inside the Claude Code desktop window. Claude can:
+
+- Pull up documentation and navigate multi-page flows
+- Open Figma shares, Storybook, or any design URL and read it
+- Interact with your running `localhost` preview — click links, fill forms, verify UI behavior
+- Act on external websites with your explicit per-site approval
+
+**Open it:** `Cmd+Shift+B` (macOS) or `Ctrl+Shift+B` (Windows/Linux).
+
+## The sandboxing model
+
+The panel uses a **separate Chromium profile** — no personal cookies, no saved passwords, no browsing history bleeds in. The first time Claude tries to act on a new external domain, you choose: **Allow once**, **Always allow**, or **Deny**. You keep per-site control.
+
+You can also configure whether the browser session **persists between restarts** (cookies + local storage saved — useful for dev workflows that require auth) or resets each time (default — zero state between sessions).
+
+## Three workflow wins
+
+**1. Design → code in one window.** Open a Figma link or a design screenshot URL in the panel, then ask Claude to build the component. Claude can scroll the design, check spacing, and pull colors directly — no copy-pasting specs.
+
+```
+Open https://figma.com/file/abc123 and implement the card component
+shown on the "Components" page using Tailwind. Match the exact padding
+and border radius from the design.
+```
+
+**2. Doc-grounded implementation.** Instead of hoping Claude's training weights have the right version of a library's API, send it to the actual docs:
+
+```
+Read https://docs.fastmcp.org/resources and implement a resource handler
+that serves our database records over MCP.
+```
+
+Claude navigates the docs, reads the current version, and implements from what it finds — not from potentially stale knowledge.
+
+**3. Automated UI checks.** After generating a feature, ask Claude to open `localhost:3000`, click through the interaction flow, and report whether it matches the spec. The sandboxed profile means it can't mess with any active session in your main browser.
+
+## What changed under the hood
+
+Earlier Claude Code desktop versions already surfaced local dev server previews; the v2.1.206 change extends the same capability to external URLs and adds the configurable session-persistence toggle and the safety-classifier review layer for external site actions.
+
+**Sources:** [Desktop application — Claude Code Docs](https://code.claude.com/docs/en/desktop) · [9to5Mac coverage](https://9to5mac.com/2026/07/10/anthropic-highlights-claude-codes-in-app-browser-on-the-desktop/) · [@ClaudeDevs on X](https://x.com/ClaudeDevs/status/2075635283211772279)
+]]></content:encoded>
+      <media:content url="https://9to5mac.com/wp-content/uploads/sites/6/2026/07/claude-code-desktop-browser.jpg" medium="image" />
+      <media:thumbnail url="https://9to5mac.com/wp-content/uploads/sites/6/2026/07/claude-code-desktop-browser.jpg" />
+    </item>
+
+    <item>
+      <title>Payload Filtering Is Qdrant's Superpower: Go From Docker to Production Vector Search in 15 Minutes</title>
+      <link>https://qdrant.tech/documentation/tutorials-basics/search-beginners-local/</link>
+      <guid isPermaLink="false">2026-07-12-01-qdrant-vector-search-payload-filtering-hnsw</guid>
+      <pubDate>Sun, 12 Jul 2026 04:13:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Vectors</category>
+      <category>Embeddings</category>
+      <description>Qdrant combines semantic similarity search with exact metadata filters using a filterable HNSW index. Build a filtered vector search engine from Docker pull to first query in 15 minutes with Python and sentence-transformers.</description>
+      <content:encoded><![CDATA[
+**Qdrant lets you combine semantic similarity search with exact metadata filters evaluated inside the HNSW index — not after — so filtered queries stay fast even at a billion vectors.**
+
+**What you'll be able to do after this:**
+- Spin up a Qdrant instance locally (Docker or in-memory), create a collection, upsert vectors with JSON payloads, and run your first filtered similarity search in Python
+- Understand why Qdrant's filterable HNSW avoids the precision-recall tradeoff of post-search filtering at scale
+- Compare Qdrant, ChromaDB, and pgvector to know which fits your scale and query pattern
+
+---
+
+When you need something between a toy in-memory prototype and a Pinecone-scale managed service, **Qdrant** is the vector database the open-source community keeps reaching for. Written in Rust, it ships as a single Docker image, has a fully managed cloud tier, and crucially: it supports **payload filtering** evaluated _inside_ the HNSW graph walk — not as a post-search scan.
+
+That's the key differentiator. Most vector search implementations filter after ANN: retrieve the top-100 results, then discard anything that doesn't match `category == "sci-fi"`. At scale, results ranked 101–1000 are discarded unseen — you miss relevant matches. Qdrant's **filterable HNSW** weaves your filter into the index traversal so you only visit nodes that pass the filter, keeping both precision and recall at scale.
+
+## Walk-Through: Filtered Semantic Book Search
+
+**1. Start Qdrant (30 seconds)**
+
+```bash
+docker pull qdrant/qdrant
+docker run -p 6333:6333 qdrant/qdrant
+```
+
+Skip Docker entirely for local prototyping:
+
+```python
+from qdrant_client import QdrantClient
+client = QdrantClient(":memory:")  # persists nothing; good for dev
+```
+
+**2. Install dependencies**
+
+```bash
+pip install qdrant-client sentence-transformers
+```
+
+**3. Create a collection**
+
+```python
+from qdrant_client import QdrantClient
+from qdrant_client.models import Distance, VectorParams
+
+client = QdrantClient(url="http://localhost:6333")
+
+client.create_collection(
+    collection_name="books",
+    vectors_config=VectorParams(size=384, distance=Distance.COSINE),
+)
+```
+
+**4. Upsert points with payloads**
+
+```python
+from sentence_transformers import SentenceTransformer
+from qdrant_client.models import PointStruct
+
+model = SentenceTransformer("all-MiniLM-L6-v2")  # 384-dim, fits the collection above
+
+books = [
+    {"id": 1, "title": "Dune", "year": 1965, "genre": "sci-fi"},
+    {"id": 2, "title": "Hyperion", "year": 1989, "genre": "sci-fi"},
+    {"id": 3, "title": "The Left Hand of Darkness", "year": 1969, "genre": "sci-fi"},
+    {"id": 4, "title": "Brave New World", "year": 1932, "genre": "dystopian"},
+]
+
+client.upsert(
+    collection_name="books",
+    points=[
+        PointStruct(
+            id=b["id"],
+            vector=model.encode(b["title"]).tolist(),
+            payload={"title": b["title"], "year": b["year"], "genre": b["genre"]},
+        )
+        for b in books
+    ],
+)
+```
+
+**5. Filtered similarity search**
+
+```python
+from qdrant_client.models import Filter, FieldCondition, MatchValue
+
+query_vector = model.encode("desert planet survival story").tolist()
+
+results = client.search(
+    collection_name="books",
+    query_vector=query_vector,
+    query_filter=Filter(
+        must=[FieldCondition(key="genre", match=MatchValue(value="sci-fi"))]
+    ),
+    limit=3,
+)
+
+for r in results:
+    print(f"{r.score:.2f}  {r.payload['title']}")
+# 0.91  Dune
+# 0.74  Hyperion
+# 0.62  The Left Hand of Darkness
+```
+
+The `query_filter` is evaluated **inside the HNSW graph walk** — not after. Brave New World never surfaces because the index walk only visits sci-fi nodes.
+
+## Qdrant vs ChromaDB vs pgvector
+
+| | Qdrant | ChromaDB | pgvector |
+|---|---|---|---|
+| **Scale** | Billions of vectors | Millions | Millions (Postgres limits) |
+| **Filtered search** | Filter inside HNSW | Post-search scan | Post-search (with index) |
+| **Deployment** | Docker / Cloud | Python in-process | Add-on to Postgres |
+| **Best for** | Production needing filtered search at scale | Local dev / prototyping | Teams already on Postgres |
+
+## The resource
+
+Follow the official **[Semantic Search 101 quickstart](https://qdrant.tech/documentation/tutorials-basics/search-beginners-local/)** on qdrant.tech — it builds a searchable science fiction library in 5 minutes using FastEmbed (no GPU, no SentenceTransformer install needed). The companion YouTube video **["Semantic Search for Beginners with Qdrant Vector Database"](https://www.youtube.com/watch?v=SgCd2o6hJIA)** walks through the same flow visually.
+
+Once you're comfortable with the basics, explore [named vectors](https://qdrant.tech/documentation/concepts/collections/#collection-with-multiple-vectors) (multiple embedding models per document in one collection) and [sparse-dense hybrid search](https://qdrant.tech/documentation/tutorials-basics/hybrid-search-fastembed/) — Qdrant's production differentiators.
+
+**Sources:** [Semantic Search 101 — Qdrant](https://qdrant.tech/documentation/tutorials-basics/search-beginners-local/) · [Qdrant Local Quickstart](https://qdrant.tech/documentation/quickstart/) · [Semantic Search for Beginners — YouTube](https://www.youtube.com/watch?v=SgCd2o6hJIA)
+]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/SgCd2o6hJIA/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/SgCd2o6hJIA/maxresdefault.jpg" />
+    </item>
 
     <item>
       <title>Tell Claude What Done Looks Like: Add a Grader Agent to Your Pipeline With Managed Agents Outcomes</title>
