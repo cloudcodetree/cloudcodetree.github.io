@@ -33,7 +33,7 @@ None. This is the course entry point.
 
 Key snapshot facts used in this part:
 - 154/270 rows: `brand` field is a retailer string ("Walmart - COWIN", "Target", "mountainlifestyle.ca") not a manufacturer.
-- Hero query "noise cancelling headphones": 12 items in snapshot, query-median **$162.97**.
+- Hero query "noise cancelling headphones": 15 items in snapshot, query-median **$162.97**.
 - Dedup pair: Sony WH-1000XM5 appears at $162.97 (Costco) and $248.00 (Macy's) — identical normalized title after brand-strip + lowercasing.
 - Worst-case `deal_pct`: −3785% (a mispriced outlier); best-case: +91.7% (accessory/mislisting). Both live in the snapshot raw.
 

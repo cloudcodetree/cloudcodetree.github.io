@@ -26,7 +26,7 @@ reasoning, semantic search) is demystified rather than magic.
 - Distinguish temperature = 0 (extraction, deal scoring) from temperature > 0
   (brainstorming, summaries) and choose correctly.
 - Predict roughly how many tokens a product title + prompt consume, and why
-  context length limits matter for batch extraction over 270 items.
+  context length limits matter for batch extraction over large datasets.
 - Identify where non-determinism lives (sampling) versus where it does not
   (greedy/argmax at temp = 0).
 
@@ -38,13 +38,15 @@ reasoning, semantic search) is demystified rather than magic.
 The snapshot is referenced only as a real-world anchor to make abstract
 concepts tangible:
 
-- Snapshot stat used for illustration (no code run required): the snapshot
-  contains 270 items; at ~40 tokens per title + prompt overhead, a single-pass
-  extraction would consume roughly 270 × 40 = ~10,800 prompt tokens. This
-  motivates batching and context-length awareness discussed in Part 6.
+- Snapshot stat used for illustration (no code run required): the hero-cast
+  snapshot anchor query "noise cancelling headphones" yields 15 items; at
+  ~40 tokens per title + prompt overhead, a single-pass extraction would
+  consume roughly 15 × 40 = ~600 prompt tokens. This motivates understanding
+  tokenization cost and context-length awareness discussed in Part 6.
 - Hero cast item used for tokenization demo: `"Sony WH-1000XM5 Wireless Noise
-  Cancelling Headphones"` — a real title from the snapshot, used to show how
-  a tokenizer splits a model-number string.
+  Cancelling Headphones"` — the median-signal anchor item from the snapshot
+  (actual $162.97, fair $285.15, median_signal +0.000), used to show how a
+  tokenizer splits a model-number string.
 - No API calls, no snapshot reads, no metrics to reproduce. All values are
   illustrative and labeled as such.
 
@@ -66,7 +68,10 @@ The `AttentionView` animation highlights that `"$46"` attends strongly to
 `"Bose"` and `"45"` — the model links price to product and model number.
 This is why an LLM extractor can pull `price=46` and `model=QC45` from a
 messy title, but also why it can hallucinate a `brand=Bose` when the actual
-`brand` field in the snapshot says `"Target"` (the retailer). Sets up the
+`brand` field in the snapshot says `"Target"` (the retailer). This Bose QC45
+is the hero-cast example of a **suspicious deal** (residual_frac=0.839,
+fair=$285.15, median_signal=0.718): attention alone is not enough; the
+residual signal from Part 3's deal scorer is the real guard. Sets up the
 normalization problem from Part 1 and the extraction challenge in Part 6.
 
 **Temperature demo.**
@@ -118,12 +123,16 @@ concepts (tokenization cost vs. attention routing), two distinct visual shapes
 ## 8. Teaching beats
 
 1. **Hook** — "The LLM call in Part 6 extracts brand from `'Walmart - COWIN E7
-   ANC'`. Before we write it, let's understand exactly what happens inside."
+   ANC'`. But even perfect extraction can't distinguish a $46 trap from a genuine
+   $44.99 deal—attention alone can't do that. Before we write the extractor,
+   let's understand what the LLM *can* and *cannot* do."
 2. **Tokenization** — what a token is; demo with the Sony title; token count
-   math for 270-item batch (illustrative: ~10,800 tokens); why model-number
-   strings are expensive and fragile.
+   math for the hero-cast 15-item headphones snapshot (illustrative: ~600 tokens);
+   why model-number strings are expensive and fragile.
 3. **Attention** — key/query/value intuition without matrices; demo with the
-   Bose QC45 sequence; why context position matters for long titles.
+   Bose QC45 sequence and contrast with Anker Soundcore Q20i ($44.99, deal with
+   residual_frac=0.585); why context position matters for long titles and why
+   attention alone cannot distinguish a genuine deal from a suspicious trap.
 4. **Generation & temperature** — argmax vs. sampling; temp = 0 contract for
    the extraction pipeline; when you'd allow temp > 0 in a summarization agent.
 5. **Non-determinism** — what is and is not deterministic (same model, same
@@ -151,8 +160,9 @@ built here pays off directly.
 ## 10. Reproducibility checks
 
 This is a CONCEPT part; no snapshot metrics are quoted. The only number given
-is the illustrative token estimate (270 items × ~40 tokens ≈ 10,800), which is
-explicitly labeled as a rough estimate, not a measured value. No test needed.
+is the illustrative token estimate (15 items × ~40 tokens ≈ 600), which is
+explicitly labeled as a rough estimate, not a measured value, derived from the
+hero-cast headphones snapshot (15-item subset of the full dataset). No test needed.
 
 If the `Tokenizer` animation is wired to a tokenizer library (e.g., `tiktoken`),
 assert in a unit test:

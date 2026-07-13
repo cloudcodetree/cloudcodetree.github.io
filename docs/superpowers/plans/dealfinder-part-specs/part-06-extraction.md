@@ -25,7 +25,7 @@ primary path and a deterministic regex fallback so the pipeline never fails.
 
 ## 3. By the end, the learner can…
 
-- Explain why the snapshot's `brand` field is retailer noise (154/270 rows) and
+- Explain why the snapshot's `brand` field is retailer noise (156/270 rows) and
   why manufacturer extraction must come from the title.
 - Write a Pydantic schema (`ListingSpecs`) and validate arbitrary LLM JSON output
   into it, catching and rejecting malformed fields before they enter the pipeline.
@@ -52,10 +52,10 @@ primary path and a deterministic regex fallback so the pipeline never fails.
 | Bose QuietComfort 45 $46 | "Bose QuietComfort 45 Bluetooth Wireless Headphones..." | seller name |
 
 **Query used for all examples:** `"noise cancelling headphones"` (snapshot median
-`$162.97`; 18 items for this query in the snapshot).
+`$162.97`; 15 items for this query in the snapshot).
 
 **Retailer-pollution audit (reproducible):** run
-`python -c "import json; d=json.load(open('data/snapshots/electronics-2026-07.json')); retailers=['Walmart','Target','Costco','Macy','Best Buy','Amazon']; print(sum(1 for x in d if any(r in (x.get('brand') or '') for r in retailers)), 'of', len(d))"` — expected output in the range of 154/270.
+`python -c "import json; d=json.load(open('data/snapshots/electronics-2026-07.json')); retailers=['Walmart','Target','Costco','Macy','Best Buy','Amazon']; print(sum(1 for x in d if any(r in (x.get('brand') or '') for r in retailers)), 'of', len(d))"` — expected output in the range of 156/270.
 
 ---
 
@@ -87,7 +87,7 @@ Listing: Sony WH-1000XM5 Wireless Industry Leading Noise Canceling...
 not `"Costco"`.
 
 **False-positive hook:** same flow on Bose QC 45 at $46 → extraction yields
-`brand="Bose"`, `condition=null` (no "refurb" in title) — the extractor correctly
+`brand="Bose"`, `condition="new"` (no "refurb" in title; defaults to new) — the extractor correctly
 returns what the title says; the *deal-score guard* (Part 3's model residual) is
 what flags the price as implausible. The tutorial makes this division of
 responsibility explicit: extraction's job is truth-from-text, not deal validation.
@@ -141,7 +141,7 @@ gate blocks, error surfaced). One gate shape; two flow paths. Makes the
 
 ## 8. Teaching beats
 
-1. **Concept — the retailer-pollution problem:** show the snapshot stat (154/270
+1. **Concept — the retailer-pollution problem:** show the snapshot stat (156/270
    `brand` rows hold a retailer name). Explain why `brand_tier` computed from the
    raw field is wrong and how that corrupts the deal model (Part 3 callback).
 
@@ -223,7 +223,7 @@ def test_brand_tier_coverage():
 ```
 
 **Retailer-pollution count:** the snapshot audit script above must print a value
-≥ 100 (conservative floor); the tutorial prose quotes "154 of 270" and must match
+≥ 100 (conservative floor); the tutorial prose quotes "156 of 270" and must match
 the snapshot.
 
 ---

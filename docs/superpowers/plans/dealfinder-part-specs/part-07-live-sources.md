@@ -42,7 +42,7 @@ Build production-grade, authenticated connectors to three real product-data sour
 
 **Snapshot role:** The frozen snapshot is used in two places only — (a) as the expected schema reference that all three connectors must conform to (checked by `validate_listing()` in `dealfinder/normalize.py`), and (b) as golden fixture data in the unit tests (`tests/fixtures/ebay_raw.json`, `rapidapi_raw.json`, `bestbuy_raw.json`) so CI runs offline.
 
-**Query used for smoke test:** `"noise cancelling headphones"` — identical to the anchor query that produced the snapshot's 18-item headphones subset (snapshot median $162.97).
+**Query used for smoke test:** `"noise cancelling headphones"` — identical to the anchor query that produced the snapshot's 15-item headphones subset (snapshot median $162.97).
 
 No snapshot items are modified in this part; this part adds new live rows to the runtime catalog, not to the committed snapshot.
 
@@ -53,7 +53,7 @@ No snapshot items are modified in this part; this part adds new live rows to the
 **Query:** `"noise cancelling headphones"` fired against all three sources simultaneously via `asyncio.gather`.
 
 eBay Browse returns a page of results. Expect to see:
-- A Sony WH-1000XM5 listing (historically $149–$199 on eBay) mapped to `source="ebay"`, `marketplace="ebay"`.
+- A Sony WH-1000XM5 listing at Costco ($162.97) and Macy's ($248), mapped to `source="ebay"`, `marketplace="ebay"`.
 - The connector sets `deal_pct = None` at ingestion time — the aggregator (Part 9) computes it against the cross-source median once all sources are merged.
 
 RapidAPI Google Shopping (same vendor as the snapshot) returns the familiar set including:
@@ -61,7 +61,7 @@ RapidAPI Google Shopping (same vendor as the snapshot) returns the familiar set 
 - Anker Soundcore Q20i ~$44.99 — mapped faithfully; `brand` field will hold the retailer string (same messiness as snapshot; Part 6 extraction cleans it downstream).
 
 BestBuy Affiliate returns in-store/online stock:
-- Bose QuietComfort 45 may appear at BestBuy's sale price ($199–$249 typical). This is the *correct* BestBuy price — not the $46 trap from the snapshot (which came from a third-party listing on Google Shopping). The contrast is worth calling out in prose: the same product, two sources, very different prices. That contrast motivates the dedup + source-trust weighting in Part 9.
+- Bose QuietComfort 45 at $46.00 (condition: new) appears in the snapshot as a suspicious deal candidate from a third-party listing on Google Shopping (residual_frac 0.839 flags it as suspiciously cheap against the fair-value $285.15). BestBuy's direct online/in-store price typically sits $199–$249. The contrast is worth calling out in prose: the same product, two sources, very different prices. That contrast motivates the dedup + source-trust weighting in Part 9.
 
 **Connector output (post-normalize, one row):**
 ```json

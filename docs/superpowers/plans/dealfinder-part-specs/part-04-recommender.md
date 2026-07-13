@@ -39,7 +39,7 @@ heterogeneous consumer-electronics data.
 ## 4. Data
 
 **Source:** `companions/dealfinder/data/snapshots/electronics-2026-07.json`
-(270 items, 18 queries, 11 categories).
+(270 items, 18 queries, 11 categories). Headphones subset = 15 items. Retailer-brand pollution = 156/270.
 
 **Interaction log:** `companions/dealfinder/data/interactions-sample.json` — a
 hand-authored 40-session synthetic-but-realistic log (NEW file introduced in this
@@ -54,13 +54,11 @@ the "echo" false-positive the part guards against).
 `companions/dealfinder/data/embeddings-2026-07.npy` (committed). No GPU required.
 
 **Exact items used in the walkthrough:**
-- XM5 @ $162.97 (Costco) — query item
-- XM5 @ $248.00 (Macy's) — same product, must be filtered by dedup guard
-- Anker Q20i @ $44.99 — appears in co-occurrence; content similarity ~0.71
-- Bose QC45 @ $46 — high content similarity (~0.78) but co-occurrence low;
-  surfaces the "trust content or co-occurrence?" question
-- XM6 @ $399.99 — top content hit (same product family); filtered by price-tier
-  guard (price > 2× query item → deprioritised)
+- Sony WH-1000XM5 @ $162.97 (Costco) — query item, median = $162.97, fair value $285.15 → FAIR
+- Sony WH-1000XM5 @ $248 (Macy's) — same product, must be filtered by dedup guard
+- Anker Soundcore Q20i @ $44.99 — appears in co-occurrence; content similarity ~0.71, fair $108.33, resid_frac 0.585 → DEAL
+- Bose QuietComfort 45 @ $46.00 — high content similarity (~0.78) but co-occurrence low; fair $285.15, resid_frac 0.839 → SUSPICIOUS
+- Sony WH-1000XM6 @ $399.99 — top content hit (same product family) → OVERPRICED; filtered by price-tier guard (price > 2× query item → deprioritised)
 
 ---
 
@@ -70,13 +68,13 @@ the "echo" false-positive the part guards against).
 
 **Step 1 — Content retrieval (top-5 by cosine sim, no filters):**
 
-| Rank | Title (truncated) | Price | Sim |
-|------|-------------------|-------|-----|
-| 1 | Sony WH-1000XM5 (Macy's) | $248.00 | 0.98 |
-| 2 | Sony WH-1000XM6 | $399.99 | 0.91 |
-| 3 | Bose QuietComfort 45 | $46.00 | 0.78 |
-| 4 | Anker Soundcore Q20i | $44.99 | 0.71 |
-| 5 | Sony WH-1000XM4 | $199.00 | 0.69 |
+| Rank | Title (truncated) | Price | Sim | Badge |
+|------|-------------------|-------|-----|-------|
+| 1 | Sony WH-1000XM5 (Macy's) | $248 | 0.98 | – |
+| 2 | Sony WH-1000XM6 | $399.99 | 0.91 | OVERPRICED |
+| 3 | Bose QuietComfort 45 | $46.00 | 0.78 | SUSPICIOUS |
+| 4 | Anker Soundcore Q20i | $44.99 | 0.71 | DEAL |
+| 5 | Sony WH-1000XM4 | $199.00 | 0.69 | – |
 
 Rank 1 is a dedup duplicate. Rank 2 is out-of-budget. Rank 3 is the trap item
 (refurb/mislisted). Raw content ranking is not safe to serve.
@@ -145,9 +143,9 @@ SVG card shapes; no runtime fetch.
 1. **Concept — the recommendation problem:** given one product, find five others
    a user is likely to want. Two independent signals exist: what the product *is*
    (content) and what users do together (co-occurrence). Neither alone is enough.
-2. **Code — embed titles:** run fastembed over the 270 snapshot titles; inspect
+2. **Code — embed titles:** run fastembed `BAAI/bge-small-en-v1.5` over the 270 snapshot titles; inspect
    the 384-dim vector for the XM5. Show cosine distance heatmap for the
-   "noise cancelling headphones" query subset (15 items).
+   "noise cancelling headphones" anchor subset (15 items).
 3. **Proof — content retrieval works, then fails:** `ContentRecommender.recommend(xm5_id, k=5)` →
    show the raw top-5 including the dedup duplicate and the Bose trap. Make the
    failure concrete.

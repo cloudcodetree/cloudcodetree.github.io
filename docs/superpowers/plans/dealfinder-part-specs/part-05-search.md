@@ -42,7 +42,7 @@ Source: `companions/dealfinder/data/snapshots/electronics-2026-07.json` (270 ite
 
 Fields used: `id`, `title`, `category`, `price`, `deal_pct`, `median_price_at_capture`.
 
-Working query: **"noise cancelling headphones"** (18 items in snapshot under this
+Working query: **"noise cancelling headphones"** (15 items in snapshot under this
 query; snapshot median **$162.97**).
 
 BM25 is built over all 270 titles (cross-category retrieval is intentionally included
@@ -61,26 +61,27 @@ first run, cached thereafter).
 
 **BM25 top-3** (term overlap wins, but model numbers rank poorly):
 1. Sony WH-1000XM5 @ $162.97 (Costco) — title contains "noise cancelling headphones" verbatim
-2. Sony WH-1000XM6 @ $399.99 — partial match
-3. Anker Soundcore Q20i @ $44.99 — "noise" + partial match
+2. Sony WH-1000XM6 @ $399.99 (OVERPRICED) — partial match
+3. Anker Soundcore Q20i @ $44.99 (DEAL) — "noise" + partial match
 
 **Dense top-3** (semantic similarity, cosine):
-1. Bose QuietComfort 45 @ $46 — embedding captures "quiet" ≈ "noise cancelling"; floats
+1. Bose QuietComfort 45 @ $46 (SUSPICIOUS) — embedding captures "quiet" ≈ "noise cancelling"; floats
    to rank 1 on semantics alone despite being the false-positive trap
-2. Sony WH-1000XM5 @ $162.97 (Costco)
-3. Anker Soundcore Q20i @ $44.99
+2. Sony WH-1000XM5 @ $162.97 (Costco, FAIR)
+3. Anker Soundcore Q20i @ $44.99 (DEAL)
 
 **RRF (k=60) fused top-3:**
-1. Sony WH-1000XM5 @ $162.97 (Costco) — consistent rank across both lists
-2. Anker Soundcore Q20i @ $44.99
-3. Bose QuietComfort 45 @ $46
+1. Sony WH-1000XM5 @ $162.97 (Costco, FAIR) — consistent rank across both lists
+2. Anker Soundcore Q20i @ $44.99 (DEAL)
+3. Bose QuietComfort 45 @ $46 (SUSPICIOUS)
 
 **After cross-encoder rerank:** The reranker scores each (query, title) pair jointly.
-The Bose QC45 entry at $46 is flagged with a lower rerank score than at its normal
-market price context because the title does not assert a sale condition — the price
-anomaly is visible to downstream deal scoring (Part 3's model residual), not the
-ranker. Final top-5 order: XM5 (Costco) → XM5 (Macy's, $248, dedup candidate from
-Part 1) → Anker Q20i → Bose QC45 → XM6.
+The Bose QC45 entry at $46 is flagged with a lower rerank score because the title
+does not assert a sale condition and the residual (fair_price $285.15 − actual $46 =
+$239.15, resid_frac 0.839) suggests a possible data error — the price anomaly is
+visible to downstream deal scoring (Part 3's residual guard), not the ranker.
+Final top-5 order: XM5 (Costco, $162.97, FAIR) → XM5 (Macy's, $248, dedup candidate from
+Part 1) → Anker Q20i ($44.99, DEAL) → Bose QC45 ($46, SUSPICIOUS) → XM6 ($399.99, OVERPRICED).
 
 The tutorial shows the learner that dedup (Part 1) and the price guard (Part 3) are
 the right layers to catch the Bose false positive — search's job is relevance, not
@@ -144,14 +145,16 @@ unique — no other component uses it.
    rank positions are stable. Show k=60 dampens outlier rank boosts.
 6. **Code — reciprocal\_rank\_fusion:** The 10-line pure-Python implementation.
 7. **Proof — RRF beats either alone:** Tabulate precision@5 on the hero cast
-   (BM25: 3/5, dense: 3/5, RRF: 4/5). Values from `tests/test_search.py`.
+   (BM25: 3/5, dense: 3/5, RRF: 4/5, with eval gate precision@5 ≥ 0.80 on 20-item
+   golden set). Values from `tests/test_search.py`.
 8. **Concept — rerank:** Cross-encoders see (query, doc) jointly; they're slower
    but more accurate for top-k reordering. Budget: rerank only the top-20 RRF
    candidates.
 9. **Code — rerank wrapper:** 15 lines around fastembed reranker.
-10. **Proof — final ranked list:** Show the XM5 (Costco) at $162.97 at rank 1;
-    Anker Q20i at rank 2. Note that the Bose QC45 at $46 remains in top-5 —
-    its removal is a *deal scoring* job (Part 3), not search's responsibility.
+10. **Proof — final ranked list:** Show the XM5 (Costco) at $162.97 at rank 1 (FAIR);
+    Anker Q20i ($44.99, DEAL) at rank 2. Note that the Bose QC45 at $46 (SUSPICIOUS)
+    remains in top-5 — its removal is a *deal scoring* job (Part 3's residual guard),
+    not search's responsibility.
 
 ---
 
