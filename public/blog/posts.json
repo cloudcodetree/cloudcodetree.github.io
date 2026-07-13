@@ -1,5 +1,62 @@
 [
   {
+    "id": "2026-07-13-06-claude-code-routines-schedule-api-github-trigger",
+    "title": "From Cron to Cloud Agent: Automate Any Dev Workflow With Claude Code Routines",
+    "excerpt": "Claude Code Routines run your agent on a schedule, a webhook POST, or a GitHub event — all on Anthropic-managed cloud infrastructure, no machine required. Three trigger types, one setup form.",
+    "author": "Chris Harper",
+    "date": "07-13-2026",
+    "publishedAt": "2026-07-13T12:13:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/routines",
+    "content": "**Claude Code Routines let you run a full agent on a cron schedule, a webhook call, or a GitHub event — on Anthropic-managed cloud, no laptop or CI runner required.**\n\nSome tasks run better unattended: nightly backlog grooming, automated PR review, alert-triggered debugging, docs-drift detection. **Routines** are Claude Code's answer: a saved configuration (prompt + repositories + connectors + triggers) that runs on Anthropic-managed cloud infrastructure automatically. Available on Pro, Max, Team, and Enterprise.\n\n## Three trigger types\n\n### 1. Schedule (cron-style)\nCreate from any Claude Code session with `/schedule` or at [claude.ai/code/routines](https://claude.ai/code/routines). Built-in frequencies: hourly, daily, weekdays, weekly. Custom intervals via cron expression. One-off runs (fire once, then auto-disable) don't count against the daily routine cap.\n\n```text\n/schedule nightly at 11pm, review open PRs and add labels\n/schedule in 2 weeks, remove the feature flag from the auth module\n```\n\n### 2. API trigger (webhook/pipeline)\nEach routine gets a dedicated `/fire` endpoint. POST to it from CI, a monitoring alert, or any script:\n\n```bash\ncurl -X POST https://api.anthropic.com/v1/claude_code/routines/trig_01ABCDE.../fire \\\n  -H \"Authorization: Bearer sk-ant-oat01-xxxxx\" \\\n  -H \"anthropic-beta: experimental-cc-routine-2026-04-01\" \\\n  -H \"anthropic-version: 2023-06-01\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"text\": \"Sentry alert SEN-4521 fired. Stack trace: TypeError at auth.ts:42\"}'\n```\n\nThe response returns a `claude_code_session_url` you can open to watch the run live. The routine receives the alert body in `text`, can correlate it with recent commits, and open a draft PR — no one at a terminal.\n\n### 3. GitHub event trigger\nReact to `pull_request.opened`, `pull_request.closed`, or release events. Filters narrow which events fire: base branch, draft state, labels, author. Example: a PR review routine set to `is draft: false` on `base: main` runs before any human opens the PR.\n\n## Key setup rules\n\n- Claude pushes to `claude/`-prefixed branches by default; enable **Allow unrestricted branch pushes** per-repository if needed\n- All connected MCP connectors are included by default — remove any the routine doesn't need (they run with full write access, no approval prompts)\n- Environments control network access; the default allowlist covers package registries and common cloud APIs. Add domains under **Settings > Connectors** for anything outside it\n- Routines belong to your individual account; commits and PR actions appear under your GitHub identity\n\nCreate at [claude.ai/code/routines](https://claude.ai/code/routines) or from the CLI with `/schedule`. To add an API or GitHub trigger, use the web UI — the CLI handles schedules only.\n\n**Sources:** [Automate work with Routines — Claude Code Docs](https://code.claude.com/docs/en/routines) · [Trigger a routine via API — Claude Platform Docs](https://platform.claude.com/docs/en/api/claude-code/routines-fire)"
+  },
+  {
+    "id": "2026-07-13-05-huggingface-vllm-transformers-backend-model-impl",
+    "title": "Any Hugging Face Model at Native vLLM Speed: One Flag Changes Everything",
+    "excerpt": "The vLLM transformers backend now dynamically fuses layers at runtime via torch.fx, matching native vLLM throughput for any Hugging Face model. Enable it with --model-impl transformers.",
+    "author": "Chris Harper",
+    "date": "07-13-2026",
+    "publishedAt": "2026-07-13T12:12:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Self-Hosting",
+      "LLM",
+      "HuggingFace"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/blog/native-speed-vllm-transformers-backend",
+    "content": "**Hugging Face's July 8 update makes any compatible model on the Hub serve at native vLLM throughput with `--model-impl transformers` — no custom vLLM implementation required.**\n\nUntil now, getting native vLLM performance required either waiting for the vLLM team to write a dedicated `modeling_xxx.py` for your architecture, or writing it yourself. That gap closed on July 8.\n\nThe `transformers` modeling backend now uses `torch.fx` to statically analyze a model's computation graph at load time and replace standard layers with optimized vLLM kernel implementations — the same fusions previously requiring hand-written vLLM code. Benchmarks on three Qwen3 variants (4B single-GPU, 32B tensor-parallel, 235B FP8 MoE) show the transformers backend \"meets or beats\" native throughput.\n\n```bash\n# Single GPU — any compatible HF model\nvllm serve Qwen/Qwen3-4B --model-impl transformers\n\n# Tensor-parallel across 2 GPUs\nvllm serve Qwen/Qwen3-32B --model-impl transformers --tensor-parallel-size 2\n\n# Large MoE with data + expert parallelism\nvllm serve Qwen/Qwen3-235B-A22B-FP8 \\\n  --model-impl transformers \\\n  --data-parallel-size 8 \\\n  --enable-expert-parallel\n```\n\nThe second win: because transformers model code works for training, eval, and RL rollouts as well, you can use the same `modeling_xxx.py` across the full stack — fine-tune with Unsloth, eval with lm-eval-harness, serve with vLLM, all from the same code. No more maintaining a separate vLLM fork.\n\n**Why it matters:** The gap between \"model on the Hub\" and \"model serving at production speed\" just collapsed. Teams doing domain-specific fine-tuning no longer need a custom vLLM port to get production throughput — push to the Hub, add one flag.\n\n**Sources:** [Native-speed vLLM transformers backend — Hugging Face blog](https://huggingface.co/blog/native-speed-vllm-transformers-backend) · [Transformers as modeling backend — HF docs](https://huggingface.co/docs/transformers/main/transformers_as_backend)"
+  },
+  {
+    "id": "2026-07-13-04-parent-document-retriever-langchain-small-to-big",
+    "title": "Retrieve Small, Return Big: Better RAG With LangChain's ParentDocumentRetriever",
+    "excerpt": "ParentDocumentRetriever solves the RAG precision-context tradeoff: embed small child chunks for accurate retrieval, return large parent chunks to the LLM for full context. Under 30 lines of Python.",
+    "author": "Chris Harper",
+    "date": "07-13-2026",
+    "publishedAt": "2026-07-13T12:11:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "RAG",
+      "Embeddings",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.youtube.com/watch?v=KQSTG_c3b10",
+    "content": "**Small child chunks find the right passage; large parent chunks give the LLM the context it needs — LangChain's ParentDocumentRetriever indexes both and returns the right one automatically.**\n\n**What you'll be able to do after this:**\n- Understand why one chunk size can't satisfy both retrieval precision and LLM context quality\n- Configure a dual-granularity index: child chunks for embedding, parent chunks for the LLM\n- Wire up `ParentDocumentRetriever` with Chroma + InMemoryStore in under 30 lines\n\n## The core tradeoff\n\nSmall chunks (~200-400 tokens) make precise embeddings — a single sentence produces a vector that reliably matches narrow queries. But when the LLM gets a 200-token snippet as context, it's missing the setup paragraph, the surrounding equations, the follow-on example. Answer quality suffers.\n\nLarge chunks (~1,500-2,000 tokens) preserve narrative context but dilute the embedding: the vector becomes an average of several topics and won't reliably surface on specific queries.\n\n`ParentDocumentRetriever` maintains two granularities simultaneously:\n- **Child chunks** (small, ~400 tokens): embedded and stored in the vector store; used for similarity search only\n- **Parent chunks** (large, ~2,000 tokens): stored in a key-value docstore keyed by parent ID; returned to the LLM\n\nQuery flow: similarity search finds the best child chunks → look up their parent IDs → return the full parent documents. Precise matching AND rich context.\n\n## Runnable setup\n\n```python\nfrom langchain_community.vectorstores import Chroma\nfrom langchain.storage import InMemoryStore\nfrom langchain.retrievers import ParentDocumentRetriever\nfrom langchain_text_splitters import RecursiveCharacterTextSplitter\nfrom langchain_openai import OpenAIEmbeddings\n\n# Small splitter for retrieval signal, large for LLM context\nchild_splitter = RecursiveCharacterTextSplitter(chunk_size=400)\nparent_splitter = RecursiveCharacterTextSplitter(chunk_size=2000)\n\n# Child embeddings → vectorstore; parent text → docstore\nvectorstore = Chroma(\n    collection_name=\"split_parents\",\n    embedding_function=OpenAIEmbeddings()\n)\nstore = InMemoryStore()\n\nretriever = ParentDocumentRetriever(\n    vectorstore=vectorstore,\n    docstore=store,\n    child_splitter=child_splitter,\n    parent_splitter=parent_splitter,\n)\n\n# add_documents splits, indexes children in vectorstore,\n# stores parents in docstore — all in one call\nretriever.add_documents(docs)\n\n# Returns full parent chunks (~2,000 tokens), not child snippets\nresults = retriever.invoke(\"quantum decoherence in superconductors\")\nprint(len(results[0].page_content))  # → ~2000 chars\n```\n\n## Two usage modes\n\n**Full document as parent** (omit `parent_splitter`): embed child chunks, return the entire source document. Best for short documents where you want the complete text.\n\n**Large chunk as parent** (pass `parent_splitter`): embed children, return medium parent chunks. Best for long documents — gives the LLM a bounded window, not everything.\n\nFor production, swap `InMemoryStore` with a persistent store (`RedisStore` or a custom `ByteStore`) so documents survive restarts. The vectorstore (Chroma, pgvector, Pinecone) can also be persisted independently — the two stores are decoupled by design.\n\n**Sources:** [How to use the Parent Document Retriever — LangChain docs](https://python.langchain.com/docs/how_to/parent_document_retriever/) · [LangChain ParentDocumentRetriever tutorial — YouTube](https://www.youtube.com/watch?v=KQSTG_c3b10) · [Parent Document Retrieval with MongoDB — MongoDB Docs](https://www.mongodb.com/docs/atlas/ai-integrations/langchain/parent-document-retrieval/)"
+  },
+  {
     "id": "2026-07-13-03-mcp-security-attacks-confused-deputy-ssrf",
     "title": "Five Attacks That Break MCP Servers — and the Fixes the Official Spec Requires",
     "excerpt": "The official MCP Security Best Practices spec documents five exploitable attack classes — confused deputy, token passthrough, SSRF, session hijacking, and OAuth URL injection — each with concrete c…",
