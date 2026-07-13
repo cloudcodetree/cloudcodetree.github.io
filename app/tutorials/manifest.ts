@@ -322,6 +322,19 @@ export const tutorials: Tutorial[] = [
     image: '/tutorials/covers/dealfinder-pgvector.png',
   },
   {
+    slug: 'dealfinder-rag',
+    title: 'RAG: grounded answers over your deals',
+    series: 'Become a Full-Stack AI Engineer',
+    part: 14,
+    excerpt:
+      'Turn the pgvector retriever into a question-answering system: retrieve the real deals for a plain-English query, build a numbered context, and generate an answer that can only cite listings it was given — with a faithfulness guard that rejects invented prices.',
+    date: '06-30-2026',
+    tags: ['Tutorial', 'DealFinder', 'RAG', 'LLM', 'Python'],
+    order: 24,
+    readTime: 12,
+    image: '/tutorials/covers/dealfinder-rag.png',
+  },
+  {
     slug: 'dealfinder-webapp',
     title: 'The web app',
     series: 'Become a Full-Stack AI Engineer',
