@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: What You\'ll Like Next — Recommenders (Part 4 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: What You\'ll Like Next — Recommenders (Part 4 of 34) · Tutorials',
   description:
     'Build a content-based recommender over fastembed title embeddings and an item–item collaborative filter over a real interaction log — the two recommenders every recsys starts with — and see why the same Sony WH-1000XM5 anchor yields two genuinely different neighborhoods.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-recommender/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: What You\'ll Like Next — Recommenders (Part 4 of 33)',
+    title: 'Become a Full-Stack AI Engineer: What You\'ll Like Next — Recommenders (Part 4 of 34)',
     description: 'Build a content-based recommender over fastembed title embeddings and an item–item collaborative filter over a real interaction log — the two recommenders every recsys starts with — and see why the same Sony WH-1000XM5 anchor yields two genuinely different neighborhoods.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-recommender/',
     siteName: 'CloudCodeTree',
@@ -193,7 +193,7 @@ The collaborative signal surfaces a different, taste-driven neighborhood — co-
 `run_recs.py` demonstrates the canonical invocation (`k=3`) and also runs a leave-one-out offline eval comparing CF `precision@5`/`ndcg@5` against a popularity baseline.
 
 <Callout tone="note">
-**The interaction log is hand-authored for this tutorial.** It is not presented as real user data — the lesson is the mechanics of co-occurrence, not the validity of the log. Every `item_id` in `data/sample/interactions.json` is a real `id` from the committed snapshot. In production you would replace this with live clickstream; Part 29 (Saved searches and suggestions worker) wires that signal.
+**The interaction log is hand-authored for this tutorial.** It is not presented as real user data — the lesson is the mechanics of co-occurrence, not the validity of the log. Every `item_id` in `data/sample/interactions.json` is a real `id` from the committed snapshot. In production you would replace this with live clickstream; Part 30 (Saved searches and suggestions worker) wires that signal.
 </Callout>
 
 ---

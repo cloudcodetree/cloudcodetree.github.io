@@ -2,12 +2,12 @@ import BoostingLift from '@/app/components/mdx/BoostingLift';
 import PriceDropForecast from '@/app/components/mdx/PriceDropForecast';
 
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: ML & DL Breadth (Part 17 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: ML & DL Breadth (Part 18 of 34) · Tutorials',
   description:
     'Go beyond linear regression: gradient boosting with title embeddings cuts MAE 39% on the real 270-item corpus, a linear-trend forecaster projects price drops on synthetic history, and a minimal PyTorch MLP trains for real — all pinned against the frozen snapshot.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-ml-dl-breadth/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: ML & DL Breadth (Part 17 of 33)',
+    title: 'Become a Full-Stack AI Engineer: ML & DL Breadth (Part 18 of 34)',
     description:
       'Go beyond linear regression: gradient boosting with title embeddings cuts MAE 39% on the real 270-item corpus, a linear-trend forecaster projects price drops on synthetic history, and a minimal PyTorch MLP trains for real — all pinned against the frozen snapshot.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-ml-dl-breadth/',
@@ -24,7 +24,7 @@ export const metadata = {
 
 **TL;DR: The linear baseline from Part 3 gets an honest upgrade. A gradient-boosted regressor on hand features plus PCA-compressed title embeddings cuts full-corpus MAE from $227.89 to $138.11 — a 39% reduction on 270 real electronics listings. Then a linear-trend forecaster projects whether a price will keep falling, and a minimal PyTorch MLP runs a genuine autograd loop. Three models, one real corpus, zero invented numbers.**
 
-This is **Part 17 of DealFinder**, and it delivers the ML rigor the course has been building toward. Part 3 fit a from-scratch linear model on three hand-crafted features — `category_code`, `brand_tier`, `condition_code` — and got MAE $227.89. The model was deliberately weak; the lesson was that a naive linear fit on broad, heterogeneous electronics data is not enough. Part 15 (Dataset Engineering) taught you how to label and split that data without leaking information. Now you use the same deterministic split (seed=0, 202 train / 68 test) and the same hand features, add PCA-compressed title embeddings, and replace the linear model with a gradient-boosted tree ensemble. The honest version of that upgrade is told here, with the real numbers from the committed snapshot.
+This is **Part 18 of DealFinder**, and it delivers the ML rigor the course has been building toward. Part 3 fit a from-scratch linear model on three hand-crafted features — `category_code`, `brand_tier`, `condition_code` — and got MAE $227.89. The model was deliberately weak; the lesson was that a naive linear fit on broad, heterogeneous electronics data is not enough. Part 16 (Dataset Engineering) taught you how to label and split that data without leaking information. Now you use the same deterministic split (seed=0, 202 train / 68 test) and the same hand features, add PCA-compressed title embeddings, and replace the linear model with a gradient-boosted tree ensemble. The honest version of that upgrade is told here, with the real numbers from the committed snapshot.
 
 <Callout tone="tip">
 **Code along, step by step.** Full project at
@@ -262,7 +262,7 @@ The Sony WH-1000XM5 anchored at $162.97 has been on a gentle downtrend in this s
 
 <PriceDropForecast />
 
-What the forecaster illustrates, even on synthetic data, is the decision logic: once you have real price history (from a persistent scraper or a platform API), you can plug it into `forecast_price_drop()` and get a `will_drop` signal that complements the static residual. The architecture is ready; the data is not (yet). Part 29 (Saved searches and the periodic-suggestions worker) revisits this when periodic re-scraping creates the real time axis.
+What the forecaster illustrates, even on synthetic data, is the decision logic: once you have real price history (from a persistent scraper or a platform API), you can plug it into `forecast_price_drop()` and get a `will_drop` signal that complements the static residual. The architecture is ready; the data is not (yet). Part 30 (Saved searches and the periodic-suggestions worker) revisits this when periodic re-scraping creates the real time axis.
 
 <Callout tone="warn">
 Never present `illustrative=True` forecaster output as a real price-drop prediction to an end user. The `Forecast` dataclass exposes the `illustrative` flag precisely so your API layer can gate on it and return a "coming soon" state rather than a fabricated number.
@@ -382,8 +382,8 @@ All seven tests must pass. If you see a torch import error, ensure `torch` is in
 
 ## Where this goes next
 
-- **Part 16 — Pipelines & orchestration:** the Prefect flows and dbt models that produce a clean, versioned dataset for training. This part consumed the output of that pipeline — the 270-item snapshot with the deterministic 202/68 split established in Part 15.
-- **Part 18 — Experiment tracking & model registry:** you have now run three models against the same split. Part 18 introduces MLflow: logging the MAE from each `gbdt_vs_linear()` call, comparing runs in the UI, and registering the GBDT+embeddings model so it can be loaded by the serving layer without re-training.
+- **Part 17 — Pipelines & orchestration:** the Prefect flows and dbt models that produce a clean, versioned dataset for training. This part consumed the output of that pipeline — the 270-item snapshot with the deterministic 202/68 split established in Part 16.
+- **Part 19 — Experiment tracking & model registry:** you have now run three models against the same split. Part 19 introduces MLflow: logging the MAE from each `gbdt_vs_linear()` call, comparing runs in the UI, and registering the GBDT+embeddings model so it can be loaded by the serving layer without re-training.
 
 ---
 

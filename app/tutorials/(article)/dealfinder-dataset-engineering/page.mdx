@@ -2,12 +2,12 @@ import LabelImbalance from '@/app/components/mdx/LabelImbalance';
 import GroupedSplit from '@/app/components/mdx/GroupedSplit';
 
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Dataset Engineering (Part 15 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Dataset Engineering (Part 16 of 34) · Tutorials',
   description:
     'Label the 270-item electronics snapshot, guard against query-leakage with a grouped split, and confront the real class imbalance — the bridge from raw data to a reproducible ML training set.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-dataset-engineering/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Dataset Engineering (Part 15 of 33)',
+    title: 'Become a Full-Stack AI Engineer: Dataset Engineering (Part 16 of 34)',
     description: 'Label the 270-item electronics snapshot, guard against query-leakage with a grouped split, and confront the real class imbalance — the bridge from raw data to a reproducible ML training set.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-dataset-engineering/',
     siteName: 'CloudCodeTree',
@@ -23,12 +23,12 @@ export const metadata = {
 
 **TL;DR: Turn the frozen 270-item electronics snapshot into a labeled, leakage-safe training set. You will label every listing with the two-signal deal verdict, split by query group to prevent near-duplicate contamination, and report the real class imbalance — then hand back balanced class weights so a classifier can compensate without any resampling magic.**
 
-This is **Part 15 of DealFinder**. You have the web app running (Part 14). Now the ML rigor starts. Before you can train a classifier on the deal-vs-overpriced question, you need a dataset that actually earns the name: clean labels, a split that reflects how the model will generalize, and an honest account of how skewed the classes are. `dealfinder/dataset.py` does all three in under 250 lines — deterministically, offline, against the committed snapshot.
+This is **Part 16 of DealFinder**. You have the web app running (Part 15). Now the ML rigor starts. Before you can train a classifier on the deal-vs-overpriced question, you need a dataset that actually earns the name: clean labels, a split that reflects how the model will generalize, and an honest account of how skewed the classes are. `dealfinder/dataset.py` does all three in under 250 lines — deterministically, offline, against the committed snapshot.
 
 <Callout tone="tip">
 **Code along.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-Step tag for this part: `step-15`. Compare diff: `step-14...step-15`.
+Step tag for this part: `step-16`. Compare diff: `step-15...step-16`.
 Tests: `tests/test_dataset.py` — all must pass before you move on.
 </Callout>
 
@@ -134,7 +134,7 @@ ds.label_names()       # list of 270 strings ("deal", "fair", …)
 ds.label_distribution()  # {'deal': 71, 'fair': 40, 'suspicious': 32, 'overpriced': 127}
 ```
 
-These two methods are the ones the tests pin. They are the ground truth for Part 15 and for every later part that trains on this dataset.
+These two methods are the ones the tests pin. They are the ground truth for Part 16 and for every later part that trains on this dataset.
 
 ---
 
@@ -181,7 +181,7 @@ With `seed=0`, 18 unique queries split into 14 train / 4 test. Because the split
 The guarantee the test confirms: `train_queries.isdisjoint(test_queries)` is `True`, and `train_size + test_size == 270`. Every row is assigned to exactly one side.
 
 <Callout tone="note">
-The grouped split (14/4 queries, 210/60 rows) is distinct from the row-level 202/68 split used in Parts 17 and beyond for the gradient-boosting experiments. Do not conflate them. The grouped split is the leakage-safe split for training a classifier on deal labels; the row-level split is used in the price regression benchmarks where query contamination is less severe.
+The grouped split (14/4 queries, 210/60 rows) is distinct from the row-level 202/68 split used in Parts 18 and beyond for the gradient-boosting experiments. Do not conflate them. The grouped split is the leakage-safe split for training a classifier on deal labels; the row-level split is used in the price regression benchmarks where query contamination is less severe.
 </Callout>
 
 ---
@@ -268,7 +268,7 @@ print(ds_full.X.shape)   # (270, 387)  — 3 hand + 384 embedding dims
 
 The feature names extend: `["category_code", "brand_tier", "condition_code", "emb_0", "emb_1", …, "emb_383"]`.
 
-In Part 17, `gbdt_vs_linear(with_embeddings=True)` shows what embedding features add to a gradient-boosted price regressor: with hand features only, the GBDT MAE is $257.99 — worse than the linear baseline at $227.89. Add the 384-dim embeddings (reduced to 16 PCA dims inside `gbdt_vs_linear`) and the GBDT MAE drops to $138.11, cutting the linear baseline's error by 39.4%. The embeddings are the hero; the boosting alone loses.
+In Part 18, `gbdt_vs_linear(with_embeddings=True)` shows what embedding features add to a gradient-boosted price regressor: with hand features only, the GBDT MAE is $257.99 — worse than the linear baseline at $227.89. Add the 384-dim embeddings (reduced to 16 PCA dims inside `gbdt_vs_linear`) and the GBDT MAE drops to $138.11, cutting the linear baseline's error by 39.4%. The embeddings are the hero; the boosting alone loses.
 
 The `with_embeddings=False` default keeps this part offline and fast. Use `True` when you want the full feature vector for the ML parts.
 
@@ -280,7 +280,7 @@ The correct way to train on price data is to respect time: train on the past, te
 
 The snapshot does not support this. Every row was captured in a single pass in July 2026; the `price_history` field is empty for all 270 items. There is no real time axis to split on.
 
-`temporal_split` is provided as the hook for when the pipeline in Part 16 starts recording a capture timestamp per item. The function is honest about the gap:
+`temporal_split` is provided as the hook for when the pipeline in Part 17 starts recording a capture timestamp per item. The function is honest about the gap:
 
 ```python
 from dealfinder.dataset import temporal_split
@@ -291,7 +291,7 @@ train_idx, test_idx = temporal_split(n=270)
 # train_size=202, test_size=68 (plain index, no time axis)
 ```
 
-The docstring says it plainly: "The current snapshot rows carry no `price_history` / capture time (all empty), so there is no real time axis to split on yet." The function does not pretend otherwise. Once Part 16 records a `captured_at` timestamp per item, you pass it as `order_key` and `temporal_split` becomes the real thing.
+The docstring says it plainly: "The current snapshot rows carry no `price_history` / capture time (all empty), so there is no real time axis to split on yet." The function does not pretend otherwise. Once Part 17 records a `captured_at` timestamp per item, you pass it as `order_key` and `temporal_split` becomes the real thing.
 
 <Callout tone="note">
 Do not interpret the 202/68 output of `temporal_split(n=270)` as a validated temporal train/test pair. It is a plain index split with no time guarantee. Use `grouped_split` for the leakage-safe split on this snapshot.
@@ -337,15 +337,15 @@ What each test pins:
 
 **`test_with_embeddings_appends_384_dims`** — `build_labeled_dataset(with_embeddings=True)` → `X.shape == (270, 387)`.
 
-All seven must pass against the committed snapshot. If any fail, debug before moving on — a failing test here means Parts 17–20 will be running on a dataset whose properties differ from what the prose describes.
+All seven must pass against the committed snapshot. If any fail, debug before moving on — a failing test here means Parts 18–21 will be running on a dataset whose properties differ from what the prose describes.
 
 ---
 
 ## Where this goes next
 
-- **Part 16 — Pipelines & orchestration:** the Part 15 dataset is a one-shot build from a committed snapshot. Part 16 operationalizes the pipeline: Prefect orchestrates nightly ingest from the live connector, dbt transforms the raw items, and data contracts gate the quality of what enters the dataset. When Part 16 records a `captured_at` timestamp on each row, `temporal_split` becomes real rather than a placeholder.
-- **Part 17 — ML & DL breadth:** the first consumer of this dataset. `gbdt_vs_linear()` benchmarks a gradient-boosted regressor against the linear baseline (Part 3) on the 202/68 row-level split, first with hand features only — where boosting actually loses — then with the 384-dim embeddings reduced via PCA, where GBDT cuts the linear baseline's MAE by 39.4% (from $227.89 to $138.11).
+- **Part 17 — Pipelines & orchestration:** the Part 16 dataset is a one-shot build from a committed snapshot. Part 17 operationalizes the pipeline: Prefect orchestrates nightly ingest from the live connector, dbt transforms the raw items, and data contracts gate the quality of what enters the dataset. When Part 17 records a `captured_at` timestamp on each row, `temporal_split` becomes real rather than a placeholder.
+- **Part 18 — ML & DL breadth:** the first consumer of this dataset. `gbdt_vs_linear()` benchmarks a gradient-boosted regressor against the linear baseline (Part 3) on the 202/68 row-level split, first with hand features only — where boosting actually loses — then with the 384-dim embeddings reduced via PCA, where GBDT cuts the linear baseline's MAE by 39.4% (from $227.89 to $138.11).
 
 ---
 
-*Part 14: [The web app](/tutorials/dealfinder-webapp) · Part 16: [Pipelines & orchestration](/tutorials/dealfinder-orchestration)*
+*Part 15: [The web app](/tutorials/dealfinder-webapp) · Part 17: [Pipelines & orchestration](/tutorials/dealfinder-orchestration)*

@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Experiment Tracking & Model Registry (Part 18 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Experiment Tracking & Model Registry (Part 19 of 34) · Tutorials',
   description:
     'Log every price-model training run to a local MLflow SQLite store, compare three models on the same fair-price feature contract, and register the GBDT winner — the reproducible discipline that keeps ML work honest.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-experiment-tracking/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Experiment Tracking & Model Registry (Part 18 of 33)',
+    title: 'Become a Full-Stack AI Engineer: Experiment Tracking & Model Registry (Part 19 of 34)',
     description: 'Log every price-model training run to a local MLflow SQLite store, compare three models on the same fair-price feature contract, and register the GBDT winner — the reproducible discipline that keeps ML work honest.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-experiment-tracking/',
     siteName: 'CloudCodeTree',
@@ -18,12 +18,12 @@ export const metadata = {
 
 # Experiment Tracking & Model Registry
 
-**TL;DR: Part 17 trained three price models. Now you log every run — params, MAE, R² — to a local MLflow SQLite store, select the winner on a fair, same-features basis, and register it. The discipline is what makes ML work you can actually trust and reproduce.**
+**TL;DR: Part 18 trained three price models. Now you log every run — params, MAE, R² — to a local MLflow SQLite store, select the winner on a fair, same-features basis, and register it. The discipline is what makes ML work you can actually trust and reproduce.**
 
-This is **Part 18 of DealFinder**, and the lesson is about honesty. Training a model is easy; knowing which model you trained, under what conditions, and why it won is the hard part. MLflow gives you the infrastructure to answer those questions without ceremony — no tracking server, no cloud account, just a local SQLite file that records everything. By the end you will have a comparison table backed by real executed numbers, a registered model selected by rule, and four tests that pin it all.
+This is **Part 19 of DealFinder**, and the lesson is about honesty. Training a model is easy; knowing which model you trained, under what conditions, and why it won is the hard part. MLflow gives you the infrastructure to answer those questions without ceremony — no tracking server, no cloud account, just a local SQLite file that records everything. By the end you will have a comparison table backed by real executed numbers, a registered model selected by rule, and four tests that pin it all.
 
 <Callout tone="tip">
-**Code along.** Full project at [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). Step tag for this part: `step-18`. Compare with Part 17: [step-17...step-18](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-17...step-18).
+**Code along.** Full project at [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). Step tag for this part: `step-19`. Compare with Part 18: [step-18...step-19](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-18...step-19).
 </Callout>
 
 ## Table of contents
@@ -52,7 +52,7 @@ This is **Part 18 of DealFinder**, and the lesson is about honesty. Training a m
 
 ## Why you need a ledger, not just a winner
 
-After Part 17 you have three price models: a linear baseline, a gradient-boosted regressor, and a PyTorch MLP. You know the GBDT wins by MAE on the electronics snapshot. But how do you know that next month? Or next quarter, when a colleague retrain it with a different `random_state` and gets a slightly different number? How do you know the comparison was fair?
+After Part 18 you have three price models: a linear baseline, a gradient-boosted regressor, and a PyTorch MLP. You know the GBDT wins by MAE on the electronics snapshot. But how do you know that next month? Or next quarter, when a colleague retrain it with a different `random_state` and gets a slightly different number? How do you know the comparison was fair?
 
 The problem with knowing the winner in your head is that heads forget. They also confuse runs — "was that the hand-features GBDT or the hand+embeddings one?" They don't record which snapshot was used, or what PCA dimension was set, or whether the train/test split was the same across all three models.
 
@@ -113,7 +113,7 @@ The context manager restores the previous `tracking_uri` on exit and cleans up t
 
 Before logging anything, you need to settle a question that is easy to get wrong: are all three models being compared on the same features?
 
-Part 17 trained models in different configurations. The `train_torch_pricehead()` function in `dealfinder/models.py` trains a PyTorch MLP on hand-only features (the §4 set: category, brand_tier, condition, and sparse numeric extractions). The `gbdt_vs_linear()` function trains both a linear model and a GBDT on hand features **plus** 16 PCA-compressed title embedding dimensions. Those are different feature representations, so the resulting MAEs are not directly comparable — a model trained on richer features has a systematic advantage.
+Part 18 trained models in different configurations. The `train_torch_pricehead()` function in `dealfinder/models.py` trains a PyTorch MLP on hand-only features (the §4 set: category, brand_tier, condition, and sparse numeric extractions). The `gbdt_vs_linear()` function trains both a linear model and a GBDT on hand features **plus** 16 PCA-compressed title embedding dimensions. Those are different feature representations, so the resulting MAEs are not directly comparable — a model trained on richer features has a systematic advantage.
 
 The fair comparison is the one where every model sees the identical matrix. In `tracking.py`, `_contract_matrix()` builds exactly that shared representation:
 
@@ -142,7 +142,7 @@ All three selectable runs — linear, gbdt, and torch — receive this same `Xtr
 
 <FeatureContractGate />
 
-The two documented baselines from Part 17 — `linear_baseline` ($227.89, hand-only) and `torch_baseline` ($117.11, hand-only) — are logged separately with `contract="documented-baseline"` and `selectable=False`. They are in the ledger so the Part 17 prose numbers reproduce here verbatim, but they are excluded from the winner selection. A lower MAE on a different (cheaper) feature set is not evidence of a better model.
+The two documented baselines from Part 18 — `linear_baseline` ($227.89, hand-only) and `torch_baseline` ($117.11, hand-only) — are logged separately with `contract="documented-baseline"` and `selectable=False`. They are in the ledger so the Part 18 prose numbers reproduce here verbatim, but they are excluded from the winner selection. A lower MAE on a different (cheaper) feature set is not evidence of a better model.
 
 ---
 
@@ -197,7 +197,7 @@ with local_tracking() as mlflow:
 
 ## The documented baselines: logging without competing
 
-Part 17 trained `gbdt_vs_linear()` on hand-only features and got `linear_baseline` at $227.89. It also trained `train_torch_pricehead()` on hand-only features and got `torch_baseline` at $117.11. Those are the numbers the Part 17 prose quotes. They need to live in the tracking store so that anyone who opens the MLflow UI sees them alongside the fair-price runs and understands the full picture.
+Part 18 trained `gbdt_vs_linear()` on hand-only features and got `linear_baseline` at $227.89. It also trained `train_torch_pricehead()` on hand-only features and got `torch_baseline` at $117.11. Those are the numbers the Part 18 prose quotes. They need to live in the tracking store so that anyone who opens the MLflow UI sees them alongside the fair-price runs and understands the full picture.
 
 But they must not win. Winning means being selected for the registry — and registering a model trained on a cheaper feature set would mean DealFinder's deployed `dealfinder-fair-price` produces different predictions depending on which branch of your experiment history happened to look better.
 
@@ -217,7 +217,7 @@ class RunRecord:
 runs.append(
     RunRecord(
         "linear_baseline", "documented-baseline", doc.linear_mae, None,
-        params={"model": "LinearModel", "features": "hand-only", "source": "Part 17"},
+        params={"model": "LinearModel", "features": "hand-only", "source": "Part 18"},
         selectable=False,
     )
 )
@@ -254,7 +254,7 @@ client.set_registered_model_tag("dealfinder-fair-price", "winner", winner.name)
 client.set_registered_model_tag("dealfinder-fair-price", "winner_mae", str(winner.mae))
 ```
 
-The registered model is named `dealfinder-fair-price` — the same name you will reference in Part 20 when the MLOps loop promotes a challenger after drift is detected.
+The registered model is named `dealfinder-fair-price` — the same name you will reference in Part 21 when the MLOps loop promotes a challenger after drift is detected.
 
 Call `run_tracking()` and inspect the result:
 
@@ -298,7 +298,7 @@ The `*` marks the winner. The documented baselines appear at the bottom with the
 
 Some things this table makes plain that are easy to miss:
 
-**The GBDT genuinely wins the fair comparison.** On identical hand+emb16 features, `gbdt` at $138.11 beats `linear` at $257.85 and `torch` at $149.21. The embeddings are why: Part 17 showed that GBDT without embeddings reaches $257.99 — adding the PCA-compressed title embeddings cuts 46% of that error.
+**The GBDT genuinely wins the fair comparison.** On identical hand+emb16 features, `gbdt` at $138.11 beats `linear` at $257.85 and `torch` at $149.21. The embeddings are why: Part 18 showed that GBDT without embeddings reaches $257.99 — adding the PCA-compressed title embeddings cuts 46% of that error.
 
 **The GBDT does not beat torch overall.** `torch_baseline` at $117.11 is lower, but on hand-only features. That is a different experiment. Claiming GBDT beats torch overall would require running both on the same features — which is exactly what the fair-price contract does, where torch gets $149.21.
 
@@ -359,16 +359,16 @@ pytest tests/test_tracking.py -v
 All four pass against the committed snapshot. The `skipif` on `mlflow_available()` means the suite is safe to run on machines without MLflow — the tests simply show as skipped rather than failing.
 
 <Callout tone="note">
-**The companion module also runs deterministically.** `run_tracking()` is seeded (`random_state=0`, `torch.manual_seed(0)`) and uses the same `_split()` function as `models.gbdt_vs_linear()` — so the GBDT MAE here ($138.11) matches the number pinned in `tests/test_models.py` from Part 17. The two test files are testing the same underlying numbers from different angles.
+**The companion module also runs deterministically.** `run_tracking()` is seeded (`random_state=0`, `torch.manual_seed(0)`) and uses the same `_split()` function as `models.gbdt_vs_linear()` — so the GBDT MAE here ($138.11) matches the number pinned in `tests/test_models.py` from Part 18. The two test files are testing the same underlying numbers from different angles.
 </Callout>
 
 ---
 
 ## Where this goes next
 
-- **Part 17 — ML & DL breadth** (previous): where the three models were trained and their baseline numbers established. The hand-only figures (`linear_baseline` $227.89, `torch_baseline` $117.11) come from `gbdt_vs_linear()` and `train_torch_pricehead()` in `dealfinder/models.py` — this part logs them faithfully.
-- **Part 19 — Prove it works: evaluation as a discipline**: the model is now registered, but registered does not mean correct. Part 19 builds the golden set (20 hand-labeled items from the snapshot), measures `precision@5` for the two-signal ranker vs. the median-only baseline, and introduces the eval gate: `precision@5 ≥ 0.80`. The two-signal ranker scores 1.00; median-only scores 0.40. That gap is the quantitative argument for the price model you just registered.
-- **Part 20 — Closing the MLOps loop** (experiment-tracking=18, mlops-loop=20): drift is detected, the model is retrained (GBDT MAE $138.11 again, on a 202/68 split), the challenger passes the eval gate, and `dealfinder-fair-price` is promoted. Part 20 picks up the registered model name established here.
+- **Part 18 — ML & DL breadth** (previous): where the three models were trained and their baseline numbers established. The hand-only figures (`linear_baseline` $227.89, `torch_baseline` $117.11) come from `gbdt_vs_linear()` and `train_torch_pricehead()` in `dealfinder/models.py` — this part logs them faithfully.
+- **Part 20 — Prove it works: evaluation as a discipline**: the model is now registered, but registered does not mean correct. Part 20 builds the golden set (20 hand-labeled items from the snapshot), measures `precision@5` for the two-signal ranker vs. the median-only baseline, and introduces the eval gate: `precision@5 ≥ 0.80`. The two-signal ranker scores 1.00; median-only scores 0.40. That gap is the quantitative argument for the price model you just registered.
+- **Part 21 — Closing the MLOps loop** (experiment-tracking=19, mlops-loop=21): drift is detected, the model is retrained (GBDT MAE $138.11 again, on a 202/68 split), the challenger passes the eval gate, and `dealfinder-fair-price` is promoted. Part 21 picks up the registered model name established here.
 
 ---
 

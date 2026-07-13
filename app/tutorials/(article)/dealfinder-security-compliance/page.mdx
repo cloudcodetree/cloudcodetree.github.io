@@ -1,11 +1,11 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Security & Compliance at Scale (Part 31 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Security & Compliance at Scale (Part 32 of 34) · Tutorials',
   description:
-    'Extend Part 21\'s safety primitives into multi-tenant scale: sliding-window rate limiting per user, GDPR data-subject export and erasure audited to the same AuditLog, and abuse detection that catches both velocity bursts and repeated injection attempts.',
+    'Extend Part 22\'s safety primitives into multi-tenant scale: sliding-window rate limiting per user, GDPR data-subject export and erasure audited to the same AuditLog, and abuse detection that catches both velocity bursts and repeated injection attempts.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-security-compliance/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Security & Compliance at Scale (Part 31 of 33)',
-    description: 'Extend Part 21\'s safety primitives into multi-tenant scale: sliding-window rate limiting, GDPR data-subject requests, and abuse detection — all wired to the same AuditLog you already built.',
+    title: 'Become a Full-Stack AI Engineer: Security & Compliance at Scale (Part 32 of 34)',
+    description: 'Extend Part 22\'s safety primitives into multi-tenant scale: sliding-window rate limiting, GDPR data-subject requests, and abuse detection — all wired to the same AuditLog you already built.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-security-compliance/',
     siteName: 'CloudCodeTree',
     type: 'article',
@@ -18,17 +18,17 @@ export const metadata = {
 
 # Security & Compliance at Scale
 
-**TL;DR: Part 21 hardened the single-request model surface. Part 31 extends those same primitives — without reimplementing them — to handle the multi-tenant concerns a real SaaS must answer: per-user rate limiting over a sliding window, GDPR data-subject export and erasure both audited to Part 21's AuditLog, and an abuse detector that catches velocity bursts and repeated injection attempts across a user's session history.**
+**TL;DR: Part 22 hardened the single-request model surface. Part 32 extends those same primitives — without reimplementing them — to handle the multi-tenant concerns a real SaaS must answer: per-user rate limiting over a sliding window, GDPR data-subject export and erasure both audited to Part 22's AuditLog, and an abuse detector that catches velocity bursts and repeated injection attempts across a user's session history.**
 
 Single-request defenses are necessary but not sufficient once your system serves many users concurrently. A per-request injection check blocks one malicious input; a sliding-window rate limiter blocks the user sending fifty. A GDPR deletion handler answers a legal obligation; an audit trail proves you did it. This part wires those three capabilities together in `dealfinder/compliance.py`, importing directly from `dealfinder/safety.py` and adding nothing redundant.
 
 <Callout tone="note">
-**This part builds on Part 21.** `compliance.py` does `from .safety import AuditLog, detect_prompt_injection` — that import is not optional. If you have not read Part 21, start there. The symbols below assume you have `AuditLog` and `detect_prompt_injection` available.
+**This part builds on Part 22.** `compliance.py` does `from .safety import AuditLog, detect_prompt_injection` — that import is not optional. If you have not read Part 22, start there. The symbols below assume you have `AuditLog` and `detect_prompt_injection` available.
 </Callout>
 
 ## Table of contents
 
-1. [The split: Part 21 vs Part 31](#the-split-part-21-vs-part-31)
+1. [The split: Part 22 vs Part 32](#the-split-part-22-vs-part-32)
 2. [Sliding-window rate limiting](#sliding-window-rate-limiting)
 3. [GDPR data-subject requests](#gdpr-data-subject-requests)
 4. [Abuse detection](#abuse-detection)
@@ -40,17 +40,17 @@ Single-request defenses are necessary but not sufficient once your system serves
 
 ## What you'll be able to do after this
 
-- Explain the design boundary between Part 21 (single-request hardening) and Part 31 (multi-tenant, at-scale concerns) and articulate why the split is useful.
+- Explain the design boundary between Part 22 (single-request hardening) and Part 32 (multi-tenant, at-scale concerns) and articulate why the split is useful.
 - Implement `SlidingWindowRateLimiter` with an injected clock, reason through the allow/block sequence, and verify it resets correctly as the window slides.
-- Build `DataSubjectStore` — GDPR export (Subject Access Request) and erasure (Right to Erasure) over an in-memory store, both operations audited to Part 21's `AuditLog`.
+- Build `DataSubjectStore` — GDPR export (Subject Access Request) and erasure (Right to Erasure) over an in-memory store, both operations audited to Part 22's `AuditLog`.
 - Use `AbuseDetector` to flag users who exceed a velocity threshold or repeatedly trigger injection detection, reusing `detect_prompt_injection` for the injection half.
 - Read and reason about `tests/test_compliance.py` and confirm it reproduces against the companion.
 
 ---
 
-## The split: Part 21 vs Part 31
+## The split: Part 22 vs Part 32
 
-Part 21 (`safety.py`) owns everything that applies to a single request:
+Part 22 (`safety.py`) owns everything that applies to a single request:
 
 - `detect_prompt_injection(text)` — per-text injection classifier.
 - `PIIScrubber` — redact PII before it reaches the model or the response.
@@ -58,7 +58,7 @@ Part 21 (`safety.py`) owns everything that applies to a single request:
 - `AuditLog` — an append-only, inspectable record of events.
 - The OWASP-LLM threat map and the model card.
 
-What Part 21 does not answer: what to do when the same user sends the injection probe fifty times; what to do when a user asks you to hand over all their data; how to prove you erased it. Those are cross-request, multi-tenant concerns. They are the scope of Part 31.
+What Part 22 does not answer: what to do when the same user sends the injection probe fifty times; what to do when a user asks you to hand over all their data; how to prove you erased it. Those are cross-request, multi-tenant concerns. They are the scope of Part 32.
 
 The coupling between the two is intentional and minimal: `compliance.py` imports exactly two names from `safety.py`.
 
@@ -70,7 +70,7 @@ from .safety import AuditLog, detect_prompt_injection
 `AuditLog` is reused as the persistence layer for GDPR events. `detect_prompt_injection` is reused to classify each request text inside `AbuseDetector`. Everything else in `compliance.py` is new.
 
 <Callout tone="tip">
-The "extend, don't reimplement" rule (spec §9.8) is a design discipline, not just housekeeping. When the injection classifier improves in Part 21, `AbuseDetector` gets the upgrade automatically. Shared code means one place to patch.
+The "extend, don't reimplement" rule (spec §9.8) is a design discipline, not just housekeeping. When the injection classifier improves in Part 22, `AbuseDetector` gets the upgrade automatically. Shared code means one place to patch.
 </Callout>
 
 ---
@@ -155,7 +155,7 @@ GDPR Articles 15 and 17 give users two rights that SaaS products must operationa
 
 Both actions require an audit trail. If a regulator asks, you need to demonstrate that you exported the data or erased it and when.
 
-`DataSubjectStore` is an in-memory stand-in for the tables that would hold a real user's saved searches, notification history, and preferences. Its `export` and `delete` methods do the work and write to Part 21's `AuditLog` so the compliance trail is automatic.
+`DataSubjectStore` is an in-memory stand-in for the tables that would hold a real user's saved searches, notification history, and preferences. Its `export` and `delete` methods do the work and write to Part 22's `AuditLog` so the compliance trail is automatic.
 
 ### The code
 
@@ -228,7 +228,7 @@ store.count("u2")   # 1  — untouched
 # ]
 ```
 
-Two things are worth noting. First, `export` returns copies (`dict(r)` for each record), not references — the caller cannot mutate the store's internal state by modifying the returned list. Second, `isinstance(store.audit, AuditLog)` is `True`: `store.audit` is a genuine Part 21 `AuditLog` object, not a duck-typed stand-in. The test `test_store_reuses_part21_audit_log` pins this.
+Two things are worth noting. First, `export` returns copies (`dict(r)` for each record), not references — the caller cannot mutate the store's internal state by modifying the returned list. Second, `isinstance(store.audit, AuditLog)` is `True`: `store.audit` is a genuine Part 22 `AuditLog` object, not a duck-typed stand-in. The test `test_store_reuses_part21_audit_log` pins this.
 
 <GDPRAuditTrail />
 
@@ -273,7 +273,7 @@ class AbuseDetector:
 
     def observe(self, user_id: str, text: str, now: float) -> AbuseSignal:
         """Record one request and return the current abuse verdict."""
-        is_injection = detect_prompt_injection(text)   # Part 21 does the per-text call
+        is_injection = detect_prompt_injection(text)   # Part 22 does the per-text call
         events = self._events[user_id]
         events.append((now, is_injection))
 
@@ -308,7 +308,7 @@ for i in range(4):
 # signal.reasons: ['injection: 4 attempts in 60s']
 ```
 
-The detector delegates each classification to `detect_prompt_injection` (Part 21). It does not reimplement injection logic. After four calls — all classified as injections — the `injections` count reaches 4, which is `>= max_injections` (3). The signal fires.
+The detector delegates each classification to `detect_prompt_injection` (Part 22). It does not reimplement injection logic. After four calls — all classified as injections — the `injections` count reaches 4, which is `>= max_injections` (3). The signal fires.
 
 **Velocity burst** — six benign requests, `max_events=5`:
 
@@ -349,7 +349,7 @@ The full module is `dealfinder/compliance.py` in the companion repo. The import 
 from .safety import AuditLog, detect_prompt_injection
 ```
 
-Three classes, zero reimplementation of Part 21 behaviour. When you wire these into the FastAPI app (Part 22) and the saved-searches worker (Part 29), the plumbing looks like:
+Three classes, zero reimplementation of Part 22 behaviour. When you wire these into the FastAPI app (Part 23) and the saved-searches worker (Part 30), the plumbing looks like:
 
 ```python
 # app integration sketch (illustrative)
@@ -379,7 +379,7 @@ async def delete_account(current_user: User):
 ```
 
 <Callout tone="warn">
-The sketch above is **illustrative** — the actual wiring depends on your auth layer (Part 28) and FastAPI patterns (Part 22). The point is that all three compliance objects are stateless-clock-injected constructs you can unit-test exhaustively before the integration exists.
+The sketch above is **illustrative** — the actual wiring depends on your auth layer (Part 29) and FastAPI patterns (Part 23). The point is that all three compliance objects are stateless-clock-injected constructs you can unit-test exhaustively before the integration exists.
 </Callout>
 
 ---
@@ -411,16 +411,16 @@ All eleven must pass. The ground-truth run recorded all 23 tests across the thre
 <Callout tone="tip">
 **Companion repo.** Full source at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-The compliance module lands at step tag `step-31`. Compare from step-30 to see exactly what is added.
+The compliance module lands at step tag `step-32`. Compare from step-31 to see exactly what is added.
 </Callout>
 
 ---
 
 ## Where this goes next
 
-- **Part 30 — Payments & SaaS mechanics** (previous): Stripe billing, subscription tiers, and the usage metering that the rate limiter in this part enforces per plan.
-- **Part 32 — Ship & operate:** the Playwright end-to-end suite runs the full app — including the rate-limit and GDPR delete endpoints — under load and chaos conditions. The `precision@5 ≥ 0.80` eval gate from Part 19 is the pre-deploy check, and the runbook covers what to do when it trips.
-- **Part 33 — Case study & system-design interview:** you will be asked to design the security surface of the full DealFinder SaaS, including the Part 21 / Part 31 boundary, from a blank whiteboard. The answers are already in the code you have built.
+- **Part 31 — Payments & SaaS mechanics** (previous): Stripe billing, subscription tiers, and the usage metering that the rate limiter in this part enforces per plan.
+- **Part 33 — Ship & operate:** the Playwright end-to-end suite runs the full app — including the rate-limit and GDPR delete endpoints — under load and chaos conditions. The `precision@5 ≥ 0.80` eval gate from Part 20 is the pre-deploy check, and the runbook covers what to do when it trips.
+- **Part 34 — Case study & system-design interview:** you will be asked to design the security surface of the full DealFinder SaaS, including the Part 22 / Part 32 boundary, from a blank whiteboard. The answers are already in the code you have built.
 
 ---
 

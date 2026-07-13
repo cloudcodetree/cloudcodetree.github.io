@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: The Web App — Search UI, Live/Semantic Toggle & SSE (Part 14 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: The Web App — Search UI, Live/Semantic Toggle & SSE (Part 15 of 34) · Tutorials',
   description:
     'Build a browser-accessible search UI over the running DealFinder backend: a Vanilla JS single-page app served from FastAPI, a live/semantic mode toggle backed by pgvector, and Server-Sent Events so deal cards appear as each source responds rather than after they all finish.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-webapp/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: The Web App (Part 14 of 33)',
+    title: 'Become a Full-Stack AI Engineer: The Web App (Part 15 of 34)',
     description:
       'Build a browser-accessible search UI over the running DealFinder backend: a Vanilla JS single-page app served from FastAPI, a live/semantic mode toggle backed by pgvector, and Server-Sent Events so deal cards appear as each source responds rather than after they all finish.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-webapp/',
@@ -21,15 +21,15 @@ export const metadata = {
 
 **TL;DR: The agent and MCP server are API surfaces — the web app is the product the end user actually touches. Serve a Vanilla JS search UI straight from FastAPI with one `StaticFiles` mount, add a Server-Sent Events endpoint so deal cards stream in as each source responds, and wire a live/semantic toggle that switches between the live aggregator and the pgvector store built in Part 13.**
 
-This is **Part 14 of DealFinder**. By the end you have a running browser app at `localhost:8000`. It requires no Node, no bundler, and no separate web server — the same FastAPI process that powers the agent and MCP server serves the HTML, streams the results, and handles the badge logic.
+This is **Part 15 of DealFinder**. By the end you have a running browser app at `localhost:8000`. It requires no Node, no bundler, and no separate web server — the same FastAPI process that powers the agent and MCP server serves the HTML, streams the results, and handles the badge logic.
 
 <Callout tone="tip">
-**Code along at step-14.** Full project at
+**Code along at step-15.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-This part is a single new step — `step-14` — which adds `dealfinder/static/index.html`,
+This part is a single new step — `step-15` — which adds `dealfinder/static/index.html`,
 the SSE endpoint in `dealfinder/serve.py`, and the `render_badge()` function in
 `dealfinder/dealscore.py`. Compare the diff:
-[step-13…step-14](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-13...step-14).
+[step-14…step-15](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-14...step-15).
 </Callout>
 
 ## Table of contents
@@ -63,9 +63,9 @@ the SSE endpoint in `dealfinder/serve.py`, and the `render_badge()` function in
 
 The agent (Part 11) and MCP server (Part 12) let programs call DealFinder. The pgvector store (Part 13) persists everything ever searched so results can be queried by meaning rather than exact keyword. But neither of those surfaces is something you hand to a user and say "run this."
 
-A web UI closes the loop. It also reveals the shape of the backend from the outside: what a 2–4 second multi-source aggregation call feels like to a real user, and whether the two-signal deal score is legible in a card layout. Both observations will feed back into Parts 22–27.
+A web UI closes the loop. It also reveals the shape of the backend from the outside: what a 2–4 second multi-source aggregation call feels like to a real user, and whether the two-signal deal score is legible in a card layout. Both observations will feed back into Parts 23–28.
 
-The deliberate constraint — Vanilla JS, no build step, served from the same FastAPI origin — keeps the part focused on the backend SSE pattern. Part 27 (Front end for real) replaces the static HTML with React/Next.js, server components, and proper state management. That context is explicit here so learners know this is a simplification, not the final shape.
+The deliberate constraint — Vanilla JS, no build step, served from the same FastAPI origin — keeps the part focused on the backend SSE pattern. Part 28 (Front end for real) replaces the static HTML with React/Next.js, server components, and proper state management. That context is explicit here so learners know this is a simplification, not the final shape.
 
 ---
 
@@ -179,7 +179,7 @@ The browser's `EventSource` API is the right tool here because the data flows in
 Add the `/search/stream` endpoint to `serve.py`. It wraps the existing synchronous `aggregate()` call in an async generator that yields progress events as each source responds:
 
 ```python
-# dealfinder/serve.py  (step-14 addition)
+# dealfinder/serve.py  (step-15 addition)
 import asyncio
 import json
 from fastapi.responses import StreamingResponse
@@ -241,10 +241,10 @@ Key points:
 
 ## The EventSource client
 
-`dealfinder/static/index.html` already has the form, CSS, and a `run()` function that calls `/search` directly. The `step-14` change replaces that function with one that opens an `EventSource` connection and appends cards as events arrive:
+`dealfinder/static/index.html` already has the form, CSS, and a `run()` function that calls `/search` directly. The `step-15` change replaces that function with one that opens an `EventSource` connection and appends cards as events arrive:
 
 ```javascript
-// dealfinder/static/index.html  (step-14, SSE path in run())
+// dealfinder/static/index.html  (step-15, SSE path in run())
 async function run(q) {
   const m = mode();
   if (m === "meaning") {
@@ -307,10 +307,10 @@ If `DATABASE_URL` is not set, the `/semantic` endpoint returns a `503`. The Java
 
 ## Badge logic: render_badge()
 
-The deal cards need a human-readable verdict: **DEAL**, **FAIR**, **SUSPICIOUS**, or **OVERPRICED**. That logic lives in `dealfinder/dealscore.py`, which already has the `verdict()` function from Part 3. The `step-14` addition is a thin `render_badge()` wrapper that converts a `(deal_pct, residual_frac)` pair to the badge string:
+The deal cards need a human-readable verdict: **DEAL**, **FAIR**, **SUSPICIOUS**, or **OVERPRICED**. That logic lives in `dealfinder/dealscore.py`, which already has the `verdict()` function from Part 3. The `step-15` addition is a thin `render_badge()` wrapper that converts a `(deal_pct, residual_frac)` pair to the badge string:
 
 ```python
-# dealfinder/dealscore.py  (step-14 addition)
+# dealfinder/dealscore.py  (step-15 addition)
 SUSPICIOUS_RESIDUAL_FRAC = 0.70
 DEAL_MEDIAN_FRAC         = 0.15
 
@@ -465,8 +465,8 @@ async def test_search_stream_events():
 
 ## Where this goes next
 
-- **Part 13 — pgvector persistence & semantic search over live deals** (previous): built the vector store that the Semantic mode button in this part queries. Without Part 13, the toggle has nowhere to search.
-- **Part 15 — Dataset engineering: sampling, labeling, leakage, temporal splits** (next): zooms out from the running product to ask how you would systematically build and audit training data at scale. The web app's query logs — every term a user submits and the results they clicked — become the seed corpus for the labeling pipeline that Part 15 teaches.
+- **Part 14 — RAG: grounded answers over your deals** (previous): grounds a language model on the persisted deal corpus so users can ask questions in natural language and get answers cited to real listings. This part's web app is the surface those grounded answers will eventually render in.
+- **Part 16 — Dataset engineering: sampling, labeling, leakage, temporal splits** (next): zooms out from the running product to ask how you would systematically build and audit training data at scale. The web app's query logs — every term a user submits and the results they clicked — become the seed corpus for the labeling pipeline that Part 16 teaches.
 
 ---
 

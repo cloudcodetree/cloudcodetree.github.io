@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: The Agent That Ties It Together (Part 11 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: The Agent That Ties It Together (Part 11 of 34) · Tutorials',
   description:
     'Build a ReAct agent that answers natural-language deal questions over the electronics snapshot — text-to-SQL filtering, deal-score lookup, and a human-in-the-loop gate on suspicious listings. Trace every reasoning step.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-agent/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: The Agent That Ties It Together (Part 11 of 33)',
+    title: 'Become a Full-Stack AI Engineer: The Agent That Ties It Together (Part 11 of 34)',
     description: 'Build a ReAct agent that answers natural-language deal questions over the electronics snapshot — text-to-SQL filtering, deal-score lookup, and a human-in-the-loop gate on suspicious listings.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-agent/',
     siteName: 'CloudCodeTree',
@@ -202,7 +202,7 @@ JBL Tune 770NC Wireless Noise Cancelling Over-Ear Hea  $89.95
 Four items match. The two cheapest — Cowin SE7 ($27.99) and Bose QC45 ($46.00) — both read as huge markdowns against the query median of $162.97. That number alone would make them look like the best deals. The next tool separates the honest bargains from the traps.
 
 <Callout tone="warn">
-The `nl_to_sql` approach here is **rule-based and deterministic** — no LLM in the loop for SQL generation, so the query shape is fully predictable. Production systems that use an LLM to generate SQL must validate that the emitted statement is a SELECT with no subqueries or stacked statements, and parameterize instead of string-interpolating user input. Part 21 (Safety, security & governance) covers full prompt-injection hardening.
+The `nl_to_sql` approach here is **rule-based and deterministic** — no LLM in the loop for SQL generation, so the query shape is fully predictable. Production systems that use an LLM to generate SQL must validate that the emitted statement is a SELECT with no subqueries or stacked statements, and parameterize instead of string-interpolating user input. Part 22 (Safety, security & governance) covers full prompt-injection hardening.
 </Callout>
 
 ---

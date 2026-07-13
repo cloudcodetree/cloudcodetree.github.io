@@ -2,12 +2,12 @@ import K8sReplicaSpread from '@/app/components/mdx/K8sReplicaSpread';
 import SecretFlow from '@/app/components/mdx/SecretFlow';
 
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Cloud & Kubernetes (Part 25 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Cloud & Kubernetes (Part 26 of 34) · Tutorials',
   description:
     'Deploy the DealFinder container to Kubernetes with a managed external Postgres, TLS-terminating ingress, SSE-safe proxy settings, and an HPA that scales from 2 to 10 replicas on CPU load — all from 8 YAML manifests.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-cloud-k8s/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Cloud & Kubernetes (Part 25 of 33)',
+    title: 'Become a Full-Stack AI Engineer: Cloud & Kubernetes (Part 26 of 34)',
     description: 'Deploy the DealFinder container to Kubernetes with a managed external Postgres, TLS-terminating ingress, SSE-safe proxy settings, and an HPA that scales from 2 to 10 replicas on CPU load — all from 8 YAML manifests.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-cloud-k8s/',
     siteName: 'CloudCodeTree',
@@ -21,15 +21,15 @@ export const metadata = {
 
 # Cloud & Kubernetes
 
-**TL;DR: Take the Docker image from Part 24 and run it on a real cluster. Eight Kubernetes manifests give you a hardened, autoscaling deployment with TLS at the ingress, SSE buffering disabled so the Part 27 stream endpoint stays live, and secrets that never touch a committed file.**
+**TL;DR: Take the Docker image from Part 25 and run it on a real cluster. Eight Kubernetes manifests give you a hardened, autoscaling deployment with TLS at the ingress, SSE buffering disabled so the Part 28 stream endpoint stays live, and secrets that never touch a committed file.**
 
-Part 24 proved that the DealFinder container is portable — same bits across dev, staging, and prod. This part proves it is *operable*: health-checked, horizontally autoscaled, TLS-terminated, and connected to a managed external Postgres rather than an in-cluster database that would become a single point of failure. The cluster stays stateless; the database stays managed. That design decision is visible in every manifest.
+Part 25 proved that the DealFinder container is portable — same bits across dev, staging, and prod. This part proves it is *operable*: health-checked, horizontally autoscaled, TLS-terminated, and connected to a managed external Postgres rather than an in-cluster database that would become a single point of failure. The cluster stays stateless; the database stays managed. That design decision is visible in every manifest.
 
 <Callout tone="tip">
 **Code along, version by version.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-Step tag: `step-25` — the eight Kubernetes manifests live in `infra/k8s/`. Compare to `step-24`:
-`github.com/cloudcodetree/tutorial-dealfinder/compare/step-24...step-25`. Apply the stack with
+Step tag: `step-26` — the eight Kubernetes manifests live in `infra/k8s/`. Compare to `step-25`:
+`github.com/cloudcodetree/tutorial-dealfinder/compare/step-25...step-26`. Apply the stack with
 `kubectl apply -k infra/k8s/` (after filling in your `secret.yaml` — see §6).
 </Callout>
 
@@ -52,7 +52,7 @@ Step tag: `step-25` — the eight Kubernetes manifests live in `infra/k8s/`. Com
 
 - Read and explain every field in all 8 manifests in `infra/k8s/` — what it does and why it is there.
 - Explain why DealFinder runs with a managed external Postgres rather than an in-cluster database, and what `DATABASE_URL` in the Secret wires up.
-- Configure the ingress SSE annotations (`proxy-buffering: "off"`, `proxy-read-timeout: "3600"`) and explain why omitting them silently breaks the Part 27 streaming search.
+- Configure the ingress SSE annotations (`proxy-buffering: "off"`, `proxy-read-timeout: "3600"`) and explain why omitting them silently breaks the Part 28 streaming search.
 - Describe the secret template pattern — `secret.example.yaml` holds placeholders, the real `secret.yaml` is gitignored, and you apply it out-of-band.
 - Tune the HPA (`minReplicas: 2`, `maxReplicas: 10`, `averageUtilization: 70`, `stabilizationWindowSeconds: 120`) and explain each number.
 
@@ -109,7 +109,7 @@ data:
   LOG_LEVEL: "info"
 ```
 
-`SHOPIFY_STORES` is blank — the app uses its built-in list. `APIFY_ACTOR` names the Apify actor for the Google Shopping source (same value used in the Part 8 scraping connector). `PORT` and `LOG_LEVEL` are Uvicorn/app tuning knobs you can change per environment without rebuilding the image.
+`SHOPIFY_STORES` is blank — the app uses its built-in list. `APIFY_ACTOR` names the Apify actor for the Google Shopping source (same value used in the Part 9 scraping connector). `PORT` and `LOG_LEVEL` are Uvicorn/app tuning knobs you can change per environment without rebuilding the image.
 
 The `Deployment` mounts both this ConfigMap and the Secret via `envFrom`, so the app sees all of them as ordinary environment variables:
 
@@ -238,7 +238,7 @@ spec:
 
 Walk through the key decisions:
 
-**Image.** `ghcr.io/cloudcodetree/dealfinder-app:latest` is the image built by the Part 24 CI pipeline and pushed to GitHub Container Registry. In your own cluster, replace the registry prefix with wherever you pushed it. Pin by digest (`@sha256:...`) for reproducibility in production.
+**Image.** `ghcr.io/cloudcodetree/dealfinder-app:latest` is the image built by the Part 25 CI pipeline and pushed to GitHub Container Registry. In your own cluster, replace the registry prefix with wherever you pushed it. Pin by digest (`@sha256:...`) for reproducibility in production.
 
 **Two probes, different timings.** The readiness probe starts after 5 seconds and polls every 10 seconds — it controls whether traffic is routed to the pod. The liveness probe starts after 15 seconds (letting the app finish startup) and polls every 20 seconds — it controls whether the pod is restarted. Both call `/healthz`, the real health endpoint in `dealfinder/serve.py`. A pod that is live but not ready receives no traffic; a pod that fails liveness is restarted.
 
@@ -299,7 +299,7 @@ spec:
       secretName: dealfinder-tls
 ```
 
-**SSE annotations.** The Part 27 `/search/stream` endpoint returns an `EventSource` stream — Server-Sent Events. If the proxy buffers the response, the browser sees nothing until the buffer flushes, which defeats the point of streaming. `proxy-buffering: "off"` disables nginx buffering for all paths. `proxy-read-timeout: "3600"` prevents nginx from closing the connection mid-stream on a slow query (the default is 60 seconds). If you skip these two annotations, streaming search silently degrades to a buffered response — the browser receives results in one batch at the end, looking like a slow plain JSON call.
+**SSE annotations.** The Part 28 `/search/stream` endpoint returns an `EventSource` stream — Server-Sent Events. If the proxy buffers the response, the browser sees nothing until the buffer flushes, which defeats the point of streaming. `proxy-buffering: "off"` disables nginx buffering for all paths. `proxy-read-timeout: "3600"` prevents nginx from closing the connection mid-stream on a slow query (the default is 60 seconds). If you skip these two annotations, streaming search silently degrades to a buffered response — the browser receives results in one batch at the end, looking like a slow plain JSON call.
 
 **TLS.** `tls[].secretName: dealfinder-tls` tells nginx-ingress where to find the certificate. Provision it with cert-manager (a `Certificate` resource pointing at Let's Encrypt) or your cloud's certificate controller. TLS termination happens at the ingress; traffic inside the cluster (ingress → service → pod) is plain HTTP.
 
@@ -343,7 +343,7 @@ Each number is a deliberate choice:
 
 **`minReplicas: 2`.** One replica is a single point of failure — a node drain, rolling update, or health-check restart takes the service down. Two replicas at minimum means a rolling update keeps at least one pod live.
 
-**`maxReplicas: 10`.** A ceiling prevents runaway scaling from a traffic spike or a CPU-heavy bug (infinite loop in an extractor, for example) from consuming the whole cluster. Ten is a reasonable ceiling for a single-service API; raise it when load tests in Part 32 tell you the actual peak.
+**`maxReplicas: 10`.** A ceiling prevents runaway scaling from a traffic spike or a CPU-heavy bug (infinite loop in an extractor, for example) from consuming the whole cluster. Ten is a reasonable ceiling for a single-service API; raise it when load tests in Part 33 tell you the actual peak.
 
 **`averageUtilization: 70`.** The HPA targets 70% of the CPU *request* (100 m) across all pods. At 70 m average, the HPA is satisfied. If the average climbs above 70 m, the HPA schedules more pods. Choosing 70% leaves 30% headroom — a sudden traffic spike can be absorbed by the existing pods while the new ones start up (readiness probe delays ~5 seconds).
 
@@ -376,7 +376,7 @@ Two things to notice:
 
 `secret.example.yaml` is **not** in the resources list. The template should never be applied — it holds placeholder strings, not real values. If you `kubectl apply -k .` with the template in the list, Kubernetes creates a Secret with the literal string `"REPLACE_WITH_SUPABASE_JWT_SECRET"`, and the auth middleware will fail immediately.
 
-`commonLabels` stamps every resource with `app.kubernetes.io/name: dealfinder` and `app.kubernetes.io/part-of: dealfinder`. The HPA uses these labels to find the target Deployment. The Prometheus/Grafana stack in Part 26 uses them to scope metrics queries to this service.
+`commonLabels` stamps every resource with `app.kubernetes.io/name: dealfinder` and `app.kubernetes.io/part-of: dealfinder`. The HPA uses these labels to find the target Deployment. The Prometheus/Grafana stack in Part 27 uses them to scope metrics queries to this service.
 
 ---
 
@@ -385,7 +385,7 @@ Two things to notice:
 With your cluster configured and `secret.yaml` filled in:
 
 ```bash
-# 0. Build and push the image (Part 24 CI does this automatically on push to main)
+# 0. Build and push the image (Part 25 CI does this automatically on push to main)
 docker build -t ghcr.io/<your-org>/dealfinder-app:latest .
 docker push ghcr.io/<your-org>/dealfinder-app:latest
 
@@ -436,7 +436,7 @@ kubectl get hpa -n dealfinder
 # dealfinder-app    Deployment/dealfinder-app    12%/70%   2         10        2          2m
 ```
 
-`12%/70%` means 12% average CPU utilisation against the 70% target — comfortably idle. Send a load test (Part 32 uses k6 for this) and watch `REPLICAS` climb.
+`12%/70%` means 12% average CPU utilisation against the 70% target — comfortably idle. Send a load test (Part 33 uses k6 for this) and watch `REPLICAS` climb.
 
 ---
 
@@ -457,14 +457,14 @@ service.yaml        -> ['Service']
 
 Every file parses to its expected kind. This is structural verification — it catches typos, indentation errors, and missing required fields before you touch a cluster.
 
-The broader claim this part proves: the DealFinder service is operable, not just runnable. `minReplicas: 2` means no single-pod SPOF. `/healthz` probes mean bad pods stop receiving traffic before a user sees an error. `proxy-buffering: "off"` means the Part 27 SSE stream works end-to-end, not just in local dev. `secret.example.yaml` placeholders-only means no key ever lands in the git log. These are not niceties — they are the difference between a demo and a service.
+The broader claim this part proves: the DealFinder service is operable, not just runnable. `minReplicas: 2` means no single-pod SPOF. `/healthz` probes mean bad pods stop receiving traffic before a user sees an error. `proxy-buffering: "off"` means the Part 28 SSE stream works end-to-end, not just in local dev. `secret.example.yaml` placeholders-only means no key ever lands in the git log. These are not niceties — they are the difference between a demo and a service.
 
 ---
 
 ## Where this goes next
 
-- **Part 24 — Containerize and ship it (back-reference):** The image deployed here (`ghcr.io/cloudcodetree/dealfinder-app:latest`) is built and pushed by the Part 24 CI pipeline. The `DATABASE_URL` env var contract between the Terraform local stack and the Kubernetes Secret is the same — the cluster simply points at an external managed Postgres instead of the local Docker container.
-- **Part 26 — Observability, cost & ops (forward-reference):** Prometheus scrapes the running pods using the `app.kubernetes.io/name: dealfinder` label set in `kustomization.yaml`. Grafana dashboards visualise CPU utilisation (the same metric the HPA acts on), request latency, and deal-score distributions. The FinOps section shows how to right-size the CPU request — the lever that controls both HPA sensitivity and node cost.
+- **Part 25 — Containerize and ship it (back-reference):** The image deployed here (`ghcr.io/cloudcodetree/dealfinder-app:latest`) is built and pushed by the Part 25 CI pipeline. The `DATABASE_URL` env var contract between the Terraform local stack and the Kubernetes Secret is the same — the cluster simply points at an external managed Postgres instead of the local Docker container.
+- **Part 27 — Observability, cost & ops (forward-reference):** Prometheus scrapes the running pods using the `app.kubernetes.io/name: dealfinder` label set in `kustomization.yaml`. Grafana dashboards visualise CPU utilisation (the same metric the HPA acts on), request latency, and deal-score distributions. The FinOps section shows how to right-size the CPU request — the lever that controls both HPA sensitivity and node cost.
 
 ---
 

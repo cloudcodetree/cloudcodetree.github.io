@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Inference Optimization, for Real (Part 23 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Inference Optimization, for Real (Part 24 of 34) · Tutorials',
   description:
     'Make DealFinder cheaper and faster to serve — with real measured results. Tune the semantic cache threshold, build a cost-aware cascade router, understand batching as overhead amortization, and get honest anchored pointers to quantization and vLLM that require a GPU to benchmark.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-inference-optimization/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Inference Optimization, for Real (Part 23 of 33)',
+    title: 'Become a Full-Stack AI Engineer: Inference Optimization, for Real (Part 24 of 34)',
     description: 'Make DealFinder cheaper and faster to serve — with real measured results. Tune the semantic cache threshold, build a cost-aware cascade router, understand batching as overhead amortization, and get honest anchored pointers to quantization and vLLM that require a GPU to benchmark.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-inference-optimization/',
     siteName: 'CloudCodeTree',
@@ -20,13 +20,13 @@ export const metadata = {
 
 **TL;DR: The fastest inference is the request you never send. Tune the semantic cache to serve reworded queries for free, wire a cascade router that tries the cheapest model first, and understand batching as overhead amortization — with real numbers from the committed snapshot. For quantization and vLLM you need a GPU; this part gives you honest pointers to runnable scripts instead of fabricated benchmarks.**
 
-You shipped a working FastAPI service in Part 22. Part 24 will containerize it. Between those two sits the question that determines whether your serving budget survives contact with real traffic: *how do you make the same model cheaper and faster without retraining it?* There are four levers. Two are measurable right now on this codebase. Two require GPU hardware to benchmark honestly. This part gives you all four, clearly labeled.
+You shipped a working FastAPI service in Part 23. Part 25 will containerize it. Between those two sits the question that determines whether your serving budget survives contact with real traffic: *how do you make the same model cheaper and faster without retraining it?* There are four levers. Two are measurable right now on this codebase. Two require GPU hardware to benchmark honestly. This part gives you all four, clearly labeled.
 
 <Callout tone="tip">
 **Code along, version by version.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-Step tag: `step-23` — semantic cache tuning, CascadeRouter, batching model, anchored GPU refs. Compare to `step-22`:
-`github.com/cloudcodetree/tutorial-dealfinder/compare/step-22...step-23`
+Step tag: `step-24` — semantic cache tuning, CascadeRouter, batching model, anchored GPU refs. Compare to `step-23`:
+`github.com/cloudcodetree/tutorial-dealfinder/compare/step-23...step-24`
 </Callout>
 
 ## Table of contents
@@ -72,7 +72,7 @@ The `measured` / `illustrative` / `anchored` flags appear on the dataclasses (`C
 
 ## Lever 1: Semantic cache — the threshold is the knob
 
-The semantic cache from Part 22 stores embedding vectors and returns a cached answer when a new query is close enough. "Close enough" is entirely determined by the cosine threshold. Changing it by 0.05 changes the hit rate meaningfully.
+The semantic cache from Part 23 stores embedding vectors and returns a cached answer when a new query is close enough. "Close enough" is entirely determined by the cosine threshold. Changing it by 0.05 changes the hit rate meaningfully.
 
 `measure_cache_hit_rate` runs a deterministic 14-query batch through `SemanticCache`:
 
@@ -241,7 +241,7 @@ n_items=64  per_item_s=1.344  batched_s=0.084  speedup=16.0  illustrative=True
 **Do not quote the 16x speedup as a benchmark.** It is a model output from fixed assumed constants. On a slow network the real overhead might be 200ms (making batching even more valuable); on a local model server it might be 2ms (reducing the gain). Run `model_batching_throughput` with your actual measured constants to get a number that reflects your setup.
 </Callout>
 
-The implication for DealFinder is immediate: when the recommendation endpoint scores a page of 20 results, batch all 20 embedding lookups into one call instead of 20. The semantic cache (Part 22) also benefits — a batch lookup against the cache vector store is one FAISS scan, not 20.
+The implication for DealFinder is immediate: when the recommendation endpoint scores a page of 20 results, batch all 20 embedding lookups into one call instead of 20. The semantic cache (Part 23) also benefits — a batch lookup against the cache vector store is one FAISS scan, not 20.
 
 ---
 
@@ -275,7 +275,7 @@ print(v.illustrative_numbers)
 print(v.runnable_script)  # 'scripts/bench_vllm.py'
 ```
 
-**What the illustrative figures mean.** The 16/8/4 GB figures show the shape of INT8/INT4 quantization: each step roughly halves VRAM footprint. 4-bit weights run in roughly a quarter of the FP16 VRAM. The quality impact — perplexity increase, task-specific accuracy drop — is model-specific and must be measured, not assumed. For DealFinder's extractor (which produces structured JSON from product titles) INT8 typically preserves output quality; INT4 can introduce formatting errors that the output validation in Part 21 will catch.
+**What the illustrative figures mean.** The 16/8/4 GB figures show the shape of INT8/INT4 quantization: each step roughly halves VRAM footprint. 4-bit weights run in roughly a quarter of the FP16 VRAM. The quality impact — perplexity increase, task-specific accuracy drop — is model-specific and must be measured, not assumed. For DealFinder's extractor (which produces structured JSON from product titles) INT8 typically preserves output quality; INT4 can introduce formatting errors that the output validation in Part 22 will catch.
 
 **What vLLM actually does.** Continuous batching packs requests together dynamically instead of waiting for one to finish before starting the next. PagedAttention manages the KV cache as virtual memory pages, avoiding fragmentation. Together they raise throughput under concurrency — the 900→3200 tokens/s illustrative figures show the shape of that gain. The actual ratio depends on your GPU, your model, your batch size, and your concurrency level. `scripts/bench_vllm.py` runs the comparison on your hardware.
 
@@ -345,8 +345,8 @@ The cache tests are fully deterministic: same embeddings from the committed snap
 
 ## Where this goes next
 
-- **Back — Part 22 — Serve it fast and cheap:** the FastAPI service, the six endpoints, and the `SemanticCache` you just tuned. The cache was introduced there; this part gives you the measured data to calibrate its threshold.
-- **Forward — Part 24 — Containerize and ship it:** Docker multi-stage build, CI/CD pipeline, and IaC with Terraform. The optimized serving configuration from this part (threshold, tier order, batch size) lives in environment variables that the container reads at startup.
+- **Back — Part 23 — Serve it fast and cheap:** the FastAPI service, the six endpoints, and the `SemanticCache` you just tuned. The cache was introduced there; this part gives you the measured data to calibrate its threshold.
+- **Forward — Part 25 — Containerize and ship it:** Docker multi-stage build, CI/CD pipeline, and IaC with Terraform. The optimized serving configuration from this part (threshold, tier order, batch size) lives in environment variables that the container reads at startup.
 
 ---
 

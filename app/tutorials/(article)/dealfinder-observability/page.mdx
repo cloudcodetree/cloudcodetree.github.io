@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Observability, Cost & Ops (Part 26 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Observability, Cost & Ops (Part 27 of 34) · Tutorials',
   description:
     'Trace every request, attribute spend per model and feature with budgets and alerts (FinOps), and detect input drift with PSI so a scheduled retrain fires before deal scores quietly rot.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-observability/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Observability, Cost & Ops (Part 26 of 33)',
+    title: 'Become a Full-Stack AI Engineer: Observability, Cost & Ops (Part 27 of 34)',
     description: 'Trace every request, attribute spend per model and feature with budgets and alerts (FinOps), and detect input drift with PSI so a scheduled retrain fires before deal scores quietly rot.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-observability/',
     siteName: 'CloudCodeTree',
@@ -20,12 +20,12 @@ export const metadata = {
 
 **TL;DR: A live AI system you can't see is a liability. Wire `CostTracker` to attribute every dollar per model, set budget thresholds that alert before the invoice surprises you, and run a population-stability index to catch query-mix drift before the Anker Q20i starts misclassifying as overpriced. All three utilities live in `dealfinder/ops.py` and are pinned in `tests/test_ops.py`.**
 
-DealFinder is Kubernetes-deployed (Part 25). This part builds the discipline that keeps it healthy and affordable in production: you'll know what every request costs, which model is burning the budget, and when the input distribution has drifted far enough from the July 2026 training snapshot to need a retrain.
+DealFinder is Kubernetes-deployed (Part 26). This part builds the discipline that keeps it healthy and affordable in production: you'll know what every request costs, which model is burning the budget, and when the input distribution has drifted far enough from the July 2026 training snapshot to need a retrain.
 
 <Callout tone="tip">
 **Code along.** Companion repo [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder),
-step tag **step-26**. Compare against the previous step:
-`step-25...step-26`.
+step tag **step-27**. Compare against the previous step:
+`step-26...step-27`.
 </Callout>
 
 ## Table of contents
@@ -250,7 +250,7 @@ The third scenario — audio queries collapsing from 50% to 10% of traffic — p
 `has_drifted` returns a boolean. Wiring it to action is the MLOps loop: a scheduled job (Prefect task, cron, or Kubernetes CronJob) computes PSI weekly against the training baseline, and when it trips:
 
 1. Snapshot the current live distribution.
-2. Kick off the retrain pipeline (Part 20's `eval gate → canary` pattern).
+2. Kick off the retrain pipeline (Part 21's `eval gate → canary` pattern).
 3. Promote the new model only if `precision@5 >= 0.80` on the golden set.
 4. Reset the PSI baseline to the new snapshot.
 
@@ -267,7 +267,7 @@ if has_drifted(TRAINING_BASELINE, live_dist):
     trigger_retrain()   # kick off your CI/CD retrain job
 ```
 
-The gate that protects promotion is the same `precision@5 >= 0.80` eval gate from Part 19: `two_signal` precision@5 = 1.00 on the 20-item golden set; `median_only` = 0.40. A retrained model that can't beat 0.80 doesn't get promoted.
+The gate that protects promotion is the same `precision@5 >= 0.80` eval gate from Part 20: `two_signal` precision@5 = 1.00 on the 20-item golden set; `median_only` = 0.40. A retrained model that can't beat 0.80 doesn't get promoted.
 
 <Callout tone="warn">
 PSI measures query-distribution drift. It does not detect label drift (users changing what counts as a "deal") or concept drift (prices inflating category-wide). Those need a separate evaluation pass — run `evaluate(two_signal_ranker)` against the golden set on a schedule and alert if `precision@5` falls below 0.80 before PSI would have caught it.
@@ -313,8 +313,8 @@ All three pass against the committed `dealfinder/ops.py`. These tests are the co
 
 ## Where this goes next
 
-- **Part 25 — Cloud & Kubernetes:** the managed Postgres, secrets management, and Kubernetes deployment that this ops layer now monitors. Observability assumes a running cluster; that cluster lives in Part 25.
-- **Part 27 — The web front end:** the React/Next.js search UI that surfaces DEAL/FAIR/SUSPICIOUS/OVERPRICED badges to users — the front-end layer where all this infrastructure becomes visible to the people it's for.
+- **Part 26 — Cloud & Kubernetes:** the managed Postgres, secrets management, and Kubernetes deployment that this ops layer now monitors. Observability assumes a running cluster; that cluster lives in Part 26.
+- **Part 28 — The web front end:** the React/Next.js search UI that surfaces DEAL/FAIR/SUSPICIOUS/OVERPRICED badges to users — the front-end layer where all this infrastructure becomes visible to the people it's for.
 
 ---
 

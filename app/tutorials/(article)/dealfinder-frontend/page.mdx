@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: The Web Front End (Part 27 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: The Web Front End (Part 28 of 34) · Tutorials',
   description:
     'Build the Vite + React + TypeScript SPA that streams deal results in real time via SSE, renders DealBadges from the four §9 verdict tokens, and gates a pro affordance through Supabase Auth — all with a transparent fallback path.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-frontend/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: The Web Front End (Part 27 of 33)',
+    title: 'Become a Full-Stack AI Engineer: The Web Front End (Part 28 of 34)',
     description: 'Build the Vite + React + TypeScript SPA that streams deal results in real time via SSE, renders DealBadges from the four §9 verdict tokens, and gates a pro affordance through Supabase Auth — all with a transparent fallback path.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-frontend/',
     siteName: 'CloudCodeTree',
@@ -20,14 +20,14 @@ export const metadata = {
 
 **TL;DR: Wire a Vite + React + TypeScript SPA to the FastAPI backend you built in earlier parts. The `useSearch` hook opens an `EventSource` to `/search/stream`, renders result cards incrementally as each source responds, and backfills deal percentages when the terminal `done` frame arrives with the query median. When `EventSource` isn't available or the stream errors, the hook falls back silently to a plain `GET /search` fetch. Supabase Auth slots in separately — public search works with no keys at all.**
 
-This is **Part 27 of DealFinder**, the first part of Phase 6 (Full-stack SaaS). Every part before this one was backend: data, ML, serving, infrastructure. Here you build the surface that learners and customers actually touch. The SPA is a working, production-shaped application — not a demo wrapper.
+This is **Part 28 of DealFinder**, the first part of Phase 6 (Full-stack SaaS). Every part before this one was backend: data, ML, serving, infrastructure. Here you build the surface that learners and customers actually touch. The SPA is a working, production-shaped application — not a demo wrapper.
 
 <Callout tone="tip">
 **Anchored working reference.** The companion code at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder)
 runs against real sources only if you supply your own API keys. The SSE tests (`tests/test_sse.py`)
 run fully offline against a stub source and pass on a clean clone. Step tags:
-`step-27a` (useSearch + DealBadge) · `step-27b` (Auth + /me) · `step-27c` (Vite proxy config).
+`step-28a` (useSearch + DealBadge) · `step-28b` (Auth + /me) · `step-28c` (Vite proxy config).
 </Callout>
 
 ## Table of contents
@@ -132,7 +132,7 @@ export default defineConfig({
 
 From the browser's perspective, every fetch and every `EventSource` goes to `localhost:5173` — same origin, no CORS. The proxy rewrites the request and forwards it. The SPA code uses bare paths (`/search/stream?q=…`) with no hardcoded port.
 
-In production, the SPA is a static bundle served from a CDN. Set `VITE_API_BASE=https://api.your-domain.com` — the API base is prepended to each request path in `api.ts` and the proxy is not involved. The Kubernetes ingress annotations from Part 25 (`proxy-buffering: off`, `proxy-read-timeout: 3600`) keep SSE alive through the load balancer.
+In production, the SPA is a static bundle served from a CDN. Set `VITE_API_BASE=https://api.your-domain.com` — the API base is prepended to each request path in `api.ts` and the proxy is not involved. The Kubernetes ingress annotations from Part 26 (`proxy-buffering: off`, `proxy-read-timeout: 3600`) keep SSE alive through the load balancer.
 
 <ProxyTunnel />
 
@@ -300,7 +300,7 @@ export function badgeFor(dealPct: number | undefined): Badge {
 }
 ```
 
-The thresholds carry the residual reasoning from Part 3. `deal_pct >= 60` maps to `SUSPICIOUS` rather than `DEAL` because the $46 Bose QuietComfort 45 — a flagship headphone with a median fair price of $285.15 — lands at 71.8% below the query median. Without the model residual (Part 3), a naive threshold would mark it `DEAL`. With the threshold set at 60%, it is already `SUSPICIOUS` on the median signal alone, before the model even runs.
+The thresholds carry the residual reasoning from Part 4. `deal_pct >= 60` maps to `SUSPICIOUS` rather than `DEAL` because the $46 Bose QuietComfort 45 — a flagship headphone with a median fair price of $285.15 — lands at 71.8% below the query median. Without the model residual (Part 4), a naive threshold would mark it `DEAL`. With the threshold set at 60%, it is already `SUSPICIOUS` on the median signal alone, before the model even runs.
 
 ```typescript
 const STYLES: Record<Badge, { bg: string; fg: string }> = {
@@ -324,10 +324,10 @@ export function DealBadge({ dealPct }: { dealPct?: number }) {
 }
 ```
 
-The `data-badge` attribute is the Playwright selector hook. Part 32's end-to-end tests locate badges with `page.locator('[data-badge="SUSPICIOUS"]')` — the attribute value is one of the four exact tokens above, never a synonym or variant spelling.
+The `data-badge` attribute is the Playwright selector hook. Part 33's end-to-end tests locate badges with `page.locator('[data-badge="SUSPICIOUS"]')` — the attribute value is one of the four exact tokens above, never a synonym or variant spelling.
 
 <Callout tone="warn">
-**Badge token discipline.** The four tokens are `DEAL`, `FAIR`, `SUSPICIOUS`, and `OVERPRICED` — all caps, exact spelling, no others. "Genuine deal", "Verify condition", "no Deal badge", "WARNING" are all wrong and will break Playwright selectors in Part 32. If you add a badge variant in a fork, update the `Badge` type, the `STYLES` map, and the test fixtures together.
+**Badge token discipline.** The four tokens are `DEAL`, `FAIR`, `SUSPICIOUS`, and `OVERPRICED` — all caps, exact spelling, no others. "Genuine deal", "Verify condition", "no Deal badge", "WARNING" are all wrong and will break Playwright selectors in Part 33. If you add a badge variant in a fork, update the `Badge` type, the `STYLES` map, and the test fixtures together.
 </Callout>
 
 ---
@@ -346,7 +346,7 @@ The `done` frame for this query carries `median_price: 162.97` — the pinned sn
 | Sony WH-1000XM6 | $399.99 | −145.4% | **OVERPRICED** |
 
 <Callout tone="note">
-**Why are both Anker and Bose marked SUSPICIOUS?** The `deal_pct` threshold at 60% is a conservative heuristic — anything that far below the query median is unusual enough to warrant a second look. The Anker Q20i is a genuine budget deal that happens to cross that threshold. The full two-signal deal score from Part 3 (combining the median signal with the model residual) separates them: Anker's residual fraction is +0.585 (below model fair price of $108.33), while Bose's is +0.839 (below model fair price of $285.15). A UI that surfaces the model score would show Anker as `DEAL` and Bose as `SUSPICIOUS`. The badge in this part is median-only — Part 3 is where the two-signal separation happens.
+**Why are both Anker and Bose marked SUSPICIOUS?** The `deal_pct` threshold at 60% is a conservative heuristic — anything that far below the query median is unusual enough to warrant a second look. The Anker Q20i is a genuine budget deal that happens to cross that threshold. The full two-signal deal score from Part 4 (combining the median signal with the model residual) separates them: Anker's residual fraction is +0.585 (below model fair price of $108.33), while Bose's is +0.839 (below model fair price of $285.15). A UI that surfaces the model score would show Anker as `DEAL` and Bose as `SUSPICIOUS`. The badge in this part is median-only — Part 4 is where the two-signal separation happens.
 </Callout>
 
 The result array is sorted cheapest-first after backfill. The Sony WH-1000XM5 at $162.97 appears once — the backend's `_stream_search` deduplication (using `dedup_key`) already collapsed the $248 Macy's listing, keeping only the cheaper Costco price (Part 1 established this dedup pattern).
@@ -379,10 +379,10 @@ The sign-in flow:
 1. User submits email + password to `supabase.auth.signInWithPassword`.
 2. Supabase returns a session. The session's `access_token` is a JWT signed with your project's `SUPABASE_JWT_SECRET`.
 3. The `Auth` component calls `fetchMe(session.access_token)` — a `GET /me` with `Authorization: Bearer <token>`.
-4. The FastAPI backend (`serve.py:142`, `require_user` dependency) verifies the JWT locally using `SUPABASE_JWT_SECRET`, extracts the `sub` claim as the user id, and reads the role from `app_metadata.plan` or `app_metadata.role` (Part 28 covers the full claim resolution chain).
+4. The FastAPI backend (`serve.py:142`, `require_user` dependency) verifies the JWT locally using `SUPABASE_JWT_SECRET`, extracts the `sub` claim as the user id, and reads the role from `app_metadata.plan` or `app_metadata.role` (Part 29 covers the full claim resolution chain).
 5. `/me` returns `{ id, email, role }`. The component gates the "pro features unlocked" affordance on `me.role === "pro"`.
 
-This lives in Part 27's code but the backend auth module (`dealfinder/auth.py`) is the Part 28 topic. The `frontend/` code is deliberately thin on the auth side — it signs in, holds the session token, and passes it to the backend. The backend does all JWT verification.
+This lives in Part 28's code but the backend auth module (`dealfinder/auth.py`) is the Part 29 topic. The `frontend/` code is deliberately thin on the auth side — it signs in, holds the session token, and passes it to the backend. The backend does all JWT verification.
 
 <Callout tone="tip">
 **To try auth locally:** create a free Supabase project, copy the project URL and anon key to `frontend/.env.local` as `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, set `SUPABASE_JWT_SECRET` in the backend's `.env`, and create a test user in the Supabase dashboard. Promote them to "pro" by setting `app_metadata: { plan: "pro" }` via the Supabase admin API or dashboard.
@@ -404,7 +404,7 @@ This lives in Part 27's code but the backend auth module (`dealfinder/auth.py`) 
 **`test_stream_still_terminates_when_no_sources`** asserts:
 - When `LIVE_SOURCES` is monkeypatched to an empty list, the stream still closes with `event: done` and `"count": 0`.
 
-These tests do not exercise the frontend React code — that is the domain of Playwright end-to-end tests in Part 32. What they prove is that the backend contract the frontend depends on is stable: frames arrive in the right format, the terminal `done` frame always fires (the hook's `doneRef` guard requires this), and the hero cast values are present.
+These tests do not exercise the frontend React code — that is the domain of Playwright end-to-end tests in Part 33. What they prove is that the backend contract the frontend depends on is stable: frames arrive in the right format, the terminal `done` frame always fires (the hook's `doneRef` guard requires this), and the hero cast values are present.
 
 Run them:
 
@@ -427,18 +427,18 @@ The 16 tests across `tests/test_auth.py`, `tests/test_billing.py`, and `tests/te
 
 This part builds the working SPA and proves the SSE contract. Three things are intentionally deferred:
 
-- **JWT verification in the backend** — `dealfinder/auth.py`, `require_user`, `require_role`, and the full claim resolution chain live in **Part 28 — Auth & accounts**.
-- **Plan gating and quota enforcement** — `dealfinder/billing.py`, the free (25 searches/month) and pro (1000 searches/month) plans, and the Stripe Checkout integration live in **Part 30 — Payments & SaaS mechanics**.
-- **Playwright end-to-end tests** — `[data-badge="DEAL"]` selectors, full search flow assertions, and the load/chaos suite live in **Part 32 — Ship & operate**.
+- **JWT verification in the backend** — `dealfinder/auth.py`, `require_user`, `require_role`, and the full claim resolution chain live in **Part 29 — Auth & accounts**.
+- **Plan gating and quota enforcement** — `dealfinder/billing.py`, the free (25 searches/month) and pro (1000 searches/month) plans, and the Stripe Checkout integration live in **Part 31 — Payments & SaaS mechanics**.
+- **Playwright end-to-end tests** — `[data-badge="DEAL"]` selectors, full search flow assertions, and the load/chaos suite live in **Part 33 — Ship & operate**.
 
 ---
 
 ## Where this goes next
 
-Coming from **Part 26 — Observability, cost & ops**, which set up Langfuse request tracing, Grafana cost dashboards, and the load-test baseline that confirms the backend can sustain concurrent SSE connections. The ingress SSE annotations (`proxy-buffering: off`, `proxy-read-timeout: 3600`) you saw in the Vite proxy section above were first applied in Part 25 and verified under load in Part 26.
+Coming from **Part 27 — Observability, cost & ops**, which set up Langfuse request tracing, Grafana cost dashboards, and the load-test baseline that confirms the backend can sustain concurrent SSE connections. The ingress SSE annotations (`proxy-buffering: off`, `proxy-read-timeout: 3600`) you saw in the Vite proxy section above were first applied in Part 26 and verified under load in Part 27.
 
-- **Part 28 — Auth & accounts:** the backend side of what you wired here. `dealfinder/auth.py` verifies Supabase JWTs, resolves roles from `app_metadata`, and gates routes with `require_user` and `require_role`. Six offline tests cover valid tokens, expired tokens, tampered tokens, wrong secrets, missing bearers, and role-based access.
-- **Part 30 — Payments & SaaS mechanics:** Stripe Checkout sessions, webhook signature verification, and the quota model that makes the "pro" affordance from this part actually mean something. The free plan allows 25 searches per month; the pro plan allows 1000.
+- **Part 29 — Auth & accounts:** the backend side of what you wired here. `dealfinder/auth.py` verifies Supabase JWTs, resolves roles from `app_metadata`, and gates routes with `require_user` and `require_role`. Six offline tests cover valid tokens, expired tokens, tampered tokens, wrong secrets, missing bearers, and role-based access.
+- **Part 31 — Payments & SaaS mechanics:** Stripe Checkout sessions, webhook signature verification, and the quota model that makes the "pro" affordance from this part actually mean something. The free plan allows 25 searches per month; the pro plan allows 1000.
 
 ---
 

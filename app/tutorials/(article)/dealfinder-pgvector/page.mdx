@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: pgvector Persistence + Semantic Search (Part 13 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: pgvector Persistence + Semantic Search (Part 13 of 34) · Tutorials',
   description:
     'Replace the in-memory numpy index with a durable Postgres + pgvector store: upsert every aggregated deal with its bge-small-en-v1.5 embedding, build an HNSW cosine index, and expose semantic_search as a first-class MCP tool.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-pgvector/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: pgvector Persistence + Semantic Search (Part 13 of 33)',
+    title: 'Become a Full-Stack AI Engineer: pgvector Persistence + Semantic Search (Part 13 of 34)',
     description:
       'Replace the in-memory numpy index with a durable Postgres + pgvector store: upsert every aggregated deal with its bge-small-en-v1.5 embedding, build an HNSW cosine index, and expose semantic_search as a first-class MCP tool.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-pgvector/',
@@ -559,7 +559,7 @@ pytest tests/test_pgstore.py -v
 
 - **Part 12 — Expose it as an MCP server (back-reference):** Part 12 built the MCP server surface with tools backed by the in-memory search index from Part 5. This part adds `semantic_search` as a new first-class tool backed by the durable pgvector store — the agent and any MCP client benefit without changing their call sites.
 
-- **Part 14 — The web app: search UI, live/semantic toggle, SSE:** Part 14 builds the browser-facing search UI. The live/semantic toggle connects directly to the pgvector `semantic_search` endpoint introduced here. The database you seeded in this part is the data source the UI queries in real time. When a user types a query, the semantic path calls `pgstore.semantic_search`; the live path calls the Part 9 aggregator and upserts the results back into pgvector before returning them — so every live query enriches the store.
+- **[Part 14 — RAG: grounded answers over your deals](/tutorials/dealfinder-rag/):** The durable pgvector store you just built is the retrieval backend for a RAG pipeline. Instead of returning raw ranked rows, the next part retrieves the most relevant deals for a plain-English question and grounds an LLM's answer in them — citing the actual listings so the model can't invent prices. The `semantic_search` you exposed here is exactly the retriever RAG calls.
 
 ---
 

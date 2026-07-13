@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Auth & Accounts (Part 28 of 33) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Auth & Accounts (Part 29 of 34) · Tutorials',
   description:
     'Add Supabase JWT authentication and role-based access control to the DealFinder API. Verify HS256 tokens locally with no network round-trip on the hot path, gate routes by plan, and keep public search open.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-auth/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Auth & Accounts (Part 28 of 33)',
+    title: 'Become a Full-Stack AI Engineer: Auth & Accounts (Part 29 of 34)',
     description: 'Add Supabase JWT authentication and role-based access control to the DealFinder API. Verify HS256 tokens locally with no network round-trip on the hot path, gate routes by plan, and keep public search open.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-auth/',
     siteName: 'CloudCodeTree',
@@ -20,14 +20,14 @@ export const metadata = {
 
 **TL;DR: Supabase Auth issues HS256 JWTs. Verify them locally in FastAPI with one dependency — no call back to Supabase on the hot path. Add a role gate on top for plan-based access. Public search stays open; protected routes are gated at the dependency level, not scattered through route handlers.**
 
-This is **Part 28 of DealFinder**. The React frontend you built in Part 27 already wires up Supabase sign-in and passes an access token to `GET /me`. Now you build the API side: the token verifier, the `User` model, and the RBAC factory. Six offline tests cover every failure mode — expired, tampered, wrong secret, missing bearer, and role mismatch — minting real HS256 tokens with a throwaway secret so the tests run without any live keys.
+This is **Part 29 of DealFinder**. The React frontend you built in Part 28 already wires up Supabase sign-in and passes an access token to `GET /me`. Now you build the API side: the token verifier, the `User` model, and the RBAC factory. Six offline tests cover every failure mode — expired, tampered, wrong secret, missing bearer, and role mismatch — minting real HS256 tokens with a throwaway secret so the tests run without any live keys.
 
 <Callout tone="note">
 **Anchored working reference.** The code and tests run offline. Live use requires your own Supabase project — set `SUPABASE_JWT_SECRET` to the value from Project Settings → API → JWT Secret. Without it, the server raises HTTP 500 on protected routes and the tests skip the live path automatically. The 6-test offline suite passes with only the repo.
 </Callout>
 
 <Callout tone="tip">
-**Companion repo:** [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). Step tag for this part: `step-28`. Diff from Part 27: `step-27...step-28`.
+**Companion repo:** [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). Step tag for this part: `step-29`. Diff from Part 28: `step-28...step-29`.
 </Callout>
 
 ## Table of contents
@@ -70,7 +70,7 @@ The token carries:
 - `exp` — expiry timestamp (verified by the JWT library)
 - `app_metadata` — a dict you control via Auth hooks, where you stamp the plan or role
 
-The frontend (Part 27) stores the token in a session and passes it on every authenticated request as `Authorization: Bearer <token>`. The API needs to do three things: verify the signature, check expiry and audience, and extract the fields that matter. All three happen locally.
+The frontend (Part 28) stores the token in a session and passes it on every authenticated request as `Authorization: Bearer <token>`. The API needs to do three things: verify the signature, check expiry and audience, and extract the fields that matter. All three happen locally.
 
 <JwtDecodeRing />
 
@@ -157,7 +157,7 @@ def _role_from_claims(claims: dict) -> str:
 
 The lookup order is: a top-level `user_role` custom claim (if you use that convention) → `app_metadata.plan` → `app_metadata.role` → `"free"`. If none of those are set, the user is a free-tier user. The Postgres-level `role` claim is never consulted.
 
-To promote a user to pro you update `app_metadata` via the Supabase Admin API (or an Auth hook triggered by a Stripe webhook — that is Part 30's job). The user's next token refresh picks up the new claim automatically.
+To promote a user to pro you update `app_metadata` via the Supabase Admin API (or an Auth hook triggered by a Stripe webhook — that is Part 31's job). The user's next token refresh picks up the new claim automatically.
 
 ---
 
@@ -225,7 +225,7 @@ pro_only = require_role("pro")
 admin_only = require_role("admin")
 ```
 
-Part 30 adds `require_plan_quota` on top of `require_user` for metered usage — same pattern, different check.
+Part 31 adds `require_plan_quota` on top of `require_user` for metered usage — same pattern, different check.
 
 ---
 
@@ -315,10 +315,10 @@ To exercise the auth flow against a real Supabase project:
 5. Sign in via the frontend (`pnpm dev` in `frontend/`, with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` set).
 6. The frontend calls `GET /me` with the real session token; you should see your user UUID, email, and role.
 
-To promote a user to pro, update `app_metadata` via the Supabase dashboard (Table Editor → `auth.users` → edit `raw_app_meta_data`) or via the Admin API. The user's next token refresh will carry `"plan": "pro"` in the claims. Part 30 automates this promotion via a Stripe webhook.
+To promote a user to pro, update `app_metadata` via the Supabase dashboard (Table Editor → `auth.users` → edit `raw_app_meta_data`) or via the Admin API. The user's next token refresh will carry `"plan": "pro"` in the claims. Part 31 automates this promotion via a Stripe webhook.
 
 <Callout tone="note">
-**No in-cluster Supabase.** The `infra/k8s/secret.example.yaml` from Part 25 already has a `SUPABASE_JWT_SECRET` placeholder. Fill it with your project secret and apply the real `secret.yaml` out-of-band. The deployment picks it up via `envFrom: secretRef`.
+**No in-cluster Supabase.** The `infra/k8s/secret.example.yaml` from Part 26 already has a `SUPABASE_JWT_SECRET` placeholder. Fill it with your project secret and apply the real `secret.yaml` out-of-band. The deployment picks it up via `envFrom: secretRef`.
 </Callout>
 
 ---
