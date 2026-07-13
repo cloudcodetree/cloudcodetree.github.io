@@ -10,7 +10,214 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 13 Jul 2026 12:13:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 13 Jul 2026 20:12:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Keep CLAUDE.md Under 200 Lines: Use @import to Modularize Project Context</title>
+      <link>https://code.claude.com/docs/en/memory</link>
+      <guid isPermaLink="false">2026-07-13-08-claude-md-import-modular-project-memory</guid>
+      <pubDate>Mon, 13 Jul 2026 20:12:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Every Claude Code session injects your full CLAUDE.md before any tool call. Use @import to split it into focused files and keep the main file under 200 lines — reducing per-session token overhead without losing any context.</description>
+      <content:encoded><![CDATA[
+**Every session loads your entire CLAUDE.md before any tool call — one bloated file silently inflates costs; split it with @import and let Claude focus on what each task actually needs.**
+
+Every Claude Code session injects your full CLAUDE.md into the context window before anything else runs. A 2,000-line CLAUDE.md that covers architecture, testing conventions, API standards, do-not-touch rules, and onboarding notes costs you those tokens on every prompt — even when you're just fixing a typo.
+
+Claude Code's `@` import syntax solves this cleanly:
+
+```markdown
+# CLAUDE.md — keep this under ~200 lines
+
+@.claude/architecture.md
+@.claude/testing-conventions.md
+@.claude/api-standards.md
+@.claude/do-not-touch.md
+
+## Quick reference
+- Entry point: src/main.ts
+- Config: ./config/
+- Run tests: pnpm test
+- Lint: pnpm lint
+```
+
+Each `@path` is expanded and loaded at session start, recursively (up to 4 hops), so `architecture.md` can itself import `@.claude/modules/auth-patterns.md` for deeper topics. Claude sees the full expanded content — the split is invisible to it.
+
+## Three patterns that work well
+
+**1. Split by concern**
+
+```
+.claude/
+├── architecture.md    # system topology, critical service invariants
+├── testing.md         # framework, fixtures, mock strategy
+├── api-standards.md   # REST conventions, error shapes, auth contracts
+└── do-not-touch.md    # protected files, manual-only workflows, migrations
+```
+
+Keep each file focused on one concern. When a file grows past ~150 lines, split it further. Files under `.claude/` are committed alongside code so the whole team benefits.
+
+**2. User-level vs project-level memory**
+
+Claude Code loads context from multiple locations, in priority order:
+
+- `~/.claude/CLAUDE.md` — your personal style preferences, shortcuts, editor setup (not committed; follows you everywhere)
+- `CLAUDE.md` in the repo root (or `.claude/CLAUDE.md`) — team-wide project rules (committed)
+- `CLAUDE.md` in any subdirectory — scoped to that subtree, useful in monorepos
+
+A clean split: `~/.claude/CLAUDE.md` holds your personal preferences; the project CLAUDE.md holds only what the whole team needs to agree on. Avoid duplicating rules across both — conflicts silently prefer the project file.
+
+**3. Audit with /doctor and /memory**
+
+Claude Code v2.1.206+ includes a CLAUDE.md size check in `/doctor`. Run it when something feels slow or context-heavy — it flags oversized CLAUDE.md files and suggests trimming. The `/memory` command shows everything Claude has loaded for the current session, including all imported files, so you can verify the import chain resolved correctly.
+
+A CLAUDE.md that stays lean keeps every session snappier and keeps token costs predictable. The @import split takes 10 minutes to set up and pays off on every subsequent interaction.
+
+**Sources:** [How Claude remembers your project — Claude Code Docs](https://code.claude.com/docs/en/memory) · [CLAUDE.md Complete Guide — SkillsPlayground](https://skillsplayground.com/guides/claude-md-file/) · [Five Ways to Give Claude Code the Right Context — wmedia.es](https://wmedia.es/en/tips/claude-code-five-ways-right-context)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>When Retrieval Goes Wrong, Fix It: Build a Self-Correcting RAG Pipeline With LangGraph</title>
+      <link>https://blog.langchain.com/agentic-rag-with-langgraph/</link>
+      <guid isPermaLink="false">2026-07-13-07-corrective-rag-crag-langgraph-self-correcting</guid>
+      <pubDate>Mon, 13 Jul 2026 20:11:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <category>Agents</category>
+      <description>CRAG adds an LLM grader after each vectorstore retrieval. If scores are low it rewrites the query and falls back to web search — your RAG pipeline catches its own bad retrieval before hallucinating on it.</description>
+      <content:encoded><![CDATA[
+**CRAG adds an LLM-graded document check after each retrieval — if scores are low it rewrites the query and searches again, so your pipeline catches its own bad retrieval before hallucinating on poor context.**
+
+**What you'll be able to do after this:**
+- Understand the retrieve → grade → correct loop that distinguishes CRAG from basic RAG
+- Implement a LangGraph state machine with document-grader, query-rewriter, and web-fallback nodes
+- Know when CRAG is worth the extra latency vs simpler retrieval patterns
+
+## The silent failure mode in basic RAG
+
+Standard RAG has a fundamental blind spot: if the vectorstore returns stale, irrelevant, or off-topic chunks, the LLM doesn't refuse — it hallucinates a confident-sounding answer from bad context. You only discover the failure downstream, through wrong outputs or user complaints.
+
+CRAG (Corrective RAG) closes this loop by inserting a grading step between retrieval and generation.
+
+## The CRAG loop
+
+After each retrieval, an LLM grades every document as **Correct** (clearly relevant), **Incorrect** (clearly irrelevant), or **Ambiguous**:
+
+- **All Correct** → generate immediately from the retrieved docs
+- **All Incorrect** → rewrite the query, fall back to web search (Tavily/DuckDuckGo), generate from fresh context
+- **Mixed/Ambiguous** → refine: strip each ambiguous document into short "knowledge strips," re-grade each strip individually, keep only the relevant ones, supplement with web results if needed
+
+LangGraph models this as a state machine with conditional edges — the graph decides at runtime whether to proceed directly to generation or loop back through rewrite and web search.
+
+## Runnable implementation
+
+```python
+from langgraph.graph import StateGraph, END
+from typing import List, TypedDict
+from langchain_core.documents import Document
+from langchain_anthropic import ChatAnthropic
+from langchain_community.tools.tavily_search import TavilySearchResults
+
+class RAGState(TypedDict):
+    question: str
+    documents: List[Document]
+    generation: str
+    web_search_needed: bool
+
+llm = ChatAnthropic(model="claude-sonnet-5", temperature=0)
+
+# Step 1: grade each retrieved document
+def grade_documents(state: RAGState) -> RAGState:
+    grader = llm.with_structured_output({
+        "type": "object",
+        "properties": {"relevant": {"type": "boolean"}},
+        "required": ["relevant"]
+    })
+    filtered, web_needed = [], False
+    for doc in state["documents"]:
+        result = grader.invoke(
+            f"Is this passage relevant to the question '{state['question']}'?\n\n"
+            f"{doc.page_content[:600]}"
+        )
+        if result["relevant"]:
+            filtered.append(doc)
+        else:
+            web_needed = True
+    return {"documents": filtered, "web_search_needed": web_needed or len(filtered) == 0}
+
+# Step 2: rewrite query when docs were insufficient
+def rewrite_query(state: RAGState) -> RAGState:
+    rewritten = llm.invoke(
+        f"Rewrite this question for a better web search: {state['question']}"
+    ).content
+    return {"question": rewritten}
+
+# Step 3: web search fallback
+def web_search(state: RAGState) -> RAGState:
+    results = TavilySearchResults(max_results=3).invoke(state["question"])
+    web_docs = [Document(page_content=r["content"]) for r in results]
+    return {"documents": state["documents"] + web_docs}
+
+# Step 4: generate from final context
+def generate(state: RAGState) -> RAGState:
+    context = "\n\n".join(d.page_content for d in state["documents"])
+    answer = llm.invoke(
+        f"Answer based only on this context:\n{context}\n\nQuestion: {state['question']}"
+    ).content
+    return {"generation": answer}
+
+# Conditional edge: go to rewrite or straight to generate
+def route_after_grading(state: RAGState) -> str:
+    return "rewrite" if state["web_search_needed"] else "generate"
+
+workflow = StateGraph(RAGState)
+workflow.add_node("grade_documents", grade_documents)
+workflow.add_node("rewrite", rewrite_query)
+workflow.add_node("web_search", web_search)
+workflow.add_node("generate", generate)
+
+workflow.set_entry_point("grade_documents")
+workflow.add_conditional_edges("grade_documents", route_after_grading,
+    {"rewrite": "rewrite", "generate": "generate"})
+workflow.add_edge("rewrite", "web_search")
+workflow.add_edge("web_search", "generate")
+workflow.add_edge("generate", END)
+
+app = workflow.compile()
+result = app.invoke({
+    "question": "What changed in vLLM v0.9?",
+    "documents": retriever.invoke("vLLM v0.9"),  # your vectorstore retrieval here
+    "generation": "",
+    "web_search_needed": False
+})
+print(result["generation"])
+```
+
+## When to use CRAG
+
+- **High-stakes Q&A** where a wrong answer has real consequences
+- **Knowledge gaps**: your vectorstore is a snapshot; questions may need fresher information
+- **Ambiguous queries** that can semantically match unrelated documents
+
+## When to skip it
+
+- **Latency-sensitive paths**: grading adds 1–2 extra LLM calls per query
+- **Closed-domain corpora** where you fully control document quality and freshness
+- **Simple lookup tasks** where keyword or metadata filters already ensure precision
+
+CRAG pairs naturally with the [cross-encoder reranker](/ai-news/2026-07-10-04-cross-encoder-reranking-rag-precision) from an earlier post — run the reranker first to surface the best candidates, then CRAG to verify relevance and trigger correction if needed.
+
+**Sources:** [Self-Reflective RAG with LangGraph — LangChain Blog](https://blog.langchain.com/agentic-rag-with-langgraph/) · [Corrective RAG (CRAG) Implementation with LangGraph — DataCamp](https://www.datacamp.com/tutorial/corrective-rag-crag) · [Build a custom RAG agent with LangGraph — LangChain Docs](https://docs.langchain.com/oss/python/langgraph/agentic-rag)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>From Cron to Cloud Agent: Automate Any Dev Workflow With Claude Code Routines</title>
