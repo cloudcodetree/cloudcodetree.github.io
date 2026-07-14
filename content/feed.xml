@@ -10,8 +10,165 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 14 Jul 2026 04:17:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 14 Jul 2026 12:07:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Red-Team Your LLM App Before Users Do: Automated Security Testing With promptfoo</title>
+      <link>https://promptfoo.dev</link>
+      <guid isPermaLink="false">2026-07-14-05-promptfoo-llm-redteam-security-ci</guid>
+      <pubDate>Tue, 14 Jul 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Security</category>
+      <category>Best Practices</category>
+      <description>promptfoo auto-generates adversarial attacks against your LLM endpoint — prompt injection, jailbreaks, PII leakage, 50+ vulnerability types — and runs them in CI. One CLI command to scan any Claude or custom endpoint.</description>
+      <content:encoded><![CDATA[
+**TL;DR: promptfoo auto-generates adversarial attacks against your LLM endpoint — prompt injection, jailbreaks, PII leakage, and 50+ other vulnerability types — and runs them in CI like a security scanner for your prompt surface.**
+
+Every LLM app ships with an attack surface your normal test suite cannot see. Your RAG pipeline might return documents it should not. Your system prompt might be extractable. A user might role-play the model into ignoring its guidelines. Manual testing catches some of this; promptfoo catches the rest automatically.
+
+## What it tests
+
+- **Prompt injection** — via user messages, retrieved context, and tool-call output poisoning
+- **System prompt extraction** — can a user get your instructions back verbatim?
+- **PII leakage** — does the model repeat personal data from retrieved documents?
+- **Jailbreaks** — 50+ strategies: DAN variants, persona hijacking, encoding tricks (Base64, ROT13), fictional framing
+- **Harmful content** — abuse-of-service scenarios relevant to your app's domain
+
+## Install and scan in 5 minutes
+
+```bash
+npm i -g promptfoo
+
+# Scaffold a red-team config pointing at your endpoint
+promptfoo redteam init
+
+# Generate adversarial inputs, call your app, score the responses
+promptfoo redteam run
+```
+
+`redteam init` creates `promptfooconfig.yaml` with your target endpoint. `redteam run` generates adversarial test cases, calls your app with each one, judges the responses using an LLM, and produces a score per vulnerability class with a shareable HTML report.
+
+## Add it to CI (GitHub Actions)
+
+```yaml
+- name: LLM Security Scan
+  env:
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  run: |
+    npx promptfoo@latest redteam run --config promptfooconfig.yaml --no-cache
+```
+
+Add `--max-concurrency 10 --delay 200` to stay within rate limits. Set `severity: critical` thresholds in the config to fail the build on any critical finding — the same move you already make with SAST/DAST, applied to your prompt surface.
+
+## Works with any Claude model
+
+Set `provider: anthropic:claude-sonnet-5` in your config to scan a Claude-backed app. promptfoo also supports OpenAI, Bedrock, and custom HTTP endpoints — one scan config covers a multi-provider stack.
+
+## Why this matters more as agents get more powerful
+
+A prompt injection that tricks a chatbot into saying something rude is annoying. The same injection in a coding agent with filesystem access can delete files. Running a red-team scan in CI today catches your exposure before your next capability upgrade makes it catastrophic.
+
+(Note: promptfoo was acquired by OpenAI in March 2026 and remains open-source under Apache 2.0. All LLM providers are still supported.)
+
+**Sources:** [promptfoo.dev](https://promptfoo.dev) · [Promptfoo LLM Red Teaming Guide — qaskills.sh](https://qaskills.sh/blog/promptfoo-llm-red-teaming-guide) · [Promptfoo Complete Guide 2026 — qaskills.sh](https://qaskills.sh/blog/promptfoo-complete-guide-2026)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Process 100,000 Claude Requests in One Call: The Message Batches API for Bulk Async Jobs</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/batch-processing</link>
+      <guid isPermaLink="false">2026-07-14-04-anthropic-message-batches-bulk-async</guid>
+      <pubDate>Tue, 14 Jul 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>The Message Batches API sends up to 100K Claude requests as one async job at 50% off — the right tool for eval runs, data labeling, bulk summarization, or any workload that does not need a real-time response.</description>
+      <content:encoded><![CDATA[
+**What you'll be able to do after this:**
+
+- Submit thousands of Claude API requests in a single async batch with no rate-limit or retry machinery to write
+- Get a guaranteed 50% cost reduction on every input and output token in the batch
+- Reconcile results back to your original requests with stable custom IDs, and handle partial failures cleanly
+
+**TL;DR: The Message Batches API sends up to 100,000 Claude requests as one async job at half price — the right tool for eval harnesses, data labeling, and any pipeline that does not need real-time responses.**
+
+When you have 10,000 documents to classify, 5,000 support tickets to route, or an eval harness to run on a fresh fine-tune, the synchronous API works but costs money you do not need to spend and forces you to write retry and rate-limit machinery. The Message Batches API collapses all of that: submit once, poll for completion, stream results.
+
+## The three numbers that matter
+
+- Up to **100,000 requests** per batch (256 MB total limit)
+- **50% cost** on both input and output tokens — all Claude models, no configuration required
+- Results within **24 hours** (most batches finish in under an hour)
+
+## Submit a batch in 15 lines
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+batch = client.messages.batches.create(
+    requests=[
+        {
+            "custom_id": f"doc-{i}",
+            "params": {
+                "model": "claude-sonnet-5",
+                "max_tokens": 50,
+                "messages": [{"role": "user", "content": f"Classify as bug/feature/question: {doc}"}],
+            },
+        }
+        for i, doc in enumerate(documents)
+    ]
+)
+print(batch.id, batch.processing_status)  # ended | in_progress | validating
+```
+
+`custom_id` is your key for reconciliation — use something that maps back to your source data.
+
+## Poll until done, then stream results
+
+```python
+import time
+
+while True:
+    status = client.messages.batches.retrieve(batch.id)
+    if status.processing_status == "ended":
+        break
+    time.sleep(60)  # most batches finish in under 30 minutes
+
+for result in client.messages.batches.results(batch.id):
+    if result.result.type == "succeeded":
+        label = result.result.message.content[0].text
+        print(f"{result.custom_id}: {label}")
+    elif result.result.type == "errored":
+        print(f"{result.custom_id}: failed — resubmit")
+```
+
+## When to use batches vs. real-time
+
+| Scenario | Use |
+|---|---|
+| User waiting on screen | Synchronous Messages API |
+| Eval harness, bulk annotation, nightly pipeline | Batch API |
+| Agent in an interactive loop | Synchronous Messages API |
+| Annotating a fine-tuning dataset | Batch API |
+
+## Power combo: batches + prompt caching
+
+Mark your system prompt with `"cache_control": {"type": "ephemeral"}` on every request in the batch. Cached tokens get the 0.1x cache rate AND the 0.5x batch rate — effectively **5% of standard input cost** on the prefix. For large system prompts or long retrieval contexts repeated across every item, this can cut total batch cost by 90%+.
+
+## Partial failures are normal
+
+Each result has a `type`: `"succeeded"`, `"errored"`, or `"expired"` (rare: after 24 h without completion). Collect the non-success custom_ids and resubmit them as a smaller follow-up batch. The batch API does not retry internally — that is by design so you control the failure policy.
+
+**Sources:** [Batch processing — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/batch-processing) · [Batch processing cookbook — Claude Cookbook](https://platform.claude.com/cookbook/misc-batch-processing) · [Message Batches API reference](https://docs.anthropic.com/en/api/creating-message-batches)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Run a Command, Get an Instant Analysis: Claude Code's ! Shell Mode Does More Than You Think</title>
