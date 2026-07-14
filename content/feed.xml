@@ -10,8 +10,177 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 13 Jul 2026 20:12:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 14 Jul 2026 04:17:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Run a Command, Get an Instant Analysis: Claude Code's ! Shell Mode Does More Than You Think</title>
+      <link>https://code.claude.com/docs/en/interactive-mode#shell-mode-with-prefix</link>
+      <guid isPermaLink="false">2026-07-14-03-claude-code-shell-bang-auto-response</guid>
+      <pubDate>Tue, 14 Jul 2026 04:17:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Prefix any bash command with ! in a Claude Code session and Claude automatically explains the output — failing tests, build errors, lint results — without a follow-up prompt.</description>
+      <content:encoded><![CDATA[
+**Prefix any shell command with ! in a Claude Code session and Claude automatically analyzes the output — failing tests, build errors, lint results — without a follow-up prompt.**
+
+Most Claude Code users know the `!` prefix runs a shell command. Fewer know that since v2.1.186, Claude automatically responds to the output without you asking.
+
+**Before:**
+```text
+> ! npm test
+[Claude runs the command, output lands in context]
+> "The test output above has 3 failures — what's wrong?"
+```
+
+**After:**
+```text
+> ! npm test
+[Claude runs the command, output lands in context]
+[Claude automatically]: The three failures are all in the auth module. TokenExpiredError
+is thrown at line 47 of src/auth/jwt.ts — the test mock isn't advancing the fake clock
+past token expiry. Fix: call jest.advanceTimersByTime(3601000) before asserting.
+```
+
+One turn, one token cost, no copy-paste required.
+
+## Where this changes your workflow
+
+- `! cargo build` → immediate analysis of Rust compile errors, with suggested fixes
+- `! pnpm lint` → summary of which lint rules are failing and why
+- `! git diff HEAD~1` → explanation of what changed and what to review before pushing
+- `! curl -s http://localhost:3000/api/health | jq` → analysis of the API response structure
+
+Claude treats the command output as context it should understand, not just text to accumulate. It reads the full output — including stack traces — and gives you actionable analysis.
+
+## Turning it off
+
+If you prefer `!` to only inject output into context without triggering a response:
+
+```json
+{
+  "respondToBashCommands": false
+}
+```
+
+Add this to `.claude/settings.json`. With the setting off, `!` commands still land in the transcript (so later prompts can reference them) but Claude doesn't auto-respond — useful when building a context window before asking a single synthesizing question.
+
+## Inside /goal loops
+
+The auto-response works inside `/goal` loops too. When Claude runs `! npm test` during a loop turn, it sees the failure output and patches based on it — making the loop dramatically more self-correcting:
+
+```text
+> /goal all tests pass
+[Claude runs ! npm test each turn, reads failures, patches, re-tests automatically]
+```
+
+This is the difference between a loop that hits an error and stops, and one that reads the error and keeps going.
+
+**Sources:** [Shell mode with the ! prefix — Claude Code Docs](https://code.claude.com/docs/en/interactive-mode#shell-mode-with-prefix) · [Week 26 digest — Claude Code Docs](https://code.claude.com/docs/en/whats-new/2026-w26)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code 2.1.208 Shrinks Session Transcripts 79x; Copilot's Gemini Models Deprecate July 31</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-07-14-02-news-claude-2-1-208-copilot-gemini-deprecation</guid>
+      <pubDate>Tue, 14 Jul 2026 04:16:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>Claude Code 2.1.208 ships today with 79x transcript compression for edit-heavy sessions and 7x faster tool calls; GitHub Copilot's Gemini 2.5 Pro and Gemini 3 Flash retire July 31.</description>
+      <content:encoded><![CDATA[
+**Claude Code 2.1.208 ships 79x transcript compression and 7x faster tool-call processing today; GitHub Copilot's Gemini 2.5 Pro and Gemini 3 Flash retire July 31 — migrate to 3.1 Pro or 3.5 Flash before the deadline.**
+
+**Claude Code 2.1.208 (July 14).** The biggest performance release in weeks ships two wins directly relevant to long agent sessions: session transcript size drops up to 79x in edit-heavy sessions — the root cause of context exhaustion during large refactors — and per-tool-call CPU overhead is up to 7x lower at high tool counts. Both changes are automatic; no config needed. Additional fixes: `CLAUDE_CODE_MAX_OUTPUT_TOKENS` was silently ignoring scientific notation (`1e6` was treated as `1` — update if you use env-var token limits), and very large markdown tables (200+ rows) no longer stall rendering. Update with `claude update`. **Why it matters:** Autonomous refactoring sessions that previously hit context limits mid-task can now run substantially further — the 79x compression directly extends how long Claude Code can work without a context reset.
+
+**GitHub Copilot: Gemini 2.5 Pro and Gemini 3 Flash deprecate July 31.** GitHub will remove both models from all Copilot experiences on July 31, 2026 — chat, inline edits, ask mode, agent mode, and code completions. The migration targets are Gemini 3.1 Pro and Gemini 3.5 Flash. If your team's VSCode settings, workflow configs, or Copilot API integrations explicitly name either deprecated model, update before the deadline. Teams that haven't pinned a model aren't affected — the default updates automatically. **Why it matters:** Any agentic workflow that pins a specific Gemini model name will silently break on August 1.
+
+**Sources:** [Claude Code changelog — Anthropic](https://code.claude.com/docs/en/changelog) · [Upcoming deprecation of Gemini 2.5 Pro and Gemini 3 Flash — GitHub Changelog](https://github.blog/changelog/2026-07-02-upcoming-deprecation-of-gemini-2-5-pro-and-gemini-3-flash/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>One GPU, Dozens of Fine-Tuned Customers: Serve Multiple LoRA Adapters Simultaneously With vLLM</title>
+      <link>https://docs.vllm.ai/en/stable/features/lora/</link>
+      <guid isPermaLink="false">2026-07-14-01-vllm-multi-lora-adapter-serving</guid>
+      <pubDate>Tue, 14 Jul 2026 04:15:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>Fine-Tuning</category>
+      <category>LLM</category>
+      <description>vLLM's multi-LoRA mode loads one base model and swaps adapter weights per request — dozens of fine-tuned variants share one GPU at near-zero marginal cost per adapter.</description>
+      <media:content url="https://img.youtube.com/vi/WBqjB4UMXXE/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/WBqjB4UMXXE/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**vLLM's multi-LoRA mode holds one copy of the base model in VRAM and applies adapter layers per request — so dozens of fine-tuned variants share a single GPU at near-zero marginal cost per adapter.**
+
+**What you'll be able to do after this:**
+- Launch a single vLLM server that routes requests across dozens of named LoRA adapters
+- Configure memory limits so adapters evict cleanly when VRAM fills
+- Route any OpenAI-compatible client to a specific fine-tune by swapping one parameter
+
+## The problem: serving many fine-tuned models is GPU-expensive
+
+A Llama 3.2 3B base model takes ~6GB of VRAM. Ten separate fine-tuned copies would take 60GB. With vLLM multi-LoRA, those ten adapters add roughly 100–200MB total — a rounding error.
+
+vLLM holds one copy of the base model weights in VRAM. Each LoRA adapter is a small delta (10–100MB, depending on rank). When a request arrives for a specific adapter, vLLM injects the adapter's low-rank matrices during the forward pass. Adapters not actively in use are evicted to CPU memory and reloaded on demand.
+
+## Launch a multi-adapter server
+
+```bash
+vllm serve meta-llama/Llama-3.2-3B-Instruct     --enable-lora     --lora-modules sql=./adapters/sql-specialist                   legal=./adapters/legal-summarize                   code=./adapters/code-reviewer     --max-loras 4     --max-lora-rank 64
+```
+
+Key flags:
+- `--enable-lora` — activates LoRA support on the server
+- `--lora-modules name=path ...` — registers each adapter as a named model alias
+- `--max-loras N` — adapters that can be active in VRAM simultaneously; increase if you have headroom
+- `--max-lora-rank N` — must be >= the highest rank used by any adapter you load
+
+## Route requests by adapter name
+
+Each adapter appears as a separate `model` in the OpenAI-compatible API:
+
+```bash
+# Use the SQL fine-tune
+curl http://localhost:8000/v1/chat/completions   -H "Content-Type: application/json"   -d '{
+    "model": "sql",
+    "messages": [{"role": "user", "content": "SELECT users created in the last 7 days"}]
+  }'
+
+# Use the base model directly
+curl http://localhost:8000/v1/chat/completions   -d '{"model": "meta-llama/Llama-3.2-3B-Instruct", ...}'
+```
+
+In Python, swap the `model=` parameter in your `AsyncOpenAI` client — the rest of the code is unchanged.
+
+## Add adapters at runtime
+
+Register new adapters without restarting the server:
+
+```bash
+curl -X POST http://localhost:8000/v1/load_lora_adapter   -H "Content-Type: application/json"   -d '{"lora_name": "medical", "lora_path": "./adapters/medical-qa"}'
+```
+
+## Memory math
+
+- Llama 3.2 3B base: ~6GB VRAM
+- Each LoRA adapter at rank 64: ~50MB
+- 20 adapters: ~1GB extra — fits comfortably alongside the base on a single A100
+
+At scale: Llama 3.1 70B with 100 rank-16 adapters runs on a single A100 80GB. Without multi-LoRA, 100 separate 70B instances would require roughly 1,750 A100s.
+
+**Sources:** [LoRA Adapters — vLLM Docs](https://docs.vllm.ai/en/stable/features/lora/) · [Efficiently serve dozens of fine-tuned models with vLLM — vLLM Blog](https://vllm.ai/blog/2026-02-26-multi-lora) · [vLLM Serving Tutorial with LoRA — YouTube](https://www.youtube.com/watch?v=WBqjB4UMXXE)
+]]></content:encoded>
+    </item>
     <item>
       <title>Keep CLAUDE.md Under 200 Lines: Use @import to Modularize Project Context</title>
       <link>https://code.claude.com/docs/en/memory</link>
