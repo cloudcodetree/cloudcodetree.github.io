@@ -1,5 +1,62 @@
 [
   {
+    "id": "2026-07-15-09-claude-structured-outputs-guaranteed-json",
+    "title": "Stop Parsing Markdown: Use Claude's Structured Outputs for Schema-Valid JSON Every Time",
+    "excerpt": "Two patterns that replace the try/parse/retry loop: output_config.format for direct JSON responses, and strict: true on tools for guaranteed-valid tool arguments.",
+    "author": "Chris Harper",
+    "date": "07-15-2026",
+    "publishedAt": "2026-07-15T20:08:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Best Practices",
+      "Claude Code",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+    "content": "**TL;DR: Prompting Claude for JSON works ~70% of the time; structured outputs use schema-constrained decoding to make it work 99.9%+ of the time — no parsing retries, no markdown-wrapped surprises.**\n\nAsking Claude to \"respond with JSON only\" fails in the edge cases that matter most: markdown wrapping, extra commentary, mismatched keys. Two built-in features constrain generation at the token level and eliminate the failure mode.\n\n## Pattern 1: `output_format` for direct JSON responses\n\nThe Python SDK's `.messages.parse()` accepts a Pydantic model and returns a `.parsed_output` that's already deserialized and validated:\n\n```python\nfrom pydantic import BaseModel\nfrom anthropic import Anthropic\n\nclass Ticket(BaseModel):\n    title: str\n    priority: str   # \"low\" | \"medium\" | \"high\"\n    labels: list[str]\n\nclient = Anthropic()\nresp = client.messages.parse(\n    model=\"claude-haiku-4-5\",\n    max_tokens=512,\n    messages=[{\"role\": \"user\", \"content\": \"Triage: login button broken on Safari.\"}],\n    output_format=Ticket,\n)\nprint(resp.parsed_output)\n# Ticket(title='Login button broken on Safari', priority='medium', labels=['bug', 'safari'])\n```\n\nNo `json.loads()`, no try/except, no retry loop. The SDK strips the code block, parses, validates.\n\n## Pattern 2: `strict: true` on tool definitions\n\nWhen Claude calls your functions (the tool-use loop), `strict: true` guarantees the `input` block exactly matches your schema — no extra fields, no missing required fields:\n\n```python\ntools = [{\n    \"name\": \"create_ticket\",\n    \"strict\": True,\n    \"input_schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"title\": {\"type\": \"string\"},\n            \"priority\": {\"type\": \"string\", \"enum\": [\"low\", \"medium\", \"high\"]},\n        },\n        \"required\": [\"title\", \"priority\"],\n        \"additionalProperties\": False,   # required for strict mode\n    }\n}]\n```\n\n## Key tips\n\n- **Always set `additionalProperties: false`** — strict mode requires it on every object\n- **Schema caching:** the first request with a new schema compiles a grammar (a few hundred ms of extra latency); subsequent requests with the same schema are cached for 24 hours\n- **Cost:** use `claude-haiku-4-5` for flat schemas with ≤10 fields — near-identical accuracy at a fraction of Sonnet's cost\n- **Refusals:** `stop_reason: \"refusal\"` can still occur; check before accessing `.parsed_output`\n- **Both patterns compose:** use `output_format` for Claude's answer AND `strict: true` on tools in the same agentic loop\n\n**Sources:** [Structured outputs — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) · [Strict tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use) · [Hands-on with Anthropic's structured output capabilities — Towards Data Science](https://towardsdatascience.com/hands-on-with-anthropics-new-structured-output-capabilities/)"
+  },
+  {
+    "id": "2026-07-15-08-inkling-thinking-machines-1t-multimodal",
+    "title": "Inkling: The Biggest Open Multimodal Model Yet — 975B Params, 1M Context, Day-0 in vLLM and GGUF",
+    "excerpt": "Thinking Machines ships an open 975B-param MoE model (41B active) understanding text, images, and audio natively — day-0 in transformers 5.14.0, vLLM, SGLang, llama.cpp, and GGUF quantizations.",
+    "author": "Chris Harper",
+    "date": "07-15-2026",
+    "publishedAt": "2026-07-15T20:07:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Self-Hosting",
+      "HuggingFace"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/blog/thinkingmachines-inkling",
+    "content": "**TL;DR: Inkling is a 975B-param open-weight MoE model (41B active per token) from Thinking Machines that natively processes text, images, and audio in a 1M-token context window — available today on HuggingFace with day-0 framework support.**\n\nThinking Machines released [Inkling](https://huggingface.co/blog/thinkingmachines-inkling) on July 15 — the largest open multimodal model to date, and the first to natively accept all three modalities (text, images, audio) without adapter bolts. The key numbers:\n\n- **975B total parameters, 41B active** via Mixture-of-Experts routing — only 4% of parameters fire per token, making inference tractable\n- **1M token context window** — trained on 45 trillion tokens of text, images, audio, and video\n- **Two official variants:** full BF16 (requires 2TB VRAM on Hopper) and NVFP4 (600GB on Blackwell); community contributors already have 1-bit GGUF quantizations that cut memory ~95%\n- **Day-0 framework support:** transformers v5.14.0 (released same day), vLLM, SGLang, llama.cpp, and Unsloth\n\n**Why it matters:** Until now, natively multimodal open models topped out well below 100B. Inkling changes the calculus for teams that need self-hosted control over audio-reasoning, document-analysis, or agentic pipelines — the model's MoE architecture and aggressive GGUF compression mean server-grade hardware (rather than data-center scale) can run it. Inference Providers on HuggingFace offer cloud access if you don't have the hardware yet.\n\n**Sources:** [Inkling announcement — HuggingFace Blog](https://huggingface.co/blog/thinkingmachines-inkling) · [Inkling model card — HuggingFace](https://huggingface.co/thinkingmachines/Inkling) · [Transformers v5.14.0](https://huggingface.co/blog)"
+  },
+  {
+    "id": "2026-07-15-07-claude-api-tool-use-function-calling",
+    "title": "Tool Use and Function Calling: Give Claude Hands to Reach the Real World",
+    "excerpt": "The four-step round trip that lets Claude call your functions, APIs, and databases — build your first tool-using agent in ~20 lines of Python with the official Anthropic tutorial.",
+    "author": "Chris Harper",
+    "date": "07-15-2026",
+    "publishedAt": "2026-07-15T20:06:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Agents",
+      "Best Practices",
+      "Claude Code"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+    "content": "**TL;DR: Tool use is the mechanism that gives Claude the ability to call your functions — define a JSON schema, send it with your message, and Claude returns a structured call your code executes before resuming the conversation.**\n\n**What you'll be able to do after this:**\n\n- Define a custom tool (a JSON Schema function signature) that Claude can invoke during a conversation\n- Handle the two-request round trip: receive a `tool_use` block, run your function, send back a `tool_result`\n- Force Claude to call a specific tool with `tool_choice` and add `strict: true` for schema-guaranteed inputs\n\n## How the round trip works\n\nTool use is a two-turn exchange. Turn 1: you send a message + a tools list. Claude decides to call one and responds with `stop_reason: \"tool_use\"` and a `tool_use` block containing the function name and its arguments. Turn 2: your code executes the function, then you send the result back in a `tool_result` block. Claude picks up the conversation and answers using the real data.\n\n## Python walkthrough\n\n```python\nimport anthropic\n\nclient = anthropic.Anthropic()\n\ntools = [{\n    \"name\": \"get_weather\",\n    \"description\": \"Return current weather for a city.\",\n    \"input_schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"location\": {\"type\": \"string\", \"description\": \"City and state, e.g. Austin, TX\"}\n        },\n        \"required\": [\"location\"]\n    }\n}]\n\nmessages = [{\"role\": \"user\", \"content\": \"What's the weather in Austin, TX?\"}]\n\n# Turn 1: Claude decides to call the tool\nresponse = client.messages.create(\n    model=\"claude-sonnet-5\",\n    max_tokens=1024,\n    tools=tools,\n    messages=messages,\n)\ntool_block = next(b for b in response.content if b.type == \"tool_use\")\n# tool_block.name == \"get_weather\", tool_block.input == {\"location\": \"Austin, TX\"}\n\n# Run your function\ndef get_weather(location): return \"27°C, partly cloudy\"\nresult = get_weather(**tool_block.input)\n\n# Turn 2: send the result back\nmessages += [\n    {\"role\": \"assistant\", \"content\": response.content},\n    {\"role\": \"user\", \"content\": [{\n        \"type\": \"tool_result\",\n        \"tool_use_id\": tool_block.id,\n        \"content\": result\n    }]},\n]\nfinal = client.messages.create(\n    model=\"claude-sonnet-5\",\n    max_tokens=1024,\n    tools=tools,\n    messages=messages,\n)\nprint(next(b.text for b in final.content if b.type == \"text\"))\n# \"The weather in Austin, TX is currently 27°C and partly cloudy.\"\n```\n\n## Things worth knowing\n\n- **When does Claude use the tool?** By default (`tool_choice: {type: \"auto\"}`), Claude decides. Set `tool_choice: {type: \"any\"}` to force at least one tool call, or `{type: \"tool\", name: \"get_weather\"}` to force a specific one.\n- **Strict mode:** Add `\"strict\": true` to your tool definition. Claude's `input` will exactly match your schema — no extra fields, no missing required fields. Always pair with `\"additionalProperties\": false`.\n- **Skip the boilerplate:** The [Tool Runner](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner) in the Python and JS SDKs handles the two-turn loop automatically — register your function and the SDK calls it and sends the result.\n- **Server tools:** Anthropic also provides hosted tools (web search, code execution, web fetch) that run on Anthropic's infrastructure — no handler code in your app.\n\n**Sources:** [Tool use overview — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview) · [Build a tool-using agent — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/build-a-tool-using-agent) · [Strict tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use) · [Claude Function Calling Made Dead Simple — YouTube](https://www.youtube.com/watch?v=2HsmNeT8TCg)"
+  },
+  {
     "id": "2026-07-15-06-cowork-async-cloud-engineering",
     "title": "Close the Laptop, Let Claude Keep Working: Cowork Cloud Sessions for Long-Running Engineering Tasks",
     "excerpt": "Cowork's new cloud sessions run on Anthropic's servers — tasks survive closing the laptop, scheduled work starts with no device online, and results are accessible from any device.",
