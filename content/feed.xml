@@ -10,8 +10,191 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 14 Jul 2026 20:04:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 15 Jul 2026 04:09:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Add SSO to Your MCP Server in One Extension: MCP Enterprise-Managed Authorization Is Now Stable</title>
+      <link>https://www.infoq.com/news/2026/07/mcp-ema-enterprise-auth/</link>
+      <guid isPermaLink="false">2026-07-15-03-mcp-ema-enterprise-auth-sso</guid>
+      <pubDate>Wed, 15 Jul 2026 04:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>MCP</category>
+      <category>Best Practices</category>
+      <description>MCP's Enterprise-Managed Authorization extension is now stable, backed by Anthropic, Microsoft, and Okta — your MCP server can delegate access control to your org's existing identity provider.</description>
+      <content:encoded><![CDATA[
+**TL;DR: MCP's Enterprise-Managed Authorization (EMA) extension is now stable and adopted by Anthropic, Microsoft, and Okta — your MCP server can delegate access control to your org's identity provider instead of requiring per-user consent.**
+
+When you expose an MCP server inside an organization, every user has to individually OAuth-consent to it. That's onboarding friction and a compliance headache. The new MCP Enterprise-Managed Authorization (EMA) extension, now stable, fixes this by shifting control to the organization's identity provider.
+
+## How EMA works
+
+EMA introduces an Identity Assertion JWT Authorization Grant (ID-JAG) flow:
+
+1. The user's MCP client presents an IdP-issued assertion to your MCP server's authorization server.
+2. Your auth server exchanges the assertion for an access token.
+3. The client carries the token — no per-user consent UI.
+
+From the user's view: one SSO login covers all organization-approved MCP servers. From the security team's view: access policy lives in Active Directory, Okta, or Entra ID — not in scattered individual user consents.
+
+## Who's already using it
+
+Client support: Claude, VS Code / GitHub Copilot. Auth providers: Okta, Microsoft Entra ID, Anthropic's own gateway. Servers: Asana, Atlassian, Canva, Figma, Linear, Supabase.
+
+## What to do in your MCP server
+
+1. **Add an authorization server** that accepts ID-JAG grants. Okta and Entra publish standard endpoints; most enterprise IdPs already support this grant type.
+2. **Declare EMA support** in your server's capability response: `"enterpriseManagedAuth": { "version": "1.0" }`.
+3. **Scope tokens narrowly** — EMA controls who can *connect*; what the agent can *do* once connected is still up to your tool-level permission checks.
+
+For personal projects and small teams, standard per-user OAuth is still the right call. EMA is the answer when IT needs one audit-able policy for 500 users.
+
+**Sources:** [MCP Enterprise-Managed Authorization — InfoQ](https://www.infoq.com/news/2026/07/mcp-ema-enterprise-auth/) · [MCP Is Growing Up — AAIF](https://aaif.io/blog/mcp-is-growing-up/) · [MCP Blog](https://blog.modelcontextprotocol.io/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code 2.1.210 Hardens Worktree Isolation and Agent Injection Guards; Anthropic Launches Claude Science</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-07-15-02-claude-code-2-1-210-claude-science-launch</guid>
+      <pubDate>Wed, 15 Jul 2026 04:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <description>Claude Code v2.1.210 fixes a silent worktree isolation bug and tightens Agent tool injection guards; Anthropic launches Claude Science, an AI research workbench for scientists.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Code 2.1.210 patches a silent worktree isolation bug and hardens the Agent tool against prompt injection; Anthropic also launches Claude Science, an AI workbench for scientists.**
+
+## Claude Code v2.1.210 (July 14)
+
+Two fixes that matter for agentic workflows:
+
+**Worktree isolation bug fixed.** Subagents launched with `isolation: 'worktree'` were running git-mutating commands (commits, checkouts, resets) against the *main* repo instead of their isolated copy. If you use parallel subagents with worktree isolation for file editing, this was silently corrupting your working tree. Upgrade before running any multi-agent refactor.
+
+**Agent tool injection hardening.** The Agent tool now resists indirect prompt injection via content that subagents read — files, web pages, tool output. Any agent that processes untrusted external content (crawled pages, user-supplied docs) should consider this a meaningful safety improvement.
+
+Also in 2.1.210: a live elapsed-time counter on collapsed tool summary lines for long-running calls; auto mode's permission classifier defaults to Sonnet 5 for external sessions.
+
+## Claude Science (beta)
+
+Anthropic launched Claude Science, an integrated AI research workbench for scientists. It ships with 60+ curated skills for genomics, single-cell RNA analysis, proteomics, structural biology, and cheminformatics; handles compute scaling from a laptop to hundreds of GPUs automatically; and produces reproducible artifacts — code, output, and plain-language explanation bundled together. Available now on Claude Pro, Max, Team, and Enterprise.
+
+**Why it matters:** The worktree isolation fix is a correctness fix for anyone building parallel subagent pipelines — silent bugs in isolation guarantees are the hardest category to catch in production. Claude Science signals Anthropic moving Claude into deep domain-specific professional tooling beyond software engineering.
+
+**Sources:** [Claude Code changelog](https://code.claude.com/docs/en/changelog) · [Claude Science — Anthropic](https://www.anthropic.com/news/claude-science-ai-workbench)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your First Local LLM: Install Ollama and Run Open-Weight Models in Five Minutes</title>
+      <link>https://docs.ollama.com/</link>
+      <guid isPermaLink="false">2026-07-15-01-ollama-local-llm-quickstart-rest-api</guid>
+      <pubDate>Wed, 15 Jul 2026 04:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <description>Ollama gives you a one-command install, 100+ open-weight models, an OpenAI-compatible REST API, and Python/JS SDKs — everything to run LLMs locally, free, offline.</description>
+      <media:content url="https://img.youtube.com/vi/fU38n-CH7ds/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/fU38n-CH7ds/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**TL;DR: Ollama gives you a one-command install, a library of 100+ models, an OpenAI-compatible REST API, and Python/JS SDKs — everything you need to run LLMs locally, free, offline.**
+
+**What you'll be able to do after this:**
+
+- Install Ollama and pull any open-weight model — Llama, Gemma, Qwen, Phi — with a single command
+- Query it via curl or Python exactly like you'd call a hosted API, with a drop-in-compatible response format
+- Create a Modelfile to bake in a system prompt, temperature, and context length — your own named local model in two commands
+
+## Install Ollama (30 seconds)
+
+```bash
+# macOS / Linux
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Windows (PowerShell)
+irm https://ollama.com/install.ps1 | iex
+
+# Docker
+docker run -d -p 11434:11434 ollama/ollama
+```
+
+## Pull a model
+
+```bash
+ollama pull llama3.2          # Meta 3B chat model — 2.0 GB
+ollama pull qwen3:4b          # Alibaba 4B, strong on coding — 2.5 GB
+ollama pull phi4-mini         # Microsoft 3.8B, very fast — 2.5 GB
+```
+
+Browse 100+ models at [ollama.com/library](https://ollama.com/library).
+
+## Run interactively
+
+```bash
+ollama run llama3.2
+>>> What is a vector embedding?
+```
+
+Type `/bye` to exit.
+
+## Query via REST API
+
+```bash
+curl http://localhost:11434/api/chat -d '{
+  "model": "llama3.2",
+  "messages": [{"role": "user", "content": "Explain embeddings in one paragraph"}],
+  "stream": false
+}'
+```
+
+The response matches the OpenAI `chat/completions` format — swap the base URL in any OpenAI client and it works without code changes.
+
+## Python integration
+
+```bash
+pip install ollama
+```
+
+```python
+from ollama import chat
+
+resp = chat(model='llama3.2', messages=[
+    {'role': 'user', 'content': 'Explain embeddings in one paragraph'}
+])
+print(resp.message.content)
+```
+
+## Build a named local model with a Modelfile
+
+Create a file called `Modelfile`:
+
+```
+FROM llama3.2
+SYSTEM "You are a terse code reviewer. Call out real bugs only, skip style."
+PARAMETER temperature 0.3
+PARAMETER num_ctx 8192
+```
+
+Then:
+
+```bash
+ollama create code-reviewer -f ./Modelfile
+ollama run code-reviewer
+```
+
+`FROM` picks the base model. `SYSTEM` bakes in a system prompt that persists across every conversation. `PARAMETER` sets inference defaults. The result is a named local model you reference anywhere Ollama runs — your CI server, your home lab, your laptop on a flight.
+
+This pattern — base model + Modelfile — is the local equivalent of a fine-tune without the training step. You're fixing the context, not the weights. Enough for most internal tooling where you want consistent behavior without an external API dependency.
+
+**Sources:** [Ollama official docs](https://docs.ollama.com/) · [Ollama GitHub README](https://github.com/ollama/ollama/blob/main/README.md) · [Modelfile reference](https://github.com/ollama/ollama/blob/main/docs/modelfile.mdx) · [Ollama Tutorial for Beginners — YouTube](https://www.youtube.com/watch?v=fU38n-CH7ds)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>50 Parallel Agents, 466 Million Lines, 20 Hours: How Alberta Scaled Security Review With Claude Code</title>
