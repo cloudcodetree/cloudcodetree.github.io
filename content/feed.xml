@@ -10,7 +10,189 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 16 Jul 2026 12:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 16 Jul 2026 20:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Upload Once, Reference Everywhere: Stop Re-uploading PDFs on Every Claude API Call</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/files</link>
+      <guid isPermaLink="false">2026-07-16-08-claude-files-api-upload-once-reuse-by-id</guid>
+      <pubDate>Thu, 16 Jul 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>The Anthropic Files API lets you upload a PDF or image once, get a file_id, and reference it in any number of messages.create calls — no re-uploading bytes on every request.</description>
+      <content:encoded><![CDATA[
+**The Anthropic Files API lets you upload a PDF or image once, receive a `file_id`, and reference it in any number of `messages.create` calls — stop re-uploading the same document bytes on every request.**
+
+If you send the same document to Claude repeatedly — a policy PDF, a user's contract, a large codebase snapshot — you're paying upload bandwidth and encoding time on every call. The Files API separates the upload from the inference step.
+
+## The pattern
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+# Step 1: Upload once
+uploaded = client.beta.files.upload(
+    file=("policy.pdf", open("policy.pdf", "rb"), "application/pdf"),
+)
+file_id = uploaded.id  # e.g. "file_011CNha8iCJcU1wXNR6q4V8w"
+
+# Step 2: Reference by ID on every call — no re-upload
+def ask(question: str) -> str:
+    response = client.beta.messages.create(
+        model="claude-opus-4-8",
+        max_tokens=1024,
+        betas=["files-api-2025-04-14"],       # required beta header
+        messages=[{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": question},
+                {
+                    "type": "document",
+                    "source": {"type": "file", "file_id": file_id},
+                    "citations": {"enabled": True},   # cite specific passages
+                },
+            ],
+        }],
+    )
+    return response.content[0].text
+
+print(ask("What is the refund window?"))
+print(ask("Are there exceptions for enterprise customers?"))
+```
+
+For images, change `"type": "document"` to `"type": "image"` and set the MIME type to `image/png`, `image/jpeg`, `image/gif`, or `image/webp`.
+
+## When to use it
+
+| Scenario | Approach |
+|---|---|
+| Same document referenced ≥2 times | Files API: upload once, reuse by `file_id` |
+| One-off single call | Inline the content directly — no upload step needed |
+| Batch API + same doc on every item | Upload once, pass `file_id` in every batch item |
+
+Files persist until you delete them (500 GB org quota). Clean up when done:
+
+```python
+client.beta.files.delete(file_id)
+
+# List all uploaded files
+files = client.beta.files.list()
+```
+
+## The beta header
+
+The SDK adds `anthropic-beta: files-api-2025-04-14` automatically when you use `client.beta.files.*` for file operations. For `messages.create` calls that reference a `file_id`, pass `betas=["files-api-2025-04-14"]` explicitly (shown above).
+
+> Available on the Claude API and Claude Platform on AWS. Not yet on Amazon Bedrock or Google Cloud.
+
+**Sources:** [Files API — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/files)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Trace Every Claude Call Without Changing Your Code: W&amp;B Weave for LLM Observability</title>
+      <link>https://www.youtube.com/watch?v=YqurSBERAlY</link>
+      <guid isPermaLink="false">2026-07-16-07-wandb-weave-llm-tracing-evaluation</guid>
+      <pubDate>Thu, 16 Jul 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>W&amp;B Weave auto-patches the Anthropic SDK at weave.init() — every messages.create call becomes a traced record with tokens, cost, and latency, visible in the W&amp;B dashboard with zero code changes.</description>
+      <media:content url="https://img.youtube.com/vi/YqurSBERAlY/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/YqurSBERAlY/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**W&B Weave auto-patches the Anthropic Python SDK at `weave.init()` — every `messages.create` call becomes a traced record with inputs, outputs, token counts, cost, and latency, visible in the W&B dashboard with no additional code.**
+
+**What you'll be able to do after this:**
+- Capture every Anthropic SDK call as a structured trace — prompt, response, token counts, cost, and latency — with a single `weave.init()` call and zero changes to existing API calls
+- Trace your own application logic with the `@weave.op()` decorator, building a hierarchical call tree that shows exactly where your app's time and tokens go
+- Run a scored evaluation across a test dataset using LLM-as-judge scorers, with a comparison dashboard generated automatically in the W&B UI
+
+---
+
+[Langfuse](https://cloudcodetree.com/ai-news/2026-06-29-05-langfuse-llm-observability-evaluation-tutorial) (covered previously) uses callbacks and context managers. W&B Weave uses Python decorators and auto-patches the Anthropic SDK at import time. If you're already using W&B for ML training runs, Weave plugs into the same workspace so your model experiments and LLM app evals live side by side.
+
+## Step 1: Install and auto-trace the Anthropic SDK
+
+```bash
+pip install weave anthropic
+```
+
+```python
+import weave
+import anthropic
+
+weave.init("my-claude-app")  # free tier; creates a project at wandb.ai
+
+client = anthropic.Anthropic()
+
+# Weave auto-patches the Anthropic SDK — every call below is traced automatically
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "What is the capital of France?"}]
+)
+print(response.content[0].text)
+```
+
+Run this, then open `wandb.ai/<username>/my-claude-app` — you'll see the full prompt, response, input/output tokens, cost, and latency for every call, with no changes to your calling code.
+
+## Step 2: Trace your application code
+
+The `@weave.op()` decorator marks a function for tracing. Every call logs its arguments and return value, and nests inside any SDK calls the function makes:
+
+```python
+@weave.op()
+def answer_question(question: str) -> str:
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": question}]
+    )
+    return response.content[0].text
+```
+
+## Step 3: Run a scored evaluation
+
+```python
+@weave.op()
+def correctness_scorer(model_output: str, target: str) -> dict:
+    judge = client.messages.create(
+        model="claude-haiku-4-5-20251001",  # cheap model as judge
+        max_tokens=64,
+        messages=[{
+            "role": "user",
+            "content": f"Does '{model_output}' correctly address '{target}'? Reply 'yes' or 'no' only."
+        }]
+    )
+    return {"correct": 1 if "yes" in judge.content[0].text.lower() else 0}
+
+evaluation = weave.Evaluation(
+    dataset=[
+        {"question": "Capital of France?", "target": "Paris"},
+        {"question": "Capital of Germany?", "target": "Berlin"},
+        {"question": "Capital of Japan?", "target": "Tokyo"},
+    ],
+    scorers=[correctness_scorer],
+)
+
+import asyncio
+results = asyncio.run(evaluation.evaluate(answer_question))
+print(results)  # {"correct": {"mean": 1.0}}
+```
+
+Weave runs every example, applies your scorers, and writes a comparison dashboard in the W&B UI showing per-example pass/fail, aggregate scores, and the full trace tree for each call.
+
+**Sources:** [Anthropic integration — W&B Weave docs](https://docs.wandb.ai/weave/guides/integrations/anthropic) · [Build an evaluation](https://docs.wandb.ai/weave/tutorial-eval) · [W&B Weave: Confidently iterate on LLM-powered applications — YouTube](https://www.youtube.com/watch?v=YqurSBERAlY)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>The Critic-Then-Merge Pattern: Wire a Reviewer Subagent Into Your Claude Code Workflows</title>
