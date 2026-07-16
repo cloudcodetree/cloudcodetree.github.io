@@ -1,5 +1,62 @@
 [
   {
+    "id": "2026-07-16-06-critic-subagent-review-before-merge",
+    "title": "The Critic-Then-Merge Pattern: Wire a Reviewer Subagent Into Your Claude Code Workflows",
+    "excerpt": "After an implementation agent writes code, spawn a dedicated critic subagent against the same diff — one explicitly prompted to find problems — before any changes land on main.",
+    "author": "Chris Harper",
+    "date": "07-16-2026",
+    "publishedAt": "2026-07-16T12:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/cli-reference/workflows",
+    "content": "**After an implementation agent writes code, spawn a critic subagent that reads only the diff and is explicitly prompted to find problems — the agent that wrote the code is not the right agent to review it.**\n\nOne of the most reliable quality improvements you can make to a Claude Code Workflow is a \"critic\" stage after generation. A dedicated reviewer subagent sees no history of how the code was written and has no investment in keeping it. Its sole job is to find problems.\n\n## The pattern\n\n```javascript\n// In a Claude Code Workflow script\nconst diffOutput = await agent(\n  'Generate the requested feature and apply it to the codebase',\n  { label: 'implement', isolation: 'worktree' }\n)\n\n// Critic sees only the diff — none of the implementation reasoning\nconst review = await agent(\n  `Review this diff for correctness, security, and edge cases.\n   Be adversarial — your job is to find problems, not to validate the work.\n   If you find a blocking issue, start your response with BLOCK.\n\n   Diff:\n   ${diffOutput}`,\n  { label: 'critic' }\n)\n\nif (!review.startsWith('BLOCK')) {\n  await agent('Merge the implementation branch to main', { label: 'merge' })\n} else {\n  log(`Critic blocked merge:\\n${review}`)\n}\n```\n\n## Why a separate agent?\n\nThe implementation agent carries the full context of every decision it made. A fresh subagent sees only what the diff shows. This catches:\n\n- Off-by-one errors that \"look right\" after 20 minutes writing the loop\n- Missing input validation that seemed obvious given the calling context\n- Race conditions that only appear when reading code cold\n- Security issues that are easy to spot in isolation but invisible during construction\n\n## Make the critic adversarial by default\n\nThe single most important line in the critic prompt: *\"your job is to find problems, not to validate the work.\"*\n\nWithout explicit adversarial framing, language models tend toward agreement (sycophancy toward the previous turn's output). \"Be skeptical\" isn't strong enough — \"assume there's a bug, find it\" is the right register.\n\n## Scaling to majority vote\n\nFor high-stakes code, run 2-3 independent critics and require majority approval:\n\n```javascript\nconst votes = await parallel([\n  () => agent(`Review this diff for correctness: ${diff}`, { label: 'critic-correctness' }),\n  () => agent(`Review this diff for security: ${diff}`, { label: 'critic-security' }),\n  () => agent(`Review this diff for missing edge cases: ${diff}`, { label: 'critic-edges' }),\n])\n\nconst approvals = votes.filter(Boolean).filter(v => !v.startsWith('BLOCK')).length\nif (approvals >= 2) {\n  await agent('Merge the implementation branch', { label: 'merge' })\n} else {\n  log(`Blocked by ${3 - approvals}/3 critics`)\n}\n```\n\nRunning critics in `parallel()` means all three run concurrently — same wall-clock time as one, three independent perspectives.\n\n> This is the same adversarial-verify pattern used in the Claude Code Workflow SDK docs — structured into a reusable shape here so you can drop it into any implementation workflow.\n\n**Sources:** [Workflow docs — Claude Code](https://code.claude.com/docs/en/cli-reference/workflows) · [Agent spawning and subagents — Claude Code Docs](https://code.claude.com/docs/en/agent-sdk/agents)"
+  },
+  {
+    "id": "2026-07-16-05-copilot-agentic-security-autofix-codescan",
+    "title": "GitHub Copilot Now Scans Your Code Before You Commit — and Fixes Security Alerts Autonomously",
+    "excerpt": "GitHub Copilot launched two security features July 14: a /security-review pre-commit scanner (all plans), and agentic CodeQL autofix that opens a remediation PR after verifying the fix closes the a…",
+    "author": "Chris Harper",
+    "date": "07-16-2026",
+    "publishedAt": "2026-07-16T12:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "Security",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.blog/changelog/2026-07-14-security-reviews-now-available-in-the-github-copilot-app/",
+    "content": "**GitHub Copilot shipped two security features on July 14: a `/security-review` command for pre-commit vulnerability scanning (all plans, Free included), and an agentic CodeQL autofix that explores your codebase, remediates the alert, reruns the scanner to confirm, and opens a PR — all autonomously.**\n\n**Security review in the Copilot desktop app.** The `/security-review` slash command scans in-flight code changes before commit, flagging injection flaws, XSS vectors, insecure data handling, path traversal, and weak cryptography. Findings are scored by severity and confidence. Available now in public preview for Copilot Free, Pro, Business, and Enterprise.\n\n**Agentic autofix for code scanning (GHAS + Copilot).** For organizations with GitHub Advanced Security and a Copilot license: when CodeQL surfaces an alert, agentic autofix takes over. It explores relevant files across the codebase the way a developer would, proposes a targeted fix, reruns CodeQL to confirm the alert is closed, then opens a pull request for human review. Fix generation takes 2–4 minutes. This requires `Copilot cloud agent` to be enabled.\n\n**Why it matters:** Pre-commit scanning catches injection and crypto issues at the cheapest possible fix point — before the code exists in any branch or review queue. The agentic CodeQL autofix closes the longest dead zone in a security program: the gap between \"scan found something\" and \"the issue is actually remediated.\" Both features bring agentic patterns to security work that previously required dedicated human time.\n\n**Sources:** [Security reviews now available in the GitHub Copilot app — GitHub Changelog](https://github.blog/changelog/2026-07-14-security-reviews-now-available-in-the-github-copilot-app/) · [Agentic autofix for code scanning alerts in public preview — GitHub Changelog](https://github.blog/changelog/2026-07-10-agentic-autofix-for-code-scanning-alerts-in-public-preview/)"
+  },
+  {
+    "id": "2026-07-16-04-axolotl-yaml-llm-fine-tuning",
+    "title": "Fine-Tune Any LLM Without Writing Training Code: Axolotl's Single-YAML Approach",
+    "excerpt": "Axolotl turns LLM fine-tuning into a single YAML config file: pick your model, dataset, method (SFT/LoRA/QLoRA/DPO/GRPO), and hyperparameters — the framework handles the rest.",
+    "author": "Chris Harper",
+    "date": "07-16-2026",
+    "publishedAt": "2026-07-16T12:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Fine-Tuning",
+      "HuggingFace",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.youtube.com/watch?v=HL0K9IkSd0U",
+    "content": "**Axolotl turns fine-tuning into a single YAML config — pick your model from HuggingFace Hub, your dataset, your training method (SFT, LoRA, QLoRA, DPO, GRPO), and the framework handles quantization, tokenization, training, and evaluation without you writing a training loop.**\n\n**What you'll be able to do after this:**\n- Write a single YAML config that controls everything: base model, LoRA rank/alpha, dataset path and format, batch size, and training method\n- Run SFT, LoRA, and QLoRA jobs with two shell commands — no Python boilerplate\n- Switch to DPO or GRPO alignment training by adding three lines to the same config\n\n---\n\nThe previous teachable posts covered LoRA theory, QLoRA on Colab with Unsloth, DPO, and GRPO. Axolotl is the framework that wraps all of it into a reproducible, version-controlled pipeline used by serious fine-tuning teams.\n\n**Why Axolotl instead of raw PEFT/TRL?**\n\nWiring fine-tuning from scratch means assembling: model loader, quantization (BitsAndBytes/GGUF), PEFT adapter config, tokenizer setup, dataset formatting, training loop, evaluation, and checkpointing. Axolotl handles every layer. You write YAML; the framework runs the pipeline. The config is version-controlled, shareable, and repeatable — change one value (e.g., LoRA rank from 32 to 64), commit, and compare runs.\n\n## Minimal SFT + LoRA config\n\n```yaml\nbase_model: NousResearch/Llama-3.2-1B\nload_in_4bit: true   # QLoRA when paired with adapter: lora\nadapter: lora\n\nlora_r: 32\nlora_alpha: 16\nlora_dropout: 0.05\nlora_target_modules:\n  - q_proj\n  - v_proj\n\ndatasets:\n  - path: mhenrichsen/alpaca_data_cleaned\n    type: alpaca\n\noutput_dir: ./lora-output\nsequence_len: 2048\nmicro_batch_size: 4\nnum_epochs: 3\nlearning_rate: 2.0e-4\nwarmup_steps: 100\n```\n\nSave this as `config.yml`. Any HuggingFace Hub model ID works as `base_model`.\n\n## Two commands to train\n\n```bash\npip install axolotl\n\n# Tokenize and cache the dataset (run once; reuse across experiments)\naxolotl preprocess config.yml\n\n# Train — Axolotl auto-detects GPU count\naxolotl train config.yml\n```\n\nAfter training, run inference from the same config:\n\n```bash\naxolotl inference config.yml --lora-model-dir=./lora-output\n# --gradio flag opens a browser chat UI\n```\n\nOr merge the LoRA adapter into the base model for a standalone checkpoint:\n\n```bash\naxolotl merge-lora config.yml --lora-model-dir=./lora-output\n```\n\n## Switching to DPO alignment in three lines\n\nAdd these to your existing config — the rest stays the same:\n\n```yaml\nrl: dpo\ndpo_beta: 0.1\ndatasets:\n  - path: your-preference-dataset\n    type: chat_template.default\n    chat_template: llama3\n```\n\nAxolotl dispatches to TRL's DPO trainer internally. You don't rewrite the training loop — you change the config.\n\n## Scaling to multi-GPU\n\nFor 70B+ models or faster iteration, add two lines:\n\n```yaml\ndeepspeed: zero2    # ZeRO stage 2 sharding across GPUs\nnum_processes: 4    # number of GPUs\n```\n\nRun with `accelerate launch` — Axolotl handles the rest via its DeepSpeed/DDP integration.\n\n> **Unsloth vs Axolotl:** Unsloth (covered in an earlier post) is fastest on consumer single-GPU hardware and excellent for Colab experimentation. Axolotl is the right choice when you want a reproducible, config-file-driven pipeline you can commit, share, and extend to multi-GPU or multiple training methods from the same base config.\n\n**Sources:** [Axolotl Fine-Tuning Tutorial: Train LLMs with a Single YAML Config — YouTube](https://www.youtube.com/watch?v=HL0K9IkSd0U) · [Axolotl Quickstart — Official Docs](https://docs.axolotl.ai/docs/getting-started.html) · [Axolotl GitHub](https://github.com/axolotl-ai-cloud/axolotl)"
+  },
+  {
     "id": "2026-07-16-03-worktree-isolation-parallel-agents-claude-code",
     "title": "No More Git Conflicts: Worktree Isolation for Parallel Claude Code Agents",
     "excerpt": "Set isolation: 'worktree' on any agent() call in a Claude Code Workflow to give each subagent its own git checkout — 50 parallel file-writing agents, zero branch conflicts.",
