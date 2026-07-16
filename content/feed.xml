@@ -10,7 +10,193 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 15 Jul 2026 20:08:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 16 Jul 2026 04:04:00 +0000</lastBuildDate>
+
+    <item>
+      <title>No More Git Conflicts: Worktree Isolation for Parallel Claude Code Agents</title>
+      <link>https://code.claude.com/docs/en/cli-reference/workflows</link>
+      <guid isPermaLink="false">2026-07-16-03-worktree-isolation-parallel-agents-claude-code</guid>
+      <pubDate>Thu, 16 Jul 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Set isolation: 'worktree' on any agent() call in a Claude Code Workflow to give each subagent its own git checkout — 50 parallel file-writing agents, zero branch conflicts.</description>
+      <content:encoded><![CDATA[
+**Set `isolation: 'worktree'` on any `agent()` call in a Claude Code Workflow script and each subagent gets its own isolated git checkout — 50 parallel file-writing agents, zero branch conflicts.**
+
+When you fan out agents in a Claude Code Workflow and each one touches the filesystem, they race. Agent A edits `src/auth.ts`, agent B also edits `src/auth.ts`, and whichever writes last wins — silently clobbering the other's work. The fix is one line.
+
+## The pattern
+
+```javascript
+// In a Claude Code Workflow script
+const results = await parallel(files.map(file => () =>
+  agent(
+    `Review ${file} for security issues and apply fixes`,
+    {
+      label: `fix:${file}`,
+      isolation: 'worktree',   // each agent gets a fresh git checkout
+    }
+  )
+))
+```
+
+Each `isolation: 'worktree'` agent gets:
+- A fresh `git worktree add` checkout of the current branch
+- A clean working directory that tracks changes relative to `HEAD`
+- **Auto-cleanup**: if the agent made no changes, the worktree is deleted automatically; if it made changes, the path and branch are returned so you can review and merge
+
+## Collecting results
+
+```javascript
+const results = await parallel(files.map(file => () =>
+  agent(`Fix security issues in ${file}`, { label: `fix:${file}`, isolation: 'worktree' })
+))
+
+// null = no changes (worktree auto-cleaned); non-null = branch with changes
+const changed = results.filter(Boolean)
+console.log(`${changed.length}/${files.length} files had fixable issues`)
+
+// Review and merge each changed branch:
+// git merge <branch-name> for each entry in changed
+```
+
+## When to use it
+
+**Use worktree isolation when:**
+- Multiple agents write to overlapping file paths (refactors, linting sweeps, security audits, code generation)
+- You're running more than ~5 parallel agents on a shared codebase
+- You want a review or merge step before changes land on `main`
+
+**Skip it for:**
+- Read-only agents (analysis, search, summarization) — worktree setup adds ~200–500ms and disk per checkout
+
+> This is the pattern that let [Alberta's cybersecurity team](https://www.anthropic.com/news/alberta-government-claude-cybersecurity) run 50 parallel audit agents across 466 million lines of code — each agent scanned its own isolated slice, zero conflicts.
+
+**Sources:** [Workflow docs — Claude Code](https://code.claude.com/docs/en/cli-reference/workflows) · [Alberta Government + Claude Code case study — Anthropic](https://www.anthropic.com/news/alberta-government-claude-cybersecurity)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code 2.1.211: Unicode Security Fix, Subagent Text Streaming, and Session Crash Fixes</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-07-16-02-claude-code-2-1-211-security-session-reliability</guid>
+      <pubDate>Thu, 16 Jul 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <description>Claude Code 2.1.211 patches Unicode bidirectional-override characters in permission prompts, adds --forward-subagent-text for CI pipelines, and fixes parallel session logouts after sleep.</description>
+      <content:encoded><![CDATA[
+**Claude Code 2.1.211 (July 15) patches a Unicode prompt-spoofing vector in permission previews, adds streaming visibility into subagent thinking for CI pipelines, and fixes a session-logout regression that hit multi-machine setups.**
+
+Three changes worth knowing:
+
+**Permission-prompt security.** The UI now strips bidirectional-override, zero-width, and look-alike quote characters from tool descriptions before displaying them. These Unicode tricks can make a permission request render as "Allow file read" while the underlying call does something else — a real attack surface when running third-party MCP servers or processing external content. File upload validation also blocks DOS device suffixes and hard links.
+
+**`--forward-subagent-text`.** Pass this flag (or set `CLAUDE_CODE_FORWARD_SUBAGENT_TEXT=1`) when running with `--output-format stream-json` to include each subagent's text blocks and thinking steps in the outer NDJSON stream. Useful for CI pipelines and dashboards that want a single consolidated stream from the entire agent swarm.
+
+**Session crash fixes.** Multiple Claude Code sessions on the same machine no longer log out simultaneously after the machine wakes from sleep. Subagents spawned with explicit `--model` overrides no longer silently revert to the parent session's model on resume.
+
+**Why it matters:** The Unicode fix closes a real prompt-injection channel that was invisible to users. The `--forward-subagent-text` flag makes multi-agent observability measurably easier to wire up in CI.
+
+**Sources:** [Claude Code Changelog — code.claude.com](https://code.claude.com/docs/en/changelog)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Run Any HuggingFace Model in Production: TGI's Continuous Batching and Flash Attention in One Docker Command</title>
+      <link>https://huggingface.co/docs/text-generation-inference/quicktour</link>
+      <guid isPermaLink="false">2026-07-16-01-huggingface-tgi-production-llm-serving</guid>
+      <pubDate>Thu, 16 Jul 2026 04:02:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <category>HuggingFace</category>
+      <description>HuggingFace TGI deploys any open model from the Hub as a production OpenAI-compatible inference server with continuous batching, Flash Attention, and Paged Attention — one docker run command.</description>
+      <content:encoded><![CDATA[
+**HuggingFace Text Generation Inference (TGI) deploys any of 100,000+ open models as a production-grade, OpenAI-compatible server in one `docker run` — continuous batching, Flash Attention, and Paged Attention included.**
+
+**What you'll be able to do after this:**
+- Launch TGI from any HuggingFace model ID with a single Docker command
+- Understand how continuous batching, Flash Attention, and Paged Attention let TGI serve far more concurrent users than naive inference on identical hardware
+- Query your running server with Python, curl, or any existing OpenAI-SDK client
+
+TGI is HuggingFace's production serving framework — the same engine that powers the [HuggingFace Inference API](https://huggingface.co/inference-api). While vLLM excels for fine-tuned checkpoints, TGI's native Hub integration makes it the fastest path from "model card" to "running HTTP endpoint."
+
+## The one-command launch
+
+```bash
+model=teknium/OpenHermes-2.5-Mistral-7B
+volume=$PWD/data   # cache weights between restarts
+
+docker run --gpus all --shm-size 1g -p 8080:80 \
+  -v $volume:/data \
+  ghcr.io/huggingface/text-generation-inference:3.3.5 \
+  --model-id $model
+```
+
+TGI pulls and caches weights on first run. Swap the model ID for any architecture TGI supports: Llama, Mistral, Qwen, Gemma, Falcon, and more.
+
+## Query with the OpenAI-compatible API
+
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="http://localhost:8080/v1", api_key="-")
+
+response = client.chat.completions.create(
+    model="tgi",
+    messages=[{"role": "user", "content": "What is continuous batching?"}],
+    stream=True,
+)
+for chunk in response:
+    print(chunk.choices[0].delta.content or "", end="")
+```
+
+```bash
+# Or with curl
+curl localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model":"tgi","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+Any tool that speaks the OpenAI API (LangChain, LlamaIndex, Open WebUI, your existing SDK clients) works against TGI unchanged.
+
+## Why TGI is faster than naive inference
+
+**Continuous batching** — TGI's router slots new requests into active batches as soon as a slot frees up, instead of waiting for an entire batch to finish. This eliminates idle GPU cycles and increases requests-per-second at the same latency percentiles.
+
+**Flash Attention** — Variable-length sequences are computed without padding, cutting VRAM consumption and speeding attention on long prompts.
+
+**Paged Attention** — The KV cache is split into fixed-size pages allocated on-demand, preventing memory bloat under concurrent load. Pages can be shared between requests (e.g., a shared system prompt).
+
+Combined: TGI typically serves 5–10× more concurrent users than a plain `model.generate()` loop on the same GPU.
+
+## Useful flags
+
+```bash
+# Tensor parallelism across 2 GPUs (for 70B+ models)
+--num-shard 2
+
+# 4-bit NF4 quantization (fits a 13B model into ~8 GB VRAM)
+--quantize bitsandbytes-nf4
+
+# List all configuration options
+docker run ghcr.io/huggingface/text-generation-inference:3.3.5 --help
+```
+
+> **Production tip:** Pin to a specific version tag (`3.3.5`, not `latest`) so your inference container doesn't change unexpectedly on restart. The 3.3.x patch line is backward-compatible.
+
+**Sources:** [TGI Quicktour — HuggingFace Docs](https://huggingface.co/docs/text-generation-inference/quicktour) · [LLM Inference at Scale with TGI — HuggingFace Blog](https://huggingface.co/blog/martinigoyanes/llm-inference-at-scale-with-tgi) · [TGI GitHub](https://github.com/huggingface/text-generation-inference)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Stop Parsing Markdown: Use Claude's Structured Outputs for Schema-Valid JSON Every Time</title>
