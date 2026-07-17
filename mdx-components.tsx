@@ -46,6 +46,9 @@ import TierWaterfall from './app/components/mdx/TierWaterfall';
 import StoreVsMemory from './app/components/mdx/StoreVsMemory';
 import VectorIndex from './app/components/mdx/VectorIndex';
 import GroundingGuard from './app/components/mdx/GroundingGuard';
+import AgenticLoop from './app/components/mdx/AgenticLoop';
+import ContextBudget from './app/components/mdx/ContextBudget';
+import WriterReviewer from './app/components/mdx/WriterReviewer';
 import SSEStream from './app/components/mdx/SSEStream';
 import EchoFilter from './app/components/mdx/EchoFilter';
 import RankingLens from './app/components/mdx/RankingLens';
@@ -110,6 +113,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     RateLimitGuard, ScrapingPermissionTiers,
     TierWaterfall,
     StoreVsMemory, VectorIndex, GroundingGuard,
+    AgenticLoop, ContextBudget, WriterReviewer,
     SSEStream,
     EchoFilter, RankingLens,
     GroupedSplit, LabelImbalance,
