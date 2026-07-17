@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Case Study & System-Design Interview (Part 34 of 34) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Case Study & System-Design Interview (Part 37 of 37) · Tutorials',
   description:
     'Synthesis of the complete 34-part DealFinder capstone: a metrics-driven case study on the real deployed system, resume bullets from pinned course numbers, and a worked mock system-design interview on "design a cross-source deal aggregator."',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-ship/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Case Study & System-Design Interview (Part 34 of 34)',
+    title: 'Become a Full-Stack AI Engineer: Case Study & System-Design Interview (Part 37 of 37)',
     description: 'Synthesis of the complete 34-part DealFinder capstone: a metrics-driven case study on the real deployed system, resume bullets from pinned course numbers, and a worked mock system-design interview on "design a cross-source deal aggregator."',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-ship/',
     siteName: 'CloudCodeTree',
@@ -115,7 +115,7 @@ A strong case study is four beats: **problem → approach → results → what y
 
 **Results (all real, all test-pinned).** Linear MAE $227.89 → GBDT MAE $138.11 (−39.4%). Precision@5 on the 20-item golden set: 1.00 (two-signal) vs 0.40 (median-only). Semantic cache hit rate 0.500 at threshold 0.90. PSI-triggered retrain promotes with probability 1.00 on the 20-item gate. 166 tests pass across the full stack.
 
-**What comes next.** A learned reranker trained on user click signals would replace the heuristic RRF fusion. Real-time price-drop alerts from a Kafka stream would replace the batch MLOps loop. A production vector database (Pinecone or Qdrant) would replace the local pgvector instance for horizontal scale. The eval golden set should grow from 20 to 200+ items with user-labeled relevance, and the LLM judge (Part 20) should gate on that larger set.
+**What comes next.** A learned reranker trained on user click signals would replace the heuristic RRF fusion. Real-time price-drop alerts from a Kafka stream would replace the batch MLOps loop. A production vector database (Pinecone or Qdrant) would replace the local pgvector instance for horizontal scale. The eval golden set should grow from 20 to 200+ items with user-labeled relevance, and the LLM judge (Part 23) should gate on that larger set.
 
 ---
 
@@ -158,15 +158,15 @@ Two answers. First, a 20-item golden set (all 15 headphone snapshot items + 5 cr
 
 **Q: The system is too slow for real-time search. What do you do, in order?**
 
-First, look at where time is actually spent. The load test shows /healthz at p50 2.4ms and /search at p50 10.1s — the latency is network-bound (live source queries), not compute-bound. The first lever is the semantic cache: 384-dim embeddings from the query are compared to cached query vectors at cosine threshold 0.90; 7 of 14 test queries hit the cache (0.500 hit rate). That costs one vector comparison instead of 5 live API calls. Second, the tiered aggregator with early-stop means if tier-1 sources (RapidAPI + eBay) return sufficient results, tiers 2 and 3 are skipped entirely. Third, if the extractor or ranker model is the bottleneck, quantization (Part 24) reduces memory and speeds inference without changing the interface. Last resort: smaller embedding model that still passes the eval gate.
+First, look at where time is actually spent. The load test shows /healthz at p50 2.4ms and /search at p50 10.1s — the latency is network-bound (live source queries), not compute-bound. The first lever is the semantic cache: 384-dim embeddings from the query are compared to cached query vectors at cosine threshold 0.90; 7 of 14 test queries hit the cache (0.500 hit rate). That costs one vector comparison instead of 5 live API calls. Second, the tiered aggregator with early-stop means if tier-1 sources (RapidAPI + eBay) return sufficient results, tiers 2 and 3 are skipped entirely. Third, if the extractor or ranker model is the bottleneck, quantization (Part 27) reduces memory and speeds inference without changing the interface. Last resort: smaller embedding model that still passes the eval gate.
 
 **Q: A user reports a wrong deal badge. Walk me through debugging.**
 
-Every search request produces a trace via Langfuse (Part 27): the query, which sources responded, the raw offer list, the model inference inputs and outputs, the final ranked list with scores and badges. Start there. Find the session with that offer. Check the residual: `residual = predicted_fair − actual`, `residual_frac = residual / predicted_fair`. If the badge is SUSPICIOUS but should be DEAL, either the model overestimates fair price (brand tier or category feature wrong) or the title condition parsing misfired. Reproduce the specific inference with the offer dict, fix the feature extraction, add the offer to the golden set, and run the eval gate. If it passes, promote.
+Every search request produces a trace via Langfuse (Part 30): the query, which sources responded, the raw offer list, the model inference inputs and outputs, the final ranked list with scores and badges. Start there. Find the session with that offer. Check the residual: `residual = predicted_fair − actual`, `residual_frac = residual / predicted_fair`. If the badge is SUSPICIOUS but should be DEAL, either the model overestimates fair price (brand tier or category feature wrong) or the title condition parsing misfired. Reproduce the specific inference with the offer dict, fix the feature extraction, add the offer to the golden set, and run the eval gate. If it passes, promote.
 
 **Q: How does the system stay correct after launch as data drifts?**
 
-Population Stability Index (PSI) runs periodically against the training distribution. PSI 0.043 means the new data looks like training data — hold. PSI 0.318 exceeds the retrain threshold (0.2) — trigger retrain on the new data, run the eval gate (precision@5 ≥ 0.80 on the golden set), and promote if it passes. The MLOps cycle in Part 21 runs this end to end and the promotion reason string is real: "promoted: two_signal passed the gate (p@5=1.0 ≥ 0.8) and beat champion median_only (0.4)". The canary rollout shifts traffic gradually rather than a hard cutover.
+Population Stability Index (PSI) runs periodically against the training distribution. PSI 0.043 means the new data looks like training data — hold. PSI 0.318 exceeds the retrain threshold (0.2) — trigger retrain on the new data, run the eval gate (precision@5 ≥ 0.80 on the golden set), and promote if it passes. The MLOps cycle in Part 24 runs this end to end and the promotion reason string is real: "promoted: two_signal passed the gate (p@5=1.0 ≥ 0.8) and beat champion median_only (0.4)". The canary rollout shifts traffic gradually rather than a hard cutover.
 
 **Q: What are the top three things you'd do differently in production?**
 
@@ -182,12 +182,12 @@ This is the final part. The series is complete.
 
 Part 1 started with a `brand` field that holds "Walmart - COWIN" instead of "COWIN", a 270-item snapshot of real electronics listings, and a naive deal signal that bottoms out at −3785%. Every part after that was motivated by the real messiness in that data.
 
-By Part 33 you had 166 passing tests, 5 Playwright e2e scenarios, a RUNBOOK with anchored load numbers, and a Kubernetes deployment with HPA scaling. By this part you have the case study, the numbers, and the interview prep to talk about it like the system it is.
+By Part 36 you had 166 passing tests, 5 Playwright e2e scenarios, a RUNBOOK with anchored load numbers, and a Kubernetes deployment with HPA scaling. By this part you have the case study, the numbers, and the interview prep to talk about it like the system it is.
 
 The companion repo is a public record of a real AI system built part by part. Put it on your profile. Quote the numbers. Answer the design question from the system you ran — not from a textbook.
 
 ---
 
-*Back: [Part 33 — Ship & operate the real system](/tutorials/dealfinder-ship-operate)*
+*Back: [Part 36 — Ship & operate the real system](/tutorials/dealfinder-ship-operate)*
 
 *Sources: [fastembed BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) · [MLflow model registry](https://mlflow.org/docs/latest/model-registry.html) · [pgvector](https://github.com/pgvector/pgvector) · [Population Stability Index](https://www.listendata.com/2015/05/population-stability-index.html) · [OWASP Top-10 for LLMs](https://owasp.org/www-project-top-10-for-large-language-model-applications/)*

@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: pgvector Persistence + Semantic Search (Part 13 of 34) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: pgvector Persistence + Semantic Search (Part 13 of 37) · Tutorials',
   description:
     'Replace the in-memory numpy index with a durable Postgres + pgvector store: upsert every aggregated deal with its bge-small-en-v1.5 embedding, build an HNSW cosine index, and expose semantic_search as a first-class MCP tool.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-pgvector/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: pgvector Persistence + Semantic Search (Part 13 of 34)',
+    title: 'Become a Full-Stack AI Engineer: pgvector Persistence + Semantic Search (Part 13 of 37)',
     description:
       'Replace the in-memory numpy index with a durable Postgres + pgvector store: upsert every aggregated deal with its bge-small-en-v1.5 embedding, build an HNSW cosine index, and expose semantic_search as a first-class MCP tool.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-pgvector/',
@@ -485,7 +485,7 @@ At 270 rows numpy wins on raw latency — it is doing a single matrix multiply i
 - numpy dot product: ~18 ms (linear with N)
 - pgvector HNSW: ~5 ms (logarithmic with N, stable)
 
-The tutorial builds with the 270-item snapshot for reproducibility. The managed Postgres path (Part 25) handles the production scale.
+The tutorial builds with the 270-item snapshot for reproducibility. The managed Postgres path (Part 28) handles the production scale.
 
 ---
 

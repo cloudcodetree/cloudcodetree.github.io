@@ -2,12 +2,12 @@ import SavedSearchDiff from '@/app/components/mdx/SavedSearchDiff';
 import NotifierProtocol from '@/app/components/mdx/NotifierProtocol';
 
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Saved Searches & the Suggestions Worker (Part 30 of 34) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Saved Searches & the Suggestions Worker (Part 33 of 37) · Tutorials',
   description:
     'Build the periodic-suggestions worker: save a query, diff against last-seen deals, and emit exactly one notification per genuinely new bargain — deterministic and offline.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-saved-searches/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Saved Searches & the Suggestions Worker (Part 30 of 34)',
+    title: 'Become a Full-Stack AI Engineer: Saved Searches & the Suggestions Worker (Part 33 of 37)',
     description: 'Build the periodic-suggestions worker: save a query, diff against last-seen deals, and emit exactly one notification per genuinely new bargain — deterministic and offline.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-saved-searches/',
     siteName: 'CloudCodeTree',
@@ -23,13 +23,13 @@ export const metadata = {
 
 **TL;DR: A user saves "noise cancelling headphones." A background job runs that query on a schedule, compares the results against what it already told the user, and emits exactly one notification for each genuinely new deal — no re-alerts, no missed ones. This part builds the deterministic, offline core of that job: `run_suggestions(saved, state) -> (notifications, new_state)`. No network, no email, no side effects. One real deal surfaces — the Anker Soundcore Q20i at $44.99, deal score +0.724 — and on the second run with the returned state, zero.**
 
-This is **Part 30 of DealFinder**, and it is the part where the course's deal-scoring machinery (Part 3), semantic search (Part 5), and SaaS account model (Part 29) finally converge into a single, deliverable user value: the notification that says "we found you a deal." The module you build here is the production-ready diffing logic — the delivery transport is a swappable Protocol, so you can plug in email, push, or a webhook later without touching the core.
+This is **Part 33 of DealFinder**, and it is the part where the course's deal-scoring machinery (Part 3), semantic search (Part 5), and SaaS account model (Part 32) finally converge into a single, deliverable user value: the notification that says "we found you a deal." The module you build here is the production-ready diffing logic — the delivery transport is a swappable Protocol, so you can plug in email, push, or a webhook later without touching the core.
 
 <Callout tone="tip">
 **Code along, version by version.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-Step tag: `step-30` (worker.py + tests/test_worker.py). Compare to the previous step:
-[step-29...step-30](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-29...step-30).
+Step tag: `step-33` (worker.py + tests/test_worker.py). Compare to the previous step:
+[step-32...step-33](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-32...step-33).
 </Callout>
 
 ## Table of contents
@@ -317,7 +317,7 @@ print(notifier.sent[0])
 The Anker Soundcore Q20i surfaces as the one notification. Its deal score +0.7239 clears the 0.30 threshold by a wide margin — it is 72% under the $162.97 query median and the model fair price ($108.33) also validates the discount as genuine rather than suspicious.
 
 <Callout tone="note">
-`title_brand()` on "Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones" resolves to **"Soundcore"** — the sub-brand Anker markets ANC headphones under. This is the same behavior pinned in `test_normalize_attaches_title_extracted_brand` from Part 17 (`true_brand == "Soundcore"`). The notification title includes the full listing title, not the extracted brand.
+`title_brand()` on "Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones" resolves to **"Soundcore"** — the sub-brand Anker markets ANC headphones under. This is the same behavior pinned in `test_normalize_attaches_title_extracted_brand` from Part 20 (`true_brand == "Soundcore"`). The notification title includes the full listing title, not the extracted brand.
 </Callout>
 
 The Bose QuietComfort 45 at $46.00 has a median_signal of +0.718, which puts it above the threshold on that signal alone. But the two-signal score factors in the model residual: the price model's fair price for this flagship is $285.15 (the same as the XM5, since both are tier-4 flagships). The residual_frac +0.839 flags it as SUSPICIOUS, which the value rerank penalizes. It does not appear in the top-k deals that clear 0.30 on the blended score.
@@ -416,13 +416,13 @@ The 5.94s runtime reflects the full search pipeline running against the 270-item
 
 ## Companion repo
 
-The step tag for this part is `step-30` in the `tutorial-dealfinder` companion repo. The diff from the previous step:
+The step tag for this part is `step-33` in the `tutorial-dealfinder` companion repo. The diff from the previous step:
 
 - **Added:** `dealfinder/worker.py` — `SavedSearch`, `SuggestionState`, `Notification`, `Notifier`, `ConsoleNotifier`, `Catalog`, `load_catalog`, `find_deals`, `run_suggestions`.
 - **Added:** `tests/test_worker.py` — five pinned tests (all pass).
 
 ```bash
-git checkout step-30
+git checkout step-33
 pytest tests/test_worker.py -v
 ```
 
@@ -432,8 +432,8 @@ The step uses the same committed snapshot (`data/snapshots/electronics-2026-07.j
 
 ## Where this goes next
 
-- **Part 31 — Payments & SaaS mechanics:** the saved-search feature you built here is gated: free-tier users get one saved search; paid users get unlimited plus real-time notifications. Part 31 adds Stripe subscriptions, usage metering, and the plan-gating middleware that enforces the limit. The `user_id` on `SavedSearch` is the key that connects to the Stripe customer record.
-- **Part 32 — Security & compliance at scale:** Part 32 extends Part 22's `safety.py` (it imports `AuditLog` and `detect_prompt_injection` directly — no reimplementation). It adds `SlidingWindowRateLimiter`, `DataSubjectStore` (GDPR export + erasure), and `AbuseDetector` — the compliance layer that sits above the worker and the saved-search API. Part 32 is purely additive to what was built in Part 22.
+- **Part 34 — Payments & SaaS mechanics:** the saved-search feature you built here is gated: free-tier users get one saved search; paid users get unlimited plus real-time notifications. Part 34 adds Stripe subscriptions, usage metering, and the plan-gating middleware that enforces the limit. The `user_id` on `SavedSearch` is the key that connects to the Stripe customer record.
+- **Part 35 — Security & compliance at scale:** Part 35 extends Part 25's `safety.py` (it imports `AuditLog` and `detect_prompt_injection` directly — no reimplementation). It adds `SlidingWindowRateLimiter`, `DataSubjectStore` (GDPR export + erasure), and `AbuseDetector` — the compliance layer that sits above the worker and the saved-search API. Part 35 is purely additive to what was built in Part 25.
 
 ---
 

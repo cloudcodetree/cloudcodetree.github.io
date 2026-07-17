@@ -2,12 +2,12 @@ import PipelineDAG from '@/app/components/mdx/PipelineDAG';
 import DataContractGauge from '@/app/components/mdx/DataContractGauge';
 
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Pipelines & Orchestration (Part 17 of 34) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Pipelines & Orchestration (Part 20 of 37) · Tutorials',
   description:
     'Wire a real Prefect 3.7.7 flow around the five pipeline stages, enforce a Pydantic data contract that stops bad rows before they reach the model, and materialize a dbt-style good_deals view — all offline, against the committed 270-item snapshot.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-orchestration/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Pipelines & Orchestration (Part 17 of 34)',
+    title: 'Become a Full-Stack AI Engineer: Pipelines & Orchestration (Part 20 of 37)',
     description:
       'Wire a real Prefect 3.7.7 flow around the five pipeline stages, enforce a Pydantic data contract that stops bad rows before they reach the model, and materialize a dbt-style good_deals view — all offline, against the committed 270-item snapshot.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-orchestration/',
@@ -24,12 +24,12 @@ export const metadata = {
 
 **TL;DR: Wrap the five dataset-engineering stages in a real Prefect 3.7.7 flow, enforce a Pydantic data contract that hard-fails on bad rows, and materialize a dbt-style SQL view that filters the 270-item snapshot down to 111 honest good deals. Every number here comes from running the companion code against the committed snapshot.**
 
-This is **Part 17 of DealFinder**. Part 16 built the labeled dataset. Now you orchestrate it — connecting the stages into a pipeline that retries on transient failures, caches expensive pure steps, stops loud on a data-quality violation, and emits a reproducible training table. The tooling is Prefect 3.7.7 (a real, installed dependency, not a mock), but the stage functions are plain Python with a Prefect-free fallback path, so the whole flow runs whether Prefect is installed or not.
+This is **Part 20 of DealFinder**. Part 19 built the labeled dataset. Now you orchestrate it — connecting the stages into a pipeline that retries on transient failures, caches expensive pure steps, stops loud on a data-quality violation, and emits a reproducible training table. The tooling is Prefect 3.7.7 (a real, installed dependency, not a mock), but the stage functions are plain Python with a Prefect-free fallback path, so the whole flow runs whether Prefect is installed or not.
 
 <Callout tone="tip">
 **Code along.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-Step tag for this part: `step-17`. Compare diff: `step-16...step-17`.
+Step tag for this part: `step-20`. Compare diff: `step-19...step-20`.
 Tests: `tests/test_flows.py` — all seven must pass before you move on.
 </Callout>
 
@@ -60,7 +60,7 @@ Tests: `tests/test_flows.py` — all seven must pass before you move on.
 
 ## The problem: five loose stages need a spine
 
-Part 16 gave you `build_labeled_dataset()` — a function that ingests the snapshot, applies the two-signal deal score, and hands back a labeled `LabeledDataset`. That works fine as a one-shot call. It does not give you:
+Part 19 gave you `build_labeled_dataset()` — a function that ingests the snapshot, applies the two-signal deal score, and hands back a labeled `LabeledDataset`. That works fine as a one-shot call. It does not give you:
 
 - **Retry semantics** when the ingest step hits a transient I/O error.
 - **Caching** so a pure normalize step doesn't recompute on re-run.
@@ -84,7 +84,7 @@ ingest → normalize → quality-gate → label → good_deals model → [persis
 
 Each arrow is a data dependency: the output of one task is the input of the next. There are no cycles. There is no parallelism in this pipeline — the stages are deliberately sequential because the contract gate must see the normalized rows before it admits them, and the label step depends on the full snapshot path rather than the in-memory normalized list (it calls `build_labeled_dataset`, which re-reads the snapshot for the grouped split). That is the real shape; do not paper over it with a diagram that implies parallelism.
 
-The persist step is optional — it only runs if you pass `persist_dir`. When it runs, it writes `good_deals.csv` to disk so downstream consumers (the Part 18 training script, a scheduler, a data warehouse loader) can pick it up by path without re-running the pipeline.
+The persist step is optional — it only runs if you pass `persist_dir`. When it runs, it writes `good_deals.csv` to disk so downstream consumers (the Part 21 training script, a scheduler, a data warehouse loader) can pick it up by path without re-running the pipeline.
 
 ---
 
@@ -258,10 +258,10 @@ def test_good_deals_model_row_count_is_pinned():
     assert len(deals) == 111
 ```
 
-The Anker Soundcore Q20i appears in the view: `price=44.99`, `median_price_at_capture=162.97`, `median_deal_pct ≈ 0.724`. The Bose QuietComfort 45 at $46 also appears, with `median_deal_pct ≈ 0.718` — the SQL view does not know it is a trap. That is why Part 18 adds the gradient-boosted residual that separates them.
+The Anker Soundcore Q20i appears in the view: `price=44.99`, `median_price_at_capture=162.97`, `median_deal_pct ≈ 0.724`. The Bose QuietComfort 45 at $46 also appears, with `median_deal_pct ≈ 0.718` — the SQL view does not know it is a trap. That is why Part 21 adds the gradient-boosted residual that separates them.
 
 <Callout tone="warn">
-**The good_deals view is not the final deal signal.** It uses the same naive median that Part 3 showed is fooled by mislistings. The Bose QC45 at $46 — median says 71.8% off — passes the SQL filter because the filter is median-only. Part 18's gradient-boosted model adds the residual that catches it. The view is the right output for a batch training table (it gives you 111 labeled "candidate deal" rows); it is not the production classifier.
+**The good_deals view is not the final deal signal.** It uses the same naive median that Part 3 showed is fooled by mislistings. The Bose QC45 at $46 — median says 71.8% off — passes the SQL filter because the filter is median-only. Part 21's gradient-boosted model adds the residual that catches it. The view is the right output for a batch training table (it gives you 111 labeled "candidate deal" rows); it is not the production classifier.
 </Callout>
 
 ---
@@ -285,7 +285,7 @@ print("label_distribution:", result.label_distribution)
 print("good_deals:", result.good_deals)       # 111
 ```
 
-The label distribution deserves a moment. Of 270 items: 71 are deals, 40 are fair, 32 are suspicious, and 127 are overpriced. Overpriced is the plurality class. That is the class imbalance Part 16 documented — the same training set the Part 18 classifier will confront. The pipeline preserves the real distribution; it does not resample or balance here.
+The label distribution deserves a moment. Of 270 items: 71 are deals, 40 are fair, 32 are suspicious, and 127 are overpriced. Overpriced is the plurality class. That is the class imbalance Part 19 documented — the same training set the Part 21 classifier will confront. The pipeline preserves the real distribution; it does not resample or balance here.
 
 The noise-cancelling headphones subset drives that distribution: 15 items at the $162.97 median. The Anker Soundcore Q20i at $44.99 is labeled `deal`. The Bose QuietComfort 45 at $46 is labeled `suspicious` — the two-signal score (median signal ≈ 0.718, residual fraction ≈ 0.839) crosses both thresholds.
 
@@ -313,7 +313,7 @@ class FlowResult:
 
 `persisted_to` is `None` unless you pass `persist_dir` — then it is the path to the written `good_deals.csv`. Every field is a plain Python value: no Prefect-specific types, no futures, no handles. A downstream scheduler, a CI script, or a notebook can use `FlowResult` without importing Prefect at all.
 
-The `gate_passed` property is the single "did the pipeline succeed?" boolean. A monitoring hook, a Slack alert, or an eval gate in Part 21 can check `result.gate_passed` without reading the `ContractReport` internals.
+The `gate_passed` property is the single "did the pipeline succeed?" boolean. A monitoring hook, a Slack alert, or an eval gate in Part 24 can check `result.gate_passed` without reading the `ContractReport` internals.
 
 ---
 
@@ -392,9 +392,9 @@ All seven pass. Prefect emits shutdown logging after the run (`Stopping temporar
 
 ## Where this goes next
 
-- **Part 16 — Dataset engineering** (back): built `LabeledDataset` and the grouped split that `label_rows` calls. The pipeline here consumes it. If you have not read Part 16, the `label_distribution` numbers — 71 deal, 40 fair, 32 suspicious, 127 overpriced — will seem arbitrary. They are the output of the two-signal scorer applied to all 270 rows with a 0.70/0.70 threshold.
+- **Part 19 — Dataset engineering** (back): built `LabeledDataset` and the grouped split that `label_rows` calls. The pipeline here consumes it. If you have not read Part 19, the `label_distribution` numbers — 71 deal, 40 fair, 32 suspicious, 127 overpriced — will seem arbitrary. They are the output of the two-signal scorer applied to all 270 rows with a 0.70/0.70 threshold.
 
-- **Part 18 — ML & DL breadth** (forward): takes the `good_deals.csv` the pipeline writes and trains the gradient-boosted price model that replaces the naive SQL filter. Part 18 is where the Bose QC45 at $46 stops looking like a deal: the residual fraction 0.839 exceeds the 0.70 suspicious threshold, and the GBDT catches it where the median-only SQL cannot.
+- **Part 21 — ML & DL breadth** (forward): takes the `good_deals.csv` the pipeline writes and trains the gradient-boosted price model that replaces the naive SQL filter. Part 21 is where the Bose QC45 at $46 stops looking like a deal: the residual fraction 0.839 exceeds the 0.70 suspicious threshold, and the GBDT catches it where the median-only SQL cannot.
 
 ---
 

@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Safety, Security & Governance (Part 22 of 34) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Safety, Security & Governance (Part 25 of 37) · Tutorials',
   description:
     'The boring-but-hireable layer: detect prompt injection, redact PII, validate listing specs against real electronics categories, keep an audit log, and write a model card — defense in depth around DealFinder.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-safety/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Safety, Security & Governance (Part 22 of 34)',
+    title: 'Become a Full-Stack AI Engineer: Safety, Security & Governance (Part 25 of 37)',
     description: 'The boring-but-hireable layer: detect prompt injection, redact PII, validate listing specs against real electronics categories, keep an audit log, and write a model card — defense in depth around DealFinder.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-safety/',
     siteName: 'CloudCodeTree',
@@ -20,12 +20,12 @@ export const metadata = {
 
 **TL;DR: The work that separates a demo from a system you can ship. Scraped electronics listings and user queries are untrusted text — they can carry injection attacks, personal data, and structurally valid but semantically nonsense values. Five cheap layers in `dealfinder/safety.py` guard every surface: injection detection, PII redaction, spec validation against the real electronics category vocabulary, an append-only audit log, and a model card that names the system's limits plainly.**
 
-This is Part 22 of DealFinder. By now the system searches live sources, scores deals with the two-signal model, runs a ReAct agent, and serves predictions over FastAPI. That full surface — scraped titles from 11 categories, free-text user queries, model output wired back into decisions — is exactly where AI systems get burned in production. Each of the five modules in this part is under 15 lines. None require an API call. All are tested.
+This is Part 25 of DealFinder. By now the system searches live sources, scores deals with the two-signal model, runs a ReAct agent, and serves predictions over FastAPI. That full surface — scraped titles from 11 categories, free-text user queries, model output wired back into decisions — is exactly where AI systems get burned in production. Each of the five modules in this part is under 15 lines. None require an API call. All are tested.
 
 <Callout tone="tip">
 **Code along, version by version.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-Step tag: `step-22`. Compare with the previous step: `step-21...step-22`.
+Step tag: `step-25`. Compare with the previous step: `step-24...step-25`.
 </Callout>
 
 ## Table of contents
@@ -229,7 +229,7 @@ log.entries
 # [{'action': 'tool_call', 'tool': 'score_deal', 'user': 'u1'}]
 ```
 
-Record every tool call the agent makes, along with enough context to reconstruct what happened. In Part 32, the audit log is extended for multi-tenant scale: sliding-window rate limiting, per-user action counts, and GDPR data-subject export — but the `AuditLog` class itself is imported from here, not reimplemented.
+Record every tool call the agent makes, along with enough context to reconstruct what happened. In Part 35, the audit log is extended for multi-tenant scale: sliding-window rate limiting, per-user action counts, and GDPR data-subject export — but the `AuditLog` class itself is imported from here, not reimplemented.
 
 ---
 
@@ -249,7 +249,7 @@ a price model trained on the 270-item electronics snapshot.
 Google Shopping). Frozen 2026-07. eBay excluded (sandbox data in this environment).
 
 **Known limitations.**
-- The price model is a linear baseline fit on the audio category; Part 18
+- The price model is a linear baseline fit on the audio category; Part 21
   upgrades it to gradient boosting. Deal scores on non-audio categories are
   less calibrated until then.
 - brand field is retailer-polluted in 156/270 rows. True manufacturer is
@@ -318,9 +318,9 @@ pytest tests/test_safety.py -v
 ```
 
 <Callout tone="tip">
-**Companion repo.** The full `dealfinder/safety.py`, `tests/test_safety.py`, and step tag `step-21` live at
+**Companion repo.** The full `dealfinder/safety.py`, `tests/test_safety.py`, and step tag `step-24` live at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-Diff `step-21...step-22` to see exactly what changed.
+Diff `step-24...step-25` to see exactly what changed.
 </Callout>
 
 ---
@@ -337,14 +337,14 @@ The five layers here map directly to the OWASP Top 10 for LLM Applications:
 | LLM08 — Excessive Agency | `AuditLog` limits and records tool calls (Layer 5) |
 | LLM09 — Overreliance | Model card names limits and calibration gaps |
 
-Part 32 extends this map for multi-tenant scale: GDPR data-subject requests, sliding-window rate limiting per user, and abuse detection. It imports `AuditLog` and `redact_pii` from here — this part owns the reusable modules; Part 32 extends them without reimplementation.
+Part 35 extends this map for multi-tenant scale: GDPR data-subject requests, sliding-window rate limiting per user, and abuse detection. It imports `AuditLog` and `redact_pii` from here — this part owns the reusable modules; Part 35 extends them without reimplementation.
 
 ---
 
 ## Where this goes next
 
-- **Part 21 — Closing the MLOps loop** (previous): drift detection, retrain trigger, eval gate, canary deploy — the operational cycle that feeds the model safety checks here run against.
-- **Part 23 — Serve it fast and cheap** (next): wrap DealFinder in a FastAPI service, add a semantic cache (threshold 0.95, `fastembed BAAI/bge-small-en-v1.5`, 384-dim), and measure the levers that cut inference cost and latency. The safety modules from this part run at the `/search` and `/deal/{product_id}` request boundary.
+- **Part 24 — Closing the MLOps loop** (previous): drift detection, retrain trigger, eval gate, canary deploy — the operational cycle that feeds the model safety checks here run against.
+- **Part 26 — Serve it fast and cheap** (next): wrap DealFinder in a FastAPI service, add a semantic cache (threshold 0.95, `fastembed BAAI/bge-small-en-v1.5`, 384-dim), and measure the levers that cut inference cost and latency. The safety modules from this part run at the `/search` and `/deal/{product_id}` request boundary.
 
 ---
 

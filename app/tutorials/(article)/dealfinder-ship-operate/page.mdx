@@ -2,12 +2,12 @@ import ChaosBreaker from '@/app/components/mdx/ChaosBreaker';
 import E2ETestLattice from '@/app/components/mdx/E2ETestLattice';
 
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Ship & Operate the Real System (Part 33 of 34) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Ship & Operate the Real System (Part 36 of 37) · Tutorials',
   description:
     'Close the loop on DealFinder: Playwright end-to-end tests that guard the §9.7 badge contract, a load/chaos test suite that proves the circuit breaker holds under failure, and an operational runbook for when things go wrong in production.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-ship-operate/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Ship & Operate the Real System (Part 33 of 34)',
+    title: 'Become a Full-Stack AI Engineer: Ship & Operate the Real System (Part 36 of 37)',
     description: 'Playwright e2e, load testing, chaos engineering, and a production runbook — the final verification layer before you ship.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-ship-operate/',
     siteName: 'CloudCodeTree',
@@ -23,7 +23,7 @@ export const metadata = {
 
 **TL;DR: A system is only as trustworthy as its tests and its runbook. This part adds the final verification layer to DealFinder: Playwright e2e tests that guard the exact badge contract the UI makes, a load/chaos harness that proves the circuit breaker holds under failure, and a structured runbook so on-call doesn't mean "read the code at 2am."**
 
-You have 166 passing unit/integration tests, a CI eval gate, and a deployed container from Part 25. What you don't yet have is proof that the whole stack holds together under real conditions — browser to backend to live sources — and a written plan for what to do when it doesn't. Those are the two gaps this part closes.
+You have 166 passing unit/integration tests, a CI eval gate, and a deployed container from Part 28. What you don't yet have is proof that the whole stack holds together under real conditions — browser to backend to live sources — and a written plan for what to do when it doesn't. Those are the two gaps this part closes.
 
 <Callout tone="tip">
 **Code along.** Companion repo: [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). Step tags for this part: `step-33a` (Playwright setup + `search.spec.ts`) · `step-33b` (`live.spec.ts` + fixtures) · `step-33c` (loadtest.py) · `step-33d` (chaos tests + RUNBOOK.md).
@@ -310,9 +310,9 @@ A degraded `/healthz` with `sources` showing one source throttled is normal — 
 | High error rate | `error_rate > 1%` over 5 min | Check `/sources` for throttled count; tail app logs for the root exception |
 | `/search` p95 high | p95 > 30 s | Check retailer API status pages; inspect `throttled[]` in `/sources` |
 | Breaker trips | `agg._cooldown` size spikes | Expected under source outage; escalate if all sources throttled simultaneously |
-| Budget alert | `ops.CostTracker / budget_status` approaching limit | Review `GET /me` call volume; apply rate limit adjustments from Part 32 |
-| PSI drift | `PSI ≥ 0.2` (from Part 21) | Trigger retrain pipeline; eval gate (precision@5 ≥ 0.80) must pass before promotion |
-| Billing quota | `billing.QuotaExceeded` in logs | Pause new Stripe subscriptions; check metering lag from Part 31 |
+| Budget alert | `ops.CostTracker / budget_status` approaching limit | Review `GET /me` call volume; apply rate limit adjustments from Part 35 |
+| PSI drift | `PSI ≥ 0.2` (from Part 24) | Trigger retrain pipeline; eval gate (precision@5 ≥ 0.80) must pass before promotion |
+| Billing quota | `billing.QuotaExceeded` in logs | Pause new Stripe subscriptions; check metering lag from Part 34 |
 
 ### Rollback
 
@@ -338,7 +338,7 @@ Each incident gets a brief written record: timestamp, symptom, root cause, mitig
 
 ## The full test count: 166 pytest + 5 + 1 Playwright
 
-After Part 33, the complete test inventory across the companion repo — **166** pytest + **5** hermetic Playwright + **1** opt-in live Playwright:
+After Part 36, the complete test inventory across the companion repo — **166** pytest + **5** hermetic Playwright + **1** opt-in live Playwright:
 
 | Suite | Count | Offline? | CI gate? |
 |---|---|---|---|
@@ -372,8 +372,8 @@ E2E_LIVE=1 npm run test:e2e:live
 
 ## Where this goes next
 
-- **Part 32 — Security & compliance at scale:** the abuse detection and rate-limiting modules from Part 32 are what prevents the load-test concurrency numbers from translating directly into a DDoS surface. The `SlidingWindowRateLimiter` caps per-user request rate before the aggregator fan-out even starts.
-- **Part 34 — Case study + system-design interview:** you now have a fully tested, operated system. Part 34 shows how to turn that into a metrics-driven case study and how to walk an interviewer through every tradeoff you made — with a real repo behind every answer.
+- **Part 35 — Security & compliance at scale:** the abuse detection and rate-limiting modules from Part 35 are what prevents the load-test concurrency numbers from translating directly into a DDoS surface. The `SlidingWindowRateLimiter` caps per-user request rate before the aggregator fan-out even starts.
+- **Part 37 — Case study + system-design interview:** you now have a fully tested, operated system. Part 37 shows how to turn that into a metrics-driven case study and how to walk an interviewer through every tradeoff you made — with a real repo behind every answer.
 
 ---
 

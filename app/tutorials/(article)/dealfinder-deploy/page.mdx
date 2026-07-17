@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Containerize and Ship It (Part 25 of 34) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Containerize and Ship It (Part 28 of 37) · Tutorials',
   description:
     'Package DealFinder in a Docker image that runs identically everywhere, wire GitHub Actions CI to test → eval-gate → build → deploy on every push to main, and define the local two-container stack in Terraform so infra is code too.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-deploy/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Containerize and Ship It (Part 25 of 34)',
+    title: 'Become a Full-Stack AI Engineer: Containerize and Ship It (Part 28 of 37)',
     description: 'Package DealFinder in a Docker image that runs identically everywhere, wire GitHub Actions CI to test → eval-gate → build → deploy on every push to main, and define the local two-container stack in Terraform so infra is code too.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-deploy/',
     siteName: 'CloudCodeTree',
@@ -18,16 +18,16 @@ export const metadata = {
 
 # Containerize and Ship It
 
-**TL;DR: Package DealFinder in a single Docker image so the bytes that pass CI are the exact bytes that run in production. Wire GitHub Actions to enforce the Part 20 eval gate — a precision@5 regression blocks the build before it can ship. Define the full local stack (pgvector + app) in Terraform so your infrastructure is as reviewable and reproducible as your code.**
+**TL;DR: Package DealFinder in a single Docker image so the bytes that pass CI are the exact bytes that run in production. Wire GitHub Actions to enforce the Part 23 eval gate — a precision@5 regression blocks the build before it can ship. Define the full local stack (pgvector + app) in Terraform so your infrastructure is as reviewable and reproducible as your code.**
 
-You have a tested FastAPI service (Part 23) with a benchmarked inference stack (Part 24). Deployment is the layer that closes the loop: push to `main`, code runs in production, automatically, only when both tests and the eval gate pass. That constraint — quality regression = no deploy — is what keeps the Anker Q20i classified as `DEAL` and the Bose QC45 as `SUSPICIOUS` in prod, not just in your local test run.
+You have a tested FastAPI service (Part 26) with a benchmarked inference stack (Part 27). Deployment is the layer that closes the loop: push to `main`, code runs in production, automatically, only when both tests and the eval gate pass. That constraint — quality regression = no deploy — is what keeps the Anker Q20i classified as `DEAL` and the Bose QC45 as `SUSPICIOUS` in prod, not just in your local test run.
 
 <Callout tone="tip">
 **Code along, version by version.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-Step tag for this part: `step-25` (Dockerfile + CI + Terraform local stack).
-Compare to `step-24`:
-`github.com/cloudcodetree/tutorial-dealfinder/compare/step-24...step-25`
+Step tag for this part: `step-28` (Dockerfile + CI + Terraform local stack).
+Compare to `step-27`:
+`github.com/cloudcodetree/tutorial-dealfinder/compare/step-27...step-28`
 </Callout>
 
 ## Table of contents
@@ -61,7 +61,7 @@ The structural problem with "works on my machine" is that a developer machine an
 
 <ContainerParity />
 
-That one-image guarantee is why every later phase (Kubernetes in Part 26, load testing in Part 33) can trust that behavior observed in staging is behavior in prod. Without it, you are testing one thing and running another.
+That one-image guarantee is why every later phase (Kubernetes in Part 29, load testing in Part 36) can trust that behavior observed in staging is behavior in prod. Without it, you are testing one thing and running another.
 
 ---
 
@@ -198,7 +198,7 @@ The `deploy` job has `needs: test` — GitHub Actions enforces this at the API l
 
 ## The eval gate in CI
 
-The eval gate is not a custom script — it is `run_evals.py`, the same module you ran interactively in Part 20. In CI, it exits with a non-zero code if the gate fails, which GitHub Actions treats as a step failure and stops the job.
+The eval gate is not a custom script — it is `run_evals.py`, the same module you ran interactively in Part 23. In CI, it exits with a non-zero code if the gate fails, which GitHub Actions treats as a step failure and stops the job.
 
 Here is what it prints on a clean run against the committed snapshot:
 
@@ -456,8 +456,8 @@ What these numbers mean in production terms: a push to `main` that regresses the
 
 ## Where this goes next
 
-- **Part 24 — Inference optimization:** what you are deploying — the quantized, vLLM-optioned, benchmarked inference stack that makes the service fast enough to be worth deploying.
-- **Part 26 — Cloud & Kubernetes:** take the same Dockerfile from this part and the same `DATABASE_URL` pattern from the Terraform config, and deploy them to a managed Kubernetes cluster with a managed Postgres (Supabase pooler or AWS RDS). Same image, same health check, bigger target.
+- **Part 27 — Inference optimization:** what you are deploying — the quantized, vLLM-optioned, benchmarked inference stack that makes the service fast enough to be worth deploying.
+- **Part 29 — Cloud & Kubernetes:** take the same Dockerfile from this part and the same `DATABASE_URL` pattern from the Terraform config, and deploy them to a managed Kubernetes cluster with a managed Postgres (Supabase pooler or AWS RDS). Same image, same health check, bigger target.
 
 ---
 

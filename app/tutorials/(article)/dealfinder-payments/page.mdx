@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Payments & SaaS Mechanics (Part 31 of 34) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Payments & SaaS Mechanics (Part 34 of 37) · Tutorials',
   description:
     'Add Stripe Checkout, webhook-verified entitlements, and per-plan usage metering to DealFinder — the billing layer that turns a free tool into a SaaS product.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-payments/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Payments & SaaS Mechanics (Part 31 of 34)',
+    title: 'Become a Full-Stack AI Engineer: Payments & SaaS Mechanics (Part 34 of 37)',
     description: 'Add Stripe Checkout, webhook-verified entitlements, and per-plan usage metering to DealFinder — the billing layer that turns a free tool into a SaaS product.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-payments/',
     siteName: 'CloudCodeTree',
@@ -20,7 +20,7 @@ export const metadata = {
 
 **TL;DR: A real deal-finder that people pay for needs three things: a checkout session to collect payment, a webhook to verify it happened, and a quota gate to enforce the plan. This part builds all three in `dealfinder/billing.py` and proves them with 8 offline tests — no live Stripe account required to follow along.**
 
-This is **Part 31 of DealFinder**, the fourth part of Phase 6 (Full-stack SaaS). Parts 28–30 gave DealFinder a React frontend, Supabase auth, and a saved-searches worker. This part adds the billing layer: a `free` plan capped at 25 searches per month and a `pro` plan at 1,000, with Stripe Checkout as the upgrade path and a HMAC-verified webhook to grant entitlements the moment payment clears.
+This is **Part 34 of DealFinder**, the fourth part of Phase 6 (Full-stack SaaS). Parts 31–30 gave DealFinder a React frontend, Supabase auth, and a saved-searches worker. This part adds the billing layer: a `free` plan capped at 25 searches per month and a `pro` plan at 1,000, with Stripe Checkout as the upgrade path and a HMAC-verified webhook to grant entitlements the moment payment clears.
 
 <Callout tone="tip">
 **Code along, step by step.** Full project at
@@ -354,16 +354,16 @@ stripe listen --forward-to http://localhost:8000/webhook
 The Stripe CLI will print each event as it arrives. Use test card `4242 4242 4242 4242` (any future date, any CVC) to complete a payment. You should see `checkout.session.completed` in the CLI output and the `Entitlement` logged by `serve.py`.
 
 <Callout tone="note">
-**The Kubernetes secret manifest does not contain real keys.** `infra/k8s/secret.example.yaml` (from Part 26) has placeholder strings for `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, and `STRIPE_WEBHOOK_SECRET`. The real `secret.yaml` is gitignored and must be applied out-of-band — via External Secrets Operator, Sealed Secrets, or a CI secret injection step. Never commit live keys to the repo.
+**The Kubernetes secret manifest does not contain real keys.** `infra/k8s/secret.example.yaml` (from Part 29) has placeholder strings for `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, and `STRIPE_WEBHOOK_SECRET`. The real `secret.yaml` is gitignored and must be applied out-of-band — via External Secrets Operator, Sealed Secrets, or a CI secret injection step. Never commit live keys to the repo.
 </Callout>
 
 ---
 
 ## Where this goes next
 
-- **Part 30 — Saved searches & the suggestions worker:** the periodic worker that runs saved searches and emails results uses the same `User` type from `auth.py`. Part 31 adds the plan check: the suggestions worker skips emails for users who have exhausted their free quota until the monthly counter resets.
+- **Part 33 — Saved searches & the suggestions worker:** the periodic worker that runs saved searches and emails results uses the same `User` type from `auth.py`. Part 34 adds the plan check: the suggestions worker skips emails for users who have exhausted their free quota until the monthly counter resets.
 
-- **Part 32 — Security & compliance at scale:** with a billing layer in place, DealFinder now handles real financial transactions. Part 32 audits the OWASP-LLM top 10 against the search endpoint, adds PII handling for the email field that Stripe returns, and works through GDPR's "right to erasure" against a system that stores `user_id` in Stripe metadata, Supabase rows, and usage counters.
+- **Part 35 — Security & compliance at scale:** with a billing layer in place, DealFinder now handles real financial transactions. Part 35 audits the OWASP-LLM top 10 against the search endpoint, adds PII handling for the email field that Stripe returns, and works through GDPR's "right to erasure" against a system that stores `user_id` in Stripe metadata, Supabase rows, and usage counters.
 
 ---
 

@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Closing the MLOps Loop (Part 21 of 34) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Closing the MLOps Loop (Part 24 of 37) · Tutorials',
   description:
     'Wire drift detection, deterministic retraining, and the precision@5 eval gate into one auditable cycle — and watch two_signal get promoted over median_only in real executed output.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-mlops-loop/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Closing the MLOps Loop (Part 21 of 34)',
+    title: 'Become a Full-Stack AI Engineer: Closing the MLOps Loop (Part 24 of 37)',
     description: 'Wire drift detection, deterministic retraining, and the precision@5 eval gate into one auditable cycle — and watch two_signal get promoted over median_only in real executed output.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-mlops-loop/',
     siteName: 'CloudCodeTree',
@@ -20,12 +20,12 @@ export const metadata = {
 
 **TL;DR: The individual pieces — drift detection, model retraining, an evaluation gate — exist. This part wires them into one auditable cycle. When the live feature mix shifts past PSI 0.2, the system retrains, runs the challenger through the precision@5 gate (≥0.80 required), and promotes it only if it beats the incumbent champion. You run one function and get back a structured trace that records every decision.**
 
-This is **Part 21 of DealFinder**, sitting at the end of Phase 4 (ML rigor & MLOps). Parts 18, 19, and 20 built the price model, wired up experiment tracking, and established evaluation as a discipline. This part asks the harder question: once you have all that, how do you keep the model honest over time? The answer is a loop — one that fires on evidence, retrain deterministically, gates on a pinned metric, and promotes only when the evidence is unambiguous.
+This is **Part 24 of DealFinder**, sitting at the end of Phase 4 (ML rigor & MLOps). Parts 21, 19, and 20 built the price model, wired up experiment tracking, and established evaluation as a discipline. This part asks the harder question: once you have all that, how do you keep the model honest over time? The answer is a loop — one that fires on evidence, retrain deterministically, gates on a pinned metric, and promotes only when the evidence is unambiguous.
 
 <Callout tone="tip">
 **Code along, version by version.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-Step tag: `step-21` (mlops loop). Compare against `step-20` to see exactly what was added.
+Step tag: `step-24` (mlops loop). Compare against `step-23` to see exactly what was added.
 Tests are in `tests/test_mlops.py` — seven functions, all passing.
 </Callout>
 
@@ -57,7 +57,7 @@ Tests are in `tests/test_mlops.py` — seven functions, all passing.
 
 A price model trained in July against the noise-cancelling-headphones-heavy snapshot will go stale. Not because it was wrong, but because the live traffic mix shifts — gaming laptops surge, ultrawide monitors spike, the audio bucket shrinks. The model's priors were built on a different distribution. Its predictions silently degrade. Deal scores rot.
 
-The point of Part 18 was to build a model. The point of Part 21 is to make sure the model you shipped in July is still the right model in October. That requires a loop: measure drift, decide whether retraining is warranted, evaluate the retrained candidate, and promote only when the evidence clears an explicit bar.
+The point of Part 21 was to build a model. The point of Part 24 is to make sure the model you shipped in July is still the right model in October. That requires a loop: measure drift, decide whether retraining is warranted, evaluate the retrained candidate, and promote only when the evidence clears an explicit bar.
 
 What makes this different from ad-hoc maintenance is that every step produces a record. The `CycleDecision` returned by `run_mlops_cycle()` is not a side effect or a log line — it is the artifact. You can serialize it, store it, replay it, and audit it. "We promoted two_signal on date X because PSI was 0.318, GBDT MAE dropped to $138.11, and precision@5 hit 1.00" is a statement you can verify from the trace, not a shrug.
 
@@ -193,10 +193,10 @@ GBDT MAE $138.11  linear MAE $227.89
 improvement 39.4%  train/test 202/68
 ```
 
-The numbers reproduce because the snapshot is frozen and the split is deterministic. GBDT MAE $138.11 vs. linear $227.89 is the permanent, pinned baseline for this course — established in Part 18, confirmed in Part 19's experiment tracking, and reproduced here. If a future retrain on live data yields different numbers, those will be different numbers from a different corpus — and the course will say so explicitly.
+The numbers reproduce because the snapshot is frozen and the split is deterministic. GBDT MAE $138.11 vs. linear $227.89 is the permanent, pinned baseline for this course — established in Part 21, confirmed in Part 22's experiment tracking, and reproduced here. If a future retrain on live data yields different numbers, those will be different numbers from a different corpus — and the course will say so explicitly.
 
 <Callout tone="note">
-**GBDT here is sklearn GradientBoostingRegressor**, not XGBoost. The model uses hand features (category, brand_tier, condition) plus 16-dimensional title embeddings from the BAAI/bge-small-en-v1.5 model. The same feature contract that won in Part 18's comparison table (`fair-price` contract, `selectable=True`) is what retrains here.
+**GBDT here is sklearn GradientBoostingRegressor**, not XGBoost. The model uses hand features (category, brand_tier, condition) plus 16-dimensional title embeddings from the BAAI/bge-small-en-v1.5 model. The same feature contract that won in Part 21's comparison table (`fair-price` contract, `selectable=True`) is what retrains here.
 </Callout>
 
 ---
@@ -205,7 +205,7 @@ The numbers reproduce because the snapshot is frozen and the split is determinis
 
 Retraining improves the price model. But the deal-finder's job is ranking — specifically, putting the genuine deals at the top of the list. A better R² on pricing does not automatically mean better deal ranking. You need to ask the ranking question directly.
 
-The gate from Part 20 is the answer: **precision@5 ≥ 0.80** on the 20-item golden set (15 noise-cancelling headphones plus 5 cross-category items: Kindle, Galaxy Tab, Armitron watch, Arlo, PNY RTX). Of the five listings the ranker surfaces first, at least four must be ground-truth deals.
+The gate from Part 23 is the answer: **precision@5 ≥ 0.80** on the 20-item golden set (15 noise-cancelling headphones plus 5 cross-category items: Kindle, Galaxy Tab, Armitron watch, Arlo, PNY RTX). Of the five listings the ranker surfaces first, at least four must be ground-truth deals.
 
 ```python
 @dataclass
@@ -246,7 +246,7 @@ median_only:  p@5=0.4   passes=False
 
 `two_signal` scores 1.00 — all five of its top-five picks are genuine deals. `median_only` scores 0.40 — it puts the Bose QuietComfort 45 at $46 at the top (median says 72% off the $162.97 anchor, which reads as a screaming deal). The model knows it is not. The median does not. Two correct picks out of five fails the gate.
 
-This is the same result established in Part 20 and pinned in `tests/test_mlops.py`. The gate number does not change between parts. That is the point of pinning it.
+This is the same result established in Part 23 and pinned in `tests/test_mlops.py`. The gate number does not change between parts. That is the point of pinning it.
 
 ---
 
@@ -352,7 +352,7 @@ The no-drift branch (frac=0.1, PSI 0.043) also short-circuits — no retrain, no
 - `test_weak_challenger_is_rejected_by_the_gate` — median_only fails at p@5=0.40
 - `test_passing_challenger_that_does_not_beat_champion_is_not_promoted` — the tie/draw case
 - `test_no_drift_holds_without_retrain_or_promotion` — mild shift → champion retained
-- `test_eval_gate_standalone_matches_the_pinned_ab` — `eval_gate()` in isolation reproduces Part 20's A/B numbers
+- `test_eval_gate_standalone_matches_the_pinned_ab` — `eval_gate()` in isolation reproduces Part 23's A/B numbers
 
 Run them:
 
@@ -360,7 +360,7 @@ Run them:
 pytest tests/test_mlops.py -v
 ```
 
-All seven pass. Run them alongside Part 18's tracking suite:
+All seven pass. Run them alongside Part 21's tracking suite:
 
 ```bash
 pytest tests/test_tracking.py tests/test_mlops.py
@@ -380,8 +380,8 @@ The PSI values, MAE numbers, precision@5 scores, and promotion decisions are fix
 
 ## Where this goes next
 
-- **Part 20 — Prove it works: evaluation as a discipline:** the golden set, the precision@5 gate, and the A/B between two_signal and median_only that this part consumes. If you came here first, go back — the gate number (0.80) and the champion precision (two_signal 1.00, median_only 0.40) have no meaning without the Part 20 context.
-- **Part 22 — Safety, security & governance:** once you have a promotion pipeline, you need to audit what goes into production. Part 22 covers prompt injection defense, PII handling, and the model card that documents what the promoted model does and does not do — the governance layer that makes "we promoted two_signal" a statement a compliance reviewer can read.
+- **Part 23 — Prove it works: evaluation as a discipline:** the golden set, the precision@5 gate, and the A/B between two_signal and median_only that this part consumes. If you came here first, go back — the gate number (0.80) and the champion precision (two_signal 1.00, median_only 0.40) have no meaning without the Part 23 context.
+- **Part 25 — Safety, security & governance:** once you have a promotion pipeline, you need to audit what goes into production. Part 25 covers prompt injection defense, PII handling, and the model card that documents what the promoted model does and does not do — the governance layer that makes "we promoted two_signal" a statement a compliance reviewer can read.
 
 ---
 

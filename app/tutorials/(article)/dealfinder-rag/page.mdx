@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: RAG — Grounded Answers Over Your Deals (Part 14 of 34) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: RAG — Grounded Answers Over Your Deals (Part 14 of 37) · Tutorials',
   description:
     'Turn the pgvector retriever into a question-answering system: retrieve the real deals for a plain-English query, build a numbered context, and generate an answer that can only cite listings it was given — with a faithfulness guard that mechanically rejects invented prices.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-rag/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: RAG — Grounded Answers Over Your Deals (Part 14 of 34)',
+    title: 'Become a Full-Stack AI Engineer: RAG — Grounded Answers Over Your Deals (Part 14 of 37)',
     description:
       'Retrieve real deals for a plain-English query, build a numbered context, and generate an answer that can only cite listings it was given — with a faithfulness guard that rejects invented prices.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-rag/',
@@ -485,7 +485,7 @@ pytest tests/test_rag.py -v
 
 - **Part 13 — pgvector persistence + semantic search (back-reference):** the durable retriever you built there is exactly what `retrieve()` calls when `DATABASE_URL` is set. RAG did not replace it — it wrapped it with an augmentation and a generation stage, and added the faithfulness guard on top.
 
-- **[Part 15 — The web app](/tutorials/dealfinder-webapp/):** the search UI gets a natural-language "Ask" box backed by this `/ask` endpoint. The `sources` ids become clickable citations, and the `grounded` flag decides whether an answer is shown with confidence or held back — the same evidence-first discipline, now visible to the user.
+- **[Part 15 — Agentic RAG: retrieval as a repeated tool call](/tutorials/dealfinder-agentic-rag/):** this part retrieves once. Next, the agent *judges* whether the evidence is good enough and re-queries when it is not — turning `retrieve()` from a preprocessing step into a tool the agent calls in a loop, still grounded by the same faithfulness guard.
 
 RAG is the bridge between *retrieval* (Parts 5, 13) and *agents* (Part 11): an agent that can `retrieve` and `answer` grounded is one that can reason over your live inventory without inventing it.
 

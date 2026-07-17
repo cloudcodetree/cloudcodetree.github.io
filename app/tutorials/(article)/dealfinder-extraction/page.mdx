@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Messy Listings Into Clean JSON (Part 6 of 34) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Messy Listings Into Clean JSON (Part 6 of 37) · Tutorials',
   description:
     'Turn retailer-polluted electronics titles into validated ListingSpecs using a dual-path extractor: LLM primary, deterministic regex fallback, Pydantic as the gate — so the pipeline never fails and every test runs offline.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-extraction/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Messy Listings Into Clean JSON (Part 6 of 34)',
+    title: 'Become a Full-Stack AI Engineer: Messy Listings Into Clean JSON (Part 6 of 37)',
     description: 'Turn retailer-polluted electronics titles into validated ListingSpecs using a dual-path extractor: LLM primary, deterministic regex fallback, Pydantic as the gate — so the pipeline never fails and every test runs offline.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-extraction/',
     siteName: 'CloudCodeTree',
@@ -23,7 +23,7 @@ export const metadata = {
 <Callout tone="tip">
 **Code along, version by version.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder)
-at step tag **`step-06`**. The tests run entirely offline — no API key needed to follow along.
+at step tag **`step-6`**. The tests run entirely offline — no API key needed to follow along.
 </Callout>
 
 ## Table of contents
@@ -295,7 +295,7 @@ python -m dealfinder.run_extract
 Every "Walmart - COWIN…" / retailer prefix is discarded; the true manufacturer comes out of the title. (`run_extract` calls `rule_extract` directly — swap in `llm_extract` to route through the LLM when a client is wired in.)
 
 <Callout tone="warn">
-**The fallback swallows the exception on purpose.** A throttled or temporarily unavailable model is not a pipeline failure — the degradation chain handles it. In production (Part 27), you add Langfuse instrumentation so these silent fallbacks are visible in the observability layer. Here, the right behavior is to keep the pipeline running.
+**The fallback swallows the exception on purpose.** A throttled or temporarily unavailable model is not a pipeline failure — the degradation chain handles it. In production (Part 30), you add Langfuse instrumentation so these silent fallbacks are visible in the observability layer. Here, the right behavior is to keep the pipeline running.
 </Callout>
 
 ---
@@ -387,7 +387,7 @@ Samsung: tier 3
 
 ## Reproducibility checks
 
-All tests in `tests/test_extract.py` run offline — no API key required. Pin these against the committed companion at `step-06`:
+All tests in `tests/test_extract.py` run offline — no API key required. Pin these against the committed companion at `step-6`:
 
 ```python
 # tests/test_extract.py

@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Become a Full-Stack AI Engineer: Prove It Works: Evaluation as a Discipline (Part 20 of 34) · Tutorials',
+  title: 'Become a Full-Stack AI Engineer: Prove It Works: Evaluation as a Discipline (Part 23 of 37) · Tutorials',
   description:
     'Stop eyeballing quality. Hand-label a 20-item golden set from real electronics listings, measure precision@5, prove the two-signal ranker clears the eval gate while the naive median fails it, and wire the gate into CI so regressions can\'t ship.',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-eval/' },
   openGraph: {
-    title: 'Become a Full-Stack AI Engineer: Prove It Works: Evaluation as a Discipline (Part 20 of 34)',
+    title: 'Become a Full-Stack AI Engineer: Prove It Works: Evaluation as a Discipline (Part 23 of 37)',
     description: 'Stop eyeballing quality. Hand-label a 20-item golden set from real electronics listings, measure precision@5, prove the two-signal ranker clears the eval gate while the naive median fails it, and wire the gate into CI so regressions can\'t ship.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-eval/',
     siteName: 'CloudCodeTree',
@@ -20,12 +20,12 @@ export const metadata = {
 
 **TL;DR: "Looks better" is not engineering. Hand-label 20 real electronics listings as deal / fair / suspicious / overpriced, measure precision@5 on that frozen golden set, and watch the naive median-only ranker score 0.40 while the two-signal ranker scores 1.00 — then wire the 0.80 gate into CI so a regression literally can't merge.**
 
-This is **Part 20 of DealFinder**, and it sits at the inflection point of Phase 4. By now you have a working two-signal deal scorer (Part 3's median blended with Part 18's gradient-boosted model residual). The question is whether it is actually better than the naive baseline — better in a measured, reproducible, CI-gated way. This part builds `dealfinder/evals.py`, the evaluation harness that answers that question with a number instead of a vibe.
+This is **Part 23 of DealFinder**, and it sits at the inflection point of Phase 4. By now you have a working two-signal deal scorer (Part 3's median blended with Part 21's gradient-boosted model residual). The question is whether it is actually better than the naive baseline — better in a measured, reproducible, CI-gated way. This part builds `dealfinder/evals.py`, the evaluation harness that answers that question with a number instead of a vibe.
 
 <Callout tone="tip">
 **Code along, version by version.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-Step tag: `step-20` (eval harness). Run the gate with `python -m dealfinder.run_evals`.
+Step tag: `step-23` (eval harness). Run the gate with `python -m dealfinder.run_evals`.
 </Callout>
 
 ## Table of contents
@@ -121,7 +121,7 @@ def precision_at_k(ranked: list[dict], k: int = GATE_K) -> float:
     return sum(1 for g in top if g["label"] == "deal") / max(1, len(top))
 ```
 
-A perfect score is 1.00 (all 5 of the top 5 are genuine deals). The gate threshold is 0.80 — at least 4 of the 5 must be real deals for the system to pass. That gate is used identically in Parts 21, 25, and 33.
+A perfect score is 1.00 (all 5 of the top 5 are genuine deals). The gate threshold is 0.80 — at least 4 of the 5 must be real deals for the system to pass. That gate is used identically in Parts 24, 25, and 33.
 
 Why precision, not recall? Because the user sees exactly 5 listings. Surfacing 6 true deals when only 5 are shown is invisible. What hurts the user is showing a trap — a $46 Bose QC45 that looks like a deal but isn't — in position 1 or 2.
 
@@ -281,7 +281,7 @@ This step runs after `pytest -q`. If `two_signal` precision@5 drops below 0.80 �
 The gate checks the **two_signal** ranker, not the median_only baseline. The baseline failing is expected and documented. Only the production ranker needs to clear the bar.
 </Callout>
 
-The gate is the same threshold you will see in Part 21 (the MLOps drift-retrain loop gates on the same metric before promoting a retrained model to canary) and Part 25 (the deploy CI gate runs `run_evals` before building the Docker image).
+The gate is the same threshold you will see in Part 24 (the MLOps drift-retrain loop gates on the same metric before promoting a retrained model to canary) and Part 28 (the deploy CI gate runs `run_evals` before building the Docker image).
 
 ---
 
@@ -304,10 +304,10 @@ All four pass against the committed snapshot. They are part of the same `pytest 
 
 ## Where this goes next
 
-- **Part 19 — Experiment tracking & model registry** (previous): log every training run, compare metrics across experiments, and register the model whose quality this eval harness now gates.
-- **Part 21 — Closing the MLOps loop** (next): drift detection, a retrain trigger, and canary promotion — where a retrained model must clear `precision@5 >= 0.80` on this same golden set before it ships.
+- **Part 22 — Experiment tracking & model registry** (previous): log every training run, compare metrics across experiments, and register the model whose quality this eval harness now gates.
+- **Part 24 — Closing the MLOps loop** (next): drift detection, a retrain trigger, and canary promotion — where a retrained model must clear `precision@5 >= 0.80` on this same golden set before it ships.
 
-The eval gate you built here travels with the system. In Part 21, a drift detector triggers a retrain, and the retrained model must clear `precision@5 >= 0.80` on this same golden set before it is promoted. In Part 25, the CI gate calls `python -m dealfinder.run_evals` before building the Docker image. In Part 33, the Playwright end-to-end suite asserts the DEAL/FAIR/SUSPICIOUS/OVERPRICED badges match the labels in this golden set. The golden set you hand-labeled in this part is a living test fixture for the entire course.
+The eval gate you built here travels with the system. In Part 24, a drift detector triggers a retrain, and the retrained model must clear `precision@5 >= 0.80` on this same golden set before it is promoted. In Part 28, the CI gate calls `python -m dealfinder.run_evals` before building the Docker image. In Part 36, the Playwright end-to-end suite asserts the DEAL/FAIR/SUSPICIOUS/OVERPRICED badges match the labels in this golden set. The golden set you hand-labeled in this part is a living test fixture for the entire course.
 
 ---
 
