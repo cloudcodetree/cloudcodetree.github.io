@@ -10,7 +10,260 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 16 Jul 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 17 Jul 2026 04:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Stop Waiting for the Full Response: Stream Claude Replies Token-by-Token With messages.stream()</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/streaming</link>
+      <guid isPermaLink="false">2026-07-17-03-claude-api-streaming-messages-stream</guid>
+      <pubDate>Fri, 17 Jul 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Replace messages.create() with messages.stream() and a with block — users see the first token in under 100ms instead of waiting 3-5 seconds for the full reply, with zero other code changes.</description>
+      <content:encoded><![CDATA[
+**Replace `messages.create()` with `messages.stream()` — users see the first token in under 100ms instead of waiting 3–5 seconds for a full reply, with almost no code change.**
+
+Every call to `messages.create()` blocks until Claude finishes generating. For a 300-word reply, that's 3–5 seconds of silence before your UI shows anything. Streaming prints each token as it's generated — users see the response start immediately.
+
+## The two-line change
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+# Before — blocks until the full response is ready
+response = client.messages.create(
+    model="claude-opus-4-8",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Explain gradient descent."}],
+)
+print(response.content[0].text)
+
+# After — streams tokens as they arrive
+with client.messages.stream(
+    model="claude-opus-4-8",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Explain gradient descent."}],
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)
+```
+
+`stream.text_stream` is a generator that yields each text delta as Claude produces it. The `with` block closes the connection when done.
+
+## Store the complete message after streaming
+
+```python
+with client.messages.stream(
+    model="claude-opus-4-8",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Explain gradient descent."}],
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)
+
+    # After the loop exits, the full message is available
+    final = stream.get_final_message()
+    # Same shape as messages.create() — use for storage, conversation history, etc.
+    print(f"\nTokens used: {final.usage.input_tokens} in, {final.usage.output_tokens} out")
+```
+
+## Async version (FastAPI, WebSockets, SSE)
+
+```python
+async def stream_to_client(prompt: str):
+    client = anthropic.AsyncAnthropic()
+    async with client.messages.stream(
+        model="claude-opus-4-8",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}],
+    ) as stream:
+        async for text in stream.text_stream:
+            yield text   # forward to your SSE or WebSocket handler
+```
+
+## Streaming with tool calls
+
+Use raw stream events when you need to handle tool calls alongside text:
+
+```python
+with client.messages.stream(
+    model="claude-opus-4-8",
+    max_tokens=1024,
+    tools=[{"name": "get_weather", "description": "...", "input_schema": {...}}],
+    messages=[{"role": "user", "content": "What's the weather in NYC?"}],
+) as stream:
+    for event in stream:
+        if event.type == "content_block_start" and event.content_block.type == "tool_use":
+            print(f"\n[Tool call: {event.content_block.name}]")
+        elif event.type == "content_block_delta" and event.delta.type == "text_delta":
+            print(event.delta.text, end="", flush=True)
+```
+
+## When streaming matters
+
+| Use case | Streaming? |
+|---|---|
+| User-facing chat UI | Yes — first token under 100ms |
+| Background batch job | No — `create()` is simpler |
+| Agent inner loop | Optional — use for live progress |
+| CI pipeline | No — final result is all that matters |
+
+**Sources:** [Streaming messages — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/streaming) · [Anthropic Python SDK](https://github.com/anthropics/anthropic-sdk-python)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Google Launches Gemini 3.5 Pro in Enterprise Preview: 2M-Token Context and Deep Think Reasoning</title>
+      <link>https://ai.google.dev/gemini-api/docs/pricing</link>
+      <guid isPermaLink="false">2026-07-17-02-gemini-3-5-pro-enterprise-preview</guid>
+      <pubDate>Fri, 17 Jul 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>Google DeepMind's Gemini 3.5 Pro opens in limited Vertex AI enterprise preview today: 2.1M token context window and Deep Think reasoning mode. Reported pricing around $15/$60 per million tokens; no official specs yet.</description>
+      <content:encoded><![CDATA[
+**Google opens Gemini 3.5 Pro in limited Vertex AI enterprise preview today: a 2.1M-token context window and Deep Think reasoning mode, rebuilt from scratch after the original model failed recursive tool-calling and SVG generation tests.**
+
+Gemini 3.5 Pro was rebuilt from scratch after Google's engineers found structural failures in the original version. The launch today is limited to enterprise Vertex AI customers who request early access — no public API listing on OpenRouter or the standard Gemini API yet.
+
+**What's reportedly shipping:**
+- **2.1M token context** — enough for ~1,500 pages of technical documents in a single call; changes the chunking calculus for long-document analysis and multi-file review
+- **Deep Think reasoning** — Google's extended-thinking mode, similar to Claude's extended thinking or OpenAI's o-series; gated to the Ultra tier on the consumer side, API access TBD
+- **Reported pricing** — ~$15 input / $60 output per million tokens (vs Gemini 3.1 Pro at $2/$12), from third-party sources — not officially confirmed by Google
+
+**Gemini 3.5 Flash**, the faster/cheaper sibling, is already available on the public Gemini API and OpenRouter.
+
+**Why it matters:** 2M context removes the retrieval bottleneck for a class of document-analysis and code-review tasks where chunking introduces errors. Watch the Gemini API changelog and `ai.google.dev` pricing page for GA availability and confirmed pricing before building against it.
+
+**Sources:** [Gemini 3.5 Pro launch overview — EnterpriseDNA](https://enterprisedna.co/resources/news/gemini-35-pro-july-17-rebuild-vs-deepseek-v4-2026/) · [Gemini 3.5 Pro API access guide — byteiota](https://byteiota.com/gemini-35-pro-api-access-pricing-developer-guide/) · [Gemini API pricing — ai.google.dev](https://ai.google.dev/gemini-api/docs/pricing)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>From Model Card to Private HTTPS Endpoint in Minutes: HuggingFace Inference Endpoints With Autoscale-to-Zero</title>
+      <link>https://huggingface.co/docs/inference-endpoints/en/index</link>
+      <guid isPermaLink="false">2026-07-17-01-huggingface-inference-endpoints-dedicated-gpu</guid>
+      <pubDate>Fri, 17 Jul 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>HuggingFace</category>
+      <description>HuggingFace Inference Endpoints deploys any Hub model to a dedicated GPU API endpoint in minutes — choose T4, A10G, or A100, set min_replica=0 to pay nothing when idle, and query via the OpenAI-compatible API.</description>
+      <media:content url="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/inference-endpoints/endpoints_hero.png" medium="image" />
+      <media:thumbnail url="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/inference-endpoints/endpoints_hero.png" />
+      <content:encoded><![CDATA[
+**HuggingFace Inference Endpoints gives you a private, dedicated GPU API for any Hub model in minutes — HuggingFace manages TGI, the container, and the load balancer; you pick hardware, set `min_replica=0` to pay nothing when idle, and query via the OpenAI-compatible API.**
+
+**What you'll be able to do after this:**
+- Deploy any model from the HuggingFace Hub to a dedicated GPU instance (T4, A10G, A100) via four lines of Python — no Docker, no Kubernetes, no infrastructure management
+- Configure autoscale-to-zero so the endpoint costs nothing when idle and wakes automatically within 20–30 seconds on the next request
+- Query your endpoint with the standard OpenAI client, the `huggingface_hub` library, or any HTTP client using the same API shape as Fireworks or Together AI
+
+---
+
+HuggingFace Inference Endpoints fills the gap between the free Inference API (shared, rate-limited, no SLA) and full self-hosting with TGI or vLLM (you manage the container). HuggingFace manages TGI under the hood — you just pick a model, pick hardware, and pay per GPU-hour while the endpoint is running (zero when scaled to zero).
+
+## Step 1: Install and authenticate
+
+```bash
+pip install huggingface_hub
+```
+
+```python
+from huggingface_hub import login
+login(token="hf_...")   # or set HF_TOKEN env var
+```
+
+## Step 2: Create an endpoint
+
+```python
+from huggingface_hub import HfApi
+
+api = HfApi()
+
+endpoint = api.create_inference_endpoint(
+    name="llama-3b-endpoint",
+    repository="meta-llama/Llama-3.2-3B-Instruct",  # any Hub model ID
+    framework="pytorch",
+    task="text-generation",
+    accelerator="gpu",
+    vendor="aws",
+    region="us-east-1",
+    instance_size="x4",      # T4 16GB ($0.60/hr); x8 = A10G 24GB ($1.30/hr)
+    instance_type="protected",
+    min_replica=0,           # scale to zero when idle — key for cost control
+    max_replica=1,
+    type="protected",        # "protected" = private; "public" = open URL
+)
+
+endpoint.wait()              # blocks until running (~2–5 min on first deploy)
+print(endpoint.url)
+# https://<id>.us-east-1.aws.endpoints.huggingface.cloud
+```
+
+## Step 3: Query with the OpenAI client
+
+Every Inference Endpoint is OpenAI-compatible (TGI serves `/v1/chat/completions`):
+
+```python
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url=f"{endpoint.url}/v1",
+    api_key=os.environ["HF_TOKEN"],
+)
+
+response = client.chat.completions.create(
+    model="tgi",                 # TGI ignores the model field; it serves whatever was deployed
+    messages=[{"role": "user", "content": "What is gradient descent?"}],
+    max_tokens=256,
+)
+print(response.choices[0].message.content)
+```
+
+Or use the native HuggingFace client:
+
+```python
+from huggingface_hub import InferenceClient
+
+client = InferenceClient(model=endpoint.url, token=os.environ["HF_TOKEN"])
+result = client.text_generation("What is gradient descent?", max_new_tokens=256)
+print(result)
+```
+
+## Step 4: Scale to zero (or let autoscaling handle it)
+
+The endpoint scales to zero automatically after ~15 minutes of no traffic. You can also trigger it manually:
+
+```python
+endpoint.scale_to_zero()   # pauses immediately
+# later:
+endpoint.resume()           # wakes back up (~20–30s cold start)
+```
+
+## Compare with other options
+
+| Option | Best for | Latency | Cost model |
+|---|---|---|---|
+| HF Free Inference API | Prototyping | Shared, variable | Free (rate-limited) |
+| **HF Inference Endpoints** | **Private prod, any model** | **Dedicated, consistent** | **Per GPU-hour** |
+| vLLM / TGI self-hosted | Maximum control | Dedicated | Your cloud bill |
+| Together / Fireworks | High-throughput, multi-tenant | Dedicated, fast | Per token |
+
+Cold starts take ~20–30s from zero-replica state. If your use case can't tolerate that, set `min_replica=1` (one replica always warm) — you pay the GPU-hour rate continuously but get sub-second response times.
+
+**Sources:** [Inference Endpoints documentation — HuggingFace](https://huggingface.co/docs/inference-endpoints/en/index) · [Getting Started with Inference Endpoints — HuggingFace Blog](https://huggingface.co/blog/inference-endpoints) · [Autoscaling — HuggingFace Docs](https://huggingface.co/docs/inference-endpoints/en/autoscaling)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Upload Once, Reference Everywhere: Stop Re-uploading PDFs on Every Claude API Call</title>
