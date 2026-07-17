@@ -10,7 +10,170 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 17 Jul 2026 04:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 17 Jul 2026 12:10:00 +0000</lastBuildDate>
+
+    <item>
+      <title>/fork vs /subtask: Use the Right Delegation Mode for Every Agent Task in Claude Code 2.1.212</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-07-17-06-claude-code-fork-subtask-background-session-pattern</guid>
+      <pubDate>Fri, 17 Jul 2026 12:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>/fork creates a durable, resumable background session in claude agents; /subtask is a lightweight inline helper that runs in your current session. Here's a concrete workflow using both.</description>
+      <content:encoded><![CDATA[
+**/fork creates a durable, resumable background session; /subtask is a lightweight inline helper — here's how to use both in a real parallel workflow.**
+
+Claude Code 2.1.212 splits what was one command into two with meaningfully different semantics.
+
+## /fork — durable background sessions
+
+```
+/fork Research the best auth pattern for our service — compare JWT, session cookies, and OAuth2 and draft a recommendation
+/fork Find all usages of AuthService in the codebase and map the call sites
+/fork Write a first-draft migration guide for switching from cookie sessions to JWT
+```
+
+Each `/fork` creates an independent session in `claude agents` with its own context window. You keep working in the main session. When the forks finish, open each via `/resume` or the agents view. Forked sessions persist across `/clear` and are resumable — they are proper parallel workers.
+
+## /subtask — lightweight inline helpers
+
+```
+/subtask refactor this function to use early returns
+/subtask generate a docstring for the selected code
+```
+
+`/subtask` runs inline in your current session: no separate row in `claude agents`, result appears in-thread, and it shares the parent's context window. Best for fast, focused tasks where you want the answer immediately in your current thread.
+
+**The rule of thumb:** reach for `/fork` when the work is complex enough to need its own context window, might run longer than your current task, or produces output you want to revisit later. Use `/subtask` when you just want a quick in-place answer.
+
+## Session budgets (new in 2.1.212)
+
+If a forked session runs wild — spawning dozens of sub-searches or chaining subagents — it now hits a hard cap of 200 WebSearch calls and 200 subagent spawns. Tune per use case:
+
+```bash
+# Focused coding session (tight budget)
+CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION=25 \
+CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION=10 claude
+
+# Open-ended research session
+CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION=200 \
+CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION=100 claude
+```
+
+Run `/clear` to reset both budgets mid-session without restarting Claude Code.
+
+**Sources:** [Claude Code changelog v2.1.212](https://code.claude.com/docs/en/changelog) · [Claude Code agents — background sessions](https://code.claude.com/docs/en/agents)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code 2.1.212: /fork Now Creates a True Background Session; /subtask Replaces the Old In-Session Delegate</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-07-17-05-claude-code-2-1-212-fork-subtask-session-caps</guid>
+      <pubDate>Fri, 17 Jul 2026 12:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <description>Claude Code 2.1.212 lands today: /fork creates a persistent background session in claude agents, /subtask is the new inline helper, and per-session caps stop runaway agent and search loops.</description>
+      <content:encoded><![CDATA[
+**Claude Code 2.1.212 ships today with a meaningful delegation model change: /fork now creates a persistent background session, not a fire-and-forget inline subagent.**
+
+`/fork` now copies your conversation into a fully independent background session — its own row in `claude agents`, visible in the web view, resumable later. The old in-session delegate behavior is now `/subtask`: runs inline, shares parent context, disappears when done. Use `/fork` for complex parallel work that might outlast your current focus; use `/subtask` for quick inline helpers.
+
+The release also adds **session-wide safety caps**: WebSearch calls cap at 200 per session (tune with `CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`), and subagent spawns cap at 200 (`CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`). `/clear` resets both budgets. New: `claude auto-mode reset` restores default auto-mode if your CLAUDE.md rules have drifted.
+
+**Also:** GitHub Copilot is deprecating Gemini 2.5 Pro and Gemini 3 Flash across all experiences on **July 31**. Migrate workflows to Gemini 3.1 Pro or Gemini 3.5 Flash before then.
+
+**Why it matters:** The `/fork` → true background session change makes parallel branching significantly more durable. Forked sessions survive `/clear` and are resumable, making them proper persistent workers rather than disposable inline tasks.
+
+**Sources:** [Claude Code changelog v2.1.212](https://code.claude.com/docs/en/changelog) · [GitHub Copilot Gemini deprecation (Jul 31)](https://github.blog/changelog/2026-07-02-upcoming-deprecation-of-gemini-2-5-pro-and-gemini-3-flash/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>SFTTrainer: The Foundation Under Unsloth and Axolotl — Fine-Tune Any LLM in 30 Lines of Python</title>
+      <link>https://huggingface.co/docs/trl/en/sft_trainer</link>
+      <guid isPermaLink="false">2026-07-17-04-trl-sfttrainer-supervised-fine-tuning</guid>
+      <pubDate>Fri, 17 Jul 2026 12:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <category>Best Practices</category>
+      <description>TRL's SFTTrainer is the shared core that Unsloth and Axolotl wrap. Learn the core 30-line pattern — chat template application, loss masking, example packing, and LoRA via PEFT — and the wrappers instantly make sense.</description>
+      <media:content url="https://img.youtube.com/vi/JbgZKWqN4fI/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/JbgZKWqN4fI/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**SFTTrainer is the HuggingFace foundation every popular fine-tuning wrapper uses — understand the core and every framework instantly makes sense.**
+
+**What you'll be able to do after this:**
+- Fine-tune any HuggingFace model on an instruction dataset in ~30 lines of Python using TRL's SFTTrainer
+- Enable example packing to maximize GPU utilization on variable-length conversation data
+- Apply LoRA on top of SFTTrainer via PEFT's LoraConfig for memory-efficient training
+
+Unsloth and Axolotl are excellent production frameworks, but they wrap a simpler thing: TRL's `SFTTrainer`. Once you see the core pattern, the wrappers become obvious optimizations rather than magic — and you can debug them when something goes wrong.
+
+## What SFTTrainer does
+
+It is a thin wrapper around HuggingFace's `Trainer` class, adding two things specific to instruction fine-tuning:
+
+1. **Chat template application** — it calls `tokenizer.apply_chat_template()` on conversational datasets, converting `{role, content}` turns into model-native tokens (e.g. `<|im_start|>assistant` for Qwen).
+2. **Loss masking** — user and system turns are masked so the training loss is computed only on assistant completions. Your model learns to generate responses, not to repeat prompts.
+
+## The 30-line quickstart
+
+```python
+from datasets import load_dataset
+from trl import SFTTrainer, SFTConfig
+from peft import LoraConfig
+
+# 1. Load a conversational dataset ({messages: [...]}) format
+dataset = load_dataset("trl-lib/Capybara", split="train")
+
+# 2. Training config
+config = SFTConfig(
+    output_dir="./ft-model",
+    per_device_train_batch_size=2,
+    gradient_accumulation_steps=4,
+    num_train_epochs=1,
+    learning_rate=2e-4,
+    packing=True,        # pack multiple short examples into one sequence
+    max_seq_length=2048,
+)
+
+# 3. Optional: LoRA to keep VRAM under 12 GB
+lora = LoraConfig(r=16, lora_alpha=32, target_modules="all-linear")
+
+# 4. Train
+trainer = SFTTrainer(
+    model="Qwen/Qwen2.5-0.5B",
+    train_dataset=dataset,
+    args=config,
+    peft_config=lora,     # omit for full fine-tune
+)
+trainer.train()
+trainer.save_model("./ft-model")
+```
+
+## Key options
+
+- `packing=True` — batches multiple short examples together, crucial for conversation datasets with variable-length turns. Disable for eval: `eval_packing=False`.
+- `max_seq_length` — sequences longer than this are truncated (not padded). Set it to the P90 of your dataset's token lengths, not the model's maximum.
+- `peft_config` — pass a `LoraConfig` for LoRA-SFT. Omit it for full fine-tuning (needs significantly more VRAM).
+- `dataset_text_field` — if your dataset has a single `"text"` column of pre-formatted strings, set this; SFTTrainer will tokenize directly without applying a chat template.
+
+After training, call `trainer.model.merge_and_unload()` to bake the LoRA adapter into the base weights, then push to the Hub — covered in the [LoRA merge post](https://cloudcodetree.com/ai-news/2026-06-30-04-lora-merge-and-unload-push-huggingface-hub).
+
+**Sources:** [TRL SFTTrainer docs](https://huggingface.co/docs/trl/en/sft_trainer) · [HuggingFace LLM Course Ch. 11 — SFT](https://huggingface.co/learn/llm-course/en/chapter11/3) · [SFT Colab (NielsRogge/Transformers-Tutorials)](https://colab.research.google.com/github/NielsRogge/Transformers-Tutorials/blob/master/Mistral/Supervised_fine_tuning_(SFT)_of_an_LLM_using_Hugging_Face_tooling.ipynb)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Stop Waiting for the Full Response: Stream Claude Replies Token-by-Token With messages.stream()</title>
