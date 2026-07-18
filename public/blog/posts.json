@@ -1,5 +1,60 @@
 [
   {
+    "id": "2026-07-18-06-claude-code-headless-print-ci-pipelines",
+    "title": "Run Claude Code Without Watching: The -p Flag for CI, Scripts, and GitHub Actions",
+    "excerpt": "The -p (--print) flag makes Claude Code non-interactive: one prompt, full agent loop, then exit — perfect for CI pipelines, shell scripts, and GitHub Actions with no human in the loop.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T12:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/headless",
+    "content": "**TL;DR: `claude -p \"your task\" --allowedTools Bash,Read,Edit` runs Claude Code non-interactively — add it to any CI pipeline, shell script, or scheduled job in minutes.**\n\n`-p` (short for `--print`) is Claude Code's scripting mode: it processes one prompt, runs the full agent loop (reads files, edits code, runs tests), then exits with a zero or non-zero status code. No interactive shell, no permission prompts, no human needed.\n\n## The minimal CI step\n\n```yaml\n# GitHub Actions — official action handles auth plumbing for you\n- uses: anthropics/claude-code-action@v1\n  with:\n    prompt: \"Review this PR for security issues and comment on the diff\"\n    allowed_tools: \"Read,Bash\"\n    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n```\n\nOr bare shell in any CI runner:\n\n```bash\nclaude -p \"Run the test suite and fix any failures\" \\\n  --allowedTools \"Bash,Read,Edit\" \\\n  --max-turns 15 \\\n  --output-format json | jq .result\n```\n\n## Four flags that matter\n\n| Flag | What it does |\n|------|-------------|\n| `--allowedTools` | Comma-list of tools Claude can use without prompting |\n| `--max-turns` | Hard stop after N agent turns — safety cap for unattended runs |\n| `--output-format json` | Return JSON with `result`, `cost_usd`, `turns` — machine-parseable |\n| `--bare` | Strip local config; ensures identical behavior on every machine |\n\n## Rate-limit guardrail\n\n`CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION=50` caps WebSearch calls per `-p` invocation. The default is 200 — useful to lower it when Claude Code runs autonomously so a runaway search loop doesn't burn your quota.\n\n## Background agents are awaited\n\nBackground `/fork` subagents spawned during a `-p` run complete before the process exits (capped at 10 minutes by default, tunable with `CLAUDE_CODE_MAX_BACKGROUND_WAIT_MINUTES`). Their output is included in the JSON result.\n\nStart with a narrow `--allowedTools` list and widen as you see what the agent needs. It's much easier to add a tool than to clean up a CI run that modified unexpected files.\n\n**Sources:** [Run Claude Code programmatically (official docs)](https://code.claude.com/docs/en/headless) · [CLI reference](https://code.claude.com/docs/en/cli-reference) · [anthropics/claude-code-action](https://github.com/anthropics/claude-code-action)"
+  },
+  {
+    "id": "2026-07-18-05-anthropic-admin-api-user-management",
+    "title": "Manage Claude Enterprise Seats Programmatically: Admin API User Management Now in Beta",
+    "excerpt": "Anthropic opened user management to the Admin API in beta for Claude Enterprise — admins can now programmatically list members, change roles, manage groups, and automate seat provisioning via IdP.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T12:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/manage-claude/admin-api",
+    "content": "**TL;DR: Claude Enterprise admins can now manage seats, roles, and groups via REST API — enabling IdP-synced onboarding and offboarding without touching the admin panel.**\n\nAnthropic released user management endpoints to the Admin API this week, in beta for all Claude Enterprise organizations. The new endpoints let you:\n\n- List organization members and look them up by email address\n- Change a member's role (e.g. Member → Admin)\n- Remove members and withdraw pending invitations\n- Create and manage groups and their membership\n- Read custom role definitions\n\nGroup and custom-role operations require the beta header `anthropic-beta: ce-user-management-2026-07-13`. Member and invite endpoints work with any Admin API key that has the `read:org_audit` scope.\n\n**Why it matters:** This makes Claude Enterprise automatable. Teams can now hook seat provisioning into an IdP (Okta, Entra ID, etc.) so new hires get Claude access on day one and departing employees lose it automatically — no manual admin portal steps, no access-review spreadsheets.\n\n**Sources:** [Anthropic Admin API docs](https://platform.claude.com/docs/en/manage-claude/admin-api) · [Releasebot: Anthropic July 2026 updates](https://releasebot.io/updates/anthropic)"
+  },
+  {
+    "id": "2026-07-18-04-weaviate-local-docker-vector-search",
+    "title": "Your First Dedicated Vector Database: Weaviate Local Docker Quickstart in Python",
+    "excerpt": "Spin up Weaviate locally with Docker, create a typed collection with auto-vectorization via Ollama, and run near_text semantic search — all in Python, no cloud account required.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T12:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Vectors",
+      "Embeddings",
+      "Self-Hosting"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://docs.weaviate.io/weaviate/quickstart/local",
+    "content": "**TL;DR: Three docker-compose lines, five Python lines, and you have a running vector database that semantically searches your documents without a cloud account or external embedding API.**\n\n**What you'll be able to do after this:**\n- Run Weaviate locally using Docker (embedding model included via Ollama — no API keys)\n- Create a typed collection and bulk-import documents with auto-vectorization\n- Execute `near_text` semantic search and retrieve ranked results from Python\n\n## What makes Weaviate different\n\nUnlike pgvector (which bolts vector search onto PostgreSQL) or FAISS (an in-process library), Weaviate is a standalone vector database built ground-up for similarity search. It bundles HNSW indexing, BM25 keyword search, and hybrid search into one service with a schema-backed Python client and a gRPC-accelerated query path.\n\n## 1. Start Weaviate + Ollama with Docker Compose\n\n```yaml\n# docker-compose.yml\nversion: '3.4'\nservices:\n  weaviate:\n    image: semitechnologies/weaviate:latest\n    ports:\n      - \"8080:8080\"\n      - \"50051:50051\"   # gRPC — required by the v4 Python client\n    environment:\n      ENABLE_MODULES: 'text2vec-ollama,generative-ollama'\n      DEFAULT_VECTORIZER_MODULE: 'text2vec-ollama'\n      CLUSTER_HOSTNAME: 'node1'\n  ollama:\n    image: ollama/ollama\n    volumes:\n      - ./ollama:/root/.ollama\n    ports:\n      - \"11434:11434\"\n```\n\n```bash\ndocker compose up -d\ndocker exec <ollama-container> ollama pull nomic-embed-text\npip install weaviate-client\n```\n\n## 2. Connect and create a collection\n\n```python\nimport weaviate\nfrom weaviate.classes.config import Configure\n\nclient = weaviate.connect_to_local()   # hits localhost:8080\n\nclient.collections.create(\n    name=\"Article\",\n    vectorizer_config=Configure.Vectorizer.text2vec_ollama(\n        api_endpoint=\"http://ollama:11434\",\n        model=\"nomic-embed-text\",\n    ),\n)\n```\n\nThe `text2vec-ollama` module tells Weaviate to embed each object at insert time using your local Ollama model — no OpenAI key, no API bill.\n\n## 3. Batch-import documents\n\n```python\narticles = client.collections.get(\"Article\")\nwith articles.batch.dynamic() as batch:\n    for doc in your_documents:\n        batch.add_object({\"title\": doc[\"title\"], \"body\": doc[\"body\"]})\n```\n\n`batch.dynamic()` auto-sizes batch requests based on server feedback.\n\n## 4. Semantic search\n\n```python\nresults = articles.query.near_text(\n    query=\"vector database indexing strategies\",\n    limit=5,\n)\nfor obj in results.objects:\n    print(obj.properties[\"title\"])\n```\n\nThat's the full loop: ingest → embed locally → query. Weaviate also supports `near_vector` (bring your own embeddings), pure BM25 keyword search, and `hybrid` (BM25 + vector) with a single flag — no extra search engine needed.\n\n**Sources:** [Weaviate Local Docker Quickstart (official)](https://docs.weaviate.io/weaviate/quickstart/local) · [DataCamp Weaviate tutorial](https://www.datacamp.com/tutorial/weaviate-tutorial) · [Vector Databases with Weaviate in Python — YouTube](https://www.youtube.com/watch?v=GDYTBhwj5oI)"
+  },
+  {
     "id": "2026-07-18-03-copilot-code-review-reads-claude-md",
     "title": "One File, Two AI Code Reviews: GitHub Copilot Now Reads Your CLAUDE.md",
     "excerpt": "Copilot code review (Jul 17) now reads CLAUDE.md, AGENTS.md, and *.instructions.md from the PR head branch — one file can drive consistent code conventions in both Claude Code and Copilot review.",
