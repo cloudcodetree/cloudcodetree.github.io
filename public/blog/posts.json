@@ -1,5 +1,61 @@
 [
   {
+    "id": "2026-07-18-03-copilot-code-review-reads-claude-md",
+    "title": "One File, Two AI Code Reviews: GitHub Copilot Now Reads Your CLAUDE.md",
+    "excerpt": "Copilot code review (Jul 17) now reads CLAUDE.md, AGENTS.md, and *.instructions.md from the PR head branch — one file can drive consistent code conventions in both Claude Code and Copilot review.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.blog/changelog/2026-07-17-copilot-code-review-customization-and-configurability-improvements/",
+    "content": "**TL;DR: Copilot code review now reads CLAUDE.md and AGENTS.md from your PR's head branch — teams using both Claude Code and GitHub Copilot code review can enforce code conventions from a single file.**\n\nGitHub shipped code review customization improvements on July 17. Two changes matter for Claude Code shops:\n\n## CLAUDE.md is now a code-review input\n\nCopilot code review scans `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, and any `*.instructions.md` files in your repo alongside `.github/copilot-instructions.md`. Claude Code already uses `CLAUDE.md` as its behavior spec — now Copilot code review reads the same file. One file drives consistent conventions in both tools.\n\n## Instructions come from the HEAD branch\n\nCopilot now reads instructions from the PR's feature branch, not the default branch. You can iterate on new review instructions in a feature branch and test them before merging — no more needing to merge instruction changes to `main` first.\n\n## Setting it up\n\n```yaml\n# .github/copilot-code-review.yml — optional: install deps the review needs\nname: Copilot Code Review Setup\nsteps:\n  - run: pip install -r requirements.txt\n  - run: npm ci\n```\n\nIf your `CLAUDE.md` is already well-structured (coding style, test expectations, commit conventions), Copilot code review picks it up automatically. Add a `## Code Review` section for review-specific guidance — for example, flagging when coverage drops or when public APIs lack docstrings.\n\nThe Copilot code review firewall is also now independently configurable from the Copilot cloud agent, giving you separate network access controls for each. And both agents can now be assigned different runner types in org settings — useful when your review agent needs a larger machine than your cloud agent.\n\n**Sources:** [GitHub Changelog: Copilot code review customization (Jul 17)](https://github.blog/changelog/2026-07-17-copilot-code-review-customization-and-configurability-improvements/)"
+  },
+  {
+    "id": "2026-07-18-02-kimi-k3-open-weight-moe-frontier",
+    "title": "Kimi K3: The Largest Open-Weight Frontier Model Ships (2.8T MoE, 1M Context, Weights July 27)",
+    "excerpt": "Moonshot AI releases Kimi K3 (July 16) — a 2.8T MoE open-weight model with 1M context, Kimi Delta Attention, and #1 on the Frontend Code Arena. Full weights release July 27 under Modified MIT.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T04:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Self-Hosting"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.marktechpost.com/2026/07/16/moonshot-ai-releases-kimi-k3-a-2-8-trillion-parameter-open-moe-model-with-kimi-delta-attention-and-1m-context/",
+    "content": "**TL;DR: Moonshot AI's Kimi K3 — a 2.8T-parameter MoE with 1M context — debuted July 16 at #1 on the Frontend Code Arena leaderboard; weights release July 27 under Modified MIT.**\n\nKimi K3 is a 2.8-trillion-parameter Mixture-of-Experts model with 896 total experts and 16 active per token. Two new architectural components drive it: **Kimi Delta Attention (KDA)**, a hybrid linear attention mechanism that reduces quadratic attention cost on long sequences, and **Attention Residuals (AttnRes)**, which Moonshot says improves long-context reasoning quality. Context window: 1M tokens. Native vision support. Priced at $3/$15 per million tokens — same as Claude Sonnet 5.\n\nOn independent evaluation it ranks fourth among all frontier models — behind Claude Fable 5 and GPT-5.6 Sol, ahead of Claude Opus 4.8 — and sits first in the Frontend Code Arena with 1,679 points. Full weights land **July 27** under a Modified MIT license.\n\n**Why it matters:** When weights release July 27, Kimi K3 will be the largest open-weight model available to self-host. If it holds its leaderboard position in practice, it opens a real path to running frontier-grade coding assistance without API dependency — worth watching closely.\n\n**Sources:** [Kimi K3 — MarkTechPost](https://www.marktechpost.com/2026/07/16/moonshot-ai-releases-kimi-k3-a-2-8-trillion-parameter-open-moe-model-with-kimi-delta-attention-and-1m-context/) · [Moonshot AI Kimi K3](https://kimik3.xyz/)"
+  },
+  {
+    "id": "2026-07-18-01-vllm-structured-outputs-guided-json-xgrammar",
+    "title": "Guaranteed JSON from Any Local Model: vLLM Structured Outputs with XGrammar",
+    "excerpt": "vLLM's guided decoding (XGrammar backend) masks invalid tokens at sample time — output is always JSON Schema-conformant, a fixed choice, or regex-matched. Zero retries, works with any served model.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T04:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Self-Hosting",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://docs.vllm.ai/en/latest/features/structured_outputs/",
+    "content": "**TL;DR: vLLM's guided decoding constrains generation at the token level — XGrammar masks invalid tokens so the output is always a valid JSON object, enum member, or regex match, with zero post-processing.**\n\n**What you'll be able to do after this:**\n- Serve any HuggingFace model with vLLM and get guaranteed JSON Schema-conformant output via `guided_json`\n- Classify text into a fixed enum with `guided_choice` — zero prompt engineering, zero retries\n- Understand how constrained decoding differs from Instructor's prompt-then-retry approach — and when each wins\n\nThe earlier post on [Instructor](https://cloudcodetree.com/ai-news/2026-06-30-06-instructor-structured-output-pydantic) covers the retry-based approach: ask the model for JSON, validate with Pydantic, retry if invalid. Constrained decoding skips the retry loop entirely. Invalid tokens are masked *before* sampling, so the model *can't* produce malformed output. This is available server-side in vLLM via the `extra_body` parameters in the OpenAI-compatible client.\n\nvLLM supports four constraint modes via `extra_body`:\n\n| Mode | Use when |\n|------|----------|\n| `guided_json` | Extracting nested structured data — JSON Schema or Pydantic model |\n| `guided_choice` | Classification over a fixed label set — fastest, clearest |\n| `guided_regex` | Extracting a typed string (version, date, email) from free text |\n| `guided_grammar` | Generating valid SQL, code, or other formal languages |\n\nXGrammar is the default backend (auto mode in vLLM). It partitions the vocabulary by schema at startup and caches token masks, adding under 40 microseconds of overhead per token at serving time — effectively free.\n\n## Walk-through\n\n### 1. Start a vLLM server\n\n```bash\npip install vllm\nvllm serve Qwen/Qwen2.5-7B-Instruct --host 0.0.0.0\n# XGrammar is default; explicit: --guided-decoding-backend xgrammar\n```\n\n### 2. guided_json — extract structured data with a Pydantic schema\n\n```python\nfrom openai import OpenAI\nfrom pydantic import BaseModel\nfrom enum import Enum\n\nclient = OpenAI(base_url=\"http://localhost:8000/v1\", api_key=\"-\")\n\nclass Sentiment(str, Enum):\n    positive = \"positive\"\n    negative = \"negative\"\n    neutral = \"neutral\"\n\nclass ReviewAnalysis(BaseModel):\n    sentiment: Sentiment\n    confidence: float\n    key_phrases: list[str]\n\nschema = ReviewAnalysis.model_json_schema()\n\nresult = client.chat.completions.create(\n    model=\"Qwen/Qwen2.5-7B-Instruct\",\n    messages=[{\n        \"role\": \"user\",\n        \"content\": \"Analyze: 'The API latency is excellent but the docs are thin.'\"\n    }],\n    extra_body={\"guided_json\": schema}\n)\nimport json\nanalysis = ReviewAnalysis(**json.loads(result.choices[0].message.content))\n# Always a valid ReviewAnalysis — no try/except needed\n```\n\n### 3. guided_choice — zero-shot classification\n\n```python\nresult = client.chat.completions.create(\n    model=\"Qwen/Qwen2.5-7B-Instruct\",\n    messages=[{\"role\": \"user\", \"content\": \"Triage this: 'App crashes on startup after login'\"}],\n    extra_body={\"guided_choice\": [\"bug\", \"feature_request\", \"question\"]}\n)\nlabel = result.choices[0].message.content\n# Exactly one of the three strings — no parse step at all\n```\n\n### 4. guided_regex — extract a typed string\n\n```python\nresult = client.chat.completions.create(\n    model=\"Qwen/Qwen2.5-7B-Instruct\",\n    messages=[{\"role\": \"user\", \"content\": \"Extract the version from: 'Fixed in release 2.14.3-beta'\"}],\n    extra_body={\"guided_regex\": r\"\\d+\\.\\d+\\.\\d+(-[a-z]+)?\"}\n)\n```\n\nThese same parameters work with the offline `LLM` class too: pass a `GuidedDecodingParams` inside `SamplingParams` (`json=`, `choice=`, `regex=`, `grammar=`).\n\n**Sources:** [vLLM Structured Outputs docs](https://docs.vllm.ai/en/latest/features/structured_outputs/) · [Structured Decoding in vLLM — BentoML](https://www.bentoml.com/blog/structured-decoding-in-vllm-a-gentle-introduction) · [XGrammar paper](https://arxiv.org/pdf/2411.15100)"
+  },
+  {
     "id": "2026-07-17-06-claude-code-fork-subtask-background-session-pattern",
     "title": "/fork vs /subtask: Use the Right Delegation Mode for Every Agent Task in Claude Code 2.1.212",
     "excerpt": "/fork creates a durable, resumable background session in claude agents; /subtask is a lightweight inline helper that runs in your current session. Here's a concrete workflow using both.",
