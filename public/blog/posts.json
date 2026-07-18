@@ -1,5 +1,61 @@
 [
   {
+    "id": "2026-07-18-09-claude-code-custom-commands-workflow-automation",
+    "title": "Ship Your Team's Shared Claude Code Workflows in One File: Custom Commands With .claude/commands/",
+    "excerpt": "A Markdown file in .claude/commands/ becomes a shareable /command — commit it to your repo and every teammate gets the same repeatable workflow, with optional $ARGUMENTS for dynamic input.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/commands",
+    "content": "**TL;DR: A Markdown file in `.claude/commands/` becomes a `/command` anyone on the team can invoke — commit it to the repo and every checkout gets the same repeatable workflow.**\n\nClaude Code ships with built-in commands like `/compact` and `/review`, but the most valuable ones are the ones you write yourself. Any `.md` file you drop in `.claude/commands/` becomes a `/command-name` you can invoke from any Claude Code session in that project.\n\n## The format\n\n`.claude/commands/pr-review.md`:\n\n```markdown\n---\ndescription: Security-focused PR review checklist\nallowed-tools: Bash(git diff:*), Read\n---\n\nReview the current branch against main for security issues:\n\n1. Run `git diff main...HEAD` to see all changes.\n2. Check for: hardcoded credentials, SQL injection, XSS vectors, missing input validation, insecure dependencies.\n3. Output a numbered checklist — ✅ safe / ⚠️ concern / ❌ blocker — with file:line references.\n\nFocus on: $ARGUMENTS\n```\n\nInvoke it: `/pr-review the auth and payment modules`\n\nThe `$ARGUMENTS` placeholder injects whatever you type after the command name. Without it, Claude Code appends `ARGUMENTS: <text>` at the end — same effect, less control over placement.\n\n## Three patterns that pay off\n\n**`/deploy-check`** — pre-push checklist: env vars set, migrations up, feature flags correct, tests green. Ten seconds instead of ten minutes of memory work.\n\n**`/changelog [version]`** — generate a human-readable release summary from `git log` since the last tag, grouped by type and ready to paste into GitHub Releases.\n\n**`/explain $ARGUMENTS`** — ask Claude to explain any symbol, pattern, or concept _in the context of this specific codebase_ rather than in the abstract.\n\n## Scope and sharing\n\n- `.claude/commands/` — project-scoped, committed to the repo; everyone who checks it out gets the commands automatically.\n- `~/.claude/commands/` — personal global commands, available in every project on your machine.\n\nThe YAML frontmatter is optional but earns its keep: `description` shows up in the command picker, and `allowed-tools` pre-authorizes the tools Claude needs so the run doesn't pause for permission prompts.\n\n**Sources:** [Commands — Claude Code Docs](https://code.claude.com/docs/en/commands) · [Extend Claude with skills — Claude Code Docs](https://code.claude.com/docs/en/skills) · [Claude Code cheatsheet 2026 — awesomeclaude.ai](https://awesomeclaude.ai/code-cheatsheet)"
+  },
+  {
+    "id": "2026-07-18-08-bonsai-27b-nemotron-3-embed-new-open-models",
+    "title": "This Week in Open Models: Bonsai 27B Runs on an iPhone (3.9 GB) and Nemotron 3 Embed Takes the #1 RTEB Spot",
+    "excerpt": "Bonsai 27B (PrismML, Jul 14) fits 27B-parameter reasoning in 3.9 GB via 1-bit quantization; NVIDIA Nemotron 3 Embed 8B tops the RTEB retrieval leaderboard — both Apache 2.0.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T20:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Embeddings",
+      "Self-Hosting"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://prismml.com/news/prismml-releases-bonsai-27b",
+    "content": "**TL;DR: PrismML's Bonsai 27B squeezes frontier-grade 27B reasoning into 3.9 GB via 1-bit quantization; NVIDIA's Nemotron 3 Embed 8B just took #1 on the RTEB retrieval benchmark — both free under Apache 2.0.**\n\n**Bonsai 27B — a 27B model that fits on an iPhone.** PrismML released Bonsai 27B on July 14: a 1-bit quantized version of Qwen3.6 27B that runs at 11 tok/s on an iPhone 17 Pro at just 3.9 GB. A 1.58-bit ternary variant at 5.9 GB targets laptops. The model handles multi-step reasoning, structured tool use, vision, and 128K-token context. Apple is reportedly in talks with PrismML about the compression technology. → [prismml.com](https://prismml.com/news/prismml-releases-bonsai-27b)\n\n**NVIDIA Nemotron 3 Embed — new #1 embedding model.** Released July 17, Nemotron 3 Embed is an open, commercially-licensed collection of three models. The flagship 8B checkpoint (Nemotron-3-Embed-8B-BF16) scores 78.5% on RTEB — #1 overall, across 34 languages, with a 32,768-token maximum sequence length. Two efficient 1B variants (BF16 and Blackwell-optimized NVFP4) target production RAG at lower cost. Weights on HuggingFace now. → [HuggingFace blog](https://huggingface.co/blog/nvidia/nemotron-3-embed-wins-rteb)\n\n**Why it matters:** 1-bit compression is making 27B-class models viable on commodity hardware, and the RTEB leaderboard now has an open model at the top — both trends reduce lock-in to closed APIs for inference and retrieval.\n\n**Sources:** [Bonsai 27B release — PrismML](https://prismml.com/news/prismml-releases-bonsai-27b) · [Nemotron 3 Embed #1 on RTEB — HuggingFace Blog](https://huggingface.co/blog/nvidia/nemotron-3-embed-wins-rteb) · [Bonsai 27B on 9to5Mac](https://9to5mac.com/2026/07/14/prismml-releases-bonsai-27b-claiming-first-major-ai-model-of-its-size-fit-for-iphone/)"
+  },
+  {
+    "id": "2026-07-18-07-litellm-ai-gateway-unified-llm-proxy",
+    "title": "One Endpoint, 100 Providers: Run a Self-Hosted AI Gateway With LiteLLM in 5 Minutes",
+    "excerpt": "LiteLLM is an MIT-licensed Python SDK and self-hosted proxy that routes to 100+ LLM providers with one OpenAI-compatible endpoint — swap models without touching application code.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T20:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Self-Hosting",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://docs.litellm.ai/docs/",
+    "content": "**TL;DR: LiteLLM is a self-hosted OpenAI-compatible proxy that routes to 100+ LLM providers — Claude, Gemini, local Ollama, and more — behind a single endpoint, swappable without changing application code.**\n\n**What you'll be able to do after this:**\n- Point any OpenAI SDK client at your own gateway and switch between providers by editing one config line\n- Assign per-team virtual API keys with spend caps and automatic model fallbacks\n- Add response caching, latency-based routing, and centralized logging in a single `config.yaml`\n\n## Install and call any model (SDK mode)\n\n```bash\npip install litellm\n```\n\n```python\nfrom litellm import completion\n\n# Same call format for every provider — just change the model string\nr = completion(model=\"anthropic/claude-sonnet-4-6\",\n               messages=[{\"role\": \"user\", \"content\": \"Hello\"}])\n\nr = completion(model=\"gemini/gemini-2.0-flash\",\n               messages=[{\"role\": \"user\", \"content\": \"Hello\"}])\n\nr = completion(model=\"ollama/llama3.2\",        # local, no API key\n               messages=[{\"role\": \"user\", \"content\": \"Hello\"}])\n```\n\n## Run the proxy gateway (team mode)\n\n`config.yaml`:\n\n```yaml\nmodel_list:\n  - model_name: fast          # alias your app uses\n    litellm_params:\n      model: anthropic/claude-haiku-4-5\n      api_key: os.environ/ANTHROPIC_API_KEY\n  - model_name: fast          # second option for \"fast\" — LiteLLM load-balances\n    litellm_params:\n      model: ollama/llama3.2\n      api_base: http://localhost:11434\n  - model_name: smart\n    litellm_params:\n      model: anthropic/claude-sonnet-5\n      api_key: os.environ/ANTHROPIC_API_KEY\n\nrouter_settings:\n  routing_strategy: latency-based-routing\n  fallbacks: [{\"fast\": [\"smart\"]}]   # fall back to smart if fast is down\n\ngeneral_settings:\n  master_key: sk-my-gateway-key      # issue virtual keys from this\n```\n\n```bash\nlitellm --config config.yaml --port 4000\n```\n\nNow any OpenAI client works unchanged:\n\n```python\nfrom openai import OpenAI\nclient = OpenAI(base_url=\"http://localhost:4000\", api_key=\"sk-my-gateway-key\")\nresp = client.chat.completions.create(model=\"smart\", messages=[...])\n```\n\n## What to add next\n\n- **Virtual keys:** `POST /key/generate` with `max_budget` + `team_id` — each team gets their own key with spend tracking.\n- **Caching:** `litellm_settings: cache: true` — identical requests return cached responses instantly.\n- **Logging:** set `success_callback: [\"langfuse\"]` to wire tracing without touching app code.\n\n> **Security note:** LiteLLM had a CVSS 10.0 RCE chain patched in v1.43.x (CVE-2026-42271). Always pin to the latest stable release before deploying.\n\n**Sources:** [LiteLLM Getting Started — docs.litellm.ai](https://docs.litellm.ai/docs/) · [LiteLLM Proxy (AI Gateway) — docs.litellm.ai](https://docs.litellm.ai/docs/simple_proxy) · [BerriAI/litellm — GitHub](https://github.com/BerriAI/litellm)"
+  },
+  {
     "id": "2026-07-18-06-claude-code-headless-print-ci-pipelines",
     "title": "Run Claude Code Without Watching: The -p Flag for CI, Scripts, and GitHub Actions",
     "excerpt": "The -p (--print) flag makes Claude Code non-interactive: one prompt, full agent loop, then exit — perfect for CI pipelines, shell scripts, and GitHub Actions with no human in the loop.",
