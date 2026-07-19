@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-07-19-03-claude-code-live-artifacts-mcp-connectors",
+    "title": "From Static Output to Live Dashboard: Connect Claude Code Artifacts to Your MCP Connectors",
+    "excerpt": "Claude Code artifacts now call your MCP connectors on each view — build a PR board, sprint tracker, or launch checklist that pulls live GitHub, Notion, or Jira data for every reader.",
+    "author": "Chris Harper",
+    "date": "07-19-2026",
+    "publishedAt": "2026-07-19T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "MCP"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/whats-new/2026-w29",
+    "content": "**Claude Code artifacts now pull live data from your MCP connectors on each view — build a PR board, sprint tracker, or launch checklist that's never stale.**\n\nStarting in Week 29 (July 13–17), published artifacts can call the viewing account's MCP connectors on demand. Each viewer approves connector access once; after that, every page load fetches fresh data through *their* permissions — not a snapshot from the session that built it.\n\nAvailable on Pro, Max, Team, and Enterprise plans. Not available on publicly shared artifacts.\n\n## Try it now\n\nOpen any Claude Code conversation (or a Cowork session) and ask:\n\n```\nBuild an artifact that shows all open PRs in this GitHub repo, grouped by\nreviewer, showing how long each has been open. Pull data live from my GitHub\nMCP connector when the page loads.\n```\n\nClaude builds the page with the `window.claude.mcp` runtime API, adds a \"Refresh\" button, and publishes it. Share the link with your team — each person sees their own GitHub view, scoped to their own access automatically.\n\n## What else this unlocks\n\n- **Sprint board:** call your Linear or Jira connector to render all in-progress issues for the viewer's assigned team, updated live.\n- **Launch checklist:** call GitHub (tests green?), Notion (docs updated?), and Slack (announcement drafted?) in parallel and render a single go/no-go view.\n- **Team dashboard:** each viewer sees exactly what their permissions allow — no extra auth wiring, no data exposure across roles.\n\nThe same capability landed for Cowork artifacts in the same week.\n\n**Sources:** [Week 29 — What's New in Claude Code (July 13–17, 2026)](https://code.claude.com/docs/en/whats-new/2026-w29) · [Claude Code now supports artifacts — Anthropic Blog](https://claude.com/blog/artifacts-in-claude-code) · [Claude Code Artifacts Add MCP Connector Support — AlternativeTo](https://alternativeto.net/news/2026/7/claude-code-artifacts-add-mcp-connector-support-for-dynamic-data/)"
+  },
+  {
+    "id": "2026-07-19-02-anthropic-ode-blackstone-enterprise-ai-implementation",
+    "title": "Anthropic and Blackstone Launch Ode: A $1.5B Bet That Enterprise AI Deployment Is the Real Business",
+    "excerpt": "Anthropic, Blackstone, and Hellman & Friedman launched Ode on July 15 — a $1.5B enterprise AI implementation firm built on Fractional AI, with 100 engineers deploying Claude at scale.",
+    "author": "Chris Harper",
+    "date": "07-19-2026",
+    "publishedAt": "2026-07-19T04:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://techcrunch.com/2026/07/15/anthropic-blackstone-bet-the-next-trillion-dollar-ai-business-is-implementation-not-models/",
+    "content": "**Anthropic, Blackstone, and Hellman & Friedman launched Ode on July 15 — a $1.5B enterprise AI implementation firm built on Fractional AI's team, with 100 engineers focused on deploying Claude at scale.**\n\nOde operates \"Claude-first\" but is not exclusively Anthropic. The firm identifies where AI can have the highest impact inside a business and then builds and runs the system end-to-end. Leadership comes from Fractional AI's co-founders (CEO Chris Taylor, CTO Eddie Siegel), backed by Goldman Sachs alongside the PE firms.\n\nThis is Anthropic's clearest signal yet that it sees the enterprise moat in *deployment*, not just models. Where competitors license APIs and walk away, Ode puts 100 engineers inside the customer's implementation.\n\n**Why it matters:** For engineers building Claude-based products, watch Ode's public output — the architectural patterns and integration playbooks that survive contact with large-enterprise procurement and security will surface here first. That's a free library of hard-won patterns.\n\n**Sources:** [Anthropic, Blackstone, and Hellman & Friedman Introduce Ode — BusinessWire](https://www.businesswire.com/news/home/20260715205134/en/Anthropic-Blackstone-and-Hellman-Friedman-Introduce-Ode-with-Anthropic-an-Enterprise-AI-Services-Firm) · [Anthropic and Blackstone Bet the Next Trillion-Dollar AI Business Is Implementation — TechCrunch](https://techcrunch.com/2026/07/15/anthropic-blackstone-bet-the-next-trillion-dollar-ai-business-is-implementation-not-models/)"
+  },
+  {
+    "id": "2026-07-19-01-fine-tune-llm-function-calling-xlam-trl",
+    "title": "Teach a Small Open Model to Use Your Functions Reliably: Fine-Tune With the xLAM Dataset and TRL",
+    "excerpt": "Fine-tune a 3B open model on 5,000 function-calling examples and it matches a 70B model at tool routing — xLAM dataset + TRL SFTTrainer, one free Colab GPU, ~90 minutes.",
+    "author": "Chris Harper",
+    "date": "07-19-2026",
+    "publishedAt": "2026-07-19T04:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Fine-Tuning",
+      "HuggingFace",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/learn/cookbook/function_calling_fine_tuning_llms_on_xlam",
+    "content": "**Fine-tune a 3B open model on 5,000 function-calling examples and it matches a 70B model at tool routing — xLAM dataset + TRL SFTTrainer, one free Colab GPU.**\n\nPrompting a small model to output correctly-formatted tool calls is a constant fight: right function name, mangled arguments; two calls when you wanted one; strings unquoted. Fine-tuning fixes this at the source — after a few thousand examples the model *understands* your tool format, rather than trying to follow a hint in the system prompt.\n\n**What you'll be able to do after this:**\n- Understand why SFT outperforms prompting alone for narrow tool-routing tasks\n- Load the xLAM 60k dataset and run TRL SFTTrainer with LoRA in ~30 lines\n- Evaluate the fine-tune by comparing parsed tool calls before and after on a held-out set\n\n## The xLAM dataset\n\nSalesforce AI Research released [xlam-function-calling-60k](https://huggingface.co/datasets/Salesforce/xlam-function-calling-60k) — 60,000 multi-turn examples spanning 200+ APIs. Each row includes a `tools` key (JSON schema) and a conversation with properly-formatted `tool_calls` messages. TRL passes the `tools` key through `apply_chat_template` automatically — no preprocessing needed.\n\nThe [HuggingFace Cookbook notebook](https://huggingface.co/learn/cookbook/function_calling_fine_tuning_llms_on_xlam) walks through the full pipeline end-to-end. Start there.\n\n## Training in ~30 lines\n\n```python\nfrom datasets import load_dataset\nfrom trl import SFTConfig, SFTTrainer\nfrom transformers import AutoModelForCausalLM, AutoTokenizer\nfrom peft import LoraConfig\n\ndataset = load_dataset(\"Salesforce/xlam-function-calling-60k\", split=\"train[:5000]\")\nmodel   = AutoModelForCausalLM.from_pretrained(\n    \"meta-llama/Llama-3.2-3B-Instruct\", load_in_4bit=True\n)\ntok = AutoTokenizer.from_pretrained(\"meta-llama/Llama-3.2-3B-Instruct\")\n\ntrainer = SFTTrainer(\n    model=model,\n    args=SFTConfig(\n        output_dir=\"./fn-call-lora\",\n        num_train_epochs=1,\n        per_device_train_batch_size=4,\n        gradient_checkpointing=True,\n        max_length=1024,\n    ),\n    train_dataset=dataset,\n    peft_config=LoraConfig(r=16, lora_alpha=32, target_modules=\"all-linear\"),\n    processing_class=tok,\n)\ntrainer.train()\n```\n\nAfter training, call `trainer.model.merge_and_unload()` to fold the adapter in, then push to HuggingFace Hub.\n\n## Quick eval\n\nPick 50 held-out examples. Run the base model and your fine-tuned adapter on the same prompts. Parse the `tool_calls` blocks and compare: function name correct, argument keys correct, argument types correct. A well-trained 3B adapter reaches >90% exact-match on single-API routing tasks where the base model sits around 55–65%.\n\n**Sources:** [Fine-tuning LLMs for Function Calling with xLAM Dataset — HuggingFace Cookbook](https://huggingface.co/learn/cookbook/function_calling_fine_tuning_llms_on_xlam) · [xlam-function-calling-60k dataset — HuggingFace Hub](https://huggingface.co/datasets/Salesforce/xlam-function-calling-60k) · [TRL SFTTrainer docs — HuggingFace](https://huggingface.co/docs/trl/en/sft_trainer) · [Practical Guide to Fine-Tuning for Tool Calling — Falcon LM](https://falcon-lm.github.io/tutorials/tool-calling-finetuning-guide/)"
+  },
+  {
     "id": "2026-07-18-09-claude-code-custom-commands-workflow-automation",
     "title": "Ship Your Team's Shared Claude Code Workflows in One File: Custom Commands With .claude/commands/",
     "excerpt": "A Markdown file in .claude/commands/ becomes a shareable /command — commit it to your repo and every teammate gets the same repeatable workflow, with optional $ARGUMENTS for dynamic input.",
