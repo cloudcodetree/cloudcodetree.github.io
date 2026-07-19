@@ -10,7 +10,169 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 19 Jul 2026 04:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 19 Jul 2026 12:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Self-Regulating Agent Loops: Claude's Task Budget Tells the Model When to Wrap Up Gracefully</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/task-budgets</link>
+      <guid isPermaLink="false">2026-07-19-06-claude-task-budget-agentic-loop-self-regulate</guid>
+      <pubDate>Sun, 19 Jul 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Add task_budget to output_config (beta, Opus 4.7/4.8) and Claude sees a live token countdown across the full agentic loop — it self-regulates and wraps up cleanly instead of cutting off mid-action.</description>
+      <content:encoded><![CDATA[
+**Add `task_budget` to `output_config` and Claude sees a live token countdown across the entire agentic loop — it self-regulates, summarizes findings, and finishes cleanly instead of cutting off mid-action.**
+
+The problem with long agent loops: Claude doesn't know when to stop. It uses 80k tokens on exploration, then either runs out of `max_tokens` and gets cut off mid-action, or keeps going until you stop it. Task budgets fix this.
+
+## How it works
+
+Task budgets are a beta feature available on Claude Fable 5, Mythos 5, Opus 4.8, and Opus 4.7. Set `task_budget` in `output_config` alongside `effort`. The model sees a running token countdown covering thinking, tool calls, tool results, and output. As the budget depletes, it starts wrapping up — summarizing findings, skipping lower-priority exploration, finishing gracefully.
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+with client.beta.messages.stream(
+    model="claude-opus-4-8",
+    max_tokens=128000,
+    messages=[{"role": "user", "content": "Audit this repo for security issues."}],
+    output_config={
+        "effort": "xhigh",
+        "task_budget": {"type": "tokens", "total": 64000},
+    },
+    betas=["task-budgets-2026-03-13"],
+) as stream:
+    response = stream.get_final_message()
+
+print(response.usage)
+```
+
+## Key points
+
+**Minimum 20,000 tokens.** Below that, the API returns a 400. Set too small and Claude may refuse the task entirely — size it against your actual p99 token spend from a baseline run without the budget.
+
+**`task_budget` is advisory, `max_tokens` is hard.** The budget tells Claude to pace itself; `max_tokens` truncates unconditionally. Use both: budget for graceful self-regulation, `max_tokens` as the absolute ceiling.
+
+**Compacted loops — pass `remaining`:** If your client summarizes context between turns, the server loses track of what's been spent. Pass `remaining` on the next request so the countdown continues from where you left off:
+
+```python
+output_config={
+    "effort": "xhigh",
+    "task_budget": {
+        "type": "tokens",
+        "total": 64000,
+        "remaining": 64000 - tokens_spent_so_far,
+    },
+}
+```
+
+**Caching note:** Don't mutate `remaining` on every turn for loops that resend full history — changing the value invalidates the cache prefix. For full-history loops, omit `remaining` and let the server track the countdown.
+
+## When to reach for it
+
+Any workflow where Claude makes repeated tool calls before returning a final answer: code audits, multi-file refactors, research + summarize loops, agentic search tasks. If your loop currently cuts off mid-action or goes wildly over budget, add a task budget sized at ~1.5× your median token spend and tune from there.
+
+**Sources:** [Task budgets — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/task-budgets) · [Effort — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/effort)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>GitHub Copilot for JetBrains Now Routes to Any OpenAI-Compatible Endpoint — Point It at Claude or Local Ollama</title>
+      <link>https://github.blog/changelog/2026-07-14-github-copilot-for-jetbrains-expands-byok-capabilities/</link>
+      <guid isPermaLink="false">2026-07-19-05-copilot-jetbrains-byok-custom-openai-endpoints</guid>
+      <pubDate>Sun, 19 Jul 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <description>Copilot for JetBrains (July 14) now supports custom OpenAI-compatible endpoints with BYOK — route IntelliJ completions to Claude, a self-hosted model, or any private fine-tune without leaving the IDE.</description>
+      <content:encoded><![CDATA[
+**GitHub Copilot for JetBrains now accepts any OpenAI-compatible endpoint with BYOK — point IntelliJ or PyCharm at Claude, a local Ollama instance, or a private fine-tune without changing IDEs.**
+
+In the July 14 update, GitHub added custom OpenAI-compatible endpoint support to Copilot for JetBrains IDEs. In the Customizations panel you set an endpoint URL and API key; from there, IntelliJ, PyCharm, and the rest treat it as a first-class provider. The same update ships native Claude agent provider support — including custom agents, skills, and instructions — plus an in-IDE plugin marketplace for browsing and installing Copilot extensions without leaving the editor. Reliability improvements cover authentication recovery, account switching, and provider persistence across long sessions.
+
+**Why it matters:** Teams routing JetBrains completions through a private model endpoint — whether a fine-tuned model, a self-hosted instance, or Claude via direct API key — now have a supported path in the IDE they're already using.
+
+**Sources:** [Copilot for JetBrains expands BYOK capabilities — GitHub Changelog](https://github.blog/changelog/2026-07-14-github-copilot-for-jetbrains-expands-byok-capabilities/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>One Parameter, Five Gears: Control Claude's Thinking Depth Per Step With effort</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/effort</link>
+      <guid isPermaLink="false">2026-07-19-04-claude-effort-parameter-agent-thinking-depth</guid>
+      <pubDate>Sun, 19 Jul 2026 12:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Five effort levels (low to max) in output_config replace budget_tokens on new Claude models — use low for cheap leaf subagents and xhigh for Opus 4.7 agentic coding tasks.</description>
+      <content:encoded><![CDATA[
+**`effort` in `output_config` has five levels — use `low` for cheap leaf subagents and `xhigh` for Opus 4.7 agentic coding; the model's thinking depth, tool-call frequency, and response thoroughness all scale accordingly.**
+
+If you're building agents with Claude Opus 4.7 or newer, you've hit this already: the old `budget_tokens` field inside the `thinking` block is deprecated. On Opus 4.7, passing `budget_tokens` returns a 400 error. The replacement is `effort` in `output_config` — and it's broader than what it replaces.
+
+**What you'll be able to do after this:**
+- Pick the right effort level for each role in a multi-agent system (orchestrators vs. leaf agents)
+- Migrate away from deprecated `budget_tokens` to `effort` + adaptive thinking on Opus 4.7 and Sonnet 4.6
+- Cut 40–60% of agent token costs by matching effort to task complexity rather than using the default for everything
+
+## The five levels
+
+| Level | Thinking behavior | Best for |
+|-------|------------------|----------|
+| `low` | Minimal or none | Simple lookups, cheap subagents, classification |
+| `medium` | Moderate | Agentic coding on Sonnet 4.6; cost-sensitive workflows |
+| `high` | Default — deep on most tasks | Complex reasoning, most single-step agent actions |
+| `xhigh` | Extended multi-step exploration | Opus 4.7/4.8 coding + agentic tasks; repeated tool-call loops |
+| `max` | No constraints | Frontier problems; adds cost with small gains on most tasks |
+
+`effort` affects all tokens in the response: thinking, text, and tool calls. At lower effort, Claude makes fewer tool calls, gives terser confirmations, and skips preamble. Higher effort means more calls, detailed planning before action, and thorough summaries.
+
+## Setting effort in Python
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+# Orchestrator: xhigh effort — plans, coordinates, validates across many tool calls
+orchestrator_response = client.messages.create(
+    model="claude-opus-4-7",
+    max_tokens=64000,         # set large at xhigh/max to give room to think
+    messages=[{"role": "user", "content": "Audit this repo and propose a refactor plan."}],
+    output_config={"effort": "xhigh"},
+    thinking={"type": "adaptive"},   # required on Opus 4.7
+)
+
+# Leaf subagent: low effort — fast, cheap, focused on one thing
+leaf_response = client.messages.create(
+    model="claude-opus-4-7",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Classify this GitHub issue: bug, feature, or question?"}],
+    output_config={"effort": "low"},
+    thinking={"type": "adaptive"},
+)
+```
+
+## Model-specific guidance
+
+**Opus 4.7 / 4.8:** Start with `xhigh` for coding and agentic tasks. `high` is the minimum for most intelligence-sensitive workloads. Step down to `medium` for cost-sensitive flows; step up to `max` only when evals show measurable headroom. Always set `max_tokens` ≥ 64k at `xhigh` / `max`.
+
+**Sonnet 4.6:** Default to `medium` explicitly — high is the API default but produces unexpected latency. Use `low` for high-volume or latency-sensitive tasks; `high` only when quality matters more than speed.
+
+**Fable 5 / Mythos 5:** Adaptive thinking is always on — no `thinking` config needed. Start with `high` (the default). At `xhigh` and `high`, set a large `max_tokens` since it is a hard limit on thinking + text.
+
+**Sources:** [Effort — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/effort) · [Adaptive thinking — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking) · [Extended thinking — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
+]]></content:encoded>
+    </item>
+
 
     <item>
       <title>From Static Output to Live Dashboard: Connect Claude Code Artifacts to Your MCP Connectors</title>
