@@ -1,5 +1,60 @@
 [
   {
+    "id": "2026-07-19-09-claude-code-permission-allow-rule-audit",
+    "title": "Your Claude Code Allow Rules May Have Holes: How to Audit settings.json After v2.1.214",
+    "excerpt": "v2.1.214 patched six permission bypasses. If you've written Bash/Edit allow rules with dir/**, glob patterns, or PowerShell, here's how to audit and fix them in 10 minutes.",
+    "author": "Chris Harper",
+    "date": "07-19-2026",
+    "publishedAt": "2026-07-19T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Security",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**v2.1.214 patched six permission bypasses — and the patterns that were exploitable are the same ones engineers commonly write in `.claude/settings.json`. Here's how to audit yours.**\n\nClaude Code's `allow` rules control what runs without approval. Most people write them once, test the happy path, and never revisit them. The six bypasses patched in v2.1.214 reveal what \"looked safe, wasn't\" actually looks like in production.\n\n## The biggest pattern to check: `dir/**` glob rules\n\n**Before (vulnerable):** `Edit(src/**)` approved writes to any `src/` directory anywhere in the tree.\n**After the fix:** `Edit(src/**)` only approves writes to `<cwd>/src/`.\n\n**Audit step:** Open `.claude/settings.json` and scan every `allow` entry for `**` patterns:\n\n```json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Edit(src/**)\",        // Was: any nested src/ anywhere in tree\n      \"Read(docs/**)\",       // Was: any docs/ anywhere in tree\n      \"Bash(npm run:*)\"      // Fine — prefix match, not glob\n    ]\n  }\n}\n```\n\nIf you have `dir/**` patterns, test them on the patched version: create `deep/path/src/test.txt` and confirm Claude prompts for approval instead of silently writing.\n\n## Tighten your rules\n\n**Write the narrowest rule that covers your use case:**\n\n```json\n// Instead of: \"Edit(src/**)\"       (tree-wide glob, was vulnerable)\n// Use one of:\n\"Edit\"                               // Any edit — if you trust all file edits\n\"Edit(src/components/**)\"           // Lock to a specific subtree\n```\n\n**Bash rules:** Prefix-match rules (`Bash(git:*)`) are safer than pattern rules that could tunnel command substitutions. The fd-redirect and zsh subscript fixes in v2.1.214 show that the permission analyzer and bash can disagree on what a command does — prefer simple, unambiguous prefixes.\n\n## Full audit in 30 seconds\n\n```bash\n# Show all allow rules across project + global settings:\ncat .claude/settings.json 2>/dev/null | python3 -m json.tool | grep -A50 '\"allow\"'\ncat ~/.claude/settings.json 2>/dev/null | python3 -m json.tool | grep -A50 '\"allow\"'\n```\n\n**If you're on Windows with PowerShell 5.1:** The v2.1.214 fix for the PS 5.1 permission bypass is particularly important — update immediately via `npm install -g @anthropic-ai/claude-code@latest`.\n\nAfter auditing: confirm your version with `claude --version` (should be ≥2.1.214).\n\n**Why it matters:** Allow rules reduce friction, but rules written for convenience rather than precision create the exact bypasses v2.1.214 had to patch. The `dir/**` pattern alone likely affects most multi-module projects with a `src/` directory at any level.\n\n**Sources:** [Claude Code Changelog v2.1.214](https://code.claude.com/docs/en/changelog), [Claude Code Permissions Docs](https://code.claude.com/docs/en/configuration/permissions)"
+  },
+  {
+    "id": "2026-07-19-08-claude-code-v2-1-214-security-permission-fixes",
+    "title": "Claude Code v2.1.213-214: Six Permission Bypass Fixes, EndConversation Added, /verify No Longer Auto-Runs",
+    "excerpt": "Six permission-check bypasses patched across Bash, PowerShell, and zsh. /verify and /code-review no longer run unless you invoke them. EndConversation tool added.",
+    "author": "Chris Harper",
+    "date": "07-19-2026",
+    "publishedAt": "2026-07-19T20:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Claude Code",
+      "Security"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**Claude Code v2.1.213-214 (Jul 18-19) closes six permission-check bypasses, changes /verify and /code-review to require explicit invocation, and adds the EndConversation tool for jailbreak defense.**\n\n## v2.1.214 — Security and stability (Jul 18)\n\nSix permission-check bypasses patched:\n\n1. **`dir/**` allow rules** (e.g., `Edit(src/**)`) auto-approved writes to nested `src/` directories anywhere in the tree — not just `<cwd>/src/`\n2. **Windows PowerShell 5.1** — permission checks could be bypassed entirely in PS 5.1 sessions\n3. **File-descriptor redirects** (e.g., `cmd 3>&1`) — bash and the analyzer disagreed on safety; now fails closed\n4. **Very long commands** (>10,000 chars) — now always prompt instead of running automatically\n5. **Zsh `[[ ]]` subscripts** — variable subscripts/modifiers were treated as inert text, now analyzed correctly\n6. **`help`/`man` with unsafe options** — certain forms could trigger command substitutions or backslash paths\n\nAlso added: the **EndConversation tool** (Claude can end sessions with abusive users or jailbreak attempts), **docker daemon-redirect flags** (`--url`, `--connection`, `--identity`) now require confirmation, and a **periodic heartbeat** for long-running tool calls that previously went silent.\n\n## v2.1.213 — Behavior change (Jul 19)\n\n`/verify` and `/code-review` no longer run automatically. They only run when you explicitly invoke `/verify` or `/code-review`. If your workflow expected Claude to proactively run these after edits, you'll need to invoke them manually or wire them into a PostToolUse hook.\n\n**Why it matters:** Fix #1 affects every project with a `Edit(src/**)` or similar glob allow rule. On any repo with a nested `src/` directory, writes may have been approved silently. **Update now:** `npm install -g @anthropic-ai/claude-code@latest`\n\n**Sources:** [Claude Code Changelog](https://code.claude.com/docs/en/changelog), [GitHub Releases](https://github.com/anthropics/claude-code/releases)"
+  },
+  {
+    "id": "2026-07-19-07-orpo-align-without-reference-model",
+    "title": "Skip the Second Training Pass: ORPO Bakes Preference Alignment Into Supervised Fine-Tuning",
+    "excerpt": "ORPO combines SFT and preference alignment in one training run — no reference model, ~50% less VRAM than DPO, and a single lambda to tune. Runs on a free T4 GPU via TRL's ORPOTrainer.",
+    "author": "Chris Harper",
+    "date": "07-19-2026",
+    "publishedAt": "2026-07-19T20:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Fine-Tuning",
+      "HuggingFace"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/blog/mlabonne/orpo-llama-3",
+    "content": "**ORPO combines supervised fine-tuning and preference alignment in a single training pass — no reference model, no separate DPO step, and a single `beta` scalar to tune instead of a full KL penalty.**\n\nThe standard two-step alignment pipeline: fine-tune on instruction data (SFT), then run a preference pass with a frozen reference model (DPO). Two training runs, twice the VRAM, twice the checkpointing. ORPO (Hong et al., 2024) folds both into one pass: it adds an odds-ratio penalty to the next-token prediction loss so the model learns task behavior and preference alignment simultaneously.\n\n**Why it needs less memory:** DPO keeps a frozen copy of the base model in memory throughout training (the reference for KL divergence). ORPO drops the reference model entirely. On a 7B model that's ~14 GB saved — enough to go from needing an A100 to running on a free Kaggle T4.\n\n**What you'll be able to do after this:**\n- Align a fine-tuned model to human preferences in one training run instead of two\n- Run full ORPO training on a free T4 (Qwen2 0.5B fits in under 8 GB VRAM)\n- Reuse your existing DPO preference dataset — the format is identical (`prompt`, `chosen`, `rejected`)\n\n## Minimal working example\n\n```bash\npip install trl datasets transformers accelerate bitsandbytes\n```\n\n```python\nfrom datasets import load_dataset\nfrom trl import ORPOConfig, ORPOTrainer\nfrom transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig\nimport torch\n\nmodel_id = \"Qwen/Qwen2-0.5B-Instruct\"\n\nbnb_config = BitsAndBytesConfig(\n    load_in_4bit=True,\n    bnb_4bit_compute_dtype=torch.float16\n)\nmodel = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=bnb_config)\ntokenizer = AutoTokenizer.from_pretrained(model_id)\n\n# Same format as DPO: prompt / chosen / rejected\ndataset = load_dataset(\"trl-lib/ultrafeedback_binarized\", split=\"train[:2000]\")\n\nconfig = ORPOConfig(\n    output_dir=\"qwen2-orpo\",\n    num_train_epochs=1,\n    per_device_train_batch_size=2,\n    learning_rate=8e-6,\n    beta=0.1,        # preference weight (lambda in the paper)\n    max_length=512,\n)\n\ntrainer = ORPOTrainer(\n    model=model, args=config,\n    train_dataset=dataset, tokenizer=tokenizer\n)\ntrainer.train()\ntrainer.save_model()\n```\n\n## The one hyperparameter that matters\n\n`beta` (called `lambda` in the original paper) controls how strongly the model penalizes rejected responses. Too high: the model becomes overly conservative. Too low: preference alignment is weak. `0.1` is the TRL default and a robust starting point for instruction-following.\n\n## Dataset compatibility\n\nIf you already have a DPO preference dataset, ORPO uses the exact same `prompt`/`chosen`/`rejected` schema — no reformatting needed. `trl-lib/ultrafeedback_binarized` (60k preference pairs) works out of the box.\n\n## Or use the CLI\n\n```bash\naccelerate launch examples/scripts/orpo.py \\\n  --model_name_or_path Qwen/Qwen2-0.5B-Instruct \\\n  --dataset_name trl-lib/ultrafeedback_binarized \\\n  --num_train_epochs 1 \\\n  --output_dir qwen2-orpo\n```\n\nFor a complete walkthrough with Llama 3 8B, QLoRA configuration, chat template setup, and benchmark evaluation, see mlabonne's [Fine-tune Llama 3 with ORPO](https://huggingface.co/blog/mlabonne/orpo-llama-3) — it includes a free [Colab notebook](https://colab.research.google.com/drive/1eHNWg9gnaXErdAa8_mcvjMupbSS6rDvi?usp=sharing) that runs end-to-end on a T4.\n\n**Sources:** [ORPO Trainer — TRL Docs](https://huggingface.co/docs/trl/en/orpo_trainer), [Fine-tune Llama 3 with ORPO — mlabonne / HuggingFace Blog](https://huggingface.co/blog/mlabonne/orpo-llama-3), [ORPO: Monolithic Preference Optimization without Reference Model (arXiv 2403.07691)](https://arxiv.org/abs/2403.07691)"
+  },
+  {
     "id": "2026-07-19-06-claude-task-budget-agentic-loop-self-regulate",
     "title": "Self-Regulating Agent Loops: Claude's Task Budget Tells the Model When to Wrap Up Gracefully",
     "excerpt": "Add task_budget to output_config (beta, Opus 4.7/4.8) and Claude sees a live token countdown across the full agentic loop — it self-regulates and wraps up cleanly instead of cutting off mid-action.",
