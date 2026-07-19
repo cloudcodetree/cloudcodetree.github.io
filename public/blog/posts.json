@@ -1,5 +1,344 @@
 [
   {
+    "id": "2026-07-19-03-claude-code-live-artifacts-mcp-connectors",
+    "title": "From Static Output to Live Dashboard: Connect Claude Code Artifacts to Your MCP Connectors",
+    "excerpt": "Claude Code artifacts now call your MCP connectors on each view — build a PR board, sprint tracker, or launch checklist that pulls live GitHub, Notion, or Jira data for every reader.",
+    "author": "Chris Harper",
+    "date": "07-19-2026",
+    "publishedAt": "2026-07-19T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "MCP"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/whats-new/2026-w29",
+    "content": "**Claude Code artifacts now pull live data from your MCP connectors on each view — build a PR board, sprint tracker, or launch checklist that's never stale.**\n\nStarting in Week 29 (July 13–17), published artifacts can call the viewing account's MCP connectors on demand. Each viewer approves connector access once; after that, every page load fetches fresh data through *their* permissions — not a snapshot from the session that built it.\n\nAvailable on Pro, Max, Team, and Enterprise plans. Not available on publicly shared artifacts.\n\n## Try it now\n\nOpen any Claude Code conversation (or a Cowork session) and ask:\n\n```\nBuild an artifact that shows all open PRs in this GitHub repo, grouped by\nreviewer, showing how long each has been open. Pull data live from my GitHub\nMCP connector when the page loads.\n```\n\nClaude builds the page with the `window.claude.mcp` runtime API, adds a \"Refresh\" button, and publishes it. Share the link with your team — each person sees their own GitHub view, scoped to their own access automatically.\n\n## What else this unlocks\n\n- **Sprint board:** call your Linear or Jira connector to render all in-progress issues for the viewer's assigned team, updated live.\n- **Launch checklist:** call GitHub (tests green?), Notion (docs updated?), and Slack (announcement drafted?) in parallel and render a single go/no-go view.\n- **Team dashboard:** each viewer sees exactly what their permissions allow — no extra auth wiring, no data exposure across roles.\n\nThe same capability landed for Cowork artifacts in the same week.\n\n**Sources:** [Week 29 — What's New in Claude Code (July 13–17, 2026)](https://code.claude.com/docs/en/whats-new/2026-w29) · [Claude Code now supports artifacts — Anthropic Blog](https://claude.com/blog/artifacts-in-claude-code) · [Claude Code Artifacts Add MCP Connector Support — AlternativeTo](https://alternativeto.net/news/2026/7/claude-code-artifacts-add-mcp-connector-support-for-dynamic-data/)"
+  },
+  {
+    "id": "2026-07-19-02-anthropic-ode-blackstone-enterprise-ai-implementation",
+    "title": "Anthropic and Blackstone Launch Ode: A $1.5B Bet That Enterprise AI Deployment Is the Real Business",
+    "excerpt": "Anthropic, Blackstone, and Hellman & Friedman launched Ode on July 15 — a $1.5B enterprise AI implementation firm built on Fractional AI, with 100 engineers deploying Claude at scale.",
+    "author": "Chris Harper",
+    "date": "07-19-2026",
+    "publishedAt": "2026-07-19T04:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://techcrunch.com/2026/07/15/anthropic-blackstone-bet-the-next-trillion-dollar-ai-business-is-implementation-not-models/",
+    "content": "**Anthropic, Blackstone, and Hellman & Friedman launched Ode on July 15 — a $1.5B enterprise AI implementation firm built on Fractional AI's team, with 100 engineers focused on deploying Claude at scale.**\n\nOde operates \"Claude-first\" but is not exclusively Anthropic. The firm identifies where AI can have the highest impact inside a business and then builds and runs the system end-to-end. Leadership comes from Fractional AI's co-founders (CEO Chris Taylor, CTO Eddie Siegel), backed by Goldman Sachs alongside the PE firms.\n\nThis is Anthropic's clearest signal yet that it sees the enterprise moat in *deployment*, not just models. Where competitors license APIs and walk away, Ode puts 100 engineers inside the customer's implementation.\n\n**Why it matters:** For engineers building Claude-based products, watch Ode's public output — the architectural patterns and integration playbooks that survive contact with large-enterprise procurement and security will surface here first. That's a free library of hard-won patterns.\n\n**Sources:** [Anthropic, Blackstone, and Hellman & Friedman Introduce Ode — BusinessWire](https://www.businesswire.com/news/home/20260715205134/en/Anthropic-Blackstone-and-Hellman-Friedman-Introduce-Ode-with-Anthropic-an-Enterprise-AI-Services-Firm) · [Anthropic and Blackstone Bet the Next Trillion-Dollar AI Business Is Implementation — TechCrunch](https://techcrunch.com/2026/07/15/anthropic-blackstone-bet-the-next-trillion-dollar-ai-business-is-implementation-not-models/)"
+  },
+  {
+    "id": "2026-07-19-01-fine-tune-llm-function-calling-xlam-trl",
+    "title": "Teach a Small Open Model to Use Your Functions Reliably: Fine-Tune With the xLAM Dataset and TRL",
+    "excerpt": "Fine-tune a 3B open model on 5,000 function-calling examples and it matches a 70B model at tool routing — xLAM dataset + TRL SFTTrainer, one free Colab GPU, ~90 minutes.",
+    "author": "Chris Harper",
+    "date": "07-19-2026",
+    "publishedAt": "2026-07-19T04:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Fine-Tuning",
+      "HuggingFace",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/learn/cookbook/function_calling_fine_tuning_llms_on_xlam",
+    "content": "**Fine-tune a 3B open model on 5,000 function-calling examples and it matches a 70B model at tool routing — xLAM dataset + TRL SFTTrainer, one free Colab GPU.**\n\nPrompting a small model to output correctly-formatted tool calls is a constant fight: right function name, mangled arguments; two calls when you wanted one; strings unquoted. Fine-tuning fixes this at the source — after a few thousand examples the model *understands* your tool format, rather than trying to follow a hint in the system prompt.\n\n**What you'll be able to do after this:**\n- Understand why SFT outperforms prompting alone for narrow tool-routing tasks\n- Load the xLAM 60k dataset and run TRL SFTTrainer with LoRA in ~30 lines\n- Evaluate the fine-tune by comparing parsed tool calls before and after on a held-out set\n\n## The xLAM dataset\n\nSalesforce AI Research released [xlam-function-calling-60k](https://huggingface.co/datasets/Salesforce/xlam-function-calling-60k) — 60,000 multi-turn examples spanning 200+ APIs. Each row includes a `tools` key (JSON schema) and a conversation with properly-formatted `tool_calls` messages. TRL passes the `tools` key through `apply_chat_template` automatically — no preprocessing needed.\n\nThe [HuggingFace Cookbook notebook](https://huggingface.co/learn/cookbook/function_calling_fine_tuning_llms_on_xlam) walks through the full pipeline end-to-end. Start there.\n\n## Training in ~30 lines\n\n```python\nfrom datasets import load_dataset\nfrom trl import SFTConfig, SFTTrainer\nfrom transformers import AutoModelForCausalLM, AutoTokenizer\nfrom peft import LoraConfig\n\ndataset = load_dataset(\"Salesforce/xlam-function-calling-60k\", split=\"train[:5000]\")\nmodel   = AutoModelForCausalLM.from_pretrained(\n    \"meta-llama/Llama-3.2-3B-Instruct\", load_in_4bit=True\n)\ntok = AutoTokenizer.from_pretrained(\"meta-llama/Llama-3.2-3B-Instruct\")\n\ntrainer = SFTTrainer(\n    model=model,\n    args=SFTConfig(\n        output_dir=\"./fn-call-lora\",\n        num_train_epochs=1,\n        per_device_train_batch_size=4,\n        gradient_checkpointing=True,\n        max_length=1024,\n    ),\n    train_dataset=dataset,\n    peft_config=LoraConfig(r=16, lora_alpha=32, target_modules=\"all-linear\"),\n    processing_class=tok,\n)\ntrainer.train()\n```\n\nAfter training, call `trainer.model.merge_and_unload()` to fold the adapter in, then push to HuggingFace Hub.\n\n## Quick eval\n\nPick 50 held-out examples. Run the base model and your fine-tuned adapter on the same prompts. Parse the `tool_calls` blocks and compare: function name correct, argument keys correct, argument types correct. A well-trained 3B adapter reaches >90% exact-match on single-API routing tasks where the base model sits around 55–65%.\n\n**Sources:** [Fine-tuning LLMs for Function Calling with xLAM Dataset — HuggingFace Cookbook](https://huggingface.co/learn/cookbook/function_calling_fine_tuning_llms_on_xlam) · [xlam-function-calling-60k dataset — HuggingFace Hub](https://huggingface.co/datasets/Salesforce/xlam-function-calling-60k) · [TRL SFTTrainer docs — HuggingFace](https://huggingface.co/docs/trl/en/sft_trainer) · [Practical Guide to Fine-Tuning for Tool Calling — Falcon LM](https://falcon-lm.github.io/tutorials/tool-calling-finetuning-guide/)"
+  },
+  {
+    "id": "2026-07-18-09-claude-code-custom-commands-workflow-automation",
+    "title": "Ship Your Team's Shared Claude Code Workflows in One File: Custom Commands With .claude/commands/",
+    "excerpt": "A Markdown file in .claude/commands/ becomes a shareable /command — commit it to your repo and every teammate gets the same repeatable workflow, with optional $ARGUMENTS for dynamic input.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-18-09-claude-code-custom-commands-workflow-automation.jpg",
+    "imageSource": "https://code.claude.com/docs/en/commands",
+    "content": "**TL;DR: A Markdown file in `.claude/commands/` becomes a `/command` anyone on the team can invoke — commit it to the repo and every checkout gets the same repeatable workflow.**\n\nClaude Code ships with built-in commands like `/compact` and `/review`, but the most valuable ones are the ones you write yourself. Any `.md` file you drop in `.claude/commands/` becomes a `/command-name` you can invoke from any Claude Code session in that project.\n\n## The format\n\n`.claude/commands/pr-review.md`:\n\n```markdown\n---\ndescription: Security-focused PR review checklist\nallowed-tools: Bash(git diff:*), Read\n---\n\nReview the current branch against main for security issues:\n\n1. Run `git diff main...HEAD` to see all changes.\n2. Check for: hardcoded credentials, SQL injection, XSS vectors, missing input validation, insecure dependencies.\n3. Output a numbered checklist — ✅ safe / ⚠️ concern / ❌ blocker — with file:line references.\n\nFocus on: $ARGUMENTS\n```\n\nInvoke it: `/pr-review the auth and payment modules`\n\nThe `$ARGUMENTS` placeholder injects whatever you type after the command name. Without it, Claude Code appends `ARGUMENTS: <text>` at the end — same effect, less control over placement.\n\n## Three patterns that pay off\n\n**`/deploy-check`** — pre-push checklist: env vars set, migrations up, feature flags correct, tests green. Ten seconds instead of ten minutes of memory work.\n\n**`/changelog [version]`** — generate a human-readable release summary from `git log` since the last tag, grouped by type and ready to paste into GitHub Releases.\n\n**`/explain $ARGUMENTS`** — ask Claude to explain any symbol, pattern, or concept _in the context of this specific codebase_ rather than in the abstract.\n\n## Scope and sharing\n\n- `.claude/commands/` — project-scoped, committed to the repo; everyone who checks it out gets the commands automatically.\n- `~/.claude/commands/` — personal global commands, available in every project on your machine.\n\nThe YAML frontmatter is optional but earns its keep: `description` shows up in the command picker, and `allowed-tools` pre-authorizes the tools Claude needs so the run doesn't pause for permission prompts.\n\n**Sources:** [Commands — Claude Code Docs](https://code.claude.com/docs/en/commands) · [Extend Claude with skills — Claude Code Docs](https://code.claude.com/docs/en/skills) · [Claude Code cheatsheet 2026 — awesomeclaude.ai](https://awesomeclaude.ai/code-cheatsheet)"
+  },
+  {
+    "id": "2026-07-18-08-bonsai-27b-nemotron-3-embed-new-open-models",
+    "title": "This Week in Open Models: Bonsai 27B Runs on an iPhone (3.9 GB) and Nemotron 3 Embed Takes the #1 RTEB Spot",
+    "excerpt": "Bonsai 27B (PrismML, Jul 14) fits 27B-parameter reasoning in 3.9 GB via 1-bit quantization; NVIDIA Nemotron 3 Embed 8B tops the RTEB retrieval leaderboard — both Apache 2.0.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T20:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Embeddings",
+      "Self-Hosting"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-18-08-bonsai-27b-nemotron-3-embed-new-open-models.jpg",
+    "imageCredit": "Georgie  Devlin",
+    "imageCreditUrl": "https://www.pexels.com/photo/glowing-blue-neons-8640331/",
+    "imageSource": "https://prismml.com/news/prismml-releases-bonsai-27b",
+    "content": "**TL;DR: PrismML's Bonsai 27B squeezes frontier-grade 27B reasoning into 3.9 GB via 1-bit quantization; NVIDIA's Nemotron 3 Embed 8B just took #1 on the RTEB retrieval benchmark — both free under Apache 2.0.**\n\n**Bonsai 27B — a 27B model that fits on an iPhone.** PrismML released Bonsai 27B on July 14: a 1-bit quantized version of Qwen3.6 27B that runs at 11 tok/s on an iPhone 17 Pro at just 3.9 GB. A 1.58-bit ternary variant at 5.9 GB targets laptops. The model handles multi-step reasoning, structured tool use, vision, and 128K-token context. Apple is reportedly in talks with PrismML about the compression technology. → [prismml.com](https://prismml.com/news/prismml-releases-bonsai-27b)\n\n**NVIDIA Nemotron 3 Embed — new #1 embedding model.** Released July 17, Nemotron 3 Embed is an open, commercially-licensed collection of three models. The flagship 8B checkpoint (Nemotron-3-Embed-8B-BF16) scores 78.5% on RTEB — #1 overall, across 34 languages, with a 32,768-token maximum sequence length. Two efficient 1B variants (BF16 and Blackwell-optimized NVFP4) target production RAG at lower cost. Weights on HuggingFace now. → [HuggingFace blog](https://huggingface.co/blog/nvidia/nemotron-3-embed-wins-rteb)\n\n**Why it matters:** 1-bit compression is making 27B-class models viable on commodity hardware, and the RTEB leaderboard now has an open model at the top — both trends reduce lock-in to closed APIs for inference and retrieval.\n\n**Sources:** [Bonsai 27B release — PrismML](https://prismml.com/news/prismml-releases-bonsai-27b) · [Nemotron 3 Embed #1 on RTEB — HuggingFace Blog](https://huggingface.co/blog/nvidia/nemotron-3-embed-wins-rteb) · [Bonsai 27B on 9to5Mac](https://9to5mac.com/2026/07/14/prismml-releases-bonsai-27b-claiming-first-major-ai-model-of-its-size-fit-for-iphone/)"
+  },
+  {
+    "id": "2026-07-18-07-litellm-ai-gateway-unified-llm-proxy",
+    "title": "One Endpoint, 100 Providers: Run a Self-Hosted AI Gateway With LiteLLM in 5 Minutes",
+    "excerpt": "LiteLLM is an MIT-licensed Python SDK and self-hosted proxy that routes to 100+ LLM providers with one OpenAI-compatible endpoint — swap models without touching application code.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T20:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Self-Hosting",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-18-07-litellm-ai-gateway-unified-llm-proxy.jpg",
+    "imageCredit": "Christina Morillo",
+    "imageCreditUrl": "https://www.pexels.com/photo/engineer-holding-laptop-1181316/",
+    "imageSource": "https://docs.litellm.ai/docs/",
+    "content": "**TL;DR: LiteLLM is a self-hosted OpenAI-compatible proxy that routes to 100+ LLM providers — Claude, Gemini, local Ollama, and more — behind a single endpoint, swappable without changing application code.**\n\n**What you'll be able to do after this:**\n- Point any OpenAI SDK client at your own gateway and switch between providers by editing one config line\n- Assign per-team virtual API keys with spend caps and automatic model fallbacks\n- Add response caching, latency-based routing, and centralized logging in a single `config.yaml`\n\n## Install and call any model (SDK mode)\n\n```bash\npip install litellm\n```\n\n```python\nfrom litellm import completion\n\n# Same call format for every provider — just change the model string\nr = completion(model=\"anthropic/claude-sonnet-4-6\",\n               messages=[{\"role\": \"user\", \"content\": \"Hello\"}])\n\nr = completion(model=\"gemini/gemini-2.0-flash\",\n               messages=[{\"role\": \"user\", \"content\": \"Hello\"}])\n\nr = completion(model=\"ollama/llama3.2\",        # local, no API key\n               messages=[{\"role\": \"user\", \"content\": \"Hello\"}])\n```\n\n## Run the proxy gateway (team mode)\n\n`config.yaml`:\n\n```yaml\nmodel_list:\n  - model_name: fast          # alias your app uses\n    litellm_params:\n      model: anthropic/claude-haiku-4-5\n      api_key: os.environ/ANTHROPIC_API_KEY\n  - model_name: fast          # second option for \"fast\" — LiteLLM load-balances\n    litellm_params:\n      model: ollama/llama3.2\n      api_base: http://localhost:11434\n  - model_name: smart\n    litellm_params:\n      model: anthropic/claude-sonnet-5\n      api_key: os.environ/ANTHROPIC_API_KEY\n\nrouter_settings:\n  routing_strategy: latency-based-routing\n  fallbacks: [{\"fast\": [\"smart\"]}]   # fall back to smart if fast is down\n\ngeneral_settings:\n  master_key: sk-my-gateway-key      # issue virtual keys from this\n```\n\n```bash\nlitellm --config config.yaml --port 4000\n```\n\nNow any OpenAI client works unchanged:\n\n```python\nfrom openai import OpenAI\nclient = OpenAI(base_url=\"http://localhost:4000\", api_key=\"sk-my-gateway-key\")\nresp = client.chat.completions.create(model=\"smart\", messages=[...])\n```\n\n## What to add next\n\n- **Virtual keys:** `POST /key/generate` with `max_budget` + `team_id` — each team gets their own key with spend tracking.\n- **Caching:** `litellm_settings: cache: true` — identical requests return cached responses instantly.\n- **Logging:** set `success_callback: [\"langfuse\"]` to wire tracing without touching app code.\n\n> **Security note:** LiteLLM had a CVSS 10.0 RCE chain patched in v1.43.x (CVE-2026-42271). Always pin to the latest stable release before deploying.\n\n**Sources:** [LiteLLM Getting Started — docs.litellm.ai](https://docs.litellm.ai/docs/) · [LiteLLM Proxy (AI Gateway) — docs.litellm.ai](https://docs.litellm.ai/docs/simple_proxy) · [BerriAI/litellm — GitHub](https://github.com/BerriAI/litellm)"
+  },
+  {
+    "id": "2026-07-18-06-claude-code-headless-print-ci-pipelines",
+    "title": "Run Claude Code Without Watching: The -p Flag for CI, Scripts, and GitHub Actions",
+    "excerpt": "The -p (--print) flag makes Claude Code non-interactive: one prompt, full agent loop, then exit — perfect for CI pipelines, shell scripts, and GitHub Actions with no human in the loop.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T12:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-18-06-claude-code-headless-print-ci-pipelines.jpg",
+    "imageSource": "https://code.claude.com/docs/en/headless",
+    "content": "**TL;DR: `claude -p \"your task\" --allowedTools Bash,Read,Edit` runs Claude Code non-interactively — add it to any CI pipeline, shell script, or scheduled job in minutes.**\n\n`-p` (short for `--print`) is Claude Code's scripting mode: it processes one prompt, runs the full agent loop (reads files, edits code, runs tests), then exits with a zero or non-zero status code. No interactive shell, no permission prompts, no human needed.\n\n## The minimal CI step\n\n```yaml\n# GitHub Actions — official action handles auth plumbing for you\n- uses: anthropics/claude-code-action@v1\n  with:\n    prompt: \"Review this PR for security issues and comment on the diff\"\n    allowed_tools: \"Read,Bash\"\n    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n```\n\nOr bare shell in any CI runner:\n\n```bash\nclaude -p \"Run the test suite and fix any failures\" \\\n  --allowedTools \"Bash,Read,Edit\" \\\n  --max-turns 15 \\\n  --output-format json | jq .result\n```\n\n## Four flags that matter\n\n| Flag | What it does |\n|------|-------------|\n| `--allowedTools` | Comma-list of tools Claude can use without prompting |\n| `--max-turns` | Hard stop after N agent turns — safety cap for unattended runs |\n| `--output-format json` | Return JSON with `result`, `cost_usd`, `turns` — machine-parseable |\n| `--bare` | Strip local config; ensures identical behavior on every machine |\n\n## Rate-limit guardrail\n\n`CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION=50` caps WebSearch calls per `-p` invocation. The default is 200 — useful to lower it when Claude Code runs autonomously so a runaway search loop doesn't burn your quota.\n\n## Background agents are awaited\n\nBackground `/fork` subagents spawned during a `-p` run complete before the process exits (capped at 10 minutes by default, tunable with `CLAUDE_CODE_MAX_BACKGROUND_WAIT_MINUTES`). Their output is included in the JSON result.\n\nStart with a narrow `--allowedTools` list and widen as you see what the agent needs. It's much easier to add a tool than to clean up a CI run that modified unexpected files.\n\n**Sources:** [Run Claude Code programmatically (official docs)](https://code.claude.com/docs/en/headless) · [CLI reference](https://code.claude.com/docs/en/cli-reference) · [anthropics/claude-code-action](https://github.com/anthropics/claude-code-action)"
+  },
+  {
+    "id": "2026-07-18-05-anthropic-admin-api-user-management",
+    "title": "Manage Claude Enterprise Seats Programmatically: Admin API User Management Now in Beta",
+    "excerpt": "Anthropic opened user management to the Admin API in beta for Claude Enterprise — admins can now programmatically list members, change roles, manage groups, and automate seat provisioning via IdP.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T12:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-18-05-anthropic-admin-api-user-management.jpg",
+    "imageSource": "https://platform.claude.com/docs/en/manage-claude/admin-api",
+    "content": "**TL;DR: Claude Enterprise admins can now manage seats, roles, and groups via REST API — enabling IdP-synced onboarding and offboarding without touching the admin panel.**\n\nAnthropic released user management endpoints to the Admin API this week, in beta for all Claude Enterprise organizations. The new endpoints let you:\n\n- List organization members and look them up by email address\n- Change a member's role (e.g. Member → Admin)\n- Remove members and withdraw pending invitations\n- Create and manage groups and their membership\n- Read custom role definitions\n\nGroup and custom-role operations require the beta header `anthropic-beta: ce-user-management-2026-07-13`. Member and invite endpoints work with any Admin API key that has the `read:org_audit` scope.\n\n**Why it matters:** This makes Claude Enterprise automatable. Teams can now hook seat provisioning into an IdP (Okta, Entra ID, etc.) so new hires get Claude access on day one and departing employees lose it automatically — no manual admin portal steps, no access-review spreadsheets.\n\n**Sources:** [Anthropic Admin API docs](https://platform.claude.com/docs/en/manage-claude/admin-api) · [Releasebot: Anthropic July 2026 updates](https://releasebot.io/updates/anthropic)"
+  },
+  {
+    "id": "2026-07-18-04-weaviate-local-docker-vector-search",
+    "title": "Your First Dedicated Vector Database: Weaviate Local Docker Quickstart in Python",
+    "excerpt": "Spin up Weaviate locally with Docker, create a typed collection with auto-vectorization via Ollama, and run near_text semantic search — all in Python, no cloud account required.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T12:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Vectors",
+      "Embeddings",
+      "Self-Hosting"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-18-04-weaviate-local-docker-vector-search.jpg",
+    "imageSource": "https://docs.weaviate.io/weaviate/quickstart/local",
+    "content": "**TL;DR: Three docker-compose lines, five Python lines, and you have a running vector database that semantically searches your documents without a cloud account or external embedding API.**\n\n**What you'll be able to do after this:**\n- Run Weaviate locally using Docker (embedding model included via Ollama — no API keys)\n- Create a typed collection and bulk-import documents with auto-vectorization\n- Execute `near_text` semantic search and retrieve ranked results from Python\n\n## What makes Weaviate different\n\nUnlike pgvector (which bolts vector search onto PostgreSQL) or FAISS (an in-process library), Weaviate is a standalone vector database built ground-up for similarity search. It bundles HNSW indexing, BM25 keyword search, and hybrid search into one service with a schema-backed Python client and a gRPC-accelerated query path.\n\n## 1. Start Weaviate + Ollama with Docker Compose\n\n```yaml\n# docker-compose.yml\nversion: '3.4'\nservices:\n  weaviate:\n    image: semitechnologies/weaviate:latest\n    ports:\n      - \"8080:8080\"\n      - \"50051:50051\"   # gRPC — required by the v4 Python client\n    environment:\n      ENABLE_MODULES: 'text2vec-ollama,generative-ollama'\n      DEFAULT_VECTORIZER_MODULE: 'text2vec-ollama'\n      CLUSTER_HOSTNAME: 'node1'\n  ollama:\n    image: ollama/ollama\n    volumes:\n      - ./ollama:/root/.ollama\n    ports:\n      - \"11434:11434\"\n```\n\n```bash\ndocker compose up -d\ndocker exec <ollama-container> ollama pull nomic-embed-text\npip install weaviate-client\n```\n\n## 2. Connect and create a collection\n\n```python\nimport weaviate\nfrom weaviate.classes.config import Configure\n\nclient = weaviate.connect_to_local()   # hits localhost:8080\n\nclient.collections.create(\n    name=\"Article\",\n    vectorizer_config=Configure.Vectorizer.text2vec_ollama(\n        api_endpoint=\"http://ollama:11434\",\n        model=\"nomic-embed-text\",\n    ),\n)\n```\n\nThe `text2vec-ollama` module tells Weaviate to embed each object at insert time using your local Ollama model — no OpenAI key, no API bill.\n\n## 3. Batch-import documents\n\n```python\narticles = client.collections.get(\"Article\")\nwith articles.batch.dynamic() as batch:\n    for doc in your_documents:\n        batch.add_object({\"title\": doc[\"title\"], \"body\": doc[\"body\"]})\n```\n\n`batch.dynamic()` auto-sizes batch requests based on server feedback.\n\n## 4. Semantic search\n\n```python\nresults = articles.query.near_text(\n    query=\"vector database indexing strategies\",\n    limit=5,\n)\nfor obj in results.objects:\n    print(obj.properties[\"title\"])\n```\n\nThat's the full loop: ingest → embed locally → query. Weaviate also supports `near_vector` (bring your own embeddings), pure BM25 keyword search, and `hybrid` (BM25 + vector) with a single flag — no extra search engine needed.\n\n**Sources:** [Weaviate Local Docker Quickstart (official)](https://docs.weaviate.io/weaviate/quickstart/local) · [DataCamp Weaviate tutorial](https://www.datacamp.com/tutorial/weaviate-tutorial) · [Vector Databases with Weaviate in Python — YouTube](https://www.youtube.com/watch?v=GDYTBhwj5oI)"
+  },
+  {
+    "id": "2026-07-18-03-copilot-code-review-reads-claude-md",
+    "title": "One File, Two AI Code Reviews: GitHub Copilot Now Reads Your CLAUDE.md",
+    "excerpt": "Copilot code review (Jul 17) now reads CLAUDE.md, AGENTS.md, and *.instructions.md from the PR head branch — one file can drive consistent code conventions in both Claude Code and Copilot review.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-18-03-copilot-code-review-reads-claude-md.jpg",
+    "imageSource": "https://github.blog/changelog/2026-07-17-copilot-code-review-customization-and-configurability-improvements/",
+    "content": "**TL;DR: Copilot code review now reads CLAUDE.md and AGENTS.md from your PR's head branch — teams using both Claude Code and GitHub Copilot code review can enforce code conventions from a single file.**\n\nGitHub shipped code review customization improvements on July 17. Two changes matter for Claude Code shops:\n\n## CLAUDE.md is now a code-review input\n\nCopilot code review scans `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, and any `*.instructions.md` files in your repo alongside `.github/copilot-instructions.md`. Claude Code already uses `CLAUDE.md` as its behavior spec — now Copilot code review reads the same file. One file drives consistent conventions in both tools.\n\n## Instructions come from the HEAD branch\n\nCopilot now reads instructions from the PR's feature branch, not the default branch. You can iterate on new review instructions in a feature branch and test them before merging — no more needing to merge instruction changes to `main` first.\n\n## Setting it up\n\n```yaml\n# .github/copilot-code-review.yml — optional: install deps the review needs\nname: Copilot Code Review Setup\nsteps:\n  - run: pip install -r requirements.txt\n  - run: npm ci\n```\n\nIf your `CLAUDE.md` is already well-structured (coding style, test expectations, commit conventions), Copilot code review picks it up automatically. Add a `## Code Review` section for review-specific guidance — for example, flagging when coverage drops or when public APIs lack docstrings.\n\nThe Copilot code review firewall is also now independently configurable from the Copilot cloud agent, giving you separate network access controls for each. And both agents can now be assigned different runner types in org settings — useful when your review agent needs a larger machine than your cloud agent.\n\n**Sources:** [GitHub Changelog: Copilot code review customization (Jul 17)](https://github.blog/changelog/2026-07-17-copilot-code-review-customization-and-configurability-improvements/)"
+  },
+  {
+    "id": "2026-07-18-02-kimi-k3-open-weight-moe-frontier",
+    "title": "Kimi K3: The Largest Open-Weight Frontier Model Ships (2.8T MoE, 1M Context, Weights July 27)",
+    "excerpt": "Moonshot AI releases Kimi K3 (July 16) — a 2.8T MoE open-weight model with 1M context, Kimi Delta Attention, and #1 on the Frontend Code Arena. Full weights release July 27 under Modified MIT.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T04:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Self-Hosting"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-18-02-kimi-k3-open-weight-moe-frontier.jpg",
+    "imageCredit": "panumas nikhomkhai",
+    "imageCreditUrl": "https://www.pexels.com/photo/line-of-pc-towers-17489151/",
+    "imageSource": "https://www.marktechpost.com/2026/07/16/moonshot-ai-releases-kimi-k3-a-2-8-trillion-parameter-open-moe-model-with-kimi-delta-attention-and-1m-context/",
+    "content": "**TL;DR: Moonshot AI's Kimi K3 — a 2.8T-parameter MoE with 1M context — debuted July 16 at #1 on the Frontend Code Arena leaderboard; weights release July 27 under Modified MIT.**\n\nKimi K3 is a 2.8-trillion-parameter Mixture-of-Experts model with 896 total experts and 16 active per token. Two new architectural components drive it: **Kimi Delta Attention (KDA)**, a hybrid linear attention mechanism that reduces quadratic attention cost on long sequences, and **Attention Residuals (AttnRes)**, which Moonshot says improves long-context reasoning quality. Context window: 1M tokens. Native vision support. Priced at $3/$15 per million tokens — same as Claude Sonnet 5.\n\nOn independent evaluation it ranks fourth among all frontier models — behind Claude Fable 5 and GPT-5.6 Sol, ahead of Claude Opus 4.8 — and sits first in the Frontend Code Arena with 1,679 points. Full weights land **July 27** under a Modified MIT license.\n\n**Why it matters:** When weights release July 27, Kimi K3 will be the largest open-weight model available to self-host. If it holds its leaderboard position in practice, it opens a real path to running frontier-grade coding assistance without API dependency — worth watching closely.\n\n**Sources:** [Kimi K3 — MarkTechPost](https://www.marktechpost.com/2026/07/16/moonshot-ai-releases-kimi-k3-a-2-8-trillion-parameter-open-moe-model-with-kimi-delta-attention-and-1m-context/) · [Moonshot AI Kimi K3](https://kimik3.xyz/)"
+  },
+  {
+    "id": "2026-07-18-01-vllm-structured-outputs-guided-json-xgrammar",
+    "title": "Guaranteed JSON from Any Local Model: vLLM Structured Outputs with XGrammar",
+    "excerpt": "vLLM's guided decoding (XGrammar backend) masks invalid tokens at sample time — output is always JSON Schema-conformant, a fixed choice, or regex-matched. Zero retries, works with any served model.",
+    "author": "Chris Harper",
+    "date": "07-18-2026",
+    "publishedAt": "2026-07-18T04:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Self-Hosting",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-18-01-vllm-structured-outputs-guided-json-xgrammar.jpg",
+    "imageCredit": "panumas nikhomkhai",
+    "imageCreditUrl": "https://www.pexels.com/photo/boxes-of-computers-17489152/",
+    "imageSource": "https://docs.vllm.ai/en/latest/features/structured_outputs/",
+    "content": "**TL;DR: vLLM's guided decoding constrains generation at the token level — XGrammar masks invalid tokens so the output is always a valid JSON object, enum member, or regex match, with zero post-processing.**\n\n**What you'll be able to do after this:**\n- Serve any HuggingFace model with vLLM and get guaranteed JSON Schema-conformant output via `guided_json`\n- Classify text into a fixed enum with `guided_choice` — zero prompt engineering, zero retries\n- Understand how constrained decoding differs from Instructor's prompt-then-retry approach — and when each wins\n\nThe earlier post on [Instructor](https://cloudcodetree.com/ai-news/2026-06-30-06-instructor-structured-output-pydantic) covers the retry-based approach: ask the model for JSON, validate with Pydantic, retry if invalid. Constrained decoding skips the retry loop entirely. Invalid tokens are masked *before* sampling, so the model *can't* produce malformed output. This is available server-side in vLLM via the `extra_body` parameters in the OpenAI-compatible client.\n\nvLLM supports four constraint modes via `extra_body`:\n\n| Mode | Use when |\n|------|----------|\n| `guided_json` | Extracting nested structured data — JSON Schema or Pydantic model |\n| `guided_choice` | Classification over a fixed label set — fastest, clearest |\n| `guided_regex` | Extracting a typed string (version, date, email) from free text |\n| `guided_grammar` | Generating valid SQL, code, or other formal languages |\n\nXGrammar is the default backend (auto mode in vLLM). It partitions the vocabulary by schema at startup and caches token masks, adding under 40 microseconds of overhead per token at serving time — effectively free.\n\n## Walk-through\n\n### 1. Start a vLLM server\n\n```bash\npip install vllm\nvllm serve Qwen/Qwen2.5-7B-Instruct --host 0.0.0.0\n# XGrammar is default; explicit: --guided-decoding-backend xgrammar\n```\n\n### 2. guided_json — extract structured data with a Pydantic schema\n\n```python\nfrom openai import OpenAI\nfrom pydantic import BaseModel\nfrom enum import Enum\n\nclient = OpenAI(base_url=\"http://localhost:8000/v1\", api_key=\"-\")\n\nclass Sentiment(str, Enum):\n    positive = \"positive\"\n    negative = \"negative\"\n    neutral = \"neutral\"\n\nclass ReviewAnalysis(BaseModel):\n    sentiment: Sentiment\n    confidence: float\n    key_phrases: list[str]\n\nschema = ReviewAnalysis.model_json_schema()\n\nresult = client.chat.completions.create(\n    model=\"Qwen/Qwen2.5-7B-Instruct\",\n    messages=[{\n        \"role\": \"user\",\n        \"content\": \"Analyze: 'The API latency is excellent but the docs are thin.'\"\n    }],\n    extra_body={\"guided_json\": schema}\n)\nimport json\nanalysis = ReviewAnalysis(**json.loads(result.choices[0].message.content))\n# Always a valid ReviewAnalysis — no try/except needed\n```\n\n### 3. guided_choice — zero-shot classification\n\n```python\nresult = client.chat.completions.create(\n    model=\"Qwen/Qwen2.5-7B-Instruct\",\n    messages=[{\"role\": \"user\", \"content\": \"Triage this: 'App crashes on startup after login'\"}],\n    extra_body={\"guided_choice\": [\"bug\", \"feature_request\", \"question\"]}\n)\nlabel = result.choices[0].message.content\n# Exactly one of the three strings — no parse step at all\n```\n\n### 4. guided_regex — extract a typed string\n\n```python\nresult = client.chat.completions.create(\n    model=\"Qwen/Qwen2.5-7B-Instruct\",\n    messages=[{\"role\": \"user\", \"content\": \"Extract the version from: 'Fixed in release 2.14.3-beta'\"}],\n    extra_body={\"guided_regex\": r\"\\d+\\.\\d+\\.\\d+(-[a-z]+)?\"}\n)\n```\n\nThese same parameters work with the offline `LLM` class too: pass a `GuidedDecodingParams` inside `SamplingParams` (`json=`, `choice=`, `regex=`, `grammar=`).\n\n**Sources:** [vLLM Structured Outputs docs](https://docs.vllm.ai/en/latest/features/structured_outputs/) · [Structured Decoding in vLLM — BentoML](https://www.bentoml.com/blog/structured-decoding-in-vllm-a-gentle-introduction) · [XGrammar paper](https://arxiv.org/pdf/2411.15100)"
+  },
+  {
+    "id": "2026-07-17-06-claude-code-fork-subtask-background-session-pattern",
+    "title": "/fork vs /subtask: Use the Right Delegation Mode for Every Agent Task in Claude Code 2.1.212",
+    "excerpt": "/fork creates a durable, resumable background session in claude agents; /subtask is a lightweight inline helper that runs in your current session. Here's a concrete workflow using both.",
+    "author": "Chris Harper",
+    "date": "07-17-2026",
+    "publishedAt": "2026-07-17T12:10:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-17-06-claude-code-fork-subtask-background-session-pattern.jpg",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**/fork creates a durable, resumable background session; /subtask is a lightweight inline helper — here's how to use both in a real parallel workflow.**\n\nClaude Code 2.1.212 splits what was one command into two with meaningfully different semantics.\n\n## /fork — durable background sessions\n\n```\n/fork Research the best auth pattern for our service — compare JWT, session cookies, and OAuth2 and draft a recommendation\n/fork Find all usages of AuthService in the codebase and map the call sites\n/fork Write a first-draft migration guide for switching from cookie sessions to JWT\n```\n\nEach `/fork` creates an independent session in `claude agents` with its own context window. You keep working in the main session. When the forks finish, open each via `/resume` or the agents view. Forked sessions persist across `/clear` and are resumable — they are proper parallel workers.\n\n## /subtask — lightweight inline helpers\n\n```\n/subtask refactor this function to use early returns\n/subtask generate a docstring for the selected code\n```\n\n`/subtask` runs inline in your current session: no separate row in `claude agents`, result appears in-thread, and it shares the parent's context window. Best for fast, focused tasks where you want the answer immediately in your current thread.\n\n**The rule of thumb:** reach for `/fork` when the work is complex enough to need its own context window, might run longer than your current task, or produces output you want to revisit later. Use `/subtask` when you just want a quick in-place answer.\n\n## Session budgets (new in 2.1.212)\n\nIf a forked session runs wild — spawning dozens of sub-searches or chaining subagents — it now hits a hard cap of 200 WebSearch calls and 200 subagent spawns. Tune per use case:\n\n```bash\n# Focused coding session (tight budget)\nCLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION=25 \\\nCLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION=10 claude\n\n# Open-ended research session\nCLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION=200 \\\nCLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION=100 claude\n```\n\nRun `/clear` to reset both budgets mid-session without restarting Claude Code.\n\n**Sources:** [Claude Code changelog v2.1.212](https://code.claude.com/docs/en/changelog) · [Claude Code agents — background sessions](https://code.claude.com/docs/en/agents)"
+  },
+  {
+    "id": "2026-07-17-05-claude-code-2-1-212-fork-subtask-session-caps",
+    "title": "Claude Code 2.1.212: /fork Now Creates a True Background Session; /subtask Replaces the Old In-Session Delegate",
+    "excerpt": "Claude Code 2.1.212 lands today: /fork creates a persistent background session in claude agents, /subtask is the new inline helper, and per-session caps stop runaway agent and search loops.",
+    "author": "Chris Harper",
+    "date": "07-17-2026",
+    "publishedAt": "2026-07-17T12:09:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Claude Code",
+      "Agents"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-17-05-claude-code-2-1-212-fork-subtask-session-caps.jpg",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**Claude Code 2.1.212 ships today with a meaningful delegation model change: /fork now creates a persistent background session, not a fire-and-forget inline subagent.**\n\n`/fork` now copies your conversation into a fully independent background session — its own row in `claude agents`, visible in the web view, resumable later. The old in-session delegate behavior is now `/subtask`: runs inline, shares parent context, disappears when done. Use `/fork` for complex parallel work that might outlast your current focus; use `/subtask` for quick inline helpers.\n\nThe release also adds **session-wide safety caps**: WebSearch calls cap at 200 per session (tune with `CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`), and subagent spawns cap at 200 (`CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`). `/clear` resets both budgets. New: `claude auto-mode reset` restores default auto-mode if your CLAUDE.md rules have drifted.\n\n**Also:** GitHub Copilot is deprecating Gemini 2.5 Pro and Gemini 3 Flash across all experiences on **July 31**. Migrate workflows to Gemini 3.1 Pro or Gemini 3.5 Flash before then.\n\n**Why it matters:** The `/fork` → true background session change makes parallel branching significantly more durable. Forked sessions survive `/clear` and are resumable, making them proper persistent workers rather than disposable inline tasks.\n\n**Sources:** [Claude Code changelog v2.1.212](https://code.claude.com/docs/en/changelog) · [GitHub Copilot Gemini deprecation (Jul 31)](https://github.blog/changelog/2026-07-02-upcoming-deprecation-of-gemini-2-5-pro-and-gemini-3-flash/)"
+  },
+  {
+    "id": "2026-07-17-04-trl-sfttrainer-supervised-fine-tuning",
+    "title": "SFTTrainer: The Foundation Under Unsloth and Axolotl — Fine-Tune Any LLM in 30 Lines of Python",
+    "excerpt": "TRL's SFTTrainer is the shared core that Unsloth and Axolotl wrap. Learn the core 30-line pattern — chat template application, loss masking, example packing, and LoRA via PEFT — and the wrappers in…",
+    "author": "Chris Harper",
+    "date": "07-17-2026",
+    "publishedAt": "2026-07-17T12:08:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Fine-Tuning",
+      "HuggingFace",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-17-04-trl-sfttrainer-supervised-fine-tuning.jpg",
+    "imageSource": "https://huggingface.co/docs/trl/en/sft_trainer",
+    "content": "**SFTTrainer is the HuggingFace foundation every popular fine-tuning wrapper uses — understand the core and every framework instantly makes sense.**\n\n**What you'll be able to do after this:**\n- Fine-tune any HuggingFace model on an instruction dataset in ~30 lines of Python using TRL's SFTTrainer\n- Enable example packing to maximize GPU utilization on variable-length conversation data\n- Apply LoRA on top of SFTTrainer via PEFT's LoraConfig for memory-efficient training\n\nUnsloth and Axolotl are excellent production frameworks, but they wrap a simpler thing: TRL's `SFTTrainer`. Once you see the core pattern, the wrappers become obvious optimizations rather than magic — and you can debug them when something goes wrong.\n\n## What SFTTrainer does\n\nIt is a thin wrapper around HuggingFace's `Trainer` class, adding two things specific to instruction fine-tuning:\n\n1. **Chat template application** — it calls `tokenizer.apply_chat_template()` on conversational datasets, converting `{role, content}` turns into model-native tokens (e.g. `<|im_start|>assistant` for Qwen).\n2. **Loss masking** — user and system turns are masked so the training loss is computed only on assistant completions. Your model learns to generate responses, not to repeat prompts.\n\n## The 30-line quickstart\n\n```python\nfrom datasets import load_dataset\nfrom trl import SFTTrainer, SFTConfig\nfrom peft import LoraConfig\n\n# 1. Load a conversational dataset ({messages: [...]}) format\ndataset = load_dataset(\"trl-lib/Capybara\", split=\"train\")\n\n# 2. Training config\nconfig = SFTConfig(\n    output_dir=\"./ft-model\",\n    per_device_train_batch_size=2,\n    gradient_accumulation_steps=4,\n    num_train_epochs=1,\n    learning_rate=2e-4,\n    packing=True,        # pack multiple short examples into one sequence\n    max_seq_length=2048,\n)\n\n# 3. Optional: LoRA to keep VRAM under 12 GB\nlora = LoraConfig(r=16, lora_alpha=32, target_modules=\"all-linear\")\n\n# 4. Train\ntrainer = SFTTrainer(\n    model=\"Qwen/Qwen2.5-0.5B\",\n    train_dataset=dataset,\n    args=config,\n    peft_config=lora,     # omit for full fine-tune\n)\ntrainer.train()\ntrainer.save_model(\"./ft-model\")\n```\n\n## Key options\n\n- `packing=True` — batches multiple short examples together, crucial for conversation datasets with variable-length turns. Disable for eval: `eval_packing=False`.\n- `max_seq_length` — sequences longer than this are truncated (not padded). Set it to the P90 of your dataset's token lengths, not the model's maximum.\n- `peft_config` — pass a `LoraConfig` for LoRA-SFT. Omit it for full fine-tuning (needs significantly more VRAM).\n- `dataset_text_field` — if your dataset has a single `\"text\"` column of pre-formatted strings, set this; SFTTrainer will tokenize directly without applying a chat template.\n\nAfter training, call `trainer.model.merge_and_unload()` to bake the LoRA adapter into the base weights, then push to the Hub — covered in the [LoRA merge post](https://cloudcodetree.com/ai-news/2026-06-30-04-lora-merge-and-unload-push-huggingface-hub).\n\n**Sources:** [TRL SFTTrainer docs](https://huggingface.co/docs/trl/en/sft_trainer) · [HuggingFace LLM Course Ch. 11 — SFT](https://huggingface.co/learn/llm-course/en/chapter11/3) · [SFT Colab (NielsRogge/Transformers-Tutorials)](https://colab.research.google.com/github/NielsRogge/Transformers-Tutorials/blob/master/Mistral/Supervised_fine_tuning_(SFT)_of_an_LLM_using_Hugging_Face_tooling.ipynb)"
+  },
+  {
+    "id": "2026-07-17-03-claude-api-streaming-messages-stream",
+    "title": "Stop Waiting for the Full Response: Stream Claude Replies Token-by-Token With messages.stream()",
+    "excerpt": "Replace messages.create() with messages.stream() and a with block — users see the first token in under 100ms instead of waiting 3-5 seconds for the full reply, with zero other code changes.",
+    "author": "Chris Harper",
+    "date": "07-17-2026",
+    "publishedAt": "2026-07-17T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-17-03-claude-api-streaming-messages-stream.jpg",
+    "imageSource": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+    "content": "**Replace `messages.create()` with `messages.stream()` — users see the first token in under 100ms instead of waiting 3–5 seconds for a full reply, with almost no code change.**\n\nEvery call to `messages.create()` blocks until Claude finishes generating. For a 300-word reply, that's 3–5 seconds of silence before your UI shows anything. Streaming prints each token as it's generated — users see the response start immediately.\n\n## The two-line change\n\n```python\nimport anthropic\n\nclient = anthropic.Anthropic()\n\n# Before — blocks until the full response is ready\nresponse = client.messages.create(\n    model=\"claude-opus-4-8\",\n    max_tokens=1024,\n    messages=[{\"role\": \"user\", \"content\": \"Explain gradient descent.\"}],\n)\nprint(response.content[0].text)\n\n# After — streams tokens as they arrive\nwith client.messages.stream(\n    model=\"claude-opus-4-8\",\n    max_tokens=1024,\n    messages=[{\"role\": \"user\", \"content\": \"Explain gradient descent.\"}],\n) as stream:\n    for text in stream.text_stream:\n        print(text, end=\"\", flush=True)\n```\n\n`stream.text_stream` is a generator that yields each text delta as Claude produces it. The `with` block closes the connection when done.\n\n## Store the complete message after streaming\n\n```python\nwith client.messages.stream(\n    model=\"claude-opus-4-8\",\n    max_tokens=1024,\n    messages=[{\"role\": \"user\", \"content\": \"Explain gradient descent.\"}],\n) as stream:\n    for text in stream.text_stream:\n        print(text, end=\"\", flush=True)\n\n    # After the loop exits, the full message is available\n    final = stream.get_final_message()\n    # Same shape as messages.create() — use for storage, conversation history, etc.\n    print(f\"\\nTokens used: {final.usage.input_tokens} in, {final.usage.output_tokens} out\")\n```\n\n## Async version (FastAPI, WebSockets, SSE)\n\n```python\nasync def stream_to_client(prompt: str):\n    client = anthropic.AsyncAnthropic()\n    async with client.messages.stream(\n        model=\"claude-opus-4-8\",\n        max_tokens=1024,\n        messages=[{\"role\": \"user\", \"content\": prompt}],\n    ) as stream:\n        async for text in stream.text_stream:\n            yield text   # forward to your SSE or WebSocket handler\n```\n\n## Streaming with tool calls\n\nUse raw stream events when you need to handle tool calls alongside text:\n\n```python\nwith client.messages.stream(\n    model=\"claude-opus-4-8\",\n    max_tokens=1024,\n    tools=[{\"name\": \"get_weather\", \"description\": \"...\", \"input_schema\": {...}}],\n    messages=[{\"role\": \"user\", \"content\": \"What's the weather in NYC?\"}],\n) as stream:\n    for event in stream:\n        if event.type == \"content_block_start\" and event.content_block.type == \"tool_use\":\n            print(f\"\\n[Tool call: {event.content_block.name}]\")\n        elif event.type == \"content_block_delta\" and event.delta.type == \"text_delta\":\n            print(event.delta.text, end=\"\", flush=True)\n```\n\n## When streaming matters\n\n| Use case | Streaming? |\n|---|---|\n| User-facing chat UI | Yes — first token under 100ms |\n| Background batch job | No — `create()` is simpler |\n| Agent inner loop | Optional — use for live progress |\n| CI pipeline | No — final result is all that matters |\n\n**Sources:** [Streaming messages — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/streaming) · [Anthropic Python SDK](https://github.com/anthropics/anthropic-sdk-python)"
+  },
+  {
+    "id": "2026-07-17-02-gemini-3-5-pro-enterprise-preview",
+    "title": "Google Launches Gemini 3.5 Pro in Enterprise Preview: 2M-Token Context and Deep Think Reasoning",
+    "excerpt": "Google DeepMind's Gemini 3.5 Pro opens in limited Vertex AI enterprise preview today: 2.1M token context window and Deep Think reasoning mode. Reported pricing around $15/$60 per million tokens; no…",
+    "author": "Chris Harper",
+    "date": "07-17-2026",
+    "publishedAt": "2026-07-17T04:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-17-02-gemini-3-5-pro-enterprise-preview.jpg",
+    "imageSource": "https://ai.google.dev/gemini-api/docs/pricing",
+    "content": "**Google opens Gemini 3.5 Pro in limited Vertex AI enterprise preview today: a 2.1M-token context window and Deep Think reasoning mode, rebuilt from scratch after the original model failed recursive tool-calling and SVG generation tests.**\n\nGemini 3.5 Pro was rebuilt from scratch after Google's engineers found structural failures in the original version. The launch today is limited to enterprise Vertex AI customers who request early access — no public API listing on OpenRouter or the standard Gemini API yet.\n\n**What's reportedly shipping:**\n- **2.1M token context** — enough for ~1,500 pages of technical documents in a single call; changes the chunking calculus for long-document analysis and multi-file review\n- **Deep Think reasoning** — Google's extended-thinking mode, similar to Claude's extended thinking or OpenAI's o-series; gated to the Ultra tier on the consumer side, API access TBD\n- **Reported pricing** — ~$15 input / $60 output per million tokens (vs Gemini 3.1 Pro at $2/$12), from third-party sources — not officially confirmed by Google\n\n**Gemini 3.5 Flash**, the faster/cheaper sibling, is already available on the public Gemini API and OpenRouter.\n\n**Why it matters:** 2M context removes the retrieval bottleneck for a class of document-analysis and code-review tasks where chunking introduces errors. Watch the Gemini API changelog and `ai.google.dev` pricing page for GA availability and confirmed pricing before building against it.\n\n**Sources:** [Gemini 3.5 Pro launch overview — EnterpriseDNA](https://enterprisedna.co/resources/news/gemini-35-pro-july-17-rebuild-vs-deepseek-v4-2026/) · [Gemini 3.5 Pro API access guide — byteiota](https://byteiota.com/gemini-35-pro-api-access-pricing-developer-guide/) · [Gemini API pricing — ai.google.dev](https://ai.google.dev/gemini-api/docs/pricing)"
+  },
+  {
+    "id": "2026-07-17-01-huggingface-inference-endpoints-dedicated-gpu",
+    "title": "From Model Card to Private HTTPS Endpoint in Minutes: HuggingFace Inference Endpoints With Autoscale-to-Zero",
+    "excerpt": "HuggingFace Inference Endpoints deploys any Hub model to a dedicated GPU API endpoint in minutes — choose T4, A10G, or A100, set min_replica=0 to pay nothing when idle, and query via the OpenAI-com…",
+    "author": "Chris Harper",
+    "date": "07-17-2026",
+    "publishedAt": "2026-07-17T04:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Self-Hosting",
+      "HuggingFace"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-17-01-huggingface-inference-endpoints-dedicated-gpu.jpg",
+    "imageSource": "https://huggingface.co/docs/inference-endpoints/en/index",
+    "content": "**HuggingFace Inference Endpoints gives you a private, dedicated GPU API for any Hub model in minutes — HuggingFace manages TGI, the container, and the load balancer; you pick hardware, set `min_replica=0` to pay nothing when idle, and query via the OpenAI-compatible API.**\n\n**What you'll be able to do after this:**\n- Deploy any model from the HuggingFace Hub to a dedicated GPU instance (T4, A10G, A100) via four lines of Python — no Docker, no Kubernetes, no infrastructure management\n- Configure autoscale-to-zero so the endpoint costs nothing when idle and wakes automatically within 20–30 seconds on the next request\n- Query your endpoint with the standard OpenAI client, the `huggingface_hub` library, or any HTTP client using the same API shape as Fireworks or Together AI\n\n---\n\nHuggingFace Inference Endpoints fills the gap between the free Inference API (shared, rate-limited, no SLA) and full self-hosting with TGI or vLLM (you manage the container). HuggingFace manages TGI under the hood — you just pick a model, pick hardware, and pay per GPU-hour while the endpoint is running (zero when scaled to zero).\n\n## Step 1: Install and authenticate\n\n```bash\npip install huggingface_hub\n```\n\n```python\nfrom huggingface_hub import login\nlogin(token=\"hf_...\")   # or set HF_TOKEN env var\n```\n\n## Step 2: Create an endpoint\n\n```python\nfrom huggingface_hub import HfApi\n\napi = HfApi()\n\nendpoint = api.create_inference_endpoint(\n    name=\"llama-3b-endpoint\",\n    repository=\"meta-llama/Llama-3.2-3B-Instruct\",  # any Hub model ID\n    framework=\"pytorch\",\n    task=\"text-generation\",\n    accelerator=\"gpu\",\n    vendor=\"aws\",\n    region=\"us-east-1\",\n    instance_size=\"x4\",      # T4 16GB ($0.60/hr); x8 = A10G 24GB ($1.30/hr)\n    instance_type=\"protected\",\n    min_replica=0,           # scale to zero when idle — key for cost control\n    max_replica=1,\n    type=\"protected\",        # \"protected\" = private; \"public\" = open URL\n)\n\nendpoint.wait()              # blocks until running (~2–5 min on first deploy)\nprint(endpoint.url)\n# https://<id>.us-east-1.aws.endpoints.huggingface.cloud\n```\n\n## Step 3: Query with the OpenAI client\n\nEvery Inference Endpoint is OpenAI-compatible (TGI serves `/v1/chat/completions`):\n\n```python\nfrom openai import OpenAI\nimport os\n\nclient = OpenAI(\n    base_url=f\"{endpoint.url}/v1\",\n    api_key=os.environ[\"HF_TOKEN\"],\n)\n\nresponse = client.chat.completions.create(\n    model=\"tgi\",                 # TGI ignores the model field; it serves whatever was deployed\n    messages=[{\"role\": \"user\", \"content\": \"What is gradient descent?\"}],\n    max_tokens=256,\n)\nprint(response.choices[0].message.content)\n```\n\nOr use the native HuggingFace client:\n\n```python\nfrom huggingface_hub import InferenceClient\n\nclient = InferenceClient(model=endpoint.url, token=os.environ[\"HF_TOKEN\"])\nresult = client.text_generation(\"What is gradient descent?\", max_new_tokens=256)\nprint(result)\n```\n\n## Step 4: Scale to zero (or let autoscaling handle it)\n\nThe endpoint scales to zero automatically after ~15 minutes of no traffic. You can also trigger it manually:\n\n```python\nendpoint.scale_to_zero()   # pauses immediately\n# later:\nendpoint.resume()           # wakes back up (~20–30s cold start)\n```\n\n## Compare with other options\n\n| Option | Best for | Latency | Cost model |\n|---|---|---|---|\n| HF Free Inference API | Prototyping | Shared, variable | Free (rate-limited) |\n| **HF Inference Endpoints** | **Private prod, any model** | **Dedicated, consistent** | **Per GPU-hour** |\n| vLLM / TGI self-hosted | Maximum control | Dedicated | Your cloud bill |\n| Together / Fireworks | High-throughput, multi-tenant | Dedicated, fast | Per token |\n\nCold starts take ~20–30s from zero-replica state. If your use case can't tolerate that, set `min_replica=1` (one replica always warm) — you pay the GPU-hour rate continuously but get sub-second response times.\n\n**Sources:** [Inference Endpoints documentation — HuggingFace](https://huggingface.co/docs/inference-endpoints/en/index) · [Getting Started with Inference Endpoints — HuggingFace Blog](https://huggingface.co/blog/inference-endpoints) · [Autoscaling — HuggingFace Docs](https://huggingface.co/docs/inference-endpoints/en/autoscaling)"
+  },
+  {
     "id": "2026-07-16-08-claude-files-api-upload-once-reuse-by-id",
     "title": "Upload Once, Reference Everywhere: Stop Re-uploading PDFs on Every Claude API Call",
     "excerpt": "The Anthropic Files API lets you upload a PDF or image once, get a file_id, and reference it in any number of messages.create calls — no re-uploading bytes on every request.",
