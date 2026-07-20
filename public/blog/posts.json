@@ -1,5 +1,60 @@
 [
   {
+    "id": "2026-07-20-05-fastmcp-oauth-mcp-server-auth",
+    "title": "Put a Lock on Your MCP Server: Add OAuth 2.1 to FastMCP in 20 Lines",
+    "excerpt": "FastMCP 3.x ships four auth strategies including JWTVerifier and OAuth proxy — add auth= to your constructor and every unauthenticated caller is blocked before your tools run.",
+    "author": "Chris Harper",
+    "date": "07-20-2026",
+    "publishedAt": "2026-07-20T12:09:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "MCP",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://modelcontextprotocol.io/docs/tutorials/security/authorization",
+    "content": "**TL;DR: FastMCP 3.x ships four auth strategies including `JWTVerifier` and OAuth proxy — add `auth=JWTVerifier(...)` to your constructor and every unauthenticated caller is blocked before your tools run.**\n\nThe [FastMCP quickstart](https://cloudcodetree.com/ai-news/2026-06-26-07-build-mcp-server-fastmcp-quickstart) and [resources/prompts](https://cloudcodetree.com/ai-news/2026-07-05-09-mcp-resources-prompts-primitives-fastmcp) tutorials build servers that work great locally. But expose one over the network — for a team, a remote Claude Code session, or a Streamable HTTP endpoint — and every unauthenticated caller can invoke your tools. FastMCP 3.x (v3.2.4, April 2026) solves this with a single constructor argument; your tool code stays unchanged.\n\n## Four auth strategies\n\n```python\nfrom fastmcp.auth import (\n    JWTVerifier,    # accept JWTs from a known issuer (Auth0, Supabase, your IdP)\n    RemoteOAuth,    # providers with OAuth Dynamic Client Registration (Keycloak)\n    OAuthProxy,     # providers without DCR: GitHub, Google, Azure\n)\n```\n\n## JWTVerifier — the right default for most teams\n\nYou control the issuer; FastMCP validates the token signature and claims on every inbound request:\n\n```python\nfrom fastmcp import FastMCP\nfrom fastmcp.auth import JWTVerifier\n\nmcp = FastMCP(\n    \"internal-tools\",\n    auth=JWTVerifier(\n        jwks_uri=\"https://your-auth0-domain/.well-known/jwks.json\",\n        issuer=\"https://your-auth0-domain/\",\n        audience=\"https://api.yourcompany.com\",\n    )\n)\n\n@mcp.tool()\ndef get_customer(customer_id: str) -> dict:\n    \"\"\"Fetches a customer record — only reachable with a valid token.\"\"\"\n    return db.customers.get(customer_id)\n\nif __name__ == \"__main__\":\n    mcp.run(transport=\"streamable-http\", port=8000)\n```\n\n## OAuth proxy for GitHub/Google/Azure\n\nThese providers don't support OAuth Dynamic Client Registration, so FastMCP wraps them transparently:\n\n```python\nfrom fastmcp.auth import OAuthProxy\n\nmcp = FastMCP(\n    \"github-tools\",\n    auth=OAuthProxy(\n        provider=\"github\",\n        client_id=\"your-github-app-client-id\",\n        client_secret=\"your-github-app-client-secret\",\n        scopes=[\"read:user\", \"repo\"],\n    )\n)\n```\n\n## Test with MCP Inspector before wiring up Claude\n\n```bash\nnpx @modelcontextprotocol/inspector\n```\n\nPaste your server URL (`http://localhost:8000/mcp`) and a test bearer token in the browser UI. Inspector lets you call tools interactively and see exactly what the auth middleware accepts or rejects — before you connect Claude Desktop or Claude Code.\n\n## Why PKCE matters for remote servers\n\nThe MCP spec mandates OAuth 2.1 with PKCE (Proof Key for Code Exchange) for any server accessed over the network. PKCE drops the client secret from the token exchange — MCP clients run on dev laptops and CI containers where secrets can't be stored safely.\n\n**Sources:** [MCP Authorization — modelcontextprotocol.io](https://modelcontextprotocol.io/docs/tutorials/security/authorization) · [MCP Authentication with FastMCP — PropelAuth](https://www.propelauth.com/post/mcp-authentication-with-fastmcp) · [FastMCP Python Guide 2026 — danilchenko.dev](https://www.danilchenko.dev/posts/fastmcp-mcp-server/) · [FastMCP — PyPI](https://pypi.org/project/fastmcp/)"
+  },
+  {
+    "id": "2026-07-20-06-claude-code-v2-1-215-mode-badges-login-expiry",
+    "title": "Claude Code v2.1.215: Login-Expiry Warnings, Mode Badges, and VS Code Remote Control",
+    "excerpt": "Claude Code v2.1.215 adds login-expiry warnings so sessions no longer stall silently, clearer mode-status UI badges, and a new VS Code remote control setting.",
+    "author": "Chris Harper",
+    "date": "07-20-2026",
+    "publishedAt": "2026-07-20T12:08:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Claude Code",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**TL;DR: Claude Code v2.1.215 adds login-expiry warnings, clearer mode-status badges, and a VS Code remote control setting — plus streaming and startup memory improvements.**\n\nReleased July 19 (after the earlier v2.1.214 security batch), v2.1.215 brings three quality-of-life changes: **login-expiry warnings** tell you when your OAuth token has expired instead of letting sessions stall silently — a common friction point for teams running long-running background sessions; **clearer agent-status and manual-mode UI badges** make the active permission mode visible at a glance in the status bar; and a new **VS Code remote control setting** for remote-development workflows. The release also trims startup memory, improves streaming responsiveness, and fixes edge cases in macOS, Windows, worktree, and daemon handling.\n\n**Why it matters:** Silent auth failures that look like hangs are one of the top sources of Claude Code confusion in shared environments — this warning turns an invisible failure into an actionable prompt.\n\n**Sources:** [Claude Code changelog — code.claude.com](https://code.claude.com/docs/en/changelog) · [Releases — github.com/anthropics/claude-code](https://github.com/anthropics/claude-code/releases)"
+  },
+  {
+    "id": "2026-07-20-04-llamacpp-server-local-openai-api",
+    "title": "Your GGUF Is Already a Server: Run llama-server for Local OpenAI-Compatible Inference Without the Cloud",
+    "excerpt": "llama-server turns any GGUF file into a local /v1/chat/completions endpoint in one command — change one base_url in your OpenAI SDK and inference stays local, no cloud required.",
+    "author": "Chris Harper",
+    "date": "07-20-2026",
+    "publishedAt": "2026-07-20T12:07:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Self-Hosting",
+      "LLM"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md",
+    "content": "**TL;DR: `llama-server -m model.gguf --port 8080` gives you a local `/v1/chat/completions` endpoint — change one `base_url` in your OpenAI SDK and inference stays local, no GPU or cloud required.**\n\nThe [Jul 8 GGUF formats post](https://cloudcodetree.com/ai-news/2026-07-08-09-gguf-gptq-awq-quantization-formats) covered which quantization to pick. This one covers what to actually *do* with a `.gguf` file: serve it. llama.cpp is the C/C++ engine that powers Ollama, LM Studio, and Jan under the hood. Its built-in `llama-server` binary exposes a fully OpenAI-compatible REST API, so any code that calls `/v1/chat/completions` works locally by changing exactly one parameter.\n\n**What you'll be able to do after this:**\n- Download a quantized GGUF from HuggingFace Hub and serve it locally in under 5 minutes\n- Query it with the OpenAI Python SDK by changing one `base_url` — zero other code changes\n- Offload layers to GPU with `-ngl 99` for 3–5× faster generation when hardware is available\n\n## Step 1: Install\n\n**macOS (no compile):**\n```bash\nbrew install llama.cpp\n```\n\n**Linux/Windows (pip, no compile):**\n```bash\npip install llama-cpp-python[server]\n# run as: python -m llama_cpp.server --model model.gguf --port 8080\n```\n\n**From source with CUDA:**\n```bash\ngit clone --depth 1 https://github.com/ggml-org/llama.cpp\ncmake -B build -DGGML_CUDA=ON    # omit for CPU-only\ncmake --build build --config Release -j$(nproc)\n# binary: ./build/bin/llama-server\n```\n\n## Step 2: Download a model\n\n```bash\npip install huggingface-hub\nhuggingface-cli download bartowski/Llama-3.2-3B-Instruct-GGUF   --include \"Llama-3.2-3B-Instruct-Q4_K_M.gguf\"   --local-dir ./models\n```\n\n`Q4_K_M` is the safe default: 4-bit quantization with k-means correction, ~25% the size of BF16 with less than 1% quality loss. A 3B model weighs about 1.8 GB and runs at 15–25 tok/s on a modern laptop CPU.\n\n## Step 3: Start the server\n\n```bash\nllama-server   -m ./models/Llama-3.2-3B-Instruct-Q4_K_M.gguf   -c 4096   --port 8080   -ngl 0        # set -ngl 99 to offload all layers to GPU\n```\n\nWhen you see `llama server listening at http://127.0.0.1:8080`, it is ready.\n\n## Step 4: Query it — no code changes needed\n\n**curl:**\n```bash\ncurl http://localhost:8080/v1/chat/completions   -H \"Content-Type: application/json\"   -d '{\"model\":\"local\",\"messages\":[{\"role\":\"user\",\"content\":\"What is LoRA?\"}]}'\n```\n\n**OpenAI Python SDK — one line changed:**\n```python\nfrom openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8080/v1\", api_key=\"not-needed\")\nresp = client.chat.completions.create(\n    model=\"local\",\n    messages=[{\"role\": \"user\", \"content\": \"Explain quantization in one sentence.\"}],\n)\nprint(resp.choices[0].message.content)\n```\n\n## Key flags\n\n| Flag | Effect |\n|---|---|\n| `-c 4096` | context window in tokens |\n| `-ngl 99` | GPU layers to offload (0 = CPU-only) |\n| `-np 4` | parallel request slots |\n| `--threads 8` | CPU threads to use |\n| `--chat-template llama3` | override auto-detected chat template |\n\n## llama-server vs Ollama\n\nOllama is simpler for day-to-day use (auto model download, multi-model hot-swap). Use `llama-server` directly when you need exact GGUF control: a custom fine-tune, specific flags unavailable in Ollama, or when you are embedding llama.cpp into your own infrastructure and want the raw HTTP interface without Ollama's daemon layer.\n\n**Sources:** [llama-server README — ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md) · [llama.cpp Quickstart — glukhov.org](https://www.glukhov.org/llm-hosting/llama-cpp/) · [Run llama.cpp Server: OpenAI API from GGUF — Markaicode](https://markaicode.com/llama-cpp-server-openai-api-gguf/) · [Unsloth llama-server deployment docs](https://unsloth.ai/docs/basics/inference-and-deployment/llama-server-and-openai-endpoint)"
+  },
+  {
     "id": "2026-07-20-03-claude-code-hooks-pretooluse-posttooluse",
     "title": "Ship Team-Wide Policy in Shell: Claude Code Hooks for Guards, Cleanup, and Remote Enforcement",
     "excerpt": "PreToolUse hooks block dangerous commands before they run; PostToolUse hooks auto-format after every edit. Commit .claude/settings.json and your whole team gets the same guardrails — Claude cannot…",
