@@ -10,7 +10,228 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 19 Jul 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 20 Jul 2026 04:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Ship Team-Wide Policy in Shell: Claude Code Hooks for Guards, Cleanup, and Remote Enforcement</title>
+      <link>https://code.claude.com/docs/en/hooks-guide</link>
+      <guid isPermaLink="false">2026-07-20-03-claude-code-hooks-pretooluse-posttooluse</guid>
+      <pubDate>Mon, 20 Jul 2026 04:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>PreToolUse hooks block dangerous commands before they run; PostToolUse hooks auto-format after every edit. Commit .claude/settings.json and your whole team gets the same guardrails — Claude cannot skip them.</description>
+      <content:encoded><![CDATA[
+**Claude Code hooks are shell scripts the harness runs at every tool call — Claude cannot skip them, making them the right layer for linters, secret guards, and auto-commit.**
+
+Prompts and instructions are suggestions. Hooks are contracts. When Claude edits a file, your PostToolUse hook runs ESLint before Claude even forms its next thought. When Claude tries to push to main, your PreToolUse hook can block it and return a message explaining why. The model sees the hook's feedback, not the raw shell exit code.
+
+## Four handler types
+
+```json
+// .claude/settings.json  (commit this — all teammates get the same rules)
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Bash",
+      "hooks": [{ "type": "command", "command": "scripts/secret-guard.sh" }]
+    }],
+    "PostToolUse": [{
+      "matcher": "Edit",
+      "hooks": [{ "type": "command", "command": "scripts/format.sh" }]
+    }],
+    "Stop": [{
+      "hooks": [{ "type": "command", "command": "scripts/audit.sh" }]
+    }]
+  }
+}
+```
+
+- **PreToolUse** — fires *before* the tool runs; exit 2 to block and return a message to Claude; exit 0 to allow
+- **PostToolUse** — fires *after* a write; cannot undo the action, but perfect for auto-format, lint-on-save, and logging
+- **Stop** — runs when Claude finishes a turn; ideal for audit trails, Slack pings, or auto-commit
+- **HTTP hooks** (added Feb 2026) — POST the event JSON to your own endpoint instead of a local script; enables remote policy validation that works uniformly across every machine in your org
+
+## Copy-paste examples
+
+**Secret scanner (PreToolUse on Bash, blocks `git push` containing API keys):**
+
+```bash
+#!/bin/bash
+# scripts/secret-guard.sh — reads tool_input JSON from stdin
+INPUT=$(cat)
+COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
+
+# block pushes that would expose credentials
+if echo "$COMMAND" | grep -q 'git push' 2>/dev/null; then
+  if git diff --cached | grep -E '(AKIA[0-9A-Z]{16}|sk-ant-|ghp_[a-zA-Z0-9]{36})' >/dev/null 2>&1; then
+    echo '{"decision":"block","reason":"API key detected in staged diff — remove it before pushing."}'
+    exit 2
+  fi
+fi
+```
+
+**Auto-format after every file edit (PostToolUse on Edit):**
+
+```bash
+#!/bin/bash
+# scripts/format.sh — input JSON via stdin
+FILE=$(jq -r '.tool_input.path // ""' 2>/dev/null)
+[ -z "$FILE" ] && exit 0
+case "$FILE" in
+  *.ts|*.tsx) npx prettier --write "$FILE" 2>/dev/null ;;
+  *.py)       ruff format "$FILE" 2>/dev/null ;;
+  *.go)       gofmt -w "$FILE" 2>/dev/null ;;
+esac
+exit 0  # never block on format failure
+```
+
+## Team vs personal hooks
+
+Hooks in `.claude/settings.json` are project-scoped and checked into git — everyone on the team gets the same guards. Personal overrides (e.g. a dev's preferred linter flags) go in `.claude/settings.local.json` (gitignored).
+
+## Matchers
+
+The `matcher` field is a substring match against the tool name. An empty string (`""`) matches every tool — useful for logging all activity or HTTP hooks that enforce broad policies:
+
+```json
+{ "matcher": "",     // all tools
+  "hooks": [{ "type": "http", "url": "https://policy.example.com/check" }] }
+{ "matcher": "Bash", // only shell commands }
+{ "matcher": "Edit", // only file writes }
+{ "matcher": "Write", "hooks": [...] }
+```
+
+**Sources:** [Automate actions with hooks — Claude Code Docs](https://code.claude.com/docs/en/hooks-guide), [15 Claude Code hook examples](https://www.ayautomate.com/blog/best-claude-code-hooks-examples), [Claude Code Hooks: Complete Guide](https://claudefa.st/blog/tools/hooks/hooks-guide)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Gemma 4 Stealth Refresh: Flash Attention 4 on Hopper, Multi-Turn Tool Calling Fixed</title>
+      <link>https://explainx.ai/blog/gemma-4-updates-flash-attention-tool-calling-july-2026</link>
+      <guid isPermaLink="false">2026-07-20-02-gemma4-vllm-fa4-tool-calling</guid>
+      <pubDate>Mon, 20 Jul 2026 04:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <description>Google updated Gemma 4 weights without a version bump: H100/H200 users get 25-70% faster prefill via Flash Attention 4, multi-turn tool calling that stalled now completes reliably, and vision OCR improves on dense docs.</description>
+      <content:encoded><![CDATA[
+**Google quietly updated the Gemma 4 weights (no version bump): H100/H200 users get 25–70% faster prefill via Flash Attention 4; multi-turn tool calling that stalled mid-conversation now completes; vision OCR on dense documents improves.**
+
+If you self-host Gemma 4 via vLLM, pull the latest build — the updates are live in the HuggingFace Hub checkpoints and vLLM's main branch enables the FA4 backend for SM90+ (Hopper) hardware automatically. If you're on A100 or older, the prefill gains don't apply, but the tool-calling and vision fixes do. There is no new model name or version flag — just pull the updated weights.
+
+To confirm you're on the refreshed weights:
+
+```bash
+# Pull the latest Gemma 4 checkpoint
+huggingface-cli download google/gemma-4-9b-it --local-dir ./gemma-4-9b-it
+
+# Start vLLM with FA4 backend (auto-enabled on H100/H200)
+vllm serve google/gemma-4-9b-it --enable-prefix-caching
+```
+
+**Why it matters:** The tool-calling fix makes Gemma 4 meaningfully more useful as a self-hosted agent backbone for teams who need open-weight reliability without API rate limits. The FA4 throughput gain on Hopper hardware is essentially free if you're already on that hardware tier.
+
+**Sources:** [Gemma 4 update — ExplainX](https://explainx.ai/blog/gemma-4-updates-flash-attention-tool-calling-july-2026), [vLLM releases](https://github.com/vllm-project/vllm/releases)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Cut Your Claude API Costs 90%: How cache_control Keeps Long Context Off Your Token Bill</title>
+      <link>https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching</link>
+      <guid isPermaLink="false">2026-07-20-01-anthropic-prompt-caching-cache-control</guid>
+      <pubDate>Mon, 20 Jul 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Mark system prompts and tool definitions once with cache_control — cached tokens cost 10% of normal input price and return up to 85% faster. Break-even after just two requests with the same prefix.</description>
+      <content:encoded><![CDATA[
+**Add `cache_control: {type: "ephemeral"}` to any content block to cache it — cached reads cost 10% of normal input price and return up to 85% faster on the next call.**
+
+**What you'll be able to do after this:**
+- Mark system prompts, tool lists, and loaded documents so every follow-up request reuses the cached KV prefix instead of re-processing it
+- Choose between 5-minute and 1-hour TTLs depending on whether you're running a conversation session or a batch job
+- Use cache diagnostics to verify cache hits and debug unexpected misses without guesswork
+
+For an agent loop with a 10,000-token system prompt that calls Claude 100 times per session: without caching you pay for 1,000,000 input tokens. With caching you pay one cache write (1.25× the base price for 10,000 tokens) + 99 cache reads (0.10× base price for 10,000 tokens each). That's under 115,000 tokens of equivalent cost — roughly 88% less.
+
+## Two modes
+
+**Automatic (start here):** Pass `cache_control` at the top level of `messages.create()` and the SDK places the breakpoint at the last cacheable block automatically.
+
+**Explicit block-level:** Put `cache_control` directly on individual content blocks when your request has content that changes at different rates — cache the stable 10,000-token system prompt but let the shorter tool definitions update freely.
+
+## Walkthrough
+
+```python
+import anthropic
+client = anthropic.Anthropic()
+
+SYSTEM_PROMPT = """You are a code review assistant.
+
+<codebase>
+... (10,000 tokens of repo context) ...
+</codebase>"""
+
+# First call: cache write (1.25x price, one-time)
+response = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=1024,
+    system=[{
+        "type": "text",
+        "text": SYSTEM_PROMPT,
+        "cache_control": {"type": "ephemeral"}   # mark this block
+    }],
+    messages=[{"role": "user", "content": "Review auth module for SQL injection risks."}]
+)
+
+# Subsequent calls within TTL: cache read (0.10x price, ~85% faster)
+response2 = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=1024,
+    system=[{
+        "type": "text",
+        "text": SYSTEM_PROMPT,
+        "cache_control": {"type": "ephemeral"}
+    }],
+    messages=[{"role": "user", "content": "Check for XSS vulnerabilities in the template engine."}]
+)
+
+# Verify the cache hit:
+print(response2.usage.cache_read_input_tokens)   # > 0 means hit
+print(response2.usage.cache_creation_input_tokens)  # > 0 means write
+```
+
+## Pricing
+
+| | Cost multiplier |
+|---|---|
+| Cache write | 1.25× base input price |
+| Cache read | 0.10× base input price |
+| Break-even | 2 cache reads per prefix |
+
+## TTL options
+
+- **5 minutes** (default): refreshed free on each hit; covers most chat sessions and short agent loops
+- **1 hour**: `"cache_control": {"type": "ephemeral", "ttl": "1h"}` at 2× the base write price; better for long document analysis or batch pipelines
+
+## Minimum block size
+
+1,024 tokens for Sonnet/Opus; 2,048 for Haiku. Smaller blocks are silently ignored — if you're seeing zero cache hits, check your block sizes first.
+
+## Debug misses
+
+The [cache diagnostics endpoint (beta)](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics) tells you exactly why a specific request missed: wrong block order, content changed, prefix below minimum size, or workspace isolation mismatch (as of Feb 2026, caches are isolated per workspace within an org).
+
+**Sources:** [Prompt caching — Claude Platform Docs](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching), [Anthropic Cookbook: Prompt Caching notebook](https://github.com/anthropics/anthropic-cookbook/blob/main/misc/prompt_caching.ipynb), [Cache diagnostics (beta)](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Your Claude Code Allow Rules May Have Holes: How to Audit settings.json After v2.1.214</title>
