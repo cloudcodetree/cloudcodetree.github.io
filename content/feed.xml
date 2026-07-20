@@ -10,7 +10,184 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 20 Jul 2026 12:09:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 20 Jul 2026 20:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Get Claude's Plan Before It Touches a File: Plan Mode and --permission-mode plan</title>
+      <link>https://code.claude.com/docs/en/permission-modes</link>
+      <guid isPermaLink="false">2026-07-20-09-claude-code-plan-mode-read-only-sandbox</guid>
+      <pubDate>Mon, 20 Jul 2026 20:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Plan Mode is a hard read-only sandbox — Claude explores and proposes but cannot edit any file until you approve. Three ways to enter it; one CLI pattern for CI dry-runs.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Plan Mode is a hard read-only sandbox in Claude Code — Claude reads, explores, and writes a plan, but cannot edit a single file until you explicitly approve.**
+
+Every destructive bug from an AI coding session happened because the agent started editing before you understood what it intended. **Plan Mode** enforces a mandatory planning phase: Claude reads files, runs read-only shell commands, and produces a step-by-step change plan — but write tools are physically disabled until you approve.
+
+## Three ways to enter Plan Mode
+
+**1. Keyboard toggle:** Press `Shift+Tab` at any point in a session. Claude immediately stops editing and switches to plan-only mode. Press `Shift+Tab` again to resume action mode.
+
+**2. Slash command:** Prefix any prompt with `/plan`:
+```
+/plan refactor the auth module to use OAuth 2.0 — list every file you'll touch
+```
+Claude produces a plan for that specific task and waits. Nothing runs until you respond with approval.
+
+**3. CLI flag — best for CI and scripted workflows:**
+```bash
+claude --print --permission-mode plan "migrate users table to add stripe_customer_id"
+```
+Claude reads your codebase, thinks through the migration, and prints a detailed plan — then exits without touching a file. Pipe it to a review step or attach it as a PR comment:
+```bash
+claude --print --permission-mode plan "describe changes needed for GDPR compliance" \
+  | gh pr comment $PR_NUMBER --body-file -
+```
+
+## What's enforced
+
+- `Edit`, `Write`, and file-modifying `Bash` commands are blocked — not soft-blocked, physically unavailable
+- Read-only tools (`Read`, `Grep`, `Glob`, `WebSearch`) work normally
+- Shell commands that modify files (including `touch`, `rm`) still prompt for approval even in plan mode
+- With `useAutoModeDuringPlan` on (the default), auto mode approves read-only commands silently so Claude can explore freely without permission spam
+
+## When to reach for it
+
+- Before any risky change: database migrations, file deletions, auth refactors
+- At session start for unfamiliar codebases — see what Claude thinks it needs to change before it acts
+- In CI as a dry-run gate: plan step in one job, apply in another (gated on human approval)
+
+**Sources:** [Claude Code: Permission modes (official)](https://code.claude.com/docs/en/permission-modes) · [Common workflows](https://code.claude.com/docs/en/common-workflows) · [Plan Mode guide (2026)](https://www.claudedirectory.org/blog/claude-code-plan-mode-guide)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Fable 5 Billing Splits Today: Max Gets Weekly Access, Pro Pays Per Token</title>
+      <link>https://www.anthropic.com/news/redeploying-fable-5</link>
+      <guid isPermaLink="false">2026-07-20-08-fable5-billing-split-max-pro-today</guid>
+      <pubDate>Mon, 20 Jul 2026 20:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>Starting today, Fable 5 is permanently bundled in Max and Team Premium at 50% weekly limits. Pro and Team Standard subscribers get a one-time $100 credit, then pay API rates.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Starting today (July 20), Fable 5 permanently splits by tier — Max/Team Premium gets it at 50% weekly limits, Pro/Team Standard gets a $100 one-time credit then API billing at $10/$50 per million tokens.**
+
+After weeks of temporary caps and extensions, Anthropic made the Fable 5 tier structure permanent. Effective today:
+
+**Max and Team Premium:** Fable 5 is bundled at 50% of standard weekly usage limits with no per-token charge. If you were forced to credits during the July 1–19 credit-only period, switch back to the model selector — it's included again.
+
+**Pro and Team Standard:** Fable 5 is no longer a bundled subscription feature. Anthropic issued a one-time $100 usage credit to soften the transition; once that's exhausted, Fable 5 use is billed at API rates: **$10/M input tokens, $50/M output tokens**.
+
+**Background:** Fable 5 was redeployed on July 1 after U.S. export controls were lifted, initially as a temporary 50% cap on all plans through July 7. This update makes the tier split permanent rather than extending the temporary window again.
+
+**Why it matters:** If you're on Pro and using Fable 5 inside Claude Code agentic workflows, the $100 credit disappears fast — a typical 10-turn coding session can easily consume 200K+ output tokens ($10+). Either upgrade to Max ($100/month includes the 50% weekly cap) or recalibrate workflows to use Sonnet 5 (the current Claude Code default) for most tasks and reserve Fable 5 for hard problems.
+
+**Sources:** [Anthropic: Redeploying Fable 5](https://www.anthropic.com/news/redeploying-fable-5) · [TechTimes: billing splits today](https://www.techtimes.com/articles/320999/20260720/claude-fable-5-billing-splits-today-max-gets-it-free-pro-pays-per-token.htm) · [The Decoder: limits and pricing details](https://the-decoder.com/anthropic-slashes-claude-fable-5-limits-in-max-and-team-premium-and-pushes-pro-users-toward-api-pricing/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Make a 7B Model Think Like a 70B: Knowledge Distillation with TRL's DistillationTrainer</title>
+      <link>https://huggingface.co/docs/trl/main/en/distillation_trainer</link>
+      <guid isPermaLink="false">2026-07-20-07-knowledge-distillation-trl-distillation-trainer</guid>
+      <pubDate>Mon, 20 Jul 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>TRL's DistillationTrainer implements on-policy knowledge distillation — the technique behind DeepSeek R1-Distill — in under 20 lines of Python on a single GPU.</description>
+      <media:content url="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/trl/distillation_trainer_thumbnail.png" medium="image"/>
+      <media:thumbnail url="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/trl/distillation_trainer_thumbnail.png"/>
+      <content:encoded><![CDATA[
+**TL;DR: Knowledge distillation lets you train a small, cheap model to think like a large expensive one — TRL's DistillationTrainer does it in under 20 lines and runs on a single GPU.**
+
+**What you'll be able to do after this:**
+- Compress a large teacher LLM into a smaller, faster student using on-policy distillation
+- Run TRL's `DistillationTrainer` from the command line or a Python script on any prompt-response dataset
+- Choose between fully on-policy training (student generates, teacher scores — best quality) and off-policy (imitate teacher's dataset outputs — fastest)
+
+## What is knowledge distillation?
+
+A 70B model knows a lot but costs a lot to serve. Knowledge distillation (KD) trains a smaller *student* model to match the *teacher*'s behavior — not just the ground-truth answer, but the teacher's full probability distribution over tokens. The student learns the teacher's uncertainty, not just its final choice.
+
+The classic problem: train the student on fixed teacher outputs, and it sees only completions the teacher would generate — it never learns to handle sequences it produces at inference time. **Generalized KD (GKD)** fixes this: let the student generate its own completions during training, then use the teacher to score them. The student learns from its own mistakes.
+
+Famous example: DeepSeek R1-Distill-Qwen-32B captured ~85% of R1's reasoning ability at 1/20th the inference cost using this family of techniques.
+
+## TRL DistillationTrainer: 20 lines to a distilled model
+
+TRL's `DistillationTrainer` (in `trl.experimental.distillation`) implements GKD with three key speedups:
+
+1. **Generation buffer** — batches on-policy student generations across gradient accumulation steps into a single vLLM call. Up to 40× faster than naively alternating between generate and train steps.
+2. **Teacher server support** — offloads the teacher to a separate vLLM server so it doesn't compete for GPU memory with the student. Needed for 70B+ teachers.
+3. **Binary-encoded logprob payloads** — packs teacher log-probabilities into base64 NumPy arrays (~5× smaller than JSON).
+
+## Quickstart: Qwen2.5-7B teacher → Qwen2.5-1.5B student on GSM8K
+
+```python
+from datasets import load_dataset
+from trl.experimental.distillation import DistillationConfig, DistillationTrainer
+
+# Prompt-only dataset (student generates its own answers)
+dataset = load_dataset("openai/gsm8k", "main", split="train")
+dataset = dataset.map(
+    lambda x: {"messages": [{"role": "user", "content": x["question"]}]},
+    remove_columns=dataset.column_names,
+)
+
+config = DistillationConfig(
+    output_dir="results/distill-gsm8k",
+    num_train_epochs=1,
+    bf16=True,
+    lmbda=1.0,   # fully on-policy: student generates, teacher scores
+    beta=1.0,    # reverse KL — student learns to avoid its own bad modes
+    teacher_model_init_kwargs={"dtype": "bfloat16"},
+)
+
+trainer = DistillationTrainer(
+    model="Qwen/Qwen2.5-1.5B-Instruct",
+    teacher_model="Qwen/Qwen2.5-7B-Instruct",
+    args=config,
+    train_dataset=dataset,
+)
+trainer.train()
+trainer.save_model()
+```
+
+Or from the command line:
+```bash
+python examples/scripts/distillation.py \
+    --model_name_or_path Qwen/Qwen2.5-0.5B-Instruct \
+    --teacher_model_name_or_path Qwen/Qwen2.5-7B-Instruct \
+    --dataset_name trl-lib/chatbot_arena_completions \
+    --lmbda 1.0 --beta 1.0 \
+    --per_device_train_batch_size 4 \
+    --gradient_accumulation_steps 8 \
+    --output_dir distilled-model
+```
+
+## Key parameters
+
+| Param | What it controls |
+|-------|-----------------|
+| `lmbda=1.0` | Fully on-policy (student generates all completions — highest quality) |
+| `lmbda=0.0` | Fully off-policy (imitate teacher's dataset outputs only — fastest) |
+| `beta=1.0` | Reverse KL loss (student avoids its own confabulation modes) |
+| `beta=0.0` | Forward KL loss (match every mode of the teacher, including rare ones) |
+
+For teachers that don't fit on training GPUs (100B+): set `use_teacher_server=True` with `teacher_model_server_url` pointing to a vLLM server hosting the teacher, and `loss_top_k=1`.
+
+**Sources:** [TRL DistillationTrainer docs](https://huggingface.co/docs/trl/main/en/distillation_trainer) · [TRL distillation example script](https://github.com/huggingface/trl/blob/main/examples/scripts/distillation.py) · [Knowledge Distillation guide (2026)](https://localaimaster.com/blog/knowledge-distillation-guide)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Put a Lock on Your MCP Server: Add OAuth 2.1 to FastMCP in 20 Lines</title>
