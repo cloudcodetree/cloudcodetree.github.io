@@ -10,7 +10,193 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 21 Jul 2026 12:03:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 21 Jul 2026 20:03:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Feed Claude a Screenshot: How to Use the Vision API for Visual Automation</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/vision</link>
+      <guid isPermaLink="false">2026-07-21-07-claude-api-vision-images-base64</guid>
+      <pubDate>Tue, 21 Jul 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude's messages API accepts images natively — base64-encode a local screenshot or pass a URL, and the same call you use for text handles visual automation too.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Pass any screenshot or local image to Claude as a base64-encoded content block — the same `messages.create` call you already use for text, just with a different content type.**
+
+Most AI workflows stop at text. But Claude Sonnet 5 and Opus 4.8 accept images natively in the same API your text calls use — no separate endpoint, no special SDK. That makes visual automation (dashboard scraping, UI testing, document OCR, diagram extraction) a drop-in addition to any existing pipeline.
+
+## The pattern
+
+```python
+import anthropic
+import base64
+from pathlib import Path
+
+client = anthropic.Anthropic()
+
+def ask_about_image(image_path: str, prompt: str) -> str:
+    image_bytes = Path(image_path).read_bytes()
+    image_data = base64.standard_b64encode(image_bytes).decode("utf-8")
+
+    ext = Path(image_path).suffix.lower()
+    media_type = {
+        ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".gif": "image/gif",
+        ".webp": "image/webp",
+    }.get(ext, "image/png")
+
+    message = client.messages.create(
+        model="claude-sonnet-5",
+        max_tokens=1024,
+        messages=[{
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": media_type,
+                        "data": image_data,
+                    },
+                },
+                {"type": "text", "text": prompt},
+            ],
+        }],
+    )
+    return message.content[0].text
+
+# Parse a monitoring dashboard screenshot
+print(ask_about_image(
+    "screenshots/dashboard.png",
+    "What is the current p99 latency shown? Return only the value and unit."
+))
+```
+
+## Or use a URL directly
+
+For public images (e.g., a CI badge, a chart hosted on S3):
+
+```python
+message = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=512,
+    messages=[{"role": "user", "content": [
+        {"type": "image", "source": {"type": "url", "url": "https://your-bucket.s3.amazonaws.com/chart.png"}},
+        {"type": "text", "text": "List the five highest bars in this chart."},
+    ]}],
+)
+```
+
+## Practical use cases
+
+- **UI test assertions**: take a Playwright screenshot, ask "does this page show a success banner?" — no selector brittleness
+- **Dashboard parsing**: extract metric values from monitoring screenshots without brittle HTML scraping
+- **Document OCR**: rasterize a PDF page to PNG, extract tables, form fields, or signatures
+- **Diagram review**: pass architecture diagrams to Claude in a code-review pipeline, ask it to flag missing error paths
+
+## Cost and limits
+
+One full 1920×1080 PNG screenshot costs roughly 2,000–5,000 input tokens depending on image complexity. At Sonnet 5 pricing, that's a few tenths of a cent per screenshot. Max image size is 5 MB per image; you can send up to 20 images per request. For repeated analysis of the same document, use the [Files API](https://platform.claude.com/docs/en/build-with-claude/files) — upload once, reference by `file_id`.
+
+**Sources:** [Vision — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/vision) · [Claude Vision API Image Analysis Guide — AI for Anything](https://aiforanything.io/blog/claude-vision-api-image-analysis-guide-2026)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Serve Any LLM at 5× the Throughput: SGLang and RadixAttention in 10 Minutes</title>
+      <link>https://www.youtube.com/watch?v=Ahtaha9fEM0</link>
+      <guid isPermaLink="false">2026-07-21-06-sglang-radix-attention-llm-serving</guid>
+      <pubDate>Tue, 21 Jul 2026 20:02:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <description>SGLang gives you a 5× throughput boost over baseline vLLM for agentic workloads where requests share the same system prompt, via RadixAttention prefix caching — OpenAI-compatible API, one pip install.</description>
+      <media:content url="https://img.youtube.com/vi/Ahtaha9fEM0/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/Ahtaha9fEM0/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**TL;DR: SGLang is a high-performance LLM serving framework that caches shared prompt prefixes across requests via RadixAttention — giving 4–6× throughput gains on agentic workloads, with a fully OpenAI-compatible API.**
+
+**What you'll be able to do after this:**
+
+- Install SGLang and serve any HuggingFace model with a single `sglang serve` command
+- Point any OpenAI SDK client at your local SGLang server with zero code changes
+- Understand why RadixAttention makes multi-agent and RAG workloads dramatically faster when requests share the same system prompt or retrieved context
+
+## Why SGLang?
+
+If you self-host open models, you've probably tried vLLM first. SGLang (from LMSYS, the Chatbot Arena team) is a newer serving framework built around **RadixAttention** — a globally shared radix-tree KV cache that reuses attention states across concurrent requests that share a common prefix.
+
+In practice: every agentic request typically starts with a 1,000–3,000 token system prompt (tools, persona, instructions). Without prefix caching, that's 1,000–3,000 tokens recalculated for every single call. SGLang's radix tree recognizes the shared prefix and serves it from cache — only the new tokens are computed. Across a multi-agent run with 100+ calls, that gap compounds fast.
+
+Benchmarks from LMSYS show up to **6.4× higher throughput** on workloads with 60%+ shared prefixes, and the framework now powers production inference on 400,000+ GPUs worldwide.
+
+## Installation
+
+```bash
+# Python 3.10+ and CUDA 12.1+ (Ampere or later GPU)
+pip install "sglang[all]"
+
+# CPU-only / development (no GPU required — slow but functional)
+pip install "sglang[all]" --extra-index-url https://download.pytorch.org/whl/cpu
+```
+
+## Serve your first model
+
+```bash
+# Serve Llama 3.1 8B (downloads from HuggingFace Hub on first run)
+sglang serve --model-path meta-llama/Llama-3.1-8B-Instruct              --host 0.0.0.0 --port 30000
+
+# You'll see: "The server is fired up and ready to roll!" when ready
+```
+
+Swap `meta-llama/Llama-3.1-8B-Instruct` for any HuggingFace model path — Qwen3, Mistral, Gemma, DeepSeek, etc. The `--model-path` accepts local paths too.
+
+## Test with curl
+
+```bash
+curl http://localhost:30000/v1/chat/completions   -H "Content-Type: application/json"   -d '{
+    "model": "meta-llama/Llama-3.1-8B-Instruct",
+    "messages": [{"role": "user", "content": "What is 2 + 2?"}]
+  }'
+```
+
+## Drop-in replacement for the OpenAI SDK
+
+```python
+from openai import OpenAI
+
+# Change only base_url — everything else stays the same
+client = OpenAI(base_url="http://localhost:30000/v1", api_key="none")
+
+response = client.chat.completions.create(
+    model="meta-llama/Llama-3.1-8B-Instruct",
+    messages=[
+        {"role": "system", "content": "You are a code reviewer."},
+        {"role": "user", "content": "Review this function: def add(a, b): return a - b"},
+    ]
+)
+print(response.choices[0].message.content)
+```
+
+## Enable prefix caching (on by default, verify it's working)
+
+SGLang enables RadixAttention prefix caching by default. You can verify it's active by checking the server logs — look for `"prefix_cache_hit_rate"` in periodic stats output. On workloads with a fixed system prompt, expect to see cache hit rates of 80–95% after the first few requests warm the tree.
+
+To explicitly enable (or tweak chunk prefill):
+
+```bash
+sglang serve --model-path meta-llama/Llama-3.1-8B-Instruct              --port 30000              --chunked-prefill-size 512   # tune for your workload
+```
+
+**Sources:** [Introduction to LLM Serving with SGLang — YouTube (Philip Kiely & Yineng Zhang, Baseten)](https://www.youtube.com/watch?v=Ahtaha9fEM0) · [SGLang Quickstart — docs.sglang.io](https://docs.sglang.io/docs/get-started/quickstart) · [Fast and Expressive LLM Inference with RadixAttention — LMSYS Blog](https://www.lmsys.org/blog/2024-01-17-sglang/)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Catch Bugs Before CI Does: Wire `claude -p` Into a Git Pre-Commit Hook in 15 Lines</title>
