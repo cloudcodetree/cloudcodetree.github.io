@@ -10,7 +10,183 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 21 Jul 2026 04:12:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 21 Jul 2026 12:03:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Catch Bugs Before CI Does: Wire `claude -p` Into a Git Pre-Commit Hook in 15 Lines</title>
+      <link>https://code.claude.com/docs/en/headless</link>
+      <guid isPermaLink="false">2026-07-21-05-claude-precommit-hook-staged-diff-review</guid>
+      <pubDate>Tue, 21 Jul 2026 12:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Wire `claude -p` into a git pre-commit hook to get an instant AI code review on every staged diff — catches bugs, security issues, and missing tests before they hit CI.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Pipe `git diff --staged` into `claude -p` from a pre-commit hook and get a focused bug/security review on every commit — 15 lines of bash, zero CI cost.**
+
+CI catches what lands on main. A pre-commit hook catches what's about to leave your machine. Wiring Claude's headless mode into that hook gives you a fast, opinionated reviewer on every staged diff before you type `git push`.
+
+## The hook
+
+Save this as `.git/hooks/pre-commit` and make it executable (`chmod +x .git/hooks/pre-commit`):
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIFF=$(git diff --staged)
+[[ -z "$DIFF" ]] && exit 0  # nothing staged, skip
+
+REVIEW=$(echo "$DIFF" | claude -p "
+You are a senior code reviewer. Review this git diff for:
+1. Logic bugs or off-by-one errors
+2. Security issues (injection, unvalidated input, exposed secrets)
+3. Missing null/error handling on code paths that exist in this diff
+
+Respond ONLY with a JSON object: {\"severity\": \"none|low|medium|high\", \"findings\": [\"<issue1>\", \"<issue2>\"]}
+Severity 'high' = commit should be blocked. 'none' = looks clean.
+" 2>/dev/null)
+
+SEVERITY=$(echo "$REVIEW" | python3 -c "import sys,json; print(json.load(sys.stdin)['severity'])" 2>/dev/null || echo "none")
+FINDINGS=$(echo "$REVIEW" | python3 -c "import sys,json; [print('  •', f) for f in json.load(sys.stdin)['findings']]" 2>/dev/null || true)
+
+if [[ "$SEVERITY" == "high" ]]; then
+  echo "🚫 Claude pre-commit review: HIGH severity — commit blocked"
+  echo "$FINDINGS"
+  exit 1
+elif [[ "$SEVERITY" != "none" ]]; then
+  echo "⚠️  Claude pre-commit review ($SEVERITY):"
+  echo "$FINDINGS"
+fi
+```
+
+## How it works
+
+- **`-p` (print mode)**: Claude runs non-interactively, reads from stdin, writes to stdout, exits — perfect for shell pipelines.
+- **Structured JSON output**: The prompt constrains Claude to a JSON schema so `python3 -c` can parse severity and findings without fragile regex.
+- **`exit 1` on high severity**: Git aborts the commit. Fix and re-stage to proceed.
+- **Non-zero but non-high findings**: Printed as warnings, commit proceeds — useful for "I saw this but it's intentional" situations.
+
+## Bypass when intentional
+
+```bash
+git commit --no-verify  # bypass all hooks for this commit
+SKIP_CLAUDE_REVIEW=1 git commit  # add a [[ -n "$SKIP_CLAUDE_REVIEW" ]] && exit 0 guard
+```
+
+## Shareable via git template
+
+To apply this to every new repo on your machine:
+
+```bash
+mkdir -p ~/.git-template/hooks
+cp .git/hooks/pre-commit ~/.git-template/hooks/
+git config --global init.templateDir ~/.git-template
+# future: git init  →  hook installed automatically
+```
+
+The hook is fastest on small diffs. For large staged sets, add `head -c 8000` after `git diff --staged` to cap the input to Claude.
+
+**Sources:** [Claude Code headless mode (`-p` flag) — code.claude.com](https://code.claude.com/docs/en/headless) · [Git hooks documentation — git-scm.com](https://git-scm.com/docs/githooks) · [Claude Code common workflows — code.claude.com](https://code.claude.com/docs/en/common-workflows)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>See Inside Every LLM Call: Add Open-Source Observability to Any AI App With Arize Phoenix</title>
+      <link>https://arize.com/docs/phoenix</link>
+      <guid isPermaLink="false">2026-07-21-04-arize-phoenix-llm-observability-tracing</guid>
+      <pubDate>Tue, 21 Jul 2026 12:02:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Arize Phoenix is the open-source, self-hosted LLMOps platform: two pip installs + one .instrument() call traces every LLM call, retrieval step, and agent tool use with zero code changes.</description>
+      <media:content url="https://github.com/Arize-ai/phoenix/raw/main/assets/phoenix-og.png" medium="image" />
+      <media:thumbnail url="https://github.com/Arize-ai/phoenix/raw/main/assets/phoenix-og.png" />
+      <content:encoded><![CDATA[
+**TL;DR: Arize Phoenix gives you W&B Weave-style LLM tracing + evaluations but self-hosted and open-source — two pip installs, one .instrument() call, and every LLM call in your app becomes a searchable trace.**
+
+**What you'll be able to do after this:**
+- Run a local Phoenix server that captures distributed traces from any LLM app — OpenAI, Anthropic, LangChain, LlamaIndex, or raw API calls — with a single auto-instrumentation call
+- Open the Phoenix UI at `http://localhost:6006` and inspect every span: latency, token counts, prompts sent, completions received, RAG retrievals, and tool calls in one view
+- Run built-in LLM-as-judge evaluators (hallucination, faithfulness, relevance) against your captured traces to catch regressions before users see them
+
+## Why Phoenix over W&B Weave or LangSmith?
+
+All three solve the same core problem: you can't debug what you can't see. Phoenix's differentiator is **self-hosted + open-source**: your traces never leave your infrastructure. This matters for HIPAA, SOC 2, and any project where sending LLM inputs/outputs to a SaaS is a non-starter. By 2026 it has 9,000+ GitHub stars and native support for OpenInference — the OpenTelemetry-based standard for LLM trace semantics.
+
+## Walk-through
+
+**Install:**
+```bash
+pip install arize-phoenix arize-phoenix-otel \
+    openinference-instrumentation-anthropic \
+    openinference-instrumentation-openai \
+    openinference-instrumentation-langchain
+```
+
+**Launch Phoenix locally:**
+```python
+import phoenix as px
+
+session = px.launch_app()   # starts UI at http://localhost:6006
+print(session.url)           # open this in your browser
+```
+
+Or run it as a persistent server (survives script restarts):
+```bash
+docker run -p 6006:6006 -p 4317:4317 arizephoenix/phoenix:latest
+```
+
+**Register the tracer and instrument your stack:**
+```python
+from phoenix.otel import register
+from openinference.instrumentation.anthropic import AnthropicInstrumentor
+from openinference.instrumentation.langchain import LangChainInstrumentor
+
+# Point traces at your Phoenix instance
+tracer_provider = register(
+    project_name="my-rag-app",
+    endpoint="http://localhost:6006/v1/traces",
+)
+
+# One call per framework — no code changes elsewhere
+AnthropicInstrumentor().instrument(tracer_provider=tracer_provider)
+LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
+```
+
+Now run your app normally — every `anthropic.messages.create()` call, every LangChain chain invocation, and every retrieval step is captured automatically.
+
+**Run evaluations on captured traces:**
+```python
+import phoenix as px
+from phoenix.evals import HallucinationEvaluator, RelevanceEvaluator, run_evals
+from phoenix.evals import AnthropicModel
+
+client = px.Client()
+traces_df = client.get_spans_dataframe(project_name="my-rag-app")
+
+eval_model = AnthropicModel(model="claude-sonnet-5")
+results = run_evals(
+    dataframe=traces_df,
+    evaluators=[HallucinationEvaluator(eval_model), RelevanceEvaluator(eval_model)],
+    provide_explanation=True,
+)
+px.log_evaluations(*results, project_name="my-rag-app")
+```
+
+Evaluation results appear as annotations on each trace in the UI — you can sort and filter by hallucination score, compare runs, and catch regressions before they reach production.
+
+## What you see in the UI
+
+Each trace shows the full call tree: the top-level query → the retrieval span (with the chunks fetched) → the LLM span (with the exact prompt + completion + token counts). You can click into any span to see latency, attributes, and error details. The experiments tab lets you A/B compare prompts or models by replaying a dataset through two different app versions.
+
+**Sources:** [Arize Phoenix docs](https://arize.com/docs/phoenix) · [GitHub: Arize-ai/phoenix (9k+ stars)](https://github.com/Arize-ai/phoenix) · [OpenInference instrumentation packages — arize-ai.github.io](https://arize-ai.github.io/openinference/) · [Arize Phoenix LLM observability guide 2026](https://baeseokjae.github.io/posts/arize-phoenix-observability-guide-2026/)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Stop Parsing Agent Output Yourself: Get Validated JSON From Any Agent Workflow With the Claude Agent SDK</title>
