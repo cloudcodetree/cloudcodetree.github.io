@@ -1,5 +1,60 @@
 [
   {
+    "id": "2026-07-22-05-claude-parallel-tool-calls-concurrent",
+    "title": "Cut Agent Round-Trips in Half: Parallel Tool Calls in the Claude API",
+    "excerpt": "Claude can return multiple tool_use blocks in one assistant turn. Run them with asyncio.gather, fold all tool_result entries into a single user message, and your agent loop makes far fewer API roun…",
+    "author": "Chris Harper",
+    "date": "07-22-2026",
+    "publishedAt": "2026-07-22T12:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Agents",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+    "content": "**TL;DR: Claude returns multiple `tool_use` blocks in one turn — run them all with `asyncio.gather`, send back all `tool_result`s in a single `user` message, and your agent loop makes far fewer API calls.**\n\nMost agentic loops treat tool calls as serial: Claude responds → you call one tool → you reply → Claude responds again. But Claude's API can return *multiple* `tool_use` blocks in a single assistant message. When you process them in parallel and fold all results into one reply turn, independent lookups that previously cost three round-trips cost one. For read-heavy agent work — fetching docs, querying APIs, running parallel checks — this is an easy 2–4× latency win.\n\n## How it works\n\nClaude's response has `stop_reason = \"tool_use\"` and its `content` is a list. When it decides to parallelize, you'll see several `tool_use` blocks — each with its own `id`, `name`, and `input`:\n\n```python\nimport asyncio\nimport anthropic\n\nclient = anthropic.Anthropic()\n\nasync def run_tool(block) -> dict:\n    result = await YOUR_TOOL_REGISTRY[block.name](**block.input)\n    return {\n        \"type\": \"tool_result\",\n        \"tool_use_id\": block.id,\n        \"content\": str(result),\n    }\n\nasync def agent_loop(messages: list) -> str:\n    while True:\n        response = client.messages.create(\n            model=\"claude-opus-4-8\",\n            max_tokens=4096,\n            tools=TOOLS,\n            messages=messages,\n        )\n        if response.stop_reason != \"tool_use\":\n            return response.content[0].text\n\n        tool_blocks = [b for b in response.content if b.type == \"tool_use\"]\n\n        # Run all tool calls concurrently\n        results = await asyncio.gather(*[run_tool(b) for b in tool_blocks])\n\n        # Critical: all tool_result blocks go in ONE user message\n        messages.append({\"role\": \"assistant\", \"content\": response.content})\n        messages.append({\"role\": \"user\", \"content\": list(results)})\n```\n\n## The critical formatting rule\n\nAll `tool_result` entries must go in a **single** `user` message — one entry per `tool_use` id. If you reply with them in separate messages the API will error or Claude will lose track of which result maps to which call.\n\n## When to parallelize vs. serialize\n\n- ✅ **Parallel:** independent read-only lookups, fetching multiple docs, calling separate APIs\n- ⚠️ **Sequential:** writes that build on each other, tools with shared state, file edits that must happen in order\n\nClaude naturally clusters independent calls together — your job is to handle the multiple `tool_use` blocks in the response rather than assuming there's always one.\n\n**Sources:** [Parallel Tool Use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) · [How Tool Use Works — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works)"
+  },
+  {
+    "id": "2026-07-22-04-gemini-36-flash-launch",
+    "title": "Google Ships Gemini 3.6 Flash, 3.5 Flash-Lite, and Flash Cyber — and Starts Gemini 4 Pre-training",
+    "excerpt": "Google launched Gemini 3.6 Flash, 3.5 Flash-Lite, and 3.5 Flash Cyber on July 21 — output pricing cut to $7.50/1M, a security-specialist model joins the API, and Gemini 4 pre-training is confirmed.",
+    "author": "Chris Harper",
+    "date": "07-22-2026",
+    "publishedAt": "2026-07-22T12:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-6-flash-3-5-flash-lite-3-5-flash-cyber/",
+    "content": "**Google launched three Gemini Flash models on July 21, cutting output pricing on its workhorse tier and adding a security-specialist model to the API.**\n\nGoogle shipped three new Gemini Flash variants, all live immediately in the Gemini API and Google AI Studio:\n\n- **Gemini 3.6 Flash** — improved coding, knowledge work, and multimodal performance. API pricing: $1.50/1M input, $7.50/1M output (down from $9/1M output). Knowledge cutoff extended to March 2026. Available in Google AI Studio, Android Studio, and the Gemini API.\n- **Gemini 3.5 Flash-Lite** — the fastest in the 3.5 family; optimized for throughput and low latency at high volume.\n- **Gemini 3.5 Flash Cyber** — a security-specialist model tuned for finding and fixing vulnerabilities; available in the Gemini Enterprise Agent Platform.\n\nGoogle also confirmed the start of pre-training for Gemini 4, described as \"our most ambitious pre-training run yet,\" while Gemini 3.5 Pro remains in limited partner testing.\n\n**Why it matters:** The 3.6 Flash output price cut tightens competition at the budget model tier where most high-volume agent pipelines run. Flash Cyber is the first security-domain-specialized model from a major lab to ship directly in a public API — worth evaluating if you are building automated vuln-scanning or code-review agents.\n\n**Sources:** [Gemini 3.6 Flash announcement — Google Blog](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-6-flash-3-5-flash-lite-3-5-flash-cyber/) · [Gemini API changelog — Google AI](https://ai.google.dev/gemini-api/docs/changelog)"
+  },
+  {
+    "id": "2026-07-22-03-flash-attention-2-training-huggingface",
+    "title": "The One-Line Change That Makes Every Training Run Faster: Flash Attention 2 in HuggingFace",
+    "excerpt": "Flash Attention 2 cuts LLM training memory and speeds up attention 2-4x with one extra argument. Stack it with sequence packing via DataCollatorWithFlattening for another 2x throughput gain.",
+    "author": "Chris Harper",
+    "date": "07-22-2026",
+    "publishedAt": "2026-07-22T12:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Fine-Tuning",
+      "HuggingFace"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/blog/packing-with-FA2",
+    "content": "**TL;DR: Add `attn_implementation=\"flash_attention_2\"` to `from_pretrained()` and your fine-tune runs 2–4× faster on Ampere GPUs with no code changes anywhere else.**\n\n**What you'll be able to do after this:**\n- Enable Flash Attention 2 for any Llama, Mistral, or Qwen fine-tune with one extra argument\n- Understand why tiling attention computation in SRAM beats standard attention's HBM round-trips\n- Stack sequence packing with `DataCollatorWithFlattening` for another 2× throughput gain at no quality loss\n\nMost fine-tuning tutorials skip over why training is slow. A big reason: standard attention reads and writes the full Q×K attention score matrix to GPU HBM (high-bandwidth memory) on every forward pass — a memory bandwidth bottleneck, not a compute bottleneck. Flash Attention 2 rewrites this by tiling the computation entirely inside on-chip SRAM, avoiding the expensive HBM round-trips. The result: 2–4× faster attention on Ampere GPUs (A100, RTX 3090/4090, H100) with numerically identical output and no hyperparameter changes.\n\n## Enable it in 30 seconds\n\n```bash\npip install flash-attn --no-build-isolation\n```\n\n```python\nfrom transformers import AutoModelForCausalLM\nimport torch\n\nmodel = AutoModelForCausalLM.from_pretrained(\n    \"meta-llama/Llama-3.1-8B-Instruct\",\n    torch_dtype=torch.bfloat16,          # FA2 requires bf16 or fp16\n    attn_implementation=\"flash_attention_2\",\n)\n```\n\nThat's it. Works on Llama, Mistral, Falcon, Qwen, Phi, Gemma, and most modern HuggingFace architectures. If a model does not support it you'll get a clear error.\n\n## Stack it with sequence packing for +2× throughput\n\nStandard training pads every sequence in a batch to the same length — wasting compute on padding tokens. With FA2 you can instead *pack* multiple short sequences into one long tensor and use FA2's variable-length kernel to handle sequence boundaries correctly. HuggingFace's `DataCollatorWithFlattening` wires this up automatically:\n\n```python\nfrom trl import SFTTrainer, SFTConfig\nfrom transformers import DataCollatorWithFlattening\n\ntrainer = SFTTrainer(\n    model=model,\n    train_dataset=dataset,\n    args=SFTConfig(max_seq_length=4096, packing=False),\n    data_collator=DataCollatorWithFlattening(),\n)\ntrainer.train()\n```\n\nNo other changes needed. The collator concatenates sequences, tracks their boundaries, and passes cumulative lengths to `flash_attn_varlen_func` — so attention never crosses example borders. IBM Research and HuggingFace validated this reaches up to 2× higher throughput with no convergence regression.\n\n## Pre-flight checklist\n\n- GPU: Ampere or newer (A100, A10, RTX 3090/4090, H100) — Turing (T4) is not supported by FA2\n- Dtype: `torch.bfloat16` or `torch.float16` — FA2 does not run in fp32\n- Wheel: `flash-attn` version must match your CUDA + PyTorch version (check the [release notes](https://github.com/Dao-AILab/flash-attention/releases))\n\nWatch the YouTube explainer linked below for a visual walkthrough of why the tiling trick works — then the HuggingFace blog for the full packing implementation.\n\n**Sources:** [Flash Attention: The Fastest Attention Mechanism? — YouTube](https://www.youtube.com/watch?v=eJn6zsbrqUM) · [Improving HuggingFace Training Efficiency Through Packing with FA2 — HuggingFace Blog](https://huggingface.co/blog/packing-with-FA2) · [Attention Backends — HuggingFace Docs](https://huggingface.co/docs/transformers/attention_interface)"
+  },
+  {
     "id": "2026-07-22-02-claude-managed-agents-memory-store",
     "title": "Give Your Claude Agent a Memory That Survives Sessions: The Managed Agents Memory Store",
     "excerpt": "Claude Managed Agents now support a persistent memory store — a versioned filesystem directory the agent reads and writes across sessions using ordinary bash and file tools.",
