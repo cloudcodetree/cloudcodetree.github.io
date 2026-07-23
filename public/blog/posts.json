@@ -1,5 +1,61 @@
 [
   {
+    "id": "2026-07-23-06-claude-code-subagent-concurrency-budget-controls",
+    "title": "Claude Code v2.1.217: Cap Your Subagent Fanout Before It Runs Away",
+    "excerpt": "Three new env vars in v2.1.217 — MAX_CONCURRENT_SUBAGENTS (default 20), MAX_SUBAGENT_SPAWN_DEPTH (depth now 1 by default), and a --max-budget-usd halt fix — govern multi-agent fanout behavior.",
+    "author": "Chris Harper",
+    "date": "07-23-2026",
+    "publishedAt": "2026-07-23T12:06:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.com/anthropics/claude-code/releases/tag/v2.1.217",
+    "content": "**TL;DR: Claude Code v2.1.217 (Jul 21) ships three env vars that cap subagent fanout, nesting depth, and budget stopping — know the new defaults before you push a multi-agent workflow.**\n\nThe v2.1.217 release changes default subagent behavior in ways that affect anyone running multi-agent Claude Code sessions.\n\n## 1. Concurrent subagent cap (new default: 20)\n\n```bash\nexport CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS=20  # new default; lower for tight envs\n```\n\nOne message can now fan out at most 20 background subagents at once. Additional spawns queue until a slot opens. Lower this on machines with memory or rate-limit constraints:\n\n```bash\nCLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS=5 claude -p \"run the full test suite\" ...\n```\n\n## 2. Nested subagent depth (behavior change: depth now 1 by default)\n\nSubagents no longer spawn their own nested subagents by default. Previous behavior allowed arbitrary nesting; now depth = 1 unless you opt in:\n\n```bash\nexport CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=3  # allow 3 levels of nesting\n```\n\n**This is a breaking change for workflows that relied on deep nesting.** If your orchestrator agent spawned subagents that themselves spawned subagents, set this before your next run.\n\n## 3. --max-budget-usd now stops background agents (bug fix)\n\nPreviously, `--max-budget-usd` denied new spawns once the cap was hit but did not halt already-running background subagents. Fixed: once the cap is reached, new spawns are denied AND in-flight background agents are stopped immediately.\n\n## What to audit before your next multi-agent run\n\n- Does your workflow rely on nesting deeper than 1 level? Set `MAX_SUBAGENT_SPAWN_DEPTH` explicitly.\n- Are you on a budget-constrained CI run? `--max-budget-usd` now reliably enforces the ceiling.\n- Do you fan out more than 20 parallel agents? Verify `MAX_CONCURRENT_SUBAGENTS` matches your infrastructure.\n\nThe release also adds emoji shortcode autocomplete (`:heart:` → ❤️; disable with `emojiCompletionEnabled: false`) and warnings when transcript writes fail silently.\n\n**Sources:** [Claude Code v2.1.217 release notes](https://github.com/anthropics/claude-code/releases/tag/v2.1.217) · [Claude Code changelog](https://code.claude.com/docs/en/changelog) · [DevelopersIO v2.1.217 breakdown](https://dev.classmethod.jp/en/articles/20260722-cc-updates-v2-1-217/)"
+  },
+  {
+    "id": "2026-07-23-05-github-code-quality-ga-copilot-autofix",
+    "title": "GitHub Code Quality Is Now Paid GA — What the $10/Committer Price Buys You",
+    "excerpt": "Code Quality hit GA on July 20 with Copilot Autofix, org-wide quality dashboards, and PR coverage gates — now $10/active committer/month plus usage-based AI billing.",
+    "author": "Chris Harper",
+    "date": "07-23-2026",
+    "publishedAt": "2026-07-23T12:05:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.blog/changelog/2026-07-20-github-code-quality-is-now-generally-available/",
+    "content": "**TL;DR: GitHub Code Quality hit GA on July 20 — AI-assisted issue detection, Copilot Autofix on every PR, org-wide quality dashboards, and coverage gates are now a paid product at $10/active committer/month.**\n\nAfter months in public preview (used by 10,000+ enterprises), Code Quality is now purchasable on GitHub Enterprise Cloud and GitHub Team. Key capabilities:\n\n- **Copilot Autofix**: generates a code fix — not just a finding — directly in the PR for each detected issue\n- **AI-assisted detection**: scans for maintainability and reliability issues beyond what CodeQL alone catches\n- **Org-wide dashboards**: quality scoring and coverage metrics across all repos in one view\n- **Quality gates**: enforce coverage thresholds via rulesets before merge is allowed\n\n**Pricing:** $10 per active committer per month for the base product, plus usage-based billing for AI features (Copilot code review, AI detection, Autofix generation). Deterministic CodeQL analysis still runs on GitHub Actions minutes.\n\n**Why it matters:** If your org already has Copilot, Code Quality turns it into an automated code review layer on every PR. The practical unlock is Autofix — it surfaces a concrete fix so developers can merge a suggestion rather than context-switch to write one.\n\n**Sources:** [GitHub Changelog — Code Quality GA](https://github.blog/changelog/2026-07-20-github-code-quality-is-now-generally-available/) · [DevOps.com coverage](https://devops.com/github-code-quality-moves-to-general-availability-bringing-new-costs-and-capabilities/)"
+  },
+  {
+    "id": "2026-07-23-04-deepspeed-zero-accelerate-multi-gpu-fine-tuning",
+    "title": "Scale Beyond One GPU: DeepSpeed ZeRO + Accelerate for Multi-GPU LLM Fine-Tuning",
+    "excerpt": "DeepSpeed ZeRO-3 shards optimizer states, gradients, and model weights across GPUs — Accelerate integrates it with zero code changes: run accelerate config, pick ZeRO stage, launch.",
+    "author": "Chris Harper",
+    "date": "07-23-2026",
+    "publishedAt": "2026-07-23T12:04:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Fine-Tuning",
+      "Self-Hosting",
+      "HuggingFace"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.youtube.com/watch?v=Zj4KiBdvK6s",
+    "content": "**TL;DR: DeepSpeed ZeRO-3 shards optimizer states, gradients, and model weights across GPUs — HuggingFace Accelerate wires it into any Trainer workflow with a config file and zero code changes.**\n\n**What you'll be able to do after this:**\n- Fine-tune models too large to fit on a single GPU by sharding parameters across N GPUs with ZeRO-3\n- Add DeepSpeed to any HuggingFace `Trainer` or `SFTTrainer` job by running `accelerate config` once\n- Choose the right ZeRO stage (1, 2, or 3) based on your memory constraints and model size\n\n**Resource:** [DeepSpeed ZeRO Tutorial: Fine-Tune LLMs Across Multiple GPUs](https://www.youtube.com/watch?v=Zj4KiBdvK6s) (Nov 2025, YouTube) — walks through fine-tuning a 3B model across two GPUs with working Accelerate config files.\n\n## Why you need it\n\nSingle-GPU QLoRA gets you surprisingly far, but when your model or batch doesn't fit — even with 4-bit loading — you need distributed training. DeepSpeed ZeRO eliminates memory redundancy across GPUs by sharding three heavy objects:\n\n| Stage | What it shards | When to use |\n|-------|---------------|-------------|\n| ZeRO-1 | Optimizer states | Training fits; want throughput gains |\n| ZeRO-2 | + Gradients | Need 30–50% more headroom |\n| ZeRO-3 | + Model params | Model doesn't fit on one GPU at all |\n\nA 7B model in bf16 uses ~14 GB of parameters alone; ZeRO-3 splits that across N GPUs so each holds 14/N GB.\n\n## Three-step setup\n\n```bash\n# 1. Install\npip install accelerate deepspeed\n\n# 2. Generate config interactively (run once per machine or cluster)\naccelerate config\n# → choose: multi-GPU, DEEPSPEED, ZeRO stage 3, bf16\n\n# 3. Launch (replaces \"python train.py\")\naccelerate launch train.py\n```\n\nNo changes to your training script. Accelerate patches PyTorch's training loop transparently when you use `Trainer` or `SFTTrainer`.\n\nYour generated `accelerate_config.yaml` will include:\n\n```yaml\ncompute_environment: LOCAL_MACHINE\ndistributed_type: DEEPSPEED\ndeepspeed_config:\n  zero_stage: 3\n  offload_optimizer_device: none   # set \"cpu\" to trade GPU VRAM for RAM\n  offload_param_device: none       # set \"cpu\" for very tight VRAM budgets\n  gradient_accumulation_steps: 4\nmixed_precision: bf16\nnum_processes: 2  # number of GPUs\n```\n\nSet `offload_optimizer_device: cpu` (ZeRO-Offload) to trade GPU memory for CPU RAM — useful on consumer GPUs with ≤24 GB VRAM. ZeRO-Infinity adds NVMe offload for models that don't even fit in RAM. Combine with QLoRA (4-bit base + LoRA adapters) for the most memory-efficient multi-GPU setup.\n\n**Sources:** [DeepSpeed ZeRO Tutorial (YouTube)](https://www.youtube.com/watch?v=Zj4KiBdvK6s) · [HuggingFace Accelerate + DeepSpeed docs](https://huggingface.co/docs/transformers/en/deepspeed) · [Accelerate DeepSpeed usage guide](https://github.com/huggingface/accelerate/blob/main/docs/source/usage_guides/deepspeed.md)"
+  },
+  {
     "id": "2026-07-23-03-claude-code-stream-json-pipeline-scripting",
     "title": "Real-Time Claude Code Progress in Your Terminal or Pipeline: Use --output-format stream-json",
     "excerpt": "--output-format stream-json emits one NDJSON line per event as Claude works — text deltas, tool calls, costs — so you can build live progress monitors or CI pipelines without parsing screen output.",
