@@ -10,8 +10,167 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 23 Jul 2026 12:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 23 Jul 2026 20:06:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Turn Repeated Claude Code Workflows Into Auto-Loading Skills</title>
+      <link>https://code.claude.com/docs/en/skills</link>
+      <guid isPermaLink="false">2026-07-23-09-claude-code-skills-project-specific-workflows</guid>
+      <pubDate>Thu, 23 Jul 2026 20:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <category>Developer Tools</category>
+      <description>A skill (.claude/skills/) is a named instruction pack Claude auto-loads when a task matches its description — write it once, get expert project context on every relevant session without invoking anything.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Drop a `skill.md` into `.claude/skills/` with a description of when it applies, and Claude auto-loads it whenever you start a matching task — no slash command, no explanation needed.**
+
+You already know about custom slash commands (`.claude/commands/`) — you invoke those explicitly. Skills are different: Claude loads them automatically when you start a task that matches the skill's description, with zero invocation ceremony.
+
+## Anatomy of a skill
+
+`.claude/skills/publish-post/skill.md`:
+
+```markdown
+---
+name: publish-post
+description: >
+  Publishing a blog post from a markdown draft — runs the ingest
+  pipeline, validates posts.json, and stages a commit. Use when
+  asked to publish, ingest, or update a blog post.
+---
+
+# How to publish a post
+
+1. Check for a draft in `~/Downloads/cct-blog-drafts/` or the given path
+2. Run `node scripts/publish-post.mjs <file> --intake`
+3. Run `node scripts/validate-blog.mjs` — must pass before continuing
+4. Stage: `git add content/feed.xml public/blog/posts.json`
+5. Commit: `blog: publish <slug> (YYYY-MM-DD)`
+```
+
+When you say "publish the AI news draft," Claude sees the task matches `publish-post`, loads the skill, and knows the exact pipeline — without you explaining it every session.
+
+## Skills vs. commands
+
+| | `.claude/commands/` | `.claude/skills/` |
+|---|---|---|
+| Invocation | Explicit: `/command-name` | Automatic: model triggers on task match |
+| Content | Task template with `$ARGUMENTS` | Full instructions + context + optional scripts |
+| Best for | On-demand shortcuts | Recurring expert workflows |
+
+Both can be project-scoped (`.claude/skills/`) or user-scoped (`~/.claude/skills/`).
+
+## When to write a skill
+
+Write a skill for any workflow you've explained to Claude more than twice. Good candidates: deploy checklists, test-and-commit sequences, data migration playbooks, schema update procedures, or code-review protocols specific to your codebase.
+
+The `description:` frontmatter is the trigger — write it as a description of *when* the skill applies, not what it does. Claude matches it semantically: "publishing a blog post" and "updating the feed" both activate the example above.
+
+**Sources:** [Extend Claude with Skills — Claude Code Docs](https://code.claude.com/docs/en/skills) · [Skills in Claude Code — codewithmukesh.com](https://codewithmukesh.com/blog/skills-claude-code/) · [Claude Code Skills Guide — nimbalyst.com](https://nimbalyst.com/blog/claude-code-skills-guide/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code v2.1.218: /code-review Moves to Background, /deep-research Goes Manual</title>
+      <link>https://github.com/anthropics/claude-code/releases/tag/v2.1.218</link>
+      <guid isPermaLink="false">2026-07-23-08-claude-code-v2-1-218-code-review-background</guid>
+      <pubDate>Thu, 23 Jul 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>v2.1.218 (today) moves /code-review to a background subagent so it no longer fills your conversation, makes /deep-research manual-only, and ships 23 bug fixes including Windows path corruption.</description>
+      <content:encoded><![CDATA[
+**TL;DR: v2.1.218 (released today) runs `/code-review` as a background subagent — your conversation stays clean while the review runs — and `deep-research` no longer auto-launches without explicit invocation.**
+
+Two behavioral changes that affect daily workflows:
+
+**1. `/code-review` → background subagent.** Running `/code-review` now delegates to a background subagent. The review no longer fills your conversation window; Claude's main context stays clean; and you can continue your next task while the review runs. The result surfaces when the subagent completes. The review target is the stacked slash command's changes.
+
+**2. `/deep-research` → manual-only.** Claude previously launched `/deep-research` automatically when it judged a question warranted deep investigation — triggering a long, expensive session you didn't explicitly request. That auto-launch is gone; you must invoke it explicitly.
+
+**Other highlights:** Plan mode auto no longer prompts you to approve Bash commands the static analyzer can prove are read-only. `claude mcp list` and `/mcp` now show HTTP status and error text when a server fails to connect. Fixed: Windows paths with `\u`-prefixed segments were being corrupted into CJK characters in tool inputs. Fixed: left arrow key was silently discarding the conversation with no undo.
+
+**Why it matters:** If you were piping `/code-review` output anywhere, verify your pipeline still works — the result is now delivered via the background subagent model, not as conversation text.
+
+**Sources:** [Claude Code v2.1.218 release notes](https://github.com/anthropics/claude-code/releases/tag/v2.1.218) · [Claude Code changelog](https://code.claude.com/docs/en/changelog) · [Claude Updates — claudeupdates.dev](https://www.claudeupdates.dev/version/2.1.218)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Debug Your LLM Agent by Watching Every Decision: LangSmith Tracing in 15 Minutes</title>
+      <link>https://www.youtube.com/watch?v=EdzAH5_PppM</link>
+      <guid isPermaLink="false">2026-07-23-07-langsmith-agent-tracing-observability</guid>
+      <pubDate>Thu, 23 Jul 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <category>Developer Tools</category>
+      <description>Set two env vars and every LLM call, tool invocation, and chain step in your agent appears as a searchable trace in LangSmith — no code changes needed if you're on LangChain/LangGraph.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Set `LANGSMITH_TRACING=true` + your API key, and every model call, tool use, and decision your agent makes appears as a searchable, timestamped trace — two env vars and zero code changes if you're on LangChain/LangGraph.**
+
+**What you'll be able to do after this:**
+- See every LLM call, tool invocation, and chain step your agent takes, with full inputs, outputs, and latency
+- Click into any failing trace and pinpoint exactly which step produced the wrong output — no print statements, no guessing
+- Track token counts and estimated cost per trace so you can identify expensive or slow steps and optimize them
+
+**Resource:** [LangSmith Tutorial: Observability and Tracing for AI Agents](https://www.youtube.com/watch?v=EdzAH5_PppM) (YouTube, April 2026) — walks through full setup from account creation to reading production traces.
+
+## Quick setup
+
+```bash
+# 1. Create a free account at smith.langchain.com
+#    Settings → API Keys → Create API Key
+
+export LANGSMITH_API_KEY="ls__..."
+export LANGSMITH_TRACING=true
+export LANGSMITH_PROJECT="my-agent"   # organizes traces by project
+```
+
+If you're using LangChain or LangGraph, that's all — every model call and tool use is traced automatically. For raw Anthropic or OpenAI calls, add `@traceable`:
+
+```python
+from langsmith import traceable
+
+@traceable
+def call_model(prompt: str) -> str:
+    response = anthropic.messages.create(
+        model="claude-sonnet-5",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.content[0].text
+
+@traceable(run_type="tool")
+def search_docs(query: str) -> list[str]:
+    return vector_store.similarity_search(query)
+```
+
+Each `@traceable` function becomes a span. Nested calls create nested spans — the full call tree captures automatically.
+
+## What you see in the UI
+
+Click any trace to inspect: inputs and outputs for each LLM call, which tools fired and with what arguments, total latency broken down by step, and token counts with estimated cost. The "Playground" button opens any trace step for interactive rerunning with edited inputs — the fastest way to iterate on a broken prompt.
+
+## Production tips
+
+- Add `LANGSMITH_SAMPLING_RATE=0.1` to trace only 10% of requests once the setup is validated
+- Use `LANGSMITH_PROJECT` to separate dev, staging, and prod traces
+- Subagents do not inherit parent tracing by default — enable it explicitly per subagent if you need cross-agent traces
+
+**Sources:** [LangSmith Tutorial: Observability and Tracing for AI Agents (YouTube, April 2026)](https://www.youtube.com/watch?v=EdzAH5_PppM) · [LangSmith Tracing Quickstart — LangChain Docs](https://docs.langchain.com/langsmith/observability-quickstart) · [How to Trace and Monitor AI Agents with LangSmith — FreeCodeCamp](https://www.freecodecamp.org/news/how-to-trace-and-monitor-ai-agents-with-langsmith)
+]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/EdzAH5_PppM/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/EdzAH5_PppM/maxresdefault.jpg" />
+    </item>
 
     <item>
       <title>Claude Code v2.1.217: Cap Your Subagent Fanout Before It Runs Away</title>
