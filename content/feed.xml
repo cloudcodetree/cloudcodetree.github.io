@@ -10,9 +10,211 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 24 Jul 2026 12:04:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 24 Jul 2026 20:05:00 +0000</lastBuildDate>
 
 
+
+    <item>
+      <title>Claude Opus 5 Is Here: Near-Fable-5 Capability at Half the Cost</title>
+      <link>https://www.anthropic.com/news/claude-opus-5</link>
+      <guid isPermaLink="false">2026-07-24-09-claude-opus-5-launch</guid>
+      <pubDate>Fri, 24 Jul 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Anthropic launched Claude Opus 5 today — near-Fable-5 capability at $5/$25 per million tokens (same price as Opus 4.8), with a 1M token context window and an effort slider for trading intelligence against speed.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Claude Opus 5 ships today — near-Fable-5 performance at half the cost, same price as Opus 4.8, model ID `claude-opus-5`, 1M token context, effort slider, and 4x better code verification.**
+
+Anthropic released Claude Opus 5 on July 24, 2026. It's the new default on Claude Max and the strongest model on Claude Pro. The one-sentence case for upgrading: you get significantly better agentic coding, computer use, and long-horizon knowledge work at exactly what you were already paying.
+
+## What changed vs Opus 4.8
+
+| | Opus 4.8 | Opus 5 |
+|---|---|---|
+| Context window | 200K tokens | **1M tokens** |
+| Coding reliability | baseline | 4× fewer unremarked code flaws |
+| Effort slider | no | **yes** (low / medium / high) |
+| Price | $5/$25/M tokens | $5/$25/M tokens (same) |
+| Default on Max | yes | yes |
+
+Opus 5 is state-of-the-art on Anthropic's Frontier-Bench and GDPval-AA evals. Fable 5 remains ahead on cybersecurity-specific tasks.
+
+## API migration — one line
+
+```python
+# Before
+model = "claude-opus-4-8"
+
+# After
+model = "claude-opus-5"
+```
+
+No other changes required. Context window, pricing, and tool-use API are unchanged.
+
+## The effort slider
+
+Opus 5 adds a three-level effort control — low, medium, high — accessible from the Claude.ai UI and through the API `effort` parameter. Use `"low"` for fast summarization or classification tasks where deep reasoning isn't needed; save `"high"` for multi-step planning or complex debugging. This replaces the separate Fast-mode approach (Opus 4.7 fast mode was deprecated today; migrate to Opus 4.8 or skip ahead to Opus 5).
+
+## When to use which model
+
+| Task | Model | Price/M tokens |
+|---|---|---|
+| Day-to-day coding, PR review, Q&A | Sonnet 5 | $3 / $15 |
+| Complex agentic tasks, long-horizon work, knowledge Q&A | **Opus 5** | $5 / $25 |
+| Frontier cybersecurity, hardest research | Fable 5 | $10 / $50 |
+
+For most Claude Code sessions and agent workflows, Opus 5 is now the obvious default: it closes most of the gap with Fable 5 at half the API price, and the 1M token context window removes nearly all forced-summarization workarounds.
+
+**Sources:** [Introducing Claude Opus 5 — Anthropic](https://www.anthropic.com/news/claude-opus-5) · [Claude Opus 5 on AWS — AWS Machine Learning Blog](https://aws.amazon.com/blogs/machine-learning/introducing-claude-opus-5-on-aws-anthropics-most-capable-opus-model/) · [VentureBeat](https://venturebeat.com/orchestration/anthropic-launches-claude-opus-5-a-cheaper-ai-model-for-coding-agents-and-enterprise-workflows/) · [Bloomberg](https://www.bloomberg.com/news/articles/2026-07-24/anthropic-unveils-more-cost-efficient-model-for-affordable-workplace-tasks)
+]]></content:encoded>
+      <media:content url="https://www.anthropic.com/images/og/anthropic-general.jpg" medium="image"/>
+      <media:thumbnail url="https://www.anthropic.com/images/og/anthropic-general.jpg"/>
+    </item>
+
+    <item>
+      <title>deepseek-chat and deepseek-reasoner Are Gone — What to Fix Right Now</title>
+      <link>https://api-docs.deepseek.com/updates/</link>
+      <guid isPermaLink="false">2026-07-24-08-deepseek-api-aliases-retired</guid>
+      <pubDate>Fri, 24 Jul 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>DeepSeek retired its deepseek-chat and deepseek-reasoner aliases at 15:59 UTC today — any integration still using them gets errors. Migrate to deepseek-v4-flash, but disable thinking mode or you will get unexpected token usage.</description>
+      <content:encoded><![CDATA[
+**TL;DR: The `deepseek-chat` and `deepseek-reasoner` API aliases retired at 15:59 UTC today — if your integration is broken right now, that's why. Migrate to `deepseek-v4-flash` with one non-obvious fix.**
+
+DeepSeek's backward-compatibility shim for `deepseek-chat` and `deepseek-reasoner` expired at 15:59 UTC on July 24. Both aliases had been pointing at `deepseek-v4-flash` under the hood since the V4 line shipped in April, kept alive purely for existing integrations. That shim is now gone.
+
+## The one-line fix
+
+```python
+# Before
+model = "deepseek-chat"     # or "deepseek-reasoner"
+
+# After
+model = "deepseek-v4-flash" # non-thinking path (see below)
+# or
+model = "deepseek-v4-pro"   # higher capability
+```
+
+## The non-obvious catch: thinking mode
+
+`deepseek-v4-flash` **defaults to thinking enabled**. If you swap `deepseek-chat` → `deepseek-v4-flash` without disabling it, you'll get reasoning output you never asked for: more tokens, higher latency, a bigger bill, and different downstream behavior in any system that parsed the old format.
+
+To match the previous `deepseek-chat` behavior:
+
+```python
+# OpenAI-compatible client
+response = client.chat.completions.create(
+    model="deepseek-v4-flash",
+    extra_body={"thinking_enabled": False},   # suppress reasoning mode
+    messages=[...]
+)
+```
+
+**Why it matters:** If you route through OpenRouter, Together, or a local proxy that aliased `deepseek-chat`, check whether your routing layer failed hard or soft — and whether `thinking_enabled` passes through to the underlying model.
+
+**Sources:** [DeepSeek API changelog](https://api-docs.deepseek.com/updates/) · [Migration guide — Digital Applied](https://www.digitalapplied.com/blog/deepseek-api-alias-retirement-july-24-migration-2026) · [Developers Digest: migrate to V4](https://www.developersdigest.tech/blog/deepseek-chat-to-v4-migration-guide)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Grade Your Agent's Output Automatically: The LLM-as-Judge Pattern with Claude</title>
+      <link>https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents</link>
+      <guid isPermaLink="false">2026-07-24-07-llm-as-judge-evals-agents</guid>
+      <pubDate>Fri, 24 Jul 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Use Claude as an automated rubric-based grader — one judge call per dimension, temperature zero, structured JSON verdict — to evaluate agent outputs and fine-tune checkpoints at scale without human labels for every run.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Call Claude with a rubric prompt, temperature=0, and a required JSON output to get consistent, dimension-by-dimension scores for any agent or fine-tune output — at the speed of an API call, not a human review queue.**
+
+**What you'll be able to do after this:**
+- Build a rubric-based judge that scores agent outputs on custom dimensions (relevance, groundedness, conciseness) with a single API call each
+- Run 50 agent outputs through the judge and get a structured CSV of scores to compare model checkpoints
+- Wire the judge into a fine-tuning feedback loop: identify low-scoring examples, use them as hard training cases in the next run
+
+**Resource:** [Demystifying Evals for AI Agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) — Anthropic Engineering Blog. This is how Anthropic's own team builds evaluation pipelines for long-horizon agents; the pattern transfers directly to evaluating any fine-tuned model or multi-step workflow.
+
+## Why LLM-as-judge
+
+After fine-tuning or building an agent, you face a hard question: how do you know it's actually better? Human evaluation is slow and expensive. Automatic metrics like ROUGE and BLEU miss hallucinations and tone. LLM-as-judge bridges the gap: you define what "good" means, Claude grades it consistently, and the whole pipeline runs in seconds.
+
+## The pattern — one judge per dimension
+
+```python
+import anthropic, json
+
+client = anthropic.Anthropic()
+
+RUBRIC = """You are a strict evaluator. Score ONLY the dimension you are asked about.
+Output JSON: {"score": 1-5, "reason": "one sentence"}
+
+Dimension: {dimension}
+Definition: {definition}
+"""
+
+def judge_dimension(question, context, response, dimension, definition):
+    msg = client.messages.create(
+        model="claude-opus-5",
+        max_tokens=128,
+        temperature=0,          # deterministic — critical for reproducibility
+        system=RUBRIC.format(dimension=dimension, definition=definition),
+        messages=[{
+            "role": "user",
+            "content": f"Question: {question}\nContext: {context}\nResponse: {response}"
+        }]
+    )
+    return json.loads(msg.content[0].text)
+
+# Run three isolated judges on the same output
+output = "The contract renews annually at the rate locked in at signing."
+scores = {}
+for dim, defn in [
+    ("relevance", "Does the response directly answer the question?"),
+    ("groundedness", "Are all facts supported by the provided context?"),
+    ("conciseness", "Does the response avoid filler and repetition?"),
+]:
+    scores[dim] = judge_dimension("When does the contract renew?", context_doc, output, dim, defn)
+
+print(scores)
+# {"relevance": {"score": 5, "reason": "..."}, "groundedness": {"score": 3, "reason": "says annually but context says every 18 months"}, ...}
+```
+
+## Key design decisions
+
+**Temperature=0.** You need reproducible scores. A judge that gives the same response a 3 one run and a 5 the next is useless for regression testing.
+
+**One criterion per call.** Anthropic's engineering guidance is clear: grade dimensions in isolation. A single "grade everything" prompt produces correlated scores that hide individual failures. Separate calls reveal which specific dimension regressed between model versions.
+
+**Chain-of-thought inside the verdict.** The `reason` field is not optional. A numeric score alone never tells you *why* — the reasoning surfaces specifics like "response says 2024 but context shows 2026" that let you fix the exact training example.
+
+## Validate before you trust
+
+Label 30–50 examples by hand, run them through your judge, and compare. Target 75–90% agreement with human labels. Below 60%? Your rubric is ambiguous — clarify the definition of each dimension before scaling.
+
+## Closing the loop with fine-tuning
+
+Once you have a judge harness, wire it to your training pipeline:
+1. Score outputs from the baseline and from each checkpoint with the judge
+2. Sort by lowest score per dimension
+3. Use the lowest-scoring examples as hard negatives in your next DPO or SFT round (mistake amplification)
+4. Re-score after each run to track per-dimension improvement over time
+
+This turns LLM-as-judge from a one-off tool into a continuous quality feedback loop.
+
+**Sources:** [Demystifying Evals for AI Agents — Anthropic Engineering](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) · [LLM-as-Judge Evaluation Guide 2026 — Qaskills](https://qaskills.sh/blog/llm-as-judge-evaluation-guide-2026) · [LLM-as-Judge docs — Langfuse](https://langfuse.com/docs/evaluation/evaluation-methods/llm-as-judge)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Show, Don't Tell: Teach Claude a Workflow by Recording Your Screen Once</title>
