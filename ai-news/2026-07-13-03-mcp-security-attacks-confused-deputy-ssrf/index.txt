@@ -1,0 +1,103 @@
+1:"$Sreact.fragment"
+2:I[68977,["5914","static/chunks/5914-78fa75be6ca6de8c.js","1860","static/chunks/1860-1e5afbc2d94aafa0.js","7177","static/chunks/app/layout-226110c5f1d969af.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/26dc4a78f0c7af7f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e0f4b1ebfdbd83f9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e4af272ccee01ff0-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/e2dabe4f14a0dbf4.css","style"]
+0:{"P":null,"b":"w9XRQJz_GrbOlWMbqryxy","p":"https://cloudcodetree.com","c":["","ai-news","2026-07-13-03-mcp-security-attacks-confused-deputy-ssrf",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-07-13-03-mcp-security-attacks-confused-deputy-ssrf","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/e2dabe4f14a0dbf4.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_f5e841 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_c9a639","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-07-13-03-mcp-security-attacks-confused-deputy-ssrf","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[17655,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+11:I[82566,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+12:T13bf,**The official MCP Security Best Practices guide documents five attack classes exploitable against production MCP servers right now. If you ship an MCP server, at least three of these apply to you.**
+
+The [Model Context Protocol Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices) is the authoritative reference — published by the MCP spec authors, not a third-party advisory. Here are the five attacks and their required mitigations.
+
+## 1. Confused Deputy (proxy servers)
+
+If your MCP server proxies to a third-party OAuth API using a static `client_id`, an attacker can register a malicious MCP client and craft an authorization request that reuses the user's existing consent cookie. The third-party auth server skips the consent screen (cookie present) and redirects the authorization code to the attacker's `redirect_uri`.
+
+**Fix:** Add a per-client MCP-level consent screen _before_ forwarding to the third-party auth server. Store consent decisions server-side keyed by `client_id`. Validate `redirect_uri` with exact string matching (no wildcards). Generate a cryptographically random `state` per request and store it only _after_ consent is approved.
+
+## 2. Token Passthrough
+
+Forwarding a token from the MCP client directly to the downstream API (without validating it was issued _to your MCP server_) lets clients bypass your rate limiting, logging, and audit trail. The spec explicitly forbids this.
+
+**Fix:** Validate the `aud` (audience) claim on every inbound token. Reject tokens not issued for your MCP server. Issue fresh, scoped tokens for downstream services — the LLM should never see a raw downstream secret.
+
+## 3. Server-Side Request Forgery (SSRF)
+
+During OAuth metadata discovery, your MCP client fetches URLs from the server response (`resource_metadata`, `authorization_endpoint`, etc.). A malicious server can inject URLs pointing to cloud metadata endpoints (`169.254.169.254`) or internal services to exfiltrate credentials.
+
+**Fix:**
+
+```python
+import ipaddress, urllib.parse
+
+BLOCKED_RANGES = [
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("169.254.0.0/16"),  # cloud metadata endpoints
+    ipaddress.ip_network("127.0.0.0/8"),
+]
+
+def is_safe_oauth_url(url: str) -> bool:
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme != "https":
+        return False
+    try:
+        addr = ipaddress.ip_address(parsed.hostname)
+        return not any(addr in net for net in BLOCKED_RANGES)
+    except ValueError:
+        return True  # hostname — apply DNS pinning separately
+```
+
+For server-side MCP clients, use an egress proxy (e.g., Stripe's [Smokescreen](https://github.com/stripe/smokescreen)) that blocks internal destinations at the network layer.
+
+## 4. Session Hijacking
+
+If you use a shared session queue (for resumable streams) keyed only by session ID, an attacker who guesses a session ID can inject malicious events that get delivered to the legitimate client.
+
+**Fix:** Generate session IDs with a cryptographically secure RNG (UUID v4 minimum). Store queue data keyed by `<user_id>:<session_id>` — even a guessed session ID is useless without the user ID derived from the validated token. Rotate session IDs and set short expiry.
+
+## 5. OAuth Authorization URL Injection
+
+A malicious MCP server can provide a `javascript:` URL as the authorization endpoint, or a URL with shell-injection payloads. If your client opens it with a shell command (`os.system`, `subprocess.run(shell=True)`), the attacker gets XSS or remote code execution.
+
+**Fix:**
+
+```python
+from urllib.parse import urlparse
+
+def validate_auth_url(url: str) -> str:
+    parsed = urlparse(url)
+    # Only https in production; http only for loopback dev
+    if parsed.scheme not in ("https",):
+        raise ValueError(f"Dangerous URL scheme: {parsed.scheme!r}")
+    return url
+```
+
+Never use `os.system(f"open {url}")` or `subprocess.run(f"xdg-open {url}", shell=True)`. Use `webbrowser.open(url)` — it bypasses the shell entirely.
+
+## Bonus: Scope Minimization
+
+Start with the narrowest useful scope (e.g., `mcp:tools-basic`) and use `WWW-Authenticate` scope challenges for progressive elevation. Publishing all scopes in `scopes_supported` or using wildcards (`*`) expands the blast radius of every stolen token.
+
+The full spec also covers local server sandboxing, CSRF protection on consent UIs, and `__Host-` prefix requirements for consent cookies — worth the full read if you're shipping a production MCP server.
+
+**Sources:** [MCP Security Best Practices — modelcontextprotocol.io](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices) · [Security Design Considerations for AI-Driven Automation — NSA/CISA CSI](https://media.defense.gov/2026/Jun/02/2003943289/-1/-1/0/CSI_MCP_SECURITY.PDF) · [Secure MCP Server Development Guide — OWASP](https://genai.owasp.org/resource/a-practical-guide-for-secure-mcp-server-development/)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-07-13-03-mcp-security-attacks-confused-deputy-ssrf","title":"Five Attacks That Break MCP Servers — and the Fixes the Official Spec Requires","excerpt":"The official MCP Security Best Practices spec documents five exploitable attack classes — confused deputy, token passthrough, SSRF, session hijacking, and OAuth URL injection — each with concrete c…","author":"Chris Harper","date":"07-13-2026","publishedAt":"2026-07-13T04:05:00.000Z","tags":["AI","Workflow","MCP","Security","Agents"],"readTime":4,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-13-03-mcp-security-attacks-confused-deputy-ssrf.jpg","imageSource":"https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Five Attacks That Break MCP Servers — and the Fixes the Official Spec Requires | AI News"}],["$","meta","1",{"name":"description","content":"The official MCP Security Best Practices spec documents five exploitable attack classes — confused deputy, token passthrough, SSRF, session hijacking, and OAuth URL injection — each with concrete c…"}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-07-13-03-mcp-security-attacks-confused-deputy-ssrf/"}],["$","meta","3",{"property":"og:title","content":"Five Attacks That Break MCP Servers — and the Fixes the Official Spec Requires"}],["$","meta","4",{"property":"og:description","content":"The official MCP Security Best Practices spec documents five exploitable attack classes — confused deputy, token passthrough, SSRF, session hijacking, and OAuth URL injection — each with concrete c…"}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-07-13-03-mcp-security-attacks-confused-deputy-ssrf/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-13-03-mcp-security-attacks-confused-deputy-ssrf.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Five Attacks That Break MCP Servers — and the Fixes the Official Spec Requires"}],["$","meta","13",{"name":"twitter:description","content":"The official MCP Security Best Practices spec documents five exploitable attack classes — confused deputy, token passthrough, SSRF, session hijacking, and OAuth URL injection — each with concrete c…"}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-13-03-mcp-security-attacks-confused-deputy-ssrf.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

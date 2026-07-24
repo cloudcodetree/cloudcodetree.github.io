@@ -1,0 +1,107 @@
+1:"$Sreact.fragment"
+2:I[68977,["5914","static/chunks/5914-78fa75be6ca6de8c.js","1860","static/chunks/1860-1e5afbc2d94aafa0.js","7177","static/chunks/app/layout-226110c5f1d969af.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/26dc4a78f0c7af7f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e0f4b1ebfdbd83f9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e4af272ccee01ff0-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/e2dabe4f14a0dbf4.css","style"]
+0:{"P":null,"b":"w9XRQJz_GrbOlWMbqryxy","p":"https://cloudcodetree.com","c":["","ai-news","2026-07-06-04-sentence-transformers-embeddings-foundations",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-07-06-04-sentence-transformers-embeddings-foundations","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/e2dabe4f14a0dbf4.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_f5e841 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_c9a639","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-07-06-04-sentence-transformers-embeddings-foundations","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[17655,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+11:I[82566,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+12:Tf2e,**TL;DR: In 5 lines of Python you can turn any text into a dense vector with sentence-transformers — this post walks from zero to a working semantic search engine and builds the intuition every AI engineer needs.**
+
+**What you'll be able to do after this:**
+- Generate dense vector embeddings for any text string using a pre-trained model in under 5 lines of Python
+- Measure semantic similarity between sentences (not just keyword overlap) using cosine similarity
+- Build a minimal semantic search engine over a list of documents — the exact retrieval core of every RAG pipeline
+
+**Resource:** [Creating and Visualizing Embeddings with Sentence Transformers — TensorTeach (YouTube)](https://www.youtube.com/watch?v=5S2Yk45xMLM)
+
+---
+
+## What an embedding is (the intuition)
+
+A text embedding is a list of numbers — a vector — that represents the *meaning* of a sentence. Two sentences with similar meaning end up close together in this vector space, regardless of exact wording. "The dog chased the cat" and "The hound pursued the feline" produce similar vectors; "stock market close" produces a very different one.
+
+The model does this by running text through a transformer encoder and pooling the output into a fixed-length vector — typically 384 dimensions for the common starter models.
+
+## Install and load a model
+
+```bash
+pip install sentence-transformers
+```
+
+```python
+from sentence_transformers import SentenceTransformer
+
+# all-MiniLM-L6-v2: 384-dim, 22M params, fast, accurate enough for most tasks
+model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+```
+
+The first call downloads the model weights from Hugging Face (~80MB). After that it runs locally with no API calls.
+
+## Encode text and measure similarity
+
+```python
+sentences = [
+    "Claude Code automates pull request reviews.",
+    "Automated PR reviews with Claude.",
+    "Stock market futures are trending upward.",
+]
+
+embeddings = model.encode(sentences)
+# shape: (3, 384) — one 384-d vector per sentence
+
+from sentence_transformers import util
+
+sim_01 = util.cos_sim(embeddings[0], embeddings[1])  # ~0.89 — same meaning
+sim_02 = util.cos_sim(embeddings[0], embeddings[2])  # ~0.14 — different topic
+print(sim_01, sim_02)
+```
+
+Cosine similarity ranges from -1 to 1. Semantically unrelated sentences typically score < 0.3; near-identical meanings score > 0.8.
+
+## Minimal semantic search
+
+```python
+docs = [
+    "How to configure a Claude Code hook",
+    "LoRA fine-tuning on a free Colab GPU",
+    "Deploying vLLM on a Linux server",
+    "What is cosine similarity in embeddings?",
+]
+
+doc_embeddings = model.encode(docs)
+query = "set up a post-tool hook in Claude Code"
+query_embedding = model.encode(query)
+
+scores = util.cos_sim(query_embedding, doc_embeddings)[0]
+top = scores.topk(2)
+for score, idx in zip(top.values, top.indices):
+    print(f"{score:.2f}  {docs[idx]}")
+# 0.74  How to configure a Claude Code hook
+# 0.31  What is cosine similarity in embeddings?
+```
+
+This is the retrieval core of every RAG pipeline: encode the query, encode the docs, rank by cosine similarity, feed the top-k to the LLM.
+
+## What to try next
+
+Once you have vectors, the natural next step is storing them in a vector database — pgvector, FAISS, or Chroma — so you can search millions of documents efficiently instead of a flat list. That's where the retrieval stack goes from a demo to production.
+
+**Sources:** [Creating and Visualizing Embeddings with Sentence Transformers — TensorTeach (YouTube)](https://www.youtube.com/watch?v=5S2Yk45xMLM) · [Quickstart — sbert.net](https://www.sbert.net/docs/quickstart.html) · [Computing Embeddings — sbert.net](https://sbert.net/examples/sentence_transformer/applications/computing-embeddings/README.html) · [sentence-transformers/all-MiniLM-L6-v2 — Hugging Face](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-07-06-04-sentence-transformers-embeddings-foundations","title":"Turn Any Text Into a Number: Foundations of Embeddings With Sentence Transformers","excerpt":"Learn how sentence-transformers converts text to dense vectors in 5 lines of Python, what cosine similarity actually measures, and how to build a first semantic search engine — the retrieval core o…","author":"Chris Harper","date":"07-06-2026","publishedAt":"2026-07-06T04:05:00.000Z","tags":["AI","Tutorial","Embeddings","Vectors","HuggingFace"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-06-04-sentence-transformers-embeddings-foundations.jpg","imageSource":"https://www.youtube.com/watch?v=5S2Yk45xMLM","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Turn Any Text Into a Number: Foundations of Embeddings With Sentence Transformers | AI News"}],["$","meta","1",{"name":"description","content":"Learn how sentence-transformers converts text to dense vectors in 5 lines of Python, what cosine similarity actually measures, and how to build a first semantic search engine — the retrieval core o…"}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-07-06-04-sentence-transformers-embeddings-foundations/"}],["$","meta","3",{"property":"og:title","content":"Turn Any Text Into a Number: Foundations of Embeddings With Sentence Transformers"}],["$","meta","4",{"property":"og:description","content":"Learn how sentence-transformers converts text to dense vectors in 5 lines of Python, what cosine similarity actually measures, and how to build a first semantic search engine — the retrieval core o…"}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-07-06-04-sentence-transformers-embeddings-foundations/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-06-04-sentence-transformers-embeddings-foundations.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Turn Any Text Into a Number: Foundations of Embeddings With Sentence Transformers"}],["$","meta","13",{"name":"twitter:description","content":"Learn how sentence-transformers converts text to dense vectors in 5 lines of Python, what cosine similarity actually measures, and how to build a first semantic search engine — the retrieval core o…"}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-06-04-sentence-transformers-embeddings-foundations.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

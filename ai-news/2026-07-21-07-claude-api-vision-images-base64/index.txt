@@ -1,0 +1,104 @@
+1:"$Sreact.fragment"
+2:I[68977,["5914","static/chunks/5914-78fa75be6ca6de8c.js","1860","static/chunks/1860-1e5afbc2d94aafa0.js","7177","static/chunks/app/layout-226110c5f1d969af.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/26dc4a78f0c7af7f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e0f4b1ebfdbd83f9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e4af272ccee01ff0-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/e2dabe4f14a0dbf4.css","style"]
+0:{"P":null,"b":"w9XRQJz_GrbOlWMbqryxy","p":"https://cloudcodetree.com","c":["","ai-news","2026-07-21-07-claude-api-vision-images-base64",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-07-21-07-claude-api-vision-images-base64","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/e2dabe4f14a0dbf4.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_f5e841 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_c9a639","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-07-21-07-claude-api-vision-images-base64","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[17655,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+11:I[82566,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+12:Td10,**TL;DR: Pass any screenshot or local image to Claude as a base64-encoded content block — the same `messages.create` call you already use for text, just with a different content type.**
+
+Most AI workflows stop at text. But Claude Sonnet 5 and Opus 4.8 accept images natively in the same API your text calls use — no separate endpoint, no special SDK. That makes visual automation (dashboard scraping, UI testing, document OCR, diagram extraction) a drop-in addition to any existing pipeline.
+
+## The pattern
+
+```python
+import anthropic
+import base64
+from pathlib import Path
+
+client = anthropic.Anthropic()
+
+def ask_about_image(image_path: str, prompt: str) -> str:
+    image_bytes = Path(image_path).read_bytes()
+    image_data = base64.standard_b64encode(image_bytes).decode("utf-8")
+
+    ext = Path(image_path).suffix.lower()
+    media_type = {
+        ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".gif": "image/gif",
+        ".webp": "image/webp",
+    }.get(ext, "image/png")
+
+    message = client.messages.create(
+        model="claude-sonnet-5",
+        max_tokens=1024,
+        messages=[{
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": media_type,
+                        "data": image_data,
+                    },
+                },
+                {"type": "text", "text": prompt},
+            ],
+        }],
+    )
+    return message.content[0].text
+
+# Parse a monitoring dashboard screenshot
+print(ask_about_image(
+    "screenshots/dashboard.png",
+    "What is the current p99 latency shown? Return only the value and unit."
+))
+```
+
+## Or use a URL directly
+
+For public images (e.g., a CI badge, a chart hosted on S3):
+
+```python
+message = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=512,
+    messages=[{"role": "user", "content": [
+        {"type": "image", "source": {"type": "url", "url": "https://your-bucket.s3.amazonaws.com/chart.png"}},
+        {"type": "text", "text": "List the five highest bars in this chart."},
+    ]}],
+)
+```
+
+## Practical use cases
+
+- **UI test assertions**: take a Playwright screenshot, ask "does this page show a success banner?" — no selector brittleness
+- **Dashboard parsing**: extract metric values from monitoring screenshots without brittle HTML scraping
+- **Document OCR**: rasterize a PDF page to PNG, extract tables, form fields, or signatures
+- **Diagram review**: pass architecture diagrams to Claude in a code-review pipeline, ask it to flag missing error paths
+
+## Cost and limits
+
+One full 1920×1080 PNG screenshot costs roughly 2,000–5,000 input tokens depending on image complexity. At Sonnet 5 pricing, that's a few tenths of a cent per screenshot. Max image size is 5 MB per image; you can send up to 20 images per request. For repeated analysis of the same document, use the [Files API](https://platform.claude.com/docs/en/build-with-claude/files) — upload once, reference by `file_id`.
+
+**Sources:** [Vision — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/vision) · [Claude Vision API Image Analysis Guide — AI for Anything](https://aiforanything.io/blog/claude-vision-api-image-analysis-guide-2026)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-07-21-07-claude-api-vision-images-base64","title":"Feed Claude a Screenshot: How to Use the Vision API for Visual Automation","excerpt":"Claude's messages API accepts images natively — base64-encode a local screenshot or pass a URL, and the same call you use for text handles visual automation too.","author":"Chris Harper","date":"07-21-2026","publishedAt":"2026-07-21T20:03:00.000Z","tags":["AI","Workflow","Claude Code","Best Practices"],"readTime":2,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-21-07-claude-api-vision-images-base64.jpg","imageSource":"https://platform.claude.com/docs/en/build-with-claude/vision","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Feed Claude a Screenshot: How to Use the Vision API for Visual Automation | AI News"}],["$","meta","1",{"name":"description","content":"Claude's messages API accepts images natively — base64-encode a local screenshot or pass a URL, and the same call you use for text handles visual automation too."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-07-21-07-claude-api-vision-images-base64/"}],["$","meta","3",{"property":"og:title","content":"Feed Claude a Screenshot: How to Use the Vision API for Visual Automation"}],["$","meta","4",{"property":"og:description","content":"Claude's messages API accepts images natively — base64-encode a local screenshot or pass a URL, and the same call you use for text handles visual automation too."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-07-21-07-claude-api-vision-images-base64/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-21-07-claude-api-vision-images-base64.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Feed Claude a Screenshot: How to Use the Vision API for Visual Automation"}],["$","meta","13",{"name":"twitter:description","content":"Claude's messages API accepts images natively — base64-encode a local screenshot or pass a URL, and the same call you use for text handles visual automation too."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-21-07-claude-api-vision-images-base64.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

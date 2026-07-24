@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Tutorials · CloudCodeTree</title>
+    <link>https://cloudcodetree.com/tutorials/</link>
+    <atom:link href="https://cloudcodetree.com/tutorials/feed.xml" rel="self" type="application/rss+xml" />
+    <description>Hands-on tutorials for agentic AI development and AI engineering.</description>
+    <language>en-us</language>
+    <generator>cloudcodetree generate-feeds.mjs</generator>
+    <lastBuildDate>Fri, 24 Jul 2026 12:14:15 GMT</lastBuildDate>
+  <item>
+    <title><![CDATA[Claude Code Anywhere: Your Whole Dev Machine, In Your Pocket (Part 1 of 1)]]></title>
+    <link>https://cloudcodetree.com/tutorials/dev-machine-in-your-pocket/</link>
+    <guid isPermaLink="false">tutorial-dev-machine-in-your-pocket</guid>
+    <pubDate>Thu, 25 Jun 2026 12:00:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[Claude Code Anywhere]]></category>
+    <description><![CDATA[Self-host a free, secure pipeline from your phone to your real Mac with Tailscale, tmux, and one isolated Claude Code session per project. Your actual files and full toolchain — not a cloud sandbox.]]></description>
+  </item>
+  <item>
+    <title><![CDATA[Fine-Tuning & Serving: Serve a Model with vLLM (Part 3 of 3)]]></title>
+    <link>https://cloudcodetree.com/tutorials/serve-with-vllm/</link>
+    <guid isPermaLink="false">tutorial-serve-with-vllm</guid>
+    <pubDate>Wed, 24 Jun 2026 12:00:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[Fine-Tuning & Serving]]></category>
+    <description><![CDATA[Turn a fine-tuned model into a fast, OpenAI-compatible API. Merge the LoRA adapter, start a vLLM server with one command, and call it from the OpenAI client — a drop-in for your existing code.]]></description>
+  </item>
+  <item>
+    <title><![CDATA[Fine-Tuning & Serving: LoRA & QLoRA on One GPU (Part 2 of 3)]]></title>
+    <link>https://cloudcodetree.com/tutorials/lora-qlora-fine-tuning/</link>
+    <guid isPermaLink="false">tutorial-lora-qlora-fine-tuning</guid>
+    <pubDate>Wed, 24 Jun 2026 12:00:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[Fine-Tuning & Serving]]></category>
+    <description><![CDATA[How parameter-efficient fine-tuning works: LoRA trains tiny adapter matrices instead of the whole model, and QLoRA adds 4-bit quantization so an 8B model fits a free Colab GPU. Concept + an official runnable notebook.]]></description>
+  </item>
+  <item>
+    <title><![CDATA[Fine-Tuning & Serving: Fine-Tuning vs RAG (Part 1 of 3)]]></title>
+    <link>https://cloudcodetree.com/tutorials/fine-tuning-vs-rag/</link>
+    <guid isPermaLink="false">tutorial-fine-tuning-vs-rag</guid>
+    <pubDate>Wed, 24 Jun 2026 12:00:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[Fine-Tuning & Serving]]></category>
+    <description><![CDATA[The most common AI-engineering fork: retrieve knowledge (RAG) or change the model itself (fine-tuning)? A decision framework — when each wins, when to combine them, and what fine-tuning cannot do.]]></description>
+  </item>
+  <item>
+    <title><![CDATA[RAG from Scratch: Evaluating Retrieval (Part 6 of 6)]]></title>
+    <link>https://cloudcodetree.com/tutorials/evaluating-rag/</link>
+    <guid isPermaLink="false">tutorial-evaluating-rag</guid>
+    <pubDate>Tue, 23 Jun 2026 12:00:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[RAG from Scratch]]></category>
+    <description><![CDATA[Stop guessing whether a change helped. Build a golden query set, score retrieval with Hit@k and MRR, then A/B two retrievers over the same set — the capstone of the RAG track.]]></description>
+  </item>
+  <item>
+    <title><![CDATA[RAG from Scratch: Reranking (Part 5 of 6)]]></title>
+    <link>https://cloudcodetree.com/tutorials/reranking-for-rag/</link>
+    <guid isPermaLink="false">tutorial-reranking-for-rag</guid>
+    <pubDate>Tue, 23 Jun 2026 12:00:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[RAG from Scratch]]></category>
+    <description><![CDATA[A bi-encoder retrieves fast but is fooled by negation; a cross-encoder reads query and passage together and fixes it. Retrieve wide, rerank narrow — with the recall ceiling made concrete.]]></description>
+  </item>
+  <item>
+    <title><![CDATA[RAG from Scratch: Hybrid Search (Part 4 of 6)]]></title>
+    <link>https://cloudcodetree.com/tutorials/hybrid-search-for-rag/</link>
+    <guid isPermaLink="false">tutorial-hybrid-search-for-rag</guid>
+    <pubDate>Tue, 23 Jun 2026 12:00:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[RAG from Scratch]]></category>
+    <description><![CDATA[Vector search understands meaning; BM25 nails exact tokens. Each has a blind spot. Fuse them with Reciprocal Rank Fusion so retrieval stays correct when either one is wrong.]]></description>
+  </item>
+  <item>
+    <title><![CDATA[RAG from Scratch: Chunking Strategies (Part 3 of 6)]]></title>
+    <link>https://cloudcodetree.com/tutorials/chunking-strategies-for-rag/</link>
+    <guid isPermaLink="false">tutorial-chunking-strategies-for-rag</guid>
+    <pubDate>Tue, 23 Jun 2026 12:00:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[RAG from Scratch]]></category>
+    <description><![CDATA[Chunking is the biggest lever on RAG quality. Compare whole-document, fixed-size, and paragraph-aware+overlap chunking on the same query — with real numbers.]]></description>
+  </item>
+  <item>
+    <title><![CDATA[RAG from Scratch: Give Your RAG a Vector Database (Part 2 of 6)]]></title>
+    <link>https://cloudcodetree.com/tutorials/vector-database-for-rag/</link>
+    <guid isPermaLink="false">tutorial-vector-database-for-rag</guid>
+    <pubDate>Tue, 23 Jun 2026 12:00:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[RAG from Scratch]]></category>
+    <description><![CDATA[Move from in-memory numpy to Chroma: embed once, persist to disk, query fast, and filter by metadata. The next step after the RAG intro.]]></description>
+  </item>
+  <item>
+    <title><![CDATA[RAG from Scratch: Build a RAG Over Your Blog (Part 1 of 6)]]></title>
+    <link>https://cloudcodetree.com/tutorials/build-a-rag-over-your-blog/</link>
+    <guid isPermaLink="false">tutorial-build-a-rag-over-your-blog</guid>
+    <pubDate>Tue, 23 Jun 2026 12:00:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[RAG from Scratch]]></category>
+    <description><![CDATA[Your first hands-on AI-engineering project: retrieve answers from your own posts with embeddings + cosine search — no vector DB, no API key. ~60 lines of Python.]]></description>
+  </item>
+  </channel>
+</rss>

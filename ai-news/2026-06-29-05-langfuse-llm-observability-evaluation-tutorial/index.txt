@@ -1,0 +1,130 @@
+1:"$Sreact.fragment"
+2:I[68977,["5914","static/chunks/5914-78fa75be6ca6de8c.js","1860","static/chunks/1860-1e5afbc2d94aafa0.js","7177","static/chunks/app/layout-226110c5f1d969af.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/26dc4a78f0c7af7f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e0f4b1ebfdbd83f9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e4af272ccee01ff0-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/e2dabe4f14a0dbf4.css","style"]
+0:{"P":null,"b":"w9XRQJz_GrbOlWMbqryxy","p":"https://cloudcodetree.com","c":["","ai-news","2026-06-29-05-langfuse-llm-observability-evaluation-tutorial",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-06-29-05-langfuse-llm-observability-evaluation-tutorial","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/e2dabe4f14a0dbf4.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_f5e841 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_c9a639","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-06-29-05-langfuse-llm-observability-evaluation-tutorial","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[17655,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+11:I[82566,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+12:T1044,**TL;DR: Langfuse is the open-source LLM observability platform — instrument any Python or TypeScript app in minutes to get traces, costs, quality scores, and dataset-based regression testing.**
+
+**What you'll be able to do after this:**
+- Instrument any LLM app to capture every prompt, response, token cost, and latency in a structured trace dashboard
+- Score individual outputs (manually or via LLM-as-judge) and track quality over time
+- Spot regressions before users do by running your test dataset against a new model or prompt version
+
+## Why observability matters for LLM apps
+
+With a REST API, a failed request has a status code, a latency, and a payload. With an LLM app, a "successful" request can still hallucinate, drift off-topic, or quietly regress after a prompt tweak. Langfuse makes the invisible visible: every call becomes a trace with the full prompt, the raw response, token counts, latency, and cost — all searchable and filterable in one dashboard.
+
+## Step 1: Install and connect
+
+```bash
+pip install langfuse
+```
+
+Set your credentials (get them from [cloud.langfuse.com](https://cloud.langfuse.com) or your self-hosted instance):
+
+```bash
+export LANGFUSE_SECRET_KEY="sk-lf-..."
+export LANGFUSE_PUBLIC_KEY="pk-lf-..."
+export LANGFUSE_HOST="https://cloud.langfuse.com"
+```
+
+## Step 2: Instrument with one import
+
+The drop-in replacement wraps your existing OpenAI calls without changing any logic:
+
+```python
+from langfuse.openai import openai   # drop-in for "import openai"
+
+response = openai.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Explain RAG in one sentence"}]
+)
+```
+
+Every call now appears as a trace in your dashboard with prompt, response, tokens, cost, and latency. No decorator required.
+
+## Step 3: Group calls into traces with @observe
+
+For multi-step pipelines (retrieve → rerank → generate), decorate each function:
+
+```python
+from langfuse.decorators import observe, langfuse_context
+
+@observe()
+def retrieve(query: str) -> list[str]:
+    # ... vector search ...
+    return chunks
+
+@observe()
+def generate(query: str, context: list[str]) -> str:
+    response = openai.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "\n".join(context)},
+            {"role": "user", "content": query}
+        ]
+    )
+    return response.choices[0].message.content
+
+@observe()
+def rag_pipeline(query: str) -> str:
+    chunks = retrieve(query)
+    return generate(query, chunks)
+
+rag_pipeline("What is PagedAttention?")
+```
+
+The dashboard shows a tree: `rag_pipeline → retrieve → generate`, with timing and cost at each level.
+
+## Step 4: Score outputs for quality tracking
+
+After a user rates an answer (or you run an automated eval), attach a score to the trace:
+
+```python
+from langfuse import Langfuse
+langfuse = Langfuse()
+
+langfuse.score(
+    trace_id="<trace-id>",   # from langfuse_context.get_current_trace_id()
+    name="answer_quality",
+    value=0.9,               # 0.0 – 1.0
+    comment="accurate but slightly verbose"
+)
+```
+
+Quality scores show up alongside traces and can be filtered/aggregated — so you can see if a prompt change moved average quality up or down.
+
+## Step 5: Self-host for free (optional)
+
+```bash
+git clone https://github.com/langfuse/langfuse
+docker compose up
+```
+
+Langfuse v3 runs six containers (web, worker, Postgres, ClickHouse, Redis, MinIO) and is free to self-host forever. Point `LANGFUSE_HOST` at `http://localhost:3000`.
+
+## Watch the 10-minute walkthrough
+
+[10 min Walkthrough of Langfuse — YouTube](https://www.youtube.com/watch?v=2E8iTvGo9Hs) covers the full UI: trace view, session grouping, scores, prompt management, and dataset experiments. Best starting point before reading the docs.
+
+**Sources:** [Langfuse get-started docs](https://langfuse.com/docs/observability/get-started) | [Langfuse GitHub](https://github.com/langfuse/langfuse) | [10-min YouTube walkthrough](https://www.youtube.com/watch?v=2E8iTvGo9Hs) | [Towards Data Science: Hands-on with Langfuse](https://towardsdatascience.com/llm-monitoring-and-observability-hands-on-with-langfuse/)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-06-29-05-langfuse-llm-observability-evaluation-tutorial","title":"Trace Every LLM Call and Catch Regressions Early: Evaluation and Observability with Langfuse","excerpt":"Open-source Langfuse turns LLM API calls into searchable traces with costs, latency, and quality scores — then lets you run dataset evals to catch regressions before users do.","author":"Chris Harper","date":"06-29-2026","publishedAt":"2026-06-29T12:07:00.000Z","tags":["AI","Tutorial","Agents","LLM"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-29-05-langfuse-llm-observability-evaluation-tutorial.jpg","imageSource":"https://www.youtube.com/watch?v=2E8iTvGo9Hs","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Trace Every LLM Call and Catch Regressions Early: Evaluation and Observability with Langfuse | AI News"}],["$","meta","1",{"name":"description","content":"Open-source Langfuse turns LLM API calls into searchable traces with costs, latency, and quality scores — then lets you run dataset evals to catch regressions before users do."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-06-29-05-langfuse-llm-observability-evaluation-tutorial/"}],["$","meta","3",{"property":"og:title","content":"Trace Every LLM Call and Catch Regressions Early: Evaluation and Observability with Langfuse"}],["$","meta","4",{"property":"og:description","content":"Open-source Langfuse turns LLM API calls into searchable traces with costs, latency, and quality scores — then lets you run dataset evals to catch regressions before users do."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-06-29-05-langfuse-llm-observability-evaluation-tutorial/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-29-05-langfuse-llm-observability-evaluation-tutorial.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Trace Every LLM Call and Catch Regressions Early: Evaluation and Observability with Langfuse"}],["$","meta","13",{"name":"twitter:description","content":"Open-source Langfuse turns LLM API calls into searchable traces with costs, latency, and quality scores — then lets you run dataset evals to catch regressions before users do."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-29-05-langfuse-llm-observability-evaluation-tutorial.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"
