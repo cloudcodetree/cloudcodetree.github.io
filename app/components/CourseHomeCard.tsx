@@ -63,7 +63,7 @@ export default function CourseHomeCard({ parts, allHref = '/tutorials/all/' }: {
       </Box>
 
       <Typography sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', mt: 3 }}>
-        {`${total} parts · real code on real data · 166 tests · one deployed SaaS`}
+        {`${total} parts · real code on real data · 193 tests · one deployed SaaS`}
       </Typography>
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 3 }}>
