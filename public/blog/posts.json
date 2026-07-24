@@ -1,5 +1,60 @@
 [
   {
+    "id": "2026-07-24-06-cowork-record-a-skill-workflow-teaching",
+    "title": "Show, Don't Tell: Teach Claude a Workflow by Recording Your Screen Once",
+    "excerpt": "Claude Cowork's \"Record a Skill\" feature (July 21) converts a single screen-recording walkthrough into a reusable, rerunnable Skill — no prompt engineering required.",
+    "author": "Chris Harper",
+    "date": "07-24-2026",
+    "publishedAt": "2026-07-24T12:04:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.androidheadlines.com/2026/07/claude-cowork-record-a-skill-screen-recording-feature.html",
+    "content": "**TL;DR: Claude Cowork's \"Record a Skill\" converts a single screen-recording walkthrough into a reusable, rerunnable Skill — narrate your workflow once and Claude writes the automation for you, no prompts needed.**\n\nThe hardest part of automating a workflow with Claude isn't running the automation — it's translating what you know about a task into a clear prompt. \"Record a Skill\", released July 21 in Claude Cowork for the desktop app, removes that barrier entirely.\n\n## How it works\n\n1. Open the **+** menu in Claude Cowork (desktop app — Pro, Max, or Team plan)\n2. Start recording and complete the workflow at your normal pace: drag files, click buttons, fill in forms\n3. Narrate as you go: *\"now I'm checking the PR status, then copying the review URL and posting it to Slack\"*\n4. Stop the recording — Claude processes the screen activity, clicks, keystrokes, and voice commentary together and generates a structured Skill file\n5. The Skill appears in your library; invoke it the next time without repeating the walkthrough\n\n## Why narration outperforms prompts\n\nWhen you write a prompt to describe a workflow, you have to anticipate every step, exception, and decision point in advance and express them in prose. Screen recording captures your actual behavior — including the implicit checks you perform and the edge cases you handle instinctively. Claude can observe those decision moments directly (\"user paused here to check the ticket due date before moving on\") rather than inferring them from your written description.\n\n## Good candidates for your first recording\n\n- Repetitive reporting workflows: pull status from Jira, format it, post to a Slack channel\n- Code review checklists you run across multiple PRs in the same way\n- Internal tool navigation that isn't documented anywhere but you do daily\n- Onboarding tasks you want to standardize for your team\n\n**Limitation to know:** Currently desktop-only inside Claude Cowork. Screen recordings can capture sensitive information — review what was recorded before sharing or team-deploying a Skill.\n\n**Sources:** [Show, Don't Tell: Claude Cowork Now Learns Skills from Your Screen Recordings — Android Headlines](https://www.androidheadlines.com/2026/07/claude-cowork-record-a-skill-screen-recording-feature.html) · [Forget prompts: Claude can now learn your workflow by watching your screen — Android Authority](https://www.androidauthority.com/claude-cowork-record-skills-feature-3689919/) · [Anthropic Ships \"Record a Skill\" in Claude Cowork — AI Weekly](https://aiweekly.co/alerts/anthropic-ships-record-a-skill-in-claude-cowork-desktop-app)"
+  },
+  {
+    "id": "2026-07-24-05-claude-voice-opus-cross-app-automation",
+    "title": "Claude Voice Mode Gains Opus/Sonnet Model Choice and Cross-App Voice Automation",
+    "excerpt": "Claude voice mode now supports Opus, Sonnet, and Haiku model choice mid-conversation, and can trigger actions in Gmail, Slack, Calendar, Canva, and Notion via voice commands in ten languages.",
+    "author": "Chris Harper",
+    "date": "07-24-2026",
+    "publishedAt": "2026-07-24T12:03:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Claude Code",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://techcrunch.com/2026/07/23/anthropic-updates-claude-voice-mode-with-more-capable-models/",
+    "content": "**TL;DR: Claude voice mode (July 23) expands from Haiku-only to full Opus/Sonnet/Haiku model choice with a mid-conversation picker, and adds cross-app automation that triggers actions in Gmail, Slack, Calendar, Canva, and Notion via voice.**\n\nAnthropic shipped a significant voice mode update on July 23. Previously limited to Haiku, voice mode now opens with whichever model you last used in text chat and lets you switch between Haiku, Sonnet, and Opus mid-call. Paid plans unlock Opus and Sonnet; free plans get Haiku and one connected app.\n\nThe more developer-relevant piece: cross-app automation via voice is live in ten languages. Users can now trigger structured actions — compose and send an email, add a calendar event, post to Slack, update a Canva canvas — through voice commands routed through Claude's existing tool-use machinery.\n\n**Why it matters:** The \"voice → intent → tool call → external service\" pattern is exactly what agentic voice interfaces need. Anthropic is validating this architecture at scale with a consumer product before it reaches the API. Developers building voice-controlled Claude workflows should watch the connected-app tooling patterns that emerge from this rollout.\n\n**Sources:** [Anthropic updates Claude voice mode with more capable models — TechCrunch](https://techcrunch.com/2026/07/23/anthropic-updates-claude-voice-mode-with-more-capable-models/) · [Anthropic Brings Opus and Sonnet to Claude Voice Mode — Unite.AI](https://www.unite.ai/anthropic-brings-opus-and-sonnet-to-claude-voice-mode/)"
+  },
+  {
+    "id": "2026-07-24-04-bentoml-package-deploy-model-rest-api",
+    "title": "From Fine-Tune to API: Packaging Any ML Model as a Production Service with BentoML",
+    "excerpt": "BentoML wraps any trained model in a production-ready REST API with adaptive batching, health checks, and Docker export — all from a single @bentoml.service decorator.",
+    "author": "Chris Harper",
+    "date": "07-24-2026",
+    "publishedAt": "2026-07-24T12:02:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Self-Hosting",
+      "LLM",
+      "HuggingFace"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.youtube.com/watch?v=HHkmfI_yncc",
+    "content": "**TL;DR: BentoML wraps any trained model — HuggingFace, PyTorch, sklearn, even a QLoRA fine-tune from Unsloth — in a production-ready REST/gRPC API with adaptive batching, health checks, Docker export, and cloud deploy, all from a single Python decorator.**\n\n**What you'll be able to do after this:**\n- Package any fine-tuned model as a FastAPI-backed REST service with one `@bentoml.service` decorator\n- Build and containerize a Bento into a portable Docker image with `bentoml build` + `bentoml containerize` — no Dockerfile required\n- Deploy to BentoCloud or any Docker host with adaptive batching, `/metrics` (Prometheus), and OpenTelemetry tracing already wired in\n\n**Resource:** [How to Deploy ML Models in Production with BentoML](https://www.youtube.com/watch?v=HHkmfI_yncc) by Valerio Velardo (The Sound of AI), YouTube — covers the complete lifecycle: model saving, service definition, local dev server, Docker export, and cloud deployment options. Official docs: [BentoML quickstart](https://docs.bentoml.com/en/latest/get-started/hello-world.html).\n\n## Why BentoML bridges the gap after fine-tuning\n\nYou trained a model with Unsloth, evaluated it with `lm-eval`, and it performs well. Now what? Dropping it into a raw FastAPI endpoint works for demos but skips everything production needs: batching, health checks, dependency pinning, metrics, containerization. BentoML handles all of it with minimal extra code — the interface you define is almost identical to a plain Python class.\n\n## The three-step pattern\n\n```python\n# Step 1: Save your model (after training with HuggingFace/TRL/Unsloth)\nimport bentoml\nfrom transformers import pipeline\n\nbentoml.transformers.save_model(\n    \"my-fine-tuned-mistral\",\n    pipeline(\"text-generation\", model=model, tokenizer=tokenizer),\n)\n```\n\n```python\n# Step 2: Define a Service (service.py)\nimport bentoml\n\n@bentoml.service(\n    resources={\"gpu\": 1},\n    traffic={\"timeout\": 30},\n)\nclass MistralService:\n    model_ref = bentoml.models.get(\"my-fine-tuned-mistral:latest\")\n\n    def __init__(self):\n        self.pipeline = self.model_ref.load_model()\n\n    @bentoml.api\n    def generate(self, prompt: str) -> str:\n        return self.pipeline(prompt, max_new_tokens=256)[0][\"generated_text\"]\n```\n\n```bash\n# Step 3: Serve, build, containerize\nbentoml serve service:MistralService --reload      # dev server at :3000\nbentoml build                                       # creates a Bento artifact\nbentoml containerize my-fine-tuned-mistral:latest   # outputs a Docker image\ndocker run -p 3000:3000 my-fine-tuned-mistral:latest\n```\n\n## What you get for free\n\n**Adaptive batching** groups concurrent requests into a single forward pass — critical for GPU throughput under load. You enable it with one decorator argument (`@bentoml.api(batchable=True)`). **Health checks** (`/healthz`, `/readyz`, `/livez`) are built in. **The Docker image** pins your exact Python dependencies, includes the model weights, and passes a `docker inspect` right away.\n\n## Connecting to vLLM\n\nBentoML also ships a [vLLM runner example](https://docs.bentoml.com/en/latest/examples/vllm.html) that wraps vLLM's async engine behind a BentoML service — giving you the packaging, metrics, and deploy tooling of BentoML with vLLM's PagedAttention throughput underneath.\n\n**Sources:** [How to Deploy ML Models in Production with BentoML — The Sound of AI (YouTube)](https://www.youtube.com/watch?v=HHkmfI_yncc) · [BentoML Hello World quickstart](https://docs.bentoml.com/en/latest/get-started/hello-world.html) · [BentoML + vLLM integration](https://docs.bentoml.com/en/latest/examples/vllm.html) · [BentoML GitHub](https://github.com/bentoml/BentoML)"
+  },
+  {
     "id": "2026-07-24-03-claude-code-practice-patterns-anthropic-research",
     "title": "What Anthropic's 400,000-Session Study Reveals About Using Claude Code More Effectively",
     "excerpt": "Anthropic's analysis of 400K Claude Code sessions: domain expertise (not coding background) predicts success, experts get more Claude output per message, and planning is always the human's job.",
