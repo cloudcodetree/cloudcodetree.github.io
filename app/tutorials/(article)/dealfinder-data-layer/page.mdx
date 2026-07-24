@@ -49,7 +49,7 @@ A `.devcontainer/` gives you Python 3.11 in one click (locally or in Codespaces)
 - Stand up the RapidAPI Google Shopping connector and issue a query that returns real electronics listings.
 - Load and validate `electronics-2026-07.json` against the canonical `Item` schema.
 - Explain why `brand` holds the retailer in 156 of 270 snapshot rows, and use a title-parsing heuristic to extract the true manufacturer.
-- Identify the dedup problem — Sony WH-1000XM5 at $162.97 vs. $248 — and collapse duplicates to the cheapest in-stock source.
+- Identify the dedup problem — Sony WH-1000XM5 at $162.97 (Costco) vs. $248 (Macy's) — and see why exact-match dedup keeps both offers, leaving true cross-retailer merge to the semantic dedup in Part 9.
 - Freeze and version a snapshot via `data/build_snapshot.py` for reproducible downstream work.
 
 ---
@@ -227,17 +227,20 @@ Once you have the true manufacturer, `brand_tier()` maps it to a price-tier rank
 
 ---
 
-## Dedup: Sony WH-1000XM5 at two prices
+## Dedup: same product, or two offers to compare?
 
-The live connector returned the same Sony headphones from Costco at $162.97 and from Macy's at $248.00. After normalization, they share an identical key. `dedup_by_normalized_title` in `dealfinder/ingest.py` collapses them — keeping the cheaper one and logging the drop:
+The connector returned Sony WH-1000XM5 headphones from Costco at $162.97 and from Macy's at $248.00. Should those collapse into one row? For a deal aggregator the answer is subtler than it looks — and the real data makes it concrete. `dedup_key` + `ingest` in `dealfinder/ingest.py` do an **exact-match** collapse: identical brand *and* title, keep the cheapest.
 
 ```python
 # dealfinder/ingest.py
 def dedup_key(p: Product) -> str:
-    """Normalize brand + title into a collision key."""
+    """Exact-match collision key: same brand + title. Cross-retailer offers and
+    near-duplicate titles are NOT collapsed here — that is the semantic (cosine)
+    dedup in Part 9."""
     return f"{(p.brand or '').strip().lower()}|{p.title.strip().lower()}"
 
 def ingest(sources: list[DealSource]) -> list[Product]:
+    """Pull from every source; when the exact same product appears twice, keep the cheapest."""
     best: dict[str, Product] = {}
     for src in sources:
         for p in src.products():
@@ -247,16 +250,19 @@ def ingest(sources: list[DealSource]) -> list[Product]:
     return list(best.values())
 ```
 
-Walk through the Sony scenario step by step:
+Now run the real Sony rows through it — the actual keys from the frozen snapshot:
 
-1. **Row 1 arrives** — `brand="Costco"`, `title="Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Headphones"`, `price=162.97`. Key: `costco|sony wh-1000xm5 wireless...`. Stored.
-2. **Row 2 arrives** — `brand="Macy's"`, same title, `price=248.00`. Key differs because the raw `brand` differs. They do not yet collapse — which is why the `step-01b` upgrade switches the key to use `title_brand(title)` instead of the raw retailer field.
-3. **After title-brand extraction** — both rows produce `brand_extracted="Sony"`. Key: `sony|sony wh-1000xm5 wireless...`. Identical. The higher-price row ($248, Macy's) is dropped. A log entry records it: `DEDUP dropped $248.00 Macy's (kept $162.97 Costco)`.
-4. **Output** — one `Product` at $162.97, `source="RapidAPI:Costco"`, `brand_extracted="Sony"`.
+1. **Costco row** — raw `brand="costco.com"`, title `"Sony WH-1000XM5 Wireless Headphones"`, `$162.97`. Key: `costco.com|sony wh-1000xm5 wireless headphones`.
+2. **Macy's row** — raw `brand="Macy's"`, title `"SONY WH-1000XM5 Wireless Noise-Canceling Headphones"`, `$248.00`. Key: `macy's|sony wh-1000xm5 wireless noise-canceling headphones`.
+3. **The keys differ — on both halves.** The raw `brand` is a *retailer* (Part 1's other problem), and the titles aren't byte-identical either ("Wireless Headphones" vs. "Wireless Noise-Canceling Headphones"). So `ingest` keeps **both** rows.
+
+And that is the right call. A deal aggregator's whole job is to show the same product across stores so you can compare — collapsing the $248 listing away would *hide* a data point, not clean one. Exact-match dedup exists to catch a feed that returns the *identical* row twice, not to merge genuine cross-retailer offers.
+
+Recognizing that these two *are* the same product — despite different retailer brands and slightly different titles — is a harder, semantic problem. That is exactly what Part 9 solves with embedding-based cosine dedup (threshold 0.90): it measures that the two titles *mean* the same thing and merges them with an audit log. **Part 1 surfaces the problem; Part 9 has the machinery to solve it.**
 
 <DedupMerge />
 
-The drop is logged, not silent. When you audit the dedup log later, you can trace exactly which listings were collapsed and why. That auditability matters more than it seems: in Part 9, the cosine-dedup pass (threshold 0.90) runs the same logic at embedding distance, and the log is what lets you catch false positives.
+When an exact duplicate *is* collapsed, the drop is logged, not silent — so you can audit which listings were merged and why. That auditability matters more than it seems: in Part 9 the cosine-dedup pass (threshold 0.90) runs the same keep-cheapest logic at embedding distance to merge cases like this Sony pair, and the log is what lets you catch false positives before they hide a real offer.
 
 ---
 
