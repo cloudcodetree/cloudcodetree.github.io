@@ -10,8 +10,148 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 26 Jul 2026 04:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 26 Jul 2026 12:07:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Swap Claude's Tools Mid-Conversation Without Busting the Cache</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages</link>
+      <guid isPermaLink="false">2026-07-26-05-claude-mid-conversation-tool-changes-beta</guid>
+      <pubDate>Sun, 26 Jul 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Add or remove Claude tools between conversation turns without invalidating the prompt cache — using one beta header. A new pattern for progressive agentic tool access, shipping with Opus 5.</description>
+      <content:encoded><![CDATA[
+**Add or remove Claude's tools between turns — without re-billing the entire cached prefix — using one beta header: a new pattern for agentic workloads that progressively expose or retire tools.**
+
+Every production agent faces a tension: give Claude a small, safe toolbox and you limit capability; give it the full toolbox upfront and you expose write surfaces before you need them. The `mid-conversation-tool-changes-2026-07-01` beta, introduced with Claude Opus 5, resolves this.
+
+## The problem
+
+Before this beta, changing the tool list invalidated the cached prefix — meaning a large system prompt or long conversation history was re-billed at full price on every tool-set change.
+
+## The fix: one beta header
+
+Include the header on every request in the session:
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+# Turn 1 — read-only exploration
+r1 = client.messages.create(
+    model="claude-opus-5-20260724",
+    max_tokens=1024,
+    betas=["mid-conversation-tool-changes-2026-07-01"],
+    tools=[search_tool, read_file_tool],
+    messages=[{"role": "user", "content": "Explore the codebase and draft a plan."}],
+)
+
+# Turn 2 — user approves; add write access
+r2 = client.messages.create(
+    model="claude-opus-5-20260724",
+    max_tokens=1024,
+    betas=["mid-conversation-tool-changes-2026-07-01"],
+    tools=[search_tool, read_file_tool, edit_file_tool],  # unlocked
+    messages=[
+        *prior_messages,
+        {"role": "assistant", "content": r1.content},
+        {"role": "user", "content": "Looks good — go ahead."},
+    ],
+)
+```
+
+The system prompt and prior turns stay cached across both calls. Only the delta (the changed tool definition) is re-billed.
+
+## Progressive access pattern
+
+A clean four-phase flow for multi-step agentic tasks:
+
+1. **Explore** — read-only tools (search, grep, read)
+2. **Plan and approve** — same tools; user confirms before anything mutates
+3. **Execute** — narrow write tools added (edit, create, run)
+4. **Verify** — write tools retired; test and lint tools take over
+
+This keeps Claude's exposure minimal at every stage, which matters for both cost (smaller tool definitions = cheaper cached prefix) and safety (no write surface during exploration).
+
+Available on Fable 5, Mythos 5, Opus 4.8, and Opus 5. Mid-conversation **system message** changes (GA, no beta header needed) work the same way and also preserve the cache.
+
+**Sources:** [Mid-conversation system messages and tool changes](https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages) · [What's new in Claude Opus 5](https://platform.claude.com/docs/en/about-claude/models/whats-new-opus-5) · [Introducing Claude Opus 5](https://www.anthropic.com/news/claude-opus-5)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>The Algorithm Inside Every Vector Database: Understand and Tune HNSW in 20 Minutes</title>
+      <link>https://qdrant.tech/course/essentials/day-2/what-is-hnsw/</link>
+      <guid isPermaLink="false">2026-07-26-04-hnsw-vector-index-tuning-qdrant-course</guid>
+      <pubDate>Sun, 26 Jul 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Embeddings</category>
+      <category>Vectors</category>
+      <category>Best Practices</category>
+      <description>HNSW powers pgvector, Qdrant, Weaviate, ChromaDB, and FAISS. Learn what m, ef_construction, and ef do — then tune them on a 100K dataset with Qdrant's free hands-on course.</description>
+      <media:content url="https://img.youtube.com/vi/-q-pLgGDYr4/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/-q-pLgGDYr4/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**HNSW is the graph index inside pgvector, Qdrant, Weaviate, ChromaDB, and FAISS — three knobs control all of them: m (connectivity), ef_construction (build quality), and ef (query depth).**
+
+**What you'll be able to do after this:**
+- Explain why HNSW finds approximate nearest neighbors in sub-millisecond time across millions of vectors — and why brute-force can't
+- Tune `m`, `ef_construction`, and `ef` for the right recall/latency tradeoff in any vector database
+- Benchmark your own collection and find the performance knee that fits your workload
+
+**Resource:** [Qdrant Essentials Course, Day 2: HNSW Indexing](https://qdrant.tech/course/essentials/day-2/what-is-hnsw/) + [YouTube walkthrough](https://www.youtube.com/watch?v=-q-pLgGDYr4)
+
+## How HNSW works
+
+HNSW builds a multi-layer graph. Higher layers contain fewer nodes connected by long-range "highway" edges — they let a search jump quickly across the vector space. Lower layers are dense with local connections for fine-grained lookup.
+
+At query time, search enters at the top (coarsest) layer, follows the closest edges downward through increasingly dense layers, and returns approximate nearest neighbors. This is typically 10–100× faster than brute-force scan, with 95–99% recall — which is why every major vector database uses it as the default index.
+
+All the databases covered in this learning track use HNSW: pgvector, Qdrant, Weaviate, ChromaDB, and FAISS (`IndexHNSWFlat`).
+
+## The three parameters you control
+
+| Parameter | Controls | When set |
+|---|---|---|
+| `m` | Edges per node per layer — higher = better recall, more memory and build time | Index creation |
+| `ef_construction` | Candidates explored during build — higher = better index quality, slower build | Index creation |
+| `ef` (or `ef_search`) | Candidates explored per query — higher = better recall, slower queries | Query time (tunable live) |
+
+**Starting values:** `m=16`, `ef_construction=200`, `ef=128`. Raise `m` when recall matters more than memory. Raise `ef` at query time for a recall boost without rebuilding the index.
+
+## Hands-on walk-through (Qdrant course)
+
+The [Qdrant Essentials Day 2 course](https://qdrant.tech/course/essentials/day-2/what-is-hnsw/) runs you through a 100K-vector benchmark:
+
+1. Upload vectors with HNSW disabled — measure brute-force baseline latency
+2. Enable HNSW with default params — observe the latency drop
+3. Tune `m` and `ef_construction`, rebuild — measure recall against a ground-truth set
+4. Use the [HNSW Performance Benchmarking project](https://qdrant.tech/course/essentials/day-2/pitstop-project/) to find the recall/latency knee for your collection
+
+The [YouTube video](https://www.youtube.com/watch?v=-q-pLgGDYr4) is the clearest visual walkthrough of the layer traversal before you run the code.
+
+The same parameters exist in every major vector DB — they just use different names:
+
+| Database | m | ef_construction | ef at query time |
+|---|---|---|---|
+| Qdrant | `m` | `ef_construct` | `ef` |
+| pgvector | `m` | `ef_construction` | `hnsw.ef_search` |
+| Weaviate | `maxConnections` | `efConstruction` | `ef` |
+| ChromaDB | `M` | `ef_construction` | `ef` |
+
+Once you understand the three knobs, you're fluent across all of them.
+
+**Sources:** [HNSW Indexing Fundamentals — Qdrant](https://qdrant.tech/course/essentials/day-2/what-is-hnsw/) · [HNSW Performance Tuning Demo](https://qdrant.tech/course/essentials/day-2/collection-tuning-demo/) · [YouTube: Fast Vector Search with HNSW Indexing](https://www.youtube.com/watch?v=-q-pLgGDYr4)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Lock Down Which Hosts Your Claude Code Agents Can Reach: sandbox.network.strictAllowlist</title>
