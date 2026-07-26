@@ -10,9 +10,209 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 25 Jul 2026 20:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 26 Jul 2026 04:05:00 +0000</lastBuildDate>
 
 
+    <item>
+      <title>Lock Down Which Hosts Your Claude Code Agents Can Reach: sandbox.network.strictAllowlist</title>
+      <link>https://code.claude.com/docs/en/sandboxing</link>
+      <guid isPermaLink="false">2026-07-26-03-claude-code-sandbox-network-strict-allowlist</guid>
+      <pubDate>Sun, 26 Jul 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Security</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.219 added sandbox.network.strictAllowlist: true — a single setting that silently hard-blocks any non-allowlisted host in sandboxed bash. Essential for CI pipelines and automated agents.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Set `sandbox.network.strictAllowlist: true` in settings.json and sandboxed bash will silently deny any non-allowlisted host — no prompt, no approval loop, just a hard block at the network layer.**
+
+Shipped in Claude Code v2.1.219 (July 24), this setting closes a gap that's been quietly painful for teams running agents in CI: unexpected outbound connections either blocked the pipeline on a confirmation prompt or slipped through undetected. Now there's a third option — fail fast, silently, at the network layer.
+
+## The problem it solves
+
+When `strictAllowlist` is off (the default), a sandboxed `curl`, `pip install`, or `npm install` to an unlisted host either:
+- Prompts the user to approve — which hangs an unattended agent
+- Succeeds, because the sandbox uses a soft allowlist by default
+
+Neither is what you want in a CI pipeline or a fully autonomous agent run.
+
+## Configure it in 60 seconds
+
+```json
+// .claude/settings.json
+{
+  "sandbox": {
+    "network": {
+      "strictAllowlist": true,
+      "allowedDomains": [
+        "api.github.com",
+        "registry.npmjs.org",
+        "files.pythonhosted.org",
+        "pypi.org",
+        "*.anthropic.com",
+        "*.amazonaws.com"
+      ]
+    }
+  }
+}
+```
+
+What changes immediately:
+- Any host not in `allowedDomains` → immediate connection refusal (no prompt, no log noise)
+- The agent sees `ECONNREFUSED` or DNS failure, handles it as a tool error, and moves on
+- CI pipelines no longer hang waiting for an approval that will never come
+
+## Build your allowlist
+
+Start with the minimal set your workflows need, then expand as the agent hits blocks. Common additions:
+
+| Purpose | Domain |
+|---|---|
+| npm packages | `registry.npmjs.org` |
+| PyPI packages | `pypi.org`, `files.pythonhosted.org` |
+| GitHub API | `api.github.com` |
+| Maven / Gradle | `repo1.maven.org`, `plugins.gradle.org` |
+| Docker Hub | `registry-1.docker.io` |
+| Your artifact store | `*.s3.amazonaws.com` or your CDN |
+
+## When to keep it off
+
+In local interactive sessions where you want Claude to pull documentation or hit arbitrary APIs, leave `strictAllowlist: false` (the default). Turn it on project-wide for CI deployments, or in an org-level settings.json to enforce egress control across all agents in your organization.
+
+**Sources:** [Claude Code changelog v2.1.219](https://code.claude.com/docs/en/changelog) · [Claude Code sandboxing docs](https://code.claude.com/docs/en/sandboxing) · [Claude Code security docs](https://code.claude.com/docs/en/security)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>$5B and 2 Gigawatts: AMD Joins Claude's Compute Stack — What the MI450 Deal Changes for AI Developers</title>
+      <link>https://newsroom.amd.com/news/amd-anthropic-strategic-partnership/</link>
+      <guid isPermaLink="false">2026-07-26-02-amd-anthropic-mi450-compute-partnership</guid>
+      <pubDate>Sun, 26 Jul 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>Anthropic and AMD announced a strategic partnership to deploy up to 2GW of AMD Instinct MI450 GPUs, with AMD committing $5B as equity investor. Claude's compute stack is now quad-vendor.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Anthropic and AMD signed a 2GW MI450 GPU deal with AMD investing up to $5B — making Claude's training and serving stack explicitly quad-vendor and signaling serious ROCm investment ahead.**
+
+On July 22, AMD and Anthropic announced a strategic partnership to deploy up to 2 gigawatts of AMD Instinct MI450 Series GPUs in AMD Helios rack-scale systems, with deployment of the first gigawatt beginning H1 2027. AMD also committed a strategic equity investment of up to $5 billion in Anthropic.
+
+Anthropic's compute is now running across four hardware vendors: NVIDIA (existing), Google TPUs (AWS/Google Cloud), AWS Trainium, and now AMD Instinct. When one supply chain tightens, Claude has hardware to route around it.
+
+**The developer angle:** the deal includes a software collaboration clause — Anthropic will use Claude to optimize workloads for AMD Instinct GPUs and accelerate AMD ROCm development. That's the number that matters most for engineers running open-weight models on AMD hardware. ROCm has been 5–15% slower than CUDA on equivalent inference tasks; with Anthropic's engineering resources pointed at it, that gap should narrow over the next 12–18 months. AMD is also adopting Claude broadly across its engineering and product teams, creating a direct feedback loop between frontier-model usage and hardware design decisions.
+
+**Why it matters:** for self-hosted ML engineers, AMD MI300X (available now, predecessor to MI450) is already a viable alternative to H100 for inference. As ROCm tooling improves — particularly vLLM and SGLang ROCm backends, which the partnership will accelerate — AMD becomes a stronger option for cost-sensitive inference deployments.
+
+**Sources:** [AMD press release](https://ir.amd.com/news-events/press-releases/detail/1292/amd-and-anthropic-announce-strategic-partnership-to-deploy-up-to-2-gigawatts-of-amd-instinct-mi450-series-gpus) · [AMD newsroom](https://newsroom.amd.com/news/amd-anthropic-strategic-partnership/) · [CNBC](https://www.cnbc.com/2026/07/22/amd-anthropic-ai-chip-investment.html)
+      ]]></content:encoded>
+      <media:content url="https://newsroom.amd.com/image/AMD-Anthropic-Partnership.jpg" medium="image" />
+      <media:thumbnail url="https://newsroom.amd.com/image/AMD-Anthropic-Partnership.jpg" />
+    </item>
+
+    <item>
+      <title>From stdio to the Internet: Deploy a Stateless MCP Server on Cloudflare Workers in 3 Commands</title>
+      <link>https://developers.cloudflare.com/agents/model-context-protocol/guides/remote-mcp-server/</link>
+      <guid isPermaLink="false">2026-07-26-01-mcp-cloudflare-workers-remote-deploy</guid>
+      <pubDate>Sun, 26 Jul 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>MCP</category>
+      <category>Agents</category>
+      <description>Three commands to move your MCP server from localhost to a globally distributed HTTPS endpoint on Cloudflare Workers, using Streamable HTTP — the new mandatory production transport as of July 28.</description>
+      <content:encoded><![CDATA[
+**TL;DR: Three commands move your MCP server from localhost to a public HTTPS endpoint on Cloudflare Workers using Streamable HTTP — the transport that replaces SSE as the July 28 spec locks in.**
+
+**What you'll be able to do after this:**
+- Deploy an MCP server with a live public `/mcp` HTTPS endpoint in under 5 minutes, no infrastructure provisioned
+- Understand why Streamable HTTP (not stdio, not SSE) is the transport for multi-client, production MCP
+- Optionally add Cloudflare Access auth so only your team or specific services can connect
+
+## Why Cloudflare Workers?
+
+stdio MCP servers run in the same process as the client — Claude Desktop, a local script. That works for personal tools but breaks the moment you want to share a server across teams, connect from CI, or expose a tool to multiple agents simultaneously. The July 28 MCP spec update finalizes Streamable HTTP as the only supported remote transport; SSE is sunset.
+
+Cloudflare Workers is the fastest path to a compliant remote MCP endpoint: globally distributed edge runtime, serverless, free tier available, and Anthropic has published a first-class template for it.
+
+## The three commands
+
+**Step 1 — Scaffold from the official template:**
+```bash
+npm create cloudflare@latest -- my-mcp-server \
+  --template=cloudflare/ai/demos/remote-mcp-authless
+cd my-mcp-server
+```
+
+This creates a TypeScript Workers project with `McpAgent` pre-wired. The generated `src/index.ts` is small — about 30 lines:
+
+```typescript
+import { McpAgent } from "agents/mcp";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
+
+export class MyMCP extends McpAgent {
+  server = new McpServer({ name: "demo", version: "1.0.0" });
+
+  async init() {
+    this.server.tool(
+      "add",
+      { a: z.number(), b: z.number() },
+      async ({ a, b }) => ({
+        content: [{ type: "text", text: String(a + b) }],
+      })
+    );
+  }
+}
+
+export default { fetch: MyMCP.serve("/mcp").fetch };
+```
+
+**Step 2 — Add your tools.** Every tool is a `this.server.tool()` call inside `init()`. The `McpAgent` class handles session state via Durable Objects, transport negotiation (SSE and Streamable HTTP), and the `/mcp` route.
+
+**Step 3 — Deploy:**
+```bash
+npx wrangler login   # one-time auth
+npm run deploy
+# Deployed to: my-mcp-server.your-account.workers.dev/mcp
+```
+
+Your MCP endpoint is live. The `/mcp` path accepts both `POST` (Streamable HTTP) and the legacy `GET` (SSE) requests — clients choose automatically.
+
+## Test it without a client
+
+```bash
+npx @modelcontextprotocol/inspector@latest \
+  https://my-mcp-server.your-account.workers.dev/mcp
+```
+
+The MCP inspector runs in your browser and lets you invoke tools interactively.
+
+## Connect it to Claude
+
+In Claude Desktop's `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "my-server": {
+      "url": "https://my-mcp-server.your-account.workers.dev/mcp"
+    }
+  }
+}
+```
+
+## Optional: lock it down with Cloudflare Access
+
+Follow the [Cloudflare One → Secure MCP servers](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/secure-mcp-servers/) guide to put a zero-trust auth layer in front. Users authenticate with your IdP; unauthenticated requests get a 403 before reaching the Worker. This is the pattern for team-shared or production MCP servers.
+
+**Sources:** [Cloudflare: Build a Remote MCP server](https://developers.cloudflare.com/agents/model-context-protocol/guides/remote-mcp-server/) · [MCP transport docs](https://developers.cloudflare.com/agents/model-context-protocol/transport/) · [Secure MCP servers with Cloudflare One](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/secure-mcp-servers/)
+      ]]></content:encoded>
+      <media:content url="https://developers.cloudflare.com/assets/open-graph/workers-image.png" medium="image" />
+      <media:thumbnail url="https://developers.cloudflare.com/assets/open-graph/workers-image.png" />
+    </item>
 
     <item>
       <title>Two-Stage, 50-Agent Security Scanner: Scale Claude Code for Large Codebase Reviews</title>
