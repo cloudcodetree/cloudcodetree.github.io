@@ -10,8 +10,209 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 26 Jul 2026 12:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 26 Jul 2026 20:09:00 +0000</lastBuildDate>
 
+
+
+    <item>
+      <title>Route Agent Tool Calls to Fireworks When You Need Speed Without Frontier Cost</title>
+      <link>https://fireworks.ai/blog/blazing-fast-inference-on-top-oss-models</link>
+      <guid isPermaLink="false">2026-07-26-08-fireworks-ai-function-calling-agent-routing</guid>
+      <pubDate>Sun, 26 Jul 2026 20:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Developer Tools</category>
+      <category>Best Practices</category>
+      <description>Fireworks AI serves FireFunction-v2 at roughly 4x GPT-4 speed with an OpenAI-compatible API -- two lines of code to add a fast, cheap open-model tier to your multi-agent stack.</description>
+      <content:encoded><![CDATA[
+**Fireworks AI's OpenAI-compatible API serves open models at 4x GPT-4 speed -- swapping it in for non-critical agent tool calls takes two lines: change the base URL and the model name.**
+
+Multi-agent systems often fan out the same tool call to dozens of tasks: extract entities from documents, classify a category, parse a structured payload. These don't need frontier intelligence -- they need speed and low cost. Fireworks is built for exactly this routing slot.
+
+## The two-line swap
+
+If you already use the OpenAI Python SDK (or any OpenAI-compatible client), pointing it at Fireworks is a drop-in change:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="fw_...",                         # your Fireworks API key
+    base_url="https://api.fireworks.ai/inference/v1",
+)
+
+response = client.chat.completions.create(
+    model="accounts/fireworks/models/firefunction-v2",
+    messages=[{"role": "user", "content": "Extract the JSON fields from this receipt: ..."}],
+    response_format={"type": "json_object"},
+)
+```
+
+That's it. The same `tools=` list, `tool_choice=`, and `response_format=` parameters work identically.
+
+## What Fireworks is fast at
+
+- **FireFunction-v2**: structured outputs and function calling at ~4x GPT-4 speed on the Artificial Analysis benchmark -- the go-to model for tool-calling subagents
+- **Open weights at low latency**: Llama 3.3, Qwen 2.5, DeepSeek V3.2, Kimi K2.5 -- all served on dedicated kernels optimized for throughput
+- **Serverless pricing**: pay per token, no reservation; Priority tier for lowest latency, Standard for cost
+
+## When to route here vs Claude
+
+The pattern is simple: if the task needs reasoning or synthesis, use Claude. If it's extraction, classification, or structured parsing, route to Fireworks FireFunction-v2. The difference in cost and speed justifies the split even for modest workloads.
+
+```python
+def call_agent(task_type: str, prompt: str) -> str:
+    if task_type in ("extract", "classify", "parse"):
+        return fireworks_client.chat.completions.create(
+            model="accounts/fireworks/models/firefunction-v2",
+            messages=[{"role": "user", "content": prompt}],
+        ).choices[0].message.content
+    else:
+        return anthropic_client.messages.create(
+            model="claude-sonnet-5-20251022",
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        ).content[0].text
+```
+
+**Sources:** [Fireworks AI inference platform](https://fireworks.ai/inference) · [FireFunction on HuggingFace](https://huggingface.co/fireworks-ai/firefunction-v1) · [Fireworks AI docs](https://docs.fireworks.ai/getting-started/introduction) · [Blazing-fast inference on open models](https://fireworks.ai/blog/blazing-fast-inference-on-top-oss-models)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Two August API Deadlines: Opus 4.1 Retires on the 5th, Workbench Prompt Tools Go Dark on the 17th</title>
+      <link>https://platform.claude.com/docs/en/about-claude/model-deprecations</link>
+      <guid isPermaLink="false">2026-07-26-07-claude-api-august-deadlines-opus41-workbench</guid>
+      <pubDate>Sun, 26 Jul 2026 20:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>Anthropic has two August breaking-change deadlines: claude-opus-4-1-20250805 errors after August 5, and the legacy /v1/experimental prompt generation APIs shut off August 17.</description>
+      <content:encoded><![CDATA[
+**Anthropic has two hard August deadlines: claude-opus-4-1-20250805 returns errors after August 5, and three /v1/experimental prompt-tools endpoints shut off August 17.**
+
+**August 5 -- Opus 4.1 retirement.** If any of your production code still hardcodes `claude-opus-4-1-20250805`, it breaks in 10 days. Swap to `claude-opus-4-8-20260507` (or just `claude-opus-4-8`). One gotcha: Opus 4.7 and later dropped the `temperature`, `top_p`, and `top_k` parameters -- passing non-default values now returns HTTP 400, so strip those fields in the same migration pass.
+
+**August 17 -- Legacy Workbench and Prompt APIs.** The three `/v1/experimental/` endpoints (`generate_prompt`, `improve_prompt`, `templatize_prompt`) and the legacy Workbench (platform.claude.com/workbench) are being retired together. If you use these to automate prompt generation or testing, export your saved prompts now from Organizational Settings -- the new Workbench is stateless and does not import old data.
+
+**Why it matters:** A quiet prod service that's been calling Opus 4.1 for a year will silently break on August 5. Run a quick grep for `opus-4-1` in your codebase, CI secrets, and config files before next week.
+
+**Sources:** [Claude model deprecations](https://platform.claude.com/docs/en/about-claude/model-deprecations) · [Claude Platform release notes](https://platform.claude.com/docs/en/release-notes/overview) · [Opus 4.1 migration guide](https://therouter.ai/news/anthropic-deprecates-claude-opus-4-1-august-5-migration-guide/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Fine-Tune's Report Card: Catch Catastrophic Forgetting with lm-evaluation-harness in 5 Commands</title>
+      <link>https://github.com/EleutherAI/lm-evaluation-harness</link>
+      <guid isPermaLink="false">2026-07-26-06-lm-eval-harness-finetune-benchmark</guid>
+      <pubDate>Sun, 26 Jul 2026 20:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <category>Best Practices</category>
+      <description>Run MMLU and GSM8K on both your base and fine-tuned checkpoints -- the delta is what matters. Five commands catch catastrophic forgetting before you ship.</description>
+      <content:encoded><![CDATA[
+**Fine-tuning without evaluation is flying blind -- lm-evaluation-harness runs MMLU, GSM8K, and 200+ other benchmarks on your base *and* fine-tuned model in minutes so you see what got better and what broke.**
+
+**What you'll be able to do after this:**
+- Run standardized benchmarks on any HuggingFace checkpoint in under 10 minutes using the same tool that powers the Open LLM Leaderboard
+- Spot catastrophic forgetting before it breaks your fine-tune in production
+- Generate a base-to-fine-tune score delta that makes model quality reviewable by your whole team
+
+**Resource:** [EleutherAI lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) -- the open-source evaluation framework behind the HuggingFace Open LLM Leaderboard
+
+## Why this step gets skipped
+
+Most developers fine-tune a model, try a few prompts, see plausible outputs, and ship. The hidden risk is *catastrophic forgetting*: your model gets 15% better at your task and quietly loses 8% on everything else. lm-evaluation-harness makes this visible in 5 commands.
+
+## Install
+
+```bash
+pip install lm-eval
+```
+
+No dataset downloads upfront -- task configs are pulled from YAML files managed by the project.
+
+## Step 1: Baseline the base model
+
+```bash
+lm_eval \
+  --model hf \
+  --model_args pretrained=meta-llama/Llama-3.2-3B-Instruct \
+  --tasks mmlu,gsm8k \
+  --num_fewshot 5 \
+  --device cuda:0 \
+  --batch_size 8 \
+  --output_path ./results/base/
+```
+
+The `--num_fewshot 5` flag is critical: it matches how the Open LLM Leaderboard scores MMLU. Without it your scores are 3-8 points lower and incomparable to any published number.
+
+## Step 2: Run the same eval on your fine-tune
+
+```bash
+lm_eval \
+  --model hf \
+  --model_args pretrained=./checkpoints/my-fine-tune \
+  --tasks mmlu,gsm8k \
+  --num_fewshot 5 \
+  --device cuda:0 \
+  --batch_size 8 \
+  --output_path ./results/finetuned/
+```
+
+## Step 3: Compare the delta
+
+```python
+import json
+base = json.load(open("results/base/results.json"))
+ft   = json.load(open("results/finetuned/results.json"))
+for task in ["mmlu", "gsm8k"]:
+    b = base["results"][task]["acc,none"]
+    f = ft["results"][task]["acc,none"]
+    print(f"{task}: {b:.3f} -> {f:.3f}  (delta {f-b:+.3f})")
+```
+
+A healthy fine-tune holds MMLU within ~2 points of the base while improving on your target task. A drop of more than 3 points on MMLU or more than 4 points on GSM8K is a red flag for catastrophic forgetting -- the dataset is too narrow or the learning rate is too high.
+
+## Faster eval with the vLLM backend
+
+Add `--model vllm` instead of `--model hf` for 3-5x faster evaluation on a Colab T4 or A100:
+
+```bash
+lm_eval \
+  --model vllm \
+  --model_args pretrained=./checkpoints/my-fine-tune,dtype=float16 \
+  --tasks mmlu,gsm8k \
+  --num_fewshot 5 \
+  --batch_size auto \
+  --output_path ./results/finetuned/
+```
+
+## Add it to CI
+
+Once you have a baseline, a simple pass/fail check prevents regressions automatically:
+
+```bash
+python -c "
+import json, sys
+b = json.load(open('results/base/results.json'))['results']['mmlu']['acc,none']
+f = json.load(open('results/finetuned/results.json'))['results']['mmlu']['acc,none']
+if (f - b) < -0.02:
+    print(f'FAIL: MMLU dropped {f-b:+.3f}', file=sys.stderr); sys.exit(1)
+print(f'PASS: MMLU delta {f-b:+.3f}')
+"
+```
+
+**Sources:** [EleutherAI lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) · [HuggingFace Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard) · [Evaluating fine-tuned LLMs guide](https://machinelearningplus.com/nlp/llm-evaluation-benchmark-model/) · [lm-eval-harness 2026 tutorial](https://qaskills.sh/blog/lm-evaluation-harness-tutorial-2026)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Swap Claude's Tools Mid-Conversation Without Busting the Cache</title>
