@@ -10,8 +10,180 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 27 Jul 2026 12:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 27 Jul 2026 20:08:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Claude Code Has Been Taking Notes on Your Project — Here's Where to Find Them</title>
+      <link>https://code.claude.com/docs/en/memory</link>
+      <guid isPermaLink="false">2026-07-27-08-claude-code-auto-memory-project-notes</guid>
+      <pubDate>Mon, 27 Jul 2026 20:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.59+ silently saves build commands, debugging wins, and architecture notes to ~/.claude/projects/*/memory/ between sessions -- /memory lets you browse, edit, and steer those notes.</description>
+      <content:encoded><![CDATA[
+**Since v2.1.59, Claude Code has been writing its own project notes to `~/.claude/projects/*/memory/` between sessions -- use `/memory` to see what it remembers and steer what it saves.**
+
+When you correct Claude, share a debugging insight, or explain how a module works, Claude Code can now retain that knowledge across sessions without you updating CLAUDE.md yourself. Auto memory is on by default and has been quietly building a per-project knowledge base since February 2026.
+
+## Where the notes live
+
+```
+~/.claude/projects/home-user-myproject/
+└── memory/
+    ├── MEMORY.md        ← index; first 200 lines load on every new session
+    ├── debugging.md     ← troubleshooting insights Claude picked up from your corrections
+    └── architecture.md  ← key files, module relationships, naming conventions
+```
+
+The first 200 lines of MEMORY.md (or 25 KB) load automatically at session start. Topic files like `debugging.md` are read on demand when MEMORY.md references them and the current task looks relevant.
+
+## What Claude tracks
+
+- **Build and test commands** — after you tell Claude "the API tests run with `pnpm test:api`", it saves that so the next session doesn't ask
+- **Debugging wins** — "the auth 401 was a missing `httpOnly` flag on the cookie; fixed in `src/middleware/auth.ts`" gets filed under debugging.md
+- **Architecture notes** — key file relationships, module boundaries, third-party library quirks you've surfaced
+
+## Browse, edit, and steer it
+
+Run `/memory` in any Claude Code session to:
+- Open the memory folder in your editor
+- Browse MEMORY.md and topic files
+- Delete stale or incorrect notes
+- Toggle auto memory off for the current project
+
+To steer Claude's notes during a session, be explicit:
+
+```
+"Remember that this project's migrations run with pnpm db:migrate, not prisma migrate."
+"Note that all API handlers in src/api/ must return a typed ApiResponse<T> wrapper."
+```
+
+Claude writes the note mid-session and reloads it the next time.
+
+## CLAUDE.md vs. auto memory
+
+| | CLAUDE.md | Auto memory |
+|---|---|---|
+| Who writes it | You | Claude |
+| Purpose | Rules, conventions, always-on guidance | Accumulated project knowledge |
+| Loaded | Every turn (whole file) | MEMORY.md index on start; topics on demand |
+| Synced | Yes (committed to repo) | No (local only, per-machine) |
+
+The two work together: CLAUDE.md is your conventions layer; auto memory is Claude's accumulated knowledge layer. Neither replaces the other.
+
+**One gotcha:** auto memory is per-machine. Notes from a desktop session do not appear in a cloud or laptop session. If something must survive across machines, commit it to CLAUDE.md.
+
+**Sources:** [How Claude remembers your project — Claude Code Docs](https://code.claude.com/docs/en/memory) · [Claude Code Auto Memory explained (memoryplugin.com)](https://blog.memoryplugin.com/claude-code-memory/) · [What Is Claude Code Auto Memory (israynotarray.com)](https://israynotarray.com/en/ai/2026/03/30/claude-code-auto-memory-complete-guide/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Postgres Is Already a Vector Database: A pgvector Quickstart</title>
+      <link>https://supabase.com/docs/guides/database/extensions/pgvector</link>
+      <guid isPermaLink="false">2026-07-27-07-pgvector-postgresql-vector-search</guid>
+      <pubDate>Mon, 27 Jul 2026 20:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Vectors</category>
+      <category>Embeddings</category>
+      <description>pgvector adds a vector column type and cosine similarity operator to any PostgreSQL instance -- store embeddings where your other data already lives, no separate vector DB required.</description>
+      <content:encoded><![CDATA[
+**pgvector turns any PostgreSQL instance into a vector database with one extension -- store embeddings alongside your relational data and query nearest neighbors with the `<=>` cosine operator.**
+
+**What you'll be able to do after this:**
+- Add a `vector` column to any Postgres table and store embedding outputs directly alongside relational data
+- Run semantic similarity queries using the `<=>` operator and retrieve the top-K nearest neighbors in SQL
+- Add an HNSW index that keeps similarity queries fast past one million rows
+
+**Resource:** [pgvector — Supabase Docs](https://supabase.com/docs/guides/database/extensions/pgvector) + [GitHub pgvector/pgvector](https://github.com/pgvector/pgvector) — Supabase is the easiest setup path (one click in the dashboard); the GitHub README covers raw Postgres install.
+
+## Install (once per database)
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+On Supabase: Database → Extensions → search "vector" → enable. On a local Postgres, install the OS package first (`apt-get install postgresql-15-pgvector` on Ubuntu).
+
+## Create a table with a vector column
+
+```sql
+CREATE TABLE documents (
+  id     SERIAL PRIMARY KEY,
+  content TEXT,
+  embedding vector(1536)   -- 1536 dims = text-embedding-3-small; match your model
+);
+```
+
+## Insert embeddings from Python
+
+```python
+import psycopg2
+from psycopg2.extras import execute_values
+
+conn = psycopg2.connect("postgresql://postgres:pass@localhost/mydb")
+cur = conn.cursor()
+
+# embedding is a list of floats from your embedding model
+rows = [("pgvector stores any embedding", [0.12, -0.04, 0.33, ...]),
+        ("vector search in Postgres", [0.22, 0.01, 0.28, ...])]
+execute_values(
+    cur,
+    "INSERT INTO documents (content, embedding) VALUES %s",
+    rows
+)
+conn.commit()
+```
+
+## Query nearest neighbors
+
+```sql
+-- Find the 5 most similar rows to a query vector
+SELECT content,
+       1 - (embedding <=> '[0.15, -0.02, 0.30, ...]'::vector) AS similarity
+FROM documents
+ORDER BY embedding <=> '[0.15, -0.02, 0.30, ...]'::vector
+LIMIT 5;
+```
+
+The three distance operators:
+- `<=>` — cosine distance (standard for text embeddings; values near 0 = very similar)
+- `<->` — L2 / Euclidean distance
+- `<#>` — negative inner product (use when embeddings are L2-normalized)
+
+## Add an HNSW index for production scale
+
+Without an index, every query does a full table scan — fine at 10,000 rows, painful at 1,000,000.
+
+```sql
+CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops);
+```
+
+HNSW (Hierarchical Navigable Small World) builds a graph-based approximate nearest-neighbor index. At 1M rows: indexed query ~2 ms vs. full-scan ~800 ms. Use `vector_cosine_ops` when your distance operator is `<=>`.
+
+**IVFFlat** is the alternative: lower memory cost, faster build, slightly worse recall. Choose it when HNSW's memory overhead (roughly 128 bytes per vector × dimensions × rows) is prohibitive.
+
+## When to use pgvector vs. a dedicated vector DB
+
+| Situation | Reach for |
+|---|---|
+| Already running Postgres; < ~5M vectors | pgvector |
+| Need ACID transactions and JOINs with relational data | pgvector |
+| Hundreds of millions of vectors or multi-tenant isolation | Qdrant / Pinecone / Weaviate |
+| Built-in hybrid (keyword + vector) search + filtering | Qdrant or Weaviate |
+
+pgvector is the right default for any project that already has a Postgres instance. You add one extension and one column type — no new infrastructure to operate.
+
+**Sources:** [pgvector — Supabase Docs](https://supabase.com/docs/guides/database/extensions/pgvector) · [GitHub pgvector/pgvector](https://github.com/pgvector/pgvector) · [pgvector similarity search best practices — Instaclustr](https://www.instaclustr.com/education/vector-database/pgvector-similarity-search-basics-tutorial-and-best-practices/) · [Storing OpenAI embeddings in Postgres with pgvector — Supabase blog](https://supabase.com/blog/openai-embeddings-postgres-vector)
+]]></content:encoded>
+      <media:content url="https://supabase.com/images/blog/openai-embeddings-postgres-vector/og-image.png" medium="image" />
+      <media:thumbnail url="https://supabase.com/images/blog/openai-embeddings-postgres-vector/og-image.png" />
+    </item>
 
     <item>
       <title>Define Once, Reuse Everywhere: Build Specialized Subagents with .claude/agents/*.md</title>
