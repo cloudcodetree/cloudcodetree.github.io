@@ -10,9 +10,246 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 26 Jul 2026 20:09:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 27 Jul 2026 04:05:00 +0000</lastBuildDate>
 
 
+    <item>
+      <title>Parse Claude Code's Work in CI: The --output-format json Pattern for Scriptable Agents</title>
+      <link>https://code.claude.com/docs/en/cli-reference</link>
+      <guid isPermaLink="false">2026-07-27-03-claude-code-json-output-ci-automation</guid>
+      <pubDate>Mon, 27 Jul 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <category>Developer Tools</category>
+      <description>claude -p with --output-format json and --json-schema gives you schema-validated, machine-readable output from any Claude Code task -- the building block for reliable CI pipelines.</description>
+      <content:encoded><![CDATA[
+**`claude -p` with `--output-format json` and `--json-schema` gives you schema-validated output from any Claude task -- the building block for reliable CI pipelines and automation scripts.**
+
+When you run Claude Code in a CI pipeline or cron job, you need machine-readable output, not a chat session. The `-p` flag puts Claude in print mode (one-shot, no interactive session). Add `--output-format json` for structured output, and `--json-schema` to enforce an exact output shape.
+
+## The basic pattern
+
+```bash
+result=$(claude -p "Review the diff in the last commit and output a severity score 1-5"   --output-format json   --no-session-persistence)
+
+echo "$result"
+# {"type":"result","subtype":"success","result":"The diff looks safe. Severity: 2.","session_id":"..."}
+```
+
+Parse `result` with `jq -r '.result'` to extract the text.
+
+## Add --json-schema for a guaranteed output shape
+
+```bash
+review=$(claude -p "Scan this file for security issues. Return JSON."   --output-format json   --json-schema '{"type":"object","properties":{"issues":{"type":"array","items":{"type":"string"}},"safe":{"type":"boolean"}},"required":["issues","safe"]}'   --no-session-persistence   < src/auth.py)
+
+safe=$(echo "$review" | jq -r '.result | fromjson | .safe')
+issues=$(echo "$review" | jq -r '.result | fromjson | .issues[]')
+
+if [ "$safe" = "false" ]; then
+  echo "Security issues found:"
+  echo "$issues"
+  exit 1
+fi
+```
+
+With `--json-schema`, Claude calls a structured-output tool internally and retries on mismatch -- so your `jq` never blows up on malformed prose.
+
+## Useful flags for pipeline mode
+
+| Flag | What it does |
+|---|---|
+| `--max-turns 5` | Cap how many agent turns the task can take |
+| `--max-budget-usd 0.10` | Hard spend cap per invocation |
+| `--no-session-persistence` | Skip writing session to disk (faster in CI) |
+| `--verbose` | Include tool call details (useful for debugging) |
+| `--output-format stream-json` | Get streaming JSON events for long-running tasks |
+
+## A real GitHub Actions step
+
+```yaml
+- name: Claude Code security scan
+  env:
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  run: |
+    review=$(claude -p "Scan the staged diff for security issues"       --output-format json       --json-schema '{"type":"object","properties":{"safe":{"type":"boolean"},"reason":{"type":"string"}}}'       --max-budget-usd 0.25       --no-session-persistence)
+    
+    safe=$(echo "$review" | jq -r '.result | fromjson | .safe')
+    reason=$(echo "$review" | jq -r '.result | fromjson | .reason')
+    
+    echo "Safe: $safe — $reason"
+    [ "$safe" = "true" ] || exit 1
+```
+
+The `-p` flag is what makes Claude Code composable with the rest of your shell toolchain. Treat it like `curl`: call it, pipe the output, parse with `jq`.
+
+**Sources:** [Claude Code CLI Reference](https://code.claude.com/docs/en/cli-reference) · [Structured outputs in Claude Code](https://code.claude.com/docs/en/agent-sdk/structured-outputs) · [Non-interactive mode](https://code.claude.com/docs/en/cli-reference#non-interactive-mode)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Give Your Agent a Brain: Persistent Cross-Session Memory with mem0</title>
+      <link>https://docs.mem0.ai/quickstart</link>
+      <guid isPermaLink="false">2026-07-27-04-mem0-persistent-agent-memory</guid>
+      <pubDate>Mon, 27 Jul 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>mem0 adds persistent cross-session memory to any AI agent in three lines of code -- store facts during a conversation, retrieve relevant context automatically on the next one.</description>
+      <content:encoded><![CDATA[
+**mem0 gives any AI agent persistent, searchable cross-session memory in three lines of code -- `add()` stores conversation facts, `search()` retrieves relevant context before the next LLM call.**
+
+**What you'll be able to do after this:**
+- Add persistent cross-session memory to any AI agent -- Claude, LangGraph, CrewAI, or a raw API loop -- in an afternoon
+- Store structured facts from conversations and retrieve semantically relevant context before each LLM call, so the agent knows who it's talking to without re-reading transcripts
+- Run mem0 fully offline with Ollama + Qdrant when you need zero cloud dependency
+
+**Resource:** [mem0 quickstart](https://docs.mem0.ai/quickstart) + [GitHub: mem0ai/mem0](https://github.com/mem0ai/mem0) -- open-source memory layer with a hosted API and a local OSS mode using any LLM and vector store.
+
+## Why agents forget -- and why that's fixable
+
+Your agent's context window resets after every conversation. Without memory, every session starts blank -- no user preferences, no prior context, no continuity. mem0 sits between your agent and the model: during a conversation it extracts structured facts from exchanges and stores them in a vector database. On the next call, it retrieves the most semantically relevant memories and injects them into the system prompt -- so the model answers with accumulated knowledge about the user.
+
+## Install
+
+```bash
+pip install mem0ai
+```
+
+## Quickstart (hosted API)
+
+```python
+from mem0 import MemoryClient
+
+client = MemoryClient(api_key="m0-...")  # API key from app.mem0.ai
+
+# 1. Store a conversation exchange — mem0 extracts and indexes the facts
+messages = [
+    {"role": "user", "content": "I'm building a RAG system on PostgreSQL with pgvector."},
+    {"role": "assistant", "content": "Got it! I'll keep that in mind."}
+]
+client.add(messages, user_id="alice")
+
+# 2. Later: retrieve relevant context before the next LLM call
+results = client.search("What database stack is this user on?", user_id="alice")
+for m in results:
+    print(m["memory"], round(m["score"], 2))
+# "Uses PostgreSQL with pgvector for RAG"  0.94
+```
+
+## Wire it into an agent loop
+
+The pattern is one retrieval before the LLM call, one store after:
+
+```python
+import anthropic
+from mem0 import MemoryClient
+
+mem = MemoryClient(api_key="m0-...")
+claude = anthropic.Anthropic()
+
+def chat(user_message: str, user_id: str) -> str:
+    # 1. Pull relevant past context
+    memories = mem.search(user_message, user_id=user_id)
+    context = "
+".join(m["memory"] for m in memories[:5])
+    system = f"Relevant context about this user:
+{context}" if context else ""
+
+    # 2. Call the model
+    response = claude.messages.create(
+        model="claude-sonnet-5-20251022",
+        max_tokens=1024,
+        system=system,
+        messages=[{"role": "user", "content": user_message}],
+    )
+    reply = response.content[0].text
+
+    # 3. Store the exchange
+    mem.add([
+        {"role": "user", "content": user_message},
+        {"role": "assistant", "content": reply},
+    ], user_id=user_id)
+    return reply
+```
+
+After five conversations, `chat("what was that vector DB issue we looked at?", "alice")` will return an answer grounded in prior sessions -- without re-reading any transcripts.
+
+## Local / offline mode
+
+To run without cloud: point mem0 at Ollama and Qdrant:
+
+```bash
+ollama pull llama3.2 nomic-embed-text
+docker run -p 6333:6333 qdrant/qdrant
+```
+
+```python
+from mem0 import Memory
+
+m = Memory.from_config({
+    "llm":        {"provider": "ollama", "config": {"model": "llama3.2"}},
+    "embedder":   {"provider": "ollama", "config": {"model": "nomic-embed-text"}},
+    "vector_store": {"provider": "qdrant", "config": {"host": "localhost", "port": 6333}},
+})
+# add() and search() API is identical -- agent code doesn't change
+```
+
+**Sources:** [mem0 quickstart](https://docs.mem0.ai/quickstart) · [mem0 GitHub](https://github.com/mem0ai/mem0) · [Persistent memory for agents](https://mem0.ai/blog/the-easiest-way-to-add-persistent-memory-to-any-ai-agent) · [State of AI Agent Memory 2026](https://mem0.ai/blog/state-of-ai-agent-memory-2026)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>The 30-Day Gate: White House Nears Voluntary Frontier Model Review Framework with OpenAI, Anthropic, Google</title>
+      <link>https://www.techtimes.com/articles/321497/20260724/voluntary-paper-mandatory-practice-white-house-ai-review-hits-august-1-deadline.htm</link>
+      <guid isPermaLink="false">2026-07-27-02-whitehouse-frontier-model-review-framework</guid>
+      <pubDate>Mon, 27 Jul 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <description>White House finalizes a voluntary 30-day NSA-run review requirement for OpenAI, Anthropic, and Google frontier models before public release; formal announcement expected before August 1.</description>
+      <content:encoded><![CDATA[
+**The White House is finalizing a voluntary framework requiring OpenAI, Anthropic, and Google to submit frontier models for a 30-day classified NSA review before release; announcement expected before August 1.**
+
+The framework stems from Executive Order 14409 (June 2026). Under it, developers submit cutting-edge models to federal agencies 30 days before public release; the NSA runs classified benchmarks to identify national-security risks; and a voluntary AI cybersecurity clearinghouse coordinates remediation. The review applies to frontier closed-API systems -- OpenAI, Anthropic, and Google are at the table. Meta's open-weight Llama models create a harder problem (weights can't be recalled once released), and no agreement with Meta has been reached.
+
+**Why it matters:** Every major Claude, GPT, and Gemini release will face a ~30-day government preview window once the framework is signed. That's a predictable delay, not a blocker -- but if you're planning an API migration around a specific model launch date, build in buffer time. The classified benchmarking process also means security findings may never be public.
+
+**Sources:** [Voluntary on Paper, Mandatory in Practice -- TechTimes](https://www.techtimes.com/articles/321497/20260724/voluntary-paper-mandatory-practice-white-house-ai-review-hits-august-1-deadline.htm) · [Executive Order creates voluntary AI review regime -- Crowell & Moring](https://www.crowell.com/en/insights/client-alerts/executive-order-creates-voluntary-regulatory-regime-of-frontier-ai-models) · [White House voluntary AI framework 8 key requirements](https://witho2.com/news/white-house-voluntary-ai-framework-frontier-models)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Kimi K3 Drops Today: The World's Largest Open-Weights Model at 2.8 Trillion Parameters</title>
+      <link>https://www.kimi.com/blog/kimi-k3</link>
+      <guid isPermaLink="false">2026-07-27-01-kimi-k3-open-weights-largest-moe</guid>
+      <pubDate>Mon, 27 Jul 2026 04:02:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Self-Hosting</category>
+      <description>Moonshot AI releases Kimi K3 open weights today -- 2.8T sparse MoE, 16 of 896 experts active per token, 1.4TB at MXFP4; needs 8 H100s minimum, but sets a new open-weight frontier.</description>
+      <content:encoded><![CDATA[
+**Kimi K3 open weights land today: 2.8T-parameter sparse MoE at 1.4TB quantized, needs 8x H100 minimum -- impractical to self-host for most, but it sets a new open-weight frontier that gets distilled fast.**
+
+Moonshot AI drops the full Kimi K3 weights on July 27. With 2.8 trillion total parameters -- 896 experts trained, 16 active per token -- it's the world's first open-weight 3T-class model. Architectural highlights: Kimi Delta Attention (KDA) for efficient long-sequence scaling, and Stable LatentMoE yielding 2.5x better scaling efficiency than Kimi K2.
+
+The catch is hardware: MXFP4 weights still require ~1.4TB of GPU memory. Minimum viable setup is 8x H100 80GB; a well-equipped local workstation can't load it. The practical path for most engineers is the Kimi API or waiting for community-derived distillations -- models at this scale typically spawn runnable 7B-70B derivatives within weeks.
+
+**Why it matters:** Moonshot has set the open-weight size frontier for nine of the past twelve months. Kimi K3 will drive the next wave of open-source fine-tunes and distillations. If you're planning a fine-tune on the strongest possible open base, or watching the OSS frontier for your production stack, this is the model to track -- even if you can't run the full weights yourself.
+
+**Sources:** [Kimi K3 Tech Blog](https://www.kimi.com/blog/kimi-k3) · [Kimi K3 model overview on HuggingFace](https://huggingface.co/blog/ResterChed/kimi-k3-model-overview-mxfp4-quantization-open-wei) · [The open-weights escalation -- Interconnects.ai](https://www.interconnects.ai/p/kimi-k3-the-open-weights-escalation)
+]]></content:encoded>
+      <media:content url="https://kimi-file.moonshot.cn/prod-chat-kimi/kfs/4/2/2026-07-17/d9cs7176rtp4tqfofnsg?x-tos-process=image%2Fauto-orient%2C1%2Fstrip%2Fignore-error%2C1" medium="image" />
+      <media:thumbnail url="https://kimi-file.moonshot.cn/prod-chat-kimi/kfs/4/2/2026-07-17/d9cs7176rtp4tqfofnsg?x-tos-process=image%2Fauto-orient%2C1%2Fstrip%2Fignore-error%2C1" />
+    </item>
 
     <item>
       <title>Route Agent Tool Calls to Fireworks When You Need Speed Without Frontier Cost</title>
