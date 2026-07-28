@@ -10,8 +10,171 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 27 Jul 2026 20:08:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 28 Jul 2026 12:10:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Free Your Conversation: /code-review Now Runs in the Background in Claude Code</title>
+      <link>https://code.claude.com/docs/en/code-review</link>
+      <guid isPermaLink="false">2026-07-28-02-claude-code-background-code-review</guid>
+      <pubDate>Tue, 28 Jul 2026 12:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Since v2.1.218, /code-review runs as a background subagent -- reviews no longer fill your conversation thread; stack slash commands against it and keep coding while the review runs.</description>
+      <content:encoded><![CDATA[
+**Since v2.1.218 (July 22), `/code-review` launches as a background subagent — reviews no longer fill your conversation thread, and you can keep coding or stack commands while one runs.**
+
+## What changed
+
+Before v2.1.218, running `/code-review` consumed your conversation context and blocked the thread until the review completed. Now it runs in a separate background subagent:
+
+- The conversation stays clean — no wall of review output mid-session
+- You can continue coding, file edits, or other commands while the review is in progress
+- Stacked slash commands (e.g., `/code-review ultra my-branch`) pass the trailing text as a targeting note to the background review rather than triggering a second skill
+
+## Basic usage
+
+```bash
+# Review your current diff (background by default)
+/code-review
+
+# Pass a focus note — Claude factors it into the review findings
+/code-review focus on security in the auth module
+
+# Review a specific branch or PR number
+/code-review feature/api-refactor
+/code-review 214
+```
+
+The background review agent reads your staged/unstaged diff, cross-checks it against your CLAUDE.md conventions, and writes its findings to the session transcript. A notification appears in the status bar when it finishes.
+
+## When it still runs in the foreground
+
+Two cases stay synchronous:
+
+1. **Non-interactive mode** (`claude -p` / Agent SDK) — background subagents don't apply here
+2. **A second call while the first is still writing** — it waits for the current slot to free up
+
+## Pair it with /ultrareview for deeper coverage
+
+`/ultrareview` spawns multiple parallel review subagents (correctness, security, performance dimensions) and is still a separate command. Use `/code-review` for a fast background pass; reach for `/ultrareview` when you want adversarial coverage across dimensions on a large diff.
+
+**Sources:** [Code Review — Claude Code Docs](https://code.claude.com/docs/en/code-review) · [Claude Code v2.1.218 Release Notes (GitHub)](https://github.com/anthropics/claude-code/releases/tag/v2.1.218) · [Claude Code 2.1.218: What Shipped (joinnextdev.com)](https://www.joinnextdev.com/blog/claude-code-21218-what-shipped-this-week) · [Claude Code Changelog (claudeupdates.dev)](https://www.claudeupdates.dev/version/2.1.218)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Stop Guessing Keyword or Semantic — Run Both with LangChain's BM25 + EnsembleRetriever</title>
+      <link>https://python.langchain.com/v0.2/docs/how_to/hybrid/</link>
+      <guid isPermaLink="false">2026-07-28-01-hybrid-search-bm25-ensemble-retriever</guid>
+      <pubDate>Tue, 28 Jul 2026 12:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Embeddings</category>
+      <description>BM25 misses paraphrases; vector search misses exact tokens. LangChain's EnsembleRetriever fuses both with Reciprocal Rank Fusion, pushing recall from ~65% to ~91%@10 in three lines of code.</description>
+      <content:encoded><![CDATA[
+**BM25 misses paraphrases; vector search misses exact tokens. LangChain's `EnsembleRetriever` fuses both with Reciprocal Rank Fusion — recall@10 jumps from ~65% to ~91% for free.**
+
+**What you'll be able to do after this:**
+- Combine BM25 keyword retrieval and dense vector search into a single retriever with three lines of LangChain code
+- Understand how Reciprocal Rank Fusion merges the two ranked lists so documents strong in either dimension rise to the top
+- Tune the keyword/semantic balance by adjusting `weights` for your content type
+
+**Resource:** [Hybrid Search — LangChain How-To](https://python.langchain.com/v0.2/docs/how_to/hybrid/) + [YouTube: LangChain Ensemble Retriever | BM25 + FAISS Hybrid Search](https://www.youtube.com/watch?v=jJFhajY47jo) — the video walks through the exact pattern below with a live demo.
+
+## Why hybrid search
+
+Sparse (BM25) and dense (vector) retrievers fail in opposite directions:
+
+| Retriever | Wins when | Loses when |
+|---|---|---|
+| BM25 | Query uses exact terms, product codes, error messages | User paraphrases or uses different vocabulary |
+| Dense vector | User paraphrases; semantic overlap between query and doc | Rare tokens, model names, IDs collapse into near-identical embeddings |
+
+Running both and fusing with RRF pushes recall@10 from ~65–78% (single retriever) to ~91% without model changes.
+
+## Install
+
+```bash
+pip install langchain langchain-community rank_bm25 faiss-cpu langchain-openai
+```
+
+## Three-step hybrid retriever
+
+```python
+from langchain_community.retrievers import BM25Retriever
+from langchain_community.vectorstores import FAISS
+from langchain.retrievers import EnsembleRetriever
+from langchain_openai import OpenAIEmbeddings
+
+docs = [...]  # your Document objects (from a loader or text splitter)
+
+# 1. BM25 — pure keyword, no embeddings needed
+bm25 = BM25Retriever.from_documents(docs)
+bm25.k = 5
+
+# 2. Dense vector retriever (swap FAISS for Chroma/Qdrant/pgvector)
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+faiss_store = FAISS.from_documents(docs, embeddings)
+vector = faiss_store.as_retriever(search_kwargs={"k": 5})
+
+# 3. Fuse with RRF — equal weight
+retriever = EnsembleRetriever(
+    retrievers=[bm25, vector],
+    weights=[0.5, 0.5]
+)
+
+results = retriever.invoke("ECONNREFUSED localhost:3000 fix")
+```
+
+## How RRF works
+
+For each retrieved document, RRF score = Σ(1 / (k + rank_i)) where k=60 (the default "constant") and rank_i is the document's position in retriever i's list. A document ranked 1st by BM25 and 3rd by the vector store outscores a document ranked 1st by only one retriever. The constant k=60 dampens the top-rank bonus so a single high placement doesn't dominate the fusion.
+
+## Tuning the weights
+
+```python
+# Keyword-heavy: good for code docs, error messages, CLI flags
+retriever = EnsembleRetriever(retrievers=[bm25, vector], weights=[0.7, 0.3])
+
+# Semantic-heavy: good for natural language Q&A with paraphrasing
+retriever = EnsembleRetriever(retrievers=[bm25, vector], weights=[0.3, 0.7])
+```
+
+Start with `[0.5, 0.5]` and adjust based on your query/doc type. Code and docs corpora lean keyword-heavy; prose and FAQ corpora lean semantic-heavy.
+
+## Drop into any LangChain RAG chain
+
+`EnsembleRetriever` is a standard `Runnable`, so it's a drop-in replacement for any existing retriever:
+
+```python
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+prompt = ChatPromptTemplate.from_template("Context:\n{context}\n\nQ: {question}")
+
+chain = (
+    {"context": retriever, "question": RunnablePassthrough()}
+    | prompt
+    | llm
+)
+answer = chain.invoke("Why does my API key return 401?")
+```
+
+No other changes needed in the chain — hybrid retrieval is invisible to the rest of the pipeline.
+
+**Sources:** [Hybrid Search — LangChain How-To](https://python.langchain.com/v0.2/docs/how_to/hybrid/) · [YouTube: LangChain Ensemble Retriever | BM25 + FAISS Hybrid Search](https://www.youtube.com/watch?v=jJFhajY47jo) · [Hybrid Search for RAG: BM25, Vector, and RRF Architecture (Medium)](https://medium.com/data-science-collective/hybrid-search-for-rag-bm25-vectors-when-each-wins-402f24abaeea) · [Hybrid Search Guide 2026 (Supermemory)](https://supermemory.ai/blog/hybrid-search-guide)
+]]></content:encoded>
+      <media:content url="https://i.ytimg.com/vi/jJFhajY47jo/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://i.ytimg.com/vi/jJFhajY47jo/maxresdefault.jpg" />
+    </item>
 
     <item>
       <title>Claude Code Has Been Taking Notes on Your Project — Here's Where to Find Them</title>
