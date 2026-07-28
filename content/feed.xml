@@ -10,8 +10,179 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 28 Jul 2026 12:10:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 28 Jul 2026 20:14:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Subagents Can Nest Three Deep Now: How to Structure Multi-Layer Agent Hierarchies in Claude Code</title>
+      <link>https://github.com/anthropics/claude-code/releases/tag/v2.1.219</link>
+      <guid isPermaLink="false">2026-07-28-04-claude-code-nested-subagents-depth-3</guid>
+      <pubDate>Tue, 28 Jul 2026 20:14:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.219 reinstated nested subagent spawning to depth 3. Here is the orchestrator-coordinator-worker pattern that makes depth-3 nesting useful without blowing your token budget.</description>
+      <content:encoded><![CDATA[
+**Claude Code v2.1.219 reinstated nested subagent spawning at depth 3 by default — here's the orchestrator → coordinator → worker pattern that makes it useful.**
+
+## What changed
+
+In v2.1.217 (July 21), Anthropic capped concurrent subagents at 20 and disabled nesting entirely. In **v2.1.219 (July 24, shipping with Opus 5)**, nesting came back at depth 3:
+
+- A top-level agent can spawn depth-1 subagents (coordinators)
+- Each coordinator can spawn depth-2 subagents (workers)
+- Workers cannot spawn further — depth 3 is the hard ceiling
+
+To revert to the previous flat behavior: `export CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1`
+
+## The orchestrator → coordinator → worker pattern
+
+Depth-3 nesting maps cleanly to three responsibilities:
+
+**Depth 0 (orchestrator)** — the top-level session or prompt. Owns the plan; assembles the final result; delegates everything it can.
+
+**Depth 1 (coordinator)** — spawns worker agents and synthesizes their results. One coordinator per domain: `test-coordinator`, `migration-coordinator`, `security-coordinator`.
+
+**Depth 2 (worker)** — single-responsibility, short-lived. Runs one test suite, migrates one file, checks one module. This is where the actual work happens.
+
+Example `CLAUDE.md` workflow directive:
+
+```
+When asked to run the full test suite, spawn a test-coordinator agent.
+The coordinator should spawn one worker per test category (unit, integration, e2e)
+and collect their pass/fail summaries before reporting back.
+```
+
+## What to watch for
+
+**Token budget:** each nested layer inherits a fraction of the parent's context budget. Pass explicit budget hints in the coordinator's initial prompt so workers don't overrun.
+
+**Fan-out risk:** depth-3 nesting with wide fan-out at each level can still hit the 20-concurrent subagent cap. Have coordinators stagger worker spawns or batch them.
+
+**Depth is not the goal.** Flat (depth-1) agents are faster to debug and reason about. Only add a coordinator layer when the coordinator genuinely needs to synthesize cross-worker results before the orchestrator can proceed. Two levels is almost always enough; three is the exception.
+
+**Sources:** [Claude Code v2.1.219 Release — GitHub](https://github.com/anthropics/claude-code/releases/tag/v2.1.219) · [Opus 5 is the default now, and subagents can nest three deep (mager.co)](https://www.mager.co/notes/2026-07-26-opus-5-claude-code/) · [Claude Code subagent depth limits and budget caps (digitalapplied.com)](https://www.digitalapplied.com/blog/claude-code-subagent-depth-limits-budget-caps-2026)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>AWS Kiro Prompt Injection CVE: How a Webpage Read Became Code Execution</title>
+      <link>https://thehackernews.com/2026/07/aws-kiro-flaw-let-poisoned-web-page.html</link>
+      <guid isPermaLink="false">2026-07-28-05-kiro-cve-2026-10591-prompt-injection-rce</guid>
+      <pubDate>Tue, 28 Jul 2026 20:13:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Security</category>
+      <category>MCP</category>
+      <description>CVE-2026-10591 (CVSS 8.8): hidden instructions in a webpage Kiro reads caused it to rewrite its MCP config and auto-execute attacker code. Patched in Kiro 0.11. Part of a wider pattern across AI coding tools.</description>
+      <content:encoded><![CDATA[
+**AWS patched a CVSS 8.8 flaw in Kiro IDE where hidden instructions in any webpage could rewrite Kiro's MCP config and execute attacker code — no user click required.**
+
+Researchers at Cymulate found that Kiro's agent would follow injected instructions embedded as invisible text (e.g. `color: white; font-size: 0`) on any page it was asked to read or summarize. The attack chain:
+
+1. Attacker plants hidden text on a webpage
+2. Developer asks Kiro to summarize that page
+3. Hidden instructions tell Kiro to overwrite `~/.kiro/settings/mcp.json`
+4. Kiro reloads its MCP config and auto-starts the attacker-controlled MCP server
+5. Attacker code runs with developer privileges; no approval prompt fires
+
+AWS assigned **CVE-2026-10591** (CVSS 8.8 High) and fixed it in **Kiro 0.11** by requiring explicit user approval before writing to execution-sensitive paths such as `mcp.json` and `.vscode/tasks.json`.
+
+This pattern is not unique to Kiro. Researchers catalogued 30+ similar prompt-injection-to-code-execution chains across AI coding tools in late 2025 — Cursor and Copilot included. The MCP config file is an especially attractive target: compromise it and any tool with any argument is callable without further approval.
+
+**Why it matters:** Any AI IDE that reads external content and has write access to its own config is a potential prompt-injection path to RCE. Update Kiro past 0.11 immediately; and audit which files your AI coding tools can modify silently.
+
+**Sources:** [CVE-2026-10591 — AWS Security Bulletin 2026-037](https://aws.amazon.com/security/security-bulletins/2026-037-aws/) · [AWS Kiro Flaw Let a Poisoned Web Page Rewrite Its Config (The Hacker News)](https://thehackernews.com/2026/07/aws-kiro-flaw-let-poisoned-web-page.html) · [AWS Kiro RCE: Prompt Injection to Code Execution (Kodem Security)](https://www.kodemsecurity.com/resources/aws-kiro-agentic-ide-rce-prompt-injection-mcp-config-vulnerability)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Build Your First MCP Server: Tools, Resources, and Prompts in 30 Lines of Python</title>
+      <link>https://anthropic.skilljar.com/introduction-to-model-context-protocol</link>
+      <guid isPermaLink="false">2026-07-28-03-build-mcp-server-python-fastmcp</guid>
+      <pubDate>Tue, 28 Jul 2026 20:12:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>MCP</category>
+      <category>Agents</category>
+      <description>FastMCP turns any Python function into a Claude-callable tool, resource, or prompt in under 30 lines. Anthropic's free Intro to MCP course walks you through all three primitives with exercises and a free certificate.</description>
+      <content:encoded><![CDATA[
+**FastMCP turns any Python function into a Claude-callable tool, resource, or prompt in under 30 lines — and Anthropic's free Intro to MCP course walks you through all three primitives.**
+
+**What you'll be able to do after this:**
+- Write and run a working MCP server that exposes tools to Claude Desktop or Cursor
+- Understand when to use a tool (action), resource (read-only data), or prompt (template) — and why the distinction matters at runtime
+- Test your server locally with Claude Desktop before deploying it anywhere
+
+## The three MCP primitives
+
+FastMCP (the official Python SDK's high-level API) gives you three decorator types:
+
+| Decorator | What it exposes | When to use it |
+|---|---|---|
+| `@mcp.tool()` | Callable action with arguments | API calls, DB queries, computations |
+| `@mcp.resource()` | Read-only URI-addressable data | Config, file content, live status |
+| `@mcp.prompt()` | Parameterised template | Slash commands the host surfaces |
+
+## Quickstart (~25 lines)
+
+```bash
+pip install mcp fastmcp httpx
+```
+
+```python
+import httpx
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("weather-server")
+
+@mcp.tool()
+async def get_weather(city: str) -> str:
+    """Return current weather for a city."""
+    r = await httpx.AsyncClient().get(f"https://wttr.in/{city}?format=3")
+    return r.text
+
+@mcp.resource("config://server-info")
+def server_info() -> str:
+    """Return server metadata."""
+    return "weather-server v0.1 — powered by wttr.in"
+
+@mcp.prompt()
+def weather_report(city: str) -> str:
+    """Slash-command template: /weather-report <city>."""
+    return f"Give a brief weather summary for {city} right now."
+
+if __name__ == "__main__":
+    mcp.run()
+```
+
+Add to Claude Desktop (Settings → MCP Servers → Add):
+
+```json
+{
+  "mcpServers": {
+    "weather": {
+      "command": "python",
+      "args": ["/path/to/weather_server.py"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop. Ask: *"What's the weather in Tokyo?"* — Claude calls `get_weather` and returns a live answer.
+
+## Next step
+
+Anthropic's free [Introduction to Model Context Protocol](https://anthropic.skilljar.com/introduction-to-model-context-protocol) course on Skilljar covers the full spec (tools, resources, prompts, authentication, and sampling), includes hands-on exercises, and ends with a certificate. No cost, only a Skilljar account required. For production patterns — streaming, auth, OpenTelemetry, and multi-provider setups — the [FastMCP docs](https://gofastmcp.com) are the reference.
+
+**Sources:** [Introduction to Model Context Protocol — Anthropic Courses](https://anthropic.skilljar.com/introduction-to-model-context-protocol) · [FastMCP documentation — gofastmcp.com](https://gofastmcp.com/getting-started/welcome) · [Building a Simple MCP Server in Python — MachineLearningMastery](https://machinelearningmastery.com/building-a-simple-mcp-server-in-python/) · [MCP Specification — modelcontextprotocol.io](https://modelcontextprotocol.io/specification)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Free Your Conversation: /code-review Now Runs in the Background in Claude Code</title>
