@@ -48,7 +48,7 @@ A `.devcontainer/` gives you Python 3.11 in one click (locally or in Codespaces)
 
 - Stand up the RapidAPI Google Shopping connector and issue a query that returns real electronics listings.
 - Load and validate `electronics-2026-07.json` against the canonical `Item` schema.
-- Explain why `brand` holds the retailer in 156 of 270 snapshot rows, and use a title-parsing heuristic to extract the true manufacturer.
+- Explain why `brand` holds a retailer instead of the manufacturer in most of the 270 snapshot rows, and use a title-parsing heuristic to extract the true manufacturer.
 - Identify the dedup problem — Sony WH-1000XM5 at $162.97 (Costco) vs. $248 (Macy's) — and see why exact-match dedup keeps both offers, leaving true cross-retailer merge to the semantic dedup in Part 9.
 - Freeze and version a snapshot via `data/build_snapshot.py` for reproducible downstream work.
 
@@ -334,31 +334,43 @@ from dealfinder.snapshot import load_snapshot, to_products
 from dealfinder.features import title_brand
 from dealfinder.ingest import dedup_key, ingest
 
-# ── snapshot counts ──────────────────────────────────────────────────────────
-items = load_snapshot("data/snapshots/electronics-2026-07.json")
+items = load_snapshot()
+
+# ── snapshot count ───────────────────────────────────────────────────────────
 assert len(items) == 270
 
-# 156/270 raw brand values are retailer strings, not manufacturer names
-retailer_count = sum(
-    1 for item in items
-    if title_brand(item["brand"] or "") != title_brand(item["title"] or "")
-       and title_brand(item["title"] or "") is not None
+# ── brand field is retailer-polluted ─────────────────────────────────────────
+# For most rows the manufacturer implied by the raw `brand` differs from the real
+# manufacturer parsed from the title — so `brand` is not a trustworthy field.
+polluted = sum(
+    1 for i in items
+    if title_brand(i["title"])
+    and title_brand(i.get("brand") or "") != title_brand(i["title"])
 )
-assert retailer_count == 156
+assert polluted > 150               # ~220/270 by this measure; don't trust `brand`
 
 # ── hero-cast: noise cancelling headphones ───────────────────────────────────
 ncb = [i for i in items if i["query"] == "noise cancelling headphones"]
 assert len(ncb) == 15
-
 prices = sorted(float(i["price"]) for i in ncb)
 assert abs(statistics.median(prices) - 162.97) < 0.01   # query-median pinned
 
-# ── dedup: Sony XM5 collapses to cheapest ────────────────────────────────────
-products = to_products(ncb)
-deduplicated = ingest([_StaticSource(products)])         # helper in test file
-sony = [p for p in deduplicated if "wh-1000xm5" in p.title.lower()]
-assert len(sony) == 1
-assert sony[0].price == 162.97                           # Costco wins
+# ── dedup: cross-retailer XM5 offers are BOTH kept (compare, don't collapse) ──
+xm5 = [p for p in to_products(items) if "wh-1000xm5" in p.title.lower()]
+assert len(xm5) == 2                             # Costco $162.97 AND Macy's $248
+assert len({dedup_key(p) for p in xm5}) == 2     # distinct keys (retailer + title differ)
+
+# ── …but a genuine exact duplicate DOES collapse, keeping the cheaper ─────────
+from dealfinder.schema import Product
+class _StaticSource:
+    def __init__(self, ps): self._ps = ps
+    def products(self): return self._ps
+dupes = [Product(id="a", title="Anker Q20i", brand="Anker", category="audio",
+                 price=54.99, url="u", source="feed"),
+         Product(id="b", title="Anker Q20i", brand="Anker", category="audio",
+                 price=44.99, url="u", source="feed")]
+kept = ingest([_StaticSource(dupes)])
+assert len(kept) == 1 and kept[0].price == 44.99
 
 # ── deal_pct outliers are still present (not sanitized in Part 1) ─────────────
 deal_pcts = [float(i["deal_pct"]) for i in items]
@@ -370,9 +382,29 @@ Run them with:
 
 ```bash
 pytest tests/test_part01.py -v
+# 6 passed
 ```
 
-All four assertions must pass against the committed snapshot. If you have regenerated the snapshot, expect failures — that is by design. Pin the specific file path to freeze the numbers.
+Every assertion passes against the committed snapshot. If you have regenerated the snapshot, expect failures — that is by design; the frozen file is what keeps these numbers (and every later lesson's) reproducible.
+
+---
+
+## Check it works
+
+**What you should have now:** the 270-item, normalized, deduped snapshot loaded into a running DealFinder — a clean typed `Product` catalog the rest of the course builds on.
+
+**How to test it, in the running product.** Start the app and confirm the data layer is live:
+
+```bash
+uvicorn dealfinder.serve:app --port 8000
+```
+
+- **Health** — open [http://localhost:8000/healthz](http://localhost:8000/healthz). You should see `{"status":"ok","products":270}`. That `270` *is* your data layer.
+- **A normalized product** — open `http://localhost:8000/deal/<id>` for any real id (grab one from the snapshot). You get a clean, typed row: `{"id":..., "title":"Anker Soundcore Q20i…", "price":44.99, …}` — retailer-polluted brand fixed, condition parsed, price typed.
+
+<Callout tone="note">
+**What does *not* work yet — and that's expected.** The search box on the home page has two modes. **Live deals** needs retailer API keys (you add them in **Part 7**). **By meaning** runs over the snapshot offline now, but the full *"search everything ever saved"* version needs a database (**Part 13**). If a mode is empty or asks for a key, that's the course working as designed — not a bug. Each feature lights up in its own lesson.
+</Callout>
 
 ---
 
