@@ -10,8 +10,167 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 29 Jul 2026 04:10:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 29 Jul 2026 12:06:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Anthropic Cut 80% of Claude Code's System Prompt for Opus 5 — Here Are the Six Rules They Found</title>
+      <link>https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models</link>
+      <guid isPermaLink="false">2026-07-29-06-new-rules-context-engineering-claude5</guid>
+      <pubDate>Wed, 29 Jul 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>The Claude Code team documented six shifts after removing 80% of their system prompt for Opus 5 with no regression. Each applies directly to your CLAUDE.md and agent system prompts.</description>
+      <content:encoded><![CDATA[
+**Anthropic's Claude Code team removed 80% of their system prompt when moving to Opus 5 and Fable 5 — with no measurable regression on coding evals — and published the six context-engineering shifts that made it work.**
+
+[The new rules of context engineering for Claude 5 generation models](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models) (Thariq Shihipar, July 24) is one of the most practically useful pieces Anthropic has published for developers who write CLAUDE.md files or build agents. The headline finding: the rules-heavy prompts that shaped Claude 3.x behavior actively impair Claude 5 models. The model is smarter — over-specifying gets in its way.
+
+## The six shifts
+
+**1. Rules → judgment.** Replace "never do X" with the reasoning. Old: "default to writing no comments. Never write multi-paragraph docstrings." New: "write code that reads like the surrounding code: match its comment density, naming, and idiom." Opus 5 infers the constraint from the reasoning.
+
+**2. Examples → interface design.** Move few-shot examples out of the system prompt and into tool/schema definitions. Claude 5 models read structured interfaces more reliably than inline examples.
+
+**3. Upfront context → progressive disclosure.** Don't front-load all project context. Inject it when it becomes relevant — the model tracks what it needs and when.
+
+**4. Repetition → one clear statement.** Saying the same constraint three times reinforces it with older models; it introduces noise for Claude 5. Each rule: state once, clearly.
+
+**5. Manual memory → auto-memory.** Claude 5 models learn what to remember from interaction patterns. Explicit "always remember X" instructions are largely redundant and add clutter.
+
+**6. Simple specs → rich references.** Point to actual files rather than summarizing them. `See tsconfig.json for our TS settings` outperforms a paragraph describing those settings. The model reads the file.
+
+## How to apply to your CLAUDE.md right now
+
+1. For every "always/never" rule, ask: does the model already understand *why*? If yes, replace the rule with the reasoning or delete it entirely.
+2. Replace any paragraph describing a convention with a path to the file that embodies it.
+3. Remove duplicated constraints — if the same idea appears twice, keep one.
+4. Move step-by-step examples into Skills (`.claude/skills/`), not the main CLAUDE.md.
+
+**Sources:** [The new rules of context engineering for Claude 5 generation models — claude.com](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models) · [Developer analysis — developersdigest.tech](https://www.developersdigest.tech/blog/claude-5-context-engineering-rules-hn-analysis) · [Anthropic 80% prompt removal — AI Weekly](https://aiweekly.co/alerts/anthropic-deletes-80-of-claude-codes-system-prompt-for-claude-5)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Anthropic's Zero Trust Framework for AI Agents: Eight Implementation Phases</title>
+      <link>https://claude.com/blog/zero-trust-for-ai-agents</link>
+      <guid isPermaLink="false">2026-07-29-05-zero-trust-ai-agents-anthropic</guid>
+      <pubDate>Wed, 29 Jul 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Security</category>
+      <category>Agents</category>
+      <category>Claude Code</category>
+      <description>Anthropic published a Zero Trust security architecture for agent deployments — scoped credentials, action gates, and agentic SOAR patterns for engineers running agents in production.</description>
+      <content:encoded><![CDATA[
+**Anthropic published a practical Zero Trust security framework for AI agents: an eight-phase implementation guide covering credential scoping, action gates, and incident response for teams running Claude Code or custom agent pipelines in production.**
+
+[Zero Trust for AI agents](https://claude.com/blog/zero-trust-for-ai-agents) (published July 23) extends classic Zero Trust principles — never trust by default, verify every action, assume potential compromise — to the specifics of agentic systems that can read files, call APIs, and write code. The three additions that matter most for engineers:
+
+**Per-session scoped credentials.** Each agent run gets time-limited, task-scoped credentials rather than long-lived service account tokens. An agent given S3 read access for task A should not inherit that access when repurposed for task B.
+
+**Action gates for high-impact operations.** File writes, deploys, and external API calls pass through an approval layer even in auto mode. This complements Claude Code's existing `--allowlist-file` permission model — the framework gives a principled way to decide what goes on that list.
+
+**Agentic SOAR.** Structured agent activity logs feed a security orchestration layer that can automatically quarantine a session showing anomalous tool-call patterns — flagging prompt-injection pivots without waiting for a human reviewer.
+
+The eight-phase implementation workflow walks from "no guardrails" to full agentic Zero Trust gradually — useful given that most teams can't rebuild their auth stack overnight.
+
+**Why it matters:** As agents run longer, touch more tools, and operate without constant human supervision, the attack surface from prompt injection, confused-deputy exploits, and overprivileged credentials widens. This is the most complete published treatment of how to contain it — and it comes from the team building Claude Code.
+
+**Sources:** [Zero Trust for AI agents — claude.com](https://claude.com/blog/zero-trust-for-ai-agents) · [Data-layer analysis — Securiti.ai](https://securiti.ai/blog/what-anthropic-zero-trust-ai-agents-means-data-layer/) · [Enforcement guide — Varonis](https://www.varonis.com/blog/zero-trust-for-ai-agents)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Why Your Weights Stay Frozen: LoRA Explained with HuggingFace PEFT</title>
+      <link>https://huggingface.co/learn/llm-course/chapter11/4</link>
+      <guid isPermaLink="false">2026-07-29-04-lora-peft-explained-fine-tuning</guid>
+      <pubDate>Wed, 29 Jul 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>LoRA fine-tunes large models by injecting tiny rank-decomposition matrices while original weights stay frozen — cutting trainable parameters by 10-100x with no quality loss. Here's the math and code.</description>
+      <media:content url="https://img.youtube.com/vi/TARXldKk_bM/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/TARXldKk_bM/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**LoRA freezes all original model weights and injects two tiny trainable matrices per layer, cutting the trainable parameter count by 10–100x while matching full fine-tune quality — and you can merge the adapter back in for zero inference overhead.**
+
+**What you'll be able to do after this:**
+- Understand the W + BA rank decomposition that lets you adapt a model by training 0.04% of its parameters
+- Configure `LoraConfig` — rank, target modules, `lora_alpha` — for any transformer with HuggingFace PEFT
+- Merge, save, and share a LoRA adapter without touching the base model weights
+
+Full fine-tuning a 7B model requires updating and storing gradients for billions of parameters — pushing VRAM past 80GB. LoRA solves this with one elegant insight: the *effective rank* of the useful weight update is low. You don't need to update every element of W; you can approximate the update as the product of two small matrices.
+
+## The math (no linear algebra course needed)
+
+Every transformer layer has a weight matrix W (shape d × d). Full fine-tuning modifies W directly: W' = W + ΔW. LoRA approximates the update instead:
+
+```
+ΔW ≈ B × A    where  B ∈ ℝ^(d × r)  and  A ∈ ℝ^(r × d)
+```
+
+When r = 8 and d = 4096 (a typical attention layer in a 7B model): full ΔW has 16.7M parameters; LoRA has only 2 × 4096 × 8 = 65,536 — a 256x reduction. During training, W stays frozen; only A and B change. At inference, you merge: W_eff = W + BA, adding zero latency.
+
+## Walk-through with HuggingFace PEFT
+
+```python
+from transformers import AutoModelForCausalLM
+from peft import LoraConfig, get_peft_model, TaskType
+import torch
+
+# Load base model in bfloat16 to save ~50% VRAM vs float32
+model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Llama-3-8B",
+    torch_dtype=torch.bfloat16,
+    device_map="auto"
+)
+
+config = LoraConfig(
+    task_type=TaskType.CAUSAL_LM,
+    r=8,                                   # rank: higher = more params, more capacity
+    lora_alpha=32,                         # scaling: alpha/r is the effective multiplier
+    target_modules=["q_proj", "v_proj"],   # which projection matrices to adapt
+    lora_dropout=0.05,
+    bias="none",
+)
+
+model = get_peft_model(model, config)
+model.print_trainable_parameters()
+# trainable params: 3,407,872 || all params: 8,033,669,120 || trainable%: 0.04
+```
+
+Train with any standard Trainer loop — only A and B accumulate gradients. After training:
+
+```python
+# Option A: save just the adapter (~16 MB, shareable)
+model.save_pretrained("my-lora-adapter/")
+
+# Option B: merge into base model (zero inference overhead)
+merged = model.merge_and_unload()
+merged.save_pretrained("my-merged-model/")
+```
+
+## Choosing rank r
+
+| r | Use case |
+|---|----------|
+| 4 | Small datasets; minor behavioral tweaks |
+| 8 | Community default; most instruction fine-tunes |
+| 16–32 | Large behavioral shifts; domain adaptation |
+| >64 | Rarely helps; use more data instead |
+
+`lora_alpha` tip: set it to 2× your rank (alpha=16 with r=8) as a starting point. The effective scale applied to ΔW is alpha/r, so keeping this ratio stable as you tune r gives consistent behavior.
+
+**Sources:** [LoRA (Low-Rank Adaptation) — HuggingFace LLM Course Ch 11.4](https://huggingface.co/learn/llm-course/chapter11/4) · [LoRA conceptual guide — HuggingFace PEFT docs](https://huggingface.co/docs/peft/main/conceptual_guides/lora) · [Chapter 7: LLM Finetuning Explained: LoRA, PEFT & When to Fine-Tune — YouTube](https://www.youtube.com/watch?v=TARXldKk_bM)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Real-Time Bug Patrol: Install Claude Code's security-guidance Plugin and Let It Fix Vulnerabilities as You Write</title>
