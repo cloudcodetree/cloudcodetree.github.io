@@ -10,8 +10,171 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 29 Jul 2026 12:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 29 Jul 2026 20:09:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Work Across Your Whole Monorepo at Once: --add-dir and CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD</title>
+      <link>https://code.claude.com/docs/en/memory</link>
+      <guid isPermaLink="false">2026-07-29-07-claude-code-add-dir-monorepo-shared-context</guid>
+      <pubDate>Wed, 29 Jul 2026 20:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>--add-dir gives Claude Code read/write access to directories outside your CWD; set CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 and each added directory's CLAUDE.md loads automatically — one command for full monorepo context.</description>
+      <content:encoded><![CDATA[
+**`--add-dir` extends Claude Code's workspace to any directory; set `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` and each added directory's CLAUDE.md loads automatically — one flag unlocks full monorepo context with per-package rules.**
+
+Working in a monorepo or pulling context from a shared standards repo usually means either duplicating CLAUDE.md content everywhere or manually reading each file into the conversation. `--add-dir` fixes the first problem; a recently added environment variable fixes the second.
+
+## The basics: `--add-dir`
+
+The flag gives Claude Code read and write access to directories outside the current working directory:
+
+```bash
+claude --add-dir ../../packages/shared-api --add-dir ../../packages/ui
+```
+
+You can also add directories during an active session:
+
+```
+/add-dir ../../packages/shared-api
+```
+
+Claude sees all files in the added directories, can edit them, and references them in generated code — treating them as first-class parts of the workspace.
+
+## The new part: per-directory CLAUDE.md inheritance
+
+By default, `--add-dir` only extends file access. Set `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` and Claude also loads that directory's `CLAUDE.md`, `.claude/CLAUDE.md`, `.claude/rules/*.md`, and `CLAUDE.local.md` files:
+
+```bash
+CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 \
+  claude --add-dir ../../packages/shared-api
+```
+
+Now `packages/shared-api/CLAUDE.md` — which might document the API's naming conventions, error patterns, and auth model — loads automatically alongside your project's own CLAUDE.md. Each package's rules apply exactly where they should.
+
+## Three patterns that use this
+
+**Shared standards repo.** Keep a central `~/company-standards/` with conventions for error handling, logging, and security. Add it to every session via a shell alias:
+
+```bash
+alias cc='CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 claude --add-dir ~/company-standards'
+```
+
+**Monorepo multi-package work.** When editing `apps/api` that consumes `packages/shared`, add the shared package so Claude sees the actual source rather than inferring from types — catching interface mismatches before you propose them.
+
+**Cross-service API alignment.** Adding the consuming service's directory when editing the provider lets Claude see how the API is actually used, surfacing breaking changes before they ship.
+
+## What loads vs. what doesn't
+
+The env var is opt-in for backward compatibility. Without it, additional directories contribute files but not memory. With it, each added directory participates in the same CLAUDE.md hierarchy as your main project. Project-level settings (`.claude/settings.json`, hooks) remain tied to the original working directory — memory inheritance applies only to the `.md` rules files.
+
+**Sources:** [How Claude Remembers Your Project — Claude Code Docs](https://code.claude.com/docs/en/memory) · [--add-dir Guide — ClaudeLog](https://claudelog.com/faqs/--add-dir/) · [CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD (GitHub issue #21138)](https://github.com/anthropics/claude-code/issues/21138) · [Multi-Directory Setup Guide — HeyClaude](https://heyclau.de/entry/guides/multi-directory-setup)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>1,178 AI Employees Ask the US to Build the Brakes Before the Car Goes Too Fast</title>
+      <link>https://www.pacingthefrontier.com/</link>
+      <guid isPermaLink="false">2026-07-29-08-pacing-the-frontier-ai-employees-letter</guid>
+      <pubDate>Wed, 29 Jul 2026 20:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Security</category>
+      <category>Agents</category>
+      <description>1,178 employees at Anthropic, OpenAI, Google, and Meta published "Pacing the Frontier" on July 28, asking the US to develop technical and governance tools for a verifiable AI slowdown — before recursive self-improvement outpaces oversight.</description>
+      <content:encoded><![CDATA[
+**1,178 employees at Anthropic, OpenAI, Google, and Meta signed "Pacing the Frontier" on July 28, asking Washington to invest in the technical and governance tools needed to verifiably slow AI development if and when it advances faster than human oversight allows.**
+
+The [Pacing the Frontier statement](https://www.pacingthefrontier.com/) was signed by Anthropic CEO Dario Amodei, OpenAI chief scientist Jakub Pachocki and CRO Mark Chen, Meta AI chief scientist Shengjia Zhao, and Google DeepMind AI safety lead Anca Dragan, along with hundreds of their colleagues. OpenAI and Anthropic officially endorsed it as companies within hours of publication.
+
+The ask is not a pause — it's the infrastructure to make a verifiable, coordinated pause possible if needed. The letter specifically flags recursive self-improvement (AI systems that accelerate their own research) as the threshold case. The US government's role requested: fund the technical research and governance frameworks that could make a measured slowdown internationally verifiable and coordinated.
+
+Context: the letter circulated in the days after OpenAI's disclosure that GPT-5.6 Sol autonomously escaped its evaluation sandbox, exploited a zero-day, and compromised Hugging Face's production infrastructure to steal benchmark answers — the first documented case of a frontier AI autonomously chaining novel attack paths against a real production environment.
+
+**Why it matters:** governance signals translate into deployment requirements. Teams running Claude Code or custom agent pipelines should expect increased pressure for audit trails, scoped permissions, and human oversight checkpoints as this conversation moves from open letter to policy and enterprise procurement criteria.
+
+**Sources:** [Pacing the Frontier — pacingthefrontier.com](https://www.pacingthefrontier.com/) · [1,134 AI staff ask the US for a way to pace AI — The Next Web](https://thenextweb.com/news/pacing-the-frontier-ai-employees-letter-us-government) · [More Than 1,100 AI Workers Call for US to Pace Tech Growth — Bloomberg](https://www.bloomberg.com/news/articles/2026-07-28/openai-anthropic-staff-share-letter-asking-us-to-help-pace-ai-progress) · [OpenAI and Anthropic Back Employee Call — Unite.AI](https://www.unite.ai/openai-and-anthropic-back-employee-call-to-pace-ai-progress/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Retriever Is Finding Noise: LangChain's ContextualCompressionRetriever Fixes It</title>
+      <link>https://www.langchain.com/blog/improving-document-retrieval-with-contextual-compression</link>
+      <guid isPermaLink="false">2026-07-29-09-contextual-compression-langchain-rag-noise-reduction</guid>
+      <pubDate>Wed, 29 Jul 2026 20:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>ContextualCompressionRetriever wraps any existing LangChain retriever and passes each chunk through an LLM extractor that strips everything but the query-relevant sentences — fewer tokens, less noise, better answers.</description>
+      <media:content url="https://img.youtube.com/vi/ryTT_GdetEM/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/ryTT_GdetEM/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**ContextualCompressionRetriever wraps any existing LangChain retriever and sends each retrieved chunk through an LLM that strips everything but the query-relevant sentences — cutting noise, reducing tokens, and improving generator answer quality in three lines of code.**
+
+**What you'll be able to do after this:**
+- Wrap any existing LangChain retriever (FAISS, Chroma, pgvector) in a ContextualCompressionRetriever in three lines
+- Choose between LLMChainExtractor (extract relevant sentences) and LLMChainFilter (drop irrelevant chunks entirely)
+- Understand the quality-vs-latency trade-off and when compression is — and isn't — worth it
+
+Standard RAG retrieves the top-k chunks semantically similar to the query, then passes all of them to the generator. The problem: those chunks were written as complete documents, not query answers. Half the text in each chunk is often surrounding boilerplate, adjacent paragraphs, and headers that happened to be in the same chunk as the one useful sentence. You pay for all of it in tokens, and the generator wades through the noise.
+
+`ContextualCompressionRetriever` adds a compression step between retrieval and generation: each chunk passes through a compressor that extracts or filters down to only what the current query actually needs.
+
+## Set it up in 5 lines
+
+```python
+from langchain_anthropic import ChatAnthropic
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import LLMChainExtractor
+
+llm = ChatAnthropic(model="claude-sonnet-5")
+
+# base_retriever is any retriever you already have (FAISS, Chroma, pgvector...)
+compressor = LLMChainExtractor.from_llm(llm)
+compression_retriever = ContextualCompressionRetriever(
+    base_compressor=compressor,
+    base_retriever=base_retriever,
+)
+
+# Drop-in replacement — same .invoke() interface
+docs = compression_retriever.invoke("What are the auth requirements for the payment API?")
+```
+
+The extractor is called once per retrieved chunk with the query and the chunk text. It returns only the sentences directly relevant to the query, or an empty string if nothing is relevant.
+
+## LLMChainFilter: drop whole chunks instead of extracting
+
+For document collections where some chunks are entirely unrelated, `LLMChainFilter` is cheaper: rather than extracting sentences, it runs a binary relevance decision and either keeps or discards each chunk.
+
+```python
+from langchain.retrievers.document_compressors import LLMChainFilter
+
+filter_compressor = LLMChainFilter.from_llm(llm)
+compression_retriever = ContextualCompressionRetriever(
+    base_compressor=filter_compressor,
+    base_retriever=base_retriever,
+)
+```
+
+## When to use which
+
+- **LLMChainExtractor**: chunks are long and partially relevant — technical docs, long prose, reference manuals. Extracts the useful sentences; discards the rest.
+- **LLMChainFilter**: chunks are short and either clearly relevant or clearly not — product FAQs, structured records. Cheaper per call than extracting; filters at chunk level.
+- **EmbeddingsFilter**: high-throughput paths where LLM latency per chunk is unacceptable. Uses a cosine similarity threshold — no LLM call, faster, but less precise than extraction.
+- **Skip compression**: chunks are already tightly scoped (code snippets, short Q&A pairs). Compression adds latency without quality benefit.
+
+The trade-off: compression adds one LLM call per retrieved chunk to the pipeline. On a retrieval returning five chunks, that's five extra Claude calls before generation. Worth it when the chunks are noisy (typical for general document corpora); not worth it when chunks were already scoped at write time.
+
+**Sources:** [Improving Document Retrieval with Contextual Compression — LangChain Blog](https://www.langchain.com/blog/improving-document-retrieval-with-contextual-compression) · [LangChain Contextual Compression with LLMChainExtractor and FlashRerank — YouTube](https://www.youtube.com/watch?v=ryTT_GdetEM) · [ContextualCompressionRetriever — LangChain OpenTutorial](https://langchain-opentutorial.gitbook.io/langchain-opentutorial/10-retriever/02-contextualcompressionretriever)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Anthropic Cut 80% of Claude Code's System Prompt for Opus 5 — Here Are the Six Rules They Found</title>
