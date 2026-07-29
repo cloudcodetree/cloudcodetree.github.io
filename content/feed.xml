@@ -10,8 +10,154 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 28 Jul 2026 20:14:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 29 Jul 2026 04:10:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Real-Time Bug Patrol: Install Claude Code's security-guidance Plugin and Let It Fix Vulnerabilities as You Write</title>
+      <link>https://code.claude.com/docs/en/security-guidance</link>
+      <guid isPermaLink="false">2026-07-29-02-security-guidance-plugin-claude-code</guid>
+      <pubDate>Wed, 29 Jul 2026 04:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Security</category>
+      <category>Best Practices</category>
+      <description>One /plugin install adds a three-layer security reviewer to Claude Code that catches injections, XSS, and unsafe deserializations before you finish a turn — no separate command, no CI wait.</description>
+      <content:encoded><![CDATA[
+**One `/plugin install` command adds a three-layer security reviewer that catches injections, XSS, and unsafe deserializations before you even finish a turn — no commands to invoke, no CI wait.**
+
+The security-guidance plugin runs as a pre-tool hook on every edit. Once installed, it's invisible — until it finds something. Then it feeds the finding back to Claude in the same context so Claude rewrites the code in the same turn before you see the response.
+
+## Install
+
+```bash
+/plugin install security-guidance@claude-plugins-official
+/reload-plugins
+```
+
+Requires Claude Code ≥ v2.1.144. Free on all Claude plans.
+
+## Three-layer review
+
+**Layer 1 — Per-edit regex scan (instant, zero cost):** catches known-bad patterns before an edit lands. Fast enough to fire on every change without slowing the session.
+
+**Layer 2 — End-of-turn LLM diff review:** at the end of each turn, sends the full diff to Opus 4.7, which surfaces high-severity findings and returns them to Claude's context. Claude typically rewrites before responding.
+
+**Layer 3 — Agentic commit-time review:** wired to a git pre-commit hook, this does a cross-file analysis across files touched in the commit — the layer that catches issues that only become visible in context.
+
+## What it catches
+
+25 vulnerability classes, including: command injection in shell calls and GitHub Actions YAML, `eval()` / `new Function()`, XSS via `innerHTML` / `dangerouslySetInnerHTML`, Python `pickle.loads()`, SSRF patterns, hardcoded secrets, and path traversal.
+
+## What it doesn't do
+
+Not a SAST replacement — it won't catch complex multi-file business logic flaws. Use it as a fast first pass and schedule a dedicated `/security-review` scan periodically for deeper analysis.
+
+Custom patterns are configurable via `security-guidance.json` in your repo root; you can add domain-specific checks (internal API misuse, proprietary auth patterns) using the same regex + LLM spec format.
+
+**Sources:** [Claude Code security-guidance docs — code.claude.com](https://code.claude.com/docs/en/security-guidance) · [Plugin page — claude.com](https://claude.com/plugins/security-guidance) · [Security-guidance plugin guide — apito.ai](https://apito.ai/en/blog/dev-guides/claude-code-security-guidance-plugin-2026/) · [MarkTechPost: Claude Security Plugin in beta (Jul 22)](https://www.marktechpost.com/2026/07/22/anthropic-releases-claude-security-plugin-for-claude-code-in-beta-a-multi-agent-vulnerability-scanner-that-runs-in-your-terminal/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Mythos Cracks a Post-Quantum Cipher in 60 Hours: Anthropic Publishes Novel Cryptanalysis Research</title>
+      <link>https://www.anthropic.com/research/discovering-cryptographic-weaknesses</link>
+      <guid isPermaLink="false">2026-07-29-03-claude-mythos-cryptographic-weakness-hawk-aes</guid>
+      <pubDate>Wed, 29 Jul 2026 04:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Security</category>
+      <category>LLM</category>
+      <description>Claude Mythos autonomously found a structural weakness in the HAWK-256 post-quantum signature scheme (dropping security from 2^64 to 2^38 ops) and a 200-800x faster attack on 7-round AES — the first AI-produced novel cryptanalysis results.</description>
+      <content:encoded><![CDATA[
+**Claude Mythos autonomously discovered a structural weakness in the HAWK-256 post-quantum signature scheme and a 200-800x faster attack on 7-round AES — the first AI-produced genuinely novel cryptanalysis results.**
+
+Anthropic published two results this week from extended autonomous runs of Claude Mythos Preview in a multi-agent research scaffold.
+
+**HAWK-256 weakness.** HAWK is a lattice-based digital signature scheme currently in NIST's post-quantum standardization review. Mythos found a nontrivial automorphism in HAWK's underlying lattice that enables faster key enumeration. The practical effect: the expected cost of a full key-recovery attack on HAWK-256 drops from approximately **2^64 to 2^38 operations**. One Anthropic researcher provided direction and computing resources; Mythos ran largely autonomously for ~60 hours. HAWK has not been deployed — it remains a candidate under review.
+
+**7-round AES speedup.** A separate scaffolded run (no researcher guidance) produced a new meet-in-the-middle attack on 7-round reduced AES-128 running **200-800x faster** than the prior best-known attack, consuming ~1 billion output tokens. This targets a research reduction of AES-128, not the 10-round production standard in real-world systems.
+
+Each result cost roughly **$100K in API costs** to develop.
+
+**Why it matters:** This is the first time an AI has produced a mathematically novel cryptanalysis result — not just scanning code for known CVEs, but discovering a new weakness in a candidate standard. If this pattern generalizes to other algorithms, AI-assisted cryptographic review may become a required step for new standards. Engineers building long-lived, security-critical systems should watch the formal verification + AI tooling space closely.
+
+**Sources:** [Discovering cryptographic weaknesses with Claude — Anthropic Research](https://www.anthropic.com/research/discovering-cryptographic-weaknesses) · [AI Cracks Post-Quantum Cipher in 60 Hours — TechTimes](https://www.techtimes.com/articles/321876/20260728/ai-cracks-post-quantum-cipher-60-hours-after-two-years-human-review-failed.htm) · [Anthropic AI Model Finds Flaws in Tough-to-Crack Encryption Algorithms — Slashdot](https://it.slashdot.org/story/26/07/28/1911218/anthropic-ai-model-finds-flaws-in-tough-to-crack-encryption-algorithms)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Embeddings From Scratch: Your First Semantic Search App with sentence-transformers and all-MiniLM-L6-v2</title>
+      <link>https://www.sbert.net/docs/quickstart.html</link>
+      <guid isPermaLink="false">2026-07-29-01-sentence-transformers-embeddings-quickstart</guid>
+      <pubDate>Wed, 29 Jul 2026 04:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Embeddings</category>
+      <category>HuggingFace</category>
+      <description>Three pip installs and 8 lines of Python turn any text list into a searchable semantic index. Start here before RAG, hybrid search, or fine-tuning — this is the primitive everything else builds on.</description>
+      <content:encoded><![CDATA[
+**Three pip installs and 8 lines of Python turn any text list into a searchable semantic index — this is the primitive that every RAG, hybrid search, and reranking tutorial in this series builds on.**
+
+**What you'll be able to do after this:**
+- Convert a list of sentences into 384-dimensional embedding vectors with a single `.encode()` call
+- Compute cosine similarity to find the nearest semantic match without a vector database
+- Understand why two sentences about different words can match better than two sentences sharing the same word
+
+## Install
+
+```bash
+pip install sentence-transformers torch
+```
+
+## The 8 lines
+
+```python
+from sentence_transformers import SentenceTransformer, util
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
+docs = [
+    "Claude Code can run multiple subagents in parallel.",
+    "Embeddings capture semantic meaning as dense vectors.",
+    "The weather in San Francisco is foggy.",
+]
+
+query = "How do I parallelize agent tasks?"
+doc_embeddings = model.encode(docs, convert_to_tensor=True)
+query_embedding  = model.encode(query, convert_to_tensor=True)
+
+scores  = util.cos_sim(query_embedding, doc_embeddings)[0]
+best    = scores.argmax().item()
+print(f"Best match: {docs[best]} (score: {scores[best]:.3f})")
+# → Best match: Claude Code can run multiple subagents in parallel. (score: 0.712)
+```
+
+The model runs locally — no API key, no network call after the first download.
+
+## What's actually happening
+
+`model.encode()` passes each sentence through a transformer, then mean-pools the token representations into a single 384-dimensional vector. Each dimension is a float with no standalone meaning — the geometry of the full vector is what matters.
+
+`util.cos_sim()` measures the angle between two vectors: **1.0** = same direction (identical meaning), **0.0** = unrelated. It normalizes for length so a short query and a long paragraph compare fairly.
+
+The query and "subagents in parallel" share almost no words but point in the same region of semantic space. "Foggy weather" points elsewhere. That's the value.
+
+## Choosing a model
+
+**all-MiniLM-L6-v2** is the sensible default: 22M parameters, 384 dims, 5× faster than the larger `all-mpnet-base-v2` with comparable quality on most short-text tasks. When you need higher retrieval quality, check the [MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard) — it ranks 200+ embedding models on standardized retrieval, clustering, and classification benchmarks. `BAAI/bge-large-en-v1.5` is a common upgrade pick when you have more compute.
+
+This is the foundation for every other tutorial in this series: the chunking post showed how to split documents; pgvector showed where to store vectors; hybrid search showed how to combine them with BM25. It all starts here.
+
+**Sources:** [sentence-transformers Quickstart — sbert.net](https://www.sbert.net/docs/quickstart.html) · [all-MiniLM-L6-v2 model card — HuggingFace](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) · [Video: Sentence Transformers — Embedding, Similarity and Semantic Search (YouTube)](https://www.youtube.com/watch?v=OlhNZg4gOvA)
+]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/OlhNZg4gOvA/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/OlhNZg4gOvA/maxresdefault.jpg" />
+    </item>
 
     <item>
       <title>Subagents Can Nest Three Deep Now: How to Structure Multi-Layer Agent Hierarchies in Claude Code</title>
