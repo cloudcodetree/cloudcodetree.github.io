@@ -324,10 +324,45 @@ test_model_mae_within_tolerance PASSED
 Because the normal equation is exact and the split is deterministic (`seed=0`), the model needs no serialized artifact — `python -m dealfinder.train_model` refits the identical weights from the frozen snapshot every run, so the tests pin the numbers directly.
 
 <Callout tone="note">
-**How this scales in production.** The `featurize → fit → score` shape you built here is unchanged in Parts 4 and 17. Part 4's recommender reuses `feature_matrix()` as the content-similarity backbone. Part 21 swaps `LinearModel` for sklearn `GradientBoostingRegressor` — the R² moves from 0.268 to 0.727 and the MAE from \$227.89 to \$138.11 on the full corpus (with embeddings), and the Bose trap stays caught. The two-signal blend and the suspicious threshold stay the same. That is the point: good architecture lets you upgrade the model without rewriting the pipeline.
+**How this scales in production.** The `featurize → fit → score` shape you built here is unchanged in Parts 4 and 21. Part 4's recommender reuses `feature_matrix()` as the content-similarity backbone. Part 21 swaps `LinearModel` for sklearn `GradientBoostingRegressor` — the R² moves from 0.268 to 0.727 and the MAE from \$227.89 to \$138.11 on the full corpus (with embeddings), and the Bose trap stays caught. The two-signal blend and the suspicious threshold stay the same. That is the point: good architecture lets you upgrade the model without rewriting the pipeline.
 </Callout>
 
-**Part 5 eval gate.** Before the recommender deploys in Part 5, the two-signal score must pass `precision@5 >= 0.80` on a **20-item golden set** drawn from the snapshot — all 15 headphones from the anchor query plus 5 cross-category items, each hand-labeled `deal|fair|suspicious|overpriced`. This gate is defined once (Part 5) and reused identically in Parts 22, 20, 24, and 32.
+**Part 5 eval gate.** Before the recommender deploys in Part 5, the two-signal score must pass `precision@5 >= 0.80` on a **20-item golden set** drawn from the snapshot — all 15 headphones from the anchor query plus 5 cross-category items, each hand-labeled `deal|fair|suspicious|overpriced`. This gate is defined once (Part 5) and reused identically in the eval, MLOps, inference, and security parts later in the course.
+
+---
+
+## Check it works
+
+**What you should have now:** every product carries a two-signal verdict — and the naive median signal, which is fooled by the $46 Bose (72% under median, same as the genuine $44.99 Anker), is now corrected by the model residual that flags the Bose `SUSPICIOUS`.
+
+**Test it — reproduce the model from scratch:**
+
+```bash
+python -m dealfinder.train_model
+```
+
+You should see the honest split numbers and the verdicts:
+
+```
+trained on 202 listings, tested on 68
+  MAE  = $227.89
+  R^2  = 0.268
+...
+  [deal      ] $44.99   Anker Soundcore Q20i …  — consistent with the model's $108 fair price
+  [suspicious] $46.00   Bose QuietComfort 45 …  — 84% under model fair price $285 — too far below to be real
+```
+
+**Test it — the unit tests:**
+
+```bash
+pytest tests/test_dealscore.py tests/test_dealmodel.py
+# 11 passed
+```
+
+**See it in the running product:**
+
+- Open `http://localhost:8000/deal/<anker-id>` — you should get `"fair": 108.33, "deal_score": 0.585` (the same per-category model the search badges use — not a divergent number).
+- Search *"noise cancelling headphones"* (by-meaning mode). The **$46 Bose QuietComfort 45 shows a `SUSPICIOUS` badge** with *"⚠ looks 72% under — but flagged"*, while the $44.99 Anker shows `DEAL`. That difference is the entire lesson, made visible.
 
 ---
 
