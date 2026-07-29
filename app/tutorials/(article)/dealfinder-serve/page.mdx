@@ -103,7 +103,7 @@ In plain English:
 - `_catalog` — the 270 `Product` objects from the snapshot, loaded once at startup.
 - `_idx` — a dict from `product_id` to list position so `/deal/{id}` is an O(1) lookup, not a linear scan.
 - `_X` — the feature matrix built by `feature_matrix()` from `dealfinder.features`. These are the same features (category, brand tier, condition, embeddings) the price model learned from.
-- `_model` — a `LinearModel` fit on the snapshot at startup. This is the baseline price model that Parts 3 and 18 trained; Part 27 discusses upgrading this inference path without touching the endpoints.
+- `_model` — a `LinearModel` fit on the snapshot at startup. This is the baseline price model that Parts 3 and 21 trained; Part 27 discusses upgrading this inference path without touching the endpoints.
 - `_fair` — a dict from `product_id` to predicted fair price, precomputed at startup so `/deal` never calls the model at request time.
 - `_embed_texts` — lazy import of the embedding function so the embedding library is only loaded when a DB is present and `/search` actually needs it.
 

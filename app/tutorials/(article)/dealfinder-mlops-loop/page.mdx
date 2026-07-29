@@ -20,7 +20,7 @@ export const metadata = {
 
 **TL;DR: The individual pieces — drift detection, model retraining, an evaluation gate — exist. This part wires them into one auditable cycle. When the live feature mix shifts past PSI 0.2, the system retrains, runs the challenger through the precision@5 gate (≥0.80 required), and promotes it only if it beats the incumbent champion. You run one function and get back a structured trace that records every decision.**
 
-This is **Part 24 of DealFinder**, sitting at the end of Phase 4 (ML rigor & MLOps). Parts 21, 19, and 20 built the price model, wired up experiment tracking, and established evaluation as a discipline. This part asks the harder question: once you have all that, how do you keep the model honest over time? The answer is a loop — one that fires on evidence, retrain deterministically, gates on a pinned metric, and promotes only when the evidence is unambiguous.
+This is **Part 24 of DealFinder**, sitting at the end of Phase 4 (ML rigor & MLOps). Parts 21, 22, and 23 built the price model, wired up experiment tracking, and established evaluation as a discipline. This part asks the harder question: once you have all that, how do you keep the model honest over time? The answer is a loop — one that fires on evidence, retrain deterministically, gates on a pinned metric, and promotes only when the evidence is unambiguous.
 
 <Callout tone="tip">
 **Code along, version by version.** Full project at

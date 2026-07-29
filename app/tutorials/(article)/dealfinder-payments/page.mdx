@@ -20,7 +20,7 @@ export const metadata = {
 
 **TL;DR: A real deal-finder that people pay for needs three things: a checkout session to collect payment, a webhook to verify it happened, and a quota gate to enforce the plan. This part builds all three in `dealfinder/billing.py` and proves them with 8 offline tests — no live Stripe account required to follow along.**
 
-This is **Part 34 of DealFinder**, the fourth part of Phase 6 (Full-stack SaaS). Parts 31–30 gave DealFinder a React frontend, Supabase auth, and a saved-searches worker. This part adds the billing layer: a `free` plan capped at 25 searches per month and a `pro` plan at 1,000, with Stripe Checkout as the upgrade path and a HMAC-verified webhook to grant entitlements the moment payment clears.
+This is **Part 34 of DealFinder**, the fourth part of Phase 6 (Full-stack SaaS). Parts 31–33 gave DealFinder a React frontend, Supabase auth, and a saved-searches worker. This part adds the billing layer: a `free` plan capped at 25 searches per month and a `pro` plan at 1,000, with Stripe Checkout as the upgrade path and a HMAC-verified webhook to grant entitlements the moment payment clears.
 
 <Callout tone="tip">
 **Code along, step by step.** Full project at

@@ -121,7 +121,7 @@ def precision_at_k(ranked: list[dict], k: int = GATE_K) -> float:
     return sum(1 for g in top if g["label"] == "deal") / max(1, len(top))
 ```
 
-A perfect score is 1.00 (all 5 of the top 5 are genuine deals). The gate threshold is 0.80 — at least 4 of the 5 must be real deals for the system to pass. That gate is used identically in Parts 24, 25, and 33.
+A perfect score is 1.00 (all 5 of the top 5 are genuine deals). The gate threshold is 0.80 — at least 4 of the 5 must be real deals for the system to pass. That gate is used identically in the MLOps, safety, and inference parts later in the course.
 
 Why precision, not recall? Because the user sees exactly 5 listings. Surfacing 6 true deals when only 5 are shown is invisible. What hurts the user is showing a trap — a $46 Bose QC45 that looks like a deal but isn't — in position 1 or 2.
 
@@ -235,7 +235,7 @@ The median-only top 5 for the same 20 items:
 
 Two of five are genuine deals: precision@5 = 2/5 = **0.40**. Gate: 0.40 < 0.80. Fail.
 
-The $10.75 Kindle Paperwhite and the $15 Samsung Galaxy Tab A11+ are at the top because they are far below their query medians. The median has no way to know they are accessories or mislistings. It sees a large positive `median_signal` and rewards them. That is the false positive problem Parts 3 and 18 were built to solve — and this part is what proves the solution works.
+The $10.75 Kindle Paperwhite and the $15 Samsung Galaxy Tab A11+ are at the top because they are far below their query medians. The median has no way to know they are accessories or mislistings. It sees a large positive `median_signal` and rewards them. That is the false positive problem Parts 3 and 21 were built to solve — and this part is what proves the solution works.
 
 <Callout tone="warning">
 The Bose QC45 does not appear in the median-only top 5 here because the Kindle and Galaxy Tab displace it — their prices are even more extreme. But in production, query composition varies: with a narrower query that excludes accessories, the Bose would be at position 1 in the median-only ranking. The cross-category golden set exposes this fragility; a headphones-only golden set would not.
