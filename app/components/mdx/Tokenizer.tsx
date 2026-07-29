@@ -17,11 +17,13 @@ import { MONO, ACCENT } from '../blogShared';
 // real tokenizer keeps it; we render '·' for a leading space so it's visible.
 // Input: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones"
 // Note how the model-number identifier WH-1000XM5 fragments into 6 tokens.
+// Real cl100k_base (GPT-4/3.5) token/id pairs — 13 tokens. Verified with tiktoken.
 const TOKENS: { t: string; id: number }[] = [
-  { t: 'Sony', id: 23056 }, { t: ' WH', id: 6155 }, { t: '-', id: 12 },
-  { t: '1000', id: 9104 }, { t: 'X', id: 55 }, { t: 'M', id: 44 },
-  { t: '5', id: 20 }, { t: ' Wireless', id: 34501 }, { t: ' Noise', id: 43047 },
-  { t: ' Cancelling', id: 41809 }, { t: ' Head', id: 12690 }, { t: 'phones', id: 14601 },
+  { t: 'Sony', id: 63365 }, { t: ' WH', id: 8662 }, { t: '-', id: 12 },
+  { t: '100', id: 1041 }, { t: '0', id: 15 }, { t: 'XM', id: 53437 },
+  { t: '5', id: 20 }, { t: ' Wireless', id: 34742 }, { t: ' Noise', id: 51623 },
+  { t: ' Canc', id: 81423 }, { t: 'elling', id: 6427 }, { t: ' Head', id: 11452 },
+  { t: 'phones', id: 17144 },
 ];
 
 const PALETTE = ['#3fb95033', '#2f81f733', '#d2992233', '#a371f733', '#f0598333'];
@@ -64,7 +66,7 @@ export default function Tokenizer({ accent = ACCENT }: { accent?: string }) {
       </motion.div>
 
       <div style={{ display: 'flex', gap: 18, marginTop: 16, flexWrap: 'wrap', fontFamily: MONO, fontSize: 11, color: '#8b98a8' }}>
-        <span><span style={{ color: accent, fontWeight: 700 }}>{TOKENS.length} tokens</span> · 7 words</span>
+        <span><span style={{ color: accent, fontWeight: 700 }}>{TOKENS.length} tokens</span> · 6 words</span>
         <span>· <code style={{ color: '#cdd7e2' }}>·</code> = leading space</span>
         <span>· &ldquo;WH-1000XM5&rdquo; alone = 6 tokens</span>
         <span>· billed per token, in <em>and</em> out</span>
