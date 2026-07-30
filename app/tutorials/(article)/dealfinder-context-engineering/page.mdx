@@ -105,7 +105,11 @@ Four listings fit; sixteen are evicted before they ever reach the model. That is
 
 ## Ordering: beating "lost in the middle"
 
-Which four you keep matters; so does the order you place them in. Transformers recover information at the **start and end** of a long context far better than in the middle — the "lost in the middle" effect that still degrades RAG quality in 2026. So after packing, reorder so the strongest picks bracket the block:
+Which four you keep matters; so does the order you place them in. Transformers recover information at the **start and end** of a long context far better than in the middle — the "lost in the middle" effect that still degrades RAG quality in 2026:
+
+<LostInMiddle />
+
+So after packing, reorder so the strongest picks bracket the block:
 
 ```python
 def lost_in_the_middle(items: list[rag.RetrievedItem]) -> list[rag.RetrievedItem]:
