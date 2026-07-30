@@ -186,6 +186,10 @@ rm infra/k8s/secret.yaml
 
 ## Deployment — health checks, resources, and hardened securityContext
 
+Before reading the manifest, fix the mental model — a `Deployment` is not a command Kubernetes runs once, it is a target a controller chases forever:
+
+<K8sReconcile />
+
 The `Deployment` is where most of the operability decisions live:
 
 ```yaml
@@ -242,7 +246,7 @@ Walk through the key decisions:
 
 **Two probes, different timings.** The readiness probe starts after 5 seconds and polls every 10 seconds — it controls whether traffic is routed to the pod. The liveness probe starts after 15 seconds (letting the app finish startup) and polls every 20 seconds — it controls whether the pod is restarted. Both call `/healthz`, the real health endpoint in `dealfinder/serve.py`. A pod that is live but not ready receives no traffic; a pod that fails liveness is restarted.
 
-**Resource requests and limits.** `requests` are what the scheduler uses when placing pods — a node must have at least 100 m CPU and 256 Mi memory free. `limits` cap what the pod can consume. The HPA uses the CPU request as its denominator: if the pod uses 350 m of its 500 m limit, that is 350/100m = 3.5× the request, which the HPA does not see directly — it uses the Metrics Server's reported utilisation relative to the request. Setting requests accurately is what makes the HPA's 70% target meaningful.
+**Resource requests and limits.** `requests` are what the scheduler uses when placing pods — a node must have at least 100 m CPU and 256 Mi memory free. `limits` cap what the pod can consume. The HPA's utilisation percentage is measured against the *request*, not the limit: a pod using 70 m of CPU is at 70% utilisation (70 m ÷ the 100 m request) even though it is well under its 500 m limit. Set the request too high and the HPA never scales out; too low and it scales out constantly. Setting requests accurately is what makes the HPA's 70% target meaningful.
 
 **securityContext.** `allowPrivilegeEscalation: false` prevents the process from gaining more privileges than it starts with (no `setuid` binaries). `capabilities.drop: [ALL]` drops every Linux capability — the FastAPI server does not need any. The Dockerfile runs as root, so `runAsNonRoot` is not set; adding a non-root `USER` to the Dockerfile is the next hardening step.
 

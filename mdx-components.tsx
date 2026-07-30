@@ -57,6 +57,7 @@ import HmacVerify from './app/components/mdx/HmacVerify';
 import KVCache from './app/components/mdx/KVCache';
 import ItemItemCF from './app/components/mdx/ItemItemCF';
 import LostInMiddle from './app/components/mdx/LostInMiddle';
+import K8sReconcile from './app/components/mdx/K8sReconcile';
 import SSEStream from './app/components/mdx/SSEStream';
 import EchoFilter from './app/components/mdx/EchoFilter';
 import RankingLens from './app/components/mdx/RankingLens';
@@ -122,7 +123,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     TierWaterfall,
     StoreVsMemory, VectorIndex, GroundingGuard,
     AgenticLoop, ContextBudget, WriterReviewer, BoostingResidual, BM25Curves, CosineAngle,
-    Quantization, HmacVerify, KVCache, ItemItemCF, LostInMiddle,
+    Quantization, HmacVerify, KVCache, ItemItemCF, LostInMiddle, K8sReconcile,
     SSEStream,
     EchoFilter, RankingLens,
     GroupedSplit, LabelImbalance,
