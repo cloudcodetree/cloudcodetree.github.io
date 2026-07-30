@@ -142,6 +142,8 @@ CREATE INDEX IF NOT EXISTS products_embedding_idx
 
 The `vector(384)` type stores 384 floats per row. The `USING hnsw` clause tells pgvector to build a Hierarchical Navigable Small World graph rather than a flat scan. `vector_cosine_ops` sets the distance metric to cosine (the same metric Part 5 used in the numpy dot product after L2-normalizing the embeddings).
 
+<CosineAngle />
+
 <VectorIndex />
 
 The animation above shows what HNSW does at query time: starting from an entry point, it navigates the graph layer by layer toward the query vector, exploring a small fraction of nodes rather than every row. That is why latency stays low as the table grows — O(log N) traversal instead of O(N) scan.

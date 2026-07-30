@@ -274,6 +274,8 @@ The `dedup_key` from Part 1 normalizes brand and title into a string. That handl
 
 `dedup_by_embedding` runs on the post-aggregation product list. It embeds every title with fastembed `BAAI/bge-small-en-v1.5` (384-dim — the same model introduced in Part 4 and cached there), computes pairwise cosine similarity, and clusters by connected components at threshold 0.90. Within each cluster it keeps the cheapest in-stock item.
 
+<CosineAngle />
+
 ```python
 # dealfinder/dedup.py (step-09-aggregation, new module)
 from __future__ import annotations

@@ -320,6 +320,8 @@ class SemanticCache:
 
 The hit/miss logic is cosine similarity with a threshold of 0.95. A plain string cache would miss "wireless noise canceling headphones" when the stored key is "noise cancelling headphones" — the same user intent, a different string. The semantic cache stores the query embedding and returns the cached answer when similarity is at or above the threshold.
 
+<CosineAngle />
+
 <SemanticCacheViz />
 
 The embedding model is `BAAI/bge-small-en-v1.5` (384-dim, via fastembed) — the same model used in Part 4's title embeddings, Part 5's semantic search, and Part 13's pgvector persistence. One model, one set of vectors, consistent across the course.

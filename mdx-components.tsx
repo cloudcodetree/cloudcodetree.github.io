@@ -51,6 +51,7 @@ import ContextBudget from './app/components/mdx/ContextBudget';
 import WriterReviewer from './app/components/mdx/WriterReviewer';
 import BoostingResidual from './app/components/mdx/BoostingResidual';
 import BM25Curves from './app/components/mdx/BM25Curves';
+import CosineAngle from './app/components/mdx/CosineAngle';
 import SSEStream from './app/components/mdx/SSEStream';
 import EchoFilter from './app/components/mdx/EchoFilter';
 import RankingLens from './app/components/mdx/RankingLens';
@@ -115,7 +116,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     RateLimitGuard, ScrapingPermissionTiers,
     TierWaterfall,
     StoreVsMemory, VectorIndex, GroundingGuard,
-    AgenticLoop, ContextBudget, WriterReviewer, BoostingResidual, BM25Curves,
+    AgenticLoop, ContextBudget, WriterReviewer, BoostingResidual, BM25Curves, CosineAngle,
     SSEStream,
     EchoFilter, RankingLens,
     GroupedSplit, LabelImbalance,
