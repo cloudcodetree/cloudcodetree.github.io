@@ -122,7 +122,11 @@ A linear model predicts price as a weighted sum of features plus an intercept. "
 θ = (Xᵀ X)⁻¹ Xᵀ y
 ```
 
-where `X` is your feature matrix with a leading column of 1s (so `θ₀` is the intercept), and `y` is the vector of actual prices. That is the entire algorithm — no gradient descent, no library:
+where `X` is your feature matrix with a leading column of 1s (so `θ₀` is the intercept), and `y` is the vector of actual prices.
+
+That formula is not magic — it falls out of freshman calculus. The total squared error `‖y − Xθ‖²` is a smooth, bowl-shaped function of the weights: make the line too flat or too steep and the squared gaps grow, so somewhere in between they bottom out. At the bottom of a bowl the gradient is zero, and setting the gradient of `‖y − Xθ‖²` to zero gives `Xᵀ(y − Xθ) = 0` — read that as *the residuals end up perpendicular to every feature column*, meaning no feature has any leftover correlation with the errors that another tilt of the line could exploit. Rearranged, that is `XᵀX θ = Xᵀy`; solving for `θ` is the normal equation. Squaring the error (rather than taking absolute values) is exactly what buys this: a smooth bowl with a single closed-form minimum — at the cost of weighting one $200 miss like a hundred $20 misses.
+
+That is the entire algorithm — no gradient descent, no library:
 
 ```python
 # dealfinder/dealmodel.py
