@@ -135,8 +135,34 @@ export default function PSIGauge({ accent = ACCENT }: { accent?: string }) {
         <GaugeBar key={r.label} {...r} delay={0.15 + i * 0.4} />
       ))}
 
-      <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', borderTop: '1px solid rgba(148,163,184,0.10)', paddingTop: 12, marginTop: 4 }}>
-        Both values are deterministic and offline — the same shift fraction always produces the same PSI.
+      {/* per-bin arithmetic for the frac=0.3 reading — real values from check_drift */}
+      <div style={{ borderTop: '1px solid rgba(148,163,184,0.10)', paddingTop: 12, marginTop: 4 }}>
+        <div style={{ fontFamily: MONO, fontSize: 10, color: '#cdd7e2', marginBottom: 8 }}>
+          Where 0.318 comes from — per category bin: <span style={{ color: accent }}>PSI = Σ (cur − ref) · ln(cur / ref)</span>
+        </div>
+        {[
+          { bin: 'audio', move: '22.2% → 15.6%', c: '+0.024', hot: false },
+          { bin: 'peripherals', move: '16.7% → 11.7%', c: '+0.018', hot: false },
+          { bin: 'displays', move: '5.6% → 13.9%', c: '+0.076', hot: true },
+          { bin: 'computers', move: '5.6% → 13.9%', c: '+0.076', hot: true },
+          { bin: 'misc', move: '5.6% → 13.9%', c: '+0.076', hot: true },
+          { bin: '6 other bins', move: 'each shrinks a little', c: '+0.047', hot: false },
+        ].map((r) => (
+          <div key={r.bin} style={{ display: 'flex', gap: 8, fontFamily: MONO, fontSize: 10, marginBottom: 3 }}>
+            <span style={{ width: 90, color: r.hot ? '#f85149' : '#8b98a8' }}>{r.bin}</span>
+            <span style={{ width: 150, color: '#8b98a8' }}>{r.move}</span>
+            <span style={{ color: r.hot ? '#f85149' : '#cdd7e2', fontWeight: r.hot ? 700 : 400 }}>{r.c}</span>
+          </div>
+        ))}
+        <div style={{ display: 'flex', gap: 8, fontFamily: MONO, fontSize: 10, marginTop: 5, paddingTop: 5, borderTop: '1px dashed rgba(148,163,184,0.2)' }}>
+          <span style={{ width: 90, color: '#cdd7e2', fontWeight: 700 }}>Σ</span>
+          <span style={{ width: 150 }} />
+          <span style={{ color: '#f85149', fontWeight: 700 }}>0.318 ≥ 0.2 → retrain</span>
+        </div>
+      </div>
+
+      <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', borderTop: '1px solid rgba(148,163,184,0.10)', paddingTop: 12, marginTop: 12, lineHeight: 1.6 }}>
+        Each bin&apos;s term <code>(cur − ref) · ln(cur / ref)</code> is never negative — if a bin grew, both factors are positive; if it shrank, both are negative. So every moved bin <i>adds</i> drift and nothing cancels: PSI only reads zero when the mix truly hasn&apos;t moved. Both readings are deterministic and offline — the same shift fraction always produces the same PSI.
       </div>
     </div>
   );

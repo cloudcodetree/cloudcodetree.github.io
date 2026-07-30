@@ -241,6 +241,17 @@ has_drifted: True
 
 The third scenario — audio queries collapsing from 50% to 10% of traffic — produces PSI ≈ 1.08, eleven times over the 0.2 threshold. That is the signal to retrain.
 
+Worth unpacking that 1.08 by hand once, because the formula is just a per-bin sum of `(cur − ref) · ln(cur / ref)`:
+
+```text
+audio     0.50 → 0.10    (−0.40) · ln(0.10/0.50) = (−0.40)·(−1.609) = +0.644
+periph    0.30 → 0.30    ( 0.00) · ln(1.00)      =                     0
+displays  0.20 → 0.60    (+0.40) · ln(0.60/0.20) = (+0.40)·(+1.099) = +0.439
+                                                              PSI   =  1.083
+```
+
+Notice every term is non-negative: a bin that grew has both factors positive; a bin that shrank has both negative. Movement in *either* direction adds drift, so nothing cancels — PSI reads zero only when the mix genuinely hasn't moved. (The `np.clip(…, 1e-6, …)` guards the `ln` against empty bins.)
+
 <DriftMonitor />
 
 ---
