@@ -281,6 +281,10 @@ print(v.runnable_script)  # 'scripts/bench_vllm.py'
 
 **What the illustrative figures mean.** The 16/8/4 GB figures show the shape of INT8/INT4 quantization: each step roughly halves VRAM footprint. 4-bit weights run in roughly a quarter of the FP16 VRAM. The quality impact — perplexity increase, task-specific accuracy drop — is model-specific and must be measured, not assumed. For DealFinder's extractor (which produces structured JSON from product titles) INT8 typically preserves output quality; INT4 can introduce formatting errors that the output validation in Part 25 will catch.
 
+Before the vLLM figures, one more mechanism — because "PagedAttention manages the KV cache" is meaningless until you know *what the KV cache is and why it eats GPU memory*:
+
+<KVCache />
+
 **What vLLM actually does.** Continuous batching packs requests together dynamically instead of waiting for one to finish before starting the next. PagedAttention manages the KV cache as virtual memory pages, avoiding fragmentation. Together they raise throughput under concurrency — the 900→3200 tokens/s illustrative figures show the shape of that gain. The actual ratio depends on your GPU, your model, your batch size, and your concurrency level. `scripts/bench_vllm.py` runs the comparison on your hardware.
 
 <Callout tone="note">
