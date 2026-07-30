@@ -211,7 +211,7 @@ uvicorn dealfinder.api:app --host 127.0.0.1 --port 8000
 python scripts/loadtest.py --requests 60 --concurrency 6
 ```
 
-Anchored results from a local run (measured-locally, live sources active):
+Anchored results from a local run (measured-locally, live sources active). Read the percentile columns as "N% of requests finished at or under this time": p50 is the median (typical) request, p95 is what 1-in-20 users experience, p99 the 1-in-100 worst case. Latency work always reports percentiles instead of averages because the average hides the tail — one 25-second straggler barely moves the mean but is a real user staring at a spinner:
 
 | Endpoint | p50 | p95 | p99 | Throughput |
 |---|---|---|---|---|

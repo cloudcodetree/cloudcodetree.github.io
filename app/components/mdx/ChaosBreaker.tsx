@@ -30,10 +30,10 @@ const COL: Record<SourceState, string> = {
 };
 
 const LABEL: Record<SourceState, string> = {
-  healthy:    'serving',
+  healthy:    'serving · CLOSED',
   failing:    'error',
-  benched:    'benched · 90s cooldown',
-  recovering: 'recovering',
+  benched:    'benched · OPEN · 90s',
+  recovering: 'trial call · HALF-OPEN',
 };
 
 type Phase = 'all-healthy' | 'one-fails' | 'breaker-trips' | 'all-down' | 'recovering';
@@ -155,7 +155,10 @@ export default function ChaosBreaker({ accent = ACCENT }: { accent?: string }) {
         {result.text}
       </motion.div>
 
-      <div style={{ fontFamily: MONO, fontSize: 10, color: '#8b98a8', marginTop: 12 }}>
+      <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 12, lineHeight: 1.6 }}>
+        These are the circuit breaker&apos;s three canonical states. <b style={{ color: COL.healthy }}>CLOSED</b>: requests flow through normally (the breaker only counts failures). <b style={{ color: COL.benched }}>OPEN</b>: after the trip, calls to that source are skipped <i>instantly</i> for the cooldown — no request, no waiting on a dead upstream. <b style={{ color: COL.recovering }}>HALF-OPEN</b>: when the cooldown expires, exactly one trial call goes through — success re-closes the breaker, failure re-opens it for another 90s. The names describe an electrical circuit: closed = current flows, open = the circuit is cut.
+      </div>
+      <div style={{ fontFamily: MONO, fontSize: 10, color: '#8b98a8', marginTop: 10 }}>
         tests/test_chaos.py — 5/5 passed offline · COOLDOWN_SECONDS = 90.0 (pinned)
       </div>
     </div>

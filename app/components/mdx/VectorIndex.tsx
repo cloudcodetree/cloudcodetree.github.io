@@ -351,8 +351,8 @@ export default function VectorIndex({ accent = ACCENT }: { accent?: string }) {
         <span><span style={{ color: accent }}>●</span> top-5 results (settled)</span>
         <span><span style={{ color: 'rgba(148,163,184,0.4)' }}>●</span> pruned (never visited)</span>
       </div>
-      <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 8 }}>
-        HNSW visits a tiny fraction of nodes — it traverses the graph, not every row. The Bose QC45 at $46 (SUSPICIOUS) ranks 3rd by cosine similarity: correct by relevance, flagged downstream by the deal-score guard.
+      <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 8, lineHeight: 1.6 }}>
+        HNSW visits a tiny fraction of nodes — it traverses the graph, not every row. The <i>Hierarchical</i> in HNSW: the real structure is a stack of layers — sparse &quot;express lanes&quot; on top for coarse jumps across the space, denser layers below for refinement. The search enters at the top, drops down layer by layer, and only the bottom layer (the one drawn here) contains every point; that hierarchy is what makes search roughly logarithmic instead of linear. The Bose QC45 at $46 (SUSPICIOUS) ranks 3rd by cosine similarity: correct by relevance, flagged downstream by the deal-score guard.
       </div>
     </div>
   );
