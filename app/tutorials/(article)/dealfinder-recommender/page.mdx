@@ -248,6 +248,41 @@ All pass against the committed snapshot. The embedding cache means no model is d
 
 ---
 
+## Check it works
+
+**What you should have now:** two recommenders over the snapshot — `similar_products` ("more like this", content) and `collaborative_recommend` ("people who liked this also liked", co-occurrence) — and the insight that the *same anchor* gives two different neighborhoods.
+
+**Test it — the two neighborhoods, side by side:**
+
+```bash
+python -m dealfinder.run_recs
+```
+
+You should see the two lists diverge for the Sony WH-1000XM5, and a leave-one-out eval where collaborative beats the popularity baseline:
+
+```
+content-based — more like "Sony WH-1000XM5 …":
+  $248.00  SONY WH-1000XM5 … (Noise-Canceling)      ← a near-duplicate is #1
+  $399.99  Sony WH-1000XM6 …
+collaborative — a user who liked "Sony WH-1000XM5 …":
+  Sony WH-1000XM6 …
+  Beats Studio Pro …                                ← crosses brands (taste, not text)
+offline eval (leave-one-out, k=5, 71 users):
+  collaborative  precision@5 = 0.177   ndcg@5 = 0.756
+  popularity     precision@5 = 0.115   (baseline)
+```
+
+**Test it — the unit tests:**
+
+```bash
+pytest tests/test_recommend.py
+# 5 passed
+```
+
+**Where it shows up in the product:** the recommender has **no endpoint of its own yet** — it's a *building block*. Its `content_recommend` / cosine machinery is exactly what Part 5's `search_catalog` reuses to power the by-meaning search you already saw in the browser. So the "proof" here is the two function calls above; the product-visible payoff arrives one lesson later.
+
+---
+
 ## Where this goes next
 
 - **Back — Part 3 — Is it a good deal? Median vs. model:** Part 3 built the two-signal deal score that separates a genuine deal from a suspicious bargain. This part deliberately keeps the recommenders pure similarity — neither `similar_products` nor `collaborative_recommend` knows about deal quality. Combining *similarity* with *value* into one ranking is the next step.
