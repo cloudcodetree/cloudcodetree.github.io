@@ -10,8 +10,193 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 30 Jul 2026 04:09:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 30 Jul 2026 12:08:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>GitHub Models Is Gone: Three Zero-Cost Inference Alternatives to Switch to Today</title>
+      <link>https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/</link>
+      <guid isPermaLink="false">2026-07-30-07-github-models-retired-free-inference-alternatives</guid>
+      <pubDate>Thu, 30 Jul 2026 12:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Developer Tools</category>
+      <category>Best Practices</category>
+      <description>GitHub Models' free inference API shut down today (July 30). Here are three drop-in replacements — Groq, OpenRouter, and local Ollama — that cost $0 to start, with a Python migration snippet.</description>
+      <content:encoded><![CDATA[
+**GitHub Models' inference API went offline today (July 30) — here are three OpenAI-SDK-compatible replacements starting at $0, with a migration snippet you can drop in right now.**
+
+The GitHub Models playground, model catalog, and `models.inference.ai.azure.com` endpoint are all offline as of today. If any of your code or CI scripts called that endpoint, those calls are failing now.
+
+Three replacements, ordered by setup friction:
+
+**1. Groq — fastest, best free tier**
+
+Groq's free tier gives you 14,400 tokens/minute on Llama 3.1 8B, Llama 3.3 70B, Gemma2 9B, and others — at ~750 tokens/second on 70B, it's faster than most paid APIs. The free tier is generous enough for prototyping and light CI use.
+
+**2. OpenRouter — broadest model selection**
+
+OpenRouter aggregates 500+ models from every major provider. Many are available free (labeled `:free` in the model ID), including Llama, Mistral, Qwen, and Gemma variants. One API key routes to whichever provider is fastest and cheapest.
+
+**3. Ollama — zero cost, private, no rate limits**
+
+```bash
+ollama pull llama3.1:8b
+ollama serve   # http://localhost:11434/v1
+```
+
+No rate limits, no data leaves your machine.
+
+**Migration snippet** (swap the `base_url` and `api_key`; the rest of your code stays the same):
+
+```python
+# Before (GitHub Models)
+client = openai.OpenAI(
+    base_url="https://models.inference.ai.azure.com",
+    api_key=os.environ["GITHUB_TOKEN"],
+)
+
+# After — Groq
+client = openai.OpenAI(
+    base_url="https://api.groq.com/openai/v1",
+    api_key=os.environ["GROQ_API_KEY"],
+)
+
+# After — OpenRouter
+client = openai.OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ["OPENROUTER_API_KEY"],
+)
+
+# After — Ollama (local)
+client = openai.OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama",  # required field, ignored by Ollama
+)
+```
+
+Model names differ across providers — update the `model=` argument to match your chosen provider's model list. Everything else (messages format, streaming, response parsing) is identical.
+
+**Sources:** [GitHub Models retirement — GitHub Changelog](https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/) · [Groq free tier](https://console.groq.com/settings/limits) · [OpenRouter free models](https://openrouter.ai/models?q=free) · [Ollama](https://ollama.com/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>GitHub's AI Model Roster Reshuffles: Models Playground Gone Today, Gemini Out of Copilot Tomorrow</title>
+      <link>https://github.blog/changelog/month/07-2026/</link>
+      <guid isPermaLink="false">2026-07-30-06-github-platform-model-changes-jul30</guid>
+      <pubDate>Thu, 30 Jul 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>Two GitHub AI platform changes land back-to-back: the free Models inference API retires today (July 30), and Gemini 2.5 Pro plus Gemini 3 Flash are removed from all Copilot experiences tomorrow.</description>
+      <content:encoded><![CDATA[
+**Two GitHub AI platform changes arrive back-to-back: the free Models inference API goes offline today (July 30), and Gemini 2.5 Pro plus Gemini 3 Flash are removed from all Copilot experiences tomorrow.**
+
+**GitHub Models fully retired (July 30).** The playground, model catalog, and `models.inference.ai.azure.com` inference API are all offline as of today. This endpoint was commonly used for free access to GPT-4o, Llama, Mistral, and other models without a separate API account. GitHub closed Models to new customers in June; today is the hard shutdown for everyone. See the companion post below for migration options.
+
+**Gemini deprecated from all Copilot experiences (effective July 31).** Gemini 2.5 Pro and Gemini 3 Flash are being removed from Copilot chat, inline edits, ask mode, agent mode, and code completions. If your organization's Copilot policy pins either Gemini model, update it before end of day today — they stop working tomorrow. No replacement Gemini model is being offered.
+
+**Why it matters:** Teams that relied on GitHub Models for free inference in CI or development workflows need to migrate today. And Copilot shops using Gemini need to act by end of day — the deadline is tomorrow, not next week.
+
+**Sources:** [GitHub Models retirement — GitHub Changelog](https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/) · [GitHub Changelog July 2026](https://github.blog/changelog/month/07-2026/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Beyond `ollama run`: Customize Any Local LLM's Behavior with an Ollama Modelfile</title>
+      <link>https://github.com/ollama/ollama/blob/main/docs/modelfile.md</link>
+      <guid isPermaLink="false">2026-07-30-05-ollama-modelfile-customize-local-llm</guid>
+      <pubDate>Thu, 30 Jul 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <description>Ollama's Modelfile is its Dockerfile equivalent — define a system prompt, temperature, and context length once, create a named model, and call it from code or the CLI with no per-session flags. Works with HuggingFace Hub GGUFs.</description>
+      <media:content url="https://img.youtube.com/vi/fU38n-CH7ds/maxresdefault.jpg" medium="image"/>
+      <media:thumbnail url="https://img.youtube.com/vi/fU38n-CH7ds/maxresdefault.jpg"/>
+      <content:encoded><![CDATA[
+**Ollama's Modelfile is its Dockerfile equivalent: define a system prompt and parameters once, build a named model, and invoke it anywhere — CLI or API — with no per-session flags or copy-pasted prompts.**
+
+**What you'll be able to do after this:**
+- Create named local model variants with baked-in system prompts (e.g., a "code-reviewer" that always focuses on security and performance)
+- Set temperature, context window, and stop sequences once in a file rather than on every API call
+- Run any of the 45,000+ GGUF checkpoints on HuggingFace Hub directly through Ollama, pinned to the right quantization level
+
+## What a Modelfile is
+
+A Modelfile is a plain text file that configures how Ollama loads and runs a model. It works like a Dockerfile: `FROM` sets the base model, then `PARAMETER`, `SYSTEM`, `TEMPLATE`, and `ADAPTER` instructions tune its behavior. You create a named model from it once, and that configuration is permanent — no flags needed at runtime.
+
+## Write your first Modelfile
+
+```Modelfile
+FROM llama3.1:8b
+
+PARAMETER temperature 0.2
+PARAMETER num_ctx 32768
+
+SYSTEM """
+You are a code reviewer focused on security vulnerabilities, performance bottlenecks, and maintainability. Explain the risk or cost of each issue before suggesting a fix. Skip style suggestions unless they affect readability.
+"""
+```
+
+Build the model and run it:
+
+```bash
+ollama create code-reviewer -f ./Modelfile
+ollama run code-reviewer "Review this function: ..."
+```
+
+Every session with `code-reviewer` opens with that system prompt and those parameters — no extra configuration in your calling code.
+
+## Pull any HuggingFace Hub GGUF
+
+HuggingFace Hub hosts 45,000+ GGUF checkpoints. Reference them directly in your Modelfile or run them inline:
+
+```Modelfile
+FROM hf.co/bartowski/Llama-3.1-8B-Instruct-GGUF:Q4_K_M
+
+PARAMETER temperature 0.1
+SYSTEM "You are a concise technical assistant."
+```
+
+**Which quantization to pick:**
+
+| Format | VRAM (7B model) | Accuracy retained | Best for |
+|--------|----------------|-------------------|----------|
+| Q4_K_M | ~4 GB | ~98% | Default — the sweet spot |
+| Q8_0 | ~8 GB | ~99.5% | When you have the VRAM |
+| F16 | ~14 GB | 100% | Highest fidelity, fine-tuning |
+
+Q4_K_M is almost always the right starting point. You will not notice the difference from full precision on instruction-following tasks.
+
+## Use the Modelfile-configured model in code
+
+Once created, your named model works in the Ollama REST API exactly like any other model:
+
+```python
+import openai
+
+client = openai.OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama",  # required field, ignored
+)
+
+resp = client.chat.completions.create(
+    model="code-reviewer",   # your Modelfile model
+    messages=[{"role": "user", "content": code_snippet}],
+)
+```
+
+The system prompt and parameters defined in the Modelfile apply automatically. Your application carries no configuration — it just calls the model by name.
+
+**Sources:** [Ollama Modelfile reference — GitHub](https://github.com/ollama/ollama/blob/main/docs/modelfile.md) · [GGUF & Modelfile: Power User's Guide — DEV Community](https://dev.to/lingdas1/gguf-modelfile-the-power-users-guide-to-local-llms-1fbi) · [Ollama + HuggingFace Hub — HuggingFace Docs](https://huggingface.co/docs/hub/en/ollama) · [Ollama Tutorial for Beginners 2026 — YouTube](https://www.youtube.com/watch?v=fU38n-CH7ds)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Run /doctor Before It's an Emergency: Keep Your Claude Code Setup Fast and Lean</title>

@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-07-30-07-github-models-retired-free-inference-alternatives",
+    "title": "GitHub Models Is Gone: Three Zero-Cost Inference Alternatives to Switch to Today",
+    "excerpt": "GitHub Models' free inference API shut down today (July 30). Here are three drop-in replacements — Groq, OpenRouter, and local Ollama — that cost $0 to start, with a Python migration snippet.",
+    "author": "Chris Harper",
+    "date": "07-30-2026",
+    "publishedAt": "2026-07-30T12:08:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Developer Tools",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/",
+    "content": "**GitHub Models' inference API went offline today (July 30) — here are three OpenAI-SDK-compatible replacements starting at $0, with a migration snippet you can drop in right now.**\n\nThe GitHub Models playground, model catalog, and `models.inference.ai.azure.com` endpoint are all offline as of today. If any of your code or CI scripts called that endpoint, those calls are failing now.\n\nThree replacements, ordered by setup friction:\n\n**1. Groq — fastest, best free tier**\n\nGroq's free tier gives you 14,400 tokens/minute on Llama 3.1 8B, Llama 3.3 70B, Gemma2 9B, and others — at ~750 tokens/second on 70B, it's faster than most paid APIs. The free tier is generous enough for prototyping and light CI use.\n\n**2. OpenRouter — broadest model selection**\n\nOpenRouter aggregates 500+ models from every major provider. Many are available free (labeled `:free` in the model ID), including Llama, Mistral, Qwen, and Gemma variants. One API key routes to whichever provider is fastest and cheapest.\n\n**3. Ollama — zero cost, private, no rate limits**\n\n```bash\nollama pull llama3.1:8b\nollama serve   # http://localhost:11434/v1\n```\n\nNo rate limits, no data leaves your machine.\n\n**Migration snippet** (swap the `base_url` and `api_key`; the rest of your code stays the same):\n\n```python\n# Before (GitHub Models)\nclient = openai.OpenAI(\n    base_url=\"https://models.inference.ai.azure.com\",\n    api_key=os.environ[\"GITHUB_TOKEN\"],\n)\n\n# After — Groq\nclient = openai.OpenAI(\n    base_url=\"https://api.groq.com/openai/v1\",\n    api_key=os.environ[\"GROQ_API_KEY\"],\n)\n\n# After — OpenRouter\nclient = openai.OpenAI(\n    base_url=\"https://openrouter.ai/api/v1\",\n    api_key=os.environ[\"OPENROUTER_API_KEY\"],\n)\n\n# After — Ollama (local)\nclient = openai.OpenAI(\n    base_url=\"http://localhost:11434/v1\",\n    api_key=\"ollama\",  # required field, ignored by Ollama\n)\n```\n\nModel names differ across providers — update the `model=` argument to match your chosen provider's model list. Everything else (messages format, streaming, response parsing) is identical.\n\n**Sources:** [GitHub Models retirement — GitHub Changelog](https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/) · [Groq free tier](https://console.groq.com/settings/limits) · [OpenRouter free models](https://openrouter.ai/models?q=free) · [Ollama](https://ollama.com/)"
+  },
+  {
+    "id": "2026-07-30-06-github-platform-model-changes-jul30",
+    "title": "GitHub's AI Model Roster Reshuffles: Models Playground Gone Today, Gemini Out of Copilot Tomorrow",
+    "excerpt": "Two GitHub AI platform changes land back-to-back: the free Models inference API retires today (July 30), and Gemini 2.5 Pro plus Gemini 3 Flash are removed from all Copilot experiences tomorrow.",
+    "author": "Chris Harper",
+    "date": "07-30-2026",
+    "publishedAt": "2026-07-30T12:07:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.blog/changelog/month/07-2026/",
+    "content": "**Two GitHub AI platform changes arrive back-to-back: the free Models inference API goes offline today (July 30), and Gemini 2.5 Pro plus Gemini 3 Flash are removed from all Copilot experiences tomorrow.**\n\n**GitHub Models fully retired (July 30).** The playground, model catalog, and `models.inference.ai.azure.com` inference API are all offline as of today. This endpoint was commonly used for free access to GPT-4o, Llama, Mistral, and other models without a separate API account. GitHub closed Models to new customers in June; today is the hard shutdown for everyone. See the companion post below for migration options.\n\n**Gemini deprecated from all Copilot experiences (effective July 31).** Gemini 2.5 Pro and Gemini 3 Flash are being removed from Copilot chat, inline edits, ask mode, agent mode, and code completions. If your organization's Copilot policy pins either Gemini model, update it before end of day today — they stop working tomorrow. No replacement Gemini model is being offered.\n\n**Why it matters:** Teams that relied on GitHub Models for free inference in CI or development workflows need to migrate today. And Copilot shops using Gemini need to act by end of day — the deadline is tomorrow, not next week.\n\n**Sources:** [GitHub Models retirement — GitHub Changelog](https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/) · [GitHub Changelog July 2026](https://github.blog/changelog/month/07-2026/)"
+  },
+  {
+    "id": "2026-07-30-05-ollama-modelfile-customize-local-llm",
+    "title": "Beyond `ollama run`: Customize Any Local LLM's Behavior with an Ollama Modelfile",
+    "excerpt": "Ollama's Modelfile is its Dockerfile equivalent — define a system prompt, temperature, and context length once, create a named model, and call it from code or the CLI with no per-session flags. Wor…",
+    "author": "Chris Harper",
+    "date": "07-30-2026",
+    "publishedAt": "2026-07-30T12:06:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Self-Hosting",
+      "LLM"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.com/ollama/ollama/blob/main/docs/modelfile.md",
+    "content": "**Ollama's Modelfile is its Dockerfile equivalent: define a system prompt and parameters once, build a named model, and invoke it anywhere — CLI or API — with no per-session flags or copy-pasted prompts.**\n\n**What you'll be able to do after this:**\n- Create named local model variants with baked-in system prompts (e.g., a \"code-reviewer\" that always focuses on security and performance)\n- Set temperature, context window, and stop sequences once in a file rather than on every API call\n- Run any of the 45,000+ GGUF checkpoints on HuggingFace Hub directly through Ollama, pinned to the right quantization level\n\n## What a Modelfile is\n\nA Modelfile is a plain text file that configures how Ollama loads and runs a model. It works like a Dockerfile: `FROM` sets the base model, then `PARAMETER`, `SYSTEM`, `TEMPLATE`, and `ADAPTER` instructions tune its behavior. You create a named model from it once, and that configuration is permanent — no flags needed at runtime.\n\n## Write your first Modelfile\n\n```Modelfile\nFROM llama3.1:8b\n\nPARAMETER temperature 0.2\nPARAMETER num_ctx 32768\n\nSYSTEM \"\"\"\nYou are a code reviewer focused on security vulnerabilities, performance bottlenecks, and maintainability. Explain the risk or cost of each issue before suggesting a fix. Skip style suggestions unless they affect readability.\n\"\"\"\n```\n\nBuild the model and run it:\n\n```bash\nollama create code-reviewer -f ./Modelfile\nollama run code-reviewer \"Review this function: ...\"\n```\n\nEvery session with `code-reviewer` opens with that system prompt and those parameters — no extra configuration in your calling code.\n\n## Pull any HuggingFace Hub GGUF\n\nHuggingFace Hub hosts 45,000+ GGUF checkpoints. Reference them directly in your Modelfile or run them inline:\n\n```Modelfile\nFROM hf.co/bartowski/Llama-3.1-8B-Instruct-GGUF:Q4_K_M\n\nPARAMETER temperature 0.1\nSYSTEM \"You are a concise technical assistant.\"\n```\n\n**Which quantization to pick:**\n\n| Format | VRAM (7B model) | Accuracy retained | Best for |\n|--------|----------------|-------------------|----------|\n| Q4_K_M | ~4 GB | ~98% | Default — the sweet spot |\n| Q8_0 | ~8 GB | ~99.5% | When you have the VRAM |\n| F16 | ~14 GB | 100% | Highest fidelity, fine-tuning |\n\nQ4_K_M is almost always the right starting point. You will not notice the difference from full precision on instruction-following tasks.\n\n## Use the Modelfile-configured model in code\n\nOnce created, your named model works in the Ollama REST API exactly like any other model:\n\n```python\nimport openai\n\nclient = openai.OpenAI(\n    base_url=\"http://localhost:11434/v1\",\n    api_key=\"ollama\",  # required field, ignored\n)\n\nresp = client.chat.completions.create(\n    model=\"code-reviewer\",   # your Modelfile model\n    messages=[{\"role\": \"user\", \"content\": code_snippet}],\n)\n```\n\nThe system prompt and parameters defined in the Modelfile apply automatically. Your application carries no configuration — it just calls the model by name.\n\n**Sources:** [Ollama Modelfile reference — GitHub](https://github.com/ollama/ollama/blob/main/docs/modelfile.md) · [GGUF & Modelfile: Power User's Guide — DEV Community](https://dev.to/lingdas1/gguf-modelfile-the-power-users-guide-to-local-llms-1fbi) · [Ollama + HuggingFace Hub — HuggingFace Docs](https://huggingface.co/docs/hub/en/ollama) · [Ollama Tutorial for Beginners 2026 — YouTube](https://www.youtube.com/watch?v=fU38n-CH7ds)"
+  },
+  {
     "id": "2026-07-30-04-claude-code-doctor-hygiene",
     "title": "Run /doctor Before It's an Emergency: Keep Your Claude Code Setup Fast and Lean",
     "excerpt": "/doctor (alias /checkup) now diagnoses AND fixes context bloat automatically -- oversized CLAUDE.md, unused skills and plugins, duplicate rules, slow hooks. Most Claude Code users have never run it…",
