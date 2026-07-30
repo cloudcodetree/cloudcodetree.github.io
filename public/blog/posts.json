@@ -1,5 +1,60 @@
 [
   {
+    "id": "2026-07-30-10-claude-code-batch-slash-command-repo-migrations",
+    "title": "One Slash Command, Hundreds of Worktree Agents: /batch for Repo-Wide Code Migrations",
+    "excerpt": "Type /batch and Claude Code interviews you, proposes a per-module plan, fans out one isolated worktree agent per unit, and each agent opens a draft PR automatically — without you watching.",
+    "author": "Chris Harper",
+    "date": "07-30-2026",
+    "publishedAt": "2026-07-30T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://claude.com/blog/ai-code-migration",
+    "content": "**Type `/batch migrate from lodash to native` and Claude Code proposes a per-module plan, fans out one worktree agent per unit, and each opens a draft PR automatically.**\n\n`/batch` is a built-in Claude Code slash command that turns any repo-wide mechanical task into a supervised parallel migration. Every run follows the same flow:\n\n1. **Research** — Claude scans your repo, understands what needs changing, and enumerates independent work units\n2. **Plan for approval** — it proposes 5–30 units (\"migrate `/src/auth/**`\", \"migrate `/src/api/**`\") and waits for your OK before touching a single file\n3. **Fan out** — one isolated worktree agent per unit; each gets its own branch, works without interfering with others, runs its scope's tests\n4. **Draft PRs** — each agent opens a draft PR when done; you get N focused, independently reviewable branches waiting\n\n## Common use cases\n\n```\n/batch migrate from lodash to native Array/Object methods\n/batch add TypeScript types to all untyped function parameters\n/batch rename DB columns from camelCase to snake_case\n/batch replace deprecated axios calls with fetch\n/batch add JSDoc to all exported functions\n```\n\n## What makes it safe\n\nEach agent works in an isolated git worktree — a separate directory backed by the same `.git` folder. One agent touching `/src/auth/` cannot see or break `/src/api/`. If one agent's branch fails tests, only that unit's PR is red; the others merge normally.\n\nThe plan-approval step is the key: you review the decomposition before any file changes. If Claude missed a module or split things wrong, say so and it re-plans.\n\n## When to reach for it vs. writing a workflow script\n\n`/batch` is best for mechanical changes with a clear per-file or per-module unit of work, where tests can verify each unit independently. For migrations where the transform itself is uncertain, verify the pattern manually on one file first — then `/batch` to apply the confirmed transform at scale.\n\nAnthropic runs their own large-scale migrations this way: the [AI code migration blog post](https://claude.com/blog/ai-code-migration) describes a 1M-line Zig-to-Rust port completing in under two weeks using exactly this parallel worktree pattern.\n\n**Sources:** [What is /batch — ClaudeLog](https://claudelog.com/faqs/what-is-batch-command-in-claude-code/) · [/simplify and /batch commands — claudefa.st](https://claudefa.st/blog/guide/mechanics/simplify-batch-commands) · [How Anthropic runs large-scale code migrations — Anthropic](https://claude.com/blog/ai-code-migration)"
+  },
+  {
+    "id": "2026-07-30-09-github-stacked-prs-openai-price-cuts",
+    "title": "GitHub's Native Stacked PRs Land in Public Preview; OpenAI Cuts GPT-5.6 Luna Pricing 80%",
+    "excerpt": "GitHub's long-requested stacked PR workflow goes to public preview today via gh-stack; OpenAI simultaneously cuts GPT-5.6 Luna 80% and adds Fast Mode for Sol at 2.5x standard speed.",
+    "author": "Chris Harper",
+    "date": "07-30-2026",
+    "publishedAt": "2026-07-30T20:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview/",
+    "content": "**GitHub's long-requested stacked PR workflow goes public-preview today; OpenAI simultaneously cuts Luna 80%, Terra 20%, and adds Fast Mode for Sol.**\n\n**GitHub Stacked PRs in public preview (July 30).** After years of third-party tools like Graphite filling the gap, GitHub ships native stacked pull requests. Stacking lets you break a large change into an ordered series of focused PRs — each shows only its layer's diff, a stack map shows how layers relate, and merging the bottom PR lands it plus all unmerged layers above in one operation; upper PRs auto-rebase. Install the CLI extension and you're off:\n\n```bash\ngh extension install github/gh-stack\ngh stack create   # from your feature branch\n```\n\nWorks on github.com, CLI, mobile, and with GitHub Copilot agents. Merge queue support is coming.\n\n**OpenAI GPT-5.6 price cuts + Fast Mode (July 30).** Effective today: GPT-5.6 Luna drops 80% ($0.20/M in, $1.20/M out), Terra drops 20% ($2/$12). Fast Mode replaces Priority Processing for Sol — up to 2.5× faster at 2× standard cost; existing `priority` requests auto-route to it.\n\n**Why it matters:** Stacked PRs changes review ergonomics for iterative development — and with Copilot already driving multi-PR agent fan-outs, native stacking makes those reviews tractable. Luna's price cut makes OpenAI's fastest agentic model practical at scale; if you route between Claude and OpenAI in a pipeline, the cost math just shifted significantly.\n\n**Sources:** [GitHub Stacked PRs public preview — GitHub Changelog](https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview/) · [About stacked pull requests — GitHub Docs](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs) · [Advancing the price-performance frontier — OpenAI](https://openai.com/index/advancing-the-price-performance-frontier-with-gpt-5-6/)"
+  },
+  {
+    "id": "2026-07-30-08-unsloth-gguf-export-ollama-local-inference",
+    "title": "You Fine-Tuned It — Now Run It: Export Your Unsloth Model to GGUF and Load It Into Ollama",
+    "excerpt": "After QLoRA fine-tuning with Unsloth, two commands export your model to GGUF and load it into Ollama — your fine-tune becomes a named local model callable from any OpenAI-compatible client.",
+    "author": "Chris Harper",
+    "date": "07-30-2026",
+    "publishedAt": "2026-07-30T20:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Fine-Tuning",
+      "Self-Hosting",
+      "LLM"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://unsloth.ai/docs/basics/inference-and-deployment/saving-to-ollama",
+    "content": "**After QLoRA fine-tuning with Unsloth, two commands export your model to GGUF and load it into Ollama — your fine-tune becomes a named local model callable from any app.**\n\n**What you'll be able to do after this:**\n- Export any Unsloth fine-tuned model to a portable GGUF file in one Python call, choosing quantization level (q4_k_m, q8_0, or f16)\n- Load that GGUF into Ollama using an auto-generated Modelfile that preserves your chat template — the most common failure point after export\n- Call your custom model from any OpenAI-compatible client, LM Studio, Open WebUI, or MCP tool that uses Ollama\n\n## Why this step is the missing link\n\nFine-tuning with Unsloth produces HuggingFace safetensors — 10–30 GB files that require the full HF stack to serve. GGUF is a portable, compact format that llama.cpp and Ollama load directly. A Q4_K_M quantized 7B model runs in ~4 GB RAM on any laptop with no GPU required.\n\n## Step 1: Export to GGUF (at the end of your training loop)\n\n```python\n# After your SFTTrainer finishes:\nmodel.save_pretrained_gguf(\"gguf_output\", tokenizer, quantization_method=\"q4_k_m\")\n# q4_k_m: recommended — balanced size vs. quality\n# \"q8_0\": faster export, larger file   \"f16\": lossless, ~14 GB for 7B\n```\n\nThis writes two files to `gguf_output/`:\n- `unsloth.Q4_K_M.gguf` — the quantized model weights\n- `Modelfile` — Ollama config with your training chat template already embedded\n\nThe export takes 5–10 minutes on a T4 GPU (free Colab tier). On CPU-only machines, use the [manual llama.cpp convert path](https://unsloth.ai/docs/basics/inference-and-deployment/saving-to-gguf).\n\n## Step 2: Create the Ollama model\n\n```bash\n# Transfer gguf_output/ to your local machine (scp, Drive, Hub)\n# Or push directly to HuggingFace Hub from Colab:\n# model.push_to_hub_gguf(\"your-hf-username/my-tune\", tokenizer, \"q4_k_m\")\n\nollama create my-fine-tune -f gguf_output/Modelfile\n```\n\nUnsloth's auto-generated Modelfile contains the correct chat template — this eliminates the most common post-export failure: models that perform well during training but generate garbage in Ollama because the template doesn't match.\n\n## Step 3: Run it\n\n```bash\nollama run my-fine-tune\n\n# OpenAI-compatible API (any client, LM Studio, Open WebUI):\ncurl http://localhost:11434/v1/chat/completions \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"model\":\"my-fine-tune\",\"messages\":[{\"role\":\"user\",\"content\":\"Hello\"}]}'\n```\n\n## Skip the file transfer: pull direct from HuggingFace Hub\n\nIf you pushed to Hub, Ollama pulls directly — no scp needed:\n\n```bash\nollama run hf.co/your-username/my-fine-tune:Q4_K_M\n```\n\nOllama downloads the GGUF at first run and caches it locally. This works from any machine that has Ollama installed and internet access.\n\n**Sources:** [Saving to Ollama — Unsloth Docs](https://unsloth.ai/docs/basics/inference-and-deployment/saving-to-ollama) · [Saving to GGUF — Unsloth Docs](https://unsloth.ai/docs/basics/inference-and-deployment/saving-to-gguf) · [Llama 3 + Ollama — Official Unsloth Colab Notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3_(8B)-Ollama.ipynb) · [Import models — Ollama Docs](https://docs.ollama.com/import)"
+  },
+  {
     "id": "2026-07-30-07-github-models-retired-free-inference-alternatives",
     "title": "GitHub Models Is Gone: Three Zero-Cost Inference Alternatives to Switch to Today",
     "excerpt": "GitHub Models' free inference API shut down today (July 30). Here are three drop-in replacements — Groq, OpenRouter, and local Ollama — that cost $0 to start, with a Python migration snippet.",
