@@ -131,6 +131,12 @@ class BM25:
 
 Three things to note. `_tok` is `re.findall(r"[a-z0-9]+", s.lower())` — simple, fast, and it means any token not in that alphabet scores zero. The `b=0.75` length penalty normalizes against the average document length across all 270 titles. `s > 0` filters out documents with no term overlap — they appear in the dense lane but not here.
 
+But the formula in that `search` loop is doing two things that make BM25 rank *well*, and both are easy to miss in the code. The `self.idf` factor is **inverse document frequency** — it weighs a term by how *rare* it is; and the `f·(k1+1)/(f + …)` shape is **term-frequency saturation** — repeated terms give diminishing returns. Those two curves are the whole reason it works:
+
+<BM25Curves />
+
+Without IDF, matching "noise" (in every headphone title) would count as much as matching a distinctive model number. Without saturation, a title that repeated "wireless" ten times would beat the genuinely relevant one. BM25 is exactly the arithmetic that prevents both.
+
 ---
 
 ## Dense retrieval: cosine similarity over cached embeddings
