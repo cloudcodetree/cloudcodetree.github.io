@@ -177,6 +177,8 @@ learned price drivers (intercept + per-feature $):
   condition_code   +2.8
 ```
 
+Two metrics, both worth reading precisely. **MAE** (mean absolute error) is the average size of the miss in dollars: predictions here are off by \$227.89 on average — a number in the *units of the target*, which is why it is the metric you can explain to anyone. **R²** is the fraction of price *variance* the model explains, on a scale where 1.0 is perfect and 0.0 means "no better than always predicting the mean price": 0.268 says these three features explain about a quarter of why prices differ — the other three-quarters is in signals the features don't carry (yet).
+
 The dominant driver is `category_code` at **+\$83.8 per code step** — the model captures that electronics categories span a wide price range (accessories vs. computers vs. audio). `brand_tier` has a negative coefficient (−\$7.6) on the full heterogeneous corpus because tier interacts strongly with category; the audio-only model, fitted on the 15-item headphones subset, produces a cleaner coefficient. That is not a bug — it is why fitting per-category (see `audio_model` above) is more interpretable for the hero cast.
 
 The R² of 0.268 is low for a real production model. That is the curriculum: three hand-features on a broad, heterogeneous 270-item corpus leave most price variance unexplained. Part 21 replaces `LinearModel` with sklearn `GradientBoostingRegressor` on the same features plus the 384-dim title embedding — the R² jumps from 0.268 to 0.727 and the MAE falls from \$227.89 to \$138.11 on the full corpus. The `featurize → fit → score` shape stays identical; only the model class swaps out.

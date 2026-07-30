@@ -56,7 +56,7 @@ After Part 21 you have three price models: a linear baseline, a gradient-boosted
 
 The problem with knowing the winner in your head is that heads forget. They also confuse runs — "was that the hand-features GBDT or the hand+embeddings one?" They don't record which snapshot was used, or what PCA dimension was set, or whether the train/test split was the same across all three models.
 
-A tracking ledger fixes this. Every run writes a row: the model name, the params (feature set, random state, epochs), and the metrics (MAE, R²). The winning run is tagged and registered. The whole comparison is reproducible from the committed `tracking_uri`.
+A tracking ledger fixes this. Every run writes a row: the model name, the params (feature set, random state, epochs), and the metrics (MAE — the average prediction miss in dollars; R² — the fraction of price variance explained, 1.0 = perfect). The winning run is tagged and registered. The whole comparison is reproducible from the committed `tracking_uri`.
 
 MLflow is the standard tool for this in Python ML. DealFinder uses it pointed at a local SQLite file — no tracking server, no extra process to manage, nothing that breaks in CI. You get the full experiment UI locally if you want it, and the programmatic API for CI.
 

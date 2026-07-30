@@ -357,7 +357,7 @@ The `serve.py` docstring names four production concerns: streaming, batching, qu
 
 **Quantization.** Run the model in 8-bit or 4-bit: less memory, faster, a small quality cost. For the baseline `LinearModel` this is not relevant — it has no weight compression overhead. It becomes the first lever when you swap in a gradient-boosted model (Part 21) or a fine-tuned LLM (Part 11) behind the `/deal` score path.
 
-**vLLM.** Continuous batching plus paged-attention KV cache for LLM inference — many-times the throughput of naive one-at-a-time serving, behind an OpenAI-compatible API. Part 27 benchmarks this against the inference path and shows when the overhead pays off.
+**vLLM.** Continuous batching plus paged-attention KV cache for LLM inference — many-times the throughput of naive one-at-a-time serving, behind an OpenAI-compatible API. (The KV cache stores each generated token's attention keys and values so earlier tokens are never recomputed; it lives in GPU memory and grows with context length — Part 27 unpacks it visually.) Part 27 benchmarks this against the inference path and shows when the overhead pays off.
 
 **Streaming.** Send tokens as they are generated. Same total time, but perceived latency drops because the user sees output immediately. The `/search` route returns a complete aggregate result; adding SSE streaming is the Part 18 web-UI topic (`/api/stream`). The `SSEStream` component in Part 18 illustrates the client side.
 

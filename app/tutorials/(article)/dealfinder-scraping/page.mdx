@@ -249,6 +249,20 @@ The `brand=dom` assignment is intentional: for a Firecrawl result, the closest t
 **Check robots.txt before using FirecrawlSource in production.** Firecrawl respects `robots.txt` by default in its managed crawls, but when you pass a `query` to `/v1/search`, Firecrawl is running the web search for you. Your responsibility is to verify that the domains it returns allow the downstream use you intend. The `_SKIP` list removes the obvious editorial sites; add any domain that explicitly disallows scraping in its ToS or `robots.txt`.
 </Callout>
 
+If you have never actually read one: `robots.txt` is a plain-text file at the domain root (`https://example-retailer.com/robots.txt`) that tells crawlers which paths are off-limits, per user-agent. A typical retailer's file looks like:
+
+```text
+User-agent: *
+Disallow: /checkout/
+Disallow: /account/
+Allow: /products/
+
+User-agent: GPTBot
+Disallow: /
+```
+
+Read it as: any crawler (`*`) may fetch product pages but not checkout or account paths, and the `GPTBot` user-agent is banned from the whole site. `Disallow: /` under `User-agent: *` means the site opts out of crawling entirely — that is the signal to leave the domain out of your source list. It is a convention, not an access control — which is exactly why honoring it is the ethical baseline rather than a technical hurdle.
+
 ---
 
 ## The LIVE_SOURCES list: ordering matters

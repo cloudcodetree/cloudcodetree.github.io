@@ -268,7 +268,7 @@ print(ds_full.X.shape)   # (270, 387)  — 3 hand + 384 embedding dims
 
 The feature names extend: `["category_code", "brand_tier", "condition_code", "emb_0", "emb_1", …, "emb_383"]`.
 
-In Part 21, `gbdt_vs_linear(with_embeddings=True)` shows what embedding features add to a gradient-boosted price regressor: with hand features only, the GBDT MAE is $257.99 — worse than the linear baseline at $227.89. Add the 384-dim embeddings (reduced to 16 PCA dims inside `gbdt_vs_linear`) and the GBDT MAE drops to $138.11, cutting the linear baseline's error by 39.4%. The embeddings are the hero; the boosting alone loses.
+In Part 21, `gbdt_vs_linear(with_embeddings=True)` shows what embedding features add to a gradient-boosted price regressor: with hand features only, the GBDT MAE is $257.99 — worse than the linear baseline at $227.89. Add the 384-dim embeddings (compressed to 16 dimensions via PCA — principal component analysis, which keeps the 16 directions of highest variance in the embedding space; Part 21 explains why) and the GBDT MAE drops to $138.11, cutting the linear baseline's error by 39.4%. The embeddings are the hero; the boosting alone loses.
 
 The `with_embeddings=False` default keeps this part offline and fast. Use `True` when you want the full feature vector for the ML parts.
 

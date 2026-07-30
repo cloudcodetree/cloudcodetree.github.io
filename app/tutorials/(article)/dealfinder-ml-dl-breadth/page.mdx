@@ -68,7 +68,7 @@ The model is the correct baseline: it is what you get when you do the right thin
 2. **The relationship is non-linear.** Brand tier and category interact. A tier-4 audio item and a tier-4 computing item are in completely different price bands. A linear model interpolates across that interaction; it cannot capture it.
 3. **The title embedding carries signal the hand features cannot.** "RTX 4090" in a title is strong evidence of a $1,000+ price; the three-dimensional feature vector has no way to represent that.
 
-Gradient boosting addresses points 1 and 2. Adding PCA-compressed title embeddings addresses all three.
+Gradient boosting addresses points 1 and 2. Adding PCA-compressed title embeddings addresses all three. (**PCA** — principal component analysis — rotates the 384-dimensional embedding space to find the directions along which the vectors vary most, and keeps only the top 16. It compresses 384 numbers per title down to 16 while preserving most of the spread that distinguishes one product from another — trading a little information for a feature count a 270-item dataset can actually support.)
 
 ---
 
