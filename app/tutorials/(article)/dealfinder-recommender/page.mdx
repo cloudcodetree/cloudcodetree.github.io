@@ -158,6 +158,10 @@ def load_interactions(path: Path | str | None = None) -> tuple[list[str], np.nda
     return data["item_ids"], np.array(data["matrix"], dtype=float)
 ```
 
+Before running it, see what "item–item co-occurrence" actually computes — the entire mechanism fits in a toy matrix:
+
+<ItemItemCF />
+
 Then call `collaborative_recommend` with a single-item preference vector — a user who has only liked the XM5. `collaborative_recommend` builds an item–item co-occurrence matrix from `R.T`, sums similarity to the liked items, and sets already-liked items to `-inf` so it never recommends something you already have:
 
 ```python
@@ -190,7 +194,7 @@ for j in collaborative_recommend(user, R, k=5):
 
 The collaborative signal surfaces a different, taste-driven neighborhood — co-likes across users, not embedding geometry. Notice it leans toward *premium/expensive* headphones (Beats Studio Pro, Bose QuietComfort Ultra) that the content list never surfaced: that is real purchase co-occurrence, not title similarity. The interaction log is small (72 users, 24 items) so the matrix is sparse; the part notes where you'd upgrade to ALS or a two-tower retriever once you have ≥10k items. At this scale a direct dot-product is fine.
 
-`run_recs.py` demonstrates the canonical invocation (`k=3`) and also runs a leave-one-out offline eval comparing CF `precision@5`/`ndcg@5` against a popularity baseline.
+`run_recs.py` demonstrates the canonical invocation (`k=3`) and also runs a leave-one-out offline eval comparing CF `precision@5`/`ndcg@5` against a popularity baseline. (`precision@5` = of the 5 items recommended, what fraction the held-out user actually liked; `ndcg@5` measures the same thing but rewards putting the liked items *nearer the top* of the five.)
 
 <Callout tone="note">
 **The interaction log is hand-authored for this tutorial.** It is not presented as real user data — the lesson is the mechanics of co-occurrence, not the validity of the log. Every `item_id` in `data/sample/interactions.json` is a real `id` from the committed snapshot. In production you would replace this with live clickstream; Part 33 (Saved searches and suggestions worker) wires that signal.

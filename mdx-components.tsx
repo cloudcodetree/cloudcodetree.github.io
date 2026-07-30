@@ -55,6 +55,7 @@ import CosineAngle from './app/components/mdx/CosineAngle';
 import Quantization from './app/components/mdx/Quantization';
 import HmacVerify from './app/components/mdx/HmacVerify';
 import KVCache from './app/components/mdx/KVCache';
+import ItemItemCF from './app/components/mdx/ItemItemCF';
 import SSEStream from './app/components/mdx/SSEStream';
 import EchoFilter from './app/components/mdx/EchoFilter';
 import RankingLens from './app/components/mdx/RankingLens';
@@ -120,7 +121,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     TierWaterfall,
     StoreVsMemory, VectorIndex, GroundingGuard,
     AgenticLoop, ContextBudget, WriterReviewer, BoostingResidual, BM25Curves, CosineAngle,
-    Quantization, HmacVerify, KVCache,
+    Quantization, HmacVerify, KVCache, ItemItemCF,
     SSEStream,
     EchoFilter, RankingLens,
     GroupedSplit, LabelImbalance,
