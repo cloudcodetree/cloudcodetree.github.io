@@ -74,6 +74,12 @@ Gradient boosting addresses points 1 and 2. Adding PCA-compressed title embeddin
 
 ## The gradient-boosted price model
 
+First, what "gradient boosting" actually does — because it's about to become the model that guards every deal. A single decision tree is a weak predictor. Boosting builds an **ensemble in sequence**, where each new tree is trained not on the prices, but on the **residual** — the leftover error — of all the trees before it. Tree 1 makes a rough guess; tree 2 learns to correct tree 1's mistakes; tree 3 corrects what's still wrong, and so on. The ensemble creeps toward the data.
+
+<BoostingResidual />
+
+That "fit the residual" loop is the whole idea (the "gradient" is because the residual is the gradient of squared-error loss). It's powerful — but notice it will happily keep fitting *noise* if you let it run too many rounds on weak features, which is exactly the trap you'll see below.
+
 `gbdt_vs_linear()` in `dealfinder/models.py` fits both models on the same deterministic split and returns a `ModelComparison` dataclass. The boosted model is `sklearn.ensemble.GradientBoostingRegressor` — not XGBoost; the companion has no XGBoost dependency.
 
 ```python

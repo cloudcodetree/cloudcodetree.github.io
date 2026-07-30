@@ -49,6 +49,7 @@ import GroundingGuard from './app/components/mdx/GroundingGuard';
 import AgenticLoop from './app/components/mdx/AgenticLoop';
 import ContextBudget from './app/components/mdx/ContextBudget';
 import WriterReviewer from './app/components/mdx/WriterReviewer';
+import BoostingResidual from './app/components/mdx/BoostingResidual';
 import SSEStream from './app/components/mdx/SSEStream';
 import EchoFilter from './app/components/mdx/EchoFilter';
 import RankingLens from './app/components/mdx/RankingLens';
@@ -113,7 +114,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     RateLimitGuard, ScrapingPermissionTiers,
     TierWaterfall,
     StoreVsMemory, VectorIndex, GroundingGuard,
-    AgenticLoop, ContextBudget, WriterReviewer,
+    AgenticLoop, ContextBudget, WriterReviewer, BoostingResidual,
     SSEStream,
     EchoFilter, RankingLens,
     GroupedSplit, LabelImbalance,
