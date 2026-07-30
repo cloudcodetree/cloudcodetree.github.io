@@ -95,7 +95,7 @@ def featurize(p: Product) -> list[float]:
 
 Two design decisions worth understanding:
 
-**The `brand` field is useless.** Part 1 discovered this: 156 of 270 snapshot rows have the *retailer* in `brand` — "Walmart - COWIN", "Target", "mountainlifestyle.ca". Trusting `p.brand` would poison the model with retailer names. So `brand_tier()` extracts the actual manufacturer from the *title* using a greedy known-brand vocabulary, then maps it to a tier:
+**The `brand` field is useless.** Part 1 discovered this: 154 of 270 snapshot rows have the *retailer* in `brand` — "Walmart - COWIN", "Target", "mountainlifestyle.ca". Trusting `p.brand` would poison the model with retailer names. So `brand_tier()` extracts the actual manufacturer from the *title* using a greedy known-brand vocabulary, then maps it to a tier:
 
 ```python
 # tier 4 — premium flagships: Apple, Sony, Bose, Sennheiser, Garmin

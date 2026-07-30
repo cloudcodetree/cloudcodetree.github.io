@@ -301,7 +301,7 @@ Google Shopping). Frozen 2026-07. eBay excluded (sandbox data in this environmen
 - The price model is a linear baseline fit on the audio category; Part 21
   upgrades it to gradient boosting. Deal scores on non-audio categories are
   less calibrated until then.
-- brand field is retailer-polluted in 156/270 rows. True manufacturer is
+- brand field is retailer-polluted in 154/270 rows. True manufacturer is
   extracted from the title (title_brand()); raw brand is not used in scoring.
 - The eval gate (precision@5 >= 0.80 on the 20-item golden set) is the formal
   quality threshold. Scores below that gate should not be exposed in production.

@@ -18,7 +18,7 @@ export const metadata = {
 
 # Data Layer, Normalization & the Snapshot
 
-**TL;DR: Real deal-finding starts with messy real data. Connect to the Google Shopping API, normalize the retailer-polluted brand field, dedup the same Sony headphones listed at two prices, and freeze the 270-item electronics snapshot that the rest of this 33-part course runs on.**
+**TL;DR: Real deal-finding starts with messy real data. Connect to the Google Shopping API, normalize the retailer-polluted brand field, dedup the same Sony headphones listed at two prices, and freeze the 270-item electronics snapshot that the rest of this 37-part course runs on.**
 
 This is **Part 1 of DealFinder**, and it starts where every production AI system actually starts: getting noisy, real-world data into a clean, typed shape. The messiness — a `brand` field holding "Walmart - COWIN" instead of "COWIN", a Sony WH-1000XM5 priced at both $162.97 and $248 — is not a bug to clean away. It is the curriculum. Every technique in the parts ahead exists because of the problems you surface here.
 
@@ -34,7 +34,7 @@ A `.devcontainer/` gives you Python 3.11 in one click (locally or in Codespaces)
 1. [The problem: messy real data is the curriculum](#the-problem-messy-real-data-is-the-curriculum)
 2. [The normalized schema](#the-normalized-schema)
 3. [Stand up the Google Shopping connector](#stand-up-the-google-shopping-connector)
-4. [The brand field lie: 156 of 270 rows hold the retailer](#the-brand-field-lie-156-of-270-rows-hold-the-retailer)
+4. [The brand field lie: 154 of 270 rows hold the retailer](#the-brand-field-lie-154-of-270-rows-hold-the-retailer)
 5. [Normalize titles, extract the real manufacturer](#normalize-titles-extract-the-real-manufacturer)
 6. [Dedup: Sony WH-1000XM5 at two prices](#dedup-sony-wh-1000xm5-at-two-prices)
 7. [Freeze the snapshot](#freeze-the-snapshot)
@@ -48,7 +48,7 @@ A `.devcontainer/` gives you Python 3.11 in one click (locally or in Codespaces)
 
 - Stand up the RapidAPI Google Shopping connector and issue a query that returns real electronics listings.
 - Load and validate `electronics-2026-07.json` against the canonical `Item` schema.
-- Explain why `brand` holds a retailer instead of the manufacturer in most of the 270 snapshot rows, and use a title-parsing heuristic to extract the true manufacturer.
+- Explain why `brand` holds a retailer instead of the manufacturer in 154 of 270 snapshot rows, and use a title-parsing heuristic to extract the true manufacturer.
 - Identify the dedup problem — Sony WH-1000XM5 at $162.97 (Costco) vs. $248 (Macy's) — and see why exact-match dedup keeps both offers, leaving true cross-retailer merge to the semantic dedup in Part 9.
 - Freeze and version a snapshot via `data/build_snapshot.py` for reproducible downstream work.
 
@@ -138,7 +138,7 @@ The first thing you notice: `brand` is "Costco" and "Macy's". Those are retailer
 
 ---
 
-## The brand field lie: 156 of 270 rows hold the retailer
+## The brand field lie: 154 of 270 rows hold the retailer
 
 Load the full snapshot and count how many `brand` values are retailer strings rather than manufacturer names:
 
@@ -331,7 +331,6 @@ The following assertions must pass against `electronics-2026-07.json`. They are 
 ```python
 import statistics
 from dealfinder.snapshot import load_snapshot, to_products
-from dealfinder.features import title_brand
 from dealfinder.ingest import dedup_key, ingest
 
 items = load_snapshot()
@@ -339,15 +338,15 @@ items = load_snapshot()
 # ── snapshot count ───────────────────────────────────────────────────────────
 assert len(items) == 270
 
-# ── brand field is retailer-polluted ─────────────────────────────────────────
-# For most rows the manufacturer implied by the raw `brand` differs from the real
-# manufacturer parsed from the title — so `brand` is not a trustworthy field.
+# ── brand field is retailer-polluted (the Part 6 audit) ──────────────────────
+# 154 of 270 rows carry a retailer token in `brand` instead of the manufacturer.
+retailers = ["Walmart", "Target", "Costco", "Macy", "Best Buy", "Amazon",
+             "mountainlifestyle", "kohl"]
 polluted = sum(
-    1 for i in items
-    if title_brand(i["title"])
-    and title_brand(i.get("brand") or "") != title_brand(i["title"])
+    1 for x in items
+    if any(r.lower() in (x.get("brand") or "").lower() for r in retailers)
 )
-assert polluted > 150               # ~220/270 by this measure; don't trust `brand`
+assert polluted == 154              # don't trust `brand`; extract from the title
 
 # ── hero-cast: noise cancelling headphones ───────────────────────────────────
 ncb = [i for i in items if i["query"] == "noise cancelling headphones"]

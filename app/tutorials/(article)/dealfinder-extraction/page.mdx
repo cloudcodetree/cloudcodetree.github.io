@@ -18,7 +18,7 @@ export const metadata = {
 
 # Messy Listings Into Clean JSON
 
-**TL;DR: The snapshot's `brand` field holds the retailer in 156 of 270 rows — "costco.com", "Macy's", "Kohl's", "mountainlifestyle.ca" — not the manufacturer. Fix it by extracting the true brand from the title using a dual-path extractor: an LLM as the primary path, a deterministic regex fallback for offline tests. Pydantic validates both paths into the same `ListingSpecs` shape, so a wrong-typed field (a number where a string belongs) is rejected before it poisons the price model.**
+**TL;DR: The snapshot's `brand` field holds the retailer in 154 of 270 rows — "costco.com", "Macy's", "Kohl's", "mountainlifestyle.ca" — not the manufacturer. Fix it by extracting the true brand from the title using a dual-path extractor: an LLM as the primary path, a deterministic regex fallback for offline tests. Pydantic validates both paths into the same `ListingSpecs` shape, so a wrong-typed field (a number where a string belongs) is rejected before it poisons the price model.**
 
 <Callout tone="tip">
 **Code along, version by version.** Full project at
@@ -43,7 +43,7 @@ at step tag **`step-6`**. The tests run entirely offline — no API key needed t
 
 ## What you'll be able to do after this
 
-- Explain why 156 of 270 snapshot `brand` rows hold a retailer string and why that corrupts the price model's `brand_tier` feature.
+- Explain why 154 of 270 snapshot `brand` rows hold a retailer string and why that corrupts the price model's `brand_tier` feature.
 - Write a Pydantic `ListingSpecs` schema with electronics fields (`brand`, `category`, `condition`, `model`) and validate LLM output into it, catching wrong-typed fields before they enter the pipeline.
 - Implement `rule_extract` as a deterministic offline fallback and test it without any API key.
 - Wire `llm_extract` to an OpenAI-compatible client with a graceful degradation chain: explicit client → OpenRouter → `rule_extract`.
@@ -53,7 +53,7 @@ at step tag **`step-6`**. The tests run entirely offline — no API key needed t
 
 ## The retailer-pollution problem
 
-Part 1 froze `electronics-2026-07.json` — 270 real items, 18 queries, 11 categories. One thing Part 1 flagged but didn't fully solve: the `brand` field is unreliable. It holds the **retailer**, not the manufacturer, in 156 of 270 rows.
+Part 1 froze `electronics-2026-07.json` — 270 real items, 18 queries, 11 categories. One thing Part 1 flagged but didn't fully solve: the `brand` field is unreliable. It holds the **retailer**, not the manufacturer, in 154 of 270 rows.
 
 You can verify this directly against the snapshot (the items live under the `"items"` key):
 
@@ -69,7 +69,7 @@ polluted = sum(
     1 for x in items
     if any(r.lower() in (x.get("brand") or "").lower() for r in retailers)
 )
-print(polluted, "of", len(items))   # → 156 of 270
+print(polluted, "of", len(items))   # → 154 of 270
 ```
 
 The Sony WH-1000XM5 at $162.97 — the anchor for the "noise cancelling headphones" query — has `brand="costco.com"`. A second WH-1000XM5 listing at $248.00 has `brand="Macy's"`. The Anker Soundcore Q20i, a genuine budget deal at $44.99, carries `brand="Kohl's"`; the Bose QuietComfort 45 at $46.00 carries `brand="mountainlifestyle.ca"`. Not one of those raw brand fields names the manufacturer.
@@ -453,6 +453,34 @@ All five tests pass offline. Note `test_schema_rejects_wrong_types` asserts a *t
 <Callout tone="note">
 **API cost.** Each `llm_extract` call sends one prompt and receives one JSON object. At `gpt-4o-mini` rates, the four hero-cast calls shown above cost less than $0.01 combined. Temperature 0 minimizes variance; `parse_llm_json` defends against format drift across model versions. Structured-output mode (if the provider supports it) is the production hardening step — covered in Part 10 when the extractor is fine-tuned.
 </Callout>
+
+---
+
+## Check it works
+
+**What you should have now:** a dual-path extractor — `llm_extract` (primary) with a deterministic `rule_extract` fallback — that pulls the *true manufacturer* out of a retailer-polluted title and validates it into `ListingSpecs`.
+
+**Test it — reproduce the pollution count and the fix (no API key needed):**
+
+```python
+import json
+items = json.load(open("data/snapshots/electronics-2026-07.json"))["items"]
+retailers = ["Walmart","Target","Costco","Macy","Best Buy","Amazon","mountainlifestyle","kohl"]
+print(sum(1 for x in items if any(r.lower() in (x.get("brand") or "").lower() for r in retailers)), "of", len(items))
+# 154 of 270      ← the problem
+
+from dealfinder.extract import rule_extract
+rule_extract("Walmart - COWIN E7 Active Noise Cancelling Headphones").brand
+# 'Cowin'         ← the fix: retailer stripped, manufacturer recovered
+```
+
+**Test it — the unit tests:**
+
+```bash
+pytest tests/test_extract.py    # 5 passed
+```
+
+**Where it shows up in the product:** extraction has **no endpoint of its own** — its payoff is upstream data quality. The recovered `brand` feeds `brand_tier()` (Part 3), which is why the price model can tell a tier-4 Sony flagship from a budget Anker — and therefore why the search badges you saw in the browser are trustworthy. Clean input is invisible when it works; you notice it only when it's missing.
 
 ---
 

@@ -55,7 +55,7 @@ Step tag: `step-23` (eval harness). Run the gate with `python -m dealfinder.run_
 
 ## Why "looks better" is not engineering
 
-After Part 3, you had a strong intuition that the two-signal deal scorer was better than the naive median. The Bose QuietComfort 45 at $46 was no longer surfaced as a star deal; the Anker Q20i at $44.99 was. But "intuition" is not something you can track over 34 parts and thousands of commits.
+After Part 3, you had a strong intuition that the two-signal deal scorer was better than the naive median. The Bose QuietComfort 45 at $46 was no longer surfaced as a star deal; the Anker Q20i at $44.99 was. But "intuition" is not something you can track over 37 parts and thousands of commits.
 
 The discipline of evaluation is simple: pick representative inputs, label the correct answer once, and you can score any version of the system automatically. The score is tracked on every commit. When a score drops, the build fails. When you ship a new model or a new ranking function, you can cite the delta — "+0.60 precision@5" — not a gut feeling.
 

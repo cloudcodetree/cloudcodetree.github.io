@@ -1,11 +1,11 @@
 export const metadata = {
   title: 'Become a Full-Stack AI Engineer: Case Study & System-Design Interview (Part 37 of 37) · Tutorials',
   description:
-    'Synthesis of the complete 34-part DealFinder capstone: a metrics-driven case study on the real deployed system, resume bullets from pinned course numbers, and a worked mock system-design interview on "design a cross-source deal aggregator."',
+    'Synthesis of the complete 37-part DealFinder capstone: a metrics-driven case study on the real deployed system, resume bullets from pinned course numbers, and a worked mock system-design interview on "design a cross-source deal aggregator."',
   alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-ship/' },
   openGraph: {
     title: 'Become a Full-Stack AI Engineer: Case Study & System-Design Interview (Part 37 of 37)',
-    description: 'Synthesis of the complete 34-part DealFinder capstone: a metrics-driven case study on the real deployed system, resume bullets from pinned course numbers, and a worked mock system-design interview on "design a cross-source deal aggregator."',
+    description: 'Synthesis of the complete 37-part DealFinder capstone: a metrics-driven case study on the real deployed system, resume bullets from pinned course numbers, and a worked mock system-design interview on "design a cross-source deal aggregator."',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-ship/',
     siteName: 'CloudCodeTree',
     type: 'article',
@@ -18,7 +18,7 @@ export const metadata = {
 
 # Case Study & System-Design Interview
 
-**TL;DR: You built a complete, tested, deployed AI deal-finding system across 33 parts. This final part synthesises the whole thing — a metrics-driven case study you can present, resume bullets drawn from pinned course numbers, and a worked mock system-design interview on "design a cross-source deal aggregator" answered entirely from the system you built.**
+**TL;DR: You built a complete, tested, deployed AI deal-finding system across 37 parts. This final part synthesises the whole thing — a metrics-driven case study you can present, resume bullets drawn from pinned course numbers, and a worked mock system-design interview on "design a cross-source deal aggregator" answered entirely from the system you built.**
 
 There is nothing to install and no new companion code for this part. The work was done in Parts 1 through 33. What remains is the harder skill for most engineers: reasoning clearly about a system you built, quantifying what it achieves, and answering a senior interviewer who wants tradeoffs, not feature lists.
 
@@ -101,9 +101,9 @@ The sign convention is fixed course-wide: `residual = predicted_fair − actual`
 
 A strong case study is four beats: **problem → approach → results → what you'd do next**. Here is the version for DealFinder, using only real numbers from the course.
 
-**Problem.** Consumer electronics listings from Google Shopping are polluted: the `brand` field holds the retailer in 156 of 270 real snapshot rows, the same product appears at two prices across sources (Sony WH-1000XM5 at $162.97 and $248), and the naive deal signal — percentage below the query median — awards a 72% discount badge to a $329-MSRP flagship listed at $46 with no verifiable condition. A useful deal-finder must normalize the data, dedup across sources, and use a price model to guard against the false positive.
+**Problem.** Consumer electronics listings from Google Shopping are polluted: the `brand` field holds the retailer in 154 of 270 real snapshot rows, the same product appears at two prices across sources (Sony WH-1000XM5 at $162.97 and $248), and the naive deal signal — percentage below the query median — awards a 72% discount badge to a $329-MSRP flagship listed at $46 with no verifiable condition. A useful deal-finder must normalize the data, dedup across sources, and use a price model to guard against the false positive.
 
-**Approach.** Built in seven phases across 34 parts:
+**Approach.** Built in seven phases across 37 parts:
 
 1. A `DealSource` interface abstraction over five live sources (eBay, RapidAPI, Apify, Shopify, Firecrawl) with tiered early-stop and a 90-second circuit breaker. Sources that raise or timeout are benched for the cooldown period; a query with all sources down returns a well-formed empty envelope, never a 500.
 2. A two-signal deal score: a cross-source live median (fast, model-free) combined with a gradient-boosted price model trained on the real 270-item snapshot (MAE $138.11, R² 0.727, −39.4% vs. the linear baseline). The model residual is the guard that catches the Bose QC45 false positive.
@@ -142,7 +142,7 @@ This is not a hypothetical. You built this system. The answers below map directl
 
 **Q: Walk me through the requirements and what makes this problem hard.**
 
-Start with the data, not the model. The raw listings are polluted: brand fields hold retailers (156/270 rows in the real snapshot), the same product appears at multiple prices across sources, and a naive deal signal — percentage below the query median — awards a 72% discount badge to a mispriced flagship. You need normalization, deduplication, and a price model before you can trust the signal. The model itself is hard: electronics span 11 categories from $8 USB cables to $3,000 laptops; a single linear model fails (R² 0.268, MAE $227.89) because the relationship is non-linear and category-specific. Gradient boosting on category + brand tier + title embeddings brings MAE to $138.11.
+Start with the data, not the model. The raw listings are polluted: brand fields hold retailers (154/270 rows in the real snapshot), the same product appears at multiple prices across sources, and a naive deal signal — percentage below the query median — awards a 72% discount badge to a mispriced flagship. You need normalization, deduplication, and a price model before you can trust the signal. The model itself is hard: electronics span 11 categories from $8 USB cables to $3,000 laptops; a single linear model fails (R² 0.268, MAE $227.89) because the relationship is non-linear and category-specific. Gradient boosting on category + brand tier + title embeddings brings MAE to $138.11.
 
 **Q: How does the aggregator handle source failures?**
 

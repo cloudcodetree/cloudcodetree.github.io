@@ -175,7 +175,7 @@ def nl_to_sql(question: str, table: str = "catalog") -> str:
     return f"SELECT * FROM {table} WHERE {where}"
 ```
 
-Note the brand rule keys off the *title*, not the raw `brand` column — that column holds the retailer in 156/270 snapshot rows ("Walmart - COWIN", "Target"), so `title_brand` extracts the true manufacturer and matches it with a `title LIKE`. Run it against the demo goal, "find a good noise-cancelling headphone under $120":
+Note the brand rule keys off the *title*, not the raw `brand` column — that column holds the retailer in 154/270 snapshot rows ("Walmart - COWIN", "Target"), so `title_brand` extracts the true manufacturer and matches it with a `title LIKE`. Run it against the demo goal, "find a good noise-cancelling headphone under $120":
 
 ```python
 from dealfinder.tools import nl_to_sql, load_catalog, build_db, run_sql
