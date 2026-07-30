@@ -210,6 +210,8 @@ def handle_webhook(
 
 `stripe.Webhook.construct_event` uses an HMAC-SHA256 signature computed with your webhook signing secret. If the signature does not match, it raises `SignatureVerificationError`. The caller must let this exception propagate and return HTTP 400 — **not 200**. A 200 response to a forged event would tell an attacker that their forgery attempt was accepted.
 
+<HmacVerify />
+
 The event type filter (`if event["type"] != "checkout.session.completed": return None`) means the endpoint is safe to use as a catch-all webhook destination. Stripe sends many event types; the handler silently ignores everything except the one it acts on. `serve.py` can register this single endpoint for all Stripe events without adding routing logic.
 
 `Entitlement` is frozen because once it is granted it should not be mutated in place. `serve.py` takes the returned `Entitlement` and writes the plan to the user's row in Supabase.

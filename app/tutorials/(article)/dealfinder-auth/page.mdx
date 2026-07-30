@@ -124,6 +124,8 @@ def _decode(token: str) -> dict:
 
 `jwt.decode` from PyJWT does four things at once: checks the HS256 signature against the secret, validates expiry, checks that `aud == "authenticated"`, and decodes the payload. Any failure raises a `jwt.InvalidTokenError` subclass. The two except clauses map PyJWT exceptions to HTTP responses: `ExpiredSignatureError` gets its own `"token expired"` message (useful for the client to distinguish expired-refresh from genuinely bad tokens); everything else — tampered payload, wrong secret, bad audience, malformed base64 — becomes `"invalid token"`.
 
+<HmacVerify />
+
 `_jwt_secret()` reads the environment variable and fails loud:
 
 ```python
