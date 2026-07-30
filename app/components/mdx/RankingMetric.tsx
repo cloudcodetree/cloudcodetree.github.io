@@ -14,14 +14,15 @@ import { MONO, ACCENT } from '../blogShared';
  * real text/values.
  */
 
-// recommended list: is each item relevant? (a hit)
+// a ranked deal list: is each item a true labeled deal? (a hit)
+// mirrors the median-only ranker's failure mode: 2 real deals, 3 traps in the top 5
 const LIST = [
-  { id: 'tent-26', hit: true },
-  { id: 'tent-14', hit: false },
-  { id: 'tent-17', hit: true },
-  { id: 'tent-09', hit: false },
-  { id: 'tent-22', hit: false },
-  { id: 'tent-31', hit: false },
+  { id: 'Anker Q20i', hit: true },
+  { id: 'Kindle $10', hit: false },
+  { id: 'JBL Tune', hit: true },
+  { id: 'Tab A11 $15', hit: false },
+  { id: 'Bose QC45', hit: false },
+  { id: 'Sony XM5', hit: false },
 ];
 const K = 5;
 const discount = (rank: number) => 1 / Math.log2(rank + 1); // rank is 1-based
@@ -60,7 +61,7 @@ export default function RankingMetric({ accent = ACCENT }: { accent?: string }) 
                     {item.hit ? '✓' : '·'}
                   </motion.span>
                 </span>
-                <span style={{ fontFamily: MONO, fontSize: 12, color: item.hit ? '#fff' : '#8b98a8', width: 78 }}>{item.id}</span>
+                <span style={{ fontFamily: MONO, fontSize: 12, color: item.hit ? '#fff' : '#8b98a8', width: 96, whiteSpace: 'nowrap' }}>{item.id}</span>
                 {/* NDCG discount bar */}
                 <div style={{ flex: 1, height: 8, background: 'rgba(148,163,184,0.06)', borderRadius: 4, overflow: 'hidden', maxWidth: 180 }}>
                   <motion.div

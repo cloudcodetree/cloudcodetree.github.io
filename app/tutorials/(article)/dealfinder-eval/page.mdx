@@ -123,6 +123,10 @@ def precision_at_k(ranked: list[dict], k: int = GATE_K) -> float:
 
 A perfect score is 1.00 (all 5 of the top 5 are genuine deals). The gate threshold is 0.80 — at least 4 of the 5 must be real deals for the system to pass. That gate is used identically in the MLOps, safety, and inference parts later in the course.
 
+Here is the metric on a ranked list you can eyeball — this one has 2 real deals in the top 5, so precision@5 = 0.40, exactly the median-only ranker's failing score. The shrinking bars preview a second metric family, **nDCG**, which discounts each hit by its rank (`1/log2(rank+1)`) — it cares not just *whether* the deals made the top 5 but *how high* they sit:
+
+<RankingMetric />
+
 Why precision, not recall? Because the user sees exactly 5 listings. Surfacing 6 true deals when only 5 are shown is invisible. What hurts the user is showing a trap — a $46 Bose QC45 that looks like a deal but isn't — in position 1 or 2.
 
 ---
@@ -138,7 +142,7 @@ def median_only_ranker(golden: list[dict]) -> list[dict]:
     return sorted(golden, key=lambda g: -median_signal(g["price"], g["median"]))
 ```
 
-It ranks by how far below the query median each item sits. Fast, model-free, and fooled by anything that is cheap for the wrong reason.
+It ranks by how far below the query median each item sits — `median_signal(actual, median) = (median − actual) / median`, the fraction below the same-query cross-source median, where positive means cheaper (a $46 listing against a $163 median scores `(163−46)/163 = 0.718`). Fast, model-free, and fooled by anything that is cheap for the wrong reason.
 
 **`two_signal_ranker`** — the two-signal blend from the spec:
 
