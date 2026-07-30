@@ -249,6 +249,10 @@ The implication for DealFinder is immediate: when the recommendation endpoint sc
 
 Quantization (INT8/INT4) and vLLM's continuous batching are real, significant techniques. They also require a GPU to benchmark honestly. `quantization_reference` and `vllm_reference` return structured references — concept, illustrative expectation figures, and a pointer to a runnable script — rather than pretending to have measured what they have not.
 
+First, *what quantization does to the weights* — because the VRAM numbers below only make sense once you see the mechanism:
+
+<Quantization />
+
 ```python
 from dealfinder.inference import quantization_reference, vllm_reference
 

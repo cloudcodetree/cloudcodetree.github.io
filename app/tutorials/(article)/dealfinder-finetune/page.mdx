@@ -132,7 +132,9 @@ Full fine-tuning updates every weight in the model. For a 1B-parameter model tha
 h = W x  +  (B · A) x
 ```
 
-where `W` is the frozen base weight (shape `d×d`) and `B·A` is your trainable adapter (shapes `d×r` and `r×d`, with rank `r=16`). The adapter has `2×d×r` parameters — for a 1B model this is roughly 0.1% of total parameters. **QLoRA** adds one more step: quantize the frozen `W` to 4-bit integers (via `bitsandbytes`), cutting VRAM usage by another 4×. A 1B model fine-tunes on a free Colab T4 in about 25 minutes on 200 examples.
+where `W` is the frozen base weight (shape `d×d`) and `B·A` is your trainable adapter (shapes `d×r` and `r×d`, with rank `r=16`). The adapter has `2×d×r` parameters — for a 1B model this is roughly 0.1% of total parameters. **QLoRA** adds one more step: quantize the frozen `W` to 4-bit integers (via `bitsandbytes`), cutting VRAM usage by another 4×.
+
+<Quantization /> A 1B model fine-tunes on a free Colab T4 in about 25 minutes on 200 examples.
 
 <LoRAAdapter />
 
