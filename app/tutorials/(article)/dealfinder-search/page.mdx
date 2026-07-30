@@ -378,6 +378,40 @@ pytest tests/test_search.py -v
 
 ---
 
+## Check it works
+
+**What you should have now:** hybrid retrieval — BM25 + dense embeddings fused with RRF, then value-reranked — that surfaces honest deals and *demotes the traps*. This is the engine behind the by-meaning search you've been using.
+
+**Test it — prove the two-signal score clears the gate:**
+
+```bash
+python -m dealfinder.run_evals
+```
+
+```
+golden set: 20 labeled snapshot items
+  two_signal   precision@5 = 1.00   gate PASS ✓
+  median_only  precision@5 = 0.40   gate FAIL ✗
+CI gate (precision@5 >= 0.80): PASS ✓
+```
+
+That single contrast — **1.00 vs 0.40** — is the entire justification for the price model: median-alone misclassifies 60% of the top-5; the value rerank fixes it.
+
+**Test it — the unit tests:**
+
+```bash
+pytest tests/test_search.py    # 5 passed
+```
+
+**See it in the product — this is *the* lesson you can watch in the browser.** `search_catalog` is exactly what powers `/semantic`. Start the app, pick **by meaning**, and search *"noise cancelling headphones"*:
+
+- **Anker Soundcore Q20i · $44.99 · DEAL** floats to rank 1 (+0.724)
+- **Bose QuietComfort 45 · $46.00 · SUSPICIOUS** is pushed to the bottom (−0.282 = its median signal 0.718 minus the −1.0 guard)
+
+Two headphones priced within a dollar of each other, ranked six places apart — because the value rerank read the model residual. That is DealFinder's whole thesis, live in a card grid.
+
+---
+
 ## Where this goes next
 
 - **Part 4 — What you'll like next (Recommender):** Part 4 built and cached the fastembed title-embedding matrix over real title data. Part 5 reuses those embeddings directly — via the recommender's `load_catalog_embeddings()`, which aligns the cached `.npz` vectors to whatever product list you pass — so hybrid search is built on the recommender's pre-computed representations, not a second model run.
