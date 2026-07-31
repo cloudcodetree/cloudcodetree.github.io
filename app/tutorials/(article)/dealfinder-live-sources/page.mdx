@@ -157,6 +157,10 @@ EBAY_CAMPAIGN_ID=123456789
 **Create the app at developer.ebay.com.** Under "My Account" select "Application Keys", create a new app, and copy the Production App ID (client ID) and Cert ID (client secret). The Browse API scope is included in the default Production key set — no additional scope request is required.
 </Callout>
 
+<Callout tone="warn">
+**Can't get approved? Skip the keys — the lesson still works.** Both eBay and Best Buy have tightened developer onboarding, and approval can stall or be refused for hobby accounts. That does not block this part or any later one: the connectors are designed so a blank key simply disables that source (`available()` returns `False` and the aggregator skips it), and every code path you're here to learn — OAuth token caching, response normalization, the shared `Source` protocol — runs offline through the respx-mocked tests below. `RAPIDAPI_KEY` alone is enough to see live cross-retailer results in the app; eBay and Best Buy are breadth, not prerequisites.
+</Callout>
+
 With the env vars set, the `search()` method uses the cached token as a Bearer header:
 
 ```python
