@@ -25,6 +25,10 @@ export const metadata = {
 
 This is **Part 19 of DealFinder**. You have the web app running (Part 18). Now the ML rigor starts. Before you can train a classifier on the deal-vs-overpriced question, you need a dataset that actually earns the name: clean labels, a split that reflects how the model will generalize, and an honest account of how skewed the classes are. `dealfinder/dataset.py` does all three in under 250 lines — deterministically, offline, against the committed snapshot.
 
+<Callout tone="note">
+**Where do Spark and friends fit?** They don't — at this scale, and that's a lesson. 270 rows is pandas/numpy territory; reaching for Spark here would be résumé-driven engineering. The distributed tools (Spark, Dask, DuckDB-over-parquet, a warehouse) enter when the data outgrows one machine's memory or one process's patience — think millions of listings refreshed daily. What transfers unchanged at that scale is everything this part actually teaches: leakage-safe grouped splits, deterministic seeds, label provenance, class-imbalance accounting. The concepts are the curriculum; the engine is a deployment detail you swap when the row count demands it.
+</Callout>
+
 <Callout tone="tip">
 **Code along.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).

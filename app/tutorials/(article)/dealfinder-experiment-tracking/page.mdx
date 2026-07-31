@@ -60,6 +60,10 @@ A tracking ledger fixes this. Every run writes a row: the model name, the params
 
 MLflow is the standard tool for this in Python ML. DealFinder uses it pointed at a local SQLite file — no tracking server, no extra process to manage, nothing that breaks in CI. You get the full experiment UI locally if you want it, and the programmatic API for CI.
 
+<Callout tone="note">
+**This is also why the course isn't built on notebooks.** The stereotypical ML workflow — train in a Jupyter notebook, eyeball the number, overwrite the cell — is exactly the "knowing the winner in your head" problem this part exists to fix. Notebooks are the right tool for *exploration* (and for borrowed-GPU work: Part 10 ships the course's one notebook, for Colab training). But everything that produces a number you'll cite — training runs, eval gates, drift checks — lives in a script under test, logging to this ledger, because scripts run top-to-bottom identically in CI and notebooks don't. Explore in notebooks; ship in scripts; let the ledger remember.
+</Callout>
+
 ---
 
 ## The local MLflow store: SQLite, no server

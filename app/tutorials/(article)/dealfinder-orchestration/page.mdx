@@ -26,6 +26,10 @@ export const metadata = {
 
 This is **Part 20 of DealFinder**. Part 19 built the labeled dataset. Now you orchestrate it — connecting the stages into a pipeline that retries on transient failures, caches expensive pure steps, stops loud on a data-quality violation, and emits a reproducible training table. The tooling is Prefect 3.7.7 (a real, installed dependency, not a mock), but the stage functions are plain Python with a Prefect-free fallback path, so the whole flow runs whether Prefect is installed or not.
 
+<Callout tone="note">
+**How this maps to Airflow, Astronomer, and Dagster.** Orchestrators are more alike than their marketing suggests, and every concept in this part translates directly. A Prefect **flow** is an Airflow **DAG**; a Prefect **task** with its retry policy is an Airflow **task/operator** with `retries`; Prefect's run history is Airflow's scheduler metadata database; **Astronomer** is managed Airflow as a service (hosted scheduler, deploys, observability — you write the same DAGs). **Dagster** reframes the same graph around data *assets* rather than tasks — closest in spirit to how this part treats `good_deals` as a materialized output. The course uses Prefect for one honest reason: it runs in-process from `pip install`, offline, in CI. Airflow needs a scheduler, webserver, and metadata database standing up — which fights this course's "every lesson runs on your laptop" rule. Learn the concepts here; the vocabulary swap to any of the three is an afternoon.
+</Callout>
+
 <Callout tone="tip">
 **Code along.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
