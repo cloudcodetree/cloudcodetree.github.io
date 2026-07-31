@@ -91,6 +91,8 @@ This ladder shapes the architecture of `LIVE_SOURCES`: tier 1 runs first, tier 4
 
 `ApifySource` wraps the Apify actor run API. The interface is identical to every other `DealSource`: you call `.search(query, limit)`, you get back `list[Product]`. Apify handles the rendering, CAPTCHA solving, proxy rotation, and ToS compliance for their actors.
 
+The `country`/`language` parameters and the currency guard below earn their lines: in a real run without them, the actor returned Mercado Libre listings priced in Mexican pesos — a "$4,099" Sony WH-1000XM5 — that the connector would have labeled USD. One unguarded connector defaults away an assumption (everything is US-market dollars) that every median and deal score downstream silently depends on.
+
 <Callout tone="note">
 **Get your Apify token (free, ~2 minutes).** [Apify](https://apify.com/) is a managed scraping platform: instead of running a headless browser yourself, you invoke a hosted scraper (an "actor") over HTTP and get JSON back — the scraping runs on Apify's infrastructure. DealFinder uses the [Google Shopping actor](https://apify.com/automation-lab/google-shopping-scraper).
 1. Sign up at [console.apify.com](https://console.apify.com/) (free plan includes a monthly usage credit — plenty for this course).
@@ -108,7 +110,10 @@ def search(self, query: str, limit: int = 15) -> list[Product]:
     r = httpx.post(
         f"https://api.apify.com/v2/acts/{actor}/run-sync-get-dataset-items",
         params={"token": token},
-        json={"queries": [query], "maxResults": limit},
+        # country/language pin the marketplace: without them the actor mixes in
+        # localized listings (Mercado Libre in MXN, etc.) whose prices would
+        # masquerade as USD and poison the cross-source median.
+        json={"queries": [query], "maxResults": limit, "country": "us", "language": "en"},
         timeout=180,
     )
     body = r.json()
@@ -117,6 +122,8 @@ def search(self, query: str, limit: int = 15) -> list[Product]:
         price = it.get("priceNumeric") or _f(it.get("price"))
         if not price:
             continue
+        if (it.get("currency") or "USD").upper() != "USD":
+            continue  # never let a foreign-currency price into USD math
         merchant = it.get("merchant") or "shopping"
         out.append(Product(
             id=f"apify-{(it.get('title') or '')[:40]}",
