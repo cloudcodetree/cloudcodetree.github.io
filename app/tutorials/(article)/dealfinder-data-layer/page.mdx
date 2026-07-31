@@ -107,8 +107,8 @@ The `RapidApiSource` in `dealfinder/live_sources.py` wraps the Real-Time Product
 <Callout tone="note">
 **Get your RapidAPI key (free, ~2 minutes).**
 1. Create an account at [rapidapi.com](https://rapidapi.com/) (GitHub/Google sign-in works).
-2. Open the [Real-Time Product Search API page](https://rapidapi.com/letscrape-6bRBa3QguO5/api/real-time-product-search) and click **Subscribe to Test** → choose the **Basic (free)** plan.
-3. Your key appears in the request panel on that same page as the `X-RapidAPI-Key` header value (also under **Apps → My Apps → Authorization**).
+2. Open the [Real-Time Product Search API page](https://rapidapi.com/letscrape-6bRBa3QguO5/api/real-time-product-search), pick the **BASIC $0.00/mo** plan card, and click **Subscribe** (the free tier is hard-limited — it cannot bill you).
+3. Click **Open playground** on the API page: your key appears in the code-snippet panel as the `X-RapidAPI-Key` header value (also under **Apps → My Apps → Authorization**).
 
 One gotcha worth knowing up front: the key is **account-wide, but subscriptions are per-API**. If you already have a RapidAPI key from another project, reuse it — you still need to click Subscribe on *this* API's page or every call returns `403 You are not subscribed`.
 </Callout>
