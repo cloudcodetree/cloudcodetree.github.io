@@ -277,7 +277,7 @@ The test runs in CI without network access. An equivalent respx-mocked test in `
 
 ## BestBuy Affiliate: key-auth
 
-BestBuy's open Developer API is simpler than eBay's OAuth: pass `apiKey` as a query parameter. Registration is free at `developer.bestbuy.com` and approval takes 1–3 business days. While you wait, the respx-mocked test `test_bestbuy_search_maps_saleprice` in `tests/test_live_sources.py` lets you exercise the normalization path immediately — no key required.
+BestBuy's open Developer API is simpler than eBay's OAuth: pass `apiKey` as a query parameter. Registration is free at `developer.bestbuy.com` — but be realistic about the timeline: Best Buy *advertises* 1–3 business days, and real-world approvals often take weeks (the program is lightly staffed; the key string isn't even revealed until a human approves your account). If you're stuck in "pending," the [contact form](https://developer.bestbuy.com/contact-us?topic=general) with your account email and app name is what historically shakes keys loose. In the meantime nothing is blocked: the respx-mocked test `test_bestbuy_search_maps_saleprice` in `tests/test_live_sources.py` exercises the normalization path with no key, and Best Buy's *prices* already reach the aggregator through Google Shopping (you'll see `RapidAPI:Best Buy` source tags in live results) — the official API's main addition is the structured `salePrice`/`regularPrice` split.
 
 ```python
 # dealfinder/live_sources.py — BestBuySource
