@@ -10,8 +10,219 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 31 Jul 2026 04:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 31 Jul 2026 12:13:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Your Claude budget_tokens Code Is Broken on Opus 5 — Migrate to adaptive + effort in 3 Lines</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/thinking</link>
+      <guid isPermaLink="false">2026-07-31-06-claude-opus5-thinking-api-adaptive-effort-migration</guid>
+      <pubDate>Fri, 31 Jul 2026 12:13:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Opus 5 rejects the old budget_tokens API with a 400 error. Three lines migrate your code to the new adaptive mode and effort parameter — and on Opus 5, thinking is on by default so you may not need any thinking field at all.</description>
+      <content:encoded><![CDATA[
+**Claude Opus 5 (launched July 24) rejects `thinking: {type: "enabled", budget_tokens: N}` with a 400 error — three lines migrate any existing code to the new `adaptive` mode with `output_config.effort`.**
+
+If you're calling Claude's thinking API today with `budget_tokens`, your code breaks the moment you switch to Opus 5 (or any 4.7+ model). Here's the exact migration.
+
+## What broke
+
+```python
+# 400 error on Opus 5 and all models >= 4.7:
+client.messages.create(
+    model="claude-opus-5",
+    max_tokens=16000,
+    thinking={"type": "enabled", "budget_tokens": 10000},  # rejected
+    messages=[...]
+)
+```
+
+## The fix
+
+```python
+# Correct pattern for Opus 5 and all 4.7+ models:
+client.messages.create(
+    model="claude-opus-5",
+    max_tokens=16000,
+    thinking={"type": "adaptive"},      # or omit entirely on Opus 5
+    output_config={"effort": "high"},   # low | medium | high | xhigh | max
+    messages=[...]
+)
+```
+
+On Claude Opus 5, Sonnet 5, Fable 5, and Mythos 5, thinking is **on by default** — you can omit the `thinking` field entirely if `high` effort works for your use case.
+
+## Migration table
+
+| Model | Thinking default | `budget_tokens`? | `effort`? |
+|---|---|---|---|
+| Opus 5, Sonnet 5, Fable 5, Mythos 5 | On by default | 400 error | Yes |
+| Opus 4.8, 4.7 | Off | 400 error | Yes (needed to enable) |
+| Sonnet 4.6, Opus 4.6 | Off | Deprecated but accepted | Yes (preferred) |
+| Haiku 4.5, Sonnet 4.5 | Off | Required (`type: "enabled"` only) | No |
+| Opus 4.5 | Off | Required | Yes |
+
+## Turn thinking off on Opus 5 (for fast, cheap responses)
+
+```python
+client.messages.create(
+    model="claude-opus-5",
+    max_tokens=4096,
+    thinking={"type": "disabled"},
+    output_config={"effort": "low"},   # "disabled" + "xhigh"/"max" = 400 error
+    messages=[...]
+)
+```
+
+Cannot combine `disabled` with `xhigh` or `max` effort — that returns 400. On Fable 5 and Mythos 5, `disabled` is rejected entirely.
+
+## Streaming (required when max_tokens > 21,333 on Opus 5)
+
+```python
+with client.messages.stream(
+    model="claude-opus-5",
+    max_tokens=64000,
+    output_config={"effort": "max"},
+    messages=[...]
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)
+    response = stream.get_final_message()
+```
+
+To see thinking tokens alongside the response, add `thinking={"type": "adaptive", "display": "summarized"}` — thinking streams as `thinking_delta` events before text starts.
+
+**Sources:** [Thinking — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/thinking) · [Extended thinking (legacy) — Claude Docs](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) · [What's new in Claude Opus 5 — Claude Docs](https://platform.claude.com/docs/en/about-claude/models/whats-new-opus-5)
+]]></content:encoded>
+      <media:content url="https://www.anthropic.com/og/og-anthropic-logo.png" medium="image"/>
+      <media:thumbnail url="https://www.anthropic.com/og/og-anthropic-logo.png"/>
+    </item>
+
+    <item>
+      <title>LangChain 1.0 and LangGraph 1.0 Are Out — Finally a Stable API You Can Pin in Production</title>
+      <link>https://www.langchain.com/blog/langchain-langgraph-1dot0</link>
+      <guid isPermaLink="false">2026-07-31-05-langchain-langgraph-1dot0-stable-agent-api</guid>
+      <pubDate>Fri, 31 Jul 2026 12:12:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Agents</category>
+      <description>LangChain and LangGraph both shipped 1.0 on July 22, ending three years of breaking minor releases. New: stable public API with 6-month deprecation window, typed state in LangGraph, middleware for agent loops.</description>
+      <content:encoded><![CDATA[
+**LangChain 1.0 and LangGraph 1.0 shipped July 22 — after four years of 0.x breaking changes, both frameworks commit to no breaking changes between minor releases.**
+
+After a 0.x era where a routine `pip install -U langchain` could silently break production agents, both frameworks crossed 1.0 on July 22. Here's what changed.
+
+**LangChain 1.0:**
+- **Middleware layer for agent loops** — inject logging, tracing, rate-limiting, and retry logic without subclassing chain internals
+- **Fully decoupled provider packages** — `langchain-anthropic`, `langchain-openai`, `langchain-google-genai` are independent; pin them separately from `langchain-core`
+- **Stability contract** — no breaking changes between 1.x minor releases; breaking changes require a major bump and a 6-month deprecation window
+
+**LangGraph 1.0:**
+- Typed state (TypedDict or Pydantic) is now required, not optional
+- `interrupt` and `Command` for human-in-the-loop flows are stable API
+- Subgraph composition stable — import compiled graphs as packages
+
+**Upgrade:**
+```bash
+pip install -U langchain-core langchain-anthropic langgraph
+```
+
+Check startup logs for deprecation warnings — v1.0 removed several 0.x patterns. The migration guide at the announcement covers the most common breaks.
+
+**Why it matters:** This is the moment LangChain becomes suitable for production code you actually want to maintain. Pin `langchain-core>=1.0,<2.0` and upgrade on your own schedule.
+
+**Sources:** [LangChain and LangGraph 1.0 — LangChain Blog](https://www.langchain.com/blog/langchain-langgraph-1dot0) · [LangChain Changelog](https://changelog.langchain.com/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Zero Code Changes, 2.5x More Throughput: Enable vLLM's Automatic Prefix Cache</title>
+      <link>https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/</link>
+      <guid isPermaLink="false">2026-07-31-04-vllm-automatic-prefix-caching-one-flag</guid>
+      <pubDate>Fri, 31 Jul 2026 12:11:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <category>Best Practices</category>
+      <description>Add --enable-prefix-caching to your vLLM serve command and get 254% throughput improvement and 78% faster TTFT on any workload where requests share a system prompt, RAG context, or chat history.</description>
+      <content:encoded><![CDATA[
+**Add one flag to vLLM and get 254% throughput improvement and 78% faster time-to-first-token on any workload where requests share a prefix — zero client code changes required.**
+
+**What you'll be able to do after this:**
+- Cut time-to-first-token by up to 78% on any vLLM deployment where requests share a system prompt or document context
+- Enable the optimization with one flag — no client-side code changes required
+- Know when APC helps (and the one scenario where it adds overhead, so you don't deploy it blindly)
+
+## The problem: your system prompt is recomputed on every request
+
+When vLLM processes a request, it computes attention keys and values (the KV cache) for every prompt token from scratch. If 100 concurrent users all send a request that starts with your 2,000-token system prompt, that prefix is processed 100 separate times — even though the result is identical each time.
+
+Automatic Prefix Caching (APC) fixes this. vLLM hashes each block of prompt tokens and stores the resulting KV tensors. The next request that shares the same prefix skips the prefill step for that cached portion entirely.
+
+## Workloads that benefit most
+
+- **Shared system prompts** — a customer-service bot with a 2,000-token briefing prepended to every request
+- **RAG retrieval context** — same document chunks retrieved for many similar questions about a shared corpus
+- **Multi-turn conversations** — chat history grows each turn; APC avoids recomputing the full history on every new message
+- **Few-shot templates** — fixed examples at the start of every prompt
+
+APC provides **no benefit** when requests have no shared prefix, or when decoding time dominates (very long generated outputs).
+
+## Enable it in one command
+
+```bash
+# vLLM server mode — any model:
+vllm serve meta-llama/Llama-3-8b-instruct --enable-prefix-caching
+```
+
+On **vLLM V1** (the default engine since v0.7), APC is already **on by default** — no flag needed.
+
+```python
+# Python offline inference:
+from vllm import LLM
+llm = LLM(model="meta-llama/Llama-3-8b-instruct", enable_prefix_caching=True)
+```
+
+## Verify it's working
+
+```bash
+vllm bench serve --model meta-llama/Llama-3-8b-instruct \
+  --dataset-name sonnet --sonnet-prefix-len 100 \
+  --sonnet-input-len 120 --sonnet-output-len 100 \
+  --request-rate 10
+```
+
+Look for `cache_hit_tokens` in per-request metrics after the warmup period.
+
+## What to expect
+
+Jarvis Labs benchmarked APC on Qwen3-32B with 20 queries about the same shared technical document:
+- Output throughput: **427 → 1,513 tokens/sec (254% improvement)**
+- Time to first token: **4.3s → 0.97s (78% reduction)**
+
+The first request in a session always pays the full prefill cost (cold start). Every subsequent request with the same prefix is nearly instant.
+
+## One caveat: mixed-workload overhead
+
+When APC is enabled but no requests actually share a prefix, there's roughly a 37% throughput overhead from the hashing and cache-lookup machinery. If your workload consists mostly of unique prompts with no shared content, benchmark your traffic pattern first before enabling it in production.
+
+## The runnable example
+
+The official vLLM repo has a complete offline inference example at [`examples/offline_inference/prefix_caching.py`](https://github.com/vllm-project/vllm/blob/main/examples/offline_inference/prefix_caching.py). It demonstrates a hiring/interview scenario with a long shared context, runs a warmup generation, then compares cached vs. non-cached outputs. Drop it into Colab with `!pip install vllm` to see the speedup yourself.
+
+**Sources:** [Automatic Prefix Caching — vLLM Docs](https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/) · [prefix_caching.py — vLLM GitHub](https://github.com/vllm-project/vllm/blob/main/examples/offline_inference/prefix_caching.py) · [vLLM Optimization Techniques (benchmarks) — Jarvis Labs](https://jarvislabs.ai/blog/vllm-optimization-techniques) · [KV-Cache Wins at Production Scale — llm-d Blog](https://llm-d.ai/blog/kvcache-wins-you-can-see)
+]]></content:encoded>
+      <media:content url="https://opengraph.githubassets.com/1/vllm-project/vllm" medium="image"/>
+      <media:thumbnail url="https://opengraph.githubassets.com/1/vllm-project/vllm"/>
+    </item>
 
     <item>
       <title>The MCP 2026-07-28 Spec Is Now Live: Three Things to Remove From Your Server and Two to Add</title>
