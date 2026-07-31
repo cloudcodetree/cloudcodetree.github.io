@@ -186,7 +186,7 @@ for item in items[:8]:
 'Best Buy'
 ```
 
-Of the 270 rows, **156 have a `brand` value that is a retailer string** — a marketplace name, a store URL fragment, or a vendor bundle like "Walmart - COWIN". Only the remaining 114 happen to carry the actual manufacturer. Using `brand` directly in a price model or brand-tier ranking would poison the features for more than half the data.
+Of the 270 rows, **154 have a `brand` value that is a retailer string** — a marketplace name, a store URL fragment, or a vendor bundle like "Walmart - COWIN". Only the remaining 116 happen to carry the actual manufacturer. Using `brand` directly in a price model or brand-tier ranking would poison the features for more than half the data.
 
 The fix: extract the true manufacturer from the `title`, where it reliably lives.
 

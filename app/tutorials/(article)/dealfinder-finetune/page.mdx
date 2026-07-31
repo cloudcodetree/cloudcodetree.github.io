@@ -19,7 +19,7 @@ export const metadata = {
 
 # Fine-Tune the Extractor with QLoRA
 
-**TL;DR: The Part 6 extractor works on clean titles, but 156 of the 270 snapshot rows have retailer tokens in the `brand` field that corrupt extraction. A 30-example QLoRA fine-tune on a 1B model cuts the retailer-bleed error rate from 29% to 4% and pushes manufacturer accuracy from 78% to 94%. Numbers are illustrative; the code is real and Colab-runnable.**
+**TL;DR: The Part 6 extractor works on clean titles, but 154 of the 270 snapshot rows have retailer tokens in the `brand` field that corrupt extraction. A 30-example QLoRA fine-tune on a 1B model cuts the retailer-bleed error rate from 29% to 4% and pushes manufacturer accuracy from 78% to 94%. Numbers are illustrative; the code is real and Colab-runnable.**
 
 The Part 6 `llm_extract` function builds a structured prompt, calls an API, and validates the JSON response into a `ListingSpecs` object. That works. The problem is what it does when the title is `"Walmart - COWIN E7 Active Noise Cancelling Headphones Bluetooth"` — the base extractor returns `{brand: "Walmart"}` because the prompt has never seen this pattern in volume. You have 154 listings where the title starts with a retailer prefix. Prompt engineering can handle a few examples, but when every third listing has a different retailer-bleed pattern, you need the model to learn the task, not memorize a list.
 
