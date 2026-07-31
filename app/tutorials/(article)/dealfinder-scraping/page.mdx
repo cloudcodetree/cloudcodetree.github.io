@@ -91,6 +91,13 @@ This ladder shapes the architecture of `LIVE_SOURCES`: tier 1 runs first, tier 4
 
 `ApifySource` wraps the Apify actor run API. The interface is identical to every other `DealSource`: you call `.search(query, limit)`, you get back `list[Product]`. Apify handles the rendering, CAPTCHA solving, proxy rotation, and ToS compliance for their actors.
 
+<Callout tone="note">
+**Get your Apify token (free, ~2 minutes).** [Apify](https://apify.com/) is a managed scraping platform: instead of running a headless browser yourself, you invoke a hosted scraper (an "actor") over HTTP and get JSON back — the scraping runs on Apify's infrastructure. DealFinder uses the [Google Shopping actor](https://apify.com/automation-lab/google-shopping-scraper).
+1. Sign up at [console.apify.com](https://console.apify.com/) (free plan includes a monthly usage credit — plenty for this course).
+2. Go to **Settings → API & Integrations** and copy your **Personal API token** (`apify_api_…`).
+3. Add `APIFY_TOKEN=apify_api_…` to the companion's `.env`. (`APIFY_ACTOR` already defaults to the right actor.)
+</Callout>
+
 ```python
 # live_sources.py — ApifySource.search() (real implementation)
 def search(self, query: str, limit: int = 15) -> list[Product]:
@@ -200,6 +207,13 @@ For noise-cancelling headphones, `peakdesign.com` (camera bags, not headphones) 
 ## FirecrawlSource: broad-web fallback
 
 `FirecrawlSource` is the last escalation. It issues a search query to Firecrawl's `/v1/search` endpoint, which returns page-level results — titles, URLs, and description snippets. The connector extracts prices from the description text with a regex and discards results without a credible price:
+
+<Callout tone="note">
+**Get your Firecrawl key (free, ~2 minutes).** [Firecrawl](https://www.firecrawl.dev/) is a crawl-and-extract API: give it a URL or a search query and it fetches the page (rendering JavaScript where needed) and returns clean markdown or structured JSON — the messy HTML-to-data step as a service. DealFinder uses only its `/v1/search` endpoint, as the broadest, noisiest tier-4 source.
+1. Sign up at [firecrawl.dev](https://www.firecrawl.dev/) (GitHub/Google sign-in).
+2. Your API key (`fc-…`) is on the dashboard's **API Keys** page; the free plan includes enough one-time credits for this course.
+3. Add `FIRECRAWL_API_KEY=fc-…` to the companion's `.env`.
+</Callout>
 
 ```python
 # live_sources.py — FirecrawlSource.search() (real implementation, abridged)
