@@ -10,8 +10,163 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 31 Jul 2026 12:13:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 31 Jul 2026 20:07:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Stop Blocking on Slow MCP Calls: Claude Code Auto-Backgrounds Tool Calls That Run Long</title>
+      <link>https://code.claude.com/docs/en/mcp</link>
+      <guid isPermaLink="false">2026-07-31-09-claude-code-mcp-auto-background-long-tool-calls</guid>
+      <pubDate>Fri, 31 Jul 2026 20:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>MCP</category>
+      <description>Since v2.1.212, MCP tool calls that run longer than 2 minutes auto-background in Claude Code — Claude gets the task ID and keeps working; result arrives as a notification.</description>
+      <content:encoded><![CDATA[
+**Since Claude Code v2.1.212, any MCP tool call that runs longer than 2 minutes automatically moves to a background task — Claude gets the task ID, keeps working, and the result arrives as a task notification.**
+
+If you use Claude Code with MCP servers that call slow external systems — long-running database queries, external API calls, CI/CD checks, or custom tooling — you've likely hit this: a tool call starts, takes 3+ minutes, and your entire session is frozen until it finishes.
+
+Since v2.1.212, this is on by default:
+
+- An in-progress tool call that hasn't settled in 2 minutes moves to a background task automatically
+- Claude receives the task ID immediately and keeps working
+- When the call completes, it arrives as a task notification; Claude picks up where it left off
+- Track progress (or stop the call) via `/tasks`
+
+## Configure the threshold
+
+```bash
+# Default: 120,000 ms (2 minutes)
+export CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS=120000
+
+# Raise it for servers you know are slow (5 minutes):
+export CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS=300000
+
+# Disable entirely (blocks on all tool calls as before v2.1.212):
+export CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS=0
+
+# Disable all background task features:
+export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1
+```
+
+Add these to your shell profile or repo `.env` for per-project thresholds. The env var applies globally across all MCP servers.
+
+## Caveats
+
+Per-call wall-clock limits still apply while a call runs in the background: the per-server timeout configured for that MCP server and `CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT` for calls that go silent. If those fire, the background task fails rather than hanging forever.
+
+Background tasks don't survive session exit — closing Claude Code while a task is in progress cancels the call.
+
+**Sources:** [Connect Claude Code to tools via MCP — Claude Code Docs](https://code.claude.com/docs/en/mcp) · [Claude Code Changelog — Claude Code Docs](https://code.claude.com/docs/en/changelog) · [Auto-background long-running MCP tool calls — GitHub Issue #23611](https://github.com/anthropics/claude-code/issues/23611)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>OpenAI Adds SynthID Watermarks to GPT-Live Audio — and Ships a Developer Verification API</title>
+      <link>https://openai.com/index/advancing-content-provenance/</link>
+      <guid isPermaLink="false">2026-07-31-08-openai-gpt-live-synthid-audio-watermark-api</guid>
+      <pubDate>Fri, 31 Jul 2026 20:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>Starting July 31, GPT-Live audio carries SynthID watermarks embedded in the signal itself. A new verification API lets developers check AI provenance in their own workflows.</description>
+      <content:encoded><![CDATA[
+**Starting July 31, all GPT-Live audio via ChatGPT Voice and the OpenAI API carries Google's SynthID watermark baked into the signal — and a new verification API lets developers check AI provenance inside their own pipelines.**
+
+Audio generated through GPT-Live now carries a dual provenance stack: [C2PA metadata](https://c2pa.org/) (editable, but auditable) and a [SynthID](https://deepmind.google/technologies/synthid/) watermark embedded in the audio signal itself — robust to cropping, compression, and format conversion. OpenAI's [public verification portal](https://openai.com/research/verify/) detects both signals.
+
+The developer-facing piece is the new verification API endpoint: incorporate provenance checks into content moderation pipelines, media publishing platforms, or any system that needs a programmatic "was this AI-generated?" signal on audio.
+
+**Why it matters:** GPT-Live now powers audio generation in millions of applications. The watermark travels with the content, not just the strippable metadata — and the verification API means you can add that check to your own pipeline without building audio-fingerprinting detection yourself.
+
+**Sources:** [Advancing content provenance — OpenAI](https://openai.com/index/advancing-content-provenance/) · [Introducing GPT-Live — OpenAI](https://openai.com/index/introducing-gpt-live/) · [SynthID — Google DeepMind](https://deepmind.google/technologies/synthid/) · [C2PA](https://c2pa.org/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Two-Stage RAG: Add a Cross-Encoder Reranker and Stop Feeding Your LLM Irrelevant Context</title>
+      <link>https://www.youtube.com/watch?v=ZFbaA9eM0uo</link>
+      <guid isPermaLink="false">2026-07-31-07-cross-encoder-reranking-rag-sentence-transformers</guid>
+      <pubDate>Fri, 31 Jul 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>In two-stage RAG, your bi-encoder fast-retrieves 100 candidates and a cross-encoder reranks them to the precision top 10 — 10 lines of Python, no vector store reindexing required.</description>
+      <content:encoded><![CDATA[
+**Pull 100 candidates with your bi-encoder, pass them through a cross-encoder, and return the precision-ranked top 10 to your LLM — the highest-ROI improvement to most RAG pipelines, in 10 lines of Python.**
+
+**What you'll be able to do after this:**
+- Understand why bi-encoder vector search recalls well but ranks poorly
+- Add a cross-encoder reranker to any RAG pipeline — LangChain, LlamaIndex, or raw Python
+- Choose the right reranker for your latency budget (local model vs. Cohere/Jina/Voyage API)
+
+## Why vector search alone isn't enough
+
+When you do ANN search over your vector store, the bi-encoder encodes the query and each document *independently* — they never see each other. That's what makes bi-encoders fast (no pair computation at query time), but it's also why ranking is noisy: two documents can have similar cosine distances but very different relevance to your specific query.
+
+Cross-encoders fix this. A cross-encoder processes the query and the document *together* through the full transformer stack — every layer attends over both texts simultaneously. This catches subtle query-specific relevance cues that bi-encoders miss. The cost: you can't pre-compute anything, so you run it once per candidate pair. That's why you only rerank the top-k from your first stage (typically 50–100), not your whole corpus.
+
+## The two-stage pipeline
+
+```
+Query → bi-encoder ANN search → top-100 candidates
+                               → cross-encoder → top-10 → LLM
+```
+
+## Code: 10 lines with sentence-transformers
+
+```python
+from sentence_transformers import SentenceTransformer, CrossEncoder
+import numpy as np
+
+bi_encoder = SentenceTransformer("BAAI/bge-m3")
+cross_encoder = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+
+def retrieve_and_rerank(query: str, corpus: list[str], top_k=10, candidate_n=100):
+    # Stage 1: fast ANN retrieval (replace with your vector store)
+    q_emb = bi_encoder.encode(query, normalize_embeddings=True)
+    c_embs = bi_encoder.encode(corpus, normalize_embeddings=True, batch_size=64)
+    candidate_ids = np.argsort(q_emb @ c_embs.T)[::-1][:candidate_n]
+
+    # Stage 2: rerank the short list
+    pairs = [[query, corpus[i]] for i in candidate_ids]
+    rerank_scores = cross_encoder.predict(pairs)
+    best_ids = candidate_ids[np.argsort(rerank_scores)[::-1][:top_k]]
+    return [corpus[i] for i in best_ids]
+```
+
+## Pick your reranker
+
+| Model | Latency / 100 pairs | Quality | Best for |
+|---|---|---|---|
+| `cross-encoder/ms-marco-MiniLM-L-6-v2` | ~30ms | Good | Prototyping, edge |
+| `cross-encoder/ms-marco-MiniLM-L-12-v2` | ~60ms | Better | Server-side |
+| `BAAI/bge-reranker-v2-m3` | ~80ms | Best local | Production (multilingual) |
+| Cohere Rerank 3 | ~150ms (API) | Excellent | Low-ops prod |
+| Voyage Rerank 2 | ~120ms (API) | Excellent | Claude-heavy stacks |
+
+Start with `ms-marco-MiniLM-L-6-v2` — small, fast, and widely benchmarked. Upgrade to `bge-reranker-v2-m3` when you need multilingual support or higher precision.
+
+## When NOT to add a reranker
+
+- **Ultra-low latency** — the second model call adds latency; fix chunking instead
+- **Corpora under ~500 docs** — bi-encoder precision is already high; overhead isn't worth it
+- **Pre-filtered retrieval** — if metadata filters already narrow candidates at read time, first-stage recall is high
+
+For everything else — general document corpora, multi-tenant knowledge bases, long-context RAG — a reranker is among the highest-ROI retrieval improvements available.
+
+**Sources:** [Advanced RAG 04: Reranking with Cross Encoders — YouTube](https://www.youtube.com/watch?v=ZFbaA9eM0uo) · [Training and Finetuning Reranker Models — HuggingFace Blog](https://huggingface.co/blog/train-reranker) · [CrossEncoder — Sentence Transformers Docs](https://sbert.net/docs/package_reference/cross_encoder/cross_encoder.html) · [BAAI/bge-reranker-v2-m3 — HuggingFace](https://huggingface.co/BAAI/bge-reranker-v2-m3)
+]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/ZFbaA9eM0uo/maxresdefault.jpg" medium="image"/>
+      <media:thumbnail url="https://img.youtube.com/vi/ZFbaA9eM0uo/maxresdefault.jpg"/>
+    </item>
 
     <item>
       <title>Your Claude budget_tokens Code Is Broken on Opus 5 — Migrate to adaptive + effort in 3 Lines</title>
