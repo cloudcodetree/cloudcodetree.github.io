@@ -158,7 +158,13 @@ EBAY_CAMPAIGN_ID=123456789
 </Callout>
 
 <Callout tone="warn">
-**Can't get approved? Skip the keys — the lesson still works.** Both eBay and Best Buy have tightened developer onboarding, and approval can stall or be refused for hobby accounts. That does not block this part or any later one: the connectors are designed so a blank key simply disables that source (`available()` returns `False` and the aggregator skips it), and every code path you're here to learn — OAuth token caching, response normalization, the shared `Source` protocol — runs offline through the respx-mocked tests below. `RAPIDAPI_KEY` alone is enough to see live cross-retailer results in the app; eBay and Best Buy are breadth, not prerequisites.
+**"Your Keyset is currently disabled" — here's the 2-minute fix.** After creating the app you'll likely find your *production* keyset disabled with the message *"Comply with marketplace deletion/account closure notification process or apply for an exemption."* This looks like a rejection; it isn't. eBay requires every production app to either receive account-deletion webhooks or declare it doesn't store eBay user data. DealFinder is the second case, and the exemption is instant and self-service:
+1. On the Application Keys page, click the **exemption** link in the disabled-keyset banner (it opens **Alerts & Notifications** with Environment = Production).
+2. Under **Event Notification Delivery Method**, keep "Marketplace Account Deletion" selected and flip the **"Exempted from Marketplace Account Deletion"** toggle on; **Confirm** the dialog.
+3. Choose the reason **"I do not persist eBay data"** — true for this connector: the Browse API is called at query time, results are displayed, and no eBay user data is stored. Add a one-sentence description of the app and **Submit**.
+4. You'll see *"Exemption has been granted to your keyset"* immediately — back on the keys page, the Production Cert ID is now issued and the banner is gone.
+
+If you'd rather not create the account at all, that's fine too: a blank key simply disables the source (`available()` returns `False`), and every code path in this part runs offline through the respx-mocked tests below. Best Buy is the one with a genuine human-approval delay (1–3 business days; the key string isn't revealed until it clears) — register early and use the mocked test while you wait.
 </Callout>
 
 <Callout tone="note">
