@@ -10,9 +10,201 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 01 Aug 2026 12:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 01 Aug 2026 20:05:00 +0000</lastBuildDate>
 
 
+
+    <item>
+      <title>Stream Live Tool Progress From Your Claude Agent: One Flag, Real-Time Output</title>
+      <link>https://code.claude.com/docs/en/agent-sdk/streaming-output</link>
+      <guid isPermaLink="false">2026-08-01-09-claude-agent-sdk-streaming-tool-calls-live-progress</guid>
+      <pubDate>Sat, 01 Aug 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Set include_partial_messages=True in the Claude Agent SDK and your agent starts streaming live tool events -- see [Using Read...] done in real time instead of waiting 30 seconds for a blank screen.</description>
+      <content:encoded><![CDATA[
+**Set `include_partial_messages=True` in the Claude Agent SDK and your agent emits live tool events — enough to show `[Using Read…] done` in any terminal or web UI instead of a blank screen.**
+
+By default the Claude Agent SDK yields complete `AssistantMessage` objects after each response finishes. That's fine for batch pipelines; for anything user-facing it means 30 seconds of silence while the agent works.
+
+One option changes this. Set `include_partial_messages=True` (Python) or `includePartialMessages: true` (TypeScript) and you get `StreamEvent` objects wrapping raw Claude API events as they arrive. Three event types do the work:
+
+- `content_block_start` with `content_block.type == "tool_use"` — a tool call is starting; the tool name is available immediately
+- `content_block_delta` with `delta.type == "input_json_delta"` — partial JSON arguments streaming in
+- `content_block_stop` — the tool call is complete
+
+Here's the full pattern for a live UI:
+
+```python
+from claude_agent_sdk import query, ClaudeAgentOptions, ResultMessage
+from claude_agent_sdk.types import StreamEvent
+import asyncio, sys
+
+async def streaming_ui():
+    options = ClaudeAgentOptions(
+        include_partial_messages=True,
+        allowed_tools=["Read", "Bash", "Grep"],
+    )
+    in_tool = False
+
+    async for message in query(
+        prompt="Find all TODO comments in the codebase", options=options
+    ):
+        if isinstance(message, StreamEvent):
+            event = message.event
+            etype = event.get("type")
+
+            if etype == "content_block_start":
+                block = event.get("content_block", {})
+                if block.get("type") == "tool_use":
+                    print(f"\n[Using {block['name']}...]", end="", flush=True)
+                    in_tool = True
+
+            elif etype == "content_block_delta":
+                delta = event.get("delta", {})
+                if delta.get("type") == "text_delta" and not in_tool:
+                    sys.stdout.write(delta.get("text", ""))
+                    sys.stdout.flush()
+
+            elif etype == "content_block_stop" and in_tool:
+                print(" done", flush=True)
+                in_tool = False
+
+        elif isinstance(message, ResultMessage):
+            print("\n--- Complete ---")
+
+asyncio.run(streaming_ui())
+```
+
+**One caveat:** `StreamEvent`s come from the main session only — subagent deltas are not forwarded to the parent. For multi-agent pipelines you still see subagent completions via complete `AssistantMessage`s, but not token-by-token. If you need token-level streaming from a specific subagent, run it as a separate top-level `query()` call.
+
+The TypeScript equivalent uses `includePartialMessages: true` and checks `message.type === "stream_event"` with the same nested event structure. The docs page has both versions side by side.
+
+**Sources:** [Stream responses in real-time — Claude Code Agent SDK](https://code.claude.com/docs/en/agent-sdk/streaming-output) · [Streaming Tool Calls: Parse Anthropic SSE Without Loading the Whole Message — DEV Community](https://dev.to/gabrielanhaia/streaming-tool-calls-parse-anthropic-sse-without-loading-the-whole-message-2on)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>DeepSeek V4 Flash 0731 Goes GA: Beats Its Own Flagship on Agent Benchmarks at a Third of the Price</title>
+      <link>https://www.marktechpost.com/2026/07/31/deepseek-upgrades-deepseek-v4-flash-0731-with-major-agentic-and-coding-gains/</link>
+      <guid isPermaLink="false">2026-08-01-08-deepseek-v4-flash-0731-ga-agent-benchmarks</guid>
+      <pubDate>Sat, 01 Aug 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Agents</category>
+      <description>DeepSeek retrained V4 Flash with a stronger post-training pipeline and the 0731 build now outscores V4-Pro on all 9 agentic benchmarks -- zero migration cost for existing API users, $0.14/M input.</description>
+      <content:encoded><![CDATA[
+**DeepSeek retrained its flash model with a stronger agentic post-training pipeline, and V4-Flash-0731 now outscores V4-Pro on all 9 agent and coding benchmarks — at one-third the cost and zero migration effort.**
+
+The 0731 build went GA on July 31. For anyone already calling `deepseek-v4-flash`, the upgrade is automatic — no endpoint change, no model rename. The model name `deepseek-v4-flash` now serves V4-Flash-0731.
+
+What changed: post-training only (same 284B/13B-activated architecture), with a much stronger pipeline focused on agentic workflows and reasoning. The result: V4-Flash-0731 beats DeepSeek V4-Pro-Preview on every benchmark in DeepSeek's published suite:
+
+| Benchmark | V4-Flash-0731 | V4-Pro-Preview |
+|---|---|---|
+| Terminal Bench 2.1 | 82.7 | 72.1 |
+| NL2Repo | 54.2 | 38.5 |
+| DeepSWE | 54.4 | 12.8 |
+| Cybergym | 76.7 | 52.7 |
+
+*Note: vendor-reported scores from an unreleased harness; independent verification is advised.*
+
+Also new in 0731: native Responses API support, so `deepseek-v4-flash` can be added as a direct Codex provider without a compatibility shim.
+
+**Why it matters:** At $0.14/M input tokens, V4-Flash-0731 is the obvious routing destination for extraction, classification, and structured-parsing steps in agent pipelines — the tasks that don't need frontier reasoning but dominate your token bill. The upgrade to this performance level with zero integration work is rare.
+
+**Sources:** [DeepSeek V4-Flash-0731 Major Agentic Gains — MarkTechPost](https://www.marktechpost.com/2026/07/31/deepseek-upgrades-deepseek-v4-flash-0731-with-major-agentic-and-coding-gains/) · [V4-Flash-0731 Beats Flagship on 9 Benchmarks — TechTimes](https://www.techtimes.com/articles/322513/20260731/deepseek-retrained-v4-flash-beats-its-flagship-pro-nine-agent-benchmarks.htm) · [DeepSeek API Changelog](https://api-docs.deepseek.com/updates/)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Run Open-Source LLMs at the Edge in 5 Commands: Cloudflare Workers AI Quickstart</title>
+      <link>https://developers.cloudflare.com/workers-ai/get-started/workers-wrangler/</link>
+      <guid isPermaLink="false">2026-08-01-07-cloudflare-workers-ai-edge-inference-quickstart</guid>
+      <pubDate>Sat, 01 Aug 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <category>Cloud</category>
+      <description>Cloudflare Workers AI runs Llama, Mistral, Qwen, and 80+ open models on 300+ edge locations -- one env.AI.run() call, 10K Neurons/day free, no GPU to manage. Five commands from zero to deployed.</description>
+      <media:content url="https://blog.cloudflare.com/content/images/2023/09/Workers-AI.png" medium="image" />
+      <media:thumbnail url="https://blog.cloudflare.com/content/images/2023/09/Workers-AI.png" />
+      <content:encoded><![CDATA[
+**Cloudflare Workers AI runs Llama, Mistral, Qwen, and 80+ open models at 300+ edge locations worldwide — one `env.AI.run()` call, no GPU to provision, 10,000 Neurons/day free.**
+
+**What you'll be able to do after this:**
+- Add AI inference to any Cloudflare Worker in two lines of code and have it run near your users worldwide — no separate GPU cluster, no infrastructure to manage
+- Swap between 80+ open-source models (Llama 3.x/4, Mistral, Qwen, DeepSeek-R1, Whisper, FLUX) by changing one string, with the same Worker code unchanged
+- Serve AI features on the free tier — 10,000 Neurons/day, no credit card required — and only pay when you scale past that
+
+## Walk-through
+
+**Five commands to a running AI Worker:**
+
+```bash
+npm create cloudflare@latest -- hello-ai
+cd hello-ai
+npx wrangler dev      # local test (charges your Cloudflare account)
+npx wrangler login
+npx wrangler deploy
+```
+
+**Wire the AI binding** — add to `wrangler.jsonc`:
+
+```jsonc
+{
+  "ai": { "binding": "AI" }
+}
+```
+
+**Minimal completion** — replace the Worker body in `src/index.ts`:
+
+```typescript
+export default {
+  async fetch(request, env): Promise<Response> {
+    const response = await env.AI.run(
+      "@cf/meta/llama-3.1-8b-instruct",
+      { prompt: "What is the origin of the phrase Hello, World?" }
+    );
+    return new Response(JSON.stringify(response));
+  },
+} satisfies ExportedHandler<Env>;
+```
+
+**Chat/messages format** (for conversation context):
+
+```typescript
+const response = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+  messages: [
+    { role: "system", content: "You are a helpful assistant." },
+    { role: "user", content: userQuestion }
+  ]
+});
+```
+
+**Swap models** by changing the first string: `@cf/mistral/mistral-7b-instruct-v0.2`, `@cf/qwen/qwen3-30b-a3b`, `@cf/deepseek-ai/deepseek-r1-distill-qwen-32b`. No other code changes.
+
+## What "Neurons" means
+
+The free tier gives you 10,000 Neurons/day — Cloudflare's unit for inference compute. One day's free allowance translates to roughly 1,300 LLM responses, 12,500 embeddings, or 2,000 small image generations. The pool is shared across all models you call. Beyond the free tier, pricing starts around $0.00015 per 1K tokens for Llama-scale models.
+
+**Important:** Workers AI always hits your Cloudflare account even in local dev (`wrangler dev`) — it draws from your free daily Neurons even for testing.
+
+## Why edge inference instead of a centralized API
+
+Standard AI APIs send every request to a single data center. Workers AI distributes inference to the Cloudflare PoP nearest to your user — typical response time under 100ms at global scale. For low-latency use cases (real-time suggestions, in-browser AI, edge classification), this is a meaningful architectural difference. For batch workloads where latency doesn't matter, a centralized API is simpler.
+
+**Sources:** [Workers AI Quickstart — Cloudflare Docs](https://developers.cloudflare.com/workers-ai/get-started/workers-wrangler/) · [Workers AI Models Catalog](https://developers.cloudflare.com/workers-ai/models/) · [Workers AI Pricing and Free Tier](https://deploybase.ai/articles/cloudflare-ai-pricing) · [Workers AI Product Page — Cloudflare](https://www.cloudflare.com/products/workers-ai/)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>One Option Stops Parallel Claude Agents From Stepping on Each Other: isolation: worktree</title>
