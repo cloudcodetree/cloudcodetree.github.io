@@ -10,9 +10,171 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 01 Aug 2026 04:15:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 01 Aug 2026 12:06:00 +0000</lastBuildDate>
 
 
+
+    <item>
+      <title>One Option Stops Parallel Claude Agents From Stepping on Each Other: isolation: worktree</title>
+      <link>https://support.claude.com/en/articles/14554000-claude-code-power-user-tips</link>
+      <guid isPermaLink="false">2026-08-01-06-isolation-worktree-parallel-claude-agents</guid>
+      <pubDate>Sat, 01 Aug 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Add isolation: worktree to any Claude Code agent definition and it gets its own git branch and file system — parallel agents stop overwriting each other's uncommitted files.</description>
+      <content:encoded><![CDATA[
+**Add `isolation: "worktree"` to any Claude Code agent call — it gets its own git branch and file system, so parallel agents never touch each other's uncommitted files.**
+
+When two Claude Code sessions run against the same repo simultaneously, they share files on disk. One session's in-progress edit is visible (and dangerous) to the other. With `isolation: "worktree"`, each agent gets a fresh git worktree: its own directory, its own branch, no interference.
+
+## Add it to any agent definition
+
+In your agent's frontmatter:
+
+```markdown
+---
+model: claude-opus-5
+isolation: worktree
+---
+```
+
+Or in the Agent SDK:
+
+```javascript
+Agent({
+    description: "Fix the auth bug",
+    isolation: "worktree"
+})
+```
+
+## How cleanup works
+
+Worktrees auto-remove if the agent makes no changes. If changes were made, the worktree path and branch are returned — review and merge at your own pace. Run `git worktree prune` weekly to catch stale worktrees from abandoned sessions; a cron or a pre-push hook works well for this.
+
+## When to use it
+
+- Any fan-out workflow spawning multiple code-writing agents (migrations, multi-file fixes, parallel feature branches)
+- Automated PR pipelines where agents work on separate files concurrently
+- CI agents that need an isolated environment without a full Docker container
+
+The `/batch` command in Claude Code uses isolation: worktree automatically for each spawned agent. The desktop app makes it the default per tab — you get this behavior interactively without any configuration.
+
+**Sources:** [Claude Code Power User Tips — support.claude.com](https://support.claude.com/en/articles/14554000-claude-code-power-user-tips) · [Git Worktrees in Claude Code — Claude Directory](https://www.claudedirectory.org/blog/claude-code-worktrees-guide) · [Parallel Agents Without Context Switching — Developers Digest](https://www.developersdigest.tech/blog/git-worktrees-claude-code-parallel-agents-guide)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Copilot Code Review Reads Your MCP Servers and Team Style Guides — GA July 29</title>
+      <link>https://github.blog/changelog/2026-07-29-copilot-code-review-agent-skills-and-mcp-now-generally-available/</link>
+      <guid isPermaLink="false">2026-08-01-05-copilot-code-review-agent-skills-mcp-ga</guid>
+      <pubDate>Sat, 01 Aug 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>MCP</category>
+      <description>GitHub's Copilot code review shipped agent skills (SKILL.md) and MCP server connections on July 29 — your automated reviewer now knows your internal tools and team standards, not just the diff.</description>
+      <content:encoded><![CDATA[
+**GitHub's Copilot code review shipped agent skills (SKILL.md) and MCP server connections on July 29 — your automated reviewer now knows your internal tools and team standards, not just the diff.**
+
+Two new capabilities reached GA for all Copilot Pro, Pro+, Business, and Enterprise users on July 29:
+
+**Agent skills** — create `.github/skills/<name>/SKILL.md` with natural-language instructions about your codebase's patterns, and Copilot review invokes them for every PR. One file can encode "we never call the legacy billing API directly" or "every new SQL query goes through our retry wrapper." Reviews now label which comments came from a skill, so the source is transparent.
+
+**MCP connections** — pull read-only context from your issue tracker, service catalog, or docs system into the review. All MCP tool calls are limited to read-only (Copilot cannot write back). Any MCP config already wired for the Copilot cloud agent applies automatically to code review — no duplicate setup.
+
+**Why it matters:** Copilot reviews can finally enforce team-specific conventions, not just general code quality — closing the gap with what a senior engineer who knows your codebase actually catches.
+
+**Sources:** [Copilot Code Review GA — GitHub Changelog](https://github.blog/changelog/2026-07-29-copilot-code-review-agent-skills-and-mcp-now-generally-available/) · [About Copilot Code Review — GitHub Docs](https://docs.github.com/en/copilot/concepts/agents/code-review) · [Shape Copilot Review Around Your Team — GitHub Changelog](https://github.blog/changelog/2026-06-02-shape-copilot-code-review-around-your-team/)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your LLM Is Blind By Default: Fine-Tune a Vision Model on a Free Colab GPU With SmolVLM + QLoRA</title>
+      <link>https://huggingface.co/learn/cookbook/en/fine_tuning_smol_vlm_sft_trl</link>
+      <guid isPermaLink="false">2026-08-01-04-vlm-fine-tuning-smolvlm-consumer-gpu</guid>
+      <pubDate>Sat, 01 Aug 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <category>LLM</category>
+      <description>SmolVLM + QLoRA lets you fine-tune a vision-language model on a free Colab T4 to read images in your domain — same SFT conversation format as text, just add image tokens to the user message.</description>
+      <content:encoded><![CDATA[
+**SmolVLM + QLoRA lets you fine-tune a vision-language model on a free Colab T4 to analyze your domain images — receipts, charts, screenshots, PDFs — without a proprietary vision API.**
+
+**What you'll be able to do after this:**
+- Fine-tune a compact VLM (SmolVLM-500M or 2B) to answer questions about images in your domain using only a consumer GPU or free Colab T4
+- Structure image+text conversation datasets the way VLMs expect — a different format than text-only SFT, but straightforward once you see it
+- Evaluate visual accuracy and serve the result through the same vLLM or Ollama stack you already run for text models
+
+## Walk-through
+
+**Install:**
+```bash
+pip install transformers trl datasets pillow torch
+```
+
+**Dataset format** — each example is a conversation where user messages include both an image reference and a text question:
+```python
+# Dataset row structure
+{
+    "messages": [
+        {
+            "role": "user",
+            "content": [
+                {"type": "image"},   # the image object lives in "images" list
+                {"type": "text", "text": "What does this chart show?"}
+            ]
+        },
+        {
+            "role": "assistant",
+            "content": "Q3 revenue grew 40% YoY driven by enterprise deals..."
+        }
+    ],
+    "images": [pil_image_object]   # PIL Image or path
+}
+```
+
+**LoRA + SFTTrainer:**
+```python
+from peft import LoraConfig
+from trl import SFTTrainer, SFTConfig
+from transformers import AutoProcessor, AutoModelForVision2Seq
+
+model = AutoModelForVision2Seq.from_pretrained(
+    "HuggingFaceTB/SmolVLM-500M-Instruct",
+    load_in_4bit=True,    # fits on a T4 with 15GB VRAM
+)
+processor = AutoProcessor.from_pretrained("HuggingFaceTB/SmolVLM-500M-Instruct")
+
+lora_config = LoraConfig(
+    r=8,
+    lora_alpha=16,
+    target_modules=["q_proj", "v_proj"],
+    task_type="CAUSAL_LM",
+)
+
+trainer = SFTTrainer(
+    model=model,
+    args=SFTConfig(output_dir="smolvlm-finetuned", num_train_epochs=3),
+    train_dataset=dataset,
+    peft_config=lora_config,
+    processing_class=processor,
+)
+trainer.train()
+```
+
+For larger VLMs on the same free Colab hardware, Unsloth's Qwen3-VL (8B) notebooks train 1.7× faster with 60% less VRAM — the free Colab T4 handles it comfortably with 4-bit quantization. The key insight: VLM fine-tuning is structurally identical to text SFT. You're adding image tokens to the user message; the rest of your pipeline transfers.
+
+**Sources:** [Fine-tuning SmolVLM on a Consumer GPU — HuggingFace Cookbook](https://huggingface.co/learn/cookbook/en/fine_tuning_smol_vlm_sft_trl) · [Fine-Tuning VLM with TRL (Qwen2-VL-7B) — HuggingFace Cookbook](https://huggingface.co/learn/cookbook/en/fine_tuning_vlm_trl) · [Vision Fine-tuning — Unsloth Docs](https://unsloth.ai/docs/basics/vision-fine-tuning) · [Qwen3-VL Run and Fine-Tune — Unsloth](https://unsloth.ai/docs/models/tutorials/qwen3-how-to-run-and-fine-tune/qwen3-vl-how-to-run-and-fine-tune)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Type-Safe Agents: Use Pydantic AI to Get Validated Python Objects Instead of Raw LLM Strings</title>
