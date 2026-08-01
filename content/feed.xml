@@ -10,8 +10,164 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 31 Jul 2026 20:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 01 Aug 2026 04:15:00 +0000</lastBuildDate>
 
+
+
+    <item>
+      <title>Type-Safe Agents: Use Pydantic AI to Get Validated Python Objects Instead of Raw LLM Strings</title>
+      <link>https://pydantic.dev/docs/ai/core-concepts/output/</link>
+      <guid isPermaLink="false">2026-08-01-01-pydantic-ai-type-safe-agents-structured-output</guid>
+      <pubDate>Sat, 01 Aug 2026 04:13:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Pydantic AI lets you declare a Pydantic model as your agent's output type and receive a validated Python object — with auto-retry on malformed output — instead of parsing raw LLM strings.</description>
+      <content:encoded><![CDATA[
+**Pydantic AI wraps your LLM call, sends your Pydantic model's JSON schema, validates the response, and retries on failure — you get a typed Python object back, never a raw string to parse.**
+
+**What you'll be able to do after this:**
+- Declare a `BaseModel` as your agent's `output_type` and receive a fully-validated Python object — with IDE autocomplete and type checking — after every call
+- Write agents that automatically retry when the LLM returns malformed JSON, without any try/except boilerplate
+- Swap between Anthropic Claude, OpenAI GPT, and a local Ollama model by changing one string in your agent constructor
+
+## Walk-through
+
+**Install:**
+```
+pip install "pydantic-ai[anthropic]"
+```
+
+**Define your output model and run:**
+```python
+from pydantic import BaseModel
+from pydantic_ai import Agent
+
+class BugReport(BaseModel):
+    severity: str          # "low" | "medium" | "high" | "critical"
+    component: str
+    root_cause: str
+    suggested_fix: str
+
+agent = Agent(
+    "anthropic:claude-sonnet-5",   # swap: "openai:gpt-5.6" or "ollama:llama3"
+    output_type=BugReport,
+)
+
+result = agent.run_sync(
+    "The login button does nothing on mobile Safari 17. "
+    "Stack trace: TypeError: Cannot read properties of undefined (reading 'submit')"
+)
+
+# result.data is a validated BugReport — not a string
+print(result.data.severity)       # e.g. "high"
+print(result.data.suggested_fix)  # type-checked, IDE-autocomplete-ready
+```
+
+Pydantic AI translates your model's fields to a JSON schema, sends it alongside your prompt, validates the LLM's JSON response, and retries automatically (configurable `max_retries`) if validation fails. Add tools by decorating plain Python functions with `@agent.tool` — they get included in the schema automatically. For async workloads, replace `run_sync` with `await agent.run(…)`.
+
+Provider switching is one string change: `"anthropic:claude-sonnet-5"` → `"openai:gpt-5.6"` → `"ollama:llama3"`. The framework supports 20+ providers. Full output patterns (streaming, union types, lists of models) are in the [Output docs](https://pydantic.dev/docs/ai/core-concepts/output/).
+
+**Sources:** [Output — Pydantic AI Docs](https://pydantic.dev/docs/ai/core-concepts/output/) · [Pydantic AI overview](https://pydantic.dev/docs/ai/overview/) · [YouTube: Build 100% Reliable AI Agents with Structured Output](https://www.youtube.com/watch?v=IvawydRYGx4) · [Building AI Agents in Python with Pydantic AI — Machine Learning Mastery](https://machinelearningmastery.com/building-ai-agents-in-python-with-pydantic-ai/)
+      ]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/IvawydRYGx4/maxresdefault.jpg" medium="image"/>
+      <media:thumbnail url="https://img.youtube.com/vi/IvawydRYGx4/maxresdefault.jpg"/>
+    </item>
+
+    <item>
+      <title>GitHub Copilot's Default Model Changes This Month: Project Polaris Replaces GPT-4 Turbo for 4.7M+ Subscribers</title>
+      <link>https://windowsforum.com/threads/project-polaris-set-as-default-github-copilot-engine-in-august-2026.421826/</link>
+      <guid isPermaLink="false">2026-08-01-02-copilot-project-polaris-default-august</guid>
+      <pubDate>Sat, 01 Aug 2026 04:14:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>GitHub Copilot switches its default engine to Project Polaris — Microsoft's in-house MoE coding model — replacing GPT-4 Turbo for 4.7M+ paid subscribers starting this month.</description>
+      <content:encoded><![CDATA[
+**GitHub Copilot switches its default reasoning engine to Project Polaris — Microsoft's in-house MoE coding model — replacing GPT-4 Turbo for 4.7M+ paid subscribers starting this month.**
+
+Project Polaris uses a mixture-of-experts architecture with language-specific sub-modules, announced at Microsoft Build 2026 (June 2) and rolling out as the Copilot default in August. The model handles multi-file refactoring via chain-of-thought reasoning at inference time. All subscribers get a three-month window to opt back to GPT-4 Turbo. If your team's Copilot policies, `.devcontainer` configs, or API integrations pin `gpt-4-turbo` by name, audit those now — the silent migration is underway.
+
+**Why it matters:** Copilot now runs on a proprietary, non-API-accessible model. For teams weighing Claude Code against Copilot for agentic workflows, the comparison shifted: you're benchmarking against a black-box engine you can't call from your own pipelines.
+
+**Sources:** [Project Polaris Set as Default — Windows Forum](https://windowsforum.com/threads/project-polaris-set-as-default-github-copilot-engine-in-august-2026.421826/) · [Microsoft Build 2026: Polaris Recap — Enterprise DNA](https://enterprisedna.co/resources/news/microsoft-build-2026-project-polaris-copilot-recap-2026/) · [GitHub Copilot Replaces GPT-4 With Project Polaris — TechTimes](https://www.techtimes.com/articles/317596/20260602/github-copilot-replaces-gpt-4-project-polaris-ships-multi-agent-vs-code-build.htm)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Kill the 40-Line Agentic Loop: The Claude SDK tool_runner Handles Multi-Turn Tool Calls For You</title>
+      <link>https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner</link>
+      <guid isPermaLink="false">2026-08-01-03-claude-sdk-tool-runner-agentic-loop</guid>
+      <pubDate>Sat, 01 Aug 2026 04:15:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>The SDK's client.beta.messages.tool_runner iterable runs the full multi-turn tool-calling loop automatically — no manual stop_reason checks, no result appending, no repeat-until-done.</description>
+      <content:encoded><![CDATA[
+**The standard agentic loop — check stop_reason, dispatch tool calls, append results, repeat — is 30+ boilerplate lines. The Claude SDK's `tool_runner` collapses it to an iterable.**
+
+Every multi-turn tool-using agent follows the same cycle: call the API, check if `stop_reason == "tool_use"`, run each `tool_use` block, append `tool_result` messages, call the API again. The `client.beta.messages.tool_runner` (beta, available in Python, TypeScript, Go, C#, Java, Ruby, PHP) handles all of that internally.
+
+## Minimal working example
+
+```
+pip install anthropic
+```
+
+```python
+from anthropic import Anthropic, beta_tool
+import json
+
+client = Anthropic()
+
+@beta_tool
+def get_price(ticker: str) -> str:
+    """Fetch current stock price.
+    Args: ticker: Stock symbol, e.g. AAPL.
+    Returns: JSON with price and daily change.
+    """
+    return json.dumps({"ticker": ticker, "price": 182.50, "change": "+1.2%"})
+
+@beta_tool
+def search_news(query: str, limit: int = 3) -> str:
+    """Search recent news headlines.
+    Args: query: Search topic. limit: Max number of results (default 3).
+    Returns: JSON list of headline strings.
+    """
+    return json.dumps([f"Headline about {query} #{i}" for i in range(limit)])
+
+runner = client.beta.messages.tool_runner(
+    model="claude-sonnet-5",
+    max_tokens=2048,
+    tools=[get_price, search_news],
+    messages=[{"role": "user", "content": "Research AAPL: get the price and two recent headlines."}],
+)
+
+for msg in runner:
+    pass  # runner iterates through every tool-call/result cycle
+
+print(runner.get_final_message().content[0].text)
+```
+
+Three things the runner does for you:
+
+1. **`@beta_tool` generates the schema.** The decorator reads your function signature and docstring and builds the full JSON schema — no manual `input_schema` dict.
+2. **Parallel dispatch by default.** When Claude requests multiple tools in one turn, the runner fans them all out before the next iteration.
+3. **Error wrapping.** If your tool throws, the runner returns the exception message as an `is_error: true` tool result — Claude sees the error and can adapt, rather than your process crashing.
+
+The [5-ring official tutorial](https://platform.claude.com/docs/en/agents-and-tools/tool-use/build-a-tool-using-agent) walks through writing the manual loop first (rings 1–4), then collapsing it with `tool_runner` (ring 5) — worth reading to understand what happens under the hood.
+
+**Sources:** [Tool Runner (SDK) — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner) · [Tutorial: Build a tool-using agent — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/build-a-tool-using-agent) · [Agent SDK overview — Claude API Docs](https://platform.claude.com/docs/en/agent-sdk/overview)
+      ]]></content:encoded>
+      <media:content url="https://www.anthropic.com/og/og-anthropic-logo.png" medium="image"/>
+      <media:thumbnail url="https://www.anthropic.com/og/og-anthropic-logo.png"/>
+    </item>
 
     <item>
       <title>Stop Blocking on Slow MCP Calls: Claude Code Auto-Backgrounds Tool Calls That Run Long</title>
