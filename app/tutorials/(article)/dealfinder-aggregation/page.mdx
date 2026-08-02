@@ -484,6 +484,50 @@ Compare URL: `github.com/cloudcodetree/tutorial-dealfinder/compare/step-08...ste
 
 ---
 
+## Check it works
+
+1. **The unit invariants** — dedup, early-stop, breaker, all offline:
+   ```bash
+   pytest tests/test_aggregate.py -v
+   ```
+   **Expect:** `5 passed` in under a second — exact-key dedup, early-stop, breaker bench, semantic collapse, distinct-products-stay-apart.
+
+2. **Semantic dedup on the real snapshot** — the measured numbers from this part, reproduced on your machine:
+   ```bash
+   python -c "
+   from dealfinder.snapshot import load_products
+   from dealfinder.dedup import dedup_by_embedding
+   ps = [p for p in load_products() if p.category == 'audio']
+   kept = dedup_by_embedding(ps)
+   print(f'{len(ps)} -> {len(kept)}')
+   xm5 = [p for p in kept if 'WH-1000XM5' in p.title]
+   print('XM5 survivors:', [(p.title[:40], p.price) for p in xm5])"
+   ```
+   **Expect:** `60 -> 54`, and exactly **one** XM5 survivor at **$162.97** (the Costco offer — cheapest in its cluster). First run loads the bge model (~45 MB cached); later runs are instant.
+
+3. **The full pipeline, live.** With any keys set:
+   ```bash
+   curl -s "http://localhost:8000/search?q=noise+cancelling+headphones" | python -m json.tool | head -20
+   ```
+   **Expect:** an envelope with `sources_live`, `throttled`, `median_price`, `count`, and ranked `results`. If your tier-1 sources returned enough, `sources_live` lists *only* them — that's the early-stop, not a failure of the missing sources.
+
+---
+
+## What you can demo now
+
+The fan-out is now an *operated* system — it reports its own behavior:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-aggregation/live-aggregate-envelope.png"
+  alt="Live aggregation results with the status envelope highlighted"
+  caption="Real capture: the aggregation envelope over a live run — count, sources actually used, cross-source median."
+  lookFor="the ringed status line: 18 offers · sources live: eBay, RapidAPI · median $61.99. Three sources are conspicuously absent — Apify, Shopify, Firecrawl were never called because tier 1 hit the target first (the early-stop working, visible in production). Every deal percentage on the cards below is computed against that live cross-source median."
+/>
+
+The demo line: *"watch the status line, not just the cards — it tells you which sources ran, which were benched, and what median every deal is measured against. Kill a source's key and search again: the app degrades gracefully and the line tells the truth."*
+
+---
+
 ## Where this goes next
 
 - **Back — Part 8 — Scraping responsibly (Apify/Shopify/Firecrawl; ToS/robots):** delivered the raw scraper connectors that this part wraps in circuit breakers and integrates as Tier 3 of the tiered plan.

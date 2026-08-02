@@ -471,6 +471,47 @@ All assertions must pass without any live credential. The smoke test (`@pytest.m
 
 ---
 
+## Check it works
+
+Three checks, one per layer — run them in order so a failure points at the right layer:
+
+1. **The connector, in isolation.** One live RapidAPI query from Python:
+   ```bash
+   python -c "
+   from dealfinder.live_sources import RapidApiSource
+   for p in RapidApiSource().search('noise cancelling headphones', limit=5):
+       print(f'{p.brand[:20]:20s} | {p.title[:50]:50s} | \${p.price}')"
+   ```
+   **Expect:** 5 rows with real retailer names and prices. **If you get 0 rows:** your key loaded but the subscription is missing — a raw call returns `403 You are not subscribed` (revisit the Part 1 signup callout).
+
+2. **The server sees your keys.** Restart the app (it reads `.env` at import) and hit the availability endpoint:
+   ```bash
+   uvicorn dealfinder.serve:app --port 8000   # restart after editing .env
+   curl -s http://localhost:8000/sources
+   ```
+   **Expect:** `true` for every source whose key you set — with RapidAPI + eBay that reads `{"eBay":true,"RapidAPI":true,...}`. **If a source you configured shows `false`:** the env var name is misspelled or the server predates your `.env` edit.
+
+3. **The product, end to end.** Open [http://localhost:8000](http://localhost:8000), keep **live deals** selected, search `noise cancelling headphones`. **Expect:** a result grid within ~5–20 s whose status line names your live sources. eBay items carry condition labels (`eBay:Open box`, `eBay:Certified - Refurbished`) — inventory Google Shopping doesn't have. **If the grid is empty:** check the terminal running uvicorn; a stack trace there is a connector bug, an empty-but-clean response means every source is keyless or benched.
+
+The offline tests cover the same code paths with no keys at all: `pytest tests/test_live_sources.py -v` — 5 passed, including the mocked eBay OAuth-then-search flow.
+
+---
+
+## What you can demo now
+
+DealFinder is no longer a snapshot viewer — it shops live:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-live-sources/live-multi-source.png"
+  alt="Live DealFinder results from eBay and RapidAPI with source chips highlighted"
+  caption="Real capture: one query fanned out to eBay + Google Shopping (RapidAPI), merged and ranked by value."
+  lookFor="the source chip on every card — ringed purple are eBay:Certified - Refurbished items (the used-market price band only the Browse API provides), ringed blue is a RapidAPI retail listing. Same product family, two markets, one ranked list — a Sony refurb at $49.99 sits beside retail listings at 5x that."
+/>
+
+The demo line: *"this page did not exist in any cache — every card is a live offer fetched the moment you hit Search, from two different marketplaces, through one `Source` protocol."* Your results **will** differ from this capture — that's the point of live data; the snapshot lessons are where screens match exactly.
+
+---
+
 ## Where this goes next
 
 - **Part 8 — Scraping responsibly:** adds Apify and Firecrawl as additional `Source` implementations using the same ABC you built here. Part 8 also covers `robots.txt` obligations and ToS constraints for the scraping path — Shopify's public `/products.json` endpoint is the worked example of a keyless, structured, unblocked source.

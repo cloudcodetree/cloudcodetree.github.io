@@ -452,6 +452,55 @@ All four assertions must pass. They do not require any API key and do not hit an
 
 ---
 
+## Check it works
+
+One check per tier — each proves a different acquisition strategy:
+
+1. **Tier 2, Apify (managed scraping).** Costs a few cents of free credit and takes ~30–60 s (actor cold start):
+   ```bash
+   python -c "
+   from dealfinder.live_sources import ApifySource
+   for p in ApifySource().search('noise cancelling headphones', limit=5):
+       print(f'{p.source[:28]:28s} | {p.title[:48]:48s} | \${p.price} {p.currency}')"
+   ```
+   **Expect:** US retail listings, every row `USD`. **If you see 0 rows:** check `APIFY_TOKEN`; if the run errors, the actor may have queued — rerun once.
+
+2. **Tier 3, Shopify (keyless).** No key, no signup — but pick a query the default stores actually carry:
+   ```bash
+   python -c "
+   from dealfinder.live_sources import ShopifySource
+   print(len(ShopifySource().search('phone case', limit=5)), 'results')"
+   ```
+   **Expect:** several results (Spigen/Peak Design carry cases). **Searching `headphones` returns 0 — that is correct behavior**, not a bug: the token filter only passes products the niche store list actually sells.
+
+3. **Tier 4, Firecrawl (broad crawl).** The noisy last resort:
+   ```bash
+   python -c "
+   from dealfinder.live_sources import FirecrawlSource
+   for p in FirecrawlSource().search('noise cancelling headphones', limit=5):
+       print(f'{p.source[:30]:30s} | \${p.price}')"
+   ```
+   **Expect:** a handful of rows from retail domains, none from the `_SKIP` editorial list — and expect noise (category pages, promo prices). That noise is why Firecrawl is tier 4.
+
+Offline, `pytest tests/test_live_sources.py -v` covers all the mapping logic with mocked HTTP — including the Firecrawl editorial-skip and the Shopify token filter — no keys, no credits.
+
+---
+
+## What you can demo now
+
+The acquisition layer is complete — every strategy from official API to broad crawl reports for duty:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-scraping/sources-endpoint.png"
+  alt="The /sources endpoint reporting seven sources with the three scraping tiers highlighted"
+  caption="Real capture: GET /sources after this part — the app tells you exactly which acquisition strategies are armed."
+  lookFor="the three ringed rows — Apify (managed scraping), Shopify (keyless public feeds), Firecrawl (broad crawl) — all true. BestBuy false is honest reporting, not an error: its key is pending approval, and the aggregator simply skips it."
+/>
+
+The demo line: *"the app can now acquire prices five different ways, and `/sources` is the honest inventory of which are live — blank keys degrade to `false`, never to a crash."*
+
+---
+
 ## Where this goes next
 
 - **Part 7 — Live multi-source connectors:** if you arrived here without completing Part 7, the `RapidApiSource`, `EbaySource`, and `BestBuySource` connectors are covered there. Part 8 assumes you have the data layer and official API connectors from Parts 1 and 7 in place.
