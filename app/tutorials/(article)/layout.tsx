@@ -3,6 +3,7 @@
 import { Container, Box, Button } from '@mui/material';
 import Link from 'next/link';
 import { SERIF, LINK } from '../../components/blogShared';
+import TutorialPagerNav from '../../components/TutorialPagerNav';
 
 // Styles raw MDX elements (the author writes the H1, so unlike the blog we keep
 // it). Mobile-safe: long URLs/code wrap or scroll instead of overflowing.
@@ -31,6 +32,7 @@ export default function TutorialArticleLayout({ children }: { children: React.Re
     <Container maxWidth="md" sx={{ py: { xs: 2, md: 4 } }}>
       <Button component={Link} href="/tutorials/" sx={{ mb: 3 }}>← Back to Tutorials</Button>
       <Box sx={tutorialSx}>{children}</Box>
+      <TutorialPagerNav />
     </Container>
   );
 }
