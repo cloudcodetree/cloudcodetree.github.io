@@ -147,6 +147,21 @@ print([enc.decode([t]) for t in enc.encode("WH-1000XM5")])
 
 ---
 
+## What you can demo now
+
+Run the three-line tokenizer experiment on a real snapshot title and show someone why LLMs mangle model numbers:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-how-llms-work/tokenizer-real-title.png"
+  alt="Real tiktoken output splitting a Sony product title into 10 tokens"
+  caption="Real output: cl100k_base tokenizing a snapshot title."
+  lookFor="4 words become 10 tokens (ringed), and the model number WH-1000XM5 shatters into four pieces — 100 · 0 · XM · 5 (amber). The model never sees the model number as one thing, which is why Part 6 validates extracted model strings instead of trusting them."
+/>
+
+The demo line: *"the atom of an LLM is not the word — watch a product SKU get shredded, then remember every downstream lesson has to survive that."*
+
+---
+
 ## Where this goes next
 
 **Back:** Part 1 built the data pipeline that pulls real titles like `"Sony WH-1000XM5"` and exposed the `brand`-as-retailer messiness that attention cannot fix alone. This part explains the cognitive model that will later read those titles.

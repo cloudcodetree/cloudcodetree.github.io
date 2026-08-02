@@ -493,6 +493,21 @@ pytest tests/test_extract.py    # 5 passed
 
 ---
 
+## What you can demo now
+
+Feed the extraction chain its designed-for trap — the retailer-prefixed title — and watch both paths refuse the bait:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-extraction/rule-vs-llm-extract.png"
+  alt="rule_extract and llm_extract both returning COWIN, not Walmart, for a poisoned title"
+  caption="Real output: the deterministic path and a live OpenRouter call on the same poisoned title."
+  lookFor="both ringed brand values read COWIN — “Walmart”, the first capitalized token and the naive answer, never lands in brand. Same typed ListingSpecs either way: that's the schema gate doing its job, and the graceful-degradation chain means no API key still returns valid data."
+/>
+
+The demo line: *"the title lies about who made the product; both extractors — a regex and a frontier model — are trained/gated not to believe it."*
+
+---
+
 ## Where this goes next
 
 - **Back — Part 5 — Semantic search:** showed that title text carries signal that hand-features miss, via embeddings. This part pulls *structured* signal from the same title text — the two approaches are complementary.

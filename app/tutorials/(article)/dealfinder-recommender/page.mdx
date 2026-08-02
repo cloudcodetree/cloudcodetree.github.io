@@ -287,6 +287,21 @@ pytest tests/test_recommend.py
 
 ---
 
+## What you can demo now
+
+Two recommenders, one anchor product, visibly different worldviews:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-recommender/two-recommenders.png"
+  alt="Content vs collaborative recommendations for the Sony WH-1000XM5"
+  caption="Real output: both recommenders over the snapshot + the real interaction log, same XM5 anchor."
+  lookFor="the ringed collaborative list crossing brands to Beats and Bose — items whose titles share almost nothing with the anchor. Content similarity (top list) stays locked inside Sony because it reads titles; co-likes read people. Only one item overlaps between the lists."
+/>
+
+The demo line: *"same product in, two different neighborhoods out — one from the words, one from the users. A real recsys keeps both, and now you can show why."*
+
+---
+
 ## Where this goes next
 
 - **Back — Part 3 — Is it a good deal? Median vs. model:** Part 3 built the two-signal deal score that separates a genuine deal from a suspicious bargain. This part deliberately keeps the recommenders pure similarity — neither `similar_products` nor `collaborative_recommend` knows about deal quality. Combining *similarity* with *value* into one ranking is the next step.

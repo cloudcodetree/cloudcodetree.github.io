@@ -372,6 +372,21 @@ pytest tests/test_dealscore.py tests/test_dealmodel.py
 
 ---
 
+## What you can demo now
+
+The app can now *judge* a price, not just show it — hit the deal endpoint for the hero product:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-deal-model/deal-endpoint-anker.png"
+  alt="The /deal endpoint returning fair price and deal score for the Anker Q20i"
+  caption="Real API response: GET /deal/&lt;anker-q20i-id&gt; from the running app."
+  lookFor="the “fair”: 108.33 field (green ring) — the model's opinion of what this Anker should cost — and “deal_score”: 0.585 (amber ring), safely under the 0.70 suspicious line. The $44.99 asking price against a $108.33 fair estimate is why the UI badge says DEAL."
+/>
+
+The demo line: *"$44.99 is the ask; $108.33 is what the model thinks it's worth. The gap — and whether it's plausible — is the whole product."*
+
+---
+
 ## Where this goes next
 
 - **Part 4 — Recommender (content + collaborative):** the `feature_matrix()` from this part is the content-similarity backbone. The two-signal score ranks candidate items the recommender surfaces.

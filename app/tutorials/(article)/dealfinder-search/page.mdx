@@ -418,6 +418,21 @@ Two headphones priced within a dollar of each other, ranked six places apart —
 
 ---
 
+## What you can demo now
+
+Run the same query through both rankers and show the failure that motivates hybrid search:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-search/bm25-vs-semantic.png"
+  alt="BM25 vs semantic ranking for the query sony noise cancelling"
+  caption="Real output: both rankers over the 270-item snapshot, query “sony noise cancelling”."
+  lookFor="BM25's #1 result is a Bose (red ring) — keyword scoring rewards the double “Noise Cancelling” match and treats “sony” as just one term of three. The semantic top-3 (green ring) is all-Sony. Neither ranker is wrong; they measure different things — which is exactly why this part fuses them."
+/>
+
+The demo line: *"ask a keyword engine for Sony and it hands you a Bose with a straight face — then ask the embedding, and fuse."*
+
+---
+
 ## Where this goes next
 
 - **Part 4 — What you'll like next (Recommender):** Part 4 built and cached the fastembed title-embedding matrix over real title data. Part 5 reuses those embeddings directly — via the recommender's `load_catalog_embeddings()`, which aligns the cached `.npz` vectors to whatever product list you pass — so hybrid search is built on the recommender's pre-computed representations, not a second model run.
