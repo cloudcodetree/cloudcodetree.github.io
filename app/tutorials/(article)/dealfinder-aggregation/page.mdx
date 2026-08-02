@@ -189,14 +189,9 @@ This fires for real: with eBay and RapidAPI keys set, a live `"noise cancelling 
 
 ## The circuit breaker: CLOSED, OPEN, HALF_OPEN
 
-The canonical circuit breaker is a three-state machine:
+A circuit breaker is the pattern that keeps one failing dependency from dragging down everything that calls it. The name is the electrical metaphor taken literally: when a component starts shorting, you don't keep pushing current through it — you cut the circuit, wait, then test carefully before restoring power. In software the "current" is requests, and the pattern is a three-state machine:
 
-```
-CLOSED ──(error budget exceeded)─────▶ OPEN
-OPEN   ──(cooldown elapsed)──────────▶ HALF_OPEN
-HALF_OPEN ──(probe succeeds)─────────▶ CLOSED
-HALF_OPEN ──(probe fails)────────────▶ OPEN
-```
+<CircuitStates />
 
 The companion ships the *minimal* version of this machine — an error budget of exactly one. This is the complete real implementation in `dealfinder/aggregate.py`:
 

@@ -228,7 +228,11 @@ Do not treat these numbers as a production SLA. They are a single local measurem
 
 ## Chaos testing: the circuit breaker under fire
 
-The load test shows what the system does under normal-ish concurrency. The chaos tests show what it does when sources fail. `tests/test_chaos.py` runs entirely offline using mocked sources and exercises the circuit breaker's invariants directly:
+The load test shows what the system does under normal-ish concurrency. The chaos tests show what it does when sources fail. First, the pattern being tested — the state machine from Part 9, because the chaos invariants below are assertions about its transitions:
+
+<CircuitStates />
+
+`tests/test_chaos.py` runs entirely offline using mocked sources and exercises the circuit breaker's invariants directly:
 
 ```python
 # tests/test_chaos.py (representative excerpts)
