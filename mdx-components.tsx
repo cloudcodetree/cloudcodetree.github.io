@@ -59,6 +59,7 @@ import ItemItemCF from './app/components/mdx/ItemItemCF';
 import LostInMiddle from './app/components/mdx/LostInMiddle';
 import K8sReconcile from './app/components/mdx/K8sReconcile';
 import CircuitStates from './app/components/mdx/CircuitStates';
+import LessonScreenshot from './app/components/mdx/LessonScreenshot';
 import SSEStream from './app/components/mdx/SSEStream';
 import EchoFilter from './app/components/mdx/EchoFilter';
 import RankingLens from './app/components/mdx/RankingLens';
@@ -125,6 +126,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     StoreVsMemory, VectorIndex, GroundingGuard,
     AgenticLoop, ContextBudget, WriterReviewer, BoostingResidual, BM25Curves, CosineAngle,
     Quantization, HmacVerify, KVCache, ItemItemCF, LostInMiddle, K8sReconcile, CircuitStates,
+    LessonScreenshot,
     SSEStream,
     EchoFilter, RankingLens,
     GroupedSplit, LabelImbalance,

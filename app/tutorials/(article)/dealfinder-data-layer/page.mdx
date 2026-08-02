@@ -429,7 +429,18 @@ uvicorn dealfinder.serve:app --port 8000
 
 ---
 
-## Where this goes next
+## What you can demo now
+
+After this part, DealFinder is already showable. Open [http://localhost:8000](http://localhost:8000), pick **by meaning (saved)**, and search `noise cancelling headphones`:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-data-layer/semantic-search-verdicts.png"
+  alt="DealFinder offline search results with DEAL and SUSPICIOUS verdict badges highlighted"
+  caption="Real capture: offline search over the frozen snapshot — no API keys, no network."
+  lookFor="the status line reads “12 matches by meaning · across the frozen snapshot”; the Anker Soundcore Q20i at $44.99 carries a green DEAL badge (ringed); the Bose QuietComfort 45 at $46.00 — almost the same price — carries an amber SUSPICIOUS badge (ringed). Two near-identical prices, two opposite verdicts: that contrast is this course's whole thesis, and it works on day one."
+/>
+
+The demo line for a colleague: *"every card is a real July-2026 listing; the badges come from a price model you'll build in Part 3 — notice it already refuses to call the $46 Bose a deal."* Everything in the screenshot runs offline from the committed snapshot, so your screen should match this capture exactly.
 
 - **Part 2 — How LLMs actually work:** before wiring a model into DealFinder, you need the literacy: tokenization, embeddings, attention, and sampling — illustrated with electronics examples drawn from the 11 snapshot categories you just established.
 - **Part 3 — Is it a good deal? Median vs. model:** opens by loading `electronics-2026-07.json` and immediately hits the naive-median failure mode the `deal_pct` outliers in this part foreshadow. The −3785% outlier and the $46 Bose QuietComfort 45 that reads as 72% below median are the motivation for the price model. You froze the data; Part 3 shows why the naive signal on that data is broken.
