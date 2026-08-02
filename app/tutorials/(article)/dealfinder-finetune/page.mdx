@@ -21,10 +21,10 @@ export const metadata = {
 
 **TL;DR: The Part 6 extractor works on clean titles, but 154 of the 270 snapshot rows have retailer tokens in the `brand` field that corrupt extraction. A 30-example QLoRA fine-tune on a 1B model cuts the retailer-bleed error rate from 29% to 4% and pushes manufacturer accuracy from 78% to 94%. Numbers are illustrative; the code is real and Colab-runnable.**
 
-The Part 6 `llm_extract` function builds a structured prompt, calls an API, and validates the JSON response into a `ListingSpecs` object. That works. The problem is what it does when the title is `"Walmart - COWIN E7 Active Noise Cancelling Headphones Bluetooth"` — the base extractor returns `{brand: "Walmart"}` because the prompt has never seen this pattern in volume. You have 154 listings where the title starts with a retailer prefix. Prompt engineering can handle a few examples, but when every third listing has a different retailer-bleed pattern, you need the model to learn the task, not memorize a list.
+The Part 6 `llm_extract` function builds a structured prompt, calls an API, and validates the JSON response into a `ListingSpecs` object. That works. The problem is distractors: the snapshot's retailer pollution lives in the `brand` *field* (154 of 270 rows), which is why extraction reads the *title* — but marketplace feeds also produce titles like `"Walmart - COWIN E7 Active Noise Cancelling Headphones Bluetooth"`, where a naive reader takes the first capitalized token as the brand. Prompt engineering can warn against a few patterns, but when every marketplace invents its own prefix format, you want the model to *learn* the task — and since the frozen snapshot's titles are mostly clean, this part synthesizes the hard cases by augmentation: real titles, deliberately prefixed with retailer distractors.
 
 <Callout tone="warn">
-**This part needs a GPU — read here, run in the companion notebook.** QLoRA training requires CUDA; the concepts, code, and dataset construction run offline, but the training loop needs a GPU session (free Colab T4 is enough for the 1B model). A ready-to-run notebook ships with the companion — [`notebooks/finetune_qlora.ipynb`](https://github.com/cloudcodetree/tutorial-dealfinder/blob/main/notebooks/finetune_qlora.ipynb), or open it directly in Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/cloudcodetree/tutorial-dealfinder/blob/main/notebooks/finetune_qlora.ipynb). It fetches the real snapshot, builds the dataset, trains with this part's exact hyperparameters, and scores base-vs-adapter on the hero-cast hard titles. The numbers below are illustrative and consistently grounded in the snapshot. CI runs the eval script against the pre-trained adapter artifact, not a freshly trained one.
+**This part needs a GPU — read here, run in the companion notebook.** QLoRA training requires CUDA; the concepts, code, and dataset construction run offline, but the training loop needs a GPU session (free Colab T4 is enough for the 1B model). A ready-to-run notebook ships with the companion — [`notebooks/finetune_qlora.ipynb`](https://github.com/cloudcodetree/tutorial-dealfinder/blob/main/notebooks/finetune_qlora.ipynb), or open it directly in Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/cloudcodetree/tutorial-dealfinder/blob/main/notebooks/finetune_qlora.ipynb). It fetches the real snapshot, builds the dataset, trains with this part's exact hyperparameters, and scores base-vs-adapter on the hero-cast hard titles. The numbers below are illustrative and consistently grounded in the snapshot. What CI does pin is the pipeline seam: `test_adapter_path_degrades_gracefully_when_artifact_missing` proves a missing or broken adapter can never break extraction.
 </Callout>
 
 <Callout tone="note">
@@ -113,16 +113,15 @@ Listing: Walmart - COWIN E7 Active Noise Cancelling Headphones Bluetooth
 The companion `ListingSpecs` schema carries `brand`, `category`, `condition`, `model` — and the prompt already tells the model "the true manufacturer — NOT the retailer." Prompting alone still bleeds the retailer on hard titles, which is the ceiling this part pushes past. The fine-tune dataset below labels the same fields (`manufacturer` is just the dataset's name for `brand`); the `adapter_path` extension slots into the existing `llm_extract` gracefully-degrading chain.
 </Callout>
 
-The base extractor returns `{brand: "Walmart"}` for the poisoned title — it reads the first capitalized token as the brand. The Anker Soundcore Q20i case from the snapshot is even more direct:
+On an augmented hard title, the failure and the fix look like this:
 
 ```
-Input:  "Anker Soundcore Q20i Active Noise Cancelling Headphones"
-Brand field in snapshot:  "mountainlifestyle.ca"
-Base extractor output:  {manufacturer: "mountainlifestyle.ca"}
-Fine-tuned adapter output:  {manufacturer: "Anker"}
+Input:  "mountainlifestyle.ca Anker Soundcore Q20i Wireless Over-Ear Headphones"
+Naive first-token read:      {manufacturer: "mountainlifestyle.ca"}
+Fine-tuned adapter (goal):   {manufacturer: "Anker"}
 ```
 
-Of the 270 snapshot titles, 29% that pass through the base extractor (illustrative, grounded in the 154/270 pollution rate) produce a retailer string as `manufacturer`. That is the number fine-tuning targets.
+The illustrative error-rate table below (29% → 4% retailer bleed) shows the *shape* of the gain a small fine-tune buys on this task — grounded in the snapshot's 154/270 brand-field pollution rate, not a measured benchmark.
 
 <ExtractFlow />
 
@@ -148,55 +147,39 @@ After training you can either run inference with the adapter loaded on top of th
 
 ## Build the fine-tune dataset
 
-Dataset construction is the most important step. The `build_dataset.py` script reads the snapshot, selects a representative sample of hard cases, and formats them as chat-format pairs:
+Dataset construction is the most important step, and it happens in the companion notebook (`notebooks/finetune_qlora.ipynb`, section 4) with two honest, deliberate choices:
+
+**Weak labels instead of a hand-labeled gold set.** A production fine-tune starts from human labels; this course's dataset stands them in with a weak-labeling function — strip any retailer prefix, then take the manufacturer from a known-brand scan of the title. Run against the real snapshot it labels **161 of 270** titles (the rest have no recognizable brand and are excluded), split **128 train / 33 eval** at seed 42.
+
+**Augmentation synthesizes the hard cases.** The frozen snapshot's titles are mostly clean — its retailer pollution is in the `brand` field. So the notebook doubles the training set by prefixing each real title with a retailer distractor (`"Walmart - "`, `"mountainlifestyle.ca "`, …): **256 training pairs, half real, half deliberately poisoned**, each labeled with the true manufacturer. The model trains on exactly the corruption the pipeline needs it to ignore.
 
 ```python
-# dealfinder/finetune/build_dataset.py  (new in step-10-finetune)
-
-import json, random, pathlib
-from dealfinder.snapshot import load_snapshot
-
+# notebooks/finetune_qlora.ipynb — section 4 (the real cell, abridged)
 SYSTEM_PROMPT = (
     "You are a product-listing parser. Given an electronics title, "
     "return JSON with keys manufacturer (string|null), model (string|null), "
     "condition (new|refurb|used|null). Return ONLY valid JSON."
 )
 
-def gold_label(item: dict) -> dict:
-    """Human-assigned gold label for a snapshot item (hand-labeled CSV loaded separately)."""
-    ...  # reads from gold_labels.csv — 270 rows, hand-labeled
+def to_chat_pair(title: str, label: dict) -> dict:
+    return {"messages": [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": title},
+        {"role": "assistant", "content": json.dumps(label)},
+    ]}
 
-def to_chat_pair(item: dict, label: dict) -> dict:
-    return {
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": item["title"]},
-            {"role": "assistant", "content": json.dumps(label)},
-        ]
-    }
+labeled = [(p["title"], weak_label(p["title"])) for p in items]
+labeled = [(t, l) for t, l in labeled if l is not None]   # 161 of 270
+random.seed(42); random.shuffle(labeled)
+split = int(len(labeled) * 0.8)                            # 128 / 33
 
-def build(snapshot_path: str, seed: int = 42) -> tuple[list, list]:
-    items = load_snapshot(snapshot_path)
-    labeled = [(i, gold_label(i)) for i in items if gold_label(i) is not None]
-
-    random.seed(seed)
-    random.shuffle(labeled)
-
-    # 80/20 split — ~220 train, ~50 eval from the 270-item snapshot
-    split = int(len(labeled) * 0.8)
-    return labeled[:split], labeled[split:]
+PREFIXES = ["Walmart - ", "Target - ", "Best Buy - ", "mountainlifestyle.ca ", "Kohl's - "]
+aug = [to_chat_pair(PREFIXES[i % len(PREFIXES)] + t, l)
+       for i, (t, l) in enumerate(labeled[:split])]
+train_pairs += aug                                         # 256 train pairs
 ```
 
-Run it deterministically:
-
-```bash
-python dealfinder/finetune/build_dataset.py \
-    --snapshot data/snapshots/electronics-2026-07.json \
-    --seed 42 \
-    --out-dir data/finetune/
-```
-
-The output `train.jsonl` and `eval.jsonl` SHA-pin in CI so every run of the training loop starts from the same data. A five-row slice of `train.jsonl` (illustrative, consistent with snapshot titles):
+A five-row slice of the resulting training pairs (the retailer-prefixed rows are augmented variants of real titles):
 
 ```json
 {"messages": [{"role": "system", "content": "..."}, {"role": "user", "content": "Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Headphones"}, {"role": "assistant", "content": "{\"manufacturer\": \"Sony\", \"model\": \"WH-1000XM5\", \"condition\": \"new\"}"}]}
@@ -206,16 +189,16 @@ The output `train.jsonl` and `eval.jsonl` SHA-pin in CI so every run of the trai
 {"messages": [{"role": "system", "content": "..."}, {"role": "user", "content": "mountainlifestyle.ca Anker Soundcore Q20i Wireless Over-Ear Headphones"}, {"role": "assistant", "content": "{\"manufacturer\": \"Anker\", \"model\": \"Soundcore Q20i\", \"condition\": \"new\"}"}]}
 ```
 
-The hero cast titles appear in the training set because they represent the full range of difficulty: a clean flagship title (Sony XM5), a retailer-prefix title (Walmart - COWIN), and a third-party marketplace prefix (mountainlifestyle.ca). The Bose QuietComfort 45 condition label is `"new"` — the title has no condition token, so the default applies. The SUSPICIOUS verdict on the Bose listing comes from the model residual (0.839), not a parsed condition flag.
+The pairs span the full range of difficulty: clean flagship titles (Sony XM5), retailer-prefix variants (Walmart - COWIN), and third-party marketplace prefixes (mountainlifestyle.ca) — the last two synthesized by the augmentation step from their clean originals. The Bose QuietComfort 45 condition label is `"new"` — the title has no condition token, so the default applies. The SUSPICIOUS verdict on the Bose listing comes from the model residual (0.839), not a parsed condition flag.
 
 ---
 
 ## Run the training loop
 
-`train_qlora.py` uses `peft` and `trl` with optional `unsloth` acceleration. CI uses the vanilla `peft`+`trl` path:
+The training loop is notebook section 6 — vanilla `peft`+`trl`, no exotic dependencies. The full configuration:
 
 ```python
-# dealfinder/finetune/train_qlora.py  (new in step-10-finetune)
+# notebooks/finetune_qlora.ipynb — sections 5–6 (the real cells)
 
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model, TaskType
@@ -266,10 +249,10 @@ The loss curve drops steeply in the first epoch because the base model already k
 
 ## Evaluate the accuracy delta
 
-`eval_extractor.py` runs both the base extractor (via API or mock) and the fine-tuned adapter over the `eval.jsonl` held-out set, then prints a per-field accuracy table:
+Notebook section 8 scores both the base model and the adapter over the 33-pair held-out split — same prompts, same parser, only the adapter toggled:
 
 ```python
-# dealfinder/finetune/eval_extractor.py  (new in step-10-finetune)
+# notebooks/finetune_qlora.ipynb — section 8 (reference shape; the notebook cell is equivalent)
 
 def extract_with_adapter(title: str, adapter_path: str) -> dict:
     """Load the merged adapter model and run extraction."""
@@ -324,7 +307,7 @@ The Anker Soundcore Q20i is the payoff example. The snapshot has this item at $4
 The companion `extract.py` exposes `llm_extract` with a graceful-degradation chain: explicit client → OpenRouter → `rule_extract`. The fine-tuned adapter adds a fourth option at the top of that chain:
 
 ```python
-# dealfinder/extract.py  (extended in step-10-finetune)
+# dealfinder/extract.py  (the real companion code)
 
 def llm_extract(text: str, client=None, adapter_path: str | None = None) -> ListingSpecs:
     """Extract via LLM, degrading gracefully to the deterministic extractor.
@@ -334,7 +317,10 @@ def llm_extract(text: str, client=None, adapter_path: str | None = None) -> List
     returns something valid.
     """
     if adapter_path is not None:
-        return _adapter_extract(text, adapter_path)
+        try:
+            return _adapter_extract(text, adapter_path)
+        except Exception:
+            pass  # missing artifact / deps / GPU → fall through the chain
 
     if client is not None:
         resp = client.chat.completions.create(
@@ -354,22 +340,20 @@ def llm_extract(text: str, client=None, adapter_path: str | None = None) -> List
     return rule_extract(text)
 ```
 
-The `_adapter_extract` helper loads the merged adapter model (committed to the companion repo as `adapters/extractor-v1/`, ~6 MB) and runs a single forward pass. Callers that do not set `adapter_path` see identical behavior to Part 6 — the extension is additive.
-
-Verify the before and after for the Anker Soundcore title:
+The `_adapter_extract` helper lazy-imports `transformers` and loads the merged model directory **you** produce with the notebook (download the `extractor-v1-adapter.zip` from Colab's file browser and unzip it locally — the artifact is yours, not committed to the repo). Callers that do not set `adapter_path` see identical behavior to Part 6 — the extension is additive, and a broken or missing artifact falls straight through the chain:
 
 ```python
 from dealfinder.extract import llm_extract
 
-title = "Anker Soundcore Q20i Active Noise Cancelling Headphones"
+title = "mountainlifestyle.ca Anker Soundcore Q20i Wireless Over-Ear Headphones"
 
-# Without adapter (base path, mocked for CI)
-base_result = llm_extract(title)
-print(base_result.brand)     # "mountainlifestyle.ca"  ← retailer bleed
+# No artifact on this machine? The chain degrades and still returns valid data:
+s = llm_extract(title, adapter_path="/nonexistent/adapters/extractor-v1")
+print(s.brand)   # "Anker" — rule_extract caught it (the known-brand scan skips the domain)
 
-# With adapter
-ft_result = llm_extract(title, adapter_path="adapters/extractor-v1/")
-print(ft_result.brand)       # "Anker"  ← correct
+# With your trained artifact unzipped locally:
+s = llm_extract(title, adapter_path="adapters/extractor-v1/")
+print(s.brand)   # "Anker" — now from the fine-tuned model itself
 ```
 
 ---
@@ -389,72 +373,63 @@ The retailer-bleed problem is a strong fit: the pattern is structural (not promp
 
 ## Reproducibility checks
 
-Because this part's data mode is CONCEPT, the accuracy numbers in the table above are illustrative. Reproducibility lives at the code and adapter level. The `step-10-finetune` tag adds the tests below to the existing `tests/test_dealscore.py` and `tests/test_features.py` in the companion repo (the base extractor and the 154/270 pollution count are already exercised there today):
+Because this part's data mode is CONCEPT, the accuracy numbers in the table above are illustrative. Reproducibility lives at the code level, in tests that run offline today:
 
 ```python
-# tests/test_dealscore.py  (extended in step-10-finetune)
+# tests/test_extract.py  (real companion test)
 
-def test_adapter_fixes_retailer_bleed_anker():
-    """Fine-tuned adapter must resolve manufacturer for the Anker Soundcore title.
-
-    The snapshot item has brand='mountainlifestyle.ca'; the base extractor bleeds
-    this retailer string. The adapter must return 'anker'.
-    """
+def test_adapter_path_degrades_gracefully_when_artifact_missing():
+    """Part 10: adapter first in the chain, but a missing/broken artifact must
+    never break extraction — it falls through to rule_extract."""
     from dealfinder.extract import llm_extract
 
-    title = "Anker Soundcore Q20i Active Noise Cancelling Headphones"
-    result = llm_extract(title, adapter_path="adapters/extractor-v1/")
-    assert result.brand is not None
-    assert result.brand.lower() == "anker"
-
-
-def test_base_extractor_bleed_documents_motivation():
-    """Document that the base extractor bleeds retailer on the COWIN title.
-
-    This test is expected to pass (the assertion reflects the known bug, not a
-    regression gate). It pins the motivation for fine-tuning.
-    """
-    from dealfinder.extract import rule_extract
-
-    title = "Walmart - COWIN E7 Active Noise Cancelling Headphones Bluetooth"
-    result = rule_extract(title)
-    # rule_extract matches against KNOWN_BRANDS (electronics); "Walmart" is not a
-    # known manufacturer, so brand comes back None here, not "Walmart". The LLM path is what bleeds.
-    assert result.brand is None  # rule_extract is honest: unknown brand → None
-```
-
-```python
-# tests/test_features.py  (existing, extended)
-
-def test_retailer_pollution_count():
-    """154 of 270 snapshot rows have a known-retailer token in 'brand'."""
-    from dealfinder.snapshot import load_snapshot
-
-    items = load_snapshot("data/snapshots/electronics-2026-07.json")
-    retailer_tokens = {"walmart", "target", "best buy", "costco", "macy's", "amazon", "newegg"}
-    polluted = sum(
-        1 for i in items
-        if any(tok in (i.get("brand") or "").lower() for tok in retailer_tokens)
+    s = llm_extract(
+        "Walmart - COWIN E7 Active Noise Cancelling Headphones Bluetooth",
+        adapter_path="/nonexistent/adapters/extractor-v1",
     )
-    assert polluted == 154
+    assert s.brand == "Cowin"  # rule_extract's answer — the chain bottomed out safely
 ```
 
-The dataset construction script is deterministic given the snapshot and seed:
+Worth noting what that assertion says in passing: `rule_extract` already handles the classic `"Walmart - "` prefix (COWIN is in the known-brand vocabulary, Walmart isn't). The fine-tune earns its keep on the patterns the vocabulary can't enumerate — unknown brands, novel prefix formats, condition phrasing — which is why the augmented dataset varies the distractors. The 154/270 brand-field pollution count is pinned separately in `tests/test_part01.py`.
 
-```bash
-# Must produce identical SHA on every run
-python dealfinder/finetune/build_dataset.py \
-    --snapshot data/snapshots/electronics-2026-07.json \
-    --seed 42 \
-    --out-dir data/finetune/
-sha256sum data/finetune/train.jsonl data/finetune/eval.jsonl
-```
-
-CI runs `--mock-base` on the eval script to avoid API calls during automated runs.
+The dataset build is deterministic given the snapshot and seed 42 — rerun notebook section 4 any time and you get the identical 161 → 128/33 → 256 split.
 
 <Callout tone="tip">
-**Companion repo step tag:** `step-10-finetune` in [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). New files: `dealfinder/finetune/build_dataset.py`, `dealfinder/finetune/train_qlora.py`, `dealfinder/finetune/eval_extractor.py`. Modified: `dealfinder/extract.py` (add `adapter_path` arg). Committed artifact: `adapters/extractor-v1/` (~6 MB LoRA adapter, r=16, Llama-3.2-1B-Instruct base). Compare from the previous step: [step-09-aggregation...step-10-finetune](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-09-aggregation...step-10-finetune).
+**Companion repo:** [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder), step tag `step-10`. This part's artifacts: `notebooks/finetune_qlora.ipynb` (dataset build + training + eval, Colab-ready) and the `adapter_path` extension to `dealfinder/extract.py` with its degradation test. The trained adapter itself is yours to produce — the notebook exports `extractor-v1-adapter.zip`.
 </Callout>
+
+---
+
+## Check it works
+
+This part splits by hardware — test what runs where:
+
+1. **Anywhere (no GPU): the dataset build.** Run notebook section 4 locally or just the weak-label snippet against the snapshot. **Expect:** `labelable: 161 of 270 → train 128 / eval 33`, and after augmentation `train 256`. Deterministic at seed 42 — your numbers must match exactly.
+
+2. **Anywhere (no GPU): the pipeline seam.**
+   ```bash
+   pytest tests/test_extract.py -v
+   ```
+   **Expect:** `6 passed`, including `test_adapter_path_degrades_gracefully_when_artifact_missing` — proof that pointing `llm_extract` at a nonexistent adapter still returns valid data via `rule_extract`.
+
+3. **Colab (free T4): the training run.** Open the notebook via the badge at the top, Runtime → T4 GPU, Run all. **Expect:** the GPU-check cell passes, training loss falls steeply in epoch 1 (~1.8 → below 1.0), the whole run takes ~25 minutes, and section 7 prints base-vs-adapter output on the hero hard titles. **If the first cell raises:** you're on a CPU runtime — the assert's message tells you the fix.
+
+4. **Back home: wire in your artifact.** Download `extractor-v1-adapter.zip` from Colab, unzip into the companion, and run the verify snippet from the pipeline section with `adapter_path="adapters/extractor-v1/"`.
+
+---
+
+## What you can demo now
+
+Even without touching a GPU, two things are demonstrably new:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-finetune/dataset-and-degradation.png"
+  alt="Real dataset build counts and the adapter degradation chain returning valid data"
+  caption="Real output: the deterministic dataset build, and the adapter chain surviving a missing artifact."
+  lookFor="the build counts — 161 of 270 labelable → 128/33 split (green ring), doubled to 256 by retailer-prefix augmentation (amber ring) — and below, llm_extract pointed at a nonexistent adapter still returning brand='Anker' (green ring): the degradation chain treats a missing model as a non-event."
+/>
+
+The demo line: *"the training data is built from the real snapshot and poisoned on purpose — and the pipeline is already wired so that the model I train in Colab drops in with one argument, and its absence can never break extraction."* After your Colab run, the demo upgrades: same snippet, real artifact, and section 7's before/after on the hard titles.
 
 ---
 
