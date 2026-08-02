@@ -37,7 +37,7 @@ function Chart({
             <circle cx={m.x} cy={m.y} r="3" fill={m.c} />
           </g>
         ))}
-        <text x="54" y="77.5" textAnchor="middle" fontFamily="Menlo, monospace" fontSize="5.5" fill={MUT}>{xlabel}</text>
+        <text x="54" y="77.5" textAnchor="middle" fontFamily="Menlo, monospace" fontSize="4.6" fill={MUT}>{xlabel}</text>
       </svg>
       <div style={{ fontFamily: MONO, fontSize: 10, color: MUT, marginTop: 2 }}>y = {ylabel}</div>
       <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
