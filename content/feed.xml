@@ -10,7 +10,217 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 02 Aug 2026 04:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 02 Aug 2026 12:10:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Stop Re-Typing the Same Prompt: Build Personal Claude Code Slash Commands That Follow You Everywhere</title>
+      <link>https://code.claude.com/docs/en/customization/slash-commands</link>
+      <guid isPermaLink="false">2026-08-02-05-claude-code-custom-slash-commands</guid>
+      <pubDate>Sun, 02 Aug 2026 12:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>One Markdown file in ~/.claude/commands/ creates a reusable slash command available in every project forever. Use $ARGUMENTS for parameters; project-scope commands share with your team.</description>
+      <content:encoded><![CDATA[
+**One Markdown file in `~/.claude/commands/` turns any repeating prompt into a permanent slash command — with positional `$ARGUMENTS` support and a project scope that shares it with your whole team.**
+
+If there's a paragraph you type every week — "review this file for injection vulnerabilities and missing error handling" — you're wasting keystrokes. Claude Code custom slash commands turn that paragraph into a permanent `/` invocation you never retype.
+
+## Two scopes, one mental model
+
+**Personal (`~/.claude/commands/`):** available in every project, never committed to version control. Invoke with `/name` or `/user:name`.
+
+**Project (`.claude/commands/`):** shared with every teammate who clones the repo. Best for standards everyone should run — PR templates, release checklists, service-specific test sequences. Invoke with `/name` or `/project:name`.
+
+## Build your first command in 90 seconds
+
+```bash
+mkdir -p ~/.claude/commands
+
+cat > ~/.claude/commands/review.md << 'EOF'
+Review the following file for:
+1. Security issues: injection, XSS, path traversal, hardcoded secrets
+2. Missing error handling and uncaught exceptions
+3. Functions that do too much and should be split
+
+File: $ARGUMENTS
+EOF
+```
+
+Now type `/review src/auth/login.ts` — Claude reads the Markdown, substitutes `$ARGUMENTS` with `src/auth/login.ts`, and runs the full review every time, identically.
+
+## Positional arguments with `$ARGUMENTS[n]`
+
+For multi-argument commands, index into the words: `/migrate SearchBar React Vue` with a command body containing `Migrate $ARGUMENTS[0] from $ARGUMENTS[1] to $ARGUMENTS[2]` produces `Migrate SearchBar from React to Vue`. Use `$ARGUMENTS` (no index) to capture everything after the command name as a single string.
+
+## Project-scoped team command: shared release checklist
+
+```markdown
+<!-- .claude/commands/release.md -->
+Run our pre-release checklist for version $ARGUMENTS[0]:
+
+1. Confirm CHANGELOG.md has an entry for $ARGUMENTS[0]
+2. Run full test suite: pnpm test
+3. Check no TODO comments remain in changed files
+4. Verify the Docker build succeeds: docker build .
+5. Generate release notes summarizing changes since the last tag.
+
+Report failures as a numbered list with severity (P0/P1/P2).
+```
+
+Invoke with `/release v2.5.0` — Claude runs all five checks and ranks failures. Every teammate runs the same checklist from the same file.
+
+## Why commands beat CLAUDE.md for repeatable tasks
+
+CLAUDE.md rules shape Claude's defaults passively and globally. Commands are explicit and parameterized — you call them when you want them, and the Markdown file is the single source of truth that can't drift, get compressed away, or be forgotten mid-session. If something *must* run exactly the same way every time, put it in a command file.
+
+**Sources:** [Custom Slash Commands — Claude Code Docs](https://code.claude.com/docs/en/customization/slash-commands) · [Slash Commands Complete Guide 2026 — alexop.dev](https://alexop.dev/posts/claude-code-slash-commands-guide/) · [Custom Slash Commands Tutorial — Build This Now](https://www.buildthisnow.com/blog/guide/mechanics/claude-code-custom-slash-commands)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Two Anthropic Updates This Week: The September 1 Sonnet 5 Cost Cliff and the Open-Weights Clarification</title>
+      <link>https://www.anthropic.com/pricing</link>
+      <guid isPermaLink="false">2026-08-02-06-sonnet5-cost-cliff-open-weights-position</guid>
+      <pubDate>Sun, 02 Aug 2026 12:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <description>Sonnet 5 intro pricing ends Aug 31 — a 50% rate step-up plus a 30% tokenizer inflation combine for up to ~85% effective cost increase. Plus Anthropic clarifies it does not oppose open-weight models.</description>
+      <content:encoded><![CDATA[
+**Sonnet 5's intro pricing ends August 31 — a 50% rate step-up stacks with a ~30% tokenizer inflation effect; Anthropic also clarifies it has never sought to ban open-weight models.**
+
+## Sonnet 5 cost cliff: 30 days to audit your pipelines
+
+Claude Sonnet 5 moves from introductory pricing ($2/$10 per MTok input/output) to standard rates ($3/$15) on September 1 — a flat 50% increase. The compounding factor: Sonnet 5 uses a new tokenizer that produces roughly 30% more tokens from the same text as Sonnet 4.6. Per-token rates are unchanged, but 30% more tokens means 30% more spend at any rate. Combined, a typical workload that was $1,000/month at Sonnet 4.6 pricing may land at $1,850+ after September 1.
+
+**Three moves before August 31:**
+
+1. **Route simpler tasks to Haiku 4.5.** Summarization, classification, and extraction don't need Sonnet-class reasoning. Haiku 4.5 costs roughly 7× less per token and uses the same new tokenizer — you get the full cost baseline without overpaying for capability.
+
+2. **Enable prompt caching on repeated context.** System prompts, RAG passages, and policy documents sent in every request qualify. Cache reads are ~90% cheaper than full input tokens, and that discount persists regardless of when the price hike lands.
+
+3. **Contact Anthropic sales by August 15** if your monthly API spend exceeds ~$5K. Volume commitments negotiated before the rate change can lock in introductory-tier pricing.
+
+## Anthropic clarifies open-weights stance
+
+A July 27 statement from CEO Dario Amodei clarified Anthropic has never advocated banning open-weight models. Its concerns target industrial-scale distillation of frontier models by state actors and chip exports to adversarial nations — not the open-source ecosystem. For engineers using Llama 4, Qwen 3, or Mistral models: no policy change is coming that affects your use of those models.
+
+**Why it matters:** The cost cliff is real and the countdown is compressed — 30 days to plan and route before the hike lands.
+
+**Sources:** [Claude pricing — Anthropic](https://www.anthropic.com/pricing) · [Sonnet 5 intro pricing deadline — FinOps LLM](https://finopsllm.com/research/sonnet-5-intro-pricing-deadline) · [Our position on open-weights models — Anthropic](https://www.anthropic.com/news/position-open-weights-models)
+      ]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Skip the Server: ChromaDB Gives You a Full Vector Database in Five Lines of Python</title>
+      <link>https://www.youtube.com/watch?v=BxHYiO4hRdE</link>
+      <guid isPermaLink="false">2026-08-02-04-chromadb-local-vector-database-quickstart</guid>
+      <pubDate>Sun, 02 Aug 2026 12:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Vectors</category>
+      <category>Embeddings</category>
+      <description>ChromaDB runs in-process with zero infrastructure: pip install, five lines of Python, and you have a vector database with semantic search, metadata filtering, and on-disk persistence.</description>
+      <media:content url="https://i.ytimg.com/vi/BxHYiO4hRdE/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://i.ytimg.com/vi/BxHYiO4hRdE/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**ChromaDB is the fastest path to a working vector database: `pip install chromadb`, five lines of Python, and you're doing semantic search — no Docker, no server, no cloud account.**
+
+**What you'll be able to do after this:**
+- Add vector search to any Python project without provisioning infrastructure
+- Query a collection by meaning — and filter by metadata at the same time
+- Persist collections to disk and reload them across sessions with a single constructor change
+
+**Resource:** [Mastering ChromaDB: Step-by-Step Python Guide](https://www.youtube.com/watch?v=BxHYiO4hRdE) (YouTube, July 2026)
+
+---
+
+## Why ChromaDB first?
+
+pgvector (which you may have seen here) requires PostgreSQL. FAISS requires manual index management and serialization. ChromaDB runs as an embedded Python library — it creates an SQLite-backed store on disk, handles embedding generation, and exposes a collections API that abstracts the rest. It's the right first vector database for prototypes and small-to-medium production workloads before you need horizontal scale.
+
+## Install
+
+```bash
+pip install chromadb sentence-transformers
+```
+
+## Create a persistent client and collection
+
+```python
+import chromadb
+from chromadb.utils import embedding_functions
+
+# PersistentClient writes to disk; survives restarts
+client = chromadb.PersistentClient(path="./my_vectorstore")
+
+ef = embedding_functions.SentenceTransformerEmbeddingFunction(
+    model_name="all-MiniLM-L6-v2"   # free, runs locally, 384-dim
+)
+
+collection = client.get_or_create_collection(
+    name="docs",
+    embedding_function=ef,
+    metadata={"hnsw:space": "cosine"}   # cosine similarity
+)
+```
+
+Switch to in-memory with `chromadb.EphemeralClient()` for tests; switch to `chromadb.HttpClient(host=..., port=...)` to point at a deployed server — no other code changes needed.
+
+## Add documents with metadata
+
+```python
+collection.add(
+    ids=["doc1", "doc2", "doc3"],
+    documents=[
+        "LLMs can be fine-tuned on domain-specific datasets.",
+        "Prompt caching reduces API costs by 90% on repeated context.",
+        "pgvector adds vector search to any PostgreSQL database.",
+    ],
+    metadatas=[
+        {"topic": "fine-tuning", "level": "intermediate"},
+        {"topic": "api-cost",    "level": "beginner"},
+        {"topic": "database",    "level": "intermediate"},
+    ]
+)
+```
+
+ChromaDB calls your `embedding_function` automatically — you pass raw text, not vectors.
+
+## Query by meaning and filter simultaneously
+
+```python
+results = collection.query(
+    query_texts=["how do I reduce my model API costs"],
+    n_results=2,
+    where={"level": "beginner"},     # metadata filter applied before ranking
+    include=["documents", "distances", "metadatas"]
+)
+
+print(results["documents"])
+# → [["Prompt caching reduces API costs by 90% on repeated context."]]
+print(results["distances"])
+# → [[0.12]]   (lower = more similar under cosine)
+```
+
+The `where` clause narrows the ANN search to the matching metadata subset — you get semantic ranking within the filtered population, not a post-filter on top of all results.
+
+## Swap the embedding function
+
+The `embedding_function=` argument accepts any callable. Built-in options include `OpenAIEmbeddingFunction`, `CohereEmbeddingFunction`, and `HuggingFaceEmbeddingFunction`. Replace the constructor argument and the rest of the code stays identical — the API is model-agnostic.
+
+## When to graduate from ChromaDB
+
+ChromaDB handles millions of vectors comfortably on a single node. When you need horizontal sharding, multi-region replication, or tight PostgreSQL integration, move to Qdrant, Weaviate, or pgvector. But for most learning projects and production prototypes, ChromaDB gets you there with zero ops overhead.
+
+**Sources:** [Mastering ChromaDB: Step-by-Step Python Guide (YouTube, July 2026)](https://www.youtube.com/watch?v=BxHYiO4hRdE) · [ChromaDB Docs — Getting Started](https://docs.trychroma.com/getting-started) · [ChromaDB Tutorial: From pip install to RAG Pipeline — TopicTrick](https://topictrick.com/blog/chromadb-tutorial-beginner-guide)
+      ]]></content:encoded>
+    </item>
 
     <item>
       <title>Stop Letting a Hung Tool Call Sink Your Agent: LangGraph's TimeoutPolicy and Error Handlers</title>
