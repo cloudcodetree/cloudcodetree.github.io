@@ -10,7 +10,192 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 01 Aug 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 02 Aug 2026 04:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Stop Letting a Hung Tool Call Sink Your Agent: LangGraph's TimeoutPolicy and Error Handlers</title>
+      <link>https://www.langchain.com/blog/fault-tolerance-in-langgraph</link>
+      <guid isPermaLink="false">2026-08-02-03-langgraph-timeout-error-handler-fault-tolerant-agent</guid>
+      <pubDate>Sun, 02 Aug 2026 04:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Add TimeoutPolicy and error_handler= to any LangGraph node in two arguments — agents that time out gracefully and route to recovery nodes instead of hanging on a stalled API call.</description>
+      <content:encoded><![CDATA[
+**Add `TimeoutPolicy` and `error_handler=` to any LangGraph node in two extra arguments — production agents that fail gracefully instead of hanging indefinitely.**
+
+Every agent hits a slow tool eventually: a rate-limited API, a database query that stalls, an LLM call that never comes back. Without explicit fault tolerance, your LangGraph agent waits until the cloud provider drops the connection. Here's how to fix that with three primitives that attach directly to `add_node()`.
+
+## RetryPolicy — handle transient errors automatically
+
+```python
+from langgraph.types import RetryPolicy
+
+retry = RetryPolicy(
+    initial_interval=0.5,
+    backoff_factor=2.0,
+    max_attempts=3,
+    retry_on=(ConnectionError, TimeoutError)
+)
+```
+
+Exponential backoff with jitter. Only retries on the exception types you specify — other exceptions propagate immediately.
+
+## TimeoutPolicy — cap wall-clock and idle time per attempt
+
+```python
+from langgraph.types import TimeoutPolicy
+
+timeout = TimeoutPolicy(
+    run_timeout=30.0,   # hard wall-clock cap per attempt
+    idle_timeout=5.0    # fires if no progress signal for 5s
+)
+```
+
+When a timeout fires, the attempt is cancelled and a `NodeTimeoutError` is raised — which counts as a retryable error for the retry policy above.
+
+## error_handler — run a recovery function after retries exhaust
+
+```python
+from langgraph.types import NodeError, Command
+
+def on_call_llm_failed(state: State, error: NodeError):
+    log.error("LLM call failed on node %s: %s", error.node, error.error)
+    return Command(update={"status": "llm_unavailable"}, goto="handle_failure")
+```
+
+The handler receives the failing node's name (`error.node`) and the exception (`error.error`). Returning a `Command` updates graph state and routes to a recovery subgraph — the Saga/compensation pattern without a try/except anywhere in your node code.
+
+## Wire it all together
+
+```python
+builder = StateGraph(State)
+builder.add_node(
+    "call_llm",
+    call_llm_node,
+    retry=retry,
+    timeout=timeout,
+    error_handler=on_call_llm_failed
+)
+```
+
+That's the full stack: retry on transient failures, cap wall-clock time, route to recovery when retries exhaust. The error handler only fires after all retry attempts have run — normal successes and retried-then-succeeded calls never touch it.
+
+**Sources:** [Fault Tolerance in LangGraph — LangChain Blog](https://www.langchain.com/blog/fault-tolerance-in-langgraph) · [LangGraph API Reference](https://langchain-ai.github.io/langgraph/reference/types/)
+]]></content:encoded>
+      <media:content url="https://cdn.prod.website-files.com/65c81e88c254bb0f97633a71/6a21b46ce3c7b10f36e622cc_image%20(19).png" medium="image" />
+      <media:thumbnail url="https://cdn.prod.website-files.com/65c81e88c254bb0f97633a71/6a21b46ce3c7b10f36e622cc_image%20(19).png" />
+    </item>
+
+    <item>
+      <title>Two Team-AI Deadlines This Week: Claude Slack App Dies Tomorrow, GitHub Copilot Auto-Enables Models Aug 26</title>
+      <link>https://ofox.ai/blog/claude-tag-slack-setup-guide-2026/</link>
+      <guid isPermaLink="false">2026-08-02-02-claude-tag-deadline-copilot-model-policy</guid>
+      <pubDate>Sun, 02 Aug 2026 04:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Claude Code</category>
+      <description>Claude's original Slack app goes offline August 3 for orgs that haven't migrated to Claude Tag; GitHub Copilot Enterprise admins have until August 26 to set model policy before new GA models auto-enable.</description>
+      <content:encoded><![CDATA[
+**Anthropic's Claude Slack app goes offline August 3 for orgs that haven't migrated to Claude Tag; GitHub Copilot Enterprise admins have until August 26 to configure model policy or new GA models auto-enable.**
+
+**Claude Tag migration — act today:** Anthropic replaced its original Claude-in-Slack app with Claude Tag on June 23 — a persistent, channel-scoped AI teammate running on Opus 4.8. Enterprise and Team plan orgs that haven't migrated lose Slack-based Claude access on **August 3** (tomorrow). The migration requires a Primary Owner or Owner role (plain Admin cannot trigger it), and permissions don't transfer one-to-one — you'll need to re-scope channel access, tool connections, and spend caps from scratch. Setup: [4-step migration guide](https://ofox.ai/blog/claude-tag-slack-setup-guide-2026/).
+
+**GitHub Copilot default model enablement — review by Aug 26:** Starting July 29, GitHub introduced a policy for Copilot Business and Enterprise: any model that reaches general availability will be **on by default** for all users without requiring admin action. The policy activates August 26. If you want to control which models your org can access, go to enterprise/org model settings now and set the policy to `disabled`. Note: open-weight models (DeepSeek, Kimi K2.7) and Fable 5 are excluded from auto-enable regardless of policy.
+
+**Why it matters:** Missing the Claude Tag cutover kills Slack access; not auditing the Copilot setting means newly released models start appearing in your team's IDEs without a review cycle.
+
+**Sources:** [Claude Tag Setup Guide — ofox.ai](https://ofox.ai/blog/claude-tag-slack-setup-guide-2026/) · [Default Model Enablement Policy — GitHub Changelog](https://github.blog/changelog/2026-07-29-default-model-enablement-for-copilot-business-and-enterprise/)
+]]></content:encoded>
+      <media:content url="https://www-cdn.anthropic.com/images/4zrzovbb/website/301d5ee481a352435c048a9df7ce172b9617b05f-2400x1260.png" medium="image" />
+      <media:thumbnail url="https://www-cdn.anthropic.com/images/4zrzovbb/website/301d5ee481a352435c048a9df7ce172b9617b05f-2400x1260.png" />
+    </item>
+
+    <item>
+      <title>Give Your Local LLM Real Tools: Function Calling with Ollama in Under 50 Lines</title>
+      <link>https://docs.ollama.com/capabilities/tool-calling</link>
+      <guid isPermaLink="false">2026-08-02-01-ollama-tool-calling-local-agent-function-use</guid>
+      <pubDate>Sun, 02 Aug 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Self-Hosting</category>
+      <description>Define tool schemas, let Qwen3 or Llama 3.1 decide when to call them, and drive a multi-turn agent loop in under 50 lines of Python -- all locally with no API keys using Ollama's native tool calling.</description>
+      <content:encoded><![CDATA[
+**Ollama has native tool calling built in — define a schema, wire up a dispatch table, and any Qwen3 or Llama 3.1 model running locally can call your Python functions with validated arguments.**
+
+**What you'll be able to do after this:**
+- Define tools (function name, description, typed parameters) that a local LLM can call by name with validated arguments
+- Drive a multi-turn agent loop where the model decides when to invoke tools and what arguments to pass — the same pattern that powers cloud-based AI agents, fully offline
+- Extend any Ollama-backed chatbot into one that can query databases, call APIs, read files, or run shell commands without sending data to the cloud
+
+## The pattern in 45 lines
+
+```bash
+pip install ollama
+ollama pull qwen3:8b
+```
+
+```python
+import ollama
+
+# 1. Your real function
+def get_current_weather(city: str) -> str:
+    return f"72F and sunny in {city}"   # swap for a real weather API call
+
+# 2. Tool schema — what the model reads to know when and how to call it
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "get_current_weather",
+        "description": "Get current weather for a city",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "city": {"type": "string", "description": "The city name"}
+            },
+            "required": ["city"]
+        }
+    }
+}]
+
+dispatch = {"get_current_weather": get_current_weather}
+messages  = [{"role": "user", "content": "What's the weather in Portland?"}]
+MODEL     = "qwen3:8b"   # or llama3.1:8b, mistral:7b-instruct
+
+# 3. Multi-turn agent loop — runs until no more tool calls
+response = ollama.chat(model=MODEL, messages=messages, tools=tools)
+
+while response.message.tool_calls:
+    for tc in response.message.tool_calls:
+        result = dispatch[tc.function.name](**tc.function.arguments)
+        messages += [
+            response.message,
+            {"role": "tool", "content": str(result)}
+        ]
+    response = ollama.chat(model=MODEL, messages=messages, tools=tools)
+
+print(response.message.content)
+```
+
+**Key points:**
+- `response.message.tool_calls` is a list — the `while` loop handles **parallel tool calls** (model fires multiple tools at once) automatically.
+- Each tool result goes back as a `{"role": "tool", "content": ...}` message before the next `ollama.chat()` call — this is the multi-turn pattern.
+- The loop exits when the model returns a response with no tool calls (it has enough information to answer).
+- For **streaming tool calls** (seeing partial arguments as they generate), switch to `ollama.chat(..., stream=True)` and accumulate `content_block_delta` events — the Ollama docs cover this pattern.
+
+**Models with reliable tool support in 2026:** `qwen3:8b`, `qwen3:14b`, `llama3.1:8b-instruct-q4_K_M`, `llama3.3:70b-instruct-q4_K_M`, `mistral:7b-instruct`.
+
+The IBM Think tutorial linked below shows the same pattern applied to searching a local filesystem — a Granite 3.2 model picks between a text-search tool and an image-search tool based on query content. Good "real" example beyond a toy weather function.
+
+**Sources:** [Tool Calling — Ollama Docs](https://docs.ollama.com/capabilities/tool-calling) · [Local Tool Calling with Ollama and IBM Granite — IBM Think](https://www.ibm.com/think/tutorials/local-tool-calling-ollama-granite)
+]]></content:encoded>
+    </item>
 
 
 
