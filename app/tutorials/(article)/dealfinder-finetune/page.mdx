@@ -241,6 +241,13 @@ lora_config = LoraConfig(
     lora_dropout=0.05,
     bias="none",
 )
+```
+
+<Callout tone="note">
+**Why these hyperparameters — the three that actually matter.** *Rank* `r` sets adapter capacity: r=4–8 for style/format tasks, **r=16–32 for instruction-following like this extractor**, r=64–128 only for teaching genuinely new domains (code, unfamiliar languages). Our `r=16` sits at the bottom of the instruction band — right for "stop copying the retailer token." *Alpha* is the scaling knob, and the field-standard heuristic is **`lora_alpha = 2 × r`** (here 32) — if training is unstable, drop to `alpha = r` before touching anything else. *Target modules* is the one place to consider deviating from the notebook: `["q_proj", "v_proj"]` is PEFT's conservative default (~21M trainable params on an 8B model), but targeting **all** attention + MLP projections (`q/k/v/o/gate/up/down`) roughly quadruples trainable params (~83M) for a consistent quality bump when you have the VRAM. Finally the **single-epoch rule**: if validation loss is still falling at the end of epoch 1, add *data*, not epochs — more passes over a small set memorizes it.
+</Callout>
+
+```python
 
 training_args = SFTConfig(
     output_dir="adapters/extractor-v1/",
@@ -254,7 +261,7 @@ training_args = SFTConfig(
 )
 ```
 
-Training 3 epochs on ~220 examples at batch size 4 takes roughly 25 minutes on a free Colab T4. Illustrative loss curve:
+Training 3 epochs on the 256 augmented examples at batch size 4 takes roughly 25 minutes on a free Colab T4. Illustrative loss curve:
 
 ```
 epoch 1 — train_loss: 1.82
@@ -374,6 +381,46 @@ print(s.brand)   # "Anker" — rule_extract caught it (the known-brand scan skip
 s = llm_extract(title, adapter_path="adapters/extractor-v1/")
 print(s.brand)   # "Anker" — now from the fine-tuned model itself
 ```
+
+---
+
+## Four gotchas the quickstarts skip
+
+The training loop above works. These are the four ways a *first* real fine-tune quietly goes wrong — each one costs GPU hours before you notice.
+
+**1. Flash Attention 2 does not run on the free Colab T4.** Every tutorial tells you to pass `attn_implementation="flash_attention_2"` for a 2–4× speedup. It requires an **Ampere or newer** GPU (A100, L4, RTX 30xx+); the free-tier **T4 is Turing** and will error out, and FA2 also refuses fp32 — you need bf16/fp16. So on the free tier, leave it off; when you rent an A100, turn it on *and* add `DataCollatorWithFlattening` to pack variable-length sequences for another ~2× with no convergence hit.
+
+**2. Verify the chat template before you train, not after.** The single most common way to waste eight GPU hours is a dataset-format mismatch: the tokenizer injects role-boundary special tokens in the wrong places and you train on structured noise. Before the loop, print two or three fully-formatted samples and eyeball them:
+
+```python
+print(tokenizer.apply_chat_template(train_pairs[0]["messages"], tokenize=False))
+# must show the model's real markers at every turn boundary, e.g.
+# <|im_start|>system … <|im_end|><|im_start|>user … <|im_end|><|im_start|>assistant … <|im_end|>
+```
+
+If the boundary tokens or the trailing EOS are wrong, fix it *now* — the model trains "successfully" and then generates garbage at inference.
+
+**3. Gate the adapter on "did the base model get dumber?"** Narrow fine-tuning can cause **catastrophic forgetting** — your extractor improves while the model's general reasoning quietly regresses. The one-command check is a standard-benchmark diff, base vs. tuned:
+
+```bash
+lm_eval --model hf --model_args pretrained=<merged-model> \
+        --tasks mmlu,gsm8k --num_fewshot 5 --limit 100
+```
+
+`--num_fewshot 5` is load-bearing (omit it and scores drop 3–8 points, incomparable to published numbers). Red flags: **MMLU down >3 points or GSM8K down >4** means the dataset is too narrow or the learning rate too high. Wire it as a CI gate exactly like Part 23's eval gate — fail the build if the delta is worse than −0.02.
+
+**4. Trained ≠ served. Export deliberately.** Your artifact is a LoRA adapter, not a runnable model. For local serving the one-call path is GGUF + Ollama:
+
+```python
+model.save_pretrained_gguf("extractor-v1", tokenizer, quantization_method="q4_k_m")
+# then: ollama create dealfinder-extractor -f Modelfile
+```
+
+The #1 post-export failure is — again — a **chat-template mismatch**: a model that trained fine "generates garbage in Ollama" because the served template doesn't match the trained one. Unsloth's auto-generated `Modelfile` prevents it; if you roll your own, copy the template verbatim from training.
+
+<Callout tone="note">
+**None of these four are in the happy-path notebook on purpose** — they're the difference between "loss went down" and "the thing works in production." The MLX Mac track above sidesteps #1 entirely (no CUDA, no Flash Attention) and #4 partially (MLX has its own `fuse`/GGUF path), but #2 and #3 apply to every backend.
+</Callout>
 
 ---
 
