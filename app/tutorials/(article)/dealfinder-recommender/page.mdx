@@ -144,6 +144,10 @@ This is not a model deficiency; it is a data property. The snapshot contains mul
 **Content similarity is representation-agnostic.** `content_recommend` and `collaborative_recommend` take *any* matrix. Here `similar_products` feeds them the cached 384-dim title embeddings, but the same two functions would rank hand-built feature vectors or the CF co-like matrix — the geometry is the only thing that changes.
 </Callout>
 
+<Callout tone="tip">
+**Going further: the embedder itself is fine-tunable.** This part (and Parts 5 and 13) all lean on a *general-purpose* `bge-small` — a model that has never seen a consumer-electronics catalog. Part 10 fine-tunes the extractor LLM; the embedder is the other model in the stack you can specialize, and it's often the higher-leverage one for retrieval quality. The recipe is small: collect `(anchor, positive)` pairs — for DealFinder, two listings of the same product, or a query paired with the listing a user clicked — and train with sentence-transformers' `MultipleNegativesRankingLoss`, which mines negatives *in-batch* (so a bigger batch = more negatives = a sharper model; batch 32, lr 2e-5, one epoch over ~500+ pairs is a typical starting point). Reported domain gains run **+15–40% NDCG@10**; always confirm with `InformationRetrievalEvaluator` before-and-after on a held-out set rather than trusting the headline number. The payoff is a drop-in swap: re-embed the catalog with the tuned model and the `.npz` cache format, the cosine math, and the pgvector index (Part 13) are all unchanged — a "retailer-vocabulary embedder" that knows `WH-1000XM5` and `Q20i` are model numbers, not noise.
+</Callout>
+
 ---
 
 ## Collaborative filtering from the real interaction log
