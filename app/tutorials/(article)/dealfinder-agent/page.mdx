@@ -94,6 +94,10 @@ class Agent:
 
 The `policy` is the only pluggable part. Tests use a scripted policy for a fully deterministic, offline run. In production you swap in an LLM; the loop, the tools, and the HITL gate are unchanged.
 
+<Callout tone="note">
+**One tool per turn is the teaching shape, not the ceiling.** This loop calls exactly one tool per iteration — the clearest way to see Reason → Act → Observe. But a real LLM policy often returns *several* `tool_use` blocks in a single turn ("search audio **and** search computers"), and the production upgrade is to run the independent ones concurrently: dispatch with `asyncio.gather` and — the detail people get wrong — return **all** the tool results in one combined `user` message (one block per `tool_use_id`; splitting them across messages desyncs the conversation and errors). Wall-clock drops to the slowest single call, not the sum. The rule for *which* calls parallelize: only independent reads. `sql_search` then `rank_deals` here are inherently sequential — `rank_deals` needs the ids `sql_search` returns — so they stay ordered; two independent category searches would not. Anything that mutates state stays sequential regardless.
+</Callout>
+
 ---
 
 ## The tool registry
@@ -203,6 +207,10 @@ Four items match. The two cheapest — Cowin SE7 ($27.99) and Bose QC45 ($46.00)
 
 <Callout tone="warn">
 The `nl_to_sql` approach here is **rule-based and deterministic** — no LLM in the loop for SQL generation, so the query shape is fully predictable. Production systems that use an LLM to generate SQL must validate that the emitted statement is a SELECT with no subqueries or stacked statements, and parameterize instead of string-interpolating user input. Part 25 (Safety, security & governance) covers full prompt-injection hardening.
+
+<Callout tone="note">
+**When you swap in a *small* LLM policy, expect malformed tool calls.** The failure that bites hardest when you replace the scripted policy with a local open-weight model isn't reasoning — it's the model emitting tool JSON that doesn't parse: a missing brace, a hallucinated argument name, a string where a number belongs. Base small models get single-API tool-call *exact match* right only ~55–65% of the time. This is exactly the problem Part 10's machinery solves: fine-tuning `Llama-3.2-3B` on ~5,000 rows of a function-calling dataset (e.g. `Salesforce/xlam-function-calling-60k`, LoRA r=16, one free GPU) pushes that to **>90%**. The eval mirrors Part 10's approach — parse the emitted `tool_calls` on held-out examples and compare function name, argument keys, and argument types. So the two levers compound: the ReAct *loop* is this part; making a small model *reliable inside it* is a fine-tune, same SFT pipeline you already built. (Or sidestep it entirely with the schema-enforced decoding from Part 6 — grammar-constrained output that cannot emit invalid tool JSON in the first place.)
+</Callout>
 </Callout>
 
 ---
@@ -384,9 +392,48 @@ tests/test_agent.py::test_nl_to_sql_runs_against_the_real_catalog   PASSED
 
 ---
 
+## Check it works
+
+Three checks, from unit to whole-loop to live:
+
+1. **The loop and its contracts, offline:**
+   ```bash
+   pytest tests/test_agent.py -v
+   ```
+   **Expect:** `4 passed` — loop-runs-a-tool-then-finishes, the HITL approval block, the exact WHERE clause `nl_to_sql` emits, and that clause returning real audio rows against the frozen catalog.
+
+2. **The whole ReAct run, deterministic:**
+   ```bash
+   python -m dealfinder.run_agent
+   ```
+   **Expect:** exactly the three-step trace below — `sql_search` (4 matches) → `rank_deals` → the Anker Q20i at $44.99, 72% under median. Same output every run (scripted policy, no LLM).
+
+3. **The LLM-driven version, live** (needs `OPENROUTER_API_KEY`): the running app's agentic endpoint uses a real model as the policy:
+   ```bash
+   curl -s "http://localhost:8000/ask_agentic?q=find+me+a+cheap+pair+of+noise+cancelling+headphones" | python -m json.tool
+   ```
+   **Expect:** `"grounded": true`, `"used_llm": true`, and an answer that names the Anker as the pick and flags the $46 Bose as suspicious. **If `used_llm` is false:** no key is set and it fell back to the deterministic path — still correct, just not LLM-driven.
+
+---
+
+## What you can demo now
+
+DealFinder now *reasons* — one plain-English goal drives a multi-step tool-using run:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-agent/react-trace.png"
+  alt="The real ReAct agent trace: sql_search then rank_deals surfacing the Anker Q20i"
+  caption="Real output: python -m dealfinder.run_agent — a deterministic two-tool ReAct run over the snapshot."
+  lookFor="the ringed step-2 observation: after sql_search returns 4 candidates (Cowin, Anker, Bose, JBL), rank_deals surfaces the Anker Soundcore Q20i on top — because the same two-signal score from Part 3 demoted the $46 Bose QC45 trap (residual_frac 0.839). The agent didn't just filter; it reasoned about deal quality across two tools from one sentence."
+/>
+
+The demo line: *"I gave it a sentence, not a query — it wrote its own SQL, ran it, then ranked the results by a deal model that knows the $46 Bose is a trap. Two tools, one plain-English goal, fully traceable."* Flip to the live `/ask_agentic` endpoint (with a key) and the same shape runs with a real LLM choosing the tools.
+
+---
+
 ## Where this goes next
 
-- **Part 10 — Fine-tune the extractor with QLoRA** established the LLM client pattern and structured-output convention that a production policy for this loop would reuse — the rule-based `nl_to_sql` and scripted policy here stand in for that LLM call so the demo stays deterministic and offline.
+- **Part 10 — Fine-tune the extractor with QLoRA** established the LLM client pattern and structured-output convention that a production policy for this loop would reuse — the rule-based `nl_to_sql` and scripted policy here stand in for that LLM call so the demo stays deterministic and offline. It's also the fix for the malformed-tool-call problem a small policy model hits (see the function-calling callout above).
 - **Part 12 — Expose it as an MCP server** wraps the same `dealscore` primitives behind the Model Context Protocol. `dealfinder/mcp_server.py` registers three tools — `score_deal`, `recommend`, `search_deals` — a `catalog_stats` resource, and a `find_a_deal` prompt, so external clients like Claude Desktop can call them directly.
 
 ---
