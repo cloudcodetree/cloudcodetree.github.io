@@ -167,6 +167,14 @@ SUSPICIOUS  $  46.00  sim=-0.2823  Bose QuietComfort 45 Wireless Noise Cancellin
 
 Notice the two Bose rows. The QuietComfort 45 at **$46.00** is flagged SUSPICIOUS, not DEAL — its `median_signal` (0.7177, i.e. 72% under median) looks like the Anker's, but its `residual_frac` is 0.839: the price sits 84% below the model's $285.15 fair price, the signature of a refurb or a mislisting. Retrieval surfaces it; the verdict warns about it. Both facts travel with the item into the answer.
 
+<Callout tone="note">
+**Two reranks, don't confuse them — and a third you'll want on documents.** DealFinder's `value_rerank` is a *business* rerank: it reorders by deal quality, not relevance. The other kind — a **relevance cross-encoder reranker** — takes the query and each candidate *together* through a small model that scores true relevance far better than cosine (which encodes query and document separately). The standard move on a document corpus is retrieve-100 → cross-encoder-rerank → keep-10, with measured latency/quality tiers: `cross-encoder/ms-marco-MiniLM-L-6-v2` ≈ 30 ms/100 pairs, `bge-reranker-v2-m3` ≈ 80 ms (best local), hosted Cohere/Voyage rerank ≈ 120–150 ms — and skip it entirely under ~500 docs or on latency-critical paths. DealFinder's listings are single short titles, so cosine + value-rerank suffices; the cross-encoder earns its latency when candidates are long, similar documents.
+</Callout>
+
+<Callout tone="note">
+**When your corpus is documents, not listings — two techniques this pipeline doesn't need but you will.** DealFinder retrieves whole listings (one short title each), so there's no chunking and no per-chunk context loss. The moment you RAG over *documents* (manuals, contracts, your own blog), two upgrades matter: **(1) chunking defaults** — 256–512 tokens for factoid queries, 1024–2048 for analytical, with 10–20% overlap and structure-aware splits so a chunk never starts mid-code-block; wrong chunking silently drops recall 20–30%. **(2) Contextual Retrieval** — before embedding, prepend a 50–100-token LLM-generated summary situating each chunk in its document ("this excerpt is from the Q3 refund policy…"); Anthropic measured a **49% reduction in retrieval failures** (67% with a reranker added), and `cache_control` on the document prefix keeps the per-chunk generation cost ~90% lower. Neither applies to a title; both are essential once a "listing" becomes a page.
+</Callout>
+
 ---
 
 ## build_context(): the numbered evidence block
@@ -295,20 +303,25 @@ Three real listings, cited by exact title and price. The $46 trap is named and d
 
 ## The faithfulness guard: is_grounded
 
-Whichever path generated the answer, `is_grounded()` is the gate. It is not an LLM "judge" and it is not fuzzy — it is a mechanical check: **every price the answer cites must be a retrieved price, and every distinctive product token must appear in a retrieved title.**
+Whichever path generated the answer, `is_grounded()` is the gate. It is not an LLM "judge" and it is not fuzzy — it is a mechanical check: **every price the answer cites must appear in the context block, and every distinctive product token must appear in a retrieved title.**
 
 <GroundingGuard />
 
 ```python
 def is_grounded(answer_text: str, retrieved: list[RetrievedItem]) -> bool:
-    """True iff every product AND price the answer cites is in the retrieved set."""
+    """True iff every product AND price the answer cites is in the context."""
     if not retrieved:
         return False
 
-    retrieved_prices = {f"{it.price:.2f}" for it in retrieved}
+    # The allowed evidence is the WHOLE context block the model saw — which
+    # includes each listing's price AND the derived values in its reason line
+    # (the model's fair price, the query median). Whitelisting only listing
+    # prices would falsely flag an answer for citing the fair price the context
+    # itself supplied ("84% under model fair price $285").
+    allowed_prices = _prices_in(build_context(retrieved))
     for price in _prices_in(answer_text):
-        if price not in retrieved_prices:
-            return False   # a price no listing had is a hallucination
+        if price not in allowed_prices:
+            return False   # a price the context never contained is a hallucination
 
     haystack = " " + _norm(" ".join(it.title for it in retrieved)) + " "
     ans = _norm(answer_text)
@@ -322,7 +335,11 @@ def is_grounded(answer_text: str, retrieved: list[RetrievedItem]) -> bool:
     return True
 ```
 
-Two independent traps close here. First, **prices**: pull every `$X` out of the answer; if one isn't a retrieved price, fail. Second, **product fingerprints**: model codes like `q20i` or `wh-1000xm5` are near-unique, so if the answer names one that appears in no retrieved title, fail. An LLM that "helpfully" adds a headphone it remembers from training — at a price it invented — trips both.
+Two independent traps close here. First, **prices**: pull every `$X` out of the answer; if one isn't in the context, fail. Second, **product fingerprints**: model codes like `q20i` or `wh-1000xm5` are near-unique, so if the answer names one that appears in no retrieved title, fail. An LLM that "helpfully" adds a headphone it remembers from training — at a price it invented — trips both.
+
+<Callout tone="warn">
+**A subtle bug worth internalizing: validate against the evidence you *gave*, not a subset of it.** An earlier version of this guard whitelisted only the *listing* prices (`{it.price}`). But `build_context` deliberately feeds the model more than that — each item's line ends with the deal reason, which cites the model's fair price and the query median (*"84% under model fair price $285"*). So a perfectly faithful answer that said *"…below its $285 fair price"* was flagged as ungrounded, because `$285` isn't a *listing* price. The guard was stricter than the context it handed the model — and in the running app that meant the faithfulness badge read **FLAGGED on every good answer**. The fix is one line: build the allowed-price set from `build_context(retrieved)` — the exact text the model saw. The lesson: a grounding check must be scoped to *precisely* the evidence provided, no wider and no narrower.
+</Callout>
 
 That is exactly what the tests assert. Two shapes of hallucination are caught — an unknown product *and* a real product at an invented price — while a faithful citation passes:
 
@@ -478,6 +495,40 @@ pytest tests/test_rag.py -v
 <Callout tone="note">
 **Determinism, on purpose.** With no LLM key the pipeline is fully deterministic against the frozen snapshot — same corpus, same cached embeddings, same value rerank ⇒ the same top-5 and the same answer every run. That is what makes these assertions stable. When you inject a real LLM (`temperature=0`) the prose varies slightly, but the *guard* is the invariant the tests protect: grounded answers pass, hallucinations fail.
 </Callout>
+
+---
+
+## Check it works
+
+1. **The pipeline + the guard, offline:**
+   ```bash
+   pytest tests/test_rag.py -v
+   ```
+   **Expect:** `8 passed` — the numbered context, the deterministic grounded answer, the two hallucination-rejections, an injected-LLM answer that stays grounded, and `/ask` end to end.
+
+2. **A grounded answer, live** (with `OPENROUTER_API_KEY`, and `DATABASE_URL` for the pgvector path):
+   ```bash
+   curl -s "http://localhost:8000/ask?q=is+the+bose+quietcomfort+45+at+%2446+a+good+deal" \
+     | python -m json.tool
+   ```
+   **Expect:** `"grounded": true`, `"used_llm": true`, and an answer that flags the $46 Bose as suspicious against its $285 fair price. **If `grounded` is `false` on an obviously faithful answer:** you're on a build before the context-scoped guard fix — the answer likely cited the fair price, which the old guard wrongly rejected.
+
+3. **The guard actually rejects a hallucination:** the offline test `test_is_grounded_rejects_hallucinated_product` proves an invented product *and* a real product at an invented price both fail — that's the safety property, not a nicety.
+
+---
+
+## What you can demo now
+
+The "ask" box now gives a *grounded, guarded* answer — and the badge tells you whether the faithfulness check passed:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-14/rag-grounded-faithful.png"
+  alt="The DealFinder ask mode returning a grounded RAG answer with a FAITHFULNESS PASSED badge"
+  caption="Real capture: a grounded answer to 'is the Bose QuietComfort 45 at $46 a good deal?' — retrieved listings, generated prose, faithfulness verified."
+  lookFor="the ringed ✓ FAITHFULNESS PASSED badge. The answer cites the model's $285 fair price to explain why the $46 Bose is SUSPICIOUS — and the guard confirms every price and product traces back to the retrieved evidence. (Before this part's guard fix, citing that $285 fair price wrongly showed FLAGGED — the demo is honest about both the capability and the bug that hid it.)"
+/>
+
+The demo line: *"it didn't just list headphones — it answered the question in prose, named the trap and the honest pick, and a mechanical guard verified it didn't invent a single price or product. That green badge is the difference between RAG and a raw LLM you can't trust."*
 
 ---
 
