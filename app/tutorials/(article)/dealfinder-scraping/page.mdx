@@ -85,6 +85,10 @@ The companion organizes every source into a tier based on how permission is esta
 
 This ladder shapes the architecture of `LIVE_SOURCES`: tier 1 runs first, tier 4 last. The ordering is not arbitrary — it controls which source price gets credited in the merged output.
 
+<Callout tone="note">
+**The permission surface is hardening in real time — DealFinder is an "Agent" bot.** As of July 2026, Cloudflare's AI Crawl Control (on every plan, including Free) lets any site sort incoming crawlers into three lanes — **Search**, **Agent**, and **Training** — and allow or block each independently, with no WAF rule required. On **Sept 15, 2026** Cloudflare flips the default on ad-monetized pages to block *both* Training and Agent bots. DealFinder's scraper is squarely an **Agent**-class crawler (it fetches on behalf of a user's query), so expect more sites to return 403 to your tier-4 crawls over time — and note the trap for multi-purpose crawlers: a site that blocks "Training" also blocks a crawler that's *evaluated under both* Search and Training policies. This is exactly why the tier ladder puts official APIs first: they're the access path that doesn't erode as bot-blocking tightens.
+</Callout>
+
 ---
 
 ## ApifySource: managed scraping with a clean API surface
