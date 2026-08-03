@@ -368,6 +368,24 @@ The session transcript is illustrative. The exact wording varies across runs; th
 
 This server runs over **stdio**: it exists only as a subprocess of the client that spawned it, reachable by nothing else. That is not a limitation — it is the correct default posture. The moment an MCP server listens on a network port, it inherits every classic network-service risk, and the ecosystem is young enough that the classics keep landing: July 2026 alone brought a **CVSS 10.0 unauthenticated RCE** in a popular MCP bridge (CVE-2026-59726 — an open port plus no auth equals anyone-on-the-network runs your tools), and the MCP spec's 2026-07-28 release moved the protocol toward stateless HTTP designs partly to make server hardening tractable. If you later deploy an HTTP MCP server (the Part 26+ serving stack makes it tempting), treat it like any other API: authentication before tools, an allowlisted tool set per client, and never put read-only `score_deal`-class tools and anything that mutates state on the same unauthenticated surface. Part 25's tool supply-chain layer covers the other direction — vetting the servers *you* connect to.
 
+**If you must expose over HTTP, FastMCP does auth in one argument.** The MCP spec mandates OAuth 2.1 + PKCE for any network-reachable server, and FastMCP 3.x wires it at construction time without touching a line of tool code:
+
+```python
+from fastmcp.server.auth import JWTVerifier  # or OAuthProxy / RemoteOAuth
+
+# validate IdP-issued JWTs — same jwks_uri / issuer / audience triple as Part 32
+mcp = FastMCP("dealfinder", auth=JWTVerifier(
+    jwks_uri="https://your-idp/.well-known/jwks.json",
+    issuer="https://your-idp/", audience="dealfinder-mcp",
+))
+```
+
+`JWTVerifier` for an identity provider that issues JWTs, `OAuthProxy` for providers without Dynamic Client Registration (GitHub, Google), `RemoteOAuth` for DCR providers (Keycloak). Test the whole flow locally with `npx @modelcontextprotocol/inspector`.
+
+<Callout tone="warn">
+**Five attacks the official MCP security guide says to defend against** — worth knowing even if your server stays stdio, because you *connect to* remote servers too (Part 25). (1) **Token passthrough is forbidden**: validate the `aud` claim on every inbound token and never forward a client's token to a downstream API. (2) **SSRF via OAuth metadata discovery**: blocklist the private ranges — `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `127.0.0.0/8`, and the cloud-metadata `169.254.0.0/16` — before your server fetches any discovery URL. (3) **Session hijack**: key server-side session state by `<user_id>:<session_id>`, never the session id alone. (4) **Confused-deputy**: an HTTP server exposing both a read tool and a state-mutating tool on one unauthenticated surface lets a low-privilege caller reach the high-privilege tool. (5) **Auth-URL injection**: open auth URLs with `webbrowser.open`, never `subprocess(..., shell=True)`.
+</Callout>
+
 ---
 
 ## Reproducibility checks
@@ -420,6 +438,41 @@ pytest tests/test_mcp.py -v
 ```
 
 The first test pins the registered tool set to exactly `{score_deal, recommend, search_deals}`. The Anker and Bose tests re-assert the two-signal split: the Anker is a genuine `deal`, and the Bose QC45 is `suspicious` because its `residual_frac` crosses the 0.70 threshold — median discount alone would have called it a deal. That threshold is defined in `dealfinder/dealscore.py` and tested in `tests/test_dealscore.py`.
+
+---
+
+## Check it works
+
+Unlike the earlier parts, **there is no browser page to open** — MCP is a protocol layer, and the DealFinder web app looks identical before and after this part. The right way to verify an MCP server is to *speak the protocol to it*:
+
+1. **The registration + verdicts, offline:**
+   ```bash
+   pytest tests/test_mcp.py -v
+   ```
+   **Expect:** `5 passed` — the exact tool set, the Anker `deal` / Bose `suspicious` split, and the 270-item catalog stats.
+
+2. **The real protocol handshake** — spawn the server and drive it with an actual MCP client session ([the ~20-line stdio client](https://github.com/cloudcodetree/tutorial-dealfinder), or the demo below):
+   ```bash
+   python -m dealfinder.mcp_server   # runs the server over stdio
+   ```
+   A client that connects should see `tools/list` → `['score_deal','recommend','search_deals']`, `resources/list` → `['dealfinder://catalog/stats']`, `prompts/list` → `['find_a_deal']`, and `call_tool score_deal` return the DEAL verdict.
+
+3. **From inside Claude Desktop / Claude Code** (the real integration): wire the `.mcp.json` above, then ask *"find the best-value noise cancelling headphones and score them."* The model discovers and calls the tools itself. **If the tools don't appear:** the client can't launch the server — check the `command`/`args` path in `.mcp.json` and that `python -m dealfinder.mcp_server` runs standalone.
+
+---
+
+## What you can demo now
+
+The demo here is not a web page — it's the server answering a real MCP client over the wire, exactly as Claude Desktop would:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-12/mcp-client-session.png"
+  alt="A real MCP stdio client session: handshake, tool/resource/prompt discovery, and a score_deal call returning DEAL"
+  caption="Real output: a Python MCP client spawning the server over stdio and calling its tools through the protocol."
+  lookFor="the ringed discovery block — the client learns the server's three tools, one resource, and one prompt purely from the protocol — and the ringed score_deal result: the Anker Q20i comes back DEAL (fair $108.33), the same verdict the Part-3 model produces, now reachable by any MCP client. No browser, no open port."
+/>
+
+The demo line: *"the same deal engine you built is now a tool any AI client can call — Claude Desktop, Claude Code, or a 20-line script — through one standard protocol. It discovered the tools on its own and got back the Anker DEAL verdict, all over stdio."*
 
 ---
 
