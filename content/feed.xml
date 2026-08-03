@@ -10,7 +10,173 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 03 Aug 2026 04:04:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 03 Aug 2026 12:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>PostToolUse Fires Even When the Model Won't: Add Deterministic Side-Effects to Every Claude Code Session</title>
+      <link>https://code.claude.com/docs/en/hooks</link>
+      <guid isPermaLink="false">2026-08-03-05-claude-code-posttooluse-hook-deterministic-automation</guid>
+      <pubDate>Mon, 03 Aug 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code's PostToolUse hook runs after every tool call regardless of model intent — the right place to auto-format, commit checkpoints, and run tests deterministically.</description>
+      <content:encoded><![CDATA[
+**Claude Code's PostToolUse hook fires after every tool call whether or not the model decides to — use it to build auto-format, checkpoint commits, and test runs that happen deterministically, outside model control.**
+
+The critical property of Claude Code hooks is that they run **outside** the model's decision loop. When PostToolUse fires after a `Write` call, the model can't skip it, defer it, or decide it's unnecessary. That gap between "the model might do X" and "X will always happen" is the key to building reliable Claude Code workflows in production.
+
+### How the hook receives its input
+
+Every hook gets a JSON payload on `stdin`. For PostToolUse after a `Write`, the relevant fields are `tool_input.path` (the file just written) and `tool_response` (the tool's result). Use that path to trigger follow-on work:
+
+```bash
+#!/usr/bin/env bash
+# .claude/hooks/auto-format.sh
+set -euo pipefail
+input="$(cat)"
+fp="$(printf '%s' "$input" | node -e   'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+    try{const j=JSON.parse(s);const ti=j.tool_input||{};
+    process.stdout.write(ti.path||ti.file_path||"")}catch{process.stdout.write("")}
+  })')"
+[ -z "$fp" ] && exit 0
+npx prettier --write "$fp" 2>&1 || true
+```
+
+Wire it up in `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [{ "type": "command", "command": ".claude/hooks/auto-format.sh" }]
+      }
+    ]
+  }
+}
+```
+
+### Patterns that become reliable with this setup
+
+- **Auto-format every write.** Run Prettier/Black/gofmt after each `Write` — output is always formatted regardless of what the model produced
+- **Checkpoint commits.** `git add "$fp" && git commit -m "checkpoint: ${fp##*/}"` gives a diff trail of every model edit you can roll back to
+- **Test on change.** After a Write to `src/`, trigger `pnpm test --testPathPattern=$(basename "$fp")` so you see red/green before the model continues
+- **Audit log.** Append `echo "$(date -u): wrote $fp" >> .claude/audit.log` — useful in regulated environments that need a record of AI-assisted edits
+
+### The PreToolUse / PostToolUse split
+
+Use **PreToolUse** to block: return exit code `2` with a reason to stop the tool entirely (this is how `.env*` file guards work). Use **PostToolUse** for side-effects: it runs after the tool completes and Claude receives a summary of what your hook did. That means you can also use PostToolUse to feed structured context back — e.g., "formatted: 3 lines changed" — which Claude can reference in its next step.
+
+**Sources:** [Claude Code Hooks — Official Docs](https://code.claude.com/docs/en/hooks), [Claude Code Hooks Practical Guide — DataCamp](https://www.datacamp.com/tutorial/claude-code-hooks)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Ops Alert: Claude Opus 4.1 API Retires This Tuesday — One-Line Fix Before Your Calls Error Out</title>
+      <link>https://platform.claude.com/docs/en/release-notes/overview</link>
+      <guid isPermaLink="false">2026-08-03-04-opus41-api-retirement-tuesday-deadline</guid>
+      <pubDate>Mon, 03 Aug 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>Claude Opus 4.1 (claude-opus-4-1-20250805) hits hard API end-of-life on August 5 — two days away. Change one string to claude-opus-4-8 before requests start failing.</description>
+      <content:encoded><![CDATA[
+**Claude Opus 4.1 (`claude-opus-4-1-20250805`) hits hard API end-of-life on August 5 — two days away — and any route still sending requests to that model ID will get errors starting Tuesday.**
+
+The fix is a one-string change:
+
+```python
+# Before
+model = "claude-opus-4-1-20250805"
+
+# After
+model = "claude-opus-4-8"
+```
+
+Claude Opus 4.8 is backward-compatible: same API interface, same parameters, same prompt format. Check env vars, config files, and hardcoded model strings across your codebase — the migration typically takes under an hour including testing.
+
+Also in the queue: **OpenAI refreshed GPT-5.5 Instant** with style and quality improvements and removed Canvas in favor of in-chat code and writing blocks. And **o3 retires from ChatGPT on August 26** — start moving any eval suites or benchmarks that depend on o3 to o4-mini or GPT-5 now before the sunset.
+
+**Why it matters:** August 5 is a hard cut-off — requests to the retired endpoint return errors, not degraded responses. "It worked yesterday" will turn into a broken CI run or a failed production deploy overnight. A one-line fix in dev takes minutes; diagnosing an unexpected API error in prod takes much longer.
+
+**Sources:** [Claude Platform Release Notes](https://platform.claude.com/docs/en/release-notes/overview), [Opus 4.1 Migration Guide — TheRouter.ai](https://therouter.ai/news/anthropic-deprecates-claude-opus-4-1-august-5-migration-guide/), [OpenAI Model Release Notes](https://help.openai.com/en/articles/9624314-model-release-notes)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Instrument Every LLM Call Once and Route Traces Anywhere: OpenTelemetry's GenAI Semantic Conventions</title>
+      <link>https://opentelemetry.io/blog/2026/genai-observability</link>
+      <guid isPermaLink="false">2026-08-03-03-otel-genai-semantic-conventions-agent-tracing</guid>
+      <pubDate>Mon, 03 Aug 2026 12:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>OTel's 2026 GenAI conventions add standard gen_ai.* span attributes to every LLM call — instrument once with three setup lines and swap backends without touching your code.</description>
+      <media:content url="https://img.youtube.com/vi/17pfYqcGciw/maxresdefault.jpg" medium="image"/>
+      <media:thumbnail url="https://img.youtube.com/vi/17pfYqcGciw/maxresdefault.jpg"/>
+      <content:encoded><![CDATA[
+**OpenTelemetry's GenAI semantic conventions let you add standard `gen_ai.*` attributes to every LLM call in three lines of Python, then route traces to any OTel-compatible backend without changing your instrumentation.**
+
+Every observability tool — LangSmith, Arize Phoenix, W&B Weave, Langfuse — has its own SDK you install, wrap your LLM calls with, and maintain. Switch tools and you rewrite your instrumentation. OpenTelemetry's [2026 GenAI semantic conventions](https://opentelemetry.io/blog/2026/genai-observability) fix that: they define exactly what a "LLM call span" looks like across any provider, so one instrumentation pass works everywhere.
+
+**What you'll be able to do after this:**
+- Add standard `gen_ai.system`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`, and tool-call spans to every LLM call and agent step with three lines of setup — no manual span creation
+- Swap observability backends (LangSmith → Arize Phoenix → Grafana → Jaeger) by changing one env var without touching instrumentation code
+- Track per-call token costs, model latency, and agent step timing in structured trace data that any OTel-compatible backend can ingest
+
+### The key span attributes
+
+| Attribute | What it captures |
+|---|---|
+| `gen_ai.system` | Provider (`anthropic`, `openai`, `cohere`) |
+| `gen_ai.request.model` | Model string |
+| `gen_ai.usage.input_tokens` | Tokens consumed from prompt |
+| `gen_ai.usage.output_tokens` | Tokens consumed in completion |
+| `gen_ai.tool.name` | Tool/function name on tool-call spans |
+
+### Walk-through: instrument any LLM client in 3 lines
+
+[OpenLLMetry](https://www.youtube.com/watch?v=17pfYqcGciw) is an open-source library that auto-instruments OpenAI, Anthropic, LangChain, and 15+ other providers with the GenAI conventions — no manual span creation required.
+
+```bash
+pip install traceloop-sdk
+```
+
+```python
+from traceloop.sdk import Traceloop
+
+# One call at startup — every subsequent LLM and agent call is traced
+Traceloop.init(app_name="my-agent", disable_batch=True)
+```
+
+That's the entire instrumentation. Every call to LangChain, the Anthropic SDK, or OpenAI automatically gets `gen_ai.*` spans with token counts, latency, inputs, and outputs.
+
+**Swap backends by setting one env var** — no code change needed:
+
+```bash
+# Route to LangSmith
+export TRACELOOP_BASE_URL="https://api.smith.langchain.com"
+
+# Route to Arize Phoenix (local)
+export TRACELOOP_BASE_URL="http://localhost:6006"
+
+# Route to any OTel collector
+export TRACELOOP_BASE_URL="http://otel-collector:4318"
+```
+
+What you get: a trace tree for each agent run — top-level agent span → LLM call spans (with token counts) → tool-call spans (with inputs and outputs). Every step is addressable for cost analysis, latency debugging, and regression detection, regardless of which backend you're currently using.
+
+**Sources:** [OpenTelemetry Blog — GenAI Observability 2026](https://opentelemetry.io/blog/2026/genai-observability), [OpenLLMetry Video Tutorial](https://www.youtube.com/watch?v=17pfYqcGciw), [SigNoz — Observing LLM Applications with OpenTelemetry](https://signoz.io/blog/opentelemetry-llm)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Claude Can Call Multiple Tools in One Turn — Process Them in Parallel With asyncio.gather</title>
