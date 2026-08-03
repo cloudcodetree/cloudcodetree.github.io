@@ -1,0 +1,434 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Expose It as an MCP Server (Part 12 of 37) · Tutorials',
+  description:
+    'Wrap DealFinder\'s score_deal, search_deals, and recommend tools in a standards-compliant MCP server — tools, a catalog resource, and a prompt template — so Claude Code and any MCP client can call them over the 270-item electronics snapshot.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-12/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Expose It as an MCP Server (Part 12 of 37)',
+    description: 'Wrap DealFinder\'s score_deal, search_deals, and recommend tools in a standards-compliant MCP server — tools, a catalog resource, and a prompt template — so Claude Code and any MCP client can call them over the 270-item electronics snapshot.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-12/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-12.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-12.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-12" />
+
+# Expose It as an MCP Server
+
+**TL;DR: The agent in Part 11 called `score_deal`, `search_deals`, and `recommend` as plain Python callables. MCP promotes those same functions to a standard protocol that Claude Code, Claude Desktop, or any MCP-speaking client understands — without rewriting them. You add decorators, wire `.mcp.json`, and your whole DealFinder backend is one protocol away from any tool-using model.**
+
+This is **Part 12 of Become a Full-Stack AI Engineer**. The work here is the protocol layer, not new capability: the two-signal deal score from Part 3, the title-embedding recommender from Part 4, and the semantic search from Part 5 do not change. What changes is how a client finds and calls them.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Step tag for this part: `step-12`. A `.devcontainer/` gives you Python 3.11 in one click.
+</Callout>
+
+## Table of contents
+
+1. [Why MCP, not just an API](#why-mcp-not-just-an-api)
+2. [The three MCP primitives](#the-three-mcp-primitives)
+3. [Install and initialize the server](#install-and-initialize-the-server)
+4. [Register the tools](#register-the-tools)
+5. [Prove the tools: score three headphones](#prove-the-tools-score-three-headphones)
+6. [Add the catalog resource](#add-the-catalog-resource)
+7. [Add the prompt template](#add-the-prompt-template)
+8. [Wire Claude Code with .mcp.json](#wire-claude-code-with-mcpjson)
+9. [Run an end-to-end session](#run-an-end-to-end-session)
+10. [Reproducibility checks](#reproducibility-checks)
+11. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Explain the three MCP primitives — Tools, Resources, Prompts — and which controls each (model / app / user).
+- Register existing Python callables as MCP tools with typed schemas and serve them over stdio transport.
+- Surface the snapshot catalog summary as a read-only resource at `dealfinder://catalog/stats`.
+- Define a `find_a_deal` prompt template and attach it to the server.
+- Connect the running server to Claude Code via `.mcp.json` and invoke tools interactively against the 270-item electronics snapshot.
+
+---
+
+## Why MCP, not just an API
+
+The agent in Part 11 called `score_deal` by importing it. That works inside one Python process. MCP turns the same functions outward — into a protocol-level contract that any tool-using model can speak, in any language, over any transport.
+
+The practical consequence: you write the tools once. Claude Code, Claude Desktop, a custom OpenAI-compatible client, a CI evaluation harness — all call the same server without per-client glue. When the tools improve (Part 13 switches `search_deals` from the frozen snapshot to a live pgvector store), every client picks up the change automatically.
+
+<MCPBridge />
+
+---
+
+## The three MCP primitives
+
+An MCP server exposes exactly three kinds of capability. Each is driven by a different party, and confusing them is the most common MCP design mistake.
+
+<MCPPrimitives />
+
+- **Tools** are model-controlled: the model decides when to call `score_deal` and what arguments to pass. They have side effects (in principle) and must have tight docstrings — that text is the schema the model reads.
+- **Resources** are app-controlled: the server decides what is at `dealfinder://catalog/stats`. The model can request the resource but cannot mutate it. Use resources for static or slow-changing data — a catalog summary, a model card, a configuration dump.
+- **Prompts** are user-controlled: the user (or calling app) invokes `find_a_deal` with their own arguments. Think of a prompt as a named, parameterized message template — a shortcut for a workflow a human author, not the model, defines.
+
+None of the three is a catch-all. Putting everything in tools is the wrong answer.
+
+---
+
+## Install and initialize the server
+
+`mcp_server.py` lives in the `dealfinder/` package. It is introduced in `step-12` and does not touch `dealscore.py`, `search.py`, `recommend.py`, or `snapshot.py`.
+
+```bash
+pip install "mcp[fastmcp]>=1.0,<2"
+```
+
+`FastMCP` initializes with a human-readable server name. `stdio` is the default transport — it works out of the box with Claude Code's subprocess model:
+
+```python
+# dealfinder/mcp_server.py
+from mcp.server.fastmcp import FastMCP
+from .dealscore import fair_price, median_signal, residual_fraction, verdict
+from .dealmodel import LinearModel
+from .features import feature_matrix, featurize
+from .recommend import content_recommend, load_catalog_embeddings
+from .search import cosine_rank
+from .snapshot import load_snapshot
+from .tools import load_catalog
+
+# Build the catalog-backed state once, at import.
+_catalog, _emb = load_catalog_embeddings(load_catalog())
+_idx = {p.id: i for i, p in enumerate(_catalog)}
+_medians = {r["id"]: r["median_price_at_capture"] for r in load_snapshot()}
+
+_by_cat: dict[str, list] = {}
+for _p in _catalog:
+    _by_cat.setdefault(_p.category, []).append(_p)
+_models = {
+    c: LinearModel().fit(feature_matrix(ps), [p.price for p in ps])
+    for c, ps in _by_cat.items() if len(ps) >= 3
+}
+
+def _fair_price(p) -> float:
+    model = _models.get(p.category)
+    return fair_price(model, featurize(p)) if model else p.price
+
+mcp = FastMCP("dealfinder")
+```
+
+The catalog state — 270 products, their cached title embeddings, per-category linear models, and the query medians — is built once at import. All tool calls read from this in-memory snapshot. No live API call is made in this part.
+
+---
+
+## Register the tools
+
+`@mcp.tool()` makes a decorated function visible to every MCP client. The name, docstring, and type hints become the schema; precision here determines how well the model fills arguments.
+
+```python
+@mcp.tool()
+def score_deal(product_id: str) -> dict:
+    """Price, fair price, median signal, and the two-signal deal verdict."""
+    p = _catalog[_idx[product_id]]
+    fp = _fair_price(p)
+    v = verdict(p.price, _medians.get(product_id, p.price), fp)
+    return {
+        "id": product_id, "title": p.title, "price": p.price,
+        "fair_price": round(fp, 2),
+        "median_signal": round(median_signal(p.price, _medians.get(product_id, p.price)), 3),
+        "residual_frac": round(residual_fraction(p.price, fp), 3),
+        "verdict": v.label,
+    }
+
+@mcp.tool()
+def recommend(product_id: str, k: int = 3) -> list[dict]:
+    """k products similar to the given one (content-based on title embeddings)."""
+    recs = content_recommend(_idx[product_id], _emb, k, standardize=False)
+    return [{"id": _catalog[j].id, "title": _catalog[j].title,
+             "price": _catalog[j].price} for j in recs]
+
+@mcp.tool()
+def search_deals(query: str, k: int = 5) -> list[dict]:
+    """Semantic search the catalog; returns matches with their deal verdict."""
+    from .embed import embed_texts
+    qv = embed_texts([query])[0]
+    out = []
+    for i, _ in cosine_rank(qv, _emb, k):
+        p = _catalog[i]
+        fp = _fair_price(p)
+        out.append({"id": p.id, "title": p.title, "price": p.price,
+                    "verdict": verdict(p.price, _medians.get(p.id, p.price), fp).label})
+    return out
+```
+
+Three tools; same Python functions that the agent in Part 11 called directly. The difference is the decorator — that one line makes them reachable over MCP.
+
+<Callout tone="note">
+**The docstring is load-bearing.** The model reads the docstring as the tool description. "Price, fair price, median signal, and the two-signal deal verdict" tells the model exactly what it gets back and why it might call this over `search_deals`. Write it like a contract.
+</Callout>
+
+---
+
+## Prove the tools: score three headphones
+
+Call `score_deal` with the three hero-cast items before wiring any client. Every catalog `id` is a long `rapidapi-catalogid:…` string, so instead of pasting raw ids, look each product up by a title substring — exactly the `_id` helper the real `tests/test_mcp.py` uses:
+
+```python
+# quick smoke test — the tool functions are plain callables
+from dealfinder import mcp_server
+
+def _id(needle):
+    return next(p.id for p in mcp_server._catalog
+                if needle.lower() in p.title.lower())
+
+# The anchor: the reference Sony XM5, at the snapshot median
+print(mcp_server.score_deal(_id("Sony WH-1000XM5 Wireless Headphones")))
+```
+
+```json
+{
+  "id": "rapidapi-catalogid:14556986932651510680,productid",
+  "title": "Sony WH-1000XM5 Wireless Headphones",
+  "price": 162.97,
+  "fair_price": 285.15,
+  "median_signal": 0.0,
+  "residual_frac": 0.428,
+  "verdict": "fair"
+}
+```
+
+`median_signal` is exactly 0.0 because this XM5 listing sits at the snapshot median for "noise cancelling headphones" ($162.97). `residual_frac` of 0.428 says the price model's fair estimate ($285.15) is 43% above the list price — genuine value, not a red flag. Verdict: **fair**.
+
+Now the Anker:
+
+```python
+print(mcp_server.score_deal(_id("Anker Soundcore Q20i")))
+```
+
+```json
+{
+  "id": "rapidapi-catalogid:4602286582194268609,productid:",
+  "title": "Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones",
+  "price": 44.99,
+  "fair_price": 108.33,
+  "median_signal": 0.724,
+  "residual_frac": 0.585,
+  "verdict": "deal"
+}
+```
+
+`median_signal` of 0.724 — 72% below query median. `residual_frac` of 0.585 — the model's fair price for a mid-tier ANC headphone is $108.33, and $44.99 is genuinely cheap without crossing the suspicious line. Both signals agree. Verdict: **deal**.
+
+Now the trap:
+
+```python
+print(mcp_server.score_deal(_id("Bose QuietComfort 45")))
+```
+
+```json
+{
+  "id": "rapidapi-catalogid:17549595923884402543,productid",
+  "title": "Bose QuietComfort 45 Wireless Noise Cancelling Headphones",
+  "price": 46.0,
+  "fair_price": 285.15,
+  "median_signal": 0.718,
+  "residual_frac": 0.839,
+  "verdict": "suspicious"
+}
+```
+
+This is the teaching moment the whole two-signal architecture exists to surface. The Bose QC45 and the Anker Q20i are both listed around $45. Median signal alone would call both a deal. But the Bose is a flagship — the same fair-price tier as the reference Sony XM5 — so its model fair price is also $285.15. `residual_frac` of 0.839 crosses the threshold (≥ 0.70) while `median_signal` of 0.718 is also ≥ 0.70. Both conditions met: verdict **suspicious**.
+
+The Bose QC45 title contains no condition token, so `condition = "new"` (default). The trap is caught by the model residual, not by a parsed refurb flag.
+
+The MCP tool returns the full signal object — both numbers and the verdict — so the client can present all three and let the user decide. A scalar "72% off!" collapses that nuance.
+
+---
+
+## Add the catalog resource
+
+Resources give clients a way to read static or slow-changing server data without calling a tool. The catalog summary — how many products, how many categories — is a natural resource: it changes only when the snapshot changes, and the model should be able to read it without executing search logic.
+
+```python
+@mcp.resource("dealfinder://catalog/stats")
+def catalog_stats() -> str:
+    """Quick catalog summary over the frozen snapshot."""
+    n = len(_catalog)
+    cats = len({p.category for p in _catalog})
+    avg = sum(p.price for p in _catalog) / n
+    return f"{n} electronics listings across {cats} categories; average price ${avg:.0f}"
+```
+
+A client reading `dealfinder://catalog/stats` gets:
+
+```
+270 electronics listings across 11 categories; average price $299
+```
+
+The server controls what is there. The model can request it; it cannot change it. This is the app-controlled boundary: the snapshot determines the numbers, not the calling model.
+
+<Callout tone="note">
+**Returning a dict from a resource.** The current `catalog_stats` returns a formatted string. In later versions you can return a structured dict by registering a `ResourceTemplate` — useful when the client needs to parse individual fields. For this part, the string is sufficient.
+</Callout>
+
+---
+
+## Add the prompt template
+
+Prompts are named, parameterized message templates. They let a human (or calling app) invoke a complex workflow through a short, memorable name. The model does not choose when to apply a prompt; the user or client does.
+
+```python
+@mcp.prompt()
+def find_a_deal(category: str = "noise cancelling headphones") -> str:
+    """A starter prompt for finding a good deal."""
+    return f"Find the best-value {category} in the catalog and explain why it's a good deal."
+```
+
+Invoking `find_a_deal` with `category="noise cancelling headphones"` returns:
+
+```
+Find the best-value noise cancelling headphones in the catalog and explain why it's a good deal.
+```
+
+The prompt hands the model a workflow — find the best value and justify it — rather than a bare question. The model then reaches for `score_deal` and `search_deals` on its own. A non-technical user can invoke it by name without knowing which tools exist.
+
+---
+
+## Wire Claude Code with .mcp.json
+
+Add the server to `.mcp.json` at the companion repo root. Claude Code reads this file and starts the server as a subprocess over stdio:
+
+```json
+{
+  "mcpServers": {
+    "dealfinder": {
+      "command": "python",
+      "args": ["-m", "dealfinder.mcp_server"],
+      "cwd": "companions/dealfinder"
+    }
+  }
+}
+```
+
+`cwd` must point to the companion root where `dealfinder/` is importable as a package. If Claude Code reports "server failed to start", verify the server starts manually first:
+
+```bash
+cd companions/dealfinder
+python -m dealfinder.mcp_server
+```
+
+If that succeeds, the `.mcp.json` `cwd` is correct. If `import dealfinder` fails, check that `pyproject.toml` lists the package and that the venv is active.
+
+Once wired, `score_deal`, `recommend`, and `search_deals` appear in Claude Code's tool list alongside any other registered MCP servers.
+
+---
+
+## Run an end-to-end session
+
+After wiring `.mcp.json`, open Claude Code in the companion directory and run the prompt template:
+
+```
+User: find_a_deal("noise cancelling headphones")
+```
+
+The model self-selects `search_deals` to find candidates under $100, then calls `score_deal` on each. A representative session:
+
+```
+[tool: search_deals] query="noise cancelling headphones" k=5
+→ returns 5 candidates: Bose QuietComfort ($359.99, overpriced),
+  Sony WH-CH720N/P ($129.99, deal), SONY WH-1000XM5 Noise-Canceling
+  ($248.00, overpriced), Soundcore Space 2 ($129.99, deal), and
+  Sony WH-1000XM6 ($399.99, overpriced)
+
+[tool: score_deal] id=<Anker Soundcore Q20i>
+→ price: 44.99, median_signal: 0.724, residual_frac: 0.585, verdict: deal
+
+[tool: score_deal] id=<Bose QuietComfort 45>
+→ price: 46.0, median_signal: 0.718, residual_frac: 0.839, verdict: suspicious
+
+Model: "The Anker Soundcore Q20i at $44.99 is the strongest honest deal
+— 72% below median and the price model confirms it's genuinely cheap for
+its tier. The Bose QuietComfort 45 at $46 shows a similar median discount,
+but both signals cross the suspicious threshold: the model's fair price for
+a flagship is $285.15, so $46 is implausibly low. Verify the listing
+condition before buying."
+```
+
+The session transcript is illustrative. The exact wording varies across runs; the signal values and verdicts are deterministic (snapshot-backed). The reproducibility checks in the next section pin the underlying numbers.
+
+<Callout tone="tip">
+**The session is illustrative, not a golden.** The reproducibility checks below cover the tool functions deterministically. The Claude Code session shows what a reasonable session looks like; the model's prose will differ across runs.
+</Callout>
+
+---
+
+## A word on exposure — stdio is a security choice
+
+This server runs over **stdio**: it exists only as a subprocess of the client that spawned it, reachable by nothing else. That is not a limitation — it is the correct default posture. The moment an MCP server listens on a network port, it inherits every classic network-service risk, and the ecosystem is young enough that the classics keep landing: July 2026 alone brought a **CVSS 10.0 unauthenticated RCE** in a popular MCP bridge (CVE-2026-59726 — an open port plus no auth equals anyone-on-the-network runs your tools), and the MCP spec's 2026-07-28 release moved the protocol toward stateless HTTP designs partly to make server hardening tractable. If you later deploy an HTTP MCP server (the Part 26+ serving stack makes it tempting), treat it like any other API: authentication before tools, an allowlisted tool set per client, and never put read-only `score_deal`-class tools and anything that mutates state on the same unauthenticated surface. Part 25's tool supply-chain layer covers the other direction — vetting the servers *you* connect to.
+
+---
+
+## Reproducibility checks
+
+These tests cover the tool functions and the resource directly — no MCP client required. The `_id` helper resolves a title substring to the product's real `rapidapi-catalogid:…` id, so the tests read by name:
+
+```python
+# tests/test_mcp.py
+from dealfinder import mcp_server
+
+
+def _id(needle):
+    return next(p.id for p in mcp_server._catalog if needle.lower() in p.title.lower())
+
+
+def test_server_registers_expected_tools():
+    names = {t.name for t in mcp_server.mcp._tool_manager.list_tools()}
+    assert names == {"score_deal", "recommend", "search_deals"}
+
+
+def test_score_deal_flags_the_anker_as_a_deal():
+    out = mcp_server.score_deal(_id("Anker Soundcore Q20i"))
+    assert out["price"] == 44.99
+    assert out["verdict"] == "deal"          # the honest hero deal
+    assert out["median_signal"] > 0.70
+
+
+def test_score_deal_flags_the_bose_trap_as_suspicious():
+    out = mcp_server.score_deal(_id("Bose QuietComfort 45"))
+    assert out["verdict"] == "suspicious"    # median says steal; residual guards it
+    assert out["residual_frac"] > 0.70
+
+
+def test_recommend_returns_similar_real_audio_items():
+    recs = mcp_server.recommend(_id("Sony WH-1000XM5 Wireless Headphones"), k=2)
+    assert len(recs) == 2
+    # the premium Sony sibling XM6 is in the neighbourhood
+    assert any("WH-1000XM" in r["title"] for r in recs)
+
+
+def test_catalog_stats_reflect_the_270_item_snapshot():
+    stats = mcp_server.catalog_stats()
+    assert "270" in stats and "11 categories" in stats
+```
+
+Run:
+
+```bash
+pytest tests/test_mcp.py -v
+```
+
+The first test pins the registered tool set to exactly `{score_deal, recommend, search_deals}`. The Anker and Bose tests re-assert the two-signal split: the Anker is a genuine `deal`, and the Bose QC45 is `suspicious` because its `residual_frac` crosses the 0.70 threshold — median discount alone would have called it a deal. That threshold is defined in `dealfinder/dealscore.py` and tested in `tests/test_dealscore.py`.
+
+---
+
+## Where this goes next
+
+**Back — Part 11 — The agent that ties it together** built the ReAct loop and defined `score_deal`, `search_deals`, and `recommend` as Python callables inside the agent. Part 12 promotes exactly those callables to MCP tools — the same logic, now accessible to any client without bespoke integration code.
+
+**Forward — Part 13 — pgvector persistence + semantic search** introduces a live-data backend: real deals persisted to Postgres with an HNSW cosine index. The `search_deals` MCP tool registered here will be updated in Part 13 to query the pgvector store instead of the frozen snapshot, making the server live without changing its interface or its clients.
+
+---
+
+*Sources: [Model Context Protocol](https://modelcontextprotocol.io/) · [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) · [FastMCP](https://github.com/jlowin/fastmcp) · [Connect MCP to Claude Code](https://docs.claude.com/en/docs/claude-code/mcp)*

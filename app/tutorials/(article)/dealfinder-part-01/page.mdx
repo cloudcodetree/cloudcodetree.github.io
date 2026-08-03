@@ -1,0 +1,450 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Data Layer, Normalization & the Snapshot (Part 1 of 37) · Tutorials',
+  description:
+    'Build the Google Shopping connector, freeze the 270-item electronics snapshot, and normalize messy retailer-polluted data into one clean schema — the reproducible foundation every later part runs on.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-01/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Data Layer, Normalization & the Snapshot (Part 1 of 37)',
+    description: 'Build the Google Shopping connector, freeze the 270-item electronics snapshot, and normalize messy retailer-polluted data into one clean schema — the reproducible foundation every later part runs on.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-01/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-01.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-01.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-01" />
+
+# Data Layer, Normalization & the Snapshot
+
+**TL;DR: Real deal-finding starts with messy real data. Connect to the Google Shopping API, normalize the retailer-polluted brand field, dedup the same Sony headphones listed at two prices, and freeze the 270-item electronics snapshot that the rest of this 37-part course runs on.**
+
+This is **Part 1 of DealFinder**, and it starts where every production AI system actually starts: getting noisy, real-world data into a clean, typed shape. The messiness — a `brand` field holding "Walmart - COWIN" instead of "COWIN", a Sony WH-1000XM5 priced at both $162.97 and $248 — is not a bug to clean away. It is the curriculum. Every technique in the parts ahead exists because of the problems you surface here.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Step tags: `step-01a` (connector skeleton) · `step-01b` (normalize + dedup) · `step-01c` (snapshot frozen).
+A `.devcontainer/` gives you Python 3.11 in one click (locally or in Codespaces).
+</Callout>
+
+## Table of contents
+
+1. [The problem: messy real data is the curriculum](#the-problem-messy-real-data-is-the-curriculum)
+2. [The normalized schema](#the-normalized-schema)
+3. [Stand up the Google Shopping connector](#stand-up-the-google-shopping-connector)
+4. [The brand field lie: 154 of 270 rows hold the retailer](#the-brand-field-lie-154-of-270-rows-hold-the-retailer)
+5. [Normalize titles, extract the real manufacturer](#normalize-titles-extract-the-real-manufacturer)
+6. [Dedup: Sony WH-1000XM5 at two prices](#dedup-sony-wh-1000xm5-at-two-prices)
+7. [Freeze the snapshot](#freeze-the-snapshot)
+8. [Load and validate the snapshot](#load-and-validate-the-snapshot)
+9. [Reproducibility checks](#reproducibility-checks)
+10. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Stand up the RapidAPI Google Shopping connector and issue a query that returns real electronics listings.
+- Load and validate `electronics-2026-07.json` against the canonical `Item` schema.
+- Explain why `brand` holds a retailer instead of the manufacturer in 154 of 270 snapshot rows, and use a title-parsing heuristic to extract the true manufacturer.
+- Identify the dedup problem — Sony WH-1000XM5 at $162.97 (Costco) vs. $248 (Macy's) — and see why exact-match dedup keeps both offers, leaving true cross-retailer merge to the semantic dedup in Part 9.
+- Freeze and version a snapshot via `data/build_snapshot.py` for reproducible downstream work.
+
+---
+
+## The problem: messy real data is the curriculum
+
+Pull any broad electronics query from Google Shopping and you get data that misbehaves. `deal_pct` — the percentage below the query median — bottoms out at −3785% on a mispriced outlier in our snapshot and peaks at +91.7% on an accessory mislisting. That range is not a calibration error. It is the signal landscape every technique in this course navigates.
+
+Here is a slice of the raw `deal_pct` distribution across all 270 items in the snapshot:
+
+```
+min  : −3785%   ← mispriced outlier (still there; not sanitized here)
+p10  :  −140%
+p50  :     0%   ← query median, by construction
+p90  :  +48%
+max  :  +91.7%  ← accessory / mislisting
+```
+
+The naive deal signal is broken — which is exactly why Parts 3 onward build a price model to replace it. You need to see the broken version first.
+
+<SchemaMap />
+
+---
+
+## The normalized schema
+
+Before any connector runs, define the shape everything downstream receives. The snapshot item schema is flat and typed:
+
+```python
+# dealfinder/schema.py
+class Product(BaseModel):
+    id: str
+    title: str
+    brand: str | None          # WARNING: often the retailer, not the manufacturer
+    category: str              # audio, computers, displays, peripherals, …
+    price: float
+    currency: str = "USD"
+    url: str
+    source: str                # e.g. "RapidAPI:Costco" — connector : retailer
+    image_url: str | None = None
+    marketplace: str | None = None   # "RapidAPI", "Apify" — where the offer was seen
+    condition: str = "new"           # new / refurb / used (parsed from title)
+    specs: dict[str, str] = {}
+    price_history: list[PricePoint] = []
+```
+
+Pydantic validates and coerces on the way in. Every connector produces a `Product`; every later part consumes it. `brand` is typed as optional and annotated with a warning because, as you'll see in the next section, trusting it blindly is a bug.
+
+---
+
+## Stand up the Google Shopping connector
+
+The `RapidApiSource` in `dealfinder/live_sources.py` wraps the Real-Time Product Search endpoint. Connecting is three steps: set the env var, run one query, inspect the raw JSON.
+
+<Callout tone="note">
+**Get your RapidAPI key (free, ~2 minutes).**
+1. Create an account at [rapidapi.com](https://rapidapi.com/) (GitHub/Google sign-in works).
+2. Open the [Real-Time Product Search API page](https://rapidapi.com/letscrape-6bRBa3QguO5/api/real-time-product-search), pick the **BASIC $0.00/mo** plan card, and click **Subscribe** (the free tier is hard-limited — it cannot bill you).
+3. Click **Open playground** on the API page: your key appears in the code-snippet panel as the `X-RapidAPI-Key` header value (also under **Apps → My Apps → Authorization**).
+
+One gotcha worth knowing up front: the key is **account-wide, but subscriptions are per-API**. If you already have a RapidAPI key from another project, reuse it — you still need to click Subscribe on *this* API's page or every call returns `403 You are not subscribed`.
+</Callout>
+
+```bash
+# .env
+RAPIDAPI_KEY=your_key_here
+```
+
+```python
+# step-01a: connector skeleton
+from dealfinder.live_sources import RapidApiSource
+
+src = RapidApiSource()
+products = src.search("noise cancelling headphones", limit=15)
+
+for p in products[:3]:
+    print(f"{p.brand:30s} | {p.title[:55]:55s} | ${p.price:.2f}")
+```
+
+Running this against the live API gives output like:
+
+```
+Costco                         | Sony WH-1000XM5 Wireless Industry Leading...   | $162.97
+Macy's                         | Sony WH-1000XM5 Wireless Industry Leading...   | $248.00
+Walmart - COWIN                | COWIN E7 Active Noise Cancelling Headphones ... | $29.99
+```
+
+The first thing you notice: `brand` is "Costco" and "Macy's". Those are retailers, not manufacturers. The Sony WH-1000XM5 appears twice — same product, two stores, two prices. Both problems need fixing before the data is usable for anything.
+
+<Callout tone="note">
+**RapidAPI key is optional for the snapshot path.** The live connector section requires a key (free tier works). Everything from here through the snapshot exercises runs entirely offline against `electronics-2026-07.json`. If you want to skip the live section, jump to [Load and validate the snapshot](#load-and-validate-the-snapshot).
+</Callout>
+
+**Every API key the course will ever ask for.** Six external services appear across the 37 parts. All have free tiers, none is needed before the part listed, and a blank key never breaks the app — the aggregator simply skips that source. Each part walks through its own signup when you get there; this table is the map:
+
+| Key | What the service is | First needed | Where to get it | Cost |
+|---|---|---|---|---|
+| `RAPIDAPI_KEY` | **RapidAPI** — a marketplace of third-party APIs behind one key. DealFinder uses its *Real-Time Product Search* API, which returns live Google Shopping results (titles, prices, retailers) as JSON | Part 1 (this part) | [rapidapi.com](https://rapidapi.com/letscrape-6bRBa3QguO5/api/real-time-product-search) — subscribe to the API's Basic plan | Free tier |
+| `OPENROUTER_API_KEY` | **OpenRouter** — one API in front of many LLM providers (OpenAI, Anthropic, Meta, …); you pick a model string, it routes the call. DealFinder uses it for extraction and agent reasoning | Part 6 | [openrouter.ai](https://openrouter.ai/) → Settings → Keys | Free models exist; paid ones are pay-per-token |
+| `EBAY_APP_ID` + `EBAY_CERT_ID` | **eBay Browse API** — eBay's official product-search API (OAuth2) for live listings, including used/refurbished — a price band Google Shopping barely covers | Part 7 | [developer.ebay.com](https://developer.ebay.com/) → Application Keys | Free and instant — production keys need a one-click "I don't persist eBay data" exemption that Part 7 walks step by step |
+| `BESTBUY_API_KEY` | **Best Buy Developer API** — Best Buy's official catalog API: current sale prices straight from the retailer, no scraping | Part 7 | [developer.bestbuy.com](https://developer.bestbuy.com/) | Free, but human-approved with no SLA — advertised 1–3 days, often weeks in practice. Register early, treat as optional: Best Buy prices already arrive via Google Shopping |
+| `APIFY_TOKEN` | **Apify** — a managed scraping platform that runs hosted scrapers ("actors") for you. DealFinder calls a Google Shopping actor — the scraping happens on Apify's infrastructure, not your machine | Part 8 | [console.apify.com](https://console.apify.com/) → Settings → API & Integrations | Free monthly credit |
+| `FIRECRAWL_API_KEY` | **Firecrawl** — a crawl-and-extract API: give it a search query or URL, it renders the page and returns clean markdown/JSON. DealFinder's broadest, noisiest source — the tier-4 fallback | Part 8 | [firecrawl.dev](https://www.firecrawl.dev/) → dashboard shows your key | Free credits |
+
+All six live as one `KEY=value` line each in the companion's `.env` (gitignored). Parts 32/34 additionally use Supabase and Stripe, but those are services you stand up yourself — their lessons cover setup end to end.
+
+<RunHistory />
+
+---
+
+## The brand field lie: 154 of 270 rows hold the retailer
+
+Load the full snapshot and count how many `brand` values are retailer strings rather than manufacturer names:
+
+```python
+from dealfinder.snapshot import load_snapshot
+
+items = load_snapshot("data/snapshots/electronics-2026-07.json")
+print(len(items))   # 270
+
+# Sample the raw brand field
+for item in items[:8]:
+    print(repr(item["brand"]))
+```
+
+```
+'Costco'
+'Macy’s'
+'Walmart - COWIN'
+'Target'
+'mountainlifestyle.ca'
+'Anker'
+'Sony'
+'Best Buy'
+```
+
+Of the 270 rows, **154 have a `brand` value that is a retailer string** — a marketplace name, a store URL fragment, or a vendor bundle like "Walmart - COWIN". Only the remaining 116 happen to carry the actual manufacturer. Using `brand` directly in a price model or brand-tier ranking would poison the features for more than half the data.
+
+The fix: extract the true manufacturer from the `title`, where it reliably lives.
+
+<RetailerBrandSplit />
+
+---
+
+## Normalize titles, extract the real manufacturer
+
+`dealfinder/features.py` implements `title_brand()` — a greedy regex match over a vocabulary of ~70 known electronics manufacturers, longest match first, with a capitalized-first-token fallback:
+
+```python
+# dealfinder/features.py (abridged)
+KNOWN_BRANDS = (
+    "Amazon Basics", "Google Nest", "Ultimate Ears", "Western Digital",
+    "Anker", "Soundcore", "Bose", "Sony", "JBL", "Samsung", "Logitech",
+    # … 60+ more …
+)
+_BRAND_LIST = sorted(dict.fromkeys(KNOWN_BRANDS), key=len, reverse=True)  # longest first
+_BRAND_PATTERNS = [
+    (b, re.compile(rf"\b{re.escape(b)}\b", re.IGNORECASE)) for b in _BRAND_LIST
+]
+
+def title_brand(title: str) -> str | None:
+    for canonical, pat in _BRAND_PATTERNS:
+        if pat.search(title):
+            return canonical
+    # Fallback: capitalized first token
+    first = title.strip().split()[0].strip(".,")
+    if first and first[0].isupper() and len(first) > 1:
+        return first
+    return None
+```
+
+No LLM. No API call. About 15 lines of deterministic regex. Verify it against the hero cast:
+
+```python
+from dealfinder.features import title_brand
+
+cases = [
+    ("Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Headphones", "Sony"),
+    ("COWIN E7 Active Noise Cancelling Headphones", "Cowin"),
+    ("Bose QuietComfort 45 Bluetooth Wireless Over Ear Headphones", "Bose"),
+    ("Anker Soundcore Q20i Active Noise Cancelling Headphones", "Anker"),
+]
+for title, expected in cases:
+    result = title_brand(title)
+    status = "✓" if result == expected else "✗"
+    print(f"{status} '{result}' from: {title[:55]}")
+```
+
+```
+✓ 'Sony' from: Sony WH-1000XM5 Wireless Industry Leading Noise Ca
+✓ 'Cowin' from: COWIN E7 Active Noise Cancelling Headphones
+✓ 'Bose' from: Bose QuietComfort 45 Bluetooth Wireless Over Ear He
+✓ 'Anker' from: Anker Soundcore Q20i Active Noise Cancelling Headph
+```
+
+Once you have the true manufacturer, `brand_tier()` maps it to a price-tier rank (1–4): Sony and Bose are tier 4 flagships; Anker is tier 2 value. That tier is one of the three features the price model learns from in Part 3.
+
+---
+
+## Dedup: same product, or two offers to compare?
+
+The connector returned Sony WH-1000XM5 headphones from Costco at $162.97 and from Macy's at $248.00. Should those collapse into one row? For a deal aggregator the answer is subtler than it looks — and the real data makes it concrete. `dedup_key` + `ingest` in `dealfinder/ingest.py` do an **exact-match** collapse: identical brand *and* title, keep the cheapest.
+
+```python
+# dealfinder/ingest.py
+def dedup_key(p: Product) -> str:
+    """Exact-match collision key: same brand + title. Cross-retailer offers and
+    near-duplicate titles are NOT collapsed here — that is the semantic (cosine)
+    dedup in Part 9."""
+    return f"{(p.brand or '').strip().lower()}|{p.title.strip().lower()}"
+
+def ingest(sources: list[DealSource]) -> list[Product]:
+    """Pull from every source; when the exact same product appears twice, keep the cheapest."""
+    best: dict[str, Product] = {}
+    for src in sources:
+        for p in src.products():
+            k = dedup_key(p)
+            if k not in best or p.price < best[k].price:
+                best[k] = p
+    return list(best.values())
+```
+
+Now run the real Sony rows through it — the actual keys from the frozen snapshot:
+
+1. **Costco row** — raw `brand="costco.com"`, title `"Sony WH-1000XM5 Wireless Headphones"`, `$162.97`. Key: `costco.com|sony wh-1000xm5 wireless headphones`.
+2. **Macy's row** — raw `brand="Macy's"`, title `"SONY WH-1000XM5 Wireless Noise-Canceling Headphones"`, `$248.00`. Key: `macy's|sony wh-1000xm5 wireless noise-canceling headphones`.
+3. **The keys differ — on both halves.** The raw `brand` is a *retailer* (Part 1's other problem), and the titles aren't byte-identical either ("Wireless Headphones" vs. "Wireless Noise-Canceling Headphones"). So `ingest` keeps **both** rows.
+
+And that is the right call. A deal aggregator's whole job is to show the same product across stores so you can compare — collapsing the $248 listing away would *hide* a data point, not clean one. Exact-match dedup exists to catch a feed that returns the *identical* row twice, not to merge genuine cross-retailer offers.
+
+Recognizing that these two *are* the same product — despite different retailer brands and slightly different titles — is a harder, semantic problem. That is exactly what Part 9 solves with embedding-based cosine dedup (threshold 0.90): it measures that the two titles *mean* the same thing and merges them with an audit log. **Part 1 surfaces the problem; Part 9 has the machinery to solve it.**
+
+<DedupMerge />
+
+When an exact duplicate *is* collapsed, the drop is logged, not silent — so you can audit which listings were merged and why. That auditability matters more than it seems: in Part 9 the cosine-dedup pass (threshold 0.90) runs the same keep-cheapest logic at embedding distance to merge cases like this Sony pair, and the log is what lets you catch false positives before they hide a real offer.
+
+---
+
+## Freeze the snapshot
+
+`data/build_snapshot.py` orchestrates the full pipeline: issue 18 queries to the live connector, normalize, dedup, and write `electronics-2026-07.json`. You do not need to run this — the snapshot is already committed. But understanding the freeze is important for reproducibility:
+
+```python
+# data/build_snapshot.py (abridged)
+QUERIES = [
+    "noise cancelling headphones",
+    "gaming laptop",
+    "ultrawide monitor",
+    "mechanical keyboard",
+    "webcam",
+    "external SSD",
+    "wireless mouse",
+    "portable bluetooth speaker",
+    "smart home hub",
+    "graphics card",
+    # … 8 more …
+]
+
+# Rate-limited: 1 req/s to stay within the free tier.
+# Outputs: data/snapshots/electronics-2026-07.json
+# File size: ~180 KB
+# SHA pinned in a comment at the top of this file so regenerated snapshots
+# are identifiable.
+```
+
+The snapshot is the stable ground truth. Every quoted number in this course — the $162.97 median, the 154-row brand-retailer count, the −3785% outlier — is a fixed property of this committed file. If you regenerate it, those numbers will differ and the prose will be wrong. Do not regenerate unless you are intentionally updating the course baseline.
+
+---
+
+## Load and validate the snapshot
+
+```python
+# step-01c: load_snapshot + schema validation
+from dealfinder.snapshot import load_snapshot, to_products
+
+items = load_snapshot("data/snapshots/electronics-2026-07.json")
+assert len(items) == 270, f"expected 270, got {len(items)}"
+
+# Convert to typed Products (parses condition from title)
+products = to_products(items)
+print(f"Loaded {len(products)} products")
+print(f"Categories: {set(p.category for p in products)}")
+```
+
+```
+Loaded 270 products
+Categories: {'audio', 'computers', 'displays', 'peripherals', 'storage',
+             'accessories', 'mobile', 'wearables', 'smart-home', 'components', 'misc'}
+```
+
+`to_products` calls `parse_condition(title)` on each row, so every `Product` comes out of the loader with a populated `condition` field — new / refurb / used — without any extra call site.
+
+<ScaleSwap />
+
+---
+
+## Reproducibility checks
+
+The following assertions must pass against `electronics-2026-07.json`. They are pinned in `tests/test_part01.py` and run in CI:
+
+```python
+import statistics
+from dealfinder.snapshot import load_snapshot, to_products
+from dealfinder.ingest import dedup_key, ingest
+
+items = load_snapshot()
+
+# ── snapshot count ───────────────────────────────────────────────────────────
+assert len(items) == 270
+
+# ── brand field is retailer-polluted (the Part 6 audit) ──────────────────────
+# 154 of 270 rows carry a retailer token in `brand` instead of the manufacturer.
+retailers = ["Walmart", "Target", "Costco", "Macy", "Best Buy", "Amazon",
+             "mountainlifestyle", "kohl"]
+polluted = sum(
+    1 for x in items
+    if any(r.lower() in (x.get("brand") or "").lower() for r in retailers)
+)
+assert polluted == 154              # don't trust `brand`; extract from the title
+
+# ── hero-cast: noise cancelling headphones ───────────────────────────────────
+ncb = [i for i in items if i["query"] == "noise cancelling headphones"]
+assert len(ncb) == 15
+prices = sorted(float(i["price"]) for i in ncb)
+assert abs(statistics.median(prices) - 162.97) < 0.01   # query-median pinned
+
+# ── dedup: cross-retailer XM5 offers are BOTH kept (compare, don't collapse) ──
+xm5 = [p for p in to_products(items) if "wh-1000xm5" in p.title.lower()]
+assert len(xm5) == 2                             # Costco $162.97 AND Macy's $248
+assert len({dedup_key(p) for p in xm5}) == 2     # distinct keys (retailer + title differ)
+
+# ── …but a genuine exact duplicate DOES collapse, keeping the cheaper ─────────
+from dealfinder.schema import Product
+class _StaticSource:
+    def __init__(self, ps): self._ps = ps
+    def products(self): return self._ps
+dupes = [Product(id="a", title="Anker Q20i", brand="Anker", category="audio",
+                 price=54.99, url="u", source="feed"),
+         Product(id="b", title="Anker Q20i", brand="Anker", category="audio",
+                 price=44.99, url="u", source="feed")]
+kept = ingest([_StaticSource(dupes)])
+assert len(kept) == 1 and kept[0].price == 44.99
+
+# ── deal_pct outliers are still present (not sanitized in Part 1) ─────────────
+deal_pcts = [float(i["deal_pct"]) for i in items]
+assert min(deal_pcts) < -3000
+assert max(deal_pcts) > 90
+```
+
+Run them with:
+
+```bash
+pytest tests/test_part01.py -v
+# 6 passed
+```
+
+Every assertion passes against the committed snapshot. If you have regenerated the snapshot, expect failures — that is by design; the frozen file is what keeps these numbers (and every later lesson's) reproducible.
+
+---
+
+## Check it works
+
+**What you should have now:** the 270-item, normalized, deduped snapshot loaded into a running DealFinder — a clean typed `Product` catalog the rest of the course builds on.
+
+**How to test it, in the running product.** Start the app and confirm the data layer is live:
+
+```bash
+uvicorn dealfinder.serve:app --port 8000
+```
+
+- **Health** — open [http://localhost:8000/healthz](http://localhost:8000/healthz). You should see `{"status":"ok","products":270}`. That `270` *is* your data layer.
+- **A normalized product** — open `http://localhost:8000/deal/<id>` for any real id (grab one from the snapshot). You get a clean, typed row: `{"id":..., "title":"Anker Soundcore Q20i…", "price":44.99, …}` — retailer-polluted brand fixed, condition parsed, price typed.
+
+<Callout tone="note">
+**What does *not* work yet — and that's expected.** The search box on the home page has two modes. **Live deals** needs retailer API keys (you add them in **Part 7**). **By meaning** runs over the snapshot offline now, but the full *"search everything ever saved"* version needs a database (**Part 13**). If a mode is empty or asks for a key, that's the course working as designed — not a bug. Each feature lights up in its own lesson.
+</Callout>
+
+---
+
+## What you can demo now
+
+After this part, DealFinder is already showable. Open [http://localhost:8000](http://localhost:8000), pick **by meaning (saved)**, and search `noise cancelling headphones`:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-01/semantic-search-verdicts.png"
+  alt="DealFinder offline search results with DEAL and SUSPICIOUS verdict badges highlighted"
+  caption="Real capture: offline search over the frozen snapshot — no API keys, no network."
+  lookFor="the status line reads “12 matches by meaning · across the frozen snapshot”; the Anker Soundcore Q20i at $44.99 carries a green DEAL badge (ringed); the Bose QuietComfort 45 at $46.00 — almost the same price — carries an amber SUSPICIOUS badge (ringed). Two near-identical prices, two opposite verdicts: that contrast is this course's whole thesis, and it works on day one."
+/>
+
+The demo line for a colleague: *"every card is a real July-2026 listing; the badges come from a price model you'll build in Part 3 — notice it already refuses to call the $46 Bose a deal."* Everything in the screenshot runs offline from the committed snapshot, so your screen should match this capture exactly.
+
+- **Part 2 — How LLMs actually work:** before wiring a model into DealFinder, you need the literacy: tokenization, embeddings, attention, and sampling — illustrated with electronics examples drawn from the 11 snapshot categories you just established.
+- **Part 3 — Is it a good deal? Median vs. model:** opens by loading `electronics-2026-07.json` and immediately hits the naive-median failure mode the `deal_pct` outliers in this part foreshadow. The −3785% outlier and the $46 Bose QuietComfort 45 that reads as 72% below median are the motivation for the price model. You froze the data; Part 3 shows why the naive signal on that data is broken.
+
+---
+
+*Sources: [pydantic](https://docs.pydantic.dev/) · [httpx](https://www.python-httpx.org/) · [RapidAPI Real-Time Product Search](https://rapidapi.com/letscrape-6bRBa3QguO5/api/real-time-product-search) · [Apify Google Shopping Scraper](https://apify.com/automation-lab/google-shopping-scraper)*

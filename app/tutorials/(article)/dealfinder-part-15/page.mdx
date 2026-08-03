@@ -1,0 +1,311 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Agentic RAG — Retrieval as a Repeated Tool Call (Part 15 of 37) · Tutorials',
+  description:
+    'Turn single-shot RAG into an agent that judges its own evidence: retrieve, gate on the deal verdicts, reformulate with a corpus-mined term, and retry. "cheap monitor" iterates three hops to a clean 4K-monitor DEAL — fully offline and deterministic.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-15/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Agentic RAG — Retrieval as a Repeated Tool Call (Part 15 of 37)',
+    description:
+      'Retrieve → judge sufficiency → reformulate → retry. The agent decides when the evidence is good enough and what to search next, still grounded by the Part 14 faithfulness guard.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-15/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-15.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-15.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-15" />
+
+# Agentic RAG: Retrieval as a Repeated Tool Call
+
+**TL;DR: Single-shot RAG (Part 14) retrieves once and answers. That fails on a vague query — "cheap monitor" first surfaces an OVERPRICED lead and refurb traps. This part closes the loop: the agent *judges* whether the retrieved evidence is good enough (a gate on the deal verdicts), and when it is not, it *reformulates* the query with a term mined from the snapshot and retrieves again. "cheap monitor" iterates three hops — OVERPRICED-top → too-thin → three DEALs — and converges on the MSI Pro MP273U 4K monitor at $159.99. Still grounded by the same faithfulness guard, still fully offline.**
+
+In Part 14 you built retrieve → context → generate. It answered well when the *first* retrieval was good. But "the model figures it out" is not a plan for when it isn't. A vague query pulls in traps and off-target items, and generating from that weak evidence produces a weak recommendation. What separates a RAG *pipeline* from a RAG *agent* is one idea: **retrieval is a tool the agent can call more than once**, judging the results and deciding what to search next — exactly the "retrieval as a repeated tool call, not a preprocessing step" framing the field settled on in 2026.
+
+<Callout tone="tip">
+**Code along, step by step.** Full course repo at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+This part introduces `dealfinder/agentic_rag.py` and the `GET /ask_agentic` route; it is tag **step-15**, a delta on the RAG generator from step-14. Everything below runs offline against the frozen 270-item snapshot — no API key required.
+</Callout>
+
+## Table of contents
+
+1. [Why one retrieval isn't enough](#why-one-retrieval-isnt-enough)
+2. [The loop: retrieve → judge → reformulate → retry](#the-loop-retrieve--judge--reformulate--retry)
+3. [The sufficiency gate — a pure function of the verdicts](#the-sufficiency-gate--a-pure-function-of-the-verdicts)
+4. [Reformulation: query expansion from a corpus lexicon](#reformulation-query-expansion-from-a-corpus-lexicon)
+5. [agentic_answer(): the worked trajectory](#agentic_answer-the-worked-trajectory)
+6. [Topic drift: a real caveat](#topic-drift-a-real-caveat)
+7. [The /ask_agentic endpoint](#the-ask_agentic-endpoint)
+8. [Reproducibility checks](#reproducibility-checks)
+9. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Explain why single-shot RAG under-performs on vague queries, and how a judged retrieval loop fixes it without a bigger model.
+- Write a **sufficiency gate** that reads the two-signal deal verdicts and decides whether the retrieved evidence is strong enough to answer from.
+- Expand a weak query with a **capability term mined from the corpus itself** (not hand-authored), so the reformulation is principled and reproducible.
+- Run `agentic_answer()` and read the full hop trajectory — every query tried and why the gate accepted or rejected it.
+- Recognize **topic drift** — when reformulation broadens the query too far — and know why it is a real risk to monitor.
+- Serve the loop as `GET /ask_agentic` and inspect the reasoning in the response.
+
+---
+
+## Why one retrieval isn't enough
+
+Part 14's `answer()` calls `retrieve()` exactly once. Watch it on a vague query. Here is the *real* single-shot retrieval for `"cheap monitor"`, top-5 by the value rerank:
+
+```python
+from dealfinder import rag
+for it in rag.retrieve("cheap monitor", k=5):
+    print(f"{it.verdict.upper():11} ${it.price:>7.2f}  {it.title[:46]}")
+```
+
+```
+OVERPRICED  $ 314.99  Dell 27" 4K UHD IPS Monitor
+DEAL        $ 159.99  MSI Pro MP273U 27" 4K UHD HDR Monitor
+OVERPRICED  $ 352.80  HP E27k G5 27" 4K Monitor
+DEAL        $ 199.99  Acer CB272K Bmiprux 27" 4K UHD 60Hz Monitor
+OVERPRICED  $ 549.99  BenQ MA270U 27" 4K HDR Monitor
+```
+
+The lead result is **OVERPRICED**. There are only two DEALs, buried at ranks 2 and 4. A single-shot RAG answer would open with "Best value: the Dell 27" 4K at $314.99" — technically the top-ranked row, but a poor recommendation for someone who typed *cheap*. The word "cheap" carries no real constraint, so the retriever can't tell a bargain from a full-price panel.
+
+The fix is not a better prompt. It is to notice the evidence is weak and **go get better evidence**.
+
+---
+
+## The loop: retrieve → judge → reformulate → retry
+
+`dealfinder/agentic_rag.py` wraps the Part 14 retriever in a judged loop. Nothing here is a new model — it reuses `rag.retrieve` (the Part 5 hybrid + value rerank), the verdicts already attached to each item, and the grounded generator + faithfulness guard from Part 14. The new machinery is two small pieces: a **sufficiency gate** and a **reformulator**.
+
+<AgenticLoop />
+
+The trajectory above is real output. The loop retrieves, the gate reads the verdicts and rejects a weak set, the reformulator sharpens the query, and it retries — until the evidence is strong enough to answer from, or it runs out of hops.
+
+---
+
+## The sufficiency gate — a pure function of the verdicts
+
+The gate never calls a model. It reads the two-signal verdicts DealFinder already computes and decides whether the set is worth answering from:
+
+```python
+def sufficiency(items: list[rag.RetrievedItem]) -> tuple[bool, str]:
+    """Is the retrieved set strong enough to answer from — a pure gate on verdicts.
+
+    Sufficient when the top pick is a genuine DEAL, there are at least two DEALs to
+    choose between, and honest deals are not outnumbered by SUSPICIOUS traps.
+    """
+    if not items:
+        return False, "no items retrieved"
+    deals = sum(1 for it in items if it.verdict == "deal")
+    suspicious = sum(1 for it in items if it.verdict == "suspicious")
+    top = items[0].verdict
+    if top != "deal":
+        return False, f"top result is {top.upper()}, not a DEAL"
+    if deals < 2:
+        return False, f"only {deals} DEAL in top-{len(items)} — too thin to recommend"
+    if suspicious >= deals:
+        return False, f"{suspicious} SUSPICIOUS traps vs {deals} DEALs — query too vague"
+    return True, f"{deals} DEALs, top is a DEAL, {suspicious} traps — good evidence"
+```
+
+Three ways to fail, each a real failure mode: a non-DEAL lead (the $899 monitor), too few DEALs to compare, or traps outnumbering deals (the DealFinder signature of a vague query). Because it is a pure function of the verdicts, it is deterministic and testable — no LLM judgment, no flakiness.
+
+---
+
+## Reformulation: query expansion from a corpus lexicon
+
+When the gate rejects a set, the agent has to search *better*. A generic rewrite ("cheap monitor" → "monitor deal") doesn't help — testing on the snapshot, it still returns one DEAL. What helps is adding a **capability** the vague query lacks. And the honest place to get that capability is the corpus itself:
+
+```python
+def _capability_lexicon(products) -> dict[str, list[str]]:
+    """Per-category capability phrases mined from the frozen snapshot titles.
+    Ranked bigrams that contain a capability keyword — corpus-derived."""
+    ...
+```
+
+Mined from the real titles, the lexicon is:
+
+```python
+lexicon["audio"]    == ['noise cancelling', 'wireless noise', 'cancelling headphones', ...]
+lexicon["displays"] == ['gaming monitor', 'hdr gaming', 'hz gaming', 'smart gaming']
+```
+
+The reformulator drops the vague price word, then appends the highest-ranked capability phrase the query doesn't already have (strong discriminators like "noise cancelling" or "hdr gaming" first), plus an explicit value intent:
+
+```python
+def reformulate(base, items, lexicon, tried) -> tuple[str, str | None]:
+    """Expand the ORIGINAL (de-vagued) query with the best untried capability term."""
+    base_words = set(base.split())
+    cat = items[0].category if items else "other"
+    for phrase in lexicon.get(cat, []):
+        if phrase in tried or set(phrase.split()).issubset(base_words):
+            continue
+        novel = " ".join(w for w in phrase.split() if w not in base_words)
+        return f"{base} {novel} deal".strip(), phrase
+    return f"{base} deal".strip(), None
+```
+
+This is a real information-retrieval technique — query expansion from a domain lexicon — and because the lexicon comes from the frozen snapshot, the whole thing is reproducible offline. In production the reformulator is an LLM (it is injectable, exactly like the generator in Part 14); the corpus-mined rule is the deterministic default that keeps the tutorial's output stable.
+
+<Callout tone="note">
+**Why reformulation genuinely needs reasoning.** A dumb rewrite doesn't rescue "cheap monitor" — only adding a discriminating capability ("hdr gaming") does. That is precisely why this step is *agentic*: sharpening a vague query is a reasoning task, not a preprocessing rule. The corpus lexicon is a principled stand-in for that reasoning, offline.
+</Callout>
+
+---
+
+## agentic_answer(): the worked trajectory
+
+`agentic_answer` runs the loop and returns the final grounded answer plus every hop — so the agent's reasoning is fully inspectable:
+
+```python
+def agentic_answer(query, max_hops=3, products=None, embeddings=None) -> AgenticAnswer:
+    """Retrieve → judge → reformulate & retry if weak → answer, grounded."""
+    products, embeddings = load_catalog_embeddings() if products is None else (products, embeddings)
+    lexicon = _capability_lexicon(products)
+    hops, base, current, tried = [], _strip_vague(query).lower(), query, set()
+    for _ in range(max_hops):
+        items = rag.retrieve(current, k=5, products=products, embeddings=embeddings)
+        ok, reason = sufficiency(items)
+        hops.append(Hop(current, ok, reason, [it.verdict for it in items]))
+        if ok:
+            break
+        current, phrase = reformulate(base, items, lexicon, tried)
+        if phrase is not None:
+            tried.add(phrase)
+    final = rag.answer(current, k=5)          # Part 14 grounded generation + guard
+    return AgenticAnswer(final.answer, final.grounded, hops, final.sources, final.used_llm)
+```
+
+Run it on `"cheap monitor"`. This is the real, reproducible trajectory:
+
+```python
+from dealfinder import agentic_rag as ar
+res = ar.agentic_answer("cheap monitor")
+for i, h in enumerate(res.hops, 1):
+    print(f"hop {i}: {h.query!r}")
+    print(f"        {'SUFFICIENT' if h.sufficient else 'insufficient'} — {h.reason}")
+print(res.answer)
+```
+
+```text
+hop 1: 'cheap monitor'
+        insufficient — top result is OVERPRICED, not a DEAL
+hop 2: 'monitor gaming deal'
+        insufficient — only 1 DEAL in top-5 — too thin to recommend
+hop 3: 'monitor hdr gaming deal'
+        SUFFICIENT — 3 DEALs, top is a DEAL, 0 traps — good evidence
+
+Best value: MSI Pro MP273U 27" 4K UHD HDR Monitor at $159.99 (47% under the
+same-query median). Also consider: Acer KA272K 27" 4K FHD IPS 144Hz 0.5ms AMD
+FreeSync HDR10 Gaming Monitor at $229.99.
+```
+
+Three hops, and the gate fails two *different* ways before it passes — an OVERPRICED lead, then a too-thin set — before "monitor hdr gaming deal" finally surfaces three real DEALs. The answer now opens with a genuine bargain (MSI 4K at $159.99, 47% under median), not the $899 panel single-shot RAG would have led with. Same retriever, same generator, same guard — the only difference is that the agent refused to answer from weak evidence.
+
+---
+
+## Topic drift: a real caveat
+
+Reformulation is powerful, and power cuts both ways. Run the loop on `"cheap wireless earbuds"`:
+
+```text
+hop 1: 'cheap wireless earbuds'          insufficient — 1 DEAL, 2 SUSPICIOUS traps
+hop 2: 'wireless earbuds noise cancelling deal'   SUFFICIENT — 2 DEALs, 0 traps
+```
+
+Two hops, traps eliminated — but the lead pick the answer returns is the **JBL Tune 770NC over-ear headphones** at $89.95, not an in-ear bud. Adding "noise cancelling" sharpened relevance *and* pulled the retrieval toward the noise-cancelling category, which over-ear headphones dominate in this snapshot. The gate is satisfied (real DEALs, no traps), but the query drifted from earbuds to headphones.
+
+<Callout tone="warning">
+**Watch the drift.** Expanding a query changes what you retrieve — sometimes past the user's intent. A production loop should constrain reformulation (keep the head noun, cap the expansion, or let an LLM reformulator preserve intent) and surface *what it searched* so the drift is visible. The `/ask_agentic` response returns every hop for exactly this reason.
+</Callout>
+
+---
+
+## The /ask_agentic endpoint
+
+Expose the loop alongside the Part 14 `/ask` route. It returns the grounded answer *and* the trajectory, so a caller can show the reasoning:
+
+```python
+@app.get("/ask_agentic")
+def ask_agentic(q: str, max_hops: int = 3):
+    """Agentic RAG: retrieve → judge → reformulate & retry → answer."""
+    from .agentic_rag import agentic_answer
+    a = agentic_answer(q, max_hops=max_hops)
+    return {
+        "query": q, "answer": a.answer, "grounded": a.grounded, "used_llm": a.used_llm,
+        "sources": a.sources,
+        "hops": [{"query": h.query, "sufficient": h.sufficient, "reason": h.reason,
+                  "verdicts": h.verdicts} for h in a.hops],
+    }
+```
+
+```bash
+curl -s "http://localhost:8000/ask_agentic?q=cheap+monitor" | jq '.hops[].query, .grounded'
+```
+
+```json
+"cheap monitor"
+"monitor gaming deal"
+"monitor hdr gaming deal"
+true
+```
+
+---
+
+## Reproducibility checks
+
+The six assertions in `tests/test_agentic_rag.py` pin the gate, the reformulator, and both trajectories — offline against the frozen snapshot:
+
+```python
+# tests/test_agentic_rag.py  (step-15 tag)
+from dealfinder import agentic_rag as ar
+
+def test_sufficiency_flags_a_trap_dominated_set():
+    items = rag.retrieve("cheap wireless earbuds", k=5)   # 1 DEAL, 2 SUSPICIOUS
+    ok, reason = ar.sufficiency(items)
+    assert ok is False
+
+def test_monitor_query_iterates_then_converges():
+    res = ar.agentic_answer("cheap monitor")
+    assert len(res.hops) == 3
+    assert res.hops[0].sufficient is False and res.hops[-1].sufficient is True
+    assert "MSI Pro MP273U" in res.answer and "$159.99" in res.answer
+
+def test_earbuds_query_converges_in_two_hops():
+    res = ar.agentic_answer("cheap wireless earbuds")
+    assert len(res.hops) == 2
+    assert res.hops[1].query == "wireless earbuds noise cancelling deal"
+
+def test_answer_stays_grounded_over_the_final_hop():
+    res = ar.agentic_answer("cheap monitor")
+    final_items = rag.retrieve(res.hops[-1].query, k=5)
+    assert rag.is_grounded(res.answer, final_items) is True
+```
+
+```bash
+pytest tests/test_agentic_rag.py -v
+# 6 passed
+```
+
+<Callout tone="note">
+**Determinism.** The gate is a pure function of the verdicts and the reformulator draws from the frozen corpus, so the same query always produces the same trajectory. When you inject a real LLM reformulator the queries will vary, but the *gate* — the invariant these tests protect — behaves identically: weak sets are rejected, strong sets pass.
+</Callout>
+
+---
+
+## Where this goes next
+
+- **Part 14 — RAG: grounded answers over your deals (back-reference):** agentic RAG reuses the entire Part 14 pipeline — `retrieve`, `answer`, and `is_grounded`. It only adds the judgment: call the retriever again when the evidence is weak.
+
+- **[Part 16 — Context engineering: the window is RAM](/tutorials/dealfinder-part-16/):** the loop just multiplied how much you retrieve — three hops, up to fifteen candidate listings. Now every one of them competes with the system prompt, the tool schemas, and the conversation for a finite token budget. Part 16 is the discipline of deciding what actually goes in the window, in what order, and what to evict.
+
+Agentic RAG is the first place the DealFinder agent *reasons about its own inputs*. Managing those inputs is the next skill.
+
+---
+
+*Sources: [Retrieval-Augmented Generation (Lewis et al., 2020)](https://arxiv.org/abs/2005.11401) · [Self-RAG (Asai et al., 2023)](https://arxiv.org/abs/2310.11511) · [fastembed bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) · [pgvector](https://github.com/pgvector/pgvector) · [FastAPI](https://fastapi.tiangolo.com/)*

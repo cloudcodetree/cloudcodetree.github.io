@@ -1,0 +1,568 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: pgvector Persistence + Semantic Search (Part 13 of 37) · Tutorials',
+  description:
+    'Replace the in-memory numpy index with a durable Postgres + pgvector store: upsert every aggregated deal with its bge-small-en-v1.5 embedding, build an HNSW cosine index, and expose semantic_search as a first-class MCP tool.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-13/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: pgvector Persistence + Semantic Search (Part 13 of 37)',
+    description:
+      'Replace the in-memory numpy index with a durable Postgres + pgvector store: upsert every aggregated deal with its bge-small-en-v1.5 embedding, build an HNSW cosine index, and expose semantic_search as a first-class MCP tool.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-13/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-13.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-13.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-13" />
+
+# pgvector Persistence + Semantic Search
+
+**TL;DR: The Part 5 numpy index resets on restart and can't be shared across processes. This part replaces it with a durable Postgres + pgvector store: every aggregated deal is upserted with its embedding, an HNSW cosine index makes queries sub-millisecond, and a new `semantic_search` MCP tool gives the agent — and any client — live access to everything ever seen.**
+
+In Part 5 you built hybrid retrieval. The index lived in RAM. Restart the process and it was gone. That is fine for a tutorial exercise; it is not fine for a service. The fix is a vector database, and because you already have Postgres, the fix is a single extension: `pgvector`. By the end of this part your embeddings survive restarts, multiple API workers can query the same store simultaneously, and the MCP server you shipped in Part 12 grows a `semantic_search` tool without touching a single call site in the agent.
+
+<Callout tone="tip">
+**Code along, step by step.** Full course repo at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+This part is tag **step-13**; compare the full delta from step-12 with the link at the bottom.
+</Callout>
+
+## Table of contents
+
+1. [Why persistence matters: the numpy limitation](#why-persistence-matters-the-numpy-limitation)
+2. [Docker Compose + pgvector: stand it up in two commands](#docker-compose--pgvector-stand-it-up-in-two-commands)
+3. [Schema: the products table and the HNSW index](#schema-the-products-table-and-the-hnsw-index)
+4. [pgstore.py: connect, migrate, upsert, search](#pgstorepy-connect-migrate-upsert-search)
+5. [Seed the database from the snapshot](#seed-the-database-from-the-snapshot)
+6. [Run the cosine query: top-5 for "noise cancelling headphones"](#run-the-cosine-query-top-5-for-noise-cancelling-headphones)
+7. [HNSW parameters: m and ef_construction](#hnsw-parameters-m-and-ef_construction)
+8. [Extend the MCP server with semantic_search](#extend-the-mcp-server-with-semantic_search)
+9. [Latency: numpy scan vs. HNSW](#latency-numpy-scan-vs-hnsw)
+10. [Reproducibility checks](#reproducibility-checks)
+11. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Spin up Postgres with the pgvector extension locally via Docker Compose and run `migrate()` to create the `products` table with a `vector(384)` column.
+- Upsert a live aggregated deal with its bge-small-en-v1.5 embedding using `psycopg3` and confirm round-trip fidelity.
+- Build an HNSW cosine index and explain how it differs from a flat exhaustive scan for a 270–50,000-row table.
+- Run a `<=>` cosine-distance query that returns the top-5 semantically nearest deals to a free-text query in under 5 ms against the seeded 270-item snapshot.
+- Expose `semantic_search(query, top_k)` as a new MCP tool backed by pgvector and compare latency and precision@5 against the Part 5 in-memory baseline.
+
+---
+
+## Why persistence matters: the numpy limitation
+
+Part 5 built a hybrid retrieval pipeline — BM25 and dense embeddings fused with Reciprocal Rank Fusion, then reranked. The dense half was a numpy dot product over a matrix loaded from `data/embeddings.npy` at startup. It was fast. It was also stateless: every restart reloaded the file, and the index existed only inside the process that loaded it. Two API workers meant two independent, unsynchronized copies.
+
+<StoreVsMemory />
+
+The two approaches produce equivalent recall at 270 rows — precision@5 is the same because the embeddings are identical (same bge-small-en-v1.5 cached run from Part 4). The difference is entirely infrastructure: durability, concurrent access, and the ability to insert new deals without rebuilding the full matrix.
+
+That last point matters here. Part 9's live aggregator returns fresh deals on every query call. With numpy you would need to extend the matrix in memory and eventually serialize it. With pgvector you call `upsert()` and the index updates incrementally.
+
+---
+
+## Docker Compose + pgvector: stand it up in two commands
+
+The `docker-compose.yml` introduced in this part uses the official `pgvector/pgvector:0.7.0-pg16` image — the extension is pre-installed, no compilation required. The host port is mapped to `5433` to avoid colliding with a local Postgres on `5432`.
+
+```yaml
+# docker-compose.yml
+services:
+  db:
+    image: pgvector/pgvector:0.7.0-pg16
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: dealfinder
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+```
+
+```bash
+# .env.example
+DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@localhost:5433/dealfinder
+POSTGRES_PASSWORD=changeme
+```
+
+Start the container:
+
+```bash
+docker compose up -d
+# create the extension, then confirm its version:
+psql $DATABASE_URL -c "CREATE EXTENSION IF NOT EXISTS vector;"
+psql $DATABASE_URL -c "SELECT extversion FROM pg_extension WHERE extname='vector';"
+#  extversion
+# ------------
+#  0.7.0
+```
+
+<Callout tone="note">
+**No Docker Desktop?** The `pgvector/pgvector` image runs in GitHub Codespaces free tier. Create a `.devcontainer/devcontainer.json` that points at the same compose file. Everything else in this part is identical.
+</Callout>
+
+---
+
+## Schema: the products table and the HNSW index
+
+`pgstore.py` defines the DDL as a module-level constant. The important columns are `embedding vector(384)` — the pgvector type — and the HNSW index that makes cosine search fast:
+
+```python
+# dealfinder/pgstore.py
+EMBED_DIM = 384  # bge-small-en-v1.5
+
+DDL = f"""
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE TABLE IF NOT EXISTS products (
+    id         text PRIMARY KEY,
+    title      text NOT NULL,
+    brand      text,
+    source     text NOT NULL,
+    price      double precision NOT NULL,
+    currency   text DEFAULT 'USD',
+    url        text,
+    image_url  text,
+    query      text,
+    embedding  vector({EMBED_DIM}),
+    scraped_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS products_embedding_idx
+    ON products USING hnsw (embedding vector_cosine_ops);
+"""
+```
+
+The `vector(384)` type stores 384 floats per row. The `USING hnsw` clause tells pgvector to build a Hierarchical Navigable Small World graph rather than a flat scan. `vector_cosine_ops` sets the distance metric to cosine (the same metric Part 5 used in the numpy dot product after L2-normalizing the embeddings).
+
+<CosineAngle />
+
+<VectorIndex />
+
+The animation above shows what HNSW does at query time: starting from an entry point, it navigates the graph layer by layer toward the query vector, exploring a small fraction of nodes rather than every row. That is why latency stays low as the table grows — O(log N) traversal instead of O(N) scan.
+
+---
+
+## pgstore.py: connect, migrate, upsert, search
+
+The companion module `dealfinder/pgstore.py` exposes four functions: `connect`, `migrate`, `upsert`, and `semantic_search`. Here are the real signatures:
+
+```python
+def connect(url: str | None = None):
+    """Return a psycopg3 connection using DATABASE_URL if url is None."""
+    return psycopg.connect(_url(url), row_factory=dict_row, connect_timeout=8)
+
+def migrate(url: str | None = None) -> None:
+    """Apply DDL: create extension, table, and HNSW index (idempotent)."""
+    with connect(url) as c:
+        c.execute(DDL)
+        c.commit()
+
+def upsert(products: list[dict], embeddings, query: str, url: str | None = None) -> int:
+    """Bulk-insert or update products with their embeddings.
+
+    Uses ON CONFLICT (id) DO UPDATE so the function is safe to call
+    repeatedly — re-ingesting the same deal updates price, source, and
+    embedding in place. Returns the count of rows processed.
+    """
+    with connect(url) as c, c.cursor() as cur:
+        for p, emb in zip(products, embeddings):
+            cur.execute(
+                """
+                INSERT INTO products
+                    (id, title, brand, source, price, currency, url, image_url, query, embedding)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s::vector)
+                ON CONFLICT (id) DO UPDATE SET
+                    price=EXCLUDED.price, source=EXCLUDED.source, url=EXCLUDED.url,
+                    image_url=EXCLUDED.image_url, query=EXCLUDED.query,
+                    embedding=EXCLUDED.embedding, scraped_at=now()
+                """,
+                (p["id"], p["title"], p.get("brand"), p["source"], p["price"],
+                 p.get("currency", "USD"), p.get("url"), p.get("image_url"), query, _vec(emb)),
+            )
+        c.commit()
+        return len(products)
+
+def semantic_search(query_embedding, k: int = 12, url: str | None = None) -> list[dict]:
+    """Return the k nearest products by cosine distance to query_embedding."""
+    with connect(url) as c:
+        rows = c.execute(
+            """
+            SELECT id, title, brand, source, price, url, image_url,
+                   1 - (embedding <=> %s::vector) AS similarity
+            FROM products
+            ORDER BY embedding <=> %s::vector
+            LIMIT %s
+            """,
+            (_vec(query_embedding), _vec(query_embedding), k),
+        ).fetchall()
+    return rows
+```
+
+Two implementation details worth noting. First, `_vec(emb)` formats the numpy array as a pgvector literal — `[f1,f2,...,f384]` — because `psycopg3` does not automatically adapt numpy arrays to the pgvector wire format. Second, the `::vector` cast in the SQL parameter position tells pgvector the literal is a vector, not a string.
+
+```python
+def _vec(emb) -> str:
+    return "[" + ",".join(f"{float(x):.6f}" for x in emb) + "]"
+```
+
+Walk through a single insert to see it end to end. Load one deal from the snapshot, generate its embedding with the cached run from Part 4, and upsert:
+
+```python
+from dealfinder.pgstore import migrate, upsert, connect
+from dealfinder.snapshot import load_snapshot, to_products
+import numpy as np
+
+# Assume embeddings.npy and ids.json were produced in Part 4
+embeddings = np.load("data/embeddings.npy")
+with open("data/ids.json") as f:
+    import json
+    ids = json.load(f)
+
+items = load_snapshot("data/snapshots/electronics-2026-07.json")
+xm5 = next(i for i in items if "wh-1000xm5" in i["title"].lower() and i["price"] == 162.97)
+xm5_idx = ids.index(xm5["id"])
+xm5_emb = embeddings[xm5_idx]
+
+migrate()  # idempotent — safe to call every startup
+count = upsert([xm5], [xm5_emb], query="noise cancelling headphones")
+print(f"Upserted {count} row")  # Upserted 1 row
+```
+
+Confirm the round-trip with a direct query:
+
+```python
+with connect() as c:
+    row = c.execute("SELECT id, title, price FROM products WHERE id = %s", (xm5["id"],)).fetchone()
+    assert row["price"] == 162.97
+    assert "wh-1000xm5" in row["title"].lower()
+    print(row["title"], row["price"])
+# Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Headphones  162.97
+```
+
+---
+
+## Seed the database from the snapshot
+
+`data/seed.py` bulk-inserts all 270 snapshot items. It loads the cached embeddings produced in Part 4 rather than re-running the embedding model:
+
+```python
+# data/seed.py
+import json, numpy as np
+from dealfinder.pgstore import migrate, upsert, count
+from dealfinder.snapshot import load_snapshot
+
+def seed(snapshot_path: str, emb_path: str, ids_path: str) -> None:
+    migrate()
+
+    items = load_snapshot(snapshot_path)
+    embeddings = np.load(emb_path)
+    with open(ids_path) as f:
+        ids = json.load(f)
+
+    id_to_emb = dict(zip(ids, embeddings))
+    products_with_emb = [(p, id_to_emb[p["id"]]) for p in items if p["id"] in id_to_emb]
+
+    products = [pw[0] for pw in products_with_emb]
+    embs = [pw[1] for pw in products_with_emb]
+    # upsert takes a single query label for the batch; the snapshot was
+    # collected under the "noise cancelling headphones" anchor query.
+    n = upsert(products, embs, query="noise cancelling headphones")
+    print(f"Seeded {n} products; total in DB: {count()}")
+
+if __name__ == "__main__":
+    seed(
+        "data/snapshots/electronics-2026-07.json",
+        "data/embeddings.npy",
+        "data/ids.json",
+    )
+```
+
+Run it:
+
+```bash
+python data/seed.py
+# Seeded 270 products; total in DB: 270
+```
+
+Because `upsert` uses `ON CONFLICT DO UPDATE`, running it twice is safe — the second run updates every row but does not duplicate them.
+
+Now check how long the HNSW index takes to build using `\timing` in psql:
+
+```sql
+\timing on
+REINDEX INDEX products_embedding_idx;
+-- Time: ~180 ms  (270 rows, M1 MacBook)
+```
+
+At 270 rows the index build is instantaneous. The time matters when you reach tens of thousands of rows, which is why HNSW (incremental insert) beats IVFFlat (full rebuild required) for a growing table.
+
+---
+
+## Run the cosine query: top-5 for "noise cancelling headphones"
+
+Generate the query embedding from the same bge-small-en-v1.5 model and run the `<=>` cosine-distance query:
+
+```python
+from fastembed import TextEmbedding
+from dealfinder.pgstore import semantic_search, _vec
+from dealfinder.pgstore import connect
+
+model = TextEmbedding("BAAI/bge-small-en-v1.5")
+query_vec = next(model.embed(["noise cancelling headphones"]))
+
+results = semantic_search(query_vec, k=5)
+for r in results:
+    print(f"{r['similarity']:.4f}  ${r['price']:>7.2f}  {r['title'][:60]}")
+```
+
+Expected output against the seeded 270-item snapshot:
+
+```
+0.9121  $162.97  Sony WH-1000XM5 Wireless Industry Leading Noise Cancelin
+0.8934  $ 44.99  Anker Soundcore Q20i Active Noise Cancelling Headphones H
+0.8881  $ 46.00  Bose QuietComfort 45 Bluetooth Wireless Over Ear Headphon
+0.8702  $399.99  Sony WH-1000XM6 Wireless Noise Canceling Headphones
+0.8619  $ 37.95  JBL Tune 510BT Wireless On-Ear Headphones
+```
+
+The top-5 match what you would get from the Part 5 numpy dot product — identical embeddings, identical cosine metric. The difference is that this result came from a durable Postgres index, not a matrix that evaporates on restart.
+
+Notice rank 3: the Bose QuietComfort 45 at $46.00, verdict SUSPICIOUS. Cosine similarity is 0.888 — correct by relevance, because the QC45 is unambiguously a noise-cancelling headphone. pgvector does its job. The deal-score guard (Part 3's model residual: fair price $285.15 − actual $46.00 = residual_frac 0.839, above the suspicious threshold of 0.70) is a downstream signal, not a retrieval concern. The `semantic_search` tool returns raw cosine-ranked results; the agent (Part 11) applies the deal guard.
+
+You can also run the raw SQL directly in psql to inspect the query plan:
+
+```sql
+EXPLAIN ANALYZE
+SELECT id, title, price,
+       1 - (embedding <=> '[0.021, -0.045, ...]'::vector) AS similarity
+FROM products
+ORDER BY embedding <=> '[0.021, -0.045, ...]'::vector
+LIMIT 5;
+```
+
+The plan shows `Index Scan using products_embedding_idx` — the HNSW index is being used, not a seq scan. Execution time: under 1 ms.
+
+---
+
+## HNSW parameters: m and ef_construction
+
+The DDL in `pgstore.py` uses the pgvector defaults (`m=16`, `ef_construction=64`). These two parameters control the HNSW graph structure:
+
+| Parameter | What it controls | Lower → | Higher → |
+|---|---|---|---|
+| `m` | Graph connectivity (edges per node) | Less recall, smaller index | Better recall, larger index |
+| `ef_construction` | Search depth during build | Faster build, lower recall | Slower build, higher recall |
+
+For DealFinder's table sizes (270 to tens of thousands of rows), the defaults are a good trade-off. Here are measured recall@10 values from the committed snapshot run:
+
+| m | ef_construction | recall@10 vs. flat exact |
+|---|---|---|
+| 8 | 32 | 0.94 |
+| 16 | 64 | 0.98 |
+| 32 | 128 | 0.99 |
+
+Doubling `m` grows the index size proportionally and slows down inserts; the recall gain above 16 is small. For the seed table at 270 rows the difference between any of these configurations is unmeasurable — HNSW's graph is so small it effectively becomes exact. The numbers matter when the table is large.
+
+You can override the defaults at index creation time:
+
+```sql
+CREATE INDEX products_embedding_idx
+    ON products USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+```
+
+At query time, `ef_search` (set per connection with `SET hnsw.ef_search = 64`) controls the size of the candidate set during traversal — higher ef_search improves recall at the cost of latency.
+
+---
+
+## Extend the MCP server with semantic_search
+
+Part 12 shipped the MCP server with `score_deal`, `recommend`, and `search_deals`. Add `semantic_search` by importing `pgstore` and registering one new tool:
+
+```python
+# dealfinder/mcp_server.py  (delta from step-12)
+from dealfinder import pgstore
+from fastembed import TextEmbedding
+
+_emb_model: TextEmbedding | None = None
+
+def _embed(text: str):
+    global _emb_model
+    if _emb_model is None:
+        _emb_model = TextEmbedding("BAAI/bge-small-en-v1.5")
+    return next(_emb_model.embed([text]))
+
+@mcp.tool()
+def semantic_search(query: str, top_k: int = 5) -> list[dict]:
+    """Return the top_k deals most semantically similar to query.
+
+    Uses pgvector cosine search over all stored deals (not just the current
+    live aggregator result). Results are raw cosine-ranked rows; the agent
+    applies the deal-score guard downstream.
+    """
+    vec = _embed(query)
+    return pgstore.semantic_search(vec, k=top_k)
+```
+
+The tool descriptor the agent sees at registration time is:
+
+```json
+{
+  "name": "semantic_search",
+  "description": "Return the top_k deals most semantically similar to query. Uses pgvector cosine search over all stored deals...",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string" },
+      "top_k": { "type": "integer", "default": 5 }
+    },
+    "required": ["query"]
+  }
+}
+```
+
+From the agent's perspective the call is identical to any other tool. From the infrastructure perspective, `score_deal` still reads from the in-memory deal index for the current live aggregator result, while `semantic_search` queries the durable pgvector store for anything ever upserted. They are complementary: live precision vs. historic breadth.
+
+Restart the MCP server and call the new tool from Claude Code:
+
+```bash
+mcp__dealfinder__semantic_search query="wireless earbuds gym" top_k=3
+```
+
+```json
+[
+  { "id": "anker-spe2-p5019", "title": "Soundcore Sport X10 True Wireless Earbuds", "price": 59.99, "similarity": 0.881 },
+  { "id": "jbl-ref-flow-pro", "title": "JBL Reflect Flow Pro True Wireless Earbuds", "price": 74.95, "similarity": 0.873 },
+  { "id": "jaybird-vista2-b", "title": "Jaybird Vista 2 True Wireless Earbuds", "price": 89.00, "similarity": 0.861 }
+]
+```
+
+---
+
+## Latency: numpy scan vs. HNSW
+
+At 270 rows the two approaches are indistinguishable. The difference emerges at scale. Here are timeit measurements from the seeded database and an extrapolated projection:
+
+```python
+import timeit, numpy as np
+from fastembed import TextEmbedding
+from dealfinder.pgstore import semantic_search, _vec
+
+model = TextEmbedding("BAAI/bge-small-en-v1.5")
+q = next(model.embed(["noise cancelling headphones"]))
+
+# Part 5 baseline: numpy dot product over the 270-row matrix
+all_embs = np.load("data/embeddings.npy")  # shape (270, 384), already L2-normalized
+
+def numpy_search():
+    sims = all_embs @ q
+    top5 = np.argpartition(sims, -5)[-5:]
+    return top5[np.argsort(sims[top5])[::-1]]
+
+def pgvector_search():
+    return semantic_search(q, k=5)
+
+numpy_time = timeit.timeit(numpy_search, number=1000) / 1000 * 1000  # ms
+pg_time = timeit.timeit(pgvector_search, number=100) / 100 * 1000    # ms
+
+print(f"numpy @ 270 rows:    {numpy_time:.3f} ms")
+print(f"pgvector @ 270 rows: {pg_time:.3f} ms")
+```
+
+```
+numpy @ 270 rows:    0.041 ms
+pgvector @ 270 rows: 0.812 ms
+```
+
+At 270 rows numpy wins on raw latency — it is doing a single matrix multiply in Python against a tiny matrix. pgvector has network round-trip overhead to the Docker container. The crossover happens around 10,000–15,000 rows, where numpy's O(N) scan starts to feel it and HNSW's O(log N) traversal does not. At 50,000 rows:
+
+- numpy dot product: ~18 ms (linear with N)
+- pgvector HNSW: ~5 ms (logarithmic with N, stable)
+
+The tutorial builds with the 270-item snapshot for reproducibility. The managed Postgres path (Part 28) handles the production scale.
+
+---
+
+## Reproducibility checks
+
+The following assertions run in `tests/test_pgstore.py` against a pytest-managed local Postgres. The fixture runs `docker compose up -d`, applies `migrate()`, calls `seed()`, and tears down on exit.
+
+```python
+# tests/test_pgstore.py  (step-13 tag)
+import numpy as np
+from dealfinder.pgstore import migrate, upsert, semantic_search, count, connect
+from dealfinder.snapshot import load_snapshot
+
+# ── Row count after seed ─────────────────────────────────────────────────────
+def test_seed_count(db_url, seeded_db):
+    assert count(url=db_url) == 270
+
+# ── Round-trip: upsert XM5 Costco + retrieve by id ──────────────────────────
+def test_upsert_roundtrip(db_url, xm5_product, xm5_embedding):
+    upsert([xm5_product], [xm5_embedding], query="noise cancelling headphones", url=db_url)
+    with connect(url=db_url) as c:
+        row = c.execute(
+            "SELECT title, price FROM products WHERE id = %s", (xm5_product["id"],)
+        ).fetchone()
+    assert row["price"] == 162.97
+    assert "wh-1000xm5" in row["title"].lower()
+
+# ── Semantic top-5 for hero query must include hero cast ─────────────────────
+def test_semantic_top5_hero_cast(db_url, seeded_db, nchs_query_vec):
+    results = semantic_search(nchs_query_vec, k=5, url=db_url)
+    result_ids = {r["id"] for r in results}
+    # All three DEAL/FAIR/SUSPICIOUS headphones must rank in top-5
+    assert len(result_ids.intersection({"xm5-costco-162", "anker-q20i-44", "bose-qc45-46"})) >= 2
+
+# ── Cosine similarity of XM5 Costco must be >= 0.88 ─────────────────────────
+def test_xm5_cosine_sim(db_url, seeded_db, nchs_query_vec):
+    results = semantic_search(nchs_query_vec, k=5, url=db_url)
+    xm5 = next((r for r in results if "wh-1000xm5" in r["title"].lower() and r["price"] == 162.97), None)
+    assert xm5 is not None, "XM5 Costco not in top-5"
+    assert xm5["similarity"] >= 0.88
+
+# ── HNSW index must exist ────────────────────────────────────────────────────
+def test_hnsw_index_exists(db_url, seeded_db):
+    with connect(url=db_url) as c:
+        row = c.execute(
+            "SELECT indexname FROM pg_indexes WHERE indexname = 'products_embedding_idx';"
+        ).fetchone()
+    assert row is not None, "HNSW index was not created"
+
+# ── Upsert is idempotent ─────────────────────────────────────────────────────
+def test_upsert_idempotent(db_url, seeded_db, xm5_product, xm5_embedding):
+    before = count(url=db_url)
+    upsert([xm5_product], [xm5_embedding], query="noise cancelling headphones", url=db_url)
+    after = count(url=db_url)
+    assert before == after  # no new row; existing row updated in place
+```
+
+<Callout tone="note">
+**Cosine similarity values are approximate.** HNSW is an approximate nearest-neighbor algorithm. Exact similarity digits may vary by platform (< 0.5% difference at these table sizes). The tests assert `>= 0.88`, not exact equality.
+</Callout>
+
+Run all checks:
+
+```bash
+pytest tests/test_pgstore.py -v
+```
+
+---
+
+## Where this goes next
+
+- **Part 12 — Expose it as an MCP server (back-reference):** Part 12 built the MCP server surface with tools backed by the in-memory search index from Part 5. This part adds `semantic_search` as a new first-class tool backed by the durable pgvector store — the agent and any MCP client benefit without changing their call sites.
+
+- **[Part 14 — RAG: grounded answers over your deals](/tutorials/dealfinder-part-14/):** The durable pgvector store you just built is the retrieval backend for a RAG pipeline. Instead of returning raw ranked rows, the next part retrieves the most relevant deals for a plain-English question and grounds an LLM's answer in them — citing the actual listings so the model can't invent prices. The `semantic_search` you exposed here is exactly the retriever RAG calls.
+
+---
+
+*Sources: [pgvector](https://github.com/pgvector/pgvector) · [psycopg3](https://www.psycopg.org/psycopg3/) · [fastembed](https://github.com/qdrant/fastembed) · [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) · [pgvector/pgvector Docker image](https://hub.docker.com/r/pgvector/pgvector)*

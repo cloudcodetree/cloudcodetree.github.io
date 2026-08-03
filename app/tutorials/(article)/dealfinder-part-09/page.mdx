@@ -1,0 +1,538 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Tiered Aggregation & Resilience (Part 9 of 37) · Tutorials',
+  description:
+    'Build a fault-tolerant, tiered query plan with early-stop, a circuit breaker that isolates flaky sources, and embedding-based dedup that collapses the same Sony headphones listed at two prices into one canonical result.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-09/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Tiered Aggregation & Resilience (Part 9 of 37)',
+    description:
+      'Build a fault-tolerant, tiered query plan with early-stop, a circuit breaker that isolates flaky sources, and embedding-based dedup that collapses the same Sony headphones listed at two prices into one canonical result.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-09/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-09.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-09.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-09" />
+
+# Tiered Aggregation & Resilience
+
+**TL;DR: One throttled API should not stall every search. Query sources in priority order, stop the moment you have enough results, open a circuit breaker around any source that exceeds its error budget, and collapse duplicate listings to the cheapest survivor — turning noisy parallel fan-out into a stable, efficient result set.**
+
+This is **Part 9 of DealFinder**, and it is where liveness becomes reliable. The connectors from Parts 7 and 8 can return results from three independent sources. Without structure, that fan-out is fragile: a rate-limited RapidAPI key burns retries for every subsequent query, and the Sony WH-1000XM5 appears from both Costco ($162.97) and Macy's ($248) — two rows for one product. This part fixes both problems, and every number below is reproducible against the committed snapshot and the running app.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Step tag for this part: `step-09` (branches from `step-08`).
+A `.devcontainer/` gives you Python 3.11 in one click (locally or in Codespaces).
+</Callout>
+
+## Table of contents
+
+1. [The fan-out problem](#the-fan-out-problem)
+2. [How aggregate() works today](#how-aggregate-works-today)
+3. [Tier ordering and early-stop](#tier-ordering-and-early-stop)
+4. [The circuit breaker: CLOSED, OPEN, HALF_OPEN](#the-circuit-breaker-closed-open-half_open)
+5. [Embedding-based dedup: dedup_by_embedding](#embedding-based-dedup-dedup_by_embedding)
+6. [Worked example: noise cancelling headphones](#worked-example-noise-cancelling-headphones)
+7. [Configuration from environment](#configuration-from-environment)
+8. [Reproducibility checks](#reproducibility-checks)
+9. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Read and extend `dealfinder/aggregate.py`'s real tier-loop and bench/cooldown logic.
+- Explain why a source that errors is benched (`_bench`) rather than retried immediately, and trace what `_benched(name)` checks.
+- Add `dedup_by_embedding` — cosine-similarity dedup over fastembed `BAAI/bge-small-en-v1.5` title vectors, threshold 0.90 — and confirm the Sony WH-1000XM5 collapses to the cheaper Costco listing.
+- Tune `TARGET_RESULTS` and `COOLDOWN_SECONDS` from environment variables without code changes.
+- Write integration tests against a fixture HTTP server that returns HTTP 429 to confirm the bench fires and a lower-tier source fills the gap.
+
+---
+
+## The fan-out problem
+
+Query all three sources in parallel and the slowest one gates your response time. Query them serially and you always pay the full latency stack. The real cost is hidden: a source returning 429s in a tight loop burns retries for every query in the next window. And when the same Sony WH-1000XM5 comes back from both Costco and Macy's, you end up with 14 rows where 13 are distinct products.
+
+The right design is a **tiered plan** with three properties:
+
+1. **Early-stop.** Query Tier 1 first. If you have enough distinct results, stop — never touch Tier 2 or Tier 3.
+2. **Circuit breaker.** If a source errors or throttles, bench it for a cooldown window. Do not hammer it again this round.
+3. **Dedup.** Collapse listings that represent the same physical product, keeping the cheapest in-stock offer.
+
+All three are in `dealfinder/aggregate.py`. You are not writing this from scratch — you are reading what is already there, understanding why it is designed this way, and extending it with the embedding-based dedup that the normalized-title approach from Part 1 cannot handle across sources.
+
+---
+
+## How aggregate() works today
+
+The real `aggregate.py` in the companion repo is already a tiered aggregator. Here is the full implementation as it stands:
+
+```python
+# dealfinder/aggregate.py (real companion code — step-08-scraping baseline)
+
+COOLDOWN_SECONDS = 90.0
+TARGET_RESULTS = 12   # stop escalating once we have this many deduped offers
+
+_cooldown: dict[str, float] = {}   # source name → monotonic time it's benched until
+
+
+def _benched(name: str) -> bool:
+    return time.monotonic() < _cooldown.get(name, 0.0)
+
+
+def _bench(name: str) -> None:
+    _cooldown[name] = time.monotonic() + COOLDOWN_SECONDS
+
+
+def _tier(s) -> int:
+    return getattr(s, "tier", 5)
+
+
+def _is_fallback(s) -> bool:
+    return getattr(s, "fallback_only", False)
+
+
+def aggregate(
+    query: str,
+    sources=LIVE_SOURCES,
+    limit: int = 24,
+    target: int = TARGET_RESULTS,
+) -> dict:
+    available = [s for s in sources if s.available() and not _benched(s.name)]
+    real = [s for s in available if not _is_fallback(s)]
+
+    products, live, throttled = [], [], []
+
+    def run(src) -> None:
+        try:
+            found = src.search(query)
+            if found:
+                live.append(src.name)
+                products.extend(found)
+        except Exception:   # error or rate-limit → bench it, don't retry this round
+            _bench(src.name)
+            throttled.append(src.name)
+
+    # cheapest/most-reliable tier first; stop escalating once we have enough
+    for tier in sorted({_tier(s) for s in real}):
+        for src in (s for s in real if _tier(s) == tier):
+            run(src)
+        if len({dedup_key(p) for p in products}) >= target:
+            break
+
+    # nothing from real sources → fall back to keyless (e.g. iTunes)
+    if not products:
+        for src in (s for s in available if _is_fallback(s)):
+            run(src)
+
+    # keep cheapest per dedup key
+    best: dict[str, object] = {}
+    for p in products:
+        k = dedup_key(p)
+        if k not in best or p.price < best[k].price:
+            best[k] = p
+    items = list(best.values())
+    median = statistics.median([p.price for p in items]) if items else 0.0
+    ranked = sorted(items, key=lambda p: p.price)[:limit]
+
+    return {
+        "query": query,
+        "sources_live": live,
+        "throttled": throttled,
+        "median_price": round(median, 2),
+        "count": len(ranked),
+        "results": [...],
+    }
+```
+
+Three things to notice:
+
+- `_benched` and `_bench` are module-level: the cooldown persists across calls within the same process. Once a source errors, it stays benched for `COOLDOWN_SECONDS` (90 s). The next `aggregate()` call simply skips it.
+- The tier loop calls `break` — not `return` — after checking the deduped count. Sources within the same tier all run before the check; only escalation to the *next* tier is gated.
+- `dedup_key` (imported from `dealfinder/ingest.py`) is the normalized-title key from Part 1. It catches exact-string duplicates. It does not catch "Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Headphones" versus "Sony WH-1000XM5 Noise Cancelling Wireless Headphones" — slightly different titles from different scrapers. That is what `dedup_by_embedding` adds.
+
+---
+
+## Tier ordering and early-stop
+
+Each source in `LIVE_SOURCES` carries a `tier` attribute:
+
+| Source | `tier` | Why |
+|---|---|---|
+| `EbaySource`, `RapidApiSource`, `BestBuySource` | 1 | Official / structured APIs — fast, reliable, generous quotas |
+| `ApifySource` | 2 | Managed scraping — structured but costs credits, slower actor startup |
+| `ShopifySource` | 3 | Keyless public feeds — free but niche coverage |
+| `FirecrawlSource` | 4 | Broad-web crawl — slowest, noisiest, last resort |
+| `ITunesSource` | fallback | `fallback_only = True` — media catalog, queried only when every real source returns nothing |
+
+The loop iterates `sorted({_tier(s) for s in real})`. After each tier runs, it checks whether the deduplicated product count has crossed `target` (default 12). If yes, it breaks before querying the next tier:
+
+```python
+if len({dedup_key(p) for p in products}) >= target:
+    break
+```
+
+<TierWaterfall />
+
+This fires for real: with eBay and RapidAPI keys set, a live `"noise cancelling headphones"` query gets enough unique products from tier 1 alone, and the response reads `sources_live: ['eBay', 'RapidAPI']` with `throttled: []` — Apify, Shopify, and Firecrawl were not throttled, just never invoked. The offline test pins the same behavior with stub sources: `test_early_stop_skips_pricier_tier` gives tier 1 thirteen items and asserts the tier-2 stub's call counter stays at zero.
+
+<Callout tone="note">
+**Early-stop is not a timeout.** A timeout kills the in-flight request. Early-stop never starts the request. The distinction matters for rate-limit budgeting: sources you do not call cannot throttle you.
+</Callout>
+
+---
+
+## The circuit breaker: CLOSED, OPEN, HALF_OPEN
+
+A circuit breaker is the pattern that keeps one failing dependency from dragging down everything that calls it. The name is the electrical metaphor taken literally: when a component starts shorting, you don't keep pushing current through it — you cut the circuit, wait, then test carefully before restoring power. In software the "current" is requests, and the pattern is a three-state machine:
+
+<CircuitStates />
+
+The companion ships the *minimal* version of this machine — an error budget of exactly one. This is the complete real implementation in `dealfinder/aggregate.py`:
+
+```python
+COOLDOWN_SECONDS = float(os.getenv("DEALFINDER_COOLDOWN_SECONDS", "90"))
+
+_cooldown: dict[str, float] = {}  # source name → monotonic time it's benched until
+
+def _benched(name: str) -> bool:
+    return time.monotonic() < _cooldown.get(name, 0.0)
+
+def _bench(name: str) -> None:
+    _cooldown[name] = time.monotonic() + COOLDOWN_SECONDS
+```
+
+and, inside `aggregate()`:
+
+```python
+def run(src) -> None:
+    try:
+        found = src.search(query)
+        if found:
+            live.append(src.name)
+            products.extend(found)
+    except Exception:  # error or rate-limit → bench it, don't retry this round
+        _bench(src.name)
+        throttled.append(src.name)
+```
+
+Map it to the state machine and every state is present. A source that isn't in `_cooldown` is **CLOSED** — requests flow. One exception benches it: **OPEN**, and for 90 seconds `_benched()` short-circuits it out of the `available` list — no request is even attempted against a source that just failed. When the cooldown expires, the next `aggregate()` call lets exactly one search through — that call *is* the **HALF_OPEN** probe: success and the source is serving again; another exception re-benches it for another 90 s. The three states are behavior, not an enum.
+
+<Callout tone="note">
+**Hardening exercise: add an error budget.** One strike is aggressive — a single transient network blip benches a healthy source for 90 s. Production breakers trip on a *budget* (say, 5 errors in a 60 s window) and track state explicitly. Wrapping the logic above in a small thread-safe `CircuitBreaker` class with `record_error()` / `record_success()` / `allow_request()` methods is a genuinely good exercise — sketch the transitions from the diagram before reading any reference implementation. If you do adopt it, know what you're signing up for: the chaos suite in Part 36 pins the one-strike behavior (`test_chaos.py` asserts a source is benched after its first failure), so those assertions move with you.
+</Callout>
+
+The offline test drives the whole cycle with a stub that raises: `test_circuit_breaker_benches_a_throttled_source` asserts the failing source lands in `throttled` on the first call, then — the breaker now OPEN — that a second `aggregate()` never calls it again while the healthy source keeps serving.
+
+---
+
+## Embedding-based dedup: dedup_by_embedding
+
+The `dedup_key` from Part 1 is an exact-match key: `brand|title`, lowercased. Look at how the real snapshot's XM5 pair defeats it:
+
+```
+"Sony WH-1000XM5 Wireless Headphones"                  $162.97  RapidAPI:costco.com
+"SONY WH-1000XM5 Wireless Noise-Canceling Headphones"  $248.00  RapidAPI:Macy's
+```
+
+Different title wording *and* different retailer strings in `brand` — two distinct keys, so the exact pass keeps both. To a shopper these are obviously one product at two prices, and showing both as separate "deals" is exactly the bug Part 1 promised this part would fix.
+
+`dedup_by_embedding` runs on the post-aggregation product list. It embeds every title with fastembed `BAAI/bge-small-en-v1.5` (384-dim — the same model introduced in Part 4 and cached there), computes pairwise cosine similarity, and clusters by connected components at threshold 0.90. Within each cluster it keeps the cheapest in-stock item. On the real pair above, the measured cosine is **0.9498** — comfortably over the threshold, so they merge and the $162.97 Costco offer survives. (For calibration: append `" - Black"` and shorten the wording a little and the pair drops to **0.8553**, below the threshold — real thresholds have borderline cases, which is why 0.90 is a tuned constant and not a law.)
+
+<CosineAngle />
+
+### Why pure cosine fails — measured, not assumed
+
+The obvious first implementation — union-find over all pairs with cosine ≥ 0.90, keep the cheapest per cluster — is *wrong*, and the snapshot proves it. Run it over the 60-item audio subset and it collapses 60 → 41, and the clusters it builds are product families, not products:
+
+```
+cluster (5):   Sony WH-CH720N  ·  WH-CH720N/P  ·  WH-1000XM5 ×2  ·  WH-1000XM6
+cluster (4):   Bose QC45 $46  ·  QuietComfort $359.99  ·  QC Ultra $415.98  ·  QC Earbuds $179
+cluster (3):   Samsung B-Series Soundbar  ·  Sony 2.0 Soundbar  ·  Samsung Q-Series
+```
+
+Measured cosines tell you why: **XM5 ↔ XM6 = 0.9251** and **JBL Vibe Buds 2 ↔ Vibe Beam 2 = 0.9572** — different products, comfortably over any usable threshold. Title embeddings measure *topical* similarity, not *product identity*. And note the second cluster's worst-case consequence: the $46 SUSPICIOUS Bose trap would become the sole surviving "Bose QuietComfort" — semantic dedup would actively hide the legitimate offers behind the bait listing.
+
+The fix is to demand agreement on the thing embeddings blur: the **model number**. Digit-bearing tokens (`1000xm5`, `770nc`, `45`) are the closest thing a retail title has to identity, and the leading token is almost always the manufacturer:
+
+```python
+# dealfinder/dedup.py (the real module — guards + clustering)
+_TOKEN = re.compile(r"[a-z0-9]+")
+
+def _model_tokens(title: str) -> frozenset[str]:
+    """Digit-bearing tokens — the closest thing a title has to a model number."""
+    return frozenset(t for t in _TOKEN.findall(title.lower()) if any(c.isdigit() for c in t))
+
+def _first_token(title: str) -> str:
+    """Leading word — almost always the manufacturer in a normalized title."""
+    m = _TOKEN.findall(title.lower())
+    return m[0] if m else ""
+
+
+def dedup_by_embedding(items, sim_threshold=0.90, no_model_threshold=0.95):
+    if not items:
+        return []
+    titles = [p.title for p in items]
+    sim = _cosine_matrix(_embed(titles))       # bge-small, cached singleton
+    models = [_model_tokens(t) for t in titles]
+    brands = [_first_token(t) for t in titles]
+    n = len(items)
+
+    parent = list(range(n))                     # union-find
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]; x = parent[x]
+        return x
+    def union(a, b): parent[find(a)] = find(b)
+
+    def same_product(i, j) -> bool:
+        if brands[i] != brands[j]:
+            return False                        # Sony never merges with Samsung
+        if models[i] and models[j]:             # both have model numbers:
+            return models[i] == models[j] and sim[i, j] >= sim_threshold
+        if not models[i] and not models[j]:     # neither does: wording is all we
+            return sim[i, j] >= no_model_threshold   # have, so demand more of it
+        return False                            # one has a model, one doesn't
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            if same_product(i, j):
+                union(i, j)
+
+    clusters: dict[int, list] = {}
+    for i, p in enumerate(items):
+        clusters.setdefault(find(i), []).append(p)
+    return [min(c, key=lambda p: p.price) for c in clusters.values()]
+```
+
+With the guards, the audio subset goes 60 → 54 and the drop list is surgical: the XM5 pair merges (Macy's $248 dropped, Costco $162.97 kept), the `WH-CH720N` / `WH-CH720N/P` variant pair merges, a duplicate JLab listing merges — while the XM6, all four Bose QuietComfort products, and every soundbar survive as themselves.
+
+<Callout tone="warn">
+**Known residual failure mode — same brand, same model number, different product line.** `JBL Tune 770NC` and `JBL Live 770NC` share the digit token `770nc` and score cosine ≥ 0.90, so they still merge (as do `Vibe Buds 2` / `Vibe Beam 2`, sharing only `2`). Full entity resolution is a research field; three wrong merges in 60 is the honest cost of a 40-line dedup. The deal-score verdicts (Part 3) run *after* dedup and guard the damage: a surviving listing still gets its own fair-price check.
+</Callout>
+
+The call site in `aggregate()` is a single changed line after the exact-key `best` dict is built:
+
+```python
+items = dedup_by_embedding(list(best.values()))
+```
+
+That replaces `items = list(best.values())`. Every path — early-stop, circuit-benched, full-escalation, even the keyless fallback — runs through the same semantic pass.
+
+<DedupMerge />
+
+---
+
+## Worked example: noise cancelling headphones
+
+Two runs, one deterministic and one live — because they teach different things.
+
+### On the frozen snapshot — the deterministic facts
+
+Run `dedup_by_embedding` over the snapshot's 60-item audio category and it returns 54: six drops, every one inspectable. The one that matters for the story:
+
+```
+Merged : Sony WH-1000XM5 Wireless Headphones                  $162.97  RapidAPI:costco.com   ← kept (cheapest)
+         SONY WH-1000XM5 Wireless Noise-Canceling Headphones  $248.00  RapidAPI:Macy's       ← dropped
+         (measured cosine 0.9498 · same brand token · same model token {1000xm5})
+```
+
+Both XM5 rows survive the exact-key pass because their titles differ *and* their `brand` fields hold retailer strings — semantic dedup is what finally collapses them, and the shopper sees one XM5 at the better price. Meanwhile the XM6 (cosine 0.9251 to the XM5 — over threshold!) survives on the model-token guard, and the $46 Bose QC45 stays its own row for the deal scorer to flag.
+
+The hero-cast verdicts on the deduped set (query median $162.97, per-category linear model from Part 3) are unchanged:
+
+| Item | Price | Fair price | Verdict |
+|---|---|---|---|
+| Sony WH-1000XM5 | $162.97 | $285.15 | FAIR |
+| Anker Soundcore Q20i | $44.99 | $108.33 | DEAL |
+| Bose QuietComfort 45 | $46.00 | $285.15 | SUSPICIOUS |
+| Sony WH-1000XM6 | $399.99 | $285.15 | OVERPRICED |
+
+The Bose verdict is SUSPICIOUS because *both* guards fire: `residual_frac = (285.15 − 46.00) / 285.15 = 0.839 > 0.70` and `median_signal = 0.718 ≥ 0.15`. The Anker is a DEAL: its `median_signal` also clears 0.15, but `residual_frac = 0.585 < 0.70` — the price model says $45 is plausible for an Anker, so no trap flag. The model, not a condition token, separates them.
+
+### Live, with real keys — what the aggregator actually did
+
+A real run with eBay + RapidAPI keys set (your output will differ — that's live data):
+
+```
+GET /search?q=noise+cancelling+headphones
+
+sources_live: ['eBay', 'RapidAPI']   throttled: []
+count: 15   median: $74.93
+
+   12.99  +82.7%  Wireless Headphones Bluetooth Noise Cancelling…   eBay:New
+   19.99  +73.3%  Sony MDRZX110NC Noise Cancelling Headphones       eBay:Open box
+   44.99  +40.0%  Anker Soundcore Q20i Hybrid Active Noise Cance…   RapidAPI:Best Buy
+   69.99   +6.6%  SONY WHULT900N/H Headphones                       eBay:Certified - Refurbished
+  199.00 -165.6%  Bose QuietComfort Headphones, Certified Refurb…   eBay:Certified - Refurbished
+```
+
+Read the envelope like an operator: tier 1 (eBay + RapidAPI) produced enough unique products that **the early-stop fired** — Apify, Shopify, and Firecrawl were never called, which is why `sources_live` lists only two names and `throttled` is empty. The median is $74.93, not $162.97, because eBay's used/open-box inventory pulls the live distribution down — the frozen snapshot is the course's shared ground truth precisely because live numbers move.
+
+### The breaker, exercised offline
+
+```
+pytest tests/test_aggregate.py::test_circuit_breaker_benches_a_throttled_source -v
+```
+
+The test's failing stub raises on first call: the source lands in `throttled` and is benched (OPEN). A second `aggregate()` call asserts the stub's call counter did not advance — the breaker short-circuited it — while the healthy source keeps serving. PASSED in a fraction of a second, no network, no fixture server: the stub *is* the failing upstream.
+
+---
+
+## Configuration from environment
+
+`COOLDOWN_SECONDS` and `TARGET_RESULTS` are module constants you can override via environment variables without touching source code:
+
+```bash
+# .env (or shell)
+DEALFINDER_COOLDOWN_SECONDS=120
+DEALFINDER_TARGET_RESULTS=8
+```
+
+```python
+# dealfinder/aggregate.py
+import os
+
+COOLDOWN_SECONDS = float(os.getenv("DEALFINDER_COOLDOWN_SECONDS", "90"))
+TARGET_RESULTS   = int(os.getenv("DEALFINDER_TARGET_RESULTS",   "12"))
+```
+
+Mind the direction of the knob: the early-stop check is `unique_products >= target`, so a *low* target stops sooner (`0` breaks after the first tier, whatever it returned) and a deliberately unreachable target (`DEALFINDER_TARGET_RESULTS=9999`) forces every tier to run — useful for coverage audits where you want to compare tier-by-tier yield on the same query.
+
+---
+
+## Reproducibility checks
+
+All asserts run offline with stub sources and a deterministic fake embedder — no live credentials, no HTTP server, no model download in CI. The stubs raise `RuntimeError` to simulate a throttled upstream; an autouse fixture replaces `dedup._embed` with hash-seeded random unit vectors (distinct titles land near-orthogonal in 384-d, so nothing merges unless a test injects explicitly-similar vectors).
+
+```python
+# tests/test_aggregate.py (the real tests, abridged)
+
+def test_early_stop_skips_pricier_tier():
+    tier1 = _Stub("T1", [_p(f"a{i}", f"Item {i}", 100 + i, "S1") for i in range(13)], tier=1)
+    tier2 = _Stub("T2", [_p("z", "Bonus", 5, "S2")], tier=2)
+    out = aggregate("x", sources=[tier1, tier2], target=12)
+    assert tier1.calls == 1 and tier2.calls == 0     # enough from tier 1 → tier 2 never runs
+
+
+def test_circuit_breaker_benches_a_throttled_source():
+    bad = _Stub("BAD", [], tier=1, fail=True)
+    good = _Stub("GOOD", [_p("g", "Good", 10, "S")], tier=2)
+    out1 = aggregate("x", sources=[bad, good])
+    assert "BAD" in out1["throttled"] and bad.calls == 1
+    out2 = aggregate("x", sources=[bad, good])       # bad is benched (OPEN) now
+    assert bad.calls == 1                            # not called again
+    assert "GOOD" in out2["sources_live"]
+
+
+def test_semantic_dedup_collapses_cross_retailer_pair(monkeypatch):
+    # two XM5 titles with distinct exact keys, injected near-identical vectors
+    ...
+    out = aggregate("x", sources=[_Stub("S1", [xm5_a, cable]), _Stub("S2", [xm5_b])])
+    assert {r["id"] for r in out["results"]} == {"xb", "c"}   # pair collapsed
+    assert prices["xb"] == 162.97                             # cheaper offer won
+```
+
+The real-model facts (XM5 pair cosine 0.9498, audio subset 60 → 54) are measured against the committed snapshot embeddings — run them yourself with the snippet in the dedup section; they're properties of the frozen data, not of CI.
+
+```python
+# tests/test_dealscore.py (real companion test — the hero-cast verdicts)
+from dealfinder.dealscore import verdict
+
+ANCHOR_MEDIAN = 162.97   # "noise cancelling headphones" median at capture
+
+# verdict(actual, median, fair) -> Verdict; .label is
+# "deal" | "fair" | "suspicious" | "overpriced" (uppercased for the display badge)
+assert verdict(162.97, ANCHOR_MEDIAN, 285.15).label == "fair"          # anchor sits on median
+assert verdict(44.99,  ANCHOR_MEDIAN, 108.33).label == "deal"          # honest deal
+assert verdict(46.00,  ANCHOR_MEDIAN, 285.15).label == "suspicious"    # Bose QC45 trap
+assert verdict(399.99, ANCHOR_MEDIAN, 285.15).label == "overpriced"    # above median
+```
+
+Run the full test suite with:
+
+```bash
+pytest tests/test_aggregate.py tests/test_dealscore.py tests/test_snapshot.py -v
+```
+
+All assertions pass offline in well under a second — the stubs and the fake embedder mean no network and no model in the loop.
+
+<Callout tone="note">
+**Embedding model first load.** In the app, `dedup_by_embedding` lazily loads `BAAI/bge-small-en-v1.5` (~45 MB) on first call and reuses the cached singleton afterwards. The test suite never loads it at all — the autouse fixture swaps `_embed` for the deterministic fake — so CI needs no model download and no warm cache.
+</Callout>
+
+---
+
+## Companion repo callout
+
+<Callout tone="tip">
+**Step tag:** `step-09` in
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+
+The diff from `step-08` shows exactly what this part adds:
+- `dealfinder/dedup.py` — new module: guarded `dedup_by_embedding` (brand token + model tokens + cosine).
+- `dealfinder/aggregate.py` — tiered fan-out, one-strike bench/cooldown breaker, env-var config, and the one-line semantic-dedup call site.
+- `tests/test_aggregate.py` — early-stop, breaker bench, semantic collapse, distinct-products-stay-apart; all offline via stubs + the fake embedder.
+
+Compare URL: `github.com/cloudcodetree/tutorial-dealfinder/compare/step-08...step-09`
+</Callout>
+
+---
+
+## Check it works
+
+1. **The unit invariants** — dedup, early-stop, breaker, all offline:
+   ```bash
+   pytest tests/test_aggregate.py -v
+   ```
+   **Expect:** `5 passed` in under a second — exact-key dedup, early-stop, breaker bench, semantic collapse, distinct-products-stay-apart.
+
+2. **Semantic dedup on the real snapshot** — the measured numbers from this part, reproduced on your machine:
+   ```bash
+   python -c "
+   from dealfinder.snapshot import load_products
+   from dealfinder.dedup import dedup_by_embedding
+   ps = [p for p in load_products() if p.category == 'audio']
+   kept = dedup_by_embedding(ps)
+   print(f'{len(ps)} -> {len(kept)}')
+   xm5 = [p for p in kept if 'WH-1000XM5' in p.title]
+   print('XM5 survivors:', [(p.title[:40], p.price) for p in xm5])"
+   ```
+   **Expect:** `60 -> 54`, and exactly **one** XM5 survivor at **$162.97** (the Costco offer — cheapest in its cluster). First run loads the bge model (~45 MB cached); later runs are instant.
+
+3. **The full pipeline, live.** With any keys set:
+   ```bash
+   curl -s "http://localhost:8000/search?q=noise+cancelling+headphones" | python -m json.tool | head -20
+   ```
+   **Expect:** an envelope with `sources_live`, `throttled`, `median_price`, `count`, and ranked `results`. If your tier-1 sources returned enough, `sources_live` lists *only* them — that's the early-stop, not a failure of the missing sources.
+
+---
+
+## What you can demo now
+
+The fan-out is now an *operated* system — it reports its own behavior:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-09/live-aggregate-envelope.png"
+  alt="Live aggregation results with the status envelope highlighted"
+  caption="Real capture: the aggregation envelope over a live run — count, sources actually used, cross-source median."
+  lookFor="the ringed status line: 18 offers · sources live: eBay, RapidAPI · median $61.99. Three sources are conspicuously absent — Apify, Shopify, Firecrawl were never called because tier 1 hit the target first (the early-stop working, visible in production). Every deal percentage on the cards below is computed against that live cross-source median."
+/>
+
+The demo line: *"watch the status line, not just the cards — it tells you which sources ran, which were benched, and what median every deal is measured against. Kill a source's key and search again: the app degrades gracefully and the line tells the truth."*
+
+---
+
+## Where this goes next
+
+- **Back — Part 8 — Scraping responsibly (Apify/Shopify/Firecrawl; ToS/robots):** delivered the raw scraper connectors that this part wraps in circuit breakers and integrates as Tier 3 of the tiered plan.
+- **Forward — Part 10 — Fine-tune the extractor with QLoRA:** moves into the intelligence layer. The stable, deduplicated result set produced here — one listing per physical product, cheapest offer surviving — is the input surface that the structured extractor (Part 6), the fine-tuned model (Part 10), and the ReAct agent (Part 11) all operate on. A wobbly, duplicated feed would poison every downstream label and every evaluation metric.
+
+---
+
+*Sources: [fastembed](https://github.com/qdrant/fastembed) · [RapidAPI Real-Time Product Search](https://rapidapi.com/letscrape-6bRBa3QguO5/api/real-time-product-search) · [Apify Google Shopping Scraper](https://apify.com/automation-lab/google-shopping-scraper) · [Firecrawl](https://www.firecrawl.dev/) · [pytest-httpx](https://github.com/Colin-b/pytest-httpx)*

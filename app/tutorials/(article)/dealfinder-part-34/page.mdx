@@ -1,0 +1,372 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Payments & SaaS Mechanics (Part 34 of 37) · Tutorials',
+  description:
+    'Add Stripe Checkout, webhook-verified entitlements, and per-plan usage metering to DealFinder — the billing layer that turns a free tool into a SaaS product.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-34/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Payments & SaaS Mechanics (Part 34 of 37)',
+    description: 'Add Stripe Checkout, webhook-verified entitlements, and per-plan usage metering to DealFinder — the billing layer that turns a free tool into a SaaS product.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-34/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-34.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-34.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-34" />
+
+# Payments & SaaS Mechanics
+
+**TL;DR: A real deal-finder that people pay for needs three things: a checkout session to collect payment, a webhook to verify it happened, and a quota gate to enforce the plan. This part builds all three in `dealfinder/billing.py` and proves them with 8 offline tests — no live Stripe account required to follow along.**
+
+This is **Part 34 of DealFinder**, the fourth part of Phase 6 (Full-stack SaaS). Parts 31–33 gave DealFinder a React frontend, Supabase auth, and a saved-searches worker. This part adds the billing layer: a `free` plan capped at 25 searches per month and a `pro` plan at 1,000, with Stripe Checkout as the upgrade path and a HMAC-verified webhook to grant entitlements the moment payment clears.
+
+<Callout tone="tip">
+**Code along, step by step.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Step tags for this part: `step-31a` (PLANS + metering) · `step-31b` (Checkout session builder) · `step-31c` (webhook + entitlement).
+Compare the diff at each step from the repo's branch view.
+</Callout>
+
+## Table of contents
+
+1. [Why billing is not an afterthought](#why-billing-is-not-an-afterthought)
+2. [PLANS and the quota data model](#plans-and-the-quota-data-model)
+3. [meter_usage: the plan gate](#meter_usage-the-plan-gate)
+4. [Stripe Checkout session builder](#stripe-checkout-session-builder)
+5. [The webhook: verifying and granting](#the-webhook-verifying-and-granting)
+6. [Offline test suite: 8 passes, no network](#offline-test-suite-8-passes-no-network)
+7. [Wiring it into serve.py](#wiring-it-into-servepy)
+8. [Running live with your own keys](#running-live-with-your-own-keys)
+9. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Explain the four moving parts of a Stripe subscription checkout and where each lives in the codebase.
+- Read and extend `PLANS` to add a new tier (e.g., a `team` plan) without touching the metering logic.
+- Run the full offline test suite (`tests/test_billing.py`, 8 tests) and understand what each one proves about signature security and quota enforcement.
+- Connect your own Stripe test-mode keys and watch a real checkout session open in the browser.
+- Trace the path from `checkout.session.completed` webhook → `Entitlement` dataclass → plan grant, and explain why a bad HMAC signature must bubble as a 400, not a 500.
+
+---
+
+## Why billing is not an afterthought
+
+Most ML courses stop at the model. DealFinder stops at the fully deployed SaaS — and the billing layer is what separates the two. Without metering, the aggregator runs without limit: every search hits live APIs, accruing RapidAPI and Apify costs regardless of who is paying. Without a plan gate, the Pro feature boundary is a UI fiction that a motivated user bypasses with one curl command.
+
+The three concerns — quota enforcement, payment collection, and entitlement — look like one problem but split into three independent pieces of code. That split matters. The quota gate lives on the hot path (every search). The checkout builder fires once per upgrade intent. The webhook fires asynchronously, after Stripe confirms the charge cleared. Mixing them would couple the payment provider into the search latency path.
+
+`billing.py` keeps them separate. Each section below explains one piece, shows the code, and then shows the test that proves it holds.
+
+---
+
+## PLANS and the quota data model
+
+The plan catalog is a frozen dataclass dictionary — no database, no Stripe call, no network:
+
+```python
+# dealfinder/billing.py
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class Plan:
+    key: str
+    name: str
+    monthly_searches: int   # quota; -1 == unlimited
+    price_env: str          # env var holding the Stripe Price ID
+
+PLANS: dict[str, Plan] = {
+    "free": Plan(key="free", name="Free", monthly_searches=25, price_env=""),
+    "pro":  Plan(key="pro",  name="Pro",  monthly_searches=1000, price_env="STRIPE_PRICE_PRO"),
+}
+```
+
+`monthly_searches=-1` would mean unlimited. Neither plan uses that today, but the metering logic checks for it explicitly so adding an `enterprise` tier with `-1` requires only a new dict entry.
+
+`price_env` is the name of the environment variable that holds the Stripe Price ID for this plan, not the price ID itself. The actual value (`price_test_pro_123` in test mode, a real `price_xxx` in production) never appears in the codebase — it is injected at runtime from the environment. If the variable is unset, `create_checkout_session` raises `ValueError` immediately rather than sending a malformed request to Stripe.
+
+`plan_for(key)` falls back to `PLANS["free"]` for unknown keys, so a stale or corrupted `role` claim in a JWT never grants pro access silently — it degrades to the more restrictive plan.
+
+---
+
+## meter_usage: the plan gate
+
+`meter_usage` and `within_quota` are the only billing code on the hot path. Every search request calls one of them before hitting the aggregator:
+
+```python
+# dealfinder/billing.py
+class QuotaExceeded(Exception):
+    """Raised when a user has spent their plan's monthly quota."""
+
+def within_quota(store: dict, user_id: str, plan_key: str) -> bool:
+    plan = plan_for(plan_key)
+    if plan.monthly_searches < 0:
+        return True
+    return store.get(user_id, 0) < plan.monthly_searches
+
+def meter_usage(store: dict, user_id: str, plan_key: str, n: int = 1) -> int:
+    plan = plan_for(plan_key)
+    used = store.get(user_id, 0)
+    if plan.monthly_searches >= 0 and used + n > plan.monthly_searches:
+        raise QuotaExceeded(
+            f"{plan.name} plan allows {plan.monthly_searches} searches/mo (used {used})"
+        )
+    store[user_id] = used + n
+    return store[user_id]
+```
+
+`store` is any `dict`-like keyed on `user_id`. In production it is a Postgres row with a monthly-reset trigger. In tests it is a plain Python dict. The gate logic is identical either way — the `store` interface is the seam.
+
+The quota boundary for the free plan is **25 searches per month**. At the 26th call, `meter_usage` raises `QuotaExceeded`. The `serve.py` handler catches that and returns HTTP 402 with an upgrade prompt. The pro plan boundary is **1,000 searches per month**.
+
+<QuotaMeter />
+
+This is the part of billing that touches the most users most often. A free-tier user who searches 20 times a day will hit the wall in about 36 hours. The `QuotaExceeded` message includes the plan name and the used count so the frontend can display a precise message ("You've used 25 of your 25 free searches this month") rather than a generic error.
+
+---
+
+## Stripe Checkout session builder
+
+When a user clicks "Upgrade to Pro," the frontend calls `POST /billing/checkout`. `serve.py` delegates to `create_checkout_session`:
+
+```python
+# dealfinder/billing.py
+import stripe
+
+def create_checkout_session(
+    user,
+    plan_key: str,
+    *,
+    success_url: str = "https://dealfinder.app/billing/success",
+    cancel_url:  str = "https://dealfinder.app/billing/cancel",
+    client=stripe,
+) -> dict:
+    plan = plan_for(plan_key)
+    price_id = os.getenv(plan.price_env) if plan.price_env else None
+    if not price_id:
+        raise ValueError(
+            f"no Stripe price configured for plan '{plan_key}' ({plan.price_env})"
+        )
+    session = client.checkout.Session.create(
+        mode="subscription",
+        line_items=[{"price": price_id, "quantity": 1}],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        client_reference_id=user.id,
+        customer_email=getattr(user, "email", None),
+        metadata={"user_id": user.id, "plan": plan_key},
+    )
+    return {"id": session["id"], "url": session["url"]}
+```
+
+Three decisions are worth explaining:
+
+**`mode="subscription"`** not `"payment"`. A one-time payment would not renew. Subscriptions let Stripe handle the monthly billing cycle, dunning, and cancellation — the code stays thin.
+
+**`client_reference_id=user.id`** is the primary link between Stripe and your user database. When the webhook fires, this field tells you which user just paid, even if the customer's email address has changed since the session was created. `metadata` carries `user_id` and `plan` as a secondary backup.
+
+**`client=stripe`** is a dependency-injection seam. Tests pass a `MagicMock()` instead of the real Stripe SDK so the test suite never makes a network call.
+
+The function returns `{"id": session_id, "url": checkout_url}`. `serve.py` returns the URL to the frontend, which redirects the user to Stripe's hosted checkout page. After payment, Stripe sends the user back to `success_url`.
+
+<CheckoutFlow />
+
+---
+
+## The webhook: verifying and granting
+
+Stripe's hosted page collecting the card is not a guarantee of payment. The guarantee arrives as a `POST` to your webhook endpoint a few seconds after the charge clears. `handle_webhook` does two things: verify the signature and map the event to an `Entitlement`.
+
+```python
+# dealfinder/billing.py
+@dataclass(frozen=True)
+class Entitlement:
+    user_id: str
+    plan: str
+
+def handle_webhook(
+    payload: bytes,
+    sig_header: str,
+    secret: str,
+) -> Entitlement | None:
+    # raises stripe.error.SignatureVerificationError if bad — caller returns 400
+    event = stripe.Webhook.construct_event(payload, sig_header, secret)
+    if event["type"] != "checkout.session.completed":
+        return None
+
+    def _get(obj, key, default=None):
+        return obj[key] if key in obj else default
+
+    session = event["data"]["object"]
+    meta    = _get(session, "metadata", {})
+    user_id = _get(session, "client_reference_id") or _get(meta, "user_id")
+    if not user_id:
+        return None
+    return Entitlement(user_id=user_id, plan=_get(meta, "plan", "pro"))
+```
+
+`stripe.Webhook.construct_event` uses an HMAC-SHA256 signature computed with your webhook signing secret. If the signature does not match, it raises `SignatureVerificationError`. The caller must let this exception propagate and return HTTP 400 — **not 200**. A 200 response to a forged event would tell an attacker that their forgery attempt was accepted.
+
+<HmacVerify />
+
+The event type filter (`if event["type"] != "checkout.session.completed": return None`) means the endpoint is safe to use as a catch-all webhook destination. Stripe sends many event types; the handler silently ignores everything except the one it acts on. `serve.py` can register this single endpoint for all Stripe events without adding routing logic.
+
+`Entitlement` is frozen because once it is granted it should not be mutated in place. `serve.py` takes the returned `Entitlement` and writes the plan to the user's row in Supabase.
+
+---
+
+## Offline test suite: 8 passes, no network
+
+The full test suite for this module lives at `tests/test_billing.py`. Run it with:
+
+```bash
+.venv/bin/python -m pytest tests/test_billing.py -v
+```
+
+Expected output:
+
+```
+tests/test_billing.py::test_webhook_good_signature_maps_to_entitlement PASSED
+tests/test_billing.py::test_webhook_bad_signature_raises                PASSED
+tests/test_billing.py::test_webhook_wrong_secret_raises                 PASSED
+tests/test_billing.py::test_webhook_ignores_other_event_types           PASSED
+tests/test_billing.py::test_free_plan_hits_quota_and_is_blocked         PASSED
+tests/test_billing.py::test_pro_plan_has_higher_quota                   PASSED
+tests/test_billing.py::test_checkout_session_builder_shape              PASSED
+tests/test_billing.py::test_checkout_missing_price_raises               PASSED
+
+8 passed in 0.xx s
+```
+
+These 8 tests run entirely offline. Webhook signatures are constructed with Stripe's own `stripe.WebhookSignature._compute_signature` helper against a throwaway test secret — the same HMAC logic the real Stripe infrastructure uses, but without touching their servers. The checkout builder runs against a `MagicMock()` client that returns a dict shaped like a real Checkout Session.
+
+Here is what each test proves:
+
+**`test_webhook_good_signature_maps_to_entitlement`** — a correctly signed `checkout.session.completed` payload produces an `Entitlement` with the right `user_id` and `plan`.
+
+**`test_webhook_bad_signature_raises`** — a tampered payload (one byte flipped) raises `SignatureVerificationError`. This is the security property. If this test ever fails, the webhook can be forged.
+
+**`test_webhook_wrong_secret_raises`** — the correct payload signed with a different secret raises `SignatureVerificationError`. Confirms that the secret, not just the format, matters.
+
+**`test_webhook_ignores_other_event_types`** — a correctly signed `invoice.paid` event returns `None`. The handler does not grant entitlements for events it does not recognize.
+
+**`test_free_plan_hits_quota_and_is_blocked`** — calls `meter_usage` 25 times for a free user (reaching the limit), then confirms the 26th call raises `QuotaExceeded`. Free plan: 25 searches/mo.
+
+**`test_pro_plan_has_higher_quota`** — a pro user can call `meter_usage` 1,000 times without raising. Pro plan: 1,000 searches/mo.
+
+**`test_checkout_session_builder_shape`** — the mocked client receives `mode="subscription"`, `line_items=[{price: "price_test_pro_123", quantity: 1}]`, and the function returns `{"id": ..., "url": ...}` without raising.
+
+**`test_checkout_missing_price_raises`** — calling `create_checkout_session` for a plan whose `price_env` is unset raises `ValueError`. This prevents a silent no-op when the env var is missing from the deployment.
+
+<Callout tone="note">
+**Webhook signatures use real HMAC — just not live Stripe.** The tests build the `Stripe-Signature` header using the same helper Stripe's own SDK ships (`stripe.WebhookSignature._compute_signature`). The math is identical to what Stripe's servers compute; only the signing secret is a throwaway string. This means the tests prove the cryptographic path, not just that the code path is reachable.
+</Callout>
+
+---
+
+## Wiring it into serve.py
+
+`billing.py` is a library module. `serve.py` calls it at two points:
+
+**On every authenticated search request**, `meter_usage` runs before the aggregator:
+
+```python
+# serve.py — search handler (sketch)
+from dealfinder.billing import meter_usage, QuotaExceeded
+
+@app.get("/search")
+def search(q: str, user: User = Depends(require_user)):
+    try:
+        meter_usage(usage_store, user.id, user.role)
+    except QuotaExceeded:
+        raise HTTPException(status_code=402, detail="quota exceeded — upgrade to Pro")
+    results = aggregate(q)
+    return results
+```
+
+**On `POST /billing/checkout`**, `create_checkout_session` runs and the URL is returned:
+
+```python
+# serve.py — checkout handler (sketch)
+from dealfinder.billing import create_checkout_session
+
+@app.post("/billing/checkout")
+def checkout(plan_key: str, user: User = Depends(require_user)):
+    result = create_checkout_session(user, plan_key)
+    return result   # {"id": ..., "url": ...}
+```
+
+**On `POST /webhook`**, `handle_webhook` runs and the entitlement is written:
+
+```python
+# serve.py — webhook handler (sketch)
+import stripe
+from dealfinder.billing import handle_webhook
+
+@app.post("/webhook")
+async def webhook(request: Request):
+    payload    = await request.body()
+    sig_header = request.headers.get("stripe-signature", "")
+    secret     = os.environ["STRIPE_WEBHOOK_SECRET"]
+    try:
+        entitlement = handle_webhook(payload, sig_header, secret)
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="bad webhook signature")
+    if entitlement:
+        # write entitlement.plan to the user's row in Supabase
+        await grant_plan(entitlement.user_id, entitlement.plan)
+    return {"ok": True}
+```
+
+The 400 on `SignatureVerificationError` is intentional and required by Stripe's documentation. A 2xx response tells Stripe the event was processed successfully; a 4xx tells it to retry. For a forged event you want to return 400 (reject it) rather than 200 (silently accept it) or 500 (cause unnecessary retries).
+
+---
+
+## Running live with your own keys
+
+<Callout tone="warn">
+**Live payments require your own Stripe account.** The offline tests prove the logic without any keys. To actually open a checkout page and receive a webhook, follow the steps below with your own test-mode credentials. Never use production keys in development.
+</Callout>
+
+To run live in Stripe test mode:
+
+1. Create a Stripe account and navigate to the [test dashboard](https://dashboard.stripe.com/test/dashboard).
+2. Create a recurring product and copy its Price ID (starts with `price_`).
+3. Set environment variables:
+
+```bash
+export STRIPE_SECRET_KEY="sk_test_..."
+export STRIPE_PRICE_PRO="price_..."
+export STRIPE_WEBHOOK_SECRET=""   # fill in after step 5
+```
+
+4. Start the Stripe CLI and forward webhooks to your local server:
+
+```bash
+stripe listen --forward-to http://localhost:8000/webhook
+# The CLI prints a webhook signing secret — copy it.
+```
+
+5. Set `STRIPE_WEBHOOK_SECRET` to the signing secret printed by the CLI.
+6. Start the DealFinder server (`uvicorn dealfinder.serve:app --reload`) and hit `POST /billing/checkout?plan_key=pro` from a logged-in session.
+
+The Stripe CLI will print each event as it arrives. Use test card `4242 4242 4242 4242` (any future date, any CVC) to complete a payment. You should see `checkout.session.completed` in the CLI output and the `Entitlement` logged by `serve.py`.
+
+<Callout tone="note">
+**The Kubernetes secret manifest does not contain real keys.** `infra/k8s/secret.example.yaml` (from Part 29) has placeholder strings for `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, and `STRIPE_WEBHOOK_SECRET`. The real `secret.yaml` is gitignored and must be applied out-of-band — via External Secrets Operator, Sealed Secrets, or a CI secret injection step. Never commit live keys to the repo.
+</Callout>
+
+---
+
+## Where this goes next
+
+- **Part 33 — Saved searches & the suggestions worker:** the periodic worker that runs saved searches and emails results uses the same `User` type from `auth.py`. Part 34 adds the plan check: the suggestions worker skips emails for users who have exhausted their free quota until the monthly counter resets.
+
+- **Part 35 — Security & compliance at scale:** with a billing layer in place, DealFinder now handles real financial transactions. Part 35 audits the OWASP-LLM top 10 against the search endpoint, adds PII handling for the email field that Stripe returns, and works through GDPR's "right to erasure" against a system that stores `user_id` in Stripe metadata, Supabase rows, and usage counters.
+
+---
+
+*Sources: [Stripe Checkout documentation](https://stripe.com/docs/payments/checkout) · [stripe-python SDK](https://github.com/stripe/stripe-python) · [Stripe webhook signature verification](https://stripe.com/docs/webhooks/signatures) · [Supabase Row Level Security](https://supabase.com/docs/guides/auth/row-level-security)*

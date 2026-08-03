@@ -1,0 +1,443 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Semantic Search That Knows a Deal (Part 5 of 37) · Tutorials',
+  description:
+    'Fuse BM25 keyword ranking with fastembed dense retrieval via Reciprocal Rank Fusion, then value-rerank so the Anker Q20i (DEAL) rises above the Bose QC45 (SUSPICIOUS) on real electronics data.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-05/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Semantic Search That Knows a Deal (Part 5 of 37)',
+    description: 'Fuse BM25 keyword ranking with fastembed dense retrieval via Reciprocal Rank Fusion, then value-rerank so the Anker Q20i (DEAL) rises above the Bose QC45 (SUSPICIOUS) on real electronics data.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-05/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-05.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-05.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-05" />
+
+# Semantic Search That Knows a Deal
+
+**TL;DR: "WH-1000XM5" shares no vocabulary with "noise cancelling headphones" — keyword search scores it zero. Build a hybrid pipeline that fuses BM25 with fastembed dense retrieval via Reciprocal Rank Fusion, then value-rerank using the Part 3 deal score so the honest Anker Q20i (DEAL, +0.72) rises above the Bose QC45 (SUSPICIOUS) on the real 270-item electronics snapshot.**
+
+This is **Part 5 of DealFinder**. Parts 1–4 gave you the snapshot, the deal-score model, and cached title embeddings. This part wires them into a retrieval pipeline where relevance and value are both first-class signals.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Step tag: `step-05`. Delta from `step-04`: add `dealfinder/search.py` (a self-contained Okapi BM25 plus `cosine_rank`, `rrf_fuse`, `value_rerank`, and `search_catalog`) and add `tests/test_search.py`. No new dependencies — BM25 is hand-rolled in pure Python, and the dense lane reuses Part 4's `fastembed` and cached title embeddings.
+The fastembed model (~130 MB) was downloaded in Part 4 — Part 5 reuses the cache. First run after a clean clone takes ~30 s.
+</Callout>
+
+## Table of contents
+
+1. [Why keyword search fails on electronics](#why-keyword-search-fails-on-electronics)
+2. [BM25: exact-term ranking](#bm25-exact-term-ranking)
+3. [Dense retrieval: cosine similarity over cached embeddings](#dense-retrieval-cosine-similarity-over-cached-embeddings)
+4. [Two signals, one query](#two-signals-one-query)
+5. [Reciprocal Rank Fusion](#reciprocal-rank-fusion)
+6. [Value rerank: blending relevance with the deal score](#value-rerank-blending-relevance-with-the-deal-score)
+7. [The full pipeline: search\_catalog()](#the-full-pipeline-search_catalog)
+8. [Worked example: "noise cancelling headphones"](#worked-example-noise-cancelling-headphones)
+9. [Reproducibility checks](#reproducibility-checks)
+10. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Explain why keyword search alone fails on product titles — "WH-1000XM5" has no common vocabulary with "noise cancelling headphones".
+- Build a BM25 index over the 15 "noise cancelling headphones" titles and query it programmatically.
+- Reuse the Part 4 cached BAAI/bge-small-en-v1.5 title embeddings for dense retrieval — no second model download.
+- Fuse BM25 and dense ranked lists with Reciprocal Rank Fusion (`k=60`) and explain the `k` hyperparameter trade-off.
+- Apply the `_two_signal_deal_scores()` guard so suspicious listings (Bose QC45 at $46.00, residual_frac 0.839) are demoted below honest deals (Anker Q20i at $44.99, residual_frac 0.585).
+- Explain why deal validation belongs in the deal-score layer (Part 3), not in the search layer.
+
+---
+
+## Why keyword search fails on electronics
+
+Pull the 15 "noise cancelling headphones" items from the snapshot and build a BM25 index over their titles. Query it:
+
+```python
+import json
+from dealfinder.search import BM25
+from dealfinder.snapshot import load_products
+from dealfinder.embed import product_text
+
+d = json.load(open("data/snapshots/electronics-2026-07.json"))
+nch_ids = {i["id"] for i in d["items"] if i["query"] == "noise cancelling headphones"}
+products = [p for p in load_products() if p.id in nch_ids]   # 15 items
+
+bm25 = BM25([product_text(p) for p in products])
+results = bm25.search("noise cancelling headphones", k=5)
+
+# Print score and title for each
+for idx, score in results:
+    print(f"{score:.4f}  {products[idx].title[:55]}")
+```
+
+```
+1.2272  Bose QuietComfort Noise Cancelling Wireless Headphones
+1.1691  Soundcore Space 2 Active Noise Cancelling Headphones
+1.1163  Bose QuietComfort 45 Wireless Noise Cancelling Headphon
+1.0681  Anker Soundcore Q20i Hybrid Active Noise Cancelling Hea
+1.0681  JBL Live 770NC Noise Cancelling Wireless Over-Ear Headp
+```
+
+BM25 rewards exact term overlap: every title in the top-5 literally contains "noise cancelling" (or "noise canceling"). But it is blind to meaning. A title like "Sony WH-1000XM5 Wireless Headphones" — a genuine noise-cancelling flagship — has no overlap at all: "WH-1000XM5" tokenizes to `["wh", "1000xm5"]`, and none of `["noise", "cancelling", "headphones"]` appear, so BM25 scores it zero and it never surfaces here. Notice too that the honest **Anker Soundcore Q20i** at $44.99 lands only at rank 4 on raw keyword score, tied with a $219.95 JBL — BM25 knows nothing about price or value.
+
+<Callout tone="note">
+**BM25 tokenization of model numbers.** `BM25.__init__` in `search.py` tokenizes with `re.findall(r"[a-z0-9]+", s.lower())`. "WH-1000XM5" becomes `["wh", "1000xm5"]` — no overlap with the query tokens `["noise", "cancelling", "headphones"]`, so a model-number-only title scores zero on this query. A character-level n-gram tokenizer would help, but the right fix is adding a dense lane that captures meaning. That is what RRF is for.
+</Callout>
+
+---
+
+## BM25: exact-term ranking
+
+`BM25` in `dealfinder/search.py` is a clean Okapi BM25 implementation — no external index server required:
+
+```python
+class BM25:
+    """Classic Okapi BM25 keyword ranking — exact-term matching with saturation."""
+
+    def __init__(self, docs: list[str], k1: float = 1.5, b: float = 0.75) -> None:
+        self.docs = [_tok(d) for d in docs]
+        self.k1, self.b = k1, b
+        self.N = len(self.docs)
+        self.avgdl = sum(len(d) for d in self.docs) / max(1, self.N)
+        df = Counter()
+        for d in self.docs:
+            df.update(set(d))
+        self.idf = {w: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) for w, n in df.items()}
+
+    def search(self, query: str, k: int):
+        q = _tok(query)
+        scored = []
+        for i, d in enumerate(self.docs):
+            tf = Counter(d)
+            s = 0.0
+            for w in q:
+                if w not in tf:
+                    continue
+                f = tf[w]
+                s += self.idf.get(w, 0.0) * (f * (self.k1 + 1)) / (
+                    f + self.k1 * (1 - self.b + self.b * len(d) / self.avgdl)
+                )
+            scored.append((i, s))
+        scored.sort(key=lambda x: -x[1])
+        return [(i, s) for i, s in scored[:k] if s > 0]
+```
+
+Three things to note. `_tok` is `re.findall(r"[a-z0-9]+", s.lower())` — simple, fast, and it means any token not in that alphabet scores zero. The `b=0.75` length penalty normalizes against the average document length across all 270 titles. `s > 0` filters out documents with no term overlap — they appear in the dense lane but not here.
+
+But the formula in that `search` loop is doing two things that make BM25 rank *well*, and both are easy to miss in the code. The `self.idf` factor is **inverse document frequency** — it weighs a term by how *rare* it is; and the `f·(k1+1)/(f + …)` shape is **term-frequency saturation** — repeated terms give diminishing returns. Those two curves are the whole reason it works:
+
+<BM25Curves />
+
+Without IDF, matching "noise" (in every headphone title) would count as much as matching a distinctive model number. Without saturation, a title that repeated "wireless" ten times would beat the genuinely relevant one. BM25 is exactly the arithmetic that prevents both.
+
+---
+
+## Dense retrieval: cosine similarity over cached embeddings
+
+Part 4 generated BAAI/bge-small-en-v1.5 embeddings for all 270 titles and cached them at `data/embeddings/electronics-2026-07.title-bge-small.npz` (an `.npz` with `ids`, `model`, and a `[270, 384]` `vectors` array). Part 5 reuses that cache directly — no model run in the test suite. The recommender's `load_catalog_embeddings()` aligns the cached vectors to whichever product list you hand it, so we get a matrix that lines up row-for-row with our 15 headphone products:
+
+```python
+from dealfinder.recommend import load_catalog_embeddings
+from dealfinder.embed import embed_texts
+from dealfinder.search import cosine_rank
+
+# products = the 15 NCH items from above
+_, embeddings = load_catalog_embeddings(products)   # [15, 384], aligned to products
+
+# Embed the query (fastembed runs locally, CPU)
+qv = embed_texts(["noise cancelling headphones"])[0]
+
+results = cosine_rank(qv, embeddings, k=5)
+
+for idx, score in results:
+    print(f"{score:.4f}  {products[idx].title[:55]}")
+```
+
+```
+0.8652  Bose QuietComfort Noise Cancelling Wireless Headphones
+0.8511  Sony WH-CH720N/P Wireless Noise Canceling Headphones
+0.8442  SONY WH-1000XM5 Wireless Noise-Canceling Headphones
+0.8411  Soundcore Space 2 Active Noise Cancelling Headphones
+0.8373  Sony WH-1000XM6 Wireless Noise Canceling Headphones
+```
+
+`cosine_rank` in `search.py`:
+
+```python
+def cosine_rank(query_vec: np.ndarray, doc_vecs: np.ndarray, k: int):
+    """Rank docs by cosine similarity to the query vector."""
+    q = np.asarray(query_vec, dtype=float)
+    q = q / (np.linalg.norm(q) or 1.0)
+    D = np.asarray(doc_vecs, dtype=float)
+    D = D / (np.linalg.norm(D, axis=1, keepdims=True) + 1e-9)
+    sims = D @ q
+    order = np.argsort(-sims)
+    return [(int(i), float(sims[i])) for i in order[:k]]
+```
+
+The dense lane's payoff: the **SONY WH-1000XM5** — which BM25 scored *zero* because its title carries no query terms — now surfaces at rank 3 (0.8442) purely on semantic similarity. The embeddings capture the concept of "noise cancelling" even when the surface words differ. But notice the trade-off: the dense score carries no information about price or value. Cheap-and-honest (Anker Q20i, $44.99) and expensive-flagship (Sony XM6, $399.99) are ranked on meaning alone. That is exactly why we still need a keyword lane, a fusion step, and — the DealFinder twist — a value rerank.
+
+---
+
+## Two signals, one query
+
+<RankingLens />
+
+The animation above shows the dual-signal picture. Each card has two bars: BM25 (yellow, term overlap) and dense embedding similarity (blue, semantic). The **Sony WH-1000XM5** is the clearest split — a strong semantic bar (0.8442) but a keyword bar of *zero*, because its title shares no tokens with the query. The **Bose QuietComfort** ($359.99) is the opposite corner: it tops both lanes on relevance, yet says nothing about value. Neither signal alone produces the ranking DealFinder wants — that is the job of RRF, and then the value rerank.
+
+---
+
+## Reciprocal Rank Fusion
+
+Rather than normalizing or averaging score scales, RRF combines by *rank position*. Each item scores `1 / (k + rank)` in each list, then the scores are summed. Items that rank well in both lists accumulate the highest combined score.
+
+<HybridFusion />
+
+```python
+def rrf_fuse(rankings: list[list[int]], k: int = 60, top: int | None = None):
+    """Reciprocal Rank Fusion — combine ranked lists without tuning weights."""
+    scores = Counter()
+    for r in rankings:
+        for rank, doc in enumerate(r):
+            scores[doc] += 1.0 / (k + rank + 1)
+    fused = [d for d, _ in sorted(scores.items(), key=lambda x: -x[1])]
+    return fused[:top] if top else fused
+```
+
+The `k=60` constant dampens outlier rank boosts. At `k=60`, the difference in RRF score between rank 1 and rank 2 is `1/61 − 1/62 ≈ 0.00026` — small enough that a single-lane fluke cannot dominate. At `k=0` the gap would be `1/1 − 1/2 = 0.5`, which would let one strong rank override consistent mid-table performance in the other lane.
+
+Fusing the BM25 and dense lanes for "noise cancelling headphones" (feeding the *full* ranked lists into `rrf_fuse`, taking the top 5):
+
+```
+BM25 top-3:   Bose QuietComfort · Soundcore Space 2 · Bose QC45
+Dense top-3:  Bose QuietComfort · Sony WH-CH720N/P  · SONY XM5
+
+RRF fused top-5:
+  Bose QuietComfort Noise Cancelling Wireless   $359.99
+  Soundcore Space 2 Active Noise Cancelling     $129.99
+  Bose QuietComfort 45 Wireless Noise Cancell   $ 46.00
+  Sony WH-CH720N/P Wireless Noise Canceling     $129.99
+  SONY WH-1000XM5 Wireless Noise-Canceling      $248.00
+```
+
+The Bose QuietComfort ($359.99) tops *both* lanes, so it accumulates the highest fused score and stays at rank 1. Items strong in only one lane — the SONY XM5 (dense-only, keyword-zero) and the JBL Live 770NC (keyword-only) — get a single reciprocal-rank contribution and settle lower. Crucially, **RRF is still a pure relevance ranking**: the honest Anker Q20i deal is nowhere near the top, and the $46 Bose QC45 trap sits at rank 3. Fusion fixed recall across lanes; it did nothing about value. That is the next stage.
+
+---
+
+## Value rerank: blending relevance with the deal score
+
+RRF gives you a relevance ranking. DealFinder needs a *value* ranking. The `value_rerank` function blends each result's relevance (by rank position) with its two-signal deal score:
+
+```python
+def value_rerank(doc_ids: list, deal_scores: dict, alpha: float = 0.5) -> list:
+    """Blend retrieval relevance (by rank) with the Part-3 deal score."""
+    n = len(doc_ids)
+    rel = {d: 1 - i / max(1, n - 1) for i, d in enumerate(doc_ids)}
+    combined = {
+        d: (1 - alpha) * rel[d] + alpha * max(0.0, deal_scores.get(d, 0.0))
+        for d in doc_ids
+    }
+    return sorted(doc_ids, key=lambda d: -combined[d])
+```
+
+The deal scores come from `_two_signal_deal_scores()`, which blends the same-query median signal with the model residual. For the headphones subset:
+
+| Item | price | median_signal | residual_frac | two-signal score |
+|---|---|---|---|---|
+| Anker Q20i | $44.99 | +0.724 | +0.585 | +0.7239 (DEAL) |
+| Bose QC45 | $46.00 | +0.718 | +0.839 | demoted −1.0 (SUSPICIOUS) |
+| Soundcore Space 2 | $129.99 | +0.202 | ≤0.70 | +0.2024 |
+| Bose QuietComfort | $359.99 | −1.209 | — | −1.2089 (OVERPRICED) |
+
+The guard is exactly `m - 1.0 if (m >= 0.15 and rf > 0.70) else m`. The Bose QC45 clears both bars — a big median signal (+0.718) *and* a residual fraction of 0.839 above the 0.70 threshold — so it is penalized by −1.0 and pushed below the honest Anker Q20i (+0.724, residual only 0.585, under the threshold). The two products are priced within a dollar of each other ($44.99 vs $46.00), but the residual guard tells them apart.
+
+<ValueRerank />
+
+<Callout tone="warn">
+**Search's job is relevance; the deal score is what catches the trap.** The value rerank does not *delete* anything — it re-sorts. The $46 Bose QC45 is still a relevant, retrievable result; the −1.0 suspicion penalty simply sinks it below the honest Anker Q20i (and, with a k=5 cutoff over this subset, out of the visible top-5). Whether to hard-filter SUSPICIOUS listings from the response is a product decision for the API layer (Part 12 serving), not the retrieval layer.
+</Callout>
+
+---
+
+## The full pipeline: search_catalog()
+
+`search_catalog()` in `dealfinder/search.py` wires all four stages over the real snapshot:
+
+```python
+def search_catalog(query: str, products, embeddings, medians: dict, k: int = 5, alpha: float = 0.5):
+    """Semantic + BM25 → RRF → value rerank over the real snapshot catalog.
+
+    ``embeddings`` is the cached title-embedding matrix aligned to ``products``;
+    ``medians`` maps product id → its same-query median (for the deal signal).
+    Returns the reranked top-k as ``(index, product, deal_score)`` triples.
+    """
+    from .embed import embed_texts, product_text
+
+    qv = embed_texts([query])[0]
+    semantic = [i for i, _ in cosine_rank(qv, embeddings, len(products))]
+    keyword = [i for i, _ in BM25([product_text(p) for p in products]).search(query, len(products))]
+    hybrid = rrf_fuse([semantic, keyword], top=max(k * 3, k))
+    deal = _two_signal_deal_scores(products, medians)
+    valued = value_rerank(hybrid, deal, alpha=alpha)[:k]
+    return [(i, products[i], deal[i]) for i in valued]
+```
+
+The `alpha=0.5` default weights relevance and value equally. In production, this becomes a business-tunable parameter — a deals-focused surface would raise alpha; a broad product search would lower it.
+
+---
+
+## Worked example: "noise cancelling headphones"
+
+Run `search_catalog` over the 15 "noise cancelling headphones" items with the query "noise cancelling headphones" and `k=5`. This is the exact pattern pinned in `tests/test_search.py`:
+
+```python
+import json
+from dealfinder.recommend import load_catalog_embeddings
+from dealfinder.search import search_catalog
+from dealfinder.snapshot import load_products
+
+d = json.load(open("data/snapshots/electronics-2026-07.json"))
+nch_ids = {i["id"] for i in d["items"] if i["query"] == "noise cancelling headphones"}
+medians = {i["id"]: i["median_price_at_capture"] for i in d["items"]}
+
+products = [p for p in load_products() if p.id in nch_ids]   # 15 items
+_, embeddings = load_catalog_embeddings(products)            # aligned [15, 384]
+
+results = search_catalog("noise cancelling headphones", products, embeddings, medians, k=5)
+for _, p, score in results:
+    print(f"{p.title[:55]:55s}  ${p.price:7.2f}  deal={score:+.4f}")
+```
+
+```
+Anker Soundcore Q20i Hybrid Active Noise Cancelling Hea   $44.99  deal=+0.7239   ← DEAL (rank 1)
+Soundcore Space 2 Active Noise Cancelling Headphones     $129.99  deal=+0.2024
+Bose QuietComfort Noise Cancelling Wireless Headphones   $359.99  deal=−1.2089   ← OVERPRICED
+Sony WH-CH720N/P Wireless Noise Canceling Headphones     $129.99  deal=+0.2024
+JBL Tune 770NC Wireless Noise Cancelling Over-Ear Headp   $89.95  deal=+0.4481
+```
+
+The value rerank does exactly what it should: the honest **Anker Soundcore Q20i** ($44.99, residual_frac 0.585) rises to **rank 1**, even though it was only rank 4 on raw BM25 and never topped either lane. The too-good-to-be-true **Bose QC45** ($46.00, residual_frac 0.839) — priced within a dollar of the Anker but flagged SUSPICIOUS by the residual guard — is penalized −1.0 and sinks out of the visible top-5 entirely. What *does* survive to rank 3 is the legitimately expensive Bose QuietComfort ($359.99), carrying a strongly negative deal score (−1.2089): it is relevant, but it is no deal.
+
+Note that the demotion is a *ranking* effect, not a deletion. The QC45's price anomaly is visible to downstream deal scoring (its residual fraction of 0.839 exceeds the 0.70 threshold), but the search layer itself only re-sorts. Search's job is relevance; Part 3's residual guard, blended in here, is what catches the trap.
+
+The two Bose QuietComfort listings and the two Sony WH-CH720N variants ($129.99 each) hint at the dedup problem: several of these are near-duplicate products at different prices. Part 6's structured extraction pulls canonical brand/model/condition so a later dedup pass can collapse them before ranking.
+
+---
+
+## Reproducibility checks
+
+The following assertions must pass against `electronics-2026-07.json` and the Part 4 cached embeddings. They are pinned in `tests/test_search.py` (`step-05`):
+
+```python
+import json
+from dealfinder.recommend import load_catalog_embeddings
+from dealfinder.search import BM25, cosine_rank, rrf_fuse, search_catalog
+from dealfinder.snapshot import load_products
+from dealfinder.embed import embed_texts, product_text
+
+d = json.load(open("data/snapshots/electronics-2026-07.json"))
+nch_ids = {i["id"] for i in d["items"] if i["query"] == "noise cancelling headphones"}
+medians = {i["id"]: i["median_price_at_capture"] for i in d["items"]}
+
+products = [p for p in load_products() if p.id in nch_ids]   # 15 items
+_, embeddings = load_catalog_embeddings(products)
+q = "noise cancelling headphones"
+
+# BM25: every keyword hit literally contains the query terms
+bm25 = BM25([product_text(p) for p in products])
+bm25_top = [products[i].title.lower() for i, _ in bm25.search(q, k=5)]
+assert all("noise" in t for t in bm25_top), "BM25 top-5 should all match 'noise'"
+
+# Dense: the SONY XM5 (keyword-zero) surfaces via semantics
+qv = embed_texts([q])[0]
+dense_titles = [products[i].title for i, _ in cosine_rank(qv, embeddings, k=5)]
+assert any("WH-1000XM5" in t for t in dense_titles), "XM5 not surfaced by dense lane"
+
+# Value rerank: Anker Q20i (DEAL) is rank 1, and its deal score is positive
+results = search_catalog(q, products, embeddings, medians, k=5)
+titles = [p.title for _, p, _ in results]
+assert "Anker Soundcore Q20i" in titles[0], f"Top-1 should be the Anker Q20i, got {titles[0]!r}"
+anker_deal = results[0][2]
+assert anker_deal > 0, "Anker Q20i should carry a positive deal score"
+
+# The Bose QC45 trap, if surfaced at all, ranks below the Anker (deal < anker)
+bose_qc45 = [ds for _, p, ds in results if "QuietComfort 45" in p.title]
+assert all(ds < anker_deal for ds in bose_qc45), "Bose QC45 should rank below the Anker"
+```
+
+Run with:
+
+```bash
+pytest tests/test_search.py -v
+```
+
+<Callout tone="note">
+**fastembed model version pin.** fastembed's `BAAI/bge-small-en-v1.5` embeddings are deterministic for a given model version. Pin `fastembed` in requirements.txt. If you see a different top-k order after a version upgrade, it is a model change — re-run the Part 4 title-embedding cache (`data/embeddings/electronics-2026-07.title-bge-small.npz`) to get consistent vectors. The BM25, RRF, and value-rerank stages are pure Python and fully deterministic.
+</Callout>
+
+---
+
+## Check it works
+
+**What you should have now:** hybrid retrieval — BM25 + dense embeddings fused with RRF, then value-reranked — that surfaces honest deals and *demotes the traps*. This is the engine behind the by-meaning search you've been using.
+
+**Test it — prove the two-signal score clears the gate:**
+
+```bash
+python -m dealfinder.run_evals
+```
+
+```
+golden set: 20 labeled snapshot items
+  two_signal   precision@5 = 1.00   gate PASS ✓
+  median_only  precision@5 = 0.40   gate FAIL ✗
+CI gate (precision@5 >= 0.80): PASS ✓
+```
+
+That single contrast — **1.00 vs 0.40** — is the entire justification for the price model: median-alone misclassifies 60% of the top-5; the value rerank fixes it.
+
+**Test it — the unit tests:**
+
+```bash
+pytest tests/test_search.py    # 5 passed
+```
+
+**See it in the product — this is *the* lesson you can watch in the browser.** `search_catalog` is exactly what powers `/semantic`. Start the app, pick **by meaning**, and search *"noise cancelling headphones"*:
+
+- **Anker Soundcore Q20i · $44.99 · DEAL** floats to rank 1 (+0.724)
+- **Bose QuietComfort 45 · $46.00 · SUSPICIOUS** is pushed to the bottom (−0.282 = its median signal 0.718 minus the −1.0 guard)
+
+Two headphones priced within a dollar of each other, ranked six places apart — because the value rerank read the model residual. That is DealFinder's whole thesis, live in a card grid.
+
+---
+
+## What you can demo now
+
+Run the same query through both rankers and show the failure that motivates hybrid search:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-05/bm25-vs-semantic.png"
+  alt="BM25 vs semantic ranking for the query sony noise cancelling"
+  caption="Real output: both rankers over the 270-item snapshot, query “sony noise cancelling”."
+  lookFor="BM25's #1 result is a Bose (red ring) — keyword scoring rewards the double “Noise Cancelling” match and treats “sony” as just one term of three. The semantic top-3 (green ring) is all-Sony. Neither ranker is wrong; they measure different things — which is exactly why this part fuses them."
+/>
+
+The demo line: *"ask a keyword engine for Sony and it hands you a Bose with a straight face — then ask the embedding, and fuse."*
+
+---
+
+## Where this goes next
+
+- **Part 4 — What you'll like next (Recommender):** Part 4 built and cached the fastembed title-embedding matrix over real title data. Part 5 reuses those embeddings directly — via the recommender's `load_catalog_embeddings()`, which aligns the cached `.npz` vectors to whatever product list you pass — so hybrid search is built on the recommender's pre-computed representations, not a second model run.
+- **Part 6 — Structured extraction:** The search results expose a new problem: "Bose QuietComfort 45" and "BOSE QC45 Wireless" are the same product but rank as separate results. Part 6 teaches structured extraction to pull canonical brand, model, and condition from messy titles so dedup and ranking operate on normalized entities rather than raw strings.
+
+---
+
+*Sources: [fastembed](https://github.com/qdrant/fastembed) · [BM25 (Okapi)](https://en.wikipedia.org/wiki/Okapi_BM25) · [Reciprocal Rank Fusion — Cormack et al.](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf) · [rank\_bm25](https://github.com/dorianbrown/rank_bm25) · [pgvector](https://github.com/pgvector/pgvector)*

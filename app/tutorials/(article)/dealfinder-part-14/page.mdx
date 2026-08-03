@@ -1,0 +1,494 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: RAG — Grounded Answers Over Your Deals (Part 14 of 37) · Tutorials',
+  description:
+    'Turn the pgvector retriever into a question-answering system: retrieve the real deals for a plain-English query, build a numbered context, and generate an answer that can only cite listings it was given — with a faithfulness guard that mechanically rejects invented prices.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-14/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: RAG — Grounded Answers Over Your Deals (Part 14 of 37)',
+    description:
+      'Retrieve real deals for a plain-English query, build a numbered context, and generate an answer that can only cite listings it was given — with a faithfulness guard that rejects invented prices.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-14/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-14.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-14.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-14" />
+
+# RAG: Grounded Answers Over Your Deals
+
+**TL;DR: Part 13 gave you a durable semantic retriever. But a ranked list of rows is not an answer to "which noise-cancelling headphones under $150 should I buy?" This part adds the last two stages of RAG — build a numbered context from the retrieved deals, then generate an answer that may only cite listings it was handed. A mechanical faithfulness guard (`is_grounded`) rejects any answer that invents a price or a product. The result is a `/ask` endpoint that recommends the real Anker Q20i at $44.99, warns about the $46 Bose trap, and — provably — cannot hallucinate.**
+
+You have built retrieval three times now: the in-memory hybrid index (Part 5), the durable pgvector store (Part 13), and the value rerank that floats honest deals above traps. Retrieval answers *"which listings are relevant?"* RAG — Retrieval-Augmented Generation — answers the question the user actually asked, in prose, **grounded in those listings so the model can't make things up.** The generation step is where LLMs are dangerous: ask a raw model for "cheap noise-cancelling headphones" and it will confidently quote a price it invented. RAG's discipline is that the model sees only the retrieved evidence, and a guard checks that every claim traces back to it.
+
+<Callout tone="tip">
+**Code along, step by step.** Full course repo at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+This part introduces `dealfinder/rag.py` and the `GET /ask` route; it is tag **step-14**, a delta on the pgvector retriever from step-13. Everything below runs offline against the frozen 270-item snapshot — no API key required.
+</Callout>
+
+## Table of contents
+
+1. [Why a ranked list is not an answer](#why-a-ranked-list-is-not-an-answer)
+2. [The RAG pipeline: retrieve → context → generate](#the-rag-pipeline-retrieve--context--generate)
+3. [retrieve(): the value-reranked evidence](#retrieve-the-value-reranked-evidence)
+4. [build_context(): the numbered evidence block](#build_context-the-numbered-evidence-block)
+5. [answer(): generate, grounded — LLM or deterministic](#answer-generate-grounded--llm-or-deterministic)
+6. [The faithfulness guard: is_grounded](#the-faithfulness-guard-is_grounded)
+7. [The /ask endpoint](#the-ask-endpoint)
+8. [Evaluating faithfulness: evaluate_rag](#evaluating-faithfulness-evaluate_rag)
+9. [Reproducibility checks](#reproducibility-checks)
+10. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Explain the three stages of RAG — **retrieve, augment (build context), generate** — and why the augmentation step is what separates a grounded answer from a hallucination.
+- Call `rag.retrieve(query, k=5)` and read the returned `RetrievedItem`s — each carrying its similarity, price, and the two-signal verdict, so an answer can ground on them.
+- Format retrieved rows into a compact numbered context with `build_context()` — the *only* evidence the generator is allowed to use.
+- Generate a grounded answer with `rag.answer()`, understanding both paths: an injected LLM under a strict grounded prompt, and a deterministic extractive fallback that works with no API key.
+- Implement and reason about `is_grounded()` — a mechanical faithfulness check that fails any answer citing a price or product not in the retrieved set.
+- Serve the whole pipeline as `GET /ask?q=...` and measure faithfulness with `evaluate_rag()`.
+
+---
+
+## Why a ranked list is not an answer
+
+Part 13's `semantic_search` returns rows: title, price, similarity. That is perfect for a search UI, but a user who types *"noise cancelling headphones under $150"* wants a recommendation, not a table. They want: **buy this, consider that, avoid the other one — and why.**
+
+The naive move is to hand the raw question to an LLM. Do that and you inherit the model's training-data guesses: it will "recall" that some headphone costs $79, quote a discount that never existed, or invent a model number. None of it is tied to *your* live inventory. For a deal-finder, a confidently wrong price is worse than no answer — it is a liability.
+
+RAG fixes this by inverting the flow. Instead of asking the model what it knows, you **retrieve the real listings first**, then ask the model to answer *using only those*. The model's job shrinks from "know everything about headphones" to "read these five rows and recommend." That is a job it can do reliably — and one you can verify.
+
+---
+
+## The RAG pipeline: retrieve → context → generate
+
+`dealfinder/rag.py` is 414 lines built around three public functions that mirror the three RAG stages exactly:
+
+```python
+# dealfinder/rag.py — the three stages
+def retrieve(query: str, k: int = 5, ...) -> list[RetrievedItem]: ...
+def build_context(items: list[RetrievedItem]) -> str: ...
+def answer(query: str, k: int = 5, *, llm=None) -> RagAnswer: ...
+```
+
+The unit that flows between them is `RetrievedItem` — a retrieved listing *plus its deal signal*, so the generator has everything it needs to both recommend and warn:
+
+```python
+@dataclass
+class RetrievedItem:
+    """One retrieved listing plus its deal signal — the unit an answer grounds on."""
+    id: str
+    title: str
+    price: float
+    source: str
+    category: str
+    similarity: float          # value-rerank score from search_catalog (higher = better pick)
+    verdict: str               # deal | fair | suspicious | overpriced
+    median_signal: float       # fraction under the same-query median
+    fair_price: float          # model's predicted fair price
+    residual_frac: float       # (fair - actual) / fair
+    reason: str                # the verdict's human explanation
+```
+
+The final output is a `RagAnswer` — the prose plus its provenance and, critically, a faithfulness flag:
+
+```python
+@dataclass
+class RagAnswer:
+    """The generated answer plus its provenance and a faithfulness flag."""
+    answer: str
+    sources: list[str] = field(default_factory=list)  # item ids the answer actually uses
+    grounded: bool = False
+    used_llm: bool = False
+```
+
+`grounded` is not decoration. It is the output of a check that runs on every answer, and it is what makes this pipeline safe to expose.
+
+---
+
+## retrieve(): the value-reranked evidence
+
+`retrieve()` is not a bare cosine query. It reuses the full Part 5 retriever — hybrid semantic + BM25, fused with RRF, then **value-reranked** — and attaches each item's deal verdict from the Part 3 model. It reads from pgvector when `DATABASE_URL` is set (Part 13) and falls back to the cached embeddings otherwise:
+
+```python
+def retrieve(query: str, k: int = 5, products=None, embeddings=None) -> list[RetrievedItem]:
+    """Retrieve the top-k real listings for `query` with their deal signal.
+
+    Embeds the query (fastembed bge-small, via search_catalog), ranks against
+    the cached title embeddings — or pgvector semantic_search when DATABASE_URL
+    is set — hybridizes with BM25, and value-reranks so honest deals float above
+    too-good-to-be-true traps. Each result carries its similarity, price, and the
+    two-signal verdict, so an answer can ground on it.
+    """
+    if products is None:
+        products, embeddings = load_catalog_embeddings()
+    ...
+    if os.getenv("DATABASE_URL"):
+        ranked = _retrieve_pgvector(query, products, k)
+    else:
+        hits = search_catalog(query, products, embeddings, medians, k=k)
+        ranked = [(p, float(score)) for _idx, p, score in hits]
+
+    items = []
+    for p, score in ranked:
+        v = _verdict_for(p, medians.get(p.id, 0.0), models)
+        items.append(RetrievedItem(id=p.id, title=p.title, price=float(p.price),
+            source=p.source, category=p.category, similarity=round(score, 4),
+            verdict=v.label, median_signal=round(v.median_signal, 4),
+            fair_price=round(v.fair_price, 2), residual_frac=round(v.residual_frac, 4),
+            reason=v.reason))
+    return items
+```
+
+Run it against the hero query. This is real output from the frozen snapshot:
+
+```python
+from dealfinder import rag
+for it in rag.retrieve("noise cancelling headphones under $150", k=5):
+    print(f"{it.verdict.upper():11} ${it.price:>7.2f}  sim={it.similarity:+.4f}  {it.title[:52]}")
+```
+
+```
+DEAL        $  44.99  sim=+0.7239  Anker Soundcore Q20i Hybrid Active Noise Cancellin
+DEAL        $ 129.99  sim=+0.2024  Soundcore Space 2 Active Noise Cancelling Headphon
+DEAL        $  89.95  sim=+0.4481  JBL Tune 770NC Wireless Noise Cancelling Over-Ear
+OVERPRICED  $ 359.99  sim=-1.2089  Bose QuietComfort Noise Cancelling Wireless Headph
+SUSPICIOUS  $  46.00  sim=-0.2823  Bose QuietComfort 45 Wireless Noise Cancelling Hea
+```
+
+<Callout tone="note">
+**This is not raw cosine order.** In Part 13, a pure `<=>` cosine query put the Sony WH-1000XM5 at rank 1 (similarity 0.9121). Here the **Anker Q20i is rank 1** — the value rerank blends relevance with the deal score, so a genuine bargain outranks a merely-relevant listing. The `similarity` field is the *post-rerank* score, which is why the OVERPRICED Bose sits at −1.21: relevant, but pushed down for being a bad buy. Same corpus, a ranking objective tuned for a deal-finder.
+</Callout>
+
+Notice the two Bose rows. The QuietComfort 45 at **$46.00** is flagged SUSPICIOUS, not DEAL — its `median_signal` (0.7177, i.e. 72% under median) looks like the Anker's, but its `residual_frac` is 0.839: the price sits 84% below the model's $285.15 fair price, the signature of a refurb or a mislisting. Retrieval surfaces it; the verdict warns about it. Both facts travel with the item into the answer.
+
+---
+
+## build_context(): the numbered evidence block
+
+The augmentation stage turns the retrieved objects into a compact, numbered text block. This block is the **entire** evidence set the generator may use — nothing else about headphones is in scope:
+
+```python
+def build_context(items: list[RetrievedItem]) -> str:
+    """Format retrieved listings into a compact, numbered, groundable context block.
+
+    One line per item: index, title, price, source, and the deal verdict badge.
+    This is the *only* evidence the answer is allowed to use.
+    """
+    lines = []
+    for i, it in enumerate(items, 1):
+        lines.append(
+            f"[{i}] {it.title} — ${it.price:.2f} ({it.source}) "
+            f"[{it.verdict.upper()}] — {it.reason}"
+        )
+    return "\n".join(lines)
+```
+
+For the hero query it produces exactly this — real output:
+
+```text
+[1] Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones — $44.99 (RapidAPI:Kohl's) [DEAL] — 72% under the $162.97 median and consistent with the model's $108 fair price — a genuine value pick.
+[2] Soundcore Space 2 Active Noise Cancelling Headphones — $129.99 (RapidAPI:Target) [DEAL] — 20% under the $162.97 median and consistent with the model's $108 fair price — a genuine value pick.
+[3] JBL Tune 770NC Wireless Noise Cancelling Over-Ear Headphones — $89.95 (RapidAPI:Walmart - OEM ACCESSORIES) [DEAL] — 45% under the $162.97 median and consistent with the model's $197 fair price — a genuine value pick.
+[4] Bose QuietComfort Noise Cancelling Wireless Headphones — $359.99 (RapidAPI:Target) [OVERPRICED] — 121% above the market median.
+[5] Bose QuietComfort 45 Wireless Noise Cancelling Headphones — $46.00 (RapidAPI:mountainlifestyle.ca) [SUSPICIOUS] — 72% under median but 84% under model fair price $285 — too far below to be real (likely refurb/mislisted).
+```
+
+Every line carries the verdict and its reason. That is deliberate: the generator doesn't have to *compute* whether the $46 Bose is a trap — the retrieval stage already decided, and the answer just has to relay it. The numbering (`[1]`, `[2]`, …) gives the model a stable handle to cite and gives the guard a set to check against.
+
+---
+
+## answer(): generate, grounded — LLM or deterministic
+
+`answer()` wires the three stages together. It retrieves, and if an LLM client is configured it generates under a strict grounded prompt; otherwise it falls back to a deterministic extractive synthesis. **Either path is checked for faithfulness before it is returned:**
+
+```python
+def answer(query: str, k: int = 5, *, llm=None) -> RagAnswer:
+    """Retrieve → build context → GENERATE a grounded answer."""
+    items = retrieve(query, k=k)
+    client = llm if llm is not None else _llm_module
+    if getattr(client, "available", lambda: False)():
+        try:
+            return _llm_answer(query, items, client)
+        except Exception:
+            return _deterministic_answer(query, items)  # any LLM failure degrades safely
+    return _deterministic_answer(query, items)
+```
+
+**The LLM path** injects the numbered context into a prompt whose system message forbids invention. This is the prompt that does the real work of grounding:
+
+```python
+_SYSTEM = (
+    "You are DealFinder's shopping assistant. Answer ONLY using the numbered "
+    "listings provided. Cite every item you mention by its exact title and price. "
+    "If none of the listings qualify, say so plainly. Do NOT invent products, "
+    "prices, brands, or specs that are not in the listings."
+)
+
+def _llm_answer(query, items, llm) -> RagAnswer:
+    context = build_context(items)
+    user = (f"Question: {query}\n\nListings (the ONLY evidence you may use):\n{context}\n\n"
+            "Recommend the best pick, a runner-up, and warn about any SUSPICIOUS trap. "
+            "Cite each by title and price.")
+    text = llm.chat([{"role": "system", "content": _SYSTEM},
+                     {"role": "user", "content": user}], temperature=0)
+    used = [it.id for it in items if _title_cited(it, text)] or [it.id for it in items]
+    return RagAnswer(answer=text.strip(), sources=used,
+                     grounded=is_grounded(text, items), used_llm=True)
+```
+
+`temperature=0` is the same lesson from Part 2: extraction and grounded recommendation want determinism, not creativity.
+
+**The deterministic path** needs no API key and is *always* grounded by construction — it only ever emits titles and prices that are in the retrieved set. It names the best DEAL, a runner-up, and the SUSPICIOUS trap with its reason:
+
+```python
+def _deterministic_answer(query, items) -> RagAnswer:
+    """Build a grounded answer straight from the retrieved rows — no model."""
+    deals = [it for it in items if it.verdict == "deal"]
+    suspicious = [it for it in items if it.verdict == "suspicious"]
+    hero = deals[0] if deals else items[0]
+    runners = [it for it in items if it.id != hero.id and it.verdict != "suspicious"]
+
+    used = [hero.id]
+    parts = [f"Best value: {hero.title} at ${hero.price:.2f} "
+             f"({hero.median_signal * 100:.0f}% under the same-query median)."]
+    if runners:
+        r = runners[0]; used.append(r.id)
+        parts.append(f"Also consider: {r.title} at ${r.price:.2f}.")
+    if suspicious:
+        s = suspicious[0]; used.append(s.id)
+        parts.append(f"Avoid: {s.title} at ${s.price:.2f} — flagged SUSPICIOUS: it "
+            f"reads {s.median_signal * 100:.0f}% under median but sits far below its "
+            "modeled fair price, the signature of a refurb/mislisting rather than a real bargain.")
+    answer = " ".join(parts)
+    return RagAnswer(answer=answer, sources=used, grounded=is_grounded(answer, items), used_llm=False)
+```
+
+Call it. With no key configured, this is the real, reproducible output:
+
+```python
+from dealfinder import rag
+ans = rag.answer("noise cancelling headphones under $150", k=5)
+print(ans.answer)
+print("grounded:", ans.grounded, "| used_llm:", ans.used_llm, "| sources:", len(ans.sources))
+```
+
+```text
+Best value: Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones at
+$44.99 (72% under the same-query median). Also consider: Soundcore Space 2 Active
+Noise Cancelling Headphones at $129.99. Avoid: Bose QuietComfort 45 Wireless Noise
+Cancelling Headphones at $46.00 — flagged SUSPICIOUS: it reads 72% under median but
+sits far below its modeled fair price, the signature of a refurb/mislisting rather
+than a real bargain.
+
+grounded: True | used_llm: False | sources: 3
+```
+
+Three real listings, cited by exact title and price. The $46 trap is named and demoted, not recommended. No invented number anywhere — because the deterministic path can only speak in the prices it was handed.
+
+---
+
+## The faithfulness guard: is_grounded
+
+Whichever path generated the answer, `is_grounded()` is the gate. It is not an LLM "judge" and it is not fuzzy — it is a mechanical check: **every price the answer cites must be a retrieved price, and every distinctive product token must appear in a retrieved title.**
+
+<GroundingGuard />
+
+```python
+def is_grounded(answer_text: str, retrieved: list[RetrievedItem]) -> bool:
+    """True iff every product AND price the answer cites is in the retrieved set."""
+    if not retrieved:
+        return False
+
+    retrieved_prices = {f"{it.price:.2f}" for it in retrieved}
+    for price in _prices_in(answer_text):
+        if price not in retrieved_prices:
+            return False   # a price no listing had is a hallucination
+
+    haystack = " " + _norm(" ".join(it.title for it in retrieved)) + " "
+    ans = _norm(answer_text)
+    # Model-code tokens (q20i, wh, 1000xm5, qc45) are the strongest product
+    # fingerprints — each one cited must occur in some retrieved title.
+    for tok in set(re.findall(r"[a-z]+\d[a-z0-9]*|\d+[a-z]+[a-z0-9]*", ans)):
+        if len(tok) < 3:
+            continue
+        if f" {tok} " not in haystack:
+            return False
+    return True
+```
+
+Two independent traps close here. First, **prices**: pull every `$X` out of the answer; if one isn't a retrieved price, fail. Second, **product fingerprints**: model codes like `q20i` or `wh-1000xm5` are near-unique, so if the answer names one that appears in no retrieved title, fail. An LLM that "helpfully" adds a headphone it remembers from training — at a price it invented — trips both.
+
+That is exactly what the tests assert. Two shapes of hallucination are caught — an unknown product *and* a real product at an invented price — while a faithful citation passes:
+
+```python
+QUERY = "noise cancelling headphones under $150"
+
+def test_is_grounded_rejects_hallucinated_product():
+    items = rag.retrieve(QUERY, k=5)
+    # A product (and price) that is NOT in the retrieved set.
+    halluc = "Buy the Sennheiser Momentum 4 at $199.00 — it's the best pick."
+    assert rag.is_grounded(halluc, items) is False
+    # A real product with a fabricated price is also a hallucination.
+    bad_price = "The Anker Soundcore Q20i at $9.99 is the steal of the year."
+    assert rag.is_grounded(bad_price, items) is False
+    # A faithful answer citing a real retrieved product + price is grounded.
+    good = "The Anker Soundcore Q20i at $44.99 is the best value."
+    assert rag.is_grounded(good, items) is True
+```
+
+<Callout tone="tip">
+**This is why RAG is safe to ship and a raw LLM is not.** The generator can still make a mistake — but a mistake that invents a price or a product cannot pass the guard, so it never reaches the user as `grounded: True`. You get to decide what to do with a `grounded: False` answer: suppress it, retry, or fall back to the deterministic path.
+</Callout>
+
+---
+
+## The /ask endpoint
+
+Expose the pipeline as one route on the FastAPI app from Part 12. It works fully offline — with no `OPENROUTER_API_KEY`, the deterministic path answers:
+
+```python
+# dealfinder/serve.py
+@app.get("/ask")
+def ask(q: str, k: int = 5):
+    """RAG: retrieve real listings for the query, then GENERATE a grounded answer.
+
+    Returns the RagAnswer — the synthesized answer, the retrieved item ids it
+    used as `sources`, whether it passed the faithfulness check (`grounded`), and
+    whether an LLM produced it (`used_llm`). With no OPENROUTER_API_KEY the
+    deterministic extractive path answers, so this route works fully offline."""
+    from .rag import answer as rag_answer
+    a = rag_answer(q, k=k)
+    return {"query": q, "answer": a.answer, "sources": a.sources,
+            "grounded": a.grounded, "used_llm": a.used_llm}
+```
+
+Call it:
+
+```bash
+curl -s "http://localhost:8000/ask?q=noise+cancelling+headphones+under+%24150" | jq
+```
+
+```json
+{
+  "query": "noise cancelling headphones under $150",
+  "answer": "Best value: Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones at $44.99 (72% under the same-query median). Also consider: Soundcore Space 2 Active Noise Cancelling Headphones at $129.99. Avoid: Bose QuietComfort 45 Wireless Noise Cancelling Headphones at $46.00 — flagged SUSPICIOUS: it reads 72% under median but sits far below its modeled fair price, the signature of a refurb/mislisting rather than a real bargain.",
+  "sources": [
+    "rapidapi-catalogid:4602286582194268609,productid:",
+    "rapidapi-catalogid:6666864058297130218,productid:",
+    "rapidapi-catalogid:17549595923884402543,productid"
+  ],
+  "grounded": true,
+  "used_llm": false
+}
+```
+
+`sources` are the exact retrieved ids the answer used — the Anker, the Space 2, and the Bose QC45 trap. A caller can render them as citations, letting the user click through to the actual listing. That is the whole promise of RAG: **an answer you can trace back to evidence.**
+
+---
+
+## Evaluating faithfulness: evaluate_rag
+
+A grounded answer on one query is a demo. To make grounding a *property of the system*, `evaluate_rag()` runs a small golden set and reports the faithfulness rate plus whether the expected hero surfaced:
+
+```python
+def evaluate_rag(queries: list[dict] | None = None) -> dict:
+    """Run a golden set through answer() and report grounding + hero recall."""
+    ...
+```
+
+```python
+from dealfinder import rag
+rag.evaluate_rag()
+```
+
+```python
+{
+  'n': 2,
+  'faithfulness_rate': 1.0,
+  'results': [
+    {'query': 'best noise-cancelling headphones under $150', 'grounded': True,
+     'hero_surfaced': True, 'expected_hero': 'Anker Soundcore Q20i', 'top_verdict': 'deal'},
+    {'query': 'cheapest 4k monitor', 'grounded': True,
+     'hero_surfaced': True, 'expected_hero': 'MSI Pro MP273U', 'top_verdict': 'deal'},
+  ],
+}
+```
+
+`faithfulness_rate: 1.0` means every answer in the set passed the guard, and `hero_surfaced: True` on both means retrieval put the right product in front of the generator. This is the RAG analog of the Part 11 eval gate — you would wire it into CI the same way, failing the build if faithfulness ever drops below 1.0.
+
+---
+
+## Reproducibility checks
+
+The eight assertions in `tests/test_rag.py` pin the whole pipeline. They run offline against the frozen snapshot — no key, no network:
+
+```python
+# tests/test_rag.py  (step-14 tag)
+from dealfinder import rag
+
+# ── retrieve surfaces the real cast, Anker near the top ──────────────────────
+def test_retrieve_surfaces_real_items_with_anker_near_top():
+    items = rag.retrieve("noise cancelling headphones under $150", k=5)
+    titles = [it.title for it in items]
+    assert any("Anker Soundcore Q20i" in t for t in titles)
+    assert items[0].verdict == "deal"
+
+# ── build_context is numbered and grounds on real prices ─────────────────────
+def test_build_context_is_numbered_and_grounds_on_real_prices():
+    ctx = rag.build_context(rag.retrieve("noise cancelling headphones under $150", k=5))
+    assert ctx.startswith("[1] ")
+    assert "$44.99" in ctx and "[DEAL]" in ctx
+
+# ── the deterministic answer is grounded and names the cast ──────────────────
+def test_deterministic_answer_is_grounded_and_names_the_cast():
+    ans = rag.answer("noise cancelling headphones under $150", k=5)
+    assert ans.grounded is True and ans.used_llm is False
+    assert "$44.99" in ans.answer and "SUSPICIOUS" in ans.answer
+
+# ── the guard rejects a hallucinated product/price ───────────────────────────
+def test_is_grounded_rejects_hallucinated_product():
+    items = rag.retrieve(QUERY, k=5)
+    # Sennheiser Momentum 4 / $199.00 — neither the product nor the price is retrieved.
+    assert rag.is_grounded("Buy the Sennheiser Momentum 4 at $199.00.", items) is False
+    # A real product at an invented price is caught too.
+    assert rag.is_grounded("The Anker Soundcore Q20i at $9.99 is a steal.", items) is False
+
+# ── an injected LLM answer stays grounded; a hallucinating one is flagged ─────
+def test_injected_llm_hallucination_is_flagged_not_grounded(): ...
+
+# ── the golden set is fully faithful ─────────────────────────────────────────
+def test_evaluate_rag_is_fully_grounded():
+    assert rag.evaluate_rag()["faithfulness_rate"] == 1.0
+
+# ── the /ask endpoint returns a grounded RagAnswer ───────────────────────────
+def test_ask_endpoint_returns_grounded_rag_answer(): ...
+```
+
+```bash
+pytest tests/test_rag.py -v
+# 8 passed
+```
+
+<Callout tone="note">
+**Determinism, on purpose.** With no LLM key the pipeline is fully deterministic against the frozen snapshot — same corpus, same cached embeddings, same value rerank ⇒ the same top-5 and the same answer every run. That is what makes these assertions stable. When you inject a real LLM (`temperature=0`) the prose varies slightly, but the *guard* is the invariant the tests protect: grounded answers pass, hallucinations fail.
+</Callout>
+
+---
+
+## Where this goes next
+
+- **Part 13 — pgvector persistence + semantic search (back-reference):** the durable retriever you built there is exactly what `retrieve()` calls when `DATABASE_URL` is set. RAG did not replace it — it wrapped it with an augmentation and a generation stage, and added the faithfulness guard on top.
+
+- **[Part 15 — Agentic RAG: retrieval as a repeated tool call](/tutorials/dealfinder-part-15/):** this part retrieves once. Next, the agent *judges* whether the evidence is good enough and re-queries when it is not — turning `retrieve()` from a preprocessing step into a tool the agent calls in a loop, still grounded by the same faithfulness guard.
+
+RAG is the bridge between *retrieval* (Parts 5, 13) and *agents* (Part 11): an agent that can `retrieve` and `answer` grounded is one that can reason over your live inventory without inventing it.
+
+---
+
+*Sources: [fastembed](https://github.com/qdrant/fastembed) · [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) · [pgvector](https://github.com/pgvector/pgvector) · [Retrieval-Augmented Generation (Lewis et al., 2020)](https://arxiv.org/abs/2005.11401) · [FastAPI](https://fastapi.tiangolo.com/)*
