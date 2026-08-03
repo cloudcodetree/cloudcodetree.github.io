@@ -298,6 +298,38 @@ pytest tests/test_agentic_rag.py -v
 
 ---
 
+## Check it works
+
+1. **The loop + gate, offline:**
+   ```bash
+   pytest tests/test_agentic_rag.py -v      # 6 passed
+   ```
+   **Expect:** the sufficiency gate accepting a strong set and rejecting a thin one, the reformulator expanding a query, and the full loop converging then answering.
+
+2. **The trajectory, live** (with `OPENROUTER_API_KEY` + `DATABASE_URL`): the `hops` array is the whole point — a one-word query should re-query:
+   ```bash
+   curl -s "http://localhost:8000/ask_agentic?q=headphones" \
+     | python -m json.tool | grep -E '"query"|"reason"|"sufficient"'
+   ```
+   **Expect:** 3 hops, each with a widened query (`headphones` → `headphones noise cancelling deal` → …) and a `reason` for re-querying. A well-specified query (`cheap anker headphones`) converges in **1** hop — proof the loop stops early when the evidence is already strong.
+
+---
+
+## What you can demo now
+
+The "ask (agent)" box doesn't just answer — it now *shows its search*. Ask the deliberately-vague **"headphones"** and expand the trajectory:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-15/agentic-hops.png"
+  alt="The agentic RAG retrieval trajectory: three hops widening the query from 'headphones' until a DEAL was found"
+  caption="Real capture: the agent's retrieval trajectory in the product — retrieve → judge → reformulate → retry, made visible."
+  lookFor="the ringed retrieval-trajectory panel. Hop 1 searched 'headphones' and the gate rejected it — 'top result is FAIR, not a DEAL — re-querying'. The agent then widened to 'headphones noise cancelling deal' (hop 2) and 'headphones wireless noise deal' (hop 3), each time judging the evidence before answering. This is the difference from Part 14's single-shot RAG: retrieval became a decision the agent makes in a loop, not a fixed preprocessing step."
+/>
+
+The demo line: *"I typed one vague word. Instead of answering from weak evidence, the agent judged its own results, rewrote the query twice to find genuine deals, and only then answered — and it shows you every hop it took. That's agentic retrieval: the search is part of the reasoning."*
+
+---
+
 ## Where this goes next
 
 - **Part 14 — RAG: grounded answers over your deals (back-reference):** agentic RAG reuses the entire Part 14 pipeline — `retrieve`, `answer`, and `is_grounded`. It only adds the judgment: call the retriever again when the evidence is weak.
