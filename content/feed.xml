@@ -10,7 +10,174 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 02 Aug 2026 20:02:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 03 Aug 2026 04:04:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Claude Can Call Multiple Tools in One Turn — Process Them in Parallel With asyncio.gather</title>
+      <link>https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use</link>
+      <guid isPermaLink="false">2026-08-03-02-claude-api-parallel-tool-use-asyncio</guid>
+      <pubDate>Mon, 03 Aug 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>When Claude returns multiple tool_use blocks in one turn, running them with asyncio.gather instead of sequentially cuts your agent's wall time to the slowest single call.</description>
+      <content:encoded><![CDATA[
+**When Claude's response includes multiple tool_use blocks, running them with asyncio.gather instead of sequentially cuts your agent's wall time to the slowest single call — a one-function change to any client loop.**
+
+When you define multiple tools, Claude sometimes returns several `tool_use` blocks in a single turn — each an independent function call it wants to make simultaneously. Most client loops process them sequentially. That leaves latency on the table.
+
+Anthropic's [parallel tool use docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) make this explicit: collect all blocks, execute them concurrently, then return **all results together in a single user turn**.
+
+## The pattern
+
+```python
+import asyncio
+import anthropic
+
+client = anthropic.AsyncAnthropic()
+
+async def run_tool(name: str, tool_input: dict) -> str:
+    match name:
+        case "search_web": return await web_search(tool_input["query"])
+        case "read_file":  return await read_file(tool_input["path"])
+        case "fetch_url":  return await fetch_url(tool_input["url"])
+    raise ValueError(f"unknown tool: {name}")
+
+async def agent_loop(messages: list, tools: list) -> str:
+    while True:
+        response = await client.messages.create(
+            model="claude-sonnet-5-20261001",
+            max_tokens=4096,
+            tools=tools,
+            messages=messages,
+        )
+
+        if response.stop_reason != "tool_use":
+            return next(b.text for b in response.content if hasattr(b, "text"))
+
+        tool_uses = [b for b in response.content if b.type == "tool_use"]
+
+        # Run all tool calls concurrently, not sequentially
+        results = await asyncio.gather(
+            *[run_tool(tu.name, tu.input) for tu in tool_uses]
+        )
+
+        # Return all results in one user turn
+        messages.append({"role": "assistant", "content": response.content})
+        messages.append({
+            "role": "user",
+            "content": [
+                {"type": "tool_result", "tool_use_id": tu.id, "content": result}
+                for tu, result in zip(tool_uses, results)
+            ],
+        })
+```
+
+## Why it matters
+
+A search + file read that each take 200 ms sequentially takes 400 ms. In parallel: 200 ms. The speedup compounds over agents that make many tool calls per turn.
+
+**One caveat:** only parallelize independent operations. Tools with ordering requirements or shared side effects (write a file then read it; increment a counter twice) should run sequentially — extract those into a separate sequential pass.
+
+**Sources:** [Parallel Tool Use — Anthropic Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) · [Implementing Async Tool Execution — CodeSignal](https://codesignal.com/learn/courses/parallelizing-claude-agentic-systems-in-python/lessons/parallelizing-tool-execution) · [Parallel Tool Execution with Claude — Medium](https://medium.com/@gor17v/parallel-tool-execution-with-claude-4-building-high-performing-agents-with-bedrock-converse-api-433da0efab60)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Fine-Tune Any LLM on Your Mac in 30 Minutes: LoRA With MLX-LM on Apple Silicon</title>
+      <link>https://www.youtube.com/watch?v=WWrFwePNpi0</link>
+      <guid isPermaLink="false">2026-08-03-01-mlx-lm-lora-fine-tuning-apple-silicon-mac</guid>
+      <pubDate>Mon, 03 Aug 2026 04:02:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>Self-Hosting</category>
+      <description>Apple's MLX-LM runs a full LoRA fine-tune on Mistral 7B in under 30 minutes on any M-series Mac — install, prepare JSONL, train, and run inference with your adapter for free.</description>
+      <content:encoded><![CDATA[
+**Apple's MLX-LM framework lets you LoRA fine-tune a 7B open-weight model on any M-series Mac in under 30 minutes — no cloud GPU, no cost, and the whole adapter fits alongside the quantized base model in unified memory.**
+
+**What you'll be able to do after this:**
+
+- Install MLX-LM and verify your Mac can run a 7B model in two commands
+- Prepare a JSONL dataset and launch a LoRA training run in minutes
+- Run inference with your adapter and optionally export for Ollama
+
+Apple's [MLX framework](https://github.com/ml-explore/mlx) uses the unified memory architecture of Apple Silicon — your full RAM pool is available for weights and compute with no separate VRAM ceiling. `mlx-lm` is the pip-installable Python package that wraps MLX for text generation and fine-tuning. A 16 GB M2 MacBook Pro runs Mistral 7B at ~40 tokens/sec and can complete a LoRA adapter fine-tune in under 30 minutes, entirely offline.
+
+## Step 1: Install and verify
+
+```bash
+pip install mlx-lm
+
+# Pull and test a 4-bit quantized model from the mlx-community HuggingFace org
+mlx_lm.generate \
+  --model mlx-community/Mistral-7B-Instruct-v0.3-4bit \
+  --prompt "Explain LoRA in one sentence"
+```
+
+The `mlx-community` HuggingFace org hosts pre-quantized, MLX-ready versions of most popular open models — no manual conversion needed.
+
+## Step 2: Prepare your dataset
+
+MLX-LM expects JSONL — one JSON object per line with `prompt` and `completion` keys:
+
+```jsonl
+{"prompt": "Summarize this ticket: <ticket>", "completion": "Bug: login form..."}
+{"prompt": "Write a SQL query that returns active users", "completion": "SELECT ..."}
+```
+
+Save as `data/train.jsonl` and `data/valid.jsonl`.
+
+## Step 3: Fine-tune
+
+```bash
+mlx_lm.lora \
+  --model mlx-community/Mistral-7B-Instruct-v0.3-4bit \
+  --train \
+  --data ./data \
+  --iters 600 \
+  --batch-size 1 \
+  --num-layers 16
+```
+
+Adapter weights save to `./adapters/` by default. Key flags:
+
+| Flag | What it does |
+|---|---|
+| `--fine-tune-type` | `lora` (default), `dora`, or `full` |
+| `--num-layers` | Transformer layers that receive adapters (default 16; lower = faster) |
+| `--iters` | Training steps — 600–1000 for small datasets |
+
+## Step 4: Inference with your adapter
+
+```bash
+mlx_lm.generate \
+  --model mlx-community/Mistral-7B-Instruct-v0.3-4bit \
+  --adapter-path ./adapters \
+  --prompt "Your domain-specific test prompt"
+```
+
+## Step 5 (optional): Merge and export for Ollama
+
+```bash
+mlx_lm.fuse \
+  --model mlx-community/Mistral-7B-Instruct-v0.3-4bit \
+  --adapter-path ./adapters \
+  --save-path ./fused-model
+```
+
+Convert the output to GGUF with llama.cpp, then load it into Ollama with a Modelfile for persistent local serving.
+
+**Hardware floor:** M1/M2/M3/M4 (all variants); 8 GB RAM works for 1B–3B models; 16 GB for 7B fine-tuning; 32 GB for 13B+.
+
+**Sources:** [Fine-tune LLM on Apple Silicon Using MLX — YouTube](https://www.youtube.com/watch?v=WWrFwePNpi0) · [Run and Fine-Tune LLMs on Mac with MLX-LM — Markaicode](https://markaicode.com/run-fine-tune-llms-mac-mlx-lm/) · [LoRA Fine-Tuning on Apple Silicon MacBook — Towards Data Science](https://towardsdatascience.com/lora-fine-tuning-on-your-apple-silicon-macbook-432c7dab614a/) · [Fine-Tuning LLMs Locally Using MLX LM — DZone](https://dzone.com/articles/fine-tuning-llms-locally-using-mlx-lm-guide)
+]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/WWrFwePNpi0/maxresdefault.jpg" medium="image"/>
+      <media:thumbnail url="https://img.youtube.com/vi/WWrFwePNpi0/maxresdefault.jpg"/>
+    </item>
 
     <item>
       <title>Delimit Your Claude System Prompts With XML Tags — It Reduces Drift in Long Agent Sessions</title>
