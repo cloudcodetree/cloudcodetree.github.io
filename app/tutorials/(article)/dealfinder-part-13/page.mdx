@@ -251,44 +251,42 @@ with connect() as c:
 
 ## Seed the database from the snapshot
 
-`data/seed.py` bulk-inserts all 270 snapshot items. It loads the cached embeddings produced in Part 4 rather than re-running the embedding model:
+`data/seed.py` bulk-inserts all 270 snapshot items. It reuses the committed Part-4 embedding cache (`load_title_embeddings()`) rather than re-running the model, aligning each product to its cached 384-dim vector by id:
 
 ```python
 # data/seed.py
-import json, numpy as np
-from dealfinder.pgstore import migrate, upsert, count
-from dealfinder.snapshot import load_snapshot
+import numpy as np
+from dealfinder.embed import load_title_embeddings
+from dealfinder.pgstore import count, migrate, upsert
+from dealfinder.snapshot import load_products
 
-def seed(snapshot_path: str, emb_path: str, ids_path: str) -> None:
+ANCHOR_QUERY = "noise cancelling headphones"  # the snapshot's collection query
+
+def seed() -> None:
     migrate()
+    products = load_products()
+    ids, vectors = load_title_embeddings()
+    pos = {pid: i for i, pid in enumerate(ids)}
 
-    items = load_snapshot(snapshot_path)
-    embeddings = np.load(emb_path)
-    with open(ids_path) as f:
-        ids = json.load(f)
+    rows, embs = [], []
+    for p in products:
+        if p.id not in pos:
+            continue
+        rows.append({"id": p.id, "title": p.title, "brand": p.brand, "source": p.source,
+                     "price": p.price, "currency": p.currency, "url": p.url, "image_url": p.image_url})
+        embs.append(np.asarray(vectors[pos[p.id]], dtype=np.float32))
 
-    id_to_emb = dict(zip(ids, embeddings))
-    products_with_emb = [(p, id_to_emb[p["id"]]) for p in items if p["id"] in id_to_emb]
-
-    products = [pw[0] for pw in products_with_emb]
-    embs = [pw[1] for pw in products_with_emb]
-    # upsert takes a single query label for the batch; the snapshot was
-    # collected under the "noise cancelling headphones" anchor query.
-    n = upsert(products, embs, query="noise cancelling headphones")
+    n = upsert(rows, embs, query=ANCHOR_QUERY)   # ON CONFLICT → idempotent
     print(f"Seeded {n} products; total in DB: {count()}")
 
 if __name__ == "__main__":
-    seed(
-        "data/snapshots/electronics-2026-07.json",
-        "data/embeddings.npy",
-        "data/ids.json",
-    )
+    seed()
 ```
 
-Run it:
+Run it (measured against the pgvector container from the step above):
 
 ```bash
-python data/seed.py
+DATABASE_URL=postgresql://postgres:changeme@localhost:5433/dealfinder python data/seed.py
 # Seeded 270 products; total in DB: 270
 ```
 
@@ -380,6 +378,14 @@ CREATE INDEX products_embedding_idx
 ```
 
 At query time, `ef_search` (set per connection with `SET hnsw.ef_search = 64`) controls the size of the candidate set during traversal — higher ef_search improves recall at the cost of latency.
+
+<Callout tone="warn">
+**The filtered-search trap: `WHERE` + HNSW can silently drop results.** The moment you add a metadata filter to a vector query — `WHERE brand = 'Sony' ORDER BY embedding <=> $1 LIMIT 5` — you hit a subtlety that bites everyone. Classic HNSW retrieves its top-`ef_search` nearest *by vector*, and only *then* applies the `WHERE`. If the 5 Sony headphones you want are ranked 200th–400th by raw cosine (because 199 non-Sony items sit closer), a post-filter over a 64-candidate window returns them **not at all** — you get fewer rows than `LIMIT`, or none, and it looks like the data is missing. The fix is *filtered* (in-traversal) search: pgvector **0.8+** added **iterative index scans** (`SET hnsw.iterative_scan = relaxed_order;`) that keep walking the graph until `LIMIT` post-filter matches are found; dedicated engines like Qdrant evaluate the filter *inside* the graph walk natively. If a category-filtered semantic search ever returns suspiciously few rows, this is why — not a bug in your data.
+</Callout>
+
+<Callout tone="note">
+**HNSW isn't the only ANN index — know the FAISS trio too.** pgvector gives you HNSW (great default: incremental inserts, no training pass). When you outgrow Postgres, FAISS is the reference toolkit, and the choice is a recall/memory/speed triangle: **IVFFlat** partitions vectors into `nlist ≈ √N` cells and probes `nprobe` of them (start at 10–20% of `nlist`; doubling `nprobe` ≈ doubles latency for better recall) — needs a training pass. **IVFPQ** adds product quantization, compressing a 768-float vector (3072 bytes) to `m` bytes — ~96× smaller — at some recall cost, for billion-scale corpora. Rule of thumb: `<100K` vectors → Flat (exact), `100K–1M` → IVFFlat, `>1M` or memory-bound → IVFPQ. The `embedding <=> $1` cosine query you wrote here is identical across all of them; only the index build and its knobs change.
+</Callout>
 
 ---
 
@@ -554,6 +560,48 @@ Run all checks:
 ```bash
 pytest tests/test_pgstore.py -v
 ```
+
+---
+
+## Check it works
+
+Unlike Parts 11–12, this one **is** visible in the product — persistence changes what the "by meaning" search box does. Verify bottom-up:
+
+1. **The store, offline vs. live.** With no `DATABASE_URL`, the integration test skips (keeps CI green); point it at your container and it runs for real:
+   ```bash
+   pytest tests/test_pgstore.py -v            # SKIPPED without a DB — by design
+   DATABASE_URL=postgresql://postgres:changeme@localhost:5433/dealfinder \
+     pytest tests/test_pgstore.py -v          # PASSED against real pgvector
+   ```
+
+2. **The extension + seed.**
+   ```bash
+   docker exec <db> psql -U postgres -d dealfinder -tAc \
+     "SELECT extversion FROM pg_extension WHERE extname='vector';"   # → 0.7.0
+   DATABASE_URL=... python data/seed.py                              # → Seeded 270 products; total in DB: 270
+   ```
+
+3. **The backend actually switched.** Restart the app with `DATABASE_URL` set, then:
+   ```bash
+   curl -s "http://localhost:8000/semantic?q=noise+cancelling+headphones" | python -m json.tool | grep backend
+   #   "backend": "pgvector"        ← was "snapshot" before this part
+   ```
+   **If it still says `snapshot`:** the app can't reach the DB — check `DATABASE_URL` and that the container is up on the right port.
+
+---
+
+## What you can demo now
+
+The "by meaning" search box is no longer reading a frozen file — it's running a live HNSW cosine query against Postgres, and you can prove it with a query whose words appear in *no* product title:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-13/pgvector-semantic-browser.png"
+  alt="The DealFinder by-meaning search returning noise-cancelling headphones for the query 'quiet headphones for travel', backed by pgvector"
+  caption="Real capture: /semantic backed by pgvector — a live HNSW cosine query, not the snapshot fallback."
+  lookFor="the query is 'quiet headphones for travel' — none of those words are in any listing — yet every result is a noise-cancelling headphone, ranked by cosine similarity (ringed 80% match at top). The ringed status line reads 'across all saved deals' (not 'across the frozen snapshot'): that phrase is how the UI tells you the pgvector backend answered, not the offline file."
+/>
+
+The demo line: *"same search box as Part 1, but now it's a real vector database — I searched for words that appear in none of the titles and it still found every pair of noise-cancelling headphones, because it matches meaning, not keywords, against an HNSW index in Postgres."*
 
 ---
 
