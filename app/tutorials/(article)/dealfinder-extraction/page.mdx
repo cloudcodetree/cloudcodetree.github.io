@@ -309,6 +309,12 @@ Every "Walmart - COWIN…" / retailer prefix is discarded; the true manufacturer
 
 ---
 
+## Where this is heading: schema-enforced decoding
+
+The chain you just built enforces the schema *after* generation: the model emits text, `parse_llm_json` finds the JSON, Pydantic validates or raises. The field has been moving that gate *into the decoder*: Claude's structured outputs and vLLM's grammar-constrained decoding (XGrammar) make the model constitutionally unable to emit tokens that violate the schema — invalid JSON simply cannot be sampled. When you have that available, take it; the retry-on-invalid path in this part becomes dead code. Two reasons this lesson still teaches the gate pattern anyway: not every provider or self-hosted stack offers enforcement (the fallback chain must survive all of them), and the Pydantic gate also carries *semantic* checks (Part 20's data contract) that no grammar can express — "condition must be one of new/refurb/used" is a grammar; "price must be plausible for this category" never will be.
+
+---
+
 ## Proof: hero-cast brand-tier roundup
 
 Run `rule_extract` across all four hero-cast headphone titles and compare `brand_tier` before and after:

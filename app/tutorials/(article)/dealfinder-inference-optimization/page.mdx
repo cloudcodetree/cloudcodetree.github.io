@@ -293,6 +293,18 @@ Before the vLLM figures, one more mechanism — because "PagedAttention manages 
 
 ---
 
+## Two levers the field added while this course was being written
+
+The four levers above are the durable ones. Two more have gone from research to one-flag defaults recently — both worth knowing by name, both in the same "pay less for the same tokens" family:
+
+**Prompt caching.** Every DealFinder LLM call — extraction, the agent loop, the RAG answerer — resends the same system prompt and tool schemas. Anthropic's `cache_control` marks that stable prefix once and bills cache reads at a fraction of input price (up to ~90% off the repeated prefix); the semantic cache from Lever 1 sits *above* this (skip the call entirely), prompt caching sits *below* it (make the unavoidable calls cheaper). vLLM ships the self-hosted twin: **automatic prefix caching** (`--enable-prefix-caching`) reuses the KV cache (Part 27's own diagram!) across requests that share a prefix — reported ~2.5× throughput on repetitive traffic with zero code changes.
+
+**Speculative decoding.** A small draft model proposes several tokens; the big model verifies them in one forward pass — accepted tokens cost one pass instead of several. Same output distribution, up to ~2.8× faster generation. It's a serving-config flag in vLLM/SGLang, not an application change, which is exactly why it belongs in your mental model of "things the serving layer can do for free."
+
+Neither changes DealFinder's code — they change what you tick when you deploy Parts 26–29. The lesson is the pattern: inference cost falls fastest at the layers *below* your application.
+
+---
+
 ## The full inference report
 
 `run_inference_report` assembles everything into one call:

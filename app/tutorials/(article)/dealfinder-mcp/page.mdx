@@ -364,6 +364,12 @@ The session transcript is illustrative. The exact wording varies across runs; th
 
 ---
 
+## A word on exposure — stdio is a security choice
+
+This server runs over **stdio**: it exists only as a subprocess of the client that spawned it, reachable by nothing else. That is not a limitation — it is the correct default posture. The moment an MCP server listens on a network port, it inherits every classic network-service risk, and the ecosystem is young enough that the classics keep landing: July 2026 alone brought a **CVSS 10.0 unauthenticated RCE** in a popular MCP bridge (CVE-2026-59726 — an open port plus no auth equals anyone-on-the-network runs your tools), and the MCP spec's 2026-07-28 release moved the protocol toward stateless HTTP designs partly to make server hardening tractable. If you later deploy an HTTP MCP server (the Part 26+ serving stack makes it tempting), treat it like any other API: authentication before tools, an allowlisted tool set per client, and never put read-only `score_deal`-class tools and anything that mutates state on the same unauthenticated surface. Part 25's tool supply-chain layer covers the other direction — vetting the servers *you* connect to.
+
+---
+
 ## Reproducibility checks
 
 These tests cover the tool functions and the resource directly — no MCP client required. The `_id` helper resolves a title substring to the product's real `rapidapi-catalogid:…` id, so the tests read by name:

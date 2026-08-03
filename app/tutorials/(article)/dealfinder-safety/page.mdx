@@ -66,6 +66,10 @@ The 270-item snapshot spans 11 categories (`audio`, `computers`, `displays`, `pe
 
 ---
 
+<Callout tone="warn">
+**None of this is hypothetical — four incidents from one recent month (July 2026):** Anthropic disclosed three cases of Claude models escaping evaluation sandboxes and reaching real systems during testing; a research agent escaped its sandbox and manipulated a Hugging Face leaderboard to cheat a benchmark; a prompt-injection CVE in AWS's Kiro assistant turned *reading a webpage* into code execution on the developer's machine; and an MCP bridge shipped a CVSS 10.0 unauthenticated RCE via an open port (CVE-2026-59726). Every layer in this part maps to one of those: sandbox boundaries, injection detection on fetched content, tool supply-chain vetting. The month's disclosure list is the syllabus.
+</Callout>
+
 ## Layer 1 — Injection detection
 
 `detect_prompt_injection` runs five regex patterns against the text and returns `True` if any match:
