@@ -28,6 +28,25 @@ The Part 6 `llm_extract` function builds a structured prompt, calls an API, and 
 </Callout>
 
 <Callout tone="note">
+**On a Mac? You don't need Colab at all.** Apple's MLX framework fine-tunes LoRA adapters natively on Apple Silicon, and the numbers below are *measured on a base M1* with this part's real 256-pair dataset (exported in mlx-lm's chat format):
+
+```bash
+pip install mlx-lm
+python -m mlx_lm lora --model mlx-community/Qwen2.5-0.5B-Instruct-4bit \
+    --train --data data/finetune/ --batch-size 2 --iters 60
+```
+
+```
+Iter 1:  Val loss 5.457
+Iter 20: Train loss 1.740   ~389 tokens/sec   Peak mem 1.02 GB
+Iter 60: Val loss 0.425     ~579 tokens/sec
+Saved final weights to adapters/adapters.safetensors
+```
+
+Sixty iterations, under a minute of training, one gigabyte of memory — and the resulting adapter already answers the poisoned title correctly: `mountainlifestyle.ca Anker Soundcore Q20i…` → `{"manufacturer": "Anker", "condition": "new"}` (measured output, ~100 tokens/sec generation). The trade against the Colab path: a 0.5B student instead of the 1B Llama, MLX's `.safetensors` adapter format instead of a merged HF directory (convert with `mlx_lm.fuse` before handing it to `_adapter_extract`), and QLoRA's bitsandbytes machinery replaced by MLX's own 4-bit quantization. Concepts identical; hardware wall gone.
+</Callout>
+
+<Callout tone="note">
 **Why is this the course's only notebook?** Everything that produces a pinned number — training the price model, the eval gate, the drift check — lives in a script under test, because notebooks can't be CI-gated, diffed, or trusted to run top-to-bottom the same way twice. A notebook is the right tool in exactly one situation: interactive work on borrowed GPU hardware, which is this part. That division — *explore in notebooks, ship in scripts* — is itself a lesson; Part 22 (experiment tracking) is the systematic version of it.
 </Callout>
 
@@ -412,9 +431,11 @@ This part splits by hardware — test what runs where:
    ```
    **Expect:** `6 passed`, including `test_adapter_path_degrades_gracefully_when_artifact_missing` — proof that pointing `llm_extract` at a nonexistent adapter still returns valid data via `rule_extract`.
 
-3. **Colab (free T4): the training run.** Open the notebook via the badge at the top, Runtime → T4 GPU, Run all. **Expect:** the GPU-check cell passes, training loss falls steeply in epoch 1 (~1.8 → below 1.0), the whole run takes ~25 minutes, and section 7 prints base-vs-adapter output on the hero hard titles. **If the first cell raises:** you're on a CPU runtime — the assert's message tells you the fix.
+3. **Mac (Apple Silicon): the local training run.** `pip install mlx-lm`, export the dataset (notebook section 4 writes `train.jsonl`/`valid.jsonl`), then the two-line `mlx_lm lora` command from the callout above. **Expect (measured on a base M1):** val loss ~5.5 → ~0.43 in 60 iterations, under a minute, ~1 GB peak memory — and generation with `--adapter-path` answers the poisoned title with the true manufacturer.
 
-4. **Back home: wire in your artifact.** Download `extractor-v1-adapter.zip` from Colab, unzip into the companion, and run the verify snippet from the pipeline section with `adapter_path="adapters/extractor-v1/"`.
+4. **Colab (free T4): the training run.** Open the notebook via the badge at the top, Runtime → T4 GPU, Run all. **Expect:** the GPU-check cell passes, training loss falls steeply in epoch 1 (~1.8 → below 1.0), the whole run takes ~25 minutes, and section 7 prints base-vs-adapter output on the hero hard titles. **If the first cell raises:** you're on a CPU runtime — the assert's message tells you the fix.
+
+5. **Back home: wire in your artifact.** Download `extractor-v1-adapter.zip` from Colab, unzip into the companion, and run the verify snippet from the pipeline section with `adapter_path="adapters/extractor-v1/"`.
 
 ---
 
