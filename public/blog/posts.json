@@ -1,5 +1,58 @@
 [
   {
+    "id": "2026-08-04-06-claude-code-goal-persistent-autonomous",
+    "title": "Stop Re-Prompting Every Five Minutes: /goal Lets Claude Code Run Until Your Tests Pass",
+    "excerpt": "/goal shifts Claude Code from turn-by-turn to persistent agent mode: state a measurable finish line and Claude keeps editing, running, and looping until the condition is true.",
+    "author": "Chris Harper",
+    "date": "08-04-2026",
+    "publishedAt": "2026-08-04T12:07:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/whats-new/2026-w20",
+    "content": "**/goal turns Claude Code from a turn-by-turn assistant into a persistent agent that loops until a measurable condition — \"all tests pass,\" \"no lint errors\" — becomes true.**\n\nWhen you're debugging a flaky test suite or migrating a large codebase, the workflow usually looks like: edit, run, see result, prompt Claude again, repeat. `/goal` collapses that loop into one setup step.\n\nYou describe a verifiable finish line, and Claude keeps going — reading files, running tests, editing code, interpreting output — until the condition holds or it needs to ask you something:\n\n```\n/goal All TypeScript compilation errors are resolved and `npm test` exits 0.\n   - Don't delete tests; fix the source.\n   - Ask before modifying package.json.\n```\n\nClaude then runs `npm run build`, reads the errors, fixes them, reruns, and loops. When the condition is true, it stops. No re-prompting.\n\n**What works well with /goal:**\n- **Test-pass targets**: \"jest exits with code 0 and no skipped tests\"\n- **Lint clean**: \"eslint reports zero warnings across the src/ directory\"\n- **Migration completion**: \"every `require()` in the repo is replaced with ES import syntax\"\n- **Deployment health**: \"the /healthz endpoint returns 200 after `pnpm run build`\"\n\n**Boundaries matter.** Add them to the goal string itself, not as a separate message — Claude reads the whole goal each loop iteration. \"Don't touch the `vendor/` directory\" and \"ask before deleting any file\" are constraints worth encoding directly.\n\n**Combine with /fork for parallel experiments.** If your goal is ambiguous (\"make the auth tests pass\"), fork two sessions with different fix strategies and let both run to completion, then compare results.\n\n**Sources:** [Claude Code /goal Command Guide — amitray.com](https://amitray.com/claude-code-goal-command-guide-2026/) · [/goal and /loop for Autonomous Tasks — MindStudio](https://www.mindstudio.ai/blog/claude-code-goal-loop-commands-autonomous-tasks) · [What's New: Week 20 — Claude Code Docs](https://code.claude.com/docs/en/whats-new/2026-w20)"
+  },
+  {
+    "id": "2026-08-04-07-inference-pricing-qwen-openai-cuts",
+    "title": "Inference Prices Keep Falling: OpenAI Slashes Luna 80% and Alibaba Debuts a 2.4T Rival",
+    "excerpt": "Two moves in four days: OpenAI cuts GPT-5.6 Luna 80% to $0.20/$1.20 per MTok, and Alibaba releases Qwen3.8-Max -- a 2.4T-parameter MoE model claiming top computer-use benchmark scores.",
+    "author": "Chris Harper",
+    "date": "08-04-2026",
+    "publishedAt": "2026-08-04T12:05:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://venturebeat.com/technology/ai-price-wars-openai-cuts-gpt-5-6-luna-prices-by-80-as-model-competition-shifts-toward-cost",
+    "content": "**Two moves in four days signal accelerating commoditization: OpenAI cuts its mid-tier GPT-5.6 Luna by 80%, and Alibaba drops a 2.4-trillion-parameter MoE model with top computer-use scores.**\n\n**OpenAI (July 30):** GPT-5.6 Luna dropped from $1/$6 to $0.20/$1.20 per million input/output tokens — an 80% cut. Terra fell 20% (now $2/$12). Sol stays at $5/$30. Luna is now competitive with budget-tier pricing, making it an interesting option for high-volume agentic pipelines where you want frontier reasoning at commodity cost.\n\n**Qwen3.8-Max (Aug 3):** Alibaba released a 2.4-trillion-parameter MoE model (roughly 95B active parameters per token) under a permissive license. Alibaba's own benchmarks put it ahead of Fable 5 on OSWorld computer-use (86.1 vs 85.0) and ahead of Opus 4.8 on Terminal-Bench. SWE-bench and FrontierSWE still favor Fable 5 (Qwen scores 67.7/73.5 vs Fable 5's 80.0/88.8). Independent evals haven't landed yet — treat self-reported numbers with appropriate skepticism.\n\n**Why it matters:** Luna's new price removes the cost argument against frontier models for agentic loops. Qwen3.8-Max is a credible open-weight alternative for computer-use agents — watch for independent benchmarks this week.\n\n**Sources:** [OpenAI cuts GPT-5.6 Luna 80% — VentureBeat](https://venturebeat.com/technology/ai-price-wars-openai-cuts-gpt-5-6-luna-prices-by-80-as-model-competition-shifts-toward-cost) · [Qwen3.8-Max debut — VentureBeat](https://venturebeat.com/technology/qwen3-8-max-arrives-with-a-bold-claim-it-outperforms-gpt-5-6-sol-max-and-fable-5-on-agentic-computer-use) · [Qwen3.8-Max — MarkTechPost](https://www.marktechpost.com/2026/08/03/alibaba-qwen-releases-qwen3-8-max/)"
+  },
+  {
+    "id": "2026-08-04-05-gguf-quantization-llama-cpp",
+    "title": "Four Commands Shrink Any Open Model to Fit Your Laptop: GGUF Quantization with llama.cpp",
+    "excerpt": "GGUF quantization compresses 16-bit model weights to 4-bit, shrinking a 7B model from 14GB to 4GB with minimal quality loss -- runnable on a MacBook or any consumer GPU.",
+    "author": "Chris Harper",
+    "date": "08-04-2026",
+    "publishedAt": "2026-08-04T12:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Self-Hosting",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.youtube.com/watch?v=vvrGfqd1oxE",
+    "content": "**GGUF quantization compresses 16-bit weights to 4-bit, shrinking a 7B model from 14GB to under 5GB with minimal quality loss — runnable on a MacBook, a gaming GPU, or a CPU.**\n\n**What you'll be able to do after this:**\n- Convert any Hugging Face model to GGUF and quantize it to Q4_K_M in under 10 minutes\n- Understand what Q4_K_M, Q5_K_M, and Q8_0 trade off and which to pick for your use case\n- Serve your quantized model as a local OpenAI-compatible API endpoint for use in any agent workflow\n\nLarge language models ship as 16-bit floating-point files. A 7B-parameter model weighs roughly 14GB at full precision, requiring 16GB+ of VRAM to load. GGUF quantization compresses each weight from 16 bits to 4 (or 5, or 8), shrinking the same model to 4–5GB while preserving most of its reasoning quality.\n\nllama.cpp is the standard tool. Here's the full end-to-end workflow:\n\n```bash\n# 1. Build llama.cpp from source\ngit clone https://github.com/ggml-org/llama.cpp && cd llama.cpp\ncmake -B build && cmake --build build --config Release -j$(nproc)\n\n# 2. Download a model from Hugging Face (example: Llama 3.1 8B)\npip install huggingface_hub\nhuggingface-cli download meta-llama/Meta-Llama-3.1-8B-Instruct --local-dir ./llama-3.1-8b\n\n# 3. Convert to FP16 GGUF (required intermediate step)\npython convert_hf_to_gguf.py ./llama-3.1-8b --outtype f16 --outfile llama-3.1-8b-f16.gguf\n\n# 4. Quantize to Q4_K_M\n./build/bin/llama-quantize llama-3.1-8b-f16.gguf llama-3.1-8b-q4km.gguf Q4_K_M\n```\n\n**Choosing a quantization level.** The `_K_M` suffix stands for \"K-quants, medium\" — attention and embedding layers stay at higher precision while feed-forward layers are aggressively quantized. Use **Q4_K_M** as your default. Step up to **Q5_K_M** if you have the VRAM and want near-lossless quality. **Q8_0** is effectively lossless but almost as large as FP16. Avoid Q3 and below for anything beyond simple chat — quality degrades noticeably.\n\nOnce quantized, run it:\n\n```bash\n# Interactive chat session\n./build/bin/llama-cli -m llama-3.1-8b-q4km.gguf -n 512 --conversation\n\n# Or serve a local OpenAI-compatible API on port 8080\n./build/bin/llama-server -m llama-3.1-8b-q4km.gguf --port 8080\n```\n\nThe `llama-server` endpoint is drop-in compatible with the OpenAI API: point any SDK or agent harness at `http://localhost:8080/v1/chat/completions` and it works without any code changes.\n\n**Sources:** [GGUF Quantization Tutorial: Run Fine-Tuned LLMs on CPU with llama.cpp — YouTube](https://www.youtube.com/watch?v=vvrGfqd1oxE) · [llama.cpp quantize README — GitHub](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md) · [Quantize Llama models with llama.cpp — Towards Data Science](https://towardsdatascience.com/quantize-llama-models-with-ggml-and-llama-cpp-3612dfbcc172/)"
+  },
+  {
     "id": "2026-08-04-04-claude-code-fork-parallel-session-experiments",
     "title": "One Dead End Shouldn't Ruin the Session: /fork Clones Your Claude Code Conversation Into a Parallel Experiment",
     "excerpt": "/fork copies your full Claude Code conversation history into a new background session -- try an alternative approach without rewinding or losing the original.",
