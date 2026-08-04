@@ -10,8 +10,179 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 04 Aug 2026 12:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 04 Aug 2026 20:09:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Claude Code v2.1.221 Ships Today: Focus View for Cleaner Sessions and Credential Masking on Linux</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-08-04-10-claude-code-v2-1-221-focus-view-sandbox-creds</guid>
+      <pubDate>Tue, 04 Aug 2026 20:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>v2.1.221 (August 4) adds a VSCode Focus view that collapses tool noise into a per-turn summary, sandbox credential file masking on Linux/WSL, and a new prompt-audit subcommand.</description>
+      <content:encoded><![CDATA[
+**Claude Code v2.1.221 (August 4, 2026) lands a VSCode Focus view that collapses tool noise into one summary line, sandbox credential masking on Linux, and a new prompt-audit command.**
+
+## VSCode Focus View
+
+Toggle with `Ctrl+Alt+F` or "Claude Code: Toggle Focus view" in the command palette. When enabled, all tool activity — file reads, bash runs, search calls — collapses behind an expandable per-turn summary with a live running-tool indicator. Only Claude's reasoning and responses stay visible.
+
+Use it for: long editing sessions where watching every file read is noise, or when pair-coding and you want to show a colleague the high-level flow without wall-to-wall tool output.
+
+## Sandbox Credential Masking (Linux/WSL)
+
+Set `mode: "mask"` on sandbox credential files. Sandboxed commands read a sentinel copy; the sandbox proxy substitutes the real credential on egress. Previously Linux/WSL required workarounds (the feature existed on macOS with a `deny` fallback). Engineers running Claude Code in WSL or Linux containers now get the same credential-safe sandbox behavior as macOS users.
+
+## Prompt-audit subcommand
+
+```bash
+claude-api prompt-audit
+```
+
+The new `prompt-audit` subcommand in the `claude-api` skill scans system prompts and tool descriptions for patterns written for older model generations — explicit chain-of-thought instructions, temperature hacks, workarounds Claude 4.x and 5.x handle natively. Run this before your next model migration to surface stale prompt patterns.
+
+## Notable bug fixes
+
+- @-mentioned files were dropped on resubmit — fixed
+- WebSearch failed at `effort: xhigh/max` with thinking disabled — fixed
+- Reduced prompt-cache costs for auto-mode permission checks
+- Zsh `[[ ]]` regex conditionals and PowerShell quote-handling permission bypasses — fixed
+
+**Sources:** [Claude Code Changelog — code.claude.com](https://code.claude.com/docs/en/changelog) · [Claude Code Updates August 2026 — releasebot.io](https://releasebot.io/updates/anthropic/claude-code)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>AWS Retires Bedrock Agents Classic: New Projects Must Start on AgentCore</title>
+      <link>https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html</link>
+      <guid isPermaLink="false">2026-08-04-09-aws-bedrock-agentcore-classic-migration</guid>
+      <pubDate>Tue, 04 Aug 2026 20:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Agents</category>
+      <category>AWS</category>
+      <category>Cloud</category>
+      <description>Amazon Bedrock Agents Classic closed to new customers July 30 -- frozen model catalog, maintenance mode only. All new agent projects belong on AgentCore, AWS's microVM-isolated, model-agnostic runtime.</description>
+      <media:content url="https://servergurus.com/images/blog/aws-bedrock-agentcore-2026.jpg" medium="image" />
+      <media:thumbnail url="https://servergurus.com/images/blog/aws-bedrock-agentcore-2026.jpg" />
+      <content:encoded><![CDATA[
+**Amazon's original Bedrock Agents service entered maintenance mode July 30 — no new customers, frozen model catalog. New agent projects belong on AgentCore.**
+
+Amazon Bedrock Agents (launched November 2023) is now "Classic" and closed to new customers as of July 30, 2026. Existing deployments keep running, but the model catalog is frozen — models released after July 30 are only available through AgentCore.
+
+AgentCore is the architectural successor: each session runs in an isolated microVM (filesystem + shell access), orchestration is model-agnostic (Claude, OpenAI, Gemini, or any Bedrock model), and the managed harness handles the full reasoning/tool/memory loop automatically. Setup takes ~3 API calls. The harness went GA in June 2026.
+
+One migration warning: poorly designed multi-agent setups on AgentCore can cost ~3× more than a lean single-agent design on Classic — microVM billing makes architecture choices matter more.
+
+**Why it matters:** Don't start a new agent project on Bedrock Classic. It's a maintenance path, not a development platform.
+
+**Sources:** [Bedrock Agents Classic Maintenance Mode — AWS Docs](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html) · [AWS Cuts AI Agent Setup to 3 API Calls — Forbes](https://www.forbes.com/sites/janakirammsv/2026/04/26/aws-cuts-ai-agent-setup-to-3-api-calls-in-agentcore-update/) · [AWS Just Retired Its Flagship AI Agent — AWS in Plain English](https://aws.plainenglish.io/aws-just-retired-its-flagship-ai-agent-product-it-launched-in-2023-add395ae3fe8)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Catch LLM Regressions Before Your Users Do: Unit Testing AI Outputs with deepeval</title>
+      <link>https://deepeval.com/docs/getting-started</link>
+      <guid isPermaLink="false">2026-08-04-08-deepeval-llm-unit-testing-python</guid>
+      <pubDate>Tue, 04 Aug 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>deepeval brings pytest-style unit testing to LLM outputs -- write a threshold assertion, run it in CI, and catch hallucinations and quality regressions before they ship.</description>
+      <media:content url="https://cdn.hashnode.com/res/hashnode/image/upload/v1764782216715/fc1f7b09-d71d-4917-a249-f95686d23520.png" medium="image" />
+      <media:thumbnail url="https://cdn.hashnode.com/res/hashnode/image/upload/v1764782216715/fc1f7b09-d71d-4917-a249-f95686d23520.png" />
+      <content:encoded><![CDATA[
+**deepeval brings pytest-style unit testing to LLM outputs — write a threshold assertion, run it in CI, catch regressions before they ship.**
+
+**What you'll be able to do after this:**
+
+- Write LLM unit tests that assert on answer quality, faithfulness, and hallucination — not just string equality
+- Apply 50+ research-backed metrics (GEval, answer relevancy, contextual faithfulness) to any Claude or OpenAI output
+- Wire deepeval into CI so quality regressions fail the build before reaching production
+
+## Why testing LLM outputs matters
+
+Once you've built a RAG system or agent, the hardest part isn't getting it to work — it's knowing when it stopped. A model upgrade, a prompt tweak, or a retrieval change can silently degrade answers. deepeval catches those regressions with the same discipline you apply to unit tests.
+
+## Install
+
+```bash
+pip install -U deepeval
+```
+
+## Write your first test (test_agent.py)
+
+```python
+from deepeval import assert_test
+from deepeval.test_case import LLMTestCase, SingleTurnParams
+from deepeval.metrics import GEval, AnswerRelevancyMetric
+
+def test_answer_quality():
+    # Call your LLM/agent here and capture the output
+    output = my_agent.answer("What is the capital of France?")
+
+    test_case = LLMTestCase(
+        input="What is the capital of France?",
+        actual_output=output,
+        expected_output="Paris"
+    )
+
+    correctness = GEval(
+        name="Correctness",
+        criteria="Is the actual output factually correct based on the expected output?",
+        evaluation_params=[SingleTurnParams.ACTUAL_OUTPUT, SingleTurnParams.EXPECTED_OUTPUT],
+        threshold=0.8
+    )
+    relevancy = AnswerRelevancyMetric(threshold=0.7)
+
+    assert_test(test_case, [correctness, relevancy])
+```
+
+## Run it
+
+```bash
+deepeval test run test_agent.py
+```
+
+The output shows per-metric scores, reasons for failures, and a pass/fail verdict. If `actual_output` scores below the threshold, the test fails — exactly like a pytest assertion.
+
+## Add RAG-specific metrics
+
+```python
+from deepeval.metrics import FaithfulnessMetric, ContextualRelevancyMetric
+
+test_case = LLMTestCase(
+    input="What's our return policy?",
+    actual_output=rag_output,
+    retrieval_context=retrieved_chunks  # the passages from your vector store
+)
+
+assert_test(test_case, [
+    FaithfulnessMetric(threshold=0.8),        # output doesn't hallucinate beyond context
+    ContextualRelevancyMetric(threshold=0.7)  # retrieved context was relevant to the question
+])
+```
+
+## Wire into CI
+
+```yaml
+# .github/workflows/eval.yml
+- name: Run LLM eval
+  run: deepeval test run tests/
+```
+
+Any test falling below its threshold breaks the build. Add `deepeval login` to push results to Confident AI for trend tracking across runs — useful for catching slow quality drift that no single test-run exposes.
+
+**Sources:** [deepeval Getting Started](https://deepeval.com/docs/getting-started) · [deepeval — The LLM Evaluation Framework](https://deepeval.com/) · [Using DeepEval for LLM Evaluation in Python — Codecademy](https://www.codecademy.com/article/using-deepeval-for-llm-evaluation-python)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Stop Re-Prompting Every Five Minutes: /goal Lets Claude Code Run Until Your Tests Pass</title>
