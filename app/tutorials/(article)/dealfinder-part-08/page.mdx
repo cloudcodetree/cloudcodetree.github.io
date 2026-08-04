@@ -153,6 +153,70 @@ The `APIFY_ACTOR` env var points to the default Google Shopping actor (`automati
 
 ---
 
+## AmazonSource: the big retailer the feeds miss
+
+Google Shopping — the firehose behind RapidAPI and Apify — carries Walmart, Target, Best Buy, Costco, and dozens more, but **almost no Amazon**: Amazon barely participates in Google Shopping, its Product Advertising API requires an approved affiliate with prior qualifying sales, and it blocks direct scraping hard. So the one retailer everyone asks about is exactly the one the easy feeds don't give you.
+
+The fix is the *same managed-scraping pattern* as `ApifySource` — a hosted actor, invoked over HTTP, reusing the `APIFY_TOKEN` you already have. `AmazonSource` calls the `junglee/Amazon-crawler` actor, which takes an Amazon search URL (built from the query) and returns structured product rows:
+
+```python
+class AmazonSource:
+    name = "Amazon"
+    tier = 2                       # managed scraping: ~20-25s, costs credits
+    _actor = "junglee~Amazon-crawler"
+
+    def available(self) -> bool:
+        return bool(os.getenv("APIFY_TOKEN"))   # no new key — reuses Apify
+
+    def search(self, query: str, limit: int = 15) -> list[Product]:
+        token = os.getenv("APIFY_TOKEN")
+        if not token:
+            return []
+        search_url = "https://www.amazon.com/s?k=" + quote_plus(query)
+        r = httpx.post(
+            f"https://api.apify.com/v2/acts/{self._actor}/run-sync-get-dataset-items",
+            params={"token": token},
+            json={"categoryOrProductUrls": [{"url": search_url}],
+                  "maxItemsPerStartUrl": limit, "maxSearchPagesPerStartUrl": 1,
+                  "scrapeProductDetails": False, "countryCode": "US"},
+            timeout=180,
+        )
+        out = []
+        for it in (r.json() if isinstance(r.json(), list) else []):
+            po = it.get("price") or {}
+            price = _f(po.get("value") if isinstance(po, dict) else po)
+            if not price:
+                continue
+            if (po.get("currency") if isinstance(po, dict) else "USD") not in ("USD", "$"):
+                continue                            # keep the USD assumption downstream relies on
+            asin = it.get("asin")
+            out.append(Product(
+                id=f"amazon-{asin or it.get('title','')[:40]}",
+                title=(it.get("title") or query)[:120],
+                brand="Amazon", category="product", price=round(price, 2), currency="USD",
+                url=f"https://www.amazon.com/dp/{asin}" if asin else "",  # no url field → build from ASIN
+                source=self.name, image_url=it.get("imageUrl"),
+            ))
+        return out
+```
+
+Two field-mapping notes the actor forces on you: its `price` is a `{value, currency}` **object**, not a number; and it returns **no product URL**, so you reconstruct the canonical one from the `asin` (`amazon.com/dp/<ASIN>`). Everything else maps onto the shared `Product` exactly like the other connectors — which is the whole point of the protocol: a new retailer is a new class, nothing downstream changes.
+
+<Callout tone="note">
+**The tier-2 trade-off, honestly.** The Apify Amazon actor takes ~20-25 seconds per run and costs credits, so `AmazonSource` sits at **tier 2** — Part 9's aggregator only escalates to it when the fast tier-1 APIs (eBay, RapidAPI) don't already fill the result target, which for common queries they usually do. So on a typical search you *won't* see Amazon unless tier 1 comes up thin. Set `DEALFINDER_TARGET_RESULTS` high (the coverage-audit knob from Part 9) to force every tier and pull Amazon in. If you want Amazon on *every* search, the right move isn't tier 1 (that would add ~25s to all searches) — it's an async parallel fan-out with a per-source timeout, or caching Amazon results into the pgvector store (Part 13) so they're queryable instantly.
+</Callout>
+
+Forcing all tiers, Amazon takes its place in the merged, value-ranked results:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-07/amazon-in-aggregation.png"
+  alt="Live aggregated search with Amazon among the sources, Amazon-tagged cards interleaved with eBay and RapidAPI"
+  caption="Real capture: a live aggregated search with all tiers forced — Amazon now contributes alongside eBay, RapidAPI, Apify, and Firecrawl."
+  lookFor="the ringed status line — 'sources live: eBay, RapidAPI, Amazon, Apify, Firecrawl' — and the ringed Amazon source chips. The Soundcore Anker Q20i shows from Amazon at $39.98 right next to the same headphone from eBay ($39.99) and Best Buy ($39.99): a genuine cross-retailer price comparison that now includes Amazon."
+/>
+
+---
+
 ## ShopifySource: the public product feed
 
 Most Shopify stores expose a paginated product catalog at `/products.json`. Shopify [documents this endpoint](https://shopify.dev/docs/api/storefront) for developers; it is indexed by search engines; it requires no key or authentication. The `ShopifySource` treats it as a tier-3 public structured feed.
@@ -299,6 +363,7 @@ LIVE_SOURCES = [
     EbaySource(),
     RapidApiSource(),
     BestBuySource(),
+    AmazonSource(),      # tier 2 — Amazon via the Apify junglee actor
     ApifySource(),
     ShopifySource(),
     FirecrawlSource(),
@@ -309,7 +374,7 @@ LIVE_SOURCES = [
 The order is deliberate. The aggregator in Part 9 iterates `LIVE_SOURCES` and calls `.search()` on each connector that reports `.available() == True`. A connector with no key set returns `[]` and is effectively skipped. The ordering means:
 
 1. Tier-1 connectors run first (eBay, RapidAPI, BestBuy) — fast, reliable, data quality is highest.
-2. Tier-2 managed scraping (Apify) runs next — slower (up to 180s) but structured output.
+2. Tier-2 managed scraping (Amazon, Apify) runs next — slower (up to 180s) but structured output.
 3. Tier-3 public feed (Shopify) runs after Apify — keyless but subject to store availability.
 4. Tier-4 broad-web fallback (Firecrawl) runs last — noisiest output, kept as the final escalation.
 5. `ItunesSource` sits at the end: it is flagged `fallback_only = True` (a media catalog, not a retail electronics source); Part 9 checks this flag and skips it for non-media queries.
