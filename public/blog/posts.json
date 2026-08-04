@@ -1,5 +1,77 @@
 [
   {
+    "id": "2026-08-04-04-claude-code-fork-parallel-session-experiments",
+    "title": "One Dead End Shouldn't Ruin the Session: /fork Clones Your Claude Code Conversation Into a Parallel Experiment",
+    "excerpt": "/fork copies your full Claude Code conversation history into a new background session -- try an alternative approach without rewinding or losing the original.",
+    "author": "Chris Harper",
+    "date": "08-04-2026",
+    "publishedAt": "2026-08-04T04:08:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/whats-new/2026-w29",
+    "content": "**/fork copies your full conversation history into a new background session so you can try an alternative approach without rewinding or losing the original.**\n\nWhen you're halfway through refactoring a module and hit a decision fork — \"extract this into a service, or keep it as a helper?\" — the old answer was to pick one and backtrack mentally if it failed. `/fork` removes that constraint.\n\n```\n/fork\n```\n\nClaude Code copies the full conversation history and current directory state into a new background session and returns its ID. The original session continues untouched. Switch between them with `/resume <session-id>`, or run both in separate terminals simultaneously.\n\n**Practical pattern — try two strategies in parallel:**\n\n```bash\n# Terminal A (original session):\n/fork\n# Prints: Forked → session abc123\n\n# Terminal A: implement the service extraction approach\n\n# Terminal B:\nclaude --resume abc123\n# Implement the helper function approach here\n```\n\nCompare the diffs at the end and keep whichever worked.\n\n**When /fork pays off most:**\n- **Before a risky refactor** — fork, try it in the fork, merge back only if it worked\n- **Architecture choices** — stream and batch approaches running in parallel, pick the faster one\n- **Code review iterations** — fork before addressing comments; keep the original as a baseline\n\n**One gotcha:** both sessions share the same working directory on disk. If they write to the same files concurrently, you'll get conflicts. Fix: run `git checkout -b experiment-b` in the fork before starting work, so each session writes to its own branch.\n\n**Sources:** [/fork Explained — ClaudeKit](https://claudekit.app/blog/claude-code-fork-conversation-explained) · [Session Forking — BSWEN](https://docs.bswen.com/blog/2026-03-22-claude-code-session-forking/) · [Parallel Sessions — HeyClaude](https://heyclau.de/entry/guides/claude-code-desktop-parallel-sessions-workflow)"
+  },
+  {
+    "id": "2026-08-04-03-mcp-2026-07-28-stateless-spec",
+    "title": "MCP's Biggest Spec Update Is Final: Sessions Are Gone and Stateless HTTP Is In",
+    "excerpt": "The July 28 MCP spec goes stateless -- the initialize handshake and session IDs are gone, Tasks moved to an extension, and W3C distributed tracing is built in.",
+    "author": "Chris Harper",
+    "date": "08-04-2026",
+    "publishedAt": "2026-08-04T04:07:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "MCP",
+      "Security"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://blog.modelcontextprotocol.io/posts/2026-07-28/",
+    "content": "**The July 28 MCP spec goes stateless — sessions, sticky routing, and the initialize handshake are gone; Tasks moved to an extension; W3C tracing is now built in.**\n\nThe 2026-07-28 Model Context Protocol specification is final. The headline change: **the session model is gone**. Before, every MCP conversation required an `initialize`/`initialized` handshake, `Mcp-Session-Id` headers on subsequent requests, and sticky routing so load balancers could reach the same server instance. Now every request is self-contained — standard round-robin load balancing works, no shared session store needed.\n\n**Breaking changes to make now:**\n- Remove the `initialize`/`initialized` exchange and `Mcp-Session-Id` headers from your client\n- Migrate from the experimental Tasks API (2025-11-25) to the revised Tasks extension lifecycle\n- Update any literal error-code checks: missing-resource errors moved from `-32002` → `-32602`\n\n**New capabilities:** MCP Apps (server-rendered HTML UI in sandboxed iframes), a formal Extensions framework for opt-in features, and built-in W3C Trace Context + OpenTelemetry propagation across agent hops. Authorization also tightens with RFC 9207 `iss` parameter validation to block mix-up attacks.\n\n**Why it matters:** The stateless core is what makes MCP viable in containerized, auto-scaling deployments. If you were running MCP servers behind a load balancer with Redis session state, you can drop that complexity now.\n\n**Sources:** [MCP 2026-07-28 Specification](https://blog.modelcontextprotocol.io/posts/2026-07-28/) · [Security Implications — SecurityWeek](https://www.securityweek.com/new-enterprise-ready-mcp-specification-brings-new-security-challenges/) · [modelcontextprotocol.io](https://modelcontextprotocol.io)"
+  },
+  {
+    "id": "2026-08-04-02-open-weights-deepseek-v4-flash-anthropic-stance",
+    "title": "Open Weights Week: DeepSeek Publishes 284B MIT Model; Anthropic Draws Its Line on What It Won't Restrict",
+    "excerpt": "DeepSeek released V4 Flash 0731, a 284B MoE model under MIT on July 31; Anthropic simultaneously published its position opposing blanket bans on open-weights models.",
+    "author": "Chris Harper",
+    "date": "08-04-2026",
+    "publishedAt": "2026-08-04T04:06:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Self-Hosting"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash",
+    "content": "**DeepSeek released a 284B MIT-licensed MoE model on July 31; Anthropic published a position opposing blanket bans on open-weights models while backing safety-test mandates and distillation controls.**\n\n**DeepSeek V4 Flash 0731**\n\nThe July 31 build is a production-candidate refresh of DeepSeek's V4 Flash architecture: 284B total parameters, 13B active per forward pass (Mixture of Experts), MIT license, [available on Hugging Face](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash). The API runs at ~122 tokens/second.\n\nPractical caveat for self-hosters: \"Flash\" refers to the active-parameter efficiency, not the weight footprint. Full weights are 140GB+ in mixed precision, 70-80GB heavily quantized — you need multi-GPU server hardware to run it locally. For single-GPU or CPU inference, smaller open models remain more practical.\n\n**Anthropic's open-weights stance**\n\nIn a July 27 post, Anthropic stated it has never advocated for a blanket ban on open-weights models. What it does support: mandatory safety evaluations for all sufficiently capable models (open and closed), cracking down on industrial-scale distillation, and restricting advanced chip exports — but not open-weights releases categorically.\n\n**Why it matters:** V4 Flash weights are commercially usable under MIT. On policy, the major lab position is now explicit: chip controls and distillation restrictions are the levers, not a blanket ban on open release.\n\n**Sources:** [DeepSeek-V4-Flash — HuggingFace](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash) · [V4 Flash Analysis — Artificial Analysis](https://artificialanalysis.ai/models/deepseek-v4-flash) · [Anthropic Open Weights Position](https://www.anthropic.com/news/position-open-weights-models)"
+  },
+  {
+    "id": "2026-08-04-01-colbert-ragatouille-late-interaction-retrieval",
+    "title": "Dense Embeddings Flatten a Document to One Vector: ColBERT Keeps Every Token — RAGatouille Makes It Three Lines",
+    "excerpt": "Dense biencoder embeddings compress a document to one vector; ColBERT's late interaction scores every query token against every document token -- RAGatouille makes it a 3-line swap.",
+    "author": "Chris Harper",
+    "date": "08-04-2026",
+    "publishedAt": "2026-08-04T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "RAG",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.com/AnswerDotAI/RAGatouille",
+    "content": "**ColBERT keeps a separate embedding per token instead of one per document — dense embeddings lose exact-match signals ColBERT catches; RAGatouille makes it three lines.**\n\n**What you'll be able to do after this:**\n- Build a ColBERT index and search it in under 20 lines of Python with RAGatouille\n- Explain why single-vector (biencoder) embeddings lose per-token precision and when that costs recall\n- Use ColBERT as a drop-in reranker on top of any retriever you already have\n\n**Why dense-only fails on precision queries**\n\nA biencoder embedding model flattens every document to a single 768-d vector via mean pooling. Two documents mentioning \"HNSW\" and \"pgvector\" score almost identically against a query for either — the averaging hides token-level specificity. ColBERT's **late interaction** keeps one embedding per token for every document. At query time it computes `MaxSim`: for each query token, find its highest-scoring match across all document tokens, then sum those per-token scores. The \"HNSW\" token in a query gets a strong match against the document that uses it, not the one that doesn't.\n\n**Walk-through with RAGatouille**\n\n```bash\npip install ragatouille\n```\n\n```python\nfrom ragatouille import RAGPretrainedModel\n\n# Step 1: Index (downloads ColBERTv2 weights ~500MB on first run)\nRAG = RAGPretrainedModel.from_pretrained(\"colbert-ir/colbertv2.0\")\n\ndocuments = [\n    \"pgvector stores vector embeddings natively inside PostgreSQL.\",\n    \"HNSW is a graph-based approximate nearest-neighbor index algorithm.\",\n    \"ColBERT keeps a separate embedding per token for late interaction scoring.\",\n]\n\nRAG.index(\n    index_name=\"my-docs\",\n    collection=documents,\n    document_ids=[\"doc-0\", \"doc-1\", \"doc-2\"],\n)\n\n# Step 2: Search\nresults = RAG.search(\"how does HNSW differ from flat vector search?\", k=3)\nfor r in results:\n    print(r[\"rank\"], round(r[\"score\"], 2), r[\"content\"][:70])\n```\n\n**Use it as a reranker (no index needed)**\n\nIf you already have a retriever, ColBERT can re-score its top-N candidates on the fly without a pre-built index:\n\n```python\n# Pass any candidate strings from your existing retriever\nreranked = RAG.rerank(\n    query=\"pgvector vs HNSW: which index is faster?\",\n    documents=initial_candidates,  # list[str] from your dense retriever\n    k=5,\n)\n```\n\nThis is the lowest-friction entry point: keep your existing embedding pipeline, add `.rerank()` as a second-stage pass to improve precision at virtually no infrastructure cost.\n\n**When to reach for ColBERT:** high-precision technical docs, code search, legal text, or any domain where exact terminology matters. For general semantic similarity, dense embeddings remain fast and sufficient.\n\n**Sources:** [RAGatouille — GitHub](https://github.com/AnswerDotAI/RAGatouille) · [Late Interaction Overview — Weaviate](https://weaviate.io/blog/late-interaction-overview) · [Supercharge Your RAG with Late Interactions — YouTube](https://www.youtube.com/watch?v=xTzUn3G9YA0)"
+  },
+  {
     "id": "2026-08-03-08-claude-code-context-command-token-audit",
     "title": "Run /context Before Your Claude Code Session Hits the Token Wall — Then Choose Between /compact and /clear",
     "excerpt": "/context prints a live token-usage breakdown in Claude Code -- run it after heavy file reads to see what's eating your 200k window before a turn's cost compounds.",
