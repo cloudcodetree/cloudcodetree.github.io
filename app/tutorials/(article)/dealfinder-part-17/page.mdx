@@ -36,8 +36,10 @@ This part introduces `dealfinder/orchestrate.py`; it is tag **step-17**, buildin
 3. [The reviewer — isolated and adversarial](#the-reviewer--isolated-and-adversarial)
 4. [The orchestrator: write → review → revise](#the-orchestrator-write--review--revise)
 5. [The trap that gets caught](#the-trap-that-gets-caught)
-6. [Reproducibility checks](#reproducibility-checks)
-7. [Where this goes next](#where-this-goes-next)
+6. [Seeing it in the product](#seeing-it-in-the-product)
+7. [Check it works](#check-it-works)
+8. [What you can demo now](#what-you-can-demo-now)
+9. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -128,12 +130,16 @@ def orchestrate(query: str, k: int = 5, *, recommender_llm=None) -> Orchestrated
     r = review(query, draft, k=k)
     if r.approved:
         return Orchestrated(draft.answer, True, r, revised=False, used_llm=draft.used_llm)
-    fixed = rag.answer(query, k=k)          # deterministic ⇒ grounded, leads with the top DEAL
+    fixed = rag.deterministic_answer(query, k=k)   # LLM-free ⇒ guaranteed grounded, leads with the top DEAL
     r2 = review(query, fixed, k=k)
     return Orchestrated(fixed.answer, r2.approved, r2, revised=True, used_llm=False)
 ```
 
 On a good answer, the reviewer approves and nothing changes. The interesting case is when the writer is wrong.
+
+<Callout tone="warning">
+**The revision must be deterministic, not another LLM roll.** A tempting mistake is to write `fixed = rag.answer(query, k=k)` here — but once an OpenRouter key is configured, `answer()` uses the *LLM*, and re-asking the same kind of model that just got fooled can reproduce the same class of mistake. The whole point of the pair is a *reliable* fallback, so the revision calls `rag.deterministic_answer` — the extractive path that is grounded and leads with the top DEAL *by construction*, no matter what key is set. (This is also why the orchestrator's `used_llm` is `False` on a revision.)
+</Callout>
 
 ---
 
@@ -187,7 +193,44 @@ The rejected draft was thrown out and the deterministic path produced a grounded
 
 ---
 
-## Reproducibility checks
+## Seeing it in the product
+
+The catch is invisible if all you see is the final answer — so the app surfaces the whole trail. A **`/review`** endpoint (`serve.py`) runs writer → reviewer → revise and returns *both* the draft and the final, each with the reviewer's per-check verdict; the static UI adds a **"review (multi-agent)"** mode with a checkbox to inject the trap-writer and watch the catch happen:
+
+```python
+@app.get("/review")
+def review_multiagent(q: str, k: int = 5, trap: bool = False):
+    writer = _TrapWriter() if trap else None        # trap=true → the fooled writer
+    draft = orch.recommend(q, k=k, llm=writer)
+    draft_review = orch.review(q, draft, k=k)        # isolated, adversarial
+    if draft_review.approved:
+        final, revised, final_review = draft.answer, False, draft_review
+    else:
+        fixed = rag.deterministic_answer(q, k=k, use_db=False)   # guaranteed grounded
+        final_review = orch.review(q, fixed, k=k)
+        final, revised = fixed.answer, True
+    return {"draft": ..., "draft_review": ..., "revised": revised,
+            "final": final, "final_review": ...}
+```
+
+Note `use_db=False`: like the context surface in Part 16, the writer/reviewer trail pins the reproducible snapshot so the demo is stable no matter what database is attached — the orchestrator's own contract is that both agents retrieve over the frozen snapshot.
+
+---
+
+## Check it works
+
+1. **The pattern, offline:**
+   ```bash
+   pytest tests/test_orchestrate.py -v      # 4 passed
+   ```
+   **Expect:** the approve path (good answer → no revision), the trap catch (rejected with a SUSPICIOUS issue), the revision (rejected draft → grounded Anker answer), and a hallucinated-price rejection.
+
+2. **The catch, live** (server on `:8000`):
+   ```bash
+   curl -s "http://localhost:8000/review?q=noise+cancelling+headphones+under+%24150&trap=true" \
+     | python -m json.tool | grep -E '"approved"|"revised"|"lead_is_a_deal"'
+   ```
+   **Expect:** the draft's `approved: false` with `lead_is_a_deal: false`, `revised: true`, and the final review's `approved: true` — the trap draft was caught and revised. Flip to `trap=false` and the real (free-LLM) writer's draft is approved on its own, `revised: false`.
 
 The four assertions in `tests/test_orchestrate.py` pin the approve path, the trap catch, and the revision — offline, with the adversarial writer injected:
 
@@ -217,6 +260,21 @@ def test_orchestrator_revises_a_rejected_draft_to_a_grounded_answer():
 pytest tests/test_orchestrate.py -v
 # 4 passed
 ```
+
+---
+
+## What you can demo now
+
+Open the app, pick **"review (multi-agent)"**, tick **"inject a writer fooled by the $46 Bose trap"**, and search **"noise cancelling headphones under $150"**. You watch the second opinion do its job:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-17/writer-reviewer-trap.png"
+  alt="The multi-agent trail: an LLM writer recommends the $46 Bose trap, the reviewer rejects it with two issues and failing checks, and the orchestrator revises to the grounded Anker answer"
+  caption="Real capture: a writer fooled into recommending the $46 Bose trap, caught by an isolated reviewer, and revised to the grounded Anker DEAL — the second opinion made visible."
+  lookFor="the two stacked verdicts. The WRITER DRAFT (an LLM) leads with 'Bose QuietComfort 45 at $46.00 — an incredible deal', and the reviewer marks it ✗ REVIEWER REJECTED: grounded ✓, but 'lead is a DEAL' ✗ and 'trap warned' ✗, with two concrete issues. Below the ↻ revision arrow, the REVISED FINAL leads with the real Anker Soundcore Q20i at $44.99 and warns about the exact trap the writer tried to sell — now ✓ REVIEWER APPROVED on all three checks. A single agent ships the top row; the pair ships the bottom."
+/>
+
+The demo line: *"The writer — a real LLM — got fooled by a $46 price that's 72% under median and called it the best deal. A second agent with its own isolated view of the evidence caught it: the lead pick is flagged SUSPICIOUS, not a DEAL, and the answer never warned about the trap. So the orchestrator threw the draft out and fell back to a guaranteed-grounded answer that leads with the real Anker deal and warns about the trap. That's why you run two."*
 
 ---
 
