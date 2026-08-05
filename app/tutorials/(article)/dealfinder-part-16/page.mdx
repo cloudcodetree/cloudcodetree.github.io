@@ -6,7 +6,7 @@ export const metadata = {
   openGraph: {
     title: 'Become a Full-Stack AI Engineer: Context Engineering — The Window Is RAM (Part 16 of 37)',
     description:
-      'Budget, order, and compact the context window over real deals: pack k=20 into 256 tokens, place the strongest picks at the edges, and fold a multi-turn chat from 109 to 52 tokens.',
+      'Budget, order, and compact the context window over real deals: pack k=20 into 256 tokens, place the strongest picks at the edges, and fold a multi-turn chat from 78 to 49 tokens.',
     url: 'https://cloudcodetree.com/tutorials/dealfinder-part-16/',
     siteName: 'CloudCodeTree',
     type: 'article',
@@ -19,7 +19,7 @@ export const metadata = {
 
 # Context Engineering: The Window Is RAM
 
-**TL;DR: Agentic RAG (Part 15) can retrieve fifteen candidate listings across three hops. Every one of them competes with the system prompt, the tool schemas, and the conversation for one finite token budget. Retrieval decides *what is relevant*; context engineering decides *what actually goes in the window, in what order, and what to evict*. This part does all three over the real DealFinder context with exact bge token counts: a k=20 retrieved block is 1063 tokens, so packing it into a 256-token slice keeps 4 items and evicts 16; the strongest picks move to the edges to beat "lost in the middle"; and a six-turn deal chat compacts from 109 tokens to 52.**
+**TL;DR: Agentic RAG (Part 15) can retrieve fifteen candidate listings across three hops. Every one of them competes with the system prompt, the tool schemas, and the conversation for one finite token budget. Retrieval decides *what is relevant*; context engineering decides *what actually goes in the window, in what order, and what to evict*. This part does all three over the real DealFinder context with exact bge token counts: a k=20 retrieved block is 1101 tokens, so packing it into a 256-token slice keeps 4 items and evicts 16; the strongest picks move to the edges to beat "lost in the middle"; and a six-turn deal chat compacts from 78 tokens to 49.**
 
 You have spent five parts getting retrieval right. But retrieval hands you *candidates*, not a *prompt*. The window is the model's working memory — RAM, not storage — and it is small. Stuff too much in and you pay for tokens the model can't use, push important evidence into the dead zone where attention is weakest, or blow the limit entirely. "Context engineering" is the 2026 name for the discipline that RAG grew into: treating the assembly of that window as a first-class engineering problem, not an afterthought.
 
@@ -35,8 +35,10 @@ This part introduces `dealfinder/context.py`; it is tag **step-16**. Token count
 2. [Budgeting: pack what fits, evict the rest](#budgeting-pack-what-fits-evict-the-rest)
 3. [Ordering: beating "lost in the middle"](#ordering-beating-lost-in-the-middle)
 4. [Compaction: fold the conversation, keep the intent](#compaction-fold-the-conversation-keep-the-intent)
-5. [Reproducibility checks](#reproducibility-checks)
-6. [Where this goes next](#where-this-goes-next)
+5. [Seeing it in the product](#seeing-it-in-the-product)
+6. [Check it works](#check-it-works)
+7. [What you can demo now](#what-you-can-demo-now)
+8. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -71,7 +73,7 @@ Sixteen tokens for a six-word title — because `WH-1000XM5` explodes into piece
 
 ## Budgeting: pack what fits, evict the rest
 
-Here is the squeeze. The DealFinder system prompt is **62 tokens**. A k=20 retrieved block — the kind agentic RAG can accumulate — is **1063 tokens**. Add tool schemas and conversation history and you are well past a tight budget. So you don't send all 20; you pack the highest-ranked deals until the budget is spent, and evict the rest:
+Here is the squeeze. The DealFinder system prompt is **62 tokens**. A k=20 retrieved block — the kind agentic RAG can accumulate — is **1101 tokens**. Add tool schemas and conversation history and you are well past a tight budget. So you don't send all 20; you pack the highest-ranked deals until the budget is spent, and evict the rest:
 
 <ContextBudget />
 
@@ -93,7 +95,7 @@ def pack_deals(items: list[rag.RetrievedItem], budget_tokens: int) -> Packed:
 Run it against a 256-token slice. Real output:
 
 ```python
-items = rag.retrieve("noise cancelling headphones under $150", k=20)   # 1063 tokens total
+items = rag.retrieve("noise cancelling headphones under $150", k=20)   # 1101 tokens total
 packed = ctx.pack_deals(items, budget_tokens=256)
 print(len(packed.included), "included /", len(packed.dropped), "dropped /", packed.tokens, "tokens")
 # 4 included / 16 dropped / 244 tokens
@@ -125,8 +127,8 @@ def lost_in_the_middle(items: list[rag.RetrievedItem]) -> list[rag.RetrievedItem
 On the ranked top-5, the transformation is:
 
 ```text
-ranked  :  [#1 Anker DEAL] [#2 Space2 DEAL] [#3 JBL DEAL] [#4 Bose OVER] [#5 Bose SUSP]
-reordered:  [#1 Anker DEAL] [#3 JBL DEAL] [#5 Bose SUSP] [#4 Bose OVER] [#2 Space2 DEAL]
+ranked  :  [#1 Anker DEAL] [#2 Soundcore DEAL] [#3 JBL DEAL] [#4 Bose OVER] [#5 Bose SUSP]
+reordered:  [#1 Anker DEAL] [#3 JBL DEAL] [#5 Bose SUSP] [#4 Bose OVER] [#2 Soundcore DEAL]
 ```
 
 The best pick still leads; the second-best now *closes* the block; the weakest is buried in the middle where the model is least likely to over-weight it. Same evidence, placed where the model can actually use it.
@@ -155,17 +157,17 @@ Run it on a six-turn conversation. Real output:
 
 ```python
 c = ctx.compact_history(turns, keep_recent=2)
-print(c.tokens_before, "->", c.tokens_after)   # 109 -> 52
+print(c.tokens_before, "->", c.tokens_after)   # 78 -> 49
 print(c.text)
 ```
 
 ```text
 [earlier queries: noise cancelling headphones under $150 → what about wireless earbuds instead]
 user: only ones with a mic
-assistant: The Anker Q20i and JBL 770NC both have built-in mics.
+assistant: The Anker Q20i and JBL 770NC both have mics.
 ```
 
-From 109 tokens to 52 — a 52% cut — and the thread survives: the summary preserves *where the conversation has been* (the query trail), and the two recent turns stay verbatim because that is where the live intent lives. The verbose assistant recommendations from earlier turns are gone, and they weren't worth their tokens.
+From 78 tokens to 49 — a 37% cut — and the thread survives: the summary preserves *where the conversation has been* (the query trail), and the two recent turns stay verbatim because that is where the live intent lives. The verbose assistant recommendations from earlier turns are gone, and they weren't worth their tokens.
 
 <Callout tone="warning">
 **Compaction is lossy — on purpose.** You are trading fidelity for budget. Keep the recent turns verbatim (intent lives there), summarize the old ones, and never compact away a constraint the user still cares about ("only ones with a mic" stays because it is recent). Compact too aggressively and the agent forgets what it's doing; not at all and you run out of window.
@@ -173,7 +175,42 @@ From 109 tokens to 52 — a 52% cut — and the thread survives: the summary pre
 
 ---
 
-## Reproducibility checks
+## Seeing it in the product
+
+Budgeting, ordering, and eviction are normally invisible — they happen inside the pipeline, and all you see is the answer. So the app exposes them. A new **`/context`** endpoint (`serve.py`) runs the exact three levers from this part over a query and returns the token math; the static UI adds a **"window (context)"** mode that renders it:
+
+```python
+@app.get("/context")
+def context_window(q: str, budget: int = 256, k: int = 20):
+    # Pin to the reproducible snapshot path so the token math never depends on
+    # how much has been seeded into pgvector (that is Part 13's concern, not this).
+    items = rag.retrieve(q, k=k, use_db=False)
+    block_tokens = sum(ctx.count_tokens(rag.build_context([it])) for it in items)
+    packed  = ctx.pack_deals(items, budget_tokens=budget)   # budget + evict
+    ordered = ctx.lost_in_the_middle(packed.included)        # edges beat the middle
+    return {"retrieved": len(items), "block_tokens": block_tokens,
+            "packed_tokens": packed.tokens, "kept": len(packed.included),
+            "evicted": len(packed.dropped), "included": ordered, ...}
+```
+
+Note the `use_db=False`: `retrieve` normally follows `DATABASE_URL` (pgvector when set), but a teaching surface for token budgeting must be **reproducible**, so this route pins the deterministic in-memory snapshot path regardless of how the server is run. Same query ⇒ same 20 candidates ⇒ same 1101 tokens, every time.
+
+---
+
+## Check it works
+
+1. **The token math, offline:**
+   ```bash
+   pytest tests/test_context.py -v      # 5 passed
+   ```
+   **Expect:** the five assertions below — the model-number token explosion, the budget-driven eviction, the edge placement, and the two compaction cases — all green, with exact counts.
+
+2. **The window, live** (server running on `:8000`):
+   ```bash
+   curl -s "http://localhost:8000/context?q=noise+cancelling+headphones+under+%24150" \
+     | python -m json.tool | grep -E '"retrieved"|"block_tokens"|"packed_tokens"|"kept"|"evicted"'
+   ```
+   **Expect:** `retrieved: 20`, `block_tokens: 1101`, `packed_tokens: 244`, `kept: 4`, `evicted: 16` — the full k=20 block is 430% of the 256-token budget, so 16 of the 20 candidates never reach the model.
 
 The five assertions in `tests/test_context.py` pin the token math, packing, ordering, and compaction — offline, with exact counts:
 
@@ -210,6 +247,21 @@ def test_compact_history_preserves_intent_and_shrinks_tokens():
 pytest tests/test_context.py -v
 # 5 passed
 ```
+
+---
+
+## What you can demo now
+
+Open the app, pick the **"window (context)"** mode, and search **"noise cancelling headphones under $150"**. The context window is now something you can *see*:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-16/context-window.png"
+  alt="The DealFinder context window: 20 retrieved listings totalling 1101 tokens packed down to 244/256, with 4 kept and 16 evicted, survivors ordered for lost-in-the-middle"
+  caption="Real capture: the 'context as RAM' move made visible — retrieve 20, budget to 256 tokens, keep 4, evict 16, and place the survivors at the edges."
+  lookFor="the budget bar and the two numbers above it: 20 retrieved listings = 1101 tokens (430% of budget), packed down to 244 / 256. Sixteen candidates were evicted before they ever reached the model — expand the disclosure to see the low-ranked tail, including the $46 Bose (SUSPICIOUS) and the $359 Bose (OVERPRICED), both correctly dropped. The four survivors carry a position badge: the top pick (Anker, start · edge) and the second-strongest (JBL, end · edge) bracket the block, while the two weakest sit middle · buried — exactly the lost-in-the-middle reorder, applied to real retrieved deals."
+/>
+
+The demo line: *"I retrieved twenty candidate listings — that's 1101 tokens, more than four times my budget. The window packs the best four, evicts the other sixteen before they cost the model a thing, and places the two strongest picks at the start and end where the model reads best. Same evidence, but engineered to fit the RAM."*
 
 ---
 
