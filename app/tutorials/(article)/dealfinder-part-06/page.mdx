@@ -262,12 +262,12 @@ def llm_extract(text: str, client=None) -> ListingSpecs:
 ```
 
 <Callout tone="note">
-**Get your OpenRouter key (free, ~2 minutes).** [OpenRouter](https://openrouter.ai/) is one API in front of many LLM providers — OpenAI, Anthropic, Meta, Mistral and dozens more. You send a normal chat-completions request with a model string like `meta-llama/llama-3.3-70b-instruct`, and OpenRouter routes it to that provider; swapping models is a string change, not a new SDK. That flexibility is why the course uses it for every LLM call from here on.
+**Get your OpenRouter key (free, ~2 minutes).** [OpenRouter](https://openrouter.ai/) is one API in front of many LLM providers — OpenAI, Anthropic, Meta, Mistral and dozens more. You send a normal chat-completions request with a model string like `google/gemma-4-31b-it:free`, and OpenRouter routes it to that provider; swapping models is a string change, not a new SDK. That flexibility is why the course uses it for every LLM call from here on.
 1. Sign in at [openrouter.ai](https://openrouter.ai/) (Google/GitHub).
 2. Go to **Settings → Keys** ([openrouter.ai/settings/keys](https://openrouter.ai/settings/keys)) → **Create Key** → copy the `sk-or-v1-…` value.
 3. Add `OPENROUTER_API_KEY=sk-or-v1-…` to the companion's `.env`.
 
-Models tagged `:free` cost nothing (rate-limited); paid models bill per token from a prepaid balance — a few dollars covers the whole course. No key? Every lesson still runs: `llm_extract` falls through to the deterministic `rule_extract` path below.
+Models tagged `:free` cost nothing (just rate-limited), and **that's all this course uses** — `llm.models()` defaults to a free-only tier (`google/gemma-4-31b-it:free` → `openai/gpt-oss-20b:free` → `openrouter/free`), so you never spend a cent. Want higher quality? Point `OPENROUTER_MODELS` at a paid model — it bills per token from a prepaid balance (a few dollars covers everything), but it's strictly opt-in. No key at all? Every lesson still runs: `llm_extract` falls through to the deterministic `rule_extract` path below.
 </Callout>
 
 With a key set, the LLM path runs and — asked for the *true manufacturer* — can normalize the sub-brand quirk the deterministic path can't. On the real snapshot titles, a capable model returns:

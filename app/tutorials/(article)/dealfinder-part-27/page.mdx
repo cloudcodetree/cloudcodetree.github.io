@@ -168,10 +168,13 @@ The real tier order comes from `llm.models()`:
 
 ```python
 # default tiers = llm.models():
-# ['deepseek/deepseek-chat', 'meta-llama/llama-3.3-70b-instruct:free']
+# ['google/gemma-4-31b-it:free', 'openai/gpt-oss-20b:free', 'openrouter/free']
 ```
 
-Cheap paid model first, free fallback second. The four routing scenarios, tested with an injected transport (no live API key required):
+Strongest free model first, resilient auto-router last — every tier is a `:free`
+endpoint, so escalation never costs a cent (point `OPENROUTER_MODELS` at paid
+models and the identical routing logic escalates across those instead). The four
+routing scenarios, tested with an injected transport (no live API key required):
 
 ```python
 # cheapest tier answers:
