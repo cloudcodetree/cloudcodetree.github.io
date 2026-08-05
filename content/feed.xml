@@ -10,8 +10,150 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 05 Aug 2026 04:09:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 05 Aug 2026 12:05:00 +0000</lastBuildDate>
 
+
+
+    <item>
+      <title>Remote Control Requires User-Scope Enable Now — and How --teleport Pulls a Cloud Session Into Your Terminal</title>
+      <link>https://code.claude.com/docs/en/remote-control</link>
+      <guid isPermaLink="false">2026-08-05-06-claude-code-remote-control-user-scope-teleport</guid>
+      <pubDate>Wed, 05 Aug 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>August 4 breaking change: repo-local .claude/settings.json can no longer enable Remote Control — fix it with /config. Plus: claude --teleport pulls any cloud session into your local terminal.</description>
+      <content:encoded><![CDATA[
+**August 4 change: repo-local `.claude/settings.json` can no longer enable Remote Control — fix it with `/config` in Claude Code. Bonus: `claude --teleport` pulls any cloud session to your local terminal.**
+
+Two changes in one: a Claude Code scope fix you need to make, and a workflow that makes web → local context hand-off seamless.
+
+## Breaking change: Remote Control must be enabled at user scope
+
+Before August 4, you could add `"remoteControlEnabled": true` to your project's `.claude/settings.json` or `.claude/settings.local.json` and Remote Control would auto-start. As of the August 4 release, repo-local settings can no longer *enable* it — they can still *disable* it, but enabling requires user-scoped config.
+
+**Fix it in 30 seconds:**
+
+```bash
+# Inside a Claude Code session:
+/config remoteControlEnabled true
+```
+
+This writes to `~/.claude/settings.json` at user scope, persists across all your projects, and allows repo-level settings to disable it where needed (e.g., sensitive repos). You only need to do this once per machine.
+
+The security rationale: a repository's settings file should not escalate your device's Remote Control exposure — that decision belongs to the machine owner, not the project.
+
+## Bonus: --teleport pulls a cloud session to your local terminal
+
+Remote Control is also what powers `claude --teleport`. If you kick off a task at [claude.ai/code](https://claude.ai/code) (or on mobile), `--teleport` pulls the full conversation history and working branch into your local terminal:
+
+```bash
+claude --teleport
+# → interactive picker of your active cloud sessions
+# → switches your local shell to the cloud session's git branch
+# → continue with all context intact
+```
+
+This is one-way (cloud → local). For the reverse — start locally, monitor from your phone — `/remote-control` starts a session you can observe and redirect from any browser. Enable it first with `/config remoteControlEnabled true` at user scope.
+
+**Sources:** [Remote Control docs — Claude Code](https://code.claude.com/docs/en/remote-control) · [Claude Code on the web docs](https://code.claude.com/docs/en/claude-code-on-the-web) · [Session teleportation guide — proflead.dev](https://proflead.dev/posts/claude-code-session-teleportation/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>MiniMax Opens H3 Video Weights — With a Geo Carve-Out — and Grok Voice 2.0 Becomes the Default Today</title>
+      <link>https://www.minimax.io/news/minimax-h3-open-source</link>
+      <guid isPermaLink="false">2026-08-05-05-minimax-h3-grok-voice-2-open-multimodal</guid>
+      <pubDate>Wed, 05 Aug 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>MiniMax H3 open weights on HuggingFace (Aug 3, US/EU/UK/Korea excluded); Grok Voice Think Fast 2.0 becomes grok-voice-latest today at $0.08/min.</description>
+      <content:encoded><![CDATA[
+**MiniMax H3 open weights hit HuggingFace on August 3 (US/EU/UK/Korea excluded from local use); Grok Voice Think Fast 2.0 becomes `grok-voice-latest` today.**
+
+**MiniMax H3 (August 3).** MiniMax published weights for H3 — an omni-modal video model that generates 2K, 15-second clips with native stereo audio — under a community license on Hugging Face with native ComfyUI support. Two checkpoints: FL2VA (text-to-video and first/last-frame conditioning) and Ref2VA (reference-based generation). **Critical caveat:** the license explicitly excludes the United States, EU, UK, and South Korea from local deployment. US and EU developers can use H3 via the API but not run the weights locally. Total download: ~42.5 GB.
+
+**Grok Voice Think Fast 2.0 (today, August 5).** As of today, `grok-voice-latest` routes to Think Fast 2.0: 1.5–2× better transcription WER across 24 languages, ~60% fewer reasoning tokens, and improved multi-turn tool use. Price unchanged at $0.08/min. The API is compatible with the OpenAI Realtime API spec. Lock in `grok-voice-think-fast-1.0` explicitly if you need to stay on the old version.
+
+**Why it matters:** Open video generation is becoming real infrastructure — even with restrictions, H3's ComfyUI launch accelerates pipelines for those who can run it locally. And Grok's OpenAI Realtime-compatible voice API means engineers can test a second voice provider without rewriting their stack.
+
+**Sources:** [MiniMax H3 Open Source Announcement](https://www.minimax.io/news/minimax-h3-open-source) · [H3 geo restriction details — TechTimes](https://www.techtimes.com/articles/322904/20260804/minimax-h3-open-weights-exclude-us-eu-uk-korea-local-deployment.htm) · [Grok Voice API — xAI](https://x.ai/news/grok-voice-agent-api) · [xAI release notes](https://releasebot.io/updates/xai)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Every Embedding Starts With a Cut: Document Chunking for RAG With RecursiveCharacterTextSplitter</title>
+      <link>https://www.youtube.com/watch?v=u5EsP3o32ds</link>
+      <guid isPermaLink="false">2026-08-05-04-document-chunking-recursive-splitter-rag</guid>
+      <pubDate>Wed, 05 Aug 2026 12:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Embeddings</category>
+      <category>Best Practices</category>
+      <description>Before embeddings, documents must be split into overlapping chunks. RecursiveCharacterTextSplitter cuts at paragraphs, lines, then sentences — preserving natural structure regardless of document type.</description>
+      <media:content url="https://img.youtube.com/vi/u5EsP3o32ds/maxresdefault.jpg" medium="image" type="image/jpeg" />
+      <media:thumbnail url="https://img.youtube.com/vi/u5EsP3o32ds/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**Before embeddings, documents must be split into overlapping chunks. RecursiveCharacterTextSplitter cuts at paragraphs first, then lines, then sentences — preserving natural structure no matter the document type.**
+
+You know about embeddings and vector databases. But there's a step that comes first — one most tutorials gloss over and production RAG engineers lose sleep over: chunking. Chunk too small and you lose context; chunk too big and the embedding averages over unrelated content. Get it wrong and retrieval returns the right document at the wrong granularity.
+
+**What you'll be able to do after this:**
+- Pick chunk size and overlap sensibly for any document type
+- Split any text with `RecursiveCharacterTextSplitter` in three lines of Python
+- Know when to step up to semantic chunking (embedding-based boundary detection)
+
+**Start here:** [LangChain Text Splitting — RecursiveCharacterTextSplitter (Video #32)](https://www.youtube.com/watch?v=u5EsP3o32ds) — 15 minutes from a full LangChain course; shows the concept, the code, and what goes wrong with naive splitting.
+
+## The concept
+
+Every chunk is a passage your retriever will embed and later return as context. Two parameters drive it:
+
+- **chunk_size**: max characters per chunk. Start at 500–1000.
+- **chunk_overlap**: characters repeated at chunk boundaries. Start at 10–20% of chunk_size — a sentence straddling a cut survives whole in at least one chunk.
+
+`RecursiveCharacterTextSplitter` tries the most natural boundary first: paragraph break `
+
+` → line break `
+` → sentence `. ` → word ` ` → character. A 1000-character chunk that ends mid-paragraph gets cut at the nearest paragraph break, not at character 1000.
+
+## Run it
+
+```python
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    separators=["
+
+", "
+", ". ", " ", ""],
+)
+
+with open("my_document.txt") as f:
+    text = f.read()
+
+chunks = splitter.create_documents([text])
+print(f"{len(chunks)} chunks, first: {chunks[0].page_content[:120]!r}")
+```
+
+Each `Document` carries `.page_content` (the text) and `.metadata` (source filename, page number, anything you want to filter on later).
+
+## When to step up
+
+Recursive splitting is the right default for most text. Switch to **semantic chunking** (`SemanticChunker` in `langchain-experimental`) when documents mix unrelated topics in the same section — long Wikipedia articles, manuals with many subsections. Cost: you pay embedding inference at ingest, not just at query time.
+
+**Sources:** [LangChain RecursiveCharacterTextSplitter docs](https://python.langchain.com/docs/how_to/recursive_text_splitter/) · [Best Chunking Strategies for RAG 2026 — Firecrawl](https://www.firecrawl.dev/blog/best-chunking-strategies-rag) · [LangChain Text Splitting Video #32 — YouTube](https://www.youtube.com/watch?v=u5EsP3o32ds)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>One Claude Code Prompt Fans Out to 100 Parallel Agents: Dynamic Workflows for Bulk Tasks</title>
