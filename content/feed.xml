@@ -10,9 +10,194 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 05 Aug 2026 12:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 05 Aug 2026 20:07:00 +0000</lastBuildDate>
 
 
+
+
+    <item>
+      <title>Stop Parsing LLM JSON by Hand: Instructor + Pydantic Gets You Validated Python Objects Every Time</title>
+      <link>https://python.useinstructor.com/</link>
+      <guid isPermaLink="false">2026-08-05-09-instructor-structured-output-agents</guid>
+      <pubDate>Wed, 05 Aug 2026 20:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>The instructor library patches any LLM client to enforce a Pydantic schema and retry on validation failures — reliable structured output from any LLM in under 10 lines.</description>
+      <content:encoded><![CDATA[
+**The instructor library patches your OpenAI/Anthropic/Ollama client to enforce a Pydantic schema and automatically retry on validation failures — reliable structured output from any LLM in under 10 lines.**
+
+Every agent eventually needs to extract structured data from an LLM: a list of entities, a classification, a tool call argument. The raw approach — JSON mode, then `json.loads()`, then manual validation — breaks on malformed output and you write retry logic from scratch every time. Instructor automates the whole loop.
+
+## How it works
+
+Define a Pydantic model, patch your client once, and call `.messages.create()` with `response_model=`:
+
+```bash
+pip install instructor
+```
+
+```python
+import instructor
+from anthropic import Anthropic
+from pydantic import BaseModel
+from typing import Literal
+
+class MovieReview(BaseModel):
+    title: str
+    sentiment: Literal["positive", "negative", "neutral"]
+    score: int  # 1-10
+    summary: str
+
+client = instructor.from_anthropic(Anthropic())
+
+review = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=512,
+    messages=[{
+        "role": "user",
+        "content": "Review: 'Dune Part 3 was stunning but three hours long.' Extract a structured review."
+    }],
+    response_model=MovieReview,
+)
+
+print(review.sentiment)   # "positive"
+print(review.score)       # 8
+print(type(review))       # <class '__main__.MovieReview'>
+```
+
+You get back a validated Python object, not a string or dict. If the model returns invalid JSON or a score outside 1–10, instructor feeds the Pydantic validation error back to the model and retries — up to 3 times by default. The loop is invisible to your code.
+
+## Why this matters for agents
+
+Reliable structured output is the invisible foundation of every agent tool call. When your agent decides `{"action": "search", "query": "..."}`, a validation failure means a dropped tool invocation. Instructor makes that failure mode disappear.
+
+It works across providers — the same `response_model=` API regardless of whether the provider uses native structured output, tool calling, or JSON mode:
+
+```python
+# One-line provider swap:
+client = instructor.from_openai(OpenAI())          # OpenAI native structured output
+client = instructor.from_anthropic(Anthropic())     # Claude tool-calling under the hood
+client = instructor.from_ollama(...)                # local Ollama JSON mode
+```
+
+**Sources:** [instructor docs](https://python.useinstructor.com/) · [Instructor + Pydantic video — YouTube](https://www.youtube.com/watch?v=3xUW1Do9zOs) · [Beginner's guide — DEV Community](https://dev.to/srujana_maddula_3b6ab05ff/a-beginners-guide-to-instructor-get-structured-outputs-from-llms-3lco) · [Production validation guide](https://devopsboys.com/blog/llm-output-validation-instructor-pydantic-production-2026)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Was Down 7.5 Hours Today — What It Means for Engineers Building on the API</title>
+      <link>https://www.androidauthority.com/claude-outage-august-5-2026-3694847/</link>
+      <guid isPermaLink="false">2026-08-05-08-claude-outage-7h-resilience</guid>
+      <pubDate>Wed, 05 Aug 2026 20:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Mythos 5, Fable 5, Opus 5, and Sonnet 5 all went down from 3:05 AM to 10:34 AM ET — the 164th documented Anthropic outage of 2026.</description>
+      <content:encoded><![CDATA[
+**All four Claude frontier models — Mythos 5, Fable 5, Opus 5, Sonnet 5 — went down simultaneously for 7.5 hours today; this was Anthropic's 164th documented outage since January.**
+
+The incident started at 3:05 AM ET when elevated errors hit all four models at once. Engineers pushed an initial fix at 9:08 AM ET, then a second Opus 5-specific degradation emerged at 9:51 AM, requiring its own resolution path. Both were fully resolved by 10:34 AM ET — a combined 7 hours 29 minutes of disruption.
+
+According to StatusGator, Anthropic has experienced 164 outages in 2026 — roughly one incident every 1.3 days. The platform's 90-day uptime figures translate to 14–23 hours of downtime per service per quarter, well short of the 99.9% enterprise standard.
+
+**Why it matters:** Any agentic pipeline that calls a single provider with no fallback inherits that provider's downtime. Today's outage is a good prompt to add a model fallback chain — OpenRouter makes this a one-field change in your API call (see today's tutorial).
+
+**Sources:** [Claude outage — Android Authority](https://www.androidauthority.com/claude-outage-august-5-2026-3694847/) · [Outage history — StatusGator](https://statusgator.com/services/claude/outage-history) · [Benzinga](https://www.benzinga.com/markets/tech/26/08/60943268/is-claude-down-anthropic-says-its-working-on-a-fix-after-users-report-widespread-issues)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>One API Key, 500+ Models, Automatic Fallback: Getting Started with OpenRouter</title>
+      <link>https://www.youtube.com/watch?v=l-JZm60cpUU</link>
+      <guid isPermaLink="false">2026-08-05-07-openrouter-model-routing-fallback</guid>
+      <pubDate>Wed, 05 Aug 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>LLM</category>
+      <category>Self-Hosting</category>
+      <category>Developer Tools</category>
+      <description>OpenRouter gives you one OpenAI-compatible endpoint for 500+ models across 70+ providers — define a fallback chain so your app stays live when any model or provider goes down.</description>
+      <media:content url="https://img.youtube.com/vi/l-JZm60cpUU/maxresdefault.jpg" medium="image" type="image/jpeg" />
+      <media:thumbnail url="https://img.youtube.com/vi/l-JZm60cpUU/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**One OpenRouter key + one endpoint = access to 500+ models across 70+ providers — define a fallback chain so your app stays live when any model or provider goes down.**
+
+What you'll be able to do after this:
+- Call Claude, GPT-4.1, Gemini, Llama, Mistral, and hundreds more from a single `openrouter.ai/api/v1` endpoint using your existing OpenAI SDK
+- Define a fallback chain in the request body so your app stays up when a model hits a rate limit or outage
+- Route to the fastest available provider using the `:nitro` suffix — no extra code
+
+**Start here:** [Accessing Multiple AI Models With the OpenRouter API — Real Python (June 2026)](https://www.youtube.com/watch?v=l-JZm60cpUU) — full walkthrough from setup to intelligent routing.
+
+## Why OpenRouter
+
+Three providers means three SDK configs, three billing accounts, and three error handlers. OpenRouter collapses it to one. The API is OpenAI-compatible, so switching is one `base_url` change in your existing code.
+
+## Setup
+
+```bash
+pip install openai
+export OPENROUTER_API_KEY="sk-or-..."
+```
+
+## Basic call
+
+```python
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ["OPENROUTER_API_KEY"],
+)
+
+response = client.chat.completions.create(
+    model="anthropic/claude-sonnet-4-6",
+    messages=[{"role": "user", "content": "Explain LoRA in one sentence."}],
+)
+print(response.choices[0].message.content)
+```
+
+Swap `model` to `openai/gpt-4.1`, `google/gemini-3.5-flash`, or any of the 500+ slugs at [openrouter.ai/models](https://openrouter.ai/models). No other changes.
+
+## Fallback chains
+
+Pass a `models` array in priority order:
+
+```python
+response = client.chat.completions.create(
+    extra_body={
+        "models": [
+            "anthropic/claude-sonnet-4-6",   # primary
+            "openai/gpt-4.1",                # if Claude rate-limits or is down
+            "google/gemini-3.5-flash",       # last resort
+        ]
+    },
+    messages=[{"role": "user", "content": "..."}],
+)
+```
+
+OpenRouter triggers the next model automatically on context-length errors, moderation flags, rate limits, or provider downtime — no retry logic needed in your code.
+
+## Speed routing
+
+Append `:nitro` to any model slug to route to the fastest available provider serving it:
+
+```python
+model="anthropic/claude-haiku-4-5:nitro"
+```
+
+The provider switches invisibly; your code stays the same.
+
+**Sources:** [How OpenRouter Model Routing Works — OpenRouter Blog](https://openrouter.ai/blog/insights/model-routing/) · [Complete Python guide — Real Python](https://realpython.com/openrouter-api/) · [Video tutorial — Real Python on YouTube](https://www.youtube.com/watch?v=l-JZm60cpUU)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Remote Control Requires User-Scope Enable Now — and How --teleport Pulls a Cloud Session Into Your Terminal</title>
