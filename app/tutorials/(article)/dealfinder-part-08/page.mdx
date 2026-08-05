@@ -202,8 +202,12 @@ class AmazonSource:
 
 Two field-mapping notes the actor forces on you: its `price` is a `{value, currency}` **object**, not a number; and it returns **no product URL**, so you reconstruct the canonical one from the `asin` (`amazon.com/dp/<ASIN>`). Everything else maps onto the shared `Product` exactly like the other connectors — which is the whole point of the protocol: a new retailer is a new class, nothing downstream changes.
 
+<Callout tone="warn">
+**Amazon costs money — so it's off by default.** There is no free way to source Amazon: the Apify Amazon actors are pay-per-event or monthly-rental (the `junglee` one is a 14-day trial then ~$40/mo), Amazon's PA-API needs an approved affiliate with prior sales, and direct scraping is blocked. So `AmazonSource` — and the other metered connectors (the Apify Google-Shopping actor, Firecrawl) — carry `metered = True` and their `available()` returns `False` unless you explicitly opt in with `DEALFINDER_ENABLE_PAID_SOURCES=1`. **The default app runs entirely on free sources** (eBay Browse API, RapidAPI free tier, BestBuy, Shopify, iTunes) and never touches a service that can charge you. This is a deliberate pattern worth copying: a paid capability should be *opt-in*, never a footgun that quietly bills you.
+</Callout>
+
 <Callout tone="note">
-**The tier-2 trade-off, honestly.** The Apify Amazon actor takes ~20-25 seconds per run and costs credits, so `AmazonSource` sits at **tier 2** — Part 9's aggregator only escalates to it when the fast tier-1 APIs (eBay, RapidAPI) don't already fill the result target, which for common queries they usually do. So on a typical search you *won't* see Amazon unless tier 1 comes up thin. Set `DEALFINDER_TARGET_RESULTS` high (the coverage-audit knob from Part 9) to force every tier and pull Amazon in. If you want Amazon on *every* search, the right move isn't tier 1 (that would add ~25s to all searches) — it's an async parallel fan-out with a per-source timeout, or caching Amazon results into the pgvector store (Part 13) so they're queryable instantly.
+**Two other things to know once you *do* opt in.** (1) The Amazon actor takes ~20-25 s per run, so `AmazonSource` is **tier 2** — Part 9's aggregator only escalates to it when the fast tier-1 APIs come up thin, which for common queries they don't; force it with the `DEALFINDER_TARGET_RESULTS` coverage-audit knob. (2) If you want Amazon on *every* search without the latency tax, the answer isn't tier 1 (that adds ~25 s to all searches) — it's an async parallel fan-out with a per-source timeout, or caching Amazon results into the pgvector store (Part 13) so they serve instantly.
 </Callout>
 
 Forcing all tiers, Amazon takes its place in the merged, value-ranked results:
