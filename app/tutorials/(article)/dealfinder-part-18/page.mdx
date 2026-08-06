@@ -56,7 +56,7 @@ the SSE endpoint in `dealfinder/serve.py`, and the `render_badge()` function in
 - Write the `async for source, batch in aggregate_stream(q)` generator pattern and wire it to a `text/event-stream` FastAPI endpoint.
 - Write the `new EventSource(url)` listener in Vanilla JS that appends deal cards as each SSE event arrives.
 - Toggle between the live aggregator (keyword mode) and pgvector semantic search (semantic mode) within the same UI by pointing the query at different endpoints.
-- Implement `render_badge(deal_pct, residual_frac)` and verify all four verdicts: Anker Q20i at $44.99 → **DEAL**, an at-median price → **FAIR**, Bose QC45 at $46 → **SUSPICIOUS**, and Sony XM6 at $399.99 → **OVERPRICED**.
+- Implement `render_badge(deal_pct, residual_frac)` and verify all four verdicts: Anker Q20i at $44.99 → **DEAL**, Sony XM5 at $162.97 (on its median) → **FAIR**, Bose QC45 at $46 → **SUSPICIOUS**, and Sony XM6 at $399.99 → **OVERPRICED**.
 
 ---
 
@@ -381,19 +381,20 @@ data: {"query": "noise cancelling headphones", "count": 42, "median_price": 59.9
 
 Cards paint as each frame lands — no waiting for the slowest source. The exact counts, prices, and `median_price` vary run to run because these are live listings; the point is the *streaming*, not fixed numbers.
 
-**Where the badge comes from.** The stream shows raw offers (title, price, source). The two-signal verdict is computed on the frozen snapshot and exposed at `/deal/{id}`, which is where `render_badge` runs. Ask it about the three hero-cast items and the badges are exact and reproducible:
+**Where the badge comes from.** The stream shows raw offers (title, price, source). The two-signal verdict is computed on the frozen snapshot and exposed at `/deal/{id}`, which is where `render_badge` runs. Ask it about the four hero-cast items and the badges are exact and reproducible:
 
 | `/deal/{id}` → | Price | deal_pct | residual_frac | fair | Badge |
 |---|---|---|---|---|---|
 | Anker Soundcore Q20i | $44.99 | +0.724 (72% under the $162.97 capture median) | +0.585 | $108.33 | **DEAL** |
+| Sony WH-1000XM5 (Costco) | $162.97 | 0.000 (at the median) | +0.428 | $285.15 | **FAIR** |
 | Bose QuietComfort 45 | $46.00 | +0.718 (72% under median) | +0.839 | $285.15 | **SUSPICIOUS** |
 | Sony WH-1000XM6 | $399.99 | −1.454 (145% above median) | −0.403 | $285.15 | **OVERPRICED** |
 
-The Anker and Bose sit at nearly the same `deal_pct` — both ~72% below the $162.97 same-query capture median. The `residual_frac` is what separates them: 0.585 for the Anker (fair $108.33, actual $44.99 — a real stretch but plausible) versus 0.839 for the Bose (fair $285.15, actual $46.00 — a tier-4 flagship at 16% of its predicted value). That crossing of *both* thresholds is what flips the badge to SUSPICIOUS.
+The Anker and Bose sit at nearly the same `deal_pct` — both ~72% below the $162.97 same-query capture median. The `residual_frac` is what separates them: 0.585 for the Anker (fair $108.33, actual $44.99 — a real stretch but plausible) versus 0.839 for the Bose (fair $285.15, actual $46.00 — a tier-4 flagship at 16% of its predicted value). That crossing of *both* thresholds is what flips the badge to SUSPICIOUS. The XM5 at $162.97 sits right on its capture median (`deal_pct = 0`), residual below the suspicious line — the textbook **FAIR** case.
 
 <DealResidual />
 
-The Bose's `verdict().reason` says exactly that: *"72% under median but 84% under model fair price $285 — too far below to be real (likely refurb/mislisted)."* The badge warns; it does not accuse. The fourth badge, **FAIR**, is the near-median case (`0 ≤ deal_pct < 0.15`, residual below the suspicious line) — no cast item sits there for this query, but the parametrized test below pins it.
+The Bose's `verdict().reason` says exactly that: *"72% under median but 84% under model fair price $285 — too far below to be real (likely refurb/mislisted)."* The badge warns; it does not accuse.
 
 **Semantic toggle.** Click "by meaning (saved)" and resubmit. In `meaning` mode the UI drops SSE and does a single `fetch("/semantic?q=…")` — pgvector nearest-neighbour over the 384-dim bge-small-en-v1.5 embeddings when `DATABASE_URL` is set, or the frozen-snapshot fallback offline. Because the embeddings encode meaning, rephrasing to "active noise reduction over-ear" still surfaces the Sony XM5/XM6 that a keyword match would miss — the semantic advantage the toggle makes tangible.
 
