@@ -10,10 +10,245 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 06 Aug 2026 12:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 06 Aug 2026 20:04:00 +0000</lastBuildDate>
 
+    <item>
+      <title>What Did Claude Actually Do? Auditing Unattended Runs With JSONL Session Logs</title>
+      <link>https://dev.to/boucle2026/how-to-see-everything-claude-code-does-audit-trail-hook-1g9j</link>
+      <guid isPermaLink="false">2026-08-06-09-claude-code-jsonl-session-audit-trail</guid>
+      <pubDate>Thu, 06 Aug 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code writes every tool call to JSONL logs in ~/.claude/projects/. One PostToolUse hook or three open-source tools turn those logs into a full audit trail for any background run.</description>
+      <content:encoded><![CDATA[
+**Claude Code writes every tool call to JSONL logs in ~/.claude/projects/. One PostToolUse hook or three open-source tools turn those logs into a full audit trail for any background run.**
 
+When Claude Code finishes a background task — a cron-triggered publish run, a CI pipeline, an overnight refactor — you want to know: which files did it touch? Which commands did it run? The answer lives in ~/.claude/.
 
+## Where the logs are
+
+Claude Code writes session transcripts to:
+
+```
+~/.claude/projects/<url-encoded-project-path>/<session-id>.jsonl
+```
+
+Each `.jsonl` file is one session, one JSON object per line, appended as the session runs. Crash-safe: a mid-session abort leaves a valid truncated file.
+
+Each line is one event. Tool events look like:
+
+```json
+{"type":"tool_use","id":"toolu_01XYZ","name":"Write","input":{"file_path":"/project/src/foo.ts","content":"..."}}
+{"type":"tool_result","tool_use_id":"toolu_01XYZ","content":[{"type":"text","text":"File written"}]}
+```
+
+## Quick audit with jq
+
+```bash
+# All files written in the last session
+cd ~/.claude/projects
+LATEST=$(ls -t */*.jsonl | head -1)
+jq -r 'select(.type == "tool_use" and .name == "Write") | .input.file_path' "$LATEST"
+
+# All bash commands run
+jq -r 'select(.type == "tool_use" and .name == "Bash") | .input.command' "$LATEST"
+
+# Token spend per turn
+jq 'select(.usage != null) | .usage' "$LATEST"
+```
+
+## Real-time audit hook (PostToolUse)
+
+Add this to `.claude/settings.json` to log every tool call as it happens — no after-the-fact parsing:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [{
+          "type": "command",
+          "command": "jq -c '{ts: now|todate, tool: .tool_name, input: .tool_input}' >> ~/.claude/session-logs/$(date +%Y-%m-%d).jsonl"
+        }]
+      }
+    ]
+  }
+}
+```
+
+This produces one JSON line per tool call in `~/.claude/session-logs/YYYY-MM-DD.jsonl`:
+
+```json
+{"ts":"2026-08-06T20:00:00Z","tool":"Write","input":{"file_path":"/project/content/feed.xml"}}
+{"ts":"2026-08-06T20:00:01Z","tool":"Bash","input":{"command":"node scripts/ingest-feed.mjs"}}
+```
+
+## Graphical viewers
+
+- **[claude-code-trace](https://github.com/delexw/claude-code-trace)** — TUI/web/desktop viewer. Browse sessions, inspect tool call trees, live-tail an active session. `npx @delexw/claude-code-trace`
+- **[cc-audit-log](https://github.com/yurukusa/cc-audit-log)** — scans all sessions under ~/.claude/projects/, classifies actions (file writes, edits, git, bash), outputs a human-readable timeline. `npx cc-audit-log`
+- **[claude-code-log](https://github.com/daaain/claude-code-log)** — converts a JSONL transcript to readable HTML or Markdown for sharing a session trace with your team.
+
+For teams running Claude Code in CI or as a scheduled background agent, the PostToolUse hook is a five-minute change that pays off the first time something unexpected happens.
+
+**Sources:** [How to See Everything Claude Code Does — DEV Community](https://dev.to/boucle2026/how-to-see-everything-claude-code-does-audit-trail-hook-1g9j) · [claude-code-trace — GitHub](https://github.com/delexw/claude-code-trace) · [cc-audit-log — GitHub](https://github.com/yurukusa/cc-audit-log) · [Claude Code JSONL format — claude-dev.tools](https://claude-dev.tools/docs/jsonl-format)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Google's AI Leadership Fractures: Hassabis to Chairman, Jeff Dean Exits to Found Discovery Loop</title>
+      <link>https://fortune.com/2026/08/05/demis-hassabis-steps-down-google-deepmind-ai-shakeup/</link>
+      <guid isPermaLink="false">2026-08-06-07-google-deepmind-leadership-exodus</guid>
+      <pubDate>Thu, 06 Aug 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>Demis Hassabis steps back from Google DeepMind CEO to chairman/Alphabet chief scientist; Jeff Dean, Sanjay Ghemawat, Oriol Vinyals, and Quoc Le exit to co-found Discovery Loop.</description>
+      <content:encoded><![CDATA[
+**Two Google AI exits announced August 5: Demis Hassabis steps back as DeepMind CEO to become Alphabet Chief Scientist; Jeff Dean, Sanjay Ghemawat, Oriol Vinyals, and Quoc Le depart to co-found Discovery Loop.**
+
+Two announcements on August 5 signal a structural shift at Google's AI operation.
+
+**Hassabis out as day-to-day CEO.** Demis Hassabis — who co-founded DeepMind in 2010 and has led it through the Gemini era — steps back from the CEO role. Koray Kavukcuoglu, a 13-year DeepMind veteran who served as its CTO and Google's chief AI architect, takes over as CEO. Hassabis becomes Alphabet's Chief Scientist and Chairman of Google DeepMind, focusing on longer-horizon AGI research.
+
+**Jeff Dean exits after 27 years.** Dean — author of the MapReduce and BigTable papers, lead architect of TensorFlow, and Google's chief scientist — is co-founding Discovery Loop with Sanjay Ghemawat (Google Senior Fellow, GFS co-author), Oriol Vinyals (VP of research at Google DeepMind, a technical lead on Gemini), and Quoc Le (Google Brain co-founder, AutoML-Zero). Discovery Loop's mission: automate the experimental loop of scientific research — proposing experiments, running them, evaluating results, iterating. Google is a founding investor and cloud partner.
+
+**Why it matters:** four of Google's most influential AI infrastructure and research figures departing in a single announcement is not routine churn. For teams building on Google infrastructure or Gemini APIs, the leadership transition signals a shift in priorities worth tracking — new AI leadership influences where platform investment goes.
+
+**Sources:** [Hassabis steps down — Fortune](https://fortune.com/2026/08/05/demis-hassabis-steps-down-google-deepmind-ai-shakeup/) · [Jeff Dean launches Discovery Loop — TechCrunch](https://techcrunch.com/2026/08/05/jeff-dean-and-other-top-ai-researchers-are-leaving-google-to-launch-their-own-startup/) · [Kavukcuoglu named CEO — Bloomberg](https://www.bloomberg.com/news/articles/2026-08-05/google-deepmind-boss-hassabis-moves-to-chair-role-in-shakeup/) · [Google shifts AI to California — Bloomberg](https://www.bloomberg.com/news/articles/2026-08-06/google-shifts-ai-power-to-california-in-race-against-anthropic-openai) · [Axios](https://www.axios.com/2026/08/06/googles-ai-leadership-shuffle)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Guaranteed JSON From Claude: Two Native API Patterns That Never Need a Retry Loop</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/structured-outputs</link>
+      <guid isPermaLink="false">2026-08-06-08-claude-api-structured-outputs-tool-use</guid>
+      <pubDate>Thu, 06 Aug 2026 20:02:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>The Claude API has two orthogonal structured-output patterns: output_config JSON schema mode constrains Claude's text response; strict:true on tool definitions guarantees schema-valid tool inputs.</description>
+      <content:encoded><![CDATA[
+**The Claude API offers two orthogonal structured-output patterns — output_config JSON schema mode for constrained text responses and strict:true tool definitions for schema-valid tool inputs — that together eliminate JSON parse failures from agentic pipelines.**
+
+**What you'll be able to do after this:**
+- Get parseable JSON from Claude every time without try/except retry loops
+- Guarantee tool call inputs match your schema exactly via grammar-constrained sampling
+- Combine both patterns to build reliable agentic pipelines where Claude calls tools AND returns structured data
+
+## The two patterns
+
+Pattern 1 controls what Claude *says* (its text response). Pattern 2 controls what Claude *does* (its tool call parameters). Both are orthogonal — use either or both together.
+
+**Pattern 1: output_config JSON schema (constrained text responses)**
+
+Pass an `output_config` block with a `json_schema` format. The API compiles your schema into a grammar and samples tokens only from schema-valid continuations — the response is always valid JSON matching your schema.
+
+```python
+import anthropic, json
+
+client = anthropic.Anthropic()
+
+schema = {
+    "type": "object",
+    "properties": {
+        "sentiment": {"type": "string", "enum": ["positive", "negative", "neutral"]},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "key_phrases": {"type": "array", "items": {"type": "string"}, "maxItems": 5}
+    },
+    "required": ["sentiment", "confidence", "key_phrases"],
+    "additionalProperties": False
+}
+
+response = client.messages.create(
+    model="claude-sonnet-4-6-20260901",
+    max_tokens=512,
+    output_config={
+        "format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "sentiment_result",
+                "schema": schema
+            }
+        }
+    },
+    messages=[{"role": "user", "content": "Analyze sentiment: 'The new API is incredibly fast and docs are clear.'"}]
+)
+
+result = json.loads(response.content[0].text)
+# {"sentiment": "positive", "confidence": 0.95, "key_phrases": ["incredibly fast", "docs are clear"]}
+# sentiment is always "positive", "negative", or "neutral" — no parse error possible
+```
+
+**Tradeoff:** complex schemas with many nested objects produce larger grammars that take longer to compile on the first call. Keep schemas focused; subsequent calls with the same schema benefit from server-side caching.
+
+**Pattern 2: strict:true tool use (guaranteed tool call parameters)**
+
+Add `"strict": true` as a top-level property in a tool definition. When Claude calls that tool, its `input` always matches your `input_schema` — no coercion, no extra keys, no missing required fields.
+
+```python
+tool = {
+    "name": "create_task",
+    "description": "Create a task in the task management system",
+    "strict": True,
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "title": {"type": "string", "maxLength": 100},
+            "priority": {"type": "integer", "minimum": 1, "maximum": 5},
+            "assignee_id": {"type": "string", "pattern": "^usr_[a-z0-9]+$"}
+        },
+        "required": ["title", "priority"],
+        "additionalProperties": False
+    }
+}
+
+response = client.messages.create(
+    model="claude-sonnet-4-6-20260901",
+    max_tokens=256,
+    tools=[tool],
+    messages=[{"role": "user", "content": "Create a high-priority task: 'Fix the auth bug', assigned to usr_abc123."}]
+)
+
+for block in response.content:
+    if block.type == "tool_use" and block.name == "create_task":
+        task_data = block.input
+        # task_data["priority"] is always 1-5, title always ≤ 100 chars — guaranteed
+```
+
+**Combining both patterns**
+
+You can set `strict: true` on tools AND pass `output_config` in the same request. Claude calls tools with guaranteed-valid parameters and returns a structured final response — the right shape for multi-step agentic workflows.
+
+```python
+response = client.messages.create(
+    model="claude-sonnet-4-6-20260901",
+    max_tokens=1024,
+    tools=[tool],           # strict: True
+    output_config={
+        "format": {
+            "type": "json_schema",
+            "json_schema": {"name": "summary", "schema": summary_schema}
+        }
+    },
+    messages=[{"role": "user", "content": "Create tasks for the auth bug fix and return a summary."}]
+)
+# Claude calls create_task (guaranteed-valid inputs) then returns structured summary JSON
+```
+
+This pattern is available on Claude Sonnet 4.5+, Opus 4.5+, Haiku 4.5+, and later.
+
+**Sources:** [Structured outputs — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) · [Strict tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use) · [How to implement tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/implement-tool-use)
+]]></content:encoded>
+    </item>
 
 
     <item>
