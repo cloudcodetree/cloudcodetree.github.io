@@ -48,8 +48,10 @@ Tests: `tests/test_dataset.py` — all must pass before you move on.
 8. [Balanced class weights: the simple fix](#balanced-class-weights-the-simple-fix)
 9. [Title embeddings as extended features](#title-embeddings-as-extended-features)
 10. [The temporal split hook (and why it is honest, not a trick)](#the-temporal-split-hook-and-why-it-is-honest-not-a-trick)
-11. [Tests that pin the reproducibility contract](#tests-that-pin-the-reproducibility-contract)
-12. [Where this goes next](#where-this-goes-next)
+11. [Seeing it in the product](#seeing-it-in-the-product)
+12. [Check it works](#check-it-works)
+13. [What you can demo now](#what-you-can-demo-now)
+14. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -303,12 +305,34 @@ Do not interpret the 202/68 output of `temporal_split(n=270)` as a validated tem
 
 ---
 
-## Tests that pin the reproducibility contract
+## Seeing it in the product
 
-`tests/test_dataset.py` contains seven tests. Run them:
+A labeled dataset is easy to describe and easy to fudge — so the app exposes the real one. A **`/dataset`** endpoint (`serve.py`) builds the labeled set from the frozen snapshot and returns its shape; the static UI adds a **"dataset (ML)"** mode that renders it:
+
+```python
+@app.get("/dataset")
+def dataset_report():
+    ds = dataset.build_labeled_dataset()
+    summary = dataset.imbalance_summary(ds)
+    tr, te = dataset.grouped_split(ds.queries, test_frac=0.25, seed=0)
+    return {"n_rows": int(ds.y.shape[0]), "n_queries": len(set(ds.queries)),
+            "counts": summary["counts"], "majority_class": summary["majority_class"],
+            "class_weights": summary["class_weights"],
+            "split": {"train_rows": len(tr), "test_rows": len(te),
+                      "train_queries": sorted({ds.queries[i] for i in tr}),
+                      "test_queries": sorted({ds.queries[i] for i in te}), "disjoint": ...}}
+```
+
+It is query-independent — the training set is fixed, so this mode ignores the search box. It just makes the distribution, the class weights, and the leakage-safe split visible on real data instead of asking you to trust the prose.
+
+---
+
+## Check it works
+
+**The reproducibility contract, offline.** `tests/test_dataset.py` contains seven tests:
 
 ```bash
-pytest tests/test_dataset.py -v
+pytest tests/test_dataset.py -v      # 7 passed
 ```
 
 Expected output:
@@ -342,6 +366,30 @@ What each test pins:
 **`test_with_embeddings_appends_384_dims`** — `build_labeled_dataset(with_embeddings=True)` → `X.shape == (270, 387)`.
 
 All seven must pass against the committed snapshot. If any fail, debug before moving on — a failing test here means the downstream ML parts (Parts 21–24) will be running on a dataset whose properties differ from what the prose describes.
+
+**The same numbers, live** (server on `:8000`):
+
+```bash
+curl -s http://localhost:8000/dataset \
+  | python -m json.tool | grep -E '"n_rows"|"majority_class"|"majority_fraction"|"train_rows"|"test_rows"|"disjoint"'
+```
+
+**Expect:** `n_rows: 270`, `majority_class: "overpriced"`, `majority_fraction: 0.4704`, `train_rows: 210`, `test_rows: 60`, `disjoint: true` — the same dataset the tests pin, served from the running app.
+
+---
+
+## What you can demo now
+
+Open the app, pick **"dataset (ML)"**, and hit Search (the box is ignored — the training set is fixed). The dataset you just built is now something you can *see*:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-19/dataset-inspector.png"
+  alt="The DealFinder dataset inspector: label distribution bars (deal 71, fair 40, suspicious 32, overpriced 127), balanced class weights with suspicious largest, and the leakage-safe 14/4 grouped split"
+  caption="Real capture: the labeled training set's shape — label distribution, balanced class weights, and the leakage-safe grouped split — rendered from the live /dataset endpoint."
+  lookFor="the label-distribution bars: overpriced dominates at 127 rows (47%), while suspicious is the rarest at 32 (11.9%) — and its balanced weight, 2.1094, is the largest, flagged '← largest', so the classifier can't ignore the rare trap class. Below, the leakage-safe grouped split: 14 train queries / 4 test queries (210 / 60 rows), marked '✓ disjoint — no query straddles the split', with the four held-out test queries named (android tablet, bluetooth speaker, soundbar, usb c hub). Every number here matches tests/test_dataset.py exactly."
+/>
+
+The demo line: *"This is the training set the next parts learn from — 270 labeled rows, and it's honestly skewed: nearly half are 'overpriced', so a model that shouts 'overpriced' at everything scores 47% for free. The balanced weights push back — the rarest class, 'suspicious', gets the biggest weight. And the split is by whole query, not by row, so a near-duplicate of a training listing can never leak into the test set."*
 
 ---
 
