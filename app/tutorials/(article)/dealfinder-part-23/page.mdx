@@ -308,7 +308,6 @@ All four pass against the committed snapshot. They are part of the same `pytest 
 
 ## Where this goes next
 
-- **Part 22 — Experiment tracking & model registry** (previous): log every training run, compare metrics across experiments, and register the model whose quality this eval harness now gates.
 - **Part 24 — Closing the MLOps loop** (next): drift detection, a retrain trigger, and canary promotion — where a retrained model must clear `precision@5 >= 0.80` on this same golden set before it ships.
 
 The eval gate you built here travels with the system. In Part 24, a drift detector triggers a retrain, and the retrained model must clear `precision@5 >= 0.80` on this same golden set before it is promoted. In Part 28, the CI gate calls `python -m dealfinder.run_evals` before building the Docker image. In Part 36, the Playwright end-to-end suite asserts the DEAL/FAIR/SUSPICIOUS/OVERPRICED badges match the labels in this golden set. The golden set you hand-labeled in this part is a living test fixture for the entire course.

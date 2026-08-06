@@ -478,9 +478,7 @@ The demo line: *"the same deal engine you built is now a tool any AI client can 
 
 ## Where this goes next
 
-**Back — Part 11 — The agent that ties it together** built the ReAct loop and defined `score_deal`, `search_deals`, and `recommend` as Python callables inside the agent. Part 12 promotes exactly those callables to MCP tools — the same logic, now accessible to any client without bespoke integration code.
-
-**Forward — Part 13 — pgvector persistence + semantic search** introduces a live-data backend: real deals persisted to Postgres with an HNSW cosine index. The `search_deals` MCP tool registered here will be updated in Part 13 to query the pgvector store instead of the frozen snapshot, making the server live without changing its interface or its clients.
+**Part 13 — pgvector persistence + semantic search** introduces a live-data backend: real deals persisted to Postgres with an HNSW cosine index. The `search_deals` MCP tool registered here will be updated in Part 13 to query the pgvector store instead of the frozen snapshot, making the server live without changing its interface or its clients.
 
 ---
 

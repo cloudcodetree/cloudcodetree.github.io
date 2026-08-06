@@ -308,8 +308,7 @@ The demo line: *"same product in, two different neighborhoods out — one from t
 
 ## Where this goes next
 
-- **Back — Part 3 — Is it a good deal? Median vs. model:** Part 3 built the two-signal deal score that separates a genuine deal from a suspicious bargain. This part deliberately keeps the recommenders pure similarity — neither `similar_products` nor `collaborative_recommend` knows about deal quality. Combining *similarity* with *value* into one ranking is the next step.
-- **Forward — Part 5 — Semantic search: embeddings, BM25, RRF, rerank:** Part 5 reuses the `data/embeddings/electronics-2026-07.title-bge-small.npz` cache as its vector index, layers BM25 keyword retrieval and reciprocal-rank fusion on top of the same 384-dim vectors, and then re-ranks by deal score — so `search_catalog("noise cancelling headphones")` surfaces the honest Anker Soundcore Q20i ($44.99) at rank 1 and demotes the too-good-to-be-true Bose trap.
+- **Part 5 — Semantic search: embeddings, BM25, RRF, rerank:** Part 5 reuses the `data/embeddings/electronics-2026-07.title-bge-small.npz` cache as its vector index, layers BM25 keyword retrieval and reciprocal-rank fusion on top of the same 384-dim vectors, and then re-ranks by deal score — so `search_catalog("noise cancelling headphones")` surfaces the honest Anker Soundcore Q20i ($44.99) at rank 1 and demotes the too-good-to-be-true Bose trap.
 
 ---
 

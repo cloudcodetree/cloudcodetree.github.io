@@ -435,8 +435,6 @@ This part builds the working SPA and proves the SSE contract. Three things are i
 
 ## Where this goes next
 
-Coming from **Part 30 — Observability, cost & ops**, which set up Langfuse request tracing, Grafana cost dashboards, and the load-test baseline that confirms the backend can sustain concurrent SSE connections. The ingress SSE annotations (`proxy-buffering: off`, `proxy-read-timeout: 3600`) you saw in the Vite proxy section above were first applied in Part 29 and verified under load in Part 30.
-
 - **Part 32 — Auth & accounts:** the backend side of what you wired here. `dealfinder/auth.py` verifies Supabase JWTs, resolves roles from `app_metadata`, and gates routes with `require_user` and `require_role`. Six offline tests cover valid tokens, expired tokens, tampered tokens, wrong secrets, missing bearers, and role-based access.
 - **Part 34 — Payments & SaaS mechanics:** Stripe Checkout sessions, webhook signature verification, and the quota model that makes the "pro" affordance from this part actually mean something. The free plan allows 25 searches per month; the pro plan allows 1000.
 

@@ -435,7 +435,6 @@ The demo line: *"ask a keyword engine for Sony and it hands you a Bose with a st
 
 ## Where this goes next
 
-- **Part 4 — What you'll like next (Recommender):** Part 4 built and cached the fastembed title-embedding matrix over real title data. Part 5 reuses those embeddings directly — via the recommender's `load_catalog_embeddings()`, which aligns the cached `.npz` vectors to whatever product list you pass — so hybrid search is built on the recommender's pre-computed representations, not a second model run.
 - **Part 6 — Structured extraction:** The search results expose a new problem: "Bose QuietComfort 45" and "BOSE QC45 Wireless" are the same product but rank as separate results. Part 6 teaches structured extraction to pull canonical brand, model, and condition from messy titles so dedup and ranking operate on normalized entities rather than raw strings.
 
 ---

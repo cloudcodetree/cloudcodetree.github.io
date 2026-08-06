@@ -327,7 +327,6 @@ To promote a user to pro, update `app_metadata` via the Supabase dashboard (Tabl
 
 ## Where this goes next
 
-- **Part 31 — The web front end:** the React/Vite frontend that calls `GET /me`, shows the auth panel, and gates the pro affordance on `me.role === "pro"`. Auth.tsx and `src/lib/supabase.ts` are the client-side counterparts of what you built here.
 - **Part 33 — Saved searches & the suggestions worker:** `require_user` gates the saved-search routes. The periodic worker reads user preferences from the database using the same stable `user.id` UUID as the row key. You will not need to change `auth.py` — the dependency composes.
 - **Part 34 — Payments & SaaS mechanics:** Stripe Checkout creates a session keyed by `user.id`. The webhook handler promotes `app_metadata.plan` to `"pro"` in Supabase, which flows into the next token refresh. `require_role("pro")` is already wired — no code change needed when a user upgrades.
 

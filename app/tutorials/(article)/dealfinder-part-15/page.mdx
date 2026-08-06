@@ -332,8 +332,6 @@ The demo line: *"I typed one vague word. Instead of answering from weak evidence
 
 ## Where this goes next
 
-- **Part 14 — RAG: grounded answers over your deals (back-reference):** agentic RAG reuses the entire Part 14 pipeline — `retrieve`, `answer`, and `is_grounded`. It only adds the judgment: call the retriever again when the evidence is weak.
-
 - **[Part 16 — Context engineering: the window is RAM](/tutorials/dealfinder-part-16/):** the loop just multiplied how much you retrieve — three hops, up to fifteen candidate listings. Now every one of them competes with the system prompt, the tool schemas, and the conversation for a finite token budget. Part 16 is the discipline of deciding what actually goes in the window, in what order, and what to evict.
 
 Agentic RAG is the first place the DealFinder agent *reasons about its own inputs*. Managing those inputs is the next skill.

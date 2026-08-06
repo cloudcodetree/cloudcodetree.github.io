@@ -395,7 +395,6 @@ The TestClient means no server process — these run in CI without ports, withou
 
 ## Where this goes next
 
-- **Part 25 — Safety, security & governance:** the module that came before this one. `detect_prompt_injection`, `redact_pii`, `validate_listing_specs`, and `AuditLog` from `dealfinder/safety.py` are the safety layer that should sit in front of any endpoint that accepts free-form user input. Wire them into the `/search` handler as you harden the service for production.
 - **Part 27 — Inference optimization, for real:** quantization, vLLM, and routing — benchmarked against a running service, not just described. Picks up where the "serving levers" section above leaves off and shows the numbers: how much faster, how much cheaper, at what quality cost.
 
 ---

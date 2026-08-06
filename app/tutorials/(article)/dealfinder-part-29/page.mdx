@@ -467,7 +467,6 @@ The broader claim this part proves: the DealFinder service is operable, not just
 
 ## Where this goes next
 
-- **Part 28 — Containerize and ship it (back-reference):** The image deployed here (`ghcr.io/cloudcodetree/dealfinder-app:latest`) is built and pushed by the Part 28 CI pipeline. The `DATABASE_URL` env var contract between the Terraform local stack and the Kubernetes Secret is the same — the cluster simply points at an external managed Postgres instead of the local Docker container.
 - **Part 30 — Observability, cost & ops (forward-reference):** Prometheus scrapes the running pods using the `app.kubernetes.io/name: dealfinder` label set in `kustomization.yaml`. Grafana dashboards visualise CPU utilisation (the same metric the HPA acts on), request latency, and deal-score distributions. The FinOps section shows how to right-size the CPU request — the lever that controls both HPA sensitivity and node cost.
 
 ---

@@ -433,7 +433,6 @@ The demo line: *"I gave it a sentence, not a query — it wrote its own SQL, ran
 
 ## Where this goes next
 
-- **Part 10 — Fine-tune the extractor with QLoRA** established the LLM client pattern and structured-output convention that a production policy for this loop would reuse — the rule-based `nl_to_sql` and scripted policy here stand in for that LLM call so the demo stays deterministic and offline. It's also the fix for the malformed-tool-call problem a small policy model hits (see the function-calling callout above).
 - **Part 12 — Expose it as an MCP server** wraps the same `dealscore` primitives behind the Model Context Protocol. `dealfinder/mcp_server.py` registers three tools — `score_deal`, `recommend`, `search_deals` — a `catalog_stats` resource, and a `find_a_deal` prompt, so external clients like Claude Desktop can call them directly.
 
 ---

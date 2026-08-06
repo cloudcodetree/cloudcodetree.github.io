@@ -441,8 +441,6 @@ The demo line: *"This is five loose functions turned into a pipeline with a spin
 
 ## Where this goes next
 
-- **Part 19 — Dataset engineering** (back): built `LabeledDataset` and the grouped split that `label_rows` calls. The pipeline here consumes it. If you have not read Part 19, the `label_distribution` numbers — 71 deal, 40 fair, 32 suspicious, 127 overpriced — will seem arbitrary. They are the output of the two-signal scorer applied to all 270 rows with a 0.70/0.70 threshold.
-
 - **Part 21 — ML & DL breadth** (forward): takes the `good_deals.csv` the pipeline writes and trains the gradient-boosted price model that replaces the naive SQL filter. Part 21 is where the Bose QC45 at $46 stops looking like a deal: the residual fraction 0.839 exceeds the 0.70 suspicious threshold, and the GBDT catches it where the median-only SQL cannot.
 
 ---

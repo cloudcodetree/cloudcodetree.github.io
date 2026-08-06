@@ -607,8 +607,6 @@ The demo line: *"same search box as Part 1, but now it's a real vector database 
 
 ## Where this goes next
 
-- **Part 12 — Expose it as an MCP server (back-reference):** Part 12 built the MCP server surface with tools backed by the in-memory search index from Part 5. This part adds `semantic_search` as a new first-class tool backed by the durable pgvector store — the agent and any MCP client benefit without changing their call sites.
-
 - **[Part 14 — RAG: grounded answers over your deals](/tutorials/dealfinder-part-14/):** The durable pgvector store you just built is the retrieval backend for a RAG pipeline. Instead of returning raw ranked rows, the next part retrieves the most relevant deals for a plain-English question and grounds an LLM's answer in them — citing the actual listings so the model can't invent prices. The `semantic_search` you exposed here is exactly the retriever RAG calls.
 
 ---

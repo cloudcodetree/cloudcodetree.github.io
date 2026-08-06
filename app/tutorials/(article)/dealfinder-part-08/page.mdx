@@ -576,7 +576,6 @@ The demo line: *"the app can now acquire prices five different ways, and `/sourc
 
 ## Where this goes next
 
-- **Part 7 — Live multi-source connectors:** if you arrived here without completing Part 7, the `RapidApiSource`, `EbaySource`, and `BestBuySource` connectors are covered there. Part 8 assumes you have the data layer and official API connectors from Parts 1 and 7 in place.
 - **Part 9 — Tiered aggregation and resilience:** now that all source connectors exist, Part 9 wires them into a unified aggregator with early-stop logic (stop querying once enough high-confidence results arrive), a circuit breaker that cuts off a flaky source after three consecutive failures, and the cosine-based dedup (threshold 0.90) that handles near-duplicates the normalized-key approach in Part 1 misses. The Sony WH-1000XM5 at Costco ($162.97) and Macy's ($248) is the canonical cross-source dedup example — Part 9's embedding-based pass is what catches it when the retailer strings differ enough to produce different normalization keys.
 
 ---

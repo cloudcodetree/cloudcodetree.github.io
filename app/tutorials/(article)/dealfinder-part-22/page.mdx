@@ -370,7 +370,6 @@ All four pass against the committed snapshot. The `skipif` on `mlflow_available(
 
 ## Where this goes next
 
-- **Part 21 — ML & DL breadth** (previous): where the three models were trained and their baseline numbers established. The hand-only figures (`linear_baseline` $227.89, `torch_baseline` $117.11) come from `gbdt_vs_linear()` and `train_torch_pricehead()` in `dealfinder/models.py` — this part logs them faithfully.
 - **Part 23 — Prove it works: evaluation as a discipline**: the model is now registered, but registered does not mean correct. Part 23 builds the golden set (20 hand-labeled items from the snapshot), measures `precision@5` for the two-signal ranker vs. the median-only baseline, and introduces the eval gate: `precision@5 ≥ 0.80`. The two-signal ranker scores 1.00; median-only scores 0.40. That gap is the quantitative argument for the price model you just registered.
 - **Part 24 — Closing the MLOps loop** (experiment-tracking=19, mlops-loop=21): drift is detected, the model is retrained (GBDT MAE $138.11 again, on a 202/68 split), the challenger passes the eval gate, and `dealfinder-fair-price` is promoted. Part 24 picks up the registered model name established here.
 

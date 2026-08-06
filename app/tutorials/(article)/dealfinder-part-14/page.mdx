@@ -534,8 +534,6 @@ The demo line: *"it didn't just list headphones — it answered the question in 
 
 ## Where this goes next
 
-- **Part 13 — pgvector persistence + semantic search (back-reference):** the durable retriever you built there is exactly what `retrieve()` calls when `DATABASE_URL` is set. RAG did not replace it — it wrapped it with an augmentation and a generation stage, and added the faithfulness guard on top.
-
 - **[Part 15 — Agentic RAG: retrieval as a repeated tool call](/tutorials/dealfinder-part-15/):** this part retrieves once. Next, the agent *judges* whether the evidence is good enough and re-queries when it is not — turning `retrieve()` from a preprocessing step into a tool the agent calls in a loop, still grounded by the same faithfulness guard.
 
 RAG is the bridge between *retrieval* (Parts 5, 13) and *agents* (Part 11): an agent that can `retrieve` and `answer` grounded is one that can reason over your live inventory without inventing it.

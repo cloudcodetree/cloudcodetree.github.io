@@ -363,8 +363,6 @@ The Stripe CLI will print each event as it arrives. Use test card `4242 4242 424
 
 ## Where this goes next
 
-- **Part 33 — Saved searches & the suggestions worker:** the periodic worker that runs saved searches and emails results uses the same `User` type from `auth.py`. Part 34 adds the plan check: the suggestions worker skips emails for users who have exhausted their free quota until the monthly counter resets.
-
 - **Part 35 — Security & compliance at scale:** with a billing layer in place, DealFinder now handles real financial transactions. Part 35 audits the OWASP-LLM top 10 against the search endpoint, adds PII handling for the email field that Stripe returns, and works through GDPR's "right to erasure" against a system that stores `user_id` in Stripe metadata, Supabase rows, and usage counters.
 
 ---

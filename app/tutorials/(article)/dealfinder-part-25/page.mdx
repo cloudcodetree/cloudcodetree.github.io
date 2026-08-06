@@ -396,7 +396,6 @@ Part 35 extends this map for multi-tenant scale: GDPR data-subject requests, sli
 
 ## Where this goes next
 
-- **Part 24 — Closing the MLOps loop** (previous): drift detection, retrain trigger, eval gate, canary deploy — the operational cycle that feeds the model safety checks here run against.
 - **Part 26 — Serve it fast and cheap** (next): wrap DealFinder in a FastAPI service, add a semantic cache (threshold 0.95, `fastembed BAAI/bge-small-en-v1.5`, 384-dim), and measure the levers that cut inference cost and latency. The safety modules from this part run at the `/search` and `/deal/{product_id}` request boundary.
 
 ---
