@@ -43,8 +43,10 @@ every number quoted here.
 5. [Applied to the hero cast](#applied-to-the-hero-cast)
 6. [The price-drop forecaster](#the-price-drop-forecaster)
 7. [A real PyTorch training loop](#a-real-pytorch-training-loop)
-8. [The tests that pin these numbers](#the-tests-that-pin-these-numbers)
-9. [Where this goes next](#where-this-goes-next)
+8. [Seeing it in the product](#seeing-it-in-the-product)
+9. [The tests that pin these numbers](#the-tests-that-pin-these-numbers)
+10. [What you can demo now](#what-you-can-demo-now)
+11. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -339,6 +341,24 @@ The `real=True` field in `TorchResult` is not a boolean flag for you to check at
 
 ---
 
+## Seeing it in the product
+
+The whole argument of this part — boosting alone loses, embeddings win — is only convincing if you can watch it happen on real data. A **`/models`** endpoint (`serve.py`) fits all three models on the frozen snapshot and returns their scores; the static UI adds a **"models (ML)"** mode that renders the MAE comparison:
+
+```python
+@app.get("/models")
+def models_report():
+    # cached after the first fit; deterministic (fixed seeds)
+    return {"full": gbdt_vs_linear(),                      # linear vs GBDT+embeddings
+            "hand_only": gbdt_vs_linear(with_embeddings=False),  # boosting alone — loses
+            "audio": gbdt_vs_linear("audio"),
+            "torch_mlp": train_torch_pricehead(epochs=300, seed=0)}  # real autograd loop
+```
+
+The models are deterministic (fixed seeds), so the endpoint caches after the first fit. It is query-independent — it always evaluates the same held-out split. Every bar in the UI is a real trained model, not a stored number.
+
+---
+
 ## The tests that pin these numbers
 
 Every number quoted in this part is asserted in `tests/test_models.py`. Run them before and after any change to `models.py` or `features.py`:
@@ -365,6 +385,21 @@ If you change the `_SPLIT_SEED`, `_GBDT_SEED`, or `_PCA_COMPONENTS` constants in
 
 ---
 
+## What you can demo now
+
+Open the app, pick **"models (ML)"**, and hit Search (the box is ignored — the models train on the fixed split). All three models fit live and the MAE comparison paints:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-21/models-comparison.png"
+  alt="The DealFinder model comparison: MAE bars for the linear baseline ($227.89), GBDT hand-only ($257.99, worse), GBDT with title embeddings ($138.11), and a PyTorch MLP ($117.11), with R² 0.268 to 0.727"
+  caption="Real capture: linear vs gradient boosting vs GBDT+embeddings vs a PyTorch MLP — all fit live on the frozen snapshot, MAE lower-is-better."
+  lookFor="the four bars, lower MAE is better. The longest bar is 'GBDT, hand features only' at $257.99 — flagged 'worse! −13.2%': boosting on the three-integer feature vector overfits and loses to the linear baseline ($227.89). The short green bar, 'GBDT + title embeddings' at $138.11, is the win — adding 16 PCA-compressed embedding dimensions drops MAE 39% and lifts R² from 0.268 to 0.727 (the badge up top). The PyTorch MLP ($117.11) is a genuinely trained autograd loop. The footnote holds the honest caveat: the audio subset's MAE improves but its R² stays negative on just 15 test items."
+/>
+
+The demo line: *"Same split, three models, real numbers. Gradient boosting on the three hand features actually does worse than the plain linear model — it overfits. The thing that wins isn't the fancier model, it's the richer features: compress the title embedding to 16 dimensions, feed it in, and MAE drops 39%. That's the lesson — reach for better signal before a bigger hammer."*
+
+---
+
 ## Companion repo callout
 
 The code for this part is in the `tutorial-dealfinder` companion repo:
@@ -388,7 +423,6 @@ All seven tests must pass. If you see a torch import error, ensure `torch` is in
 
 ## Where this goes next
 
-- **Part 20 — Pipelines & orchestration:** the Prefect flows and dbt models that produce a clean, versioned dataset for training. This part consumed the output of that pipeline — the 270-item snapshot with the deterministic 202/68 split established in Part 19.
 - **Part 22 — Experiment tracking & model registry:** you have now run three models against the same split. Part 22 introduces MLflow: logging the MAE from each `gbdt_vs_linear()` call, comparing runs in the UI, and registering the GBDT+embeddings model so it can be loaded by the serving layer without re-training.
 
 ---
