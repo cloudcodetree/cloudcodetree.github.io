@@ -47,8 +47,10 @@ Tests: `tests/test_flows.py` — all seven must pass before you move on.
 6. [The dbt-style model: good_deals.sql](#the-dbt-style-model-good_dealssql)
 7. [Running the real flow: what snapshot_flow() returns](#running-the-real-flow-what-snapshot_flow-returns)
 8. [The FlowResult: everything the caller needs](#the-flowresult-everything-the-caller-needs)
-9. [Tests that pin the contract](#tests-that-pin-the-contract)
-10. [Where this goes next](#where-this-goes-next)
+9. [Seeing it in the product](#seeing-it-in-the-product)
+10. [Tests that pin the contract](#tests-that-pin-the-contract)
+11. [What you can demo now](#what-you-can-demo-now)
+12. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -321,6 +323,25 @@ The `gate_passed` property is the single "did the pipeline succeed?" boolean. A 
 
 ---
 
+## Seeing it in the product
+
+A pipeline is easy to draw and hard to trust — so the app runs the real one and shows its trail. A **`/pipeline`** endpoint (`serve.py`) executes the identical five-stage chain the Prefect flow wraps (the `FlowResult` is the same on either path) and returns each stage's outcome; the static UI adds a **"pipeline (ML)"** mode that renders the DAG:
+
+```python
+@app.get("/pipeline")
+def pipeline_report():
+    r = flows.snapshot_pipeline()   # identical FlowResult to the Prefect path; fast + quiet
+    c = r.contract
+    return {"has_prefect": flows.HAS_PREFECT,
+            "stages": [ …ingest, normalize, quality-gate, label, good_deals model… ],
+            "contract": {"total": c.total, "valid": c.valid, "passed": c.passed},
+            "label_distribution": r.label_distribution, "good_deals": r.good_deals}
+```
+
+It is query-independent — the flow reads the fixed snapshot. The endpoint reports whether the Prefect engine is installed (`has_prefect`); the stage results are identical either way, which is exactly the point of keeping the stages plain-Python and letting Prefect merely wrap them.
+
+---
+
 ## Tests that pin the contract
 
 All seven tests in `tests/test_flows.py` pass against the committed snapshot:
@@ -388,9 +409,33 @@ pytest tests/test_flows.py -v
 
 All seven pass. Prefect emits shutdown logging after the run (`Stopping temporary server…`) — cosmetic, not a failure. The key test is `test_prefect_flow_runs_end_to_end`: it uses `pytest.importorskip` so it skips gracefully when Prefect is absent, and in this environment it ran on the real engine.
 
+The same run, live (server on `:8000`):
+
+```bash
+curl -s http://localhost:8000/pipeline \
+  | python -m json.tool | grep -E '"has_prefect"|"valid"|"total"|"passed"|"good_deals"'
+```
+
+**Expect:** `has_prefect: true`, the gate at `valid: 270` / `total: 270` / `passed: true`, and `good_deals: 111` — the same `FlowResult` the tests pin, served from the running app.
+
 <Callout tone="note">
 **The normalize assertion.** `test_normalize_attaches_title_extracted_brand` checks that the Anker Soundcore Q20i row — where the raw `brand` field holds the retailer, not the manufacturer — emerges from `normalize_rows` with `true_brand == "Soundcore"`. That is the `title_brand()` function from Part 1 applied at pipeline scale: 270 rows, one pass, no API calls.
 </Callout>
+
+---
+
+## What you can demo now
+
+Open the app, pick **"pipeline (ML)"**, and hit Search (the box is ignored — the flow reads the fixed snapshot). The orchestration you just wired runs and shows its trail:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-20/pipeline-flow.png"
+  alt="The DealFinder pipeline inspector: the five-stage DAG (ingest, normalize, quality-gate, label, good_deals model) all green, contract 270/270 passed, engine Prefect 3.7.7, 111 good deals"
+  caption="Real capture: the five-stage orchestration flow running end to end — contract gate 270/270, dbt-style good_deals view at 111 rows — on the real Prefect 3.7.7 engine."
+  lookFor="the five stages top to bottom, each with a green check: ingest (270 rows) → normalize (title-brand extracted) → quality-gate (270/270 valid, Pydantic contract) → label (two-signal verdict) → good_deals model (111 rows, dbt-style SQL). The badges up top confirm the engine is real Prefect 3.7.7, the data contract passed 270/270, and the final view holds 111 candidate deals. A single bad row at the gate would flip that stage red and stop the flow — the hard-fail the prose describes, made visible."
+/>
+
+The demo line: *"This is five loose functions turned into a pipeline with a spine. Each stage runs in order, the quality gate validates all 270 rows against a Pydantic contract before anything expensive runs — one bad price and the whole flow hard-fails — and the last stage materializes a dbt-style SQL view of 111 candidate deals for the training step. It's running on a real Prefect engine, but the stages are plain Python, so it runs the same with or without it."*
 
 ---
 
