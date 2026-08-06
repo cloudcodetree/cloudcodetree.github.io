@@ -35,8 +35,10 @@ This is **Part 22 of DealFinder**, and the lesson is about honesty. Training a m
 5. [The documented baselines: logging without competing](#the-documented-baselines-logging-without-competing)
 6. [Selecting and registering the winner](#selecting-and-registering-the-winner)
 7. [The full comparison table](#the-full-comparison-table)
-8. [Tests that pin it](#tests-that-pin-it)
-9. [Where this goes next](#where-this-goes-next)
+8. [Seeing it in the product](#seeing-it-in-the-product)
+9. [Tests that pin it](#tests-that-pin-it)
+10. [What you can demo now](#what-you-can-demo-now)
+11. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -312,6 +314,24 @@ Some things this table makes plain that are easy to miss:
 
 ---
 
+## Seeing it in the product
+
+The whole point of a ledger is that you can *look* at it. A **`/tracking`** endpoint (`serve.py`) runs the five-run experiment and returns the ledger; the static UI adds a **"tracking (ML)"** mode that renders it — the winner marked, selectable runs separated from documented baselines:
+
+```python
+@app.get("/tracking")
+def tracking_report():
+    # cached, seeded, deterministic; offline SQLite store, no server
+    r = tracking.run_tracking()
+    return {"experiment": r.experiment, "registered_model": r.registered_model,
+            "winner": r.winner, "winner_mae": r.winner_mae,
+            "runs": [{"name": ..., "mae": ..., "r2": ..., "selectable": ...} for run in r.runs]}
+```
+
+It is query-independent and cached (the experiment is seeded, so the result never changes). Every row is a real logged MLflow run, and the `★` marks the run that got written to the registry — the same `dealfinder-fair-price` model Part 24 will promote a challenger against.
+
+---
+
 ## Tests that pin it
 
 `tests/test_tracking.py` contains four tests. Each is pinned to real output and would catch any regression in the selection logic, the MAE numbers, or the contract tagging:
@@ -362,16 +382,40 @@ pytest tests/test_tracking.py -v
 
 All four pass against the committed snapshot. The `skipif` on `mlflow_available()` means the suite is safe to run on machines without MLflow — the tests simply show as skipped rather than failing.
 
+The same ledger, live (server on `:8000`):
+
+```bash
+curl -s http://localhost:8000/tracking \
+  | python -m json.tool | grep -E '"winner"|"winner_mae"|"registered_model"'
+```
+
+**Expect:** `winner: "gbdt"`, `winner_mae: 138.11`, `registered_model: "dealfinder-fair-price"` — the same registered winner the tests pin, served from the running app.
+
 <Callout tone="note">
 **The companion module also runs deterministically.** `run_tracking()` is seeded (`random_state=0`, `torch.manual_seed(0)`) and uses the same `_split()` function as `models.gbdt_vs_linear()` — so the GBDT MAE here ($138.11) matches the number pinned in `tests/test_models.py` from Part 21. The two test files are testing the same underlying numbers from different angles.
 </Callout>
 
 ---
 
+## What you can demo now
+
+Open the app, pick **"tracking (ML)"**, and hit Search (the box is ignored — the experiment is fixed). The five-run experiment executes and the ledger paints:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-22/experiment-ledger.png"
+  alt="The DealFinder experiment ledger: five MLflow runs with MAE bars — gbdt marked as the registered winner at $138.11, the fair-price runs separated from the documented baselines"
+  caption="Real capture: the five-run MLflow ledger — gbdt registered as the winner on the fair-price feature contract, with the documented baselines logged but excluded from selection."
+  lookFor="the ★ next to gbdt at $138.11 — the registered winner (badges up top: experiment dealfinder-price-models, registered dealfinder-fair-price). The top three runs (linear $257.85, gbdt $138.11, torch $149.21) are all tagged 'fair-price' — trained on identical hand+emb16 features, so the comparison is honest. The two dimmed rows at the bottom (linear_baseline $227.89, torch_baseline $117.11) are tagged 'documented-baseline': logged so the Part 21 numbers reproduce, but excluded from selection. torch_baseline's $117.11 is the lowest MAE on the board — and it still doesn't win, because it's on cheaper hand-only features. That's the whole discipline: compare like-for-like, and register by rule, not by the prettiest number."
+/>
+
+The demo line: *"Five runs, all logged to a local MLflow store — no server, just a SQLite file. The lowest number on the board is torch_baseline at $117.11, but it doesn't get registered: it was trained on a cheaper feature set, so it's not a fair comparison. The winner is picked only from the runs that share identical features, and there gbdt wins at $138.11. The ledger is what stops you from shipping the prettiest number instead of the honest one."*
+
+---
+
 ## Where this goes next
 
 - **Part 23 — Prove it works: evaluation as a discipline**: the model is now registered, but registered does not mean correct. Part 23 builds the golden set (20 hand-labeled items from the snapshot), measures `precision@5` for the two-signal ranker vs. the median-only baseline, and introduces the eval gate: `precision@5 ≥ 0.80`. The two-signal ranker scores 1.00; median-only scores 0.40. That gap is the quantitative argument for the price model you just registered.
-- **Part 24 — Closing the MLOps loop** (experiment-tracking=19, mlops-loop=21): drift is detected, the model is retrained (GBDT MAE $138.11 again, on a 202/68 split), the challenger passes the eval gate, and `dealfinder-fair-price` is promoted. Part 24 picks up the registered model name established here.
+- **Part 24 — Closing the MLOps loop:** drift is detected, the model is retrained (GBDT MAE $138.11 again, on a 202/68 split), the challenger passes the eval gate, and `dealfinder-fair-price` is promoted. Part 24 picks up the registered model name established here.
 
 ---
 
