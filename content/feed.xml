@@ -10,7 +10,181 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 07 Aug 2026 12:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 07 Aug 2026 20:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Automate Claude Code with --print and --output-format json: Scripting and CI/CD Pipelines</title>
+      <link>https://code.claude.com/docs/en/headless</link>
+      <guid isPermaLink="false">2026-08-07-08-claude-code-headless-mode-automation</guid>
+      <pubDate>Fri, 07 Aug 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Run Claude Code non-interactively with -p, get structured JSON output, restrict tools with --allowedTools, and drop AI steps into any CI/CD pipeline — no terminal UI required.</description>
+      <content:encoded><![CDATA[
+**`claude -p "prompt" --output-format json` turns Claude Code into a scriptable pipeline step — structured output, deterministic exit codes, and schema-constrained responses for CI/CD automation.**
+
+Most Claude Code usage is interactive. But `-p` (non-interactive/print mode) is the bridge between the agent and your toolchain: one command in, parseable data out. Every workflow that runs on a schedule, inside GitHub Actions, or as part of a build pipeline benefits from this.
+
+## The three flags you need
+
+**`-p` / `--print`** — non-interactive mode. Claude reads the prompt, runs the agent loop, and exits. No REPL, no UI.
+
+**`--output-format`** — controls what comes out on stdout:
+- `text` (default) — plain text result
+- `json` — structured object with `result`, `session_id`, `total_cost_usd`, and `duration_ms`
+- `stream-json` — newline-delimited JSON, one event per line; useful for real-time streaming in long-running jobs
+
+**`--allowedTools`** — restrict which tools Claude can use. Critical for CI: only allow what the task actually needs.
+
+## Minimal example
+
+```bash
+# One-shot code review, JSON output
+claude -p "Review the staged diff for security issues. Be concise." \
+  --output-format json \
+  --allowedTools "Bash(git diff:*),Read" \
+  | jq -r '.result'
+```
+
+Exit code `0` = success; any non-zero code = error. Unix-standard, so `set -e` pipelines work correctly.
+
+## GitHub Actions integration
+
+```yaml
+- name: AI security scan
+  run: |
+    REVIEW=$(claude -p "Scan the staged files for hardcoded secrets or SQL injection risks" \
+      --output-format json \
+      --allowedTools "Read,Bash(git diff:*)" \
+      | jq -r '.result')
+    echo "## Security Review" >> $GITHUB_STEP_SUMMARY
+    echo "$REVIEW" >> $GITHUB_STEP_SUMMARY
+```
+
+## Structured output with `--json-schema`
+
+Force Claude to return a JSON object matching your schema:
+
+```bash
+claude -p "Analyze the test results in ./test-output.xml" \
+  --output-format json \
+  --allowedTools "Read" \
+  --json-schema '{
+    "type": "object",
+    "properties": {
+      "passed": {"type": "boolean"},
+      "failures": {"type": "array", "items": {"type": "string"}},
+      "summary": {"type": "string"}
+    },
+    "required": ["passed", "failures", "summary"]
+  }' \
+  | jq '.result'
+```
+
+The schema-constrained response lands in the `result` field alongside `total_cost_usd` — ready to pipe into `jq`, a script, or a monitoring system.
+
+## What to lock down in CI
+
+- Always pass `--allowedTools` listing only what the task needs — omit Bash entirely for read-only analysis
+- Store `ANTHROPIC_API_KEY` in your CI secrets; Claude Code picks it up from the environment
+- Use `--max-turns N` to cap the agent loop length for predictable runtime
+
+**Sources:** [Run Claude Code programmatically — code.claude.com](https://code.claude.com/docs/en/headless) · [Headless Mode and CI/CD — SFEIR Institute](https://institute.sfeir.com/en/claude-code/claude-code-headless-mode-and-ci-cd/) · [Claude Code Headless Mode guide — buildthisnow.com](https://www.buildthisnow.com/blog/guide/development/claude-code-headless-mode)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Scale Any vLLM-Backed Model to Production with Ray Serve LLM</title>
+      <link>https://docs.ray.io/en/latest/serve/llm/quick-start.html</link>
+      <guid isPermaLink="false">2026-08-07-07-ray-serve-llm-vllm-autoscaling</guid>
+      <pubDate>Fri, 07 Aug 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>Developer Tools</category>
+      <description>Ray Serve LLM wraps vLLM in a production harness — autoscaling that responds to queue depth, multi-model routing, and a built-in OpenAI-compatible API in under 30 lines of Python.</description>
+      <media:content url="https://avatars.githubusercontent.com/u/22125274?v=4" medium="image" />
+      <media:thumbnail url="https://avatars.githubusercontent.com/u/22125274?v=4" />
+      <content:encoded><![CDATA[
+**Ray Serve LLM wraps vLLM in a production harness — queue-depth autoscaling, multi-model routing, and an OpenAI-compatible API endpoint in ~25 lines of Python.**
+
+You've loaded a model with Ollama or spun up a raw vLLM server. That works for one machine and modest load. When you need autoscaling, rolling upgrades, multi-model routing, or true production reliability, Ray Serve LLM is the missing layer.
+
+**What you'll be able to do after this:**
+- Deploy any Hugging Face model behind an OpenAI-compatible REST endpoint using Ray Serve LLM and vLLM
+- Enable autoscaling that responds to request queue depth (not CPU) — spinning up replicas under load, scaling back down at idle
+- Serve multiple models from one cluster and route traffic by model name, with no changes to the client
+
+## Install
+
+```bash
+pip install "ray[serve]" vllm
+```
+
+## Deploy a model in ~20 lines
+
+```python
+# serve_llm.py
+from ray import serve
+from ray.serve.llm import LLMServer, LLMConfig
+
+config = LLMConfig(
+    model_loading_config={
+        "model_id": "meta-llama/Llama-3.1-8B-Instruct",
+    },
+    deployment_config={
+        "autoscaling_config": {
+            "min_replicas": 1,
+            "max_replicas": 4,
+            "target_ongoing_requests": 5,
+        }
+    },
+    accelerator_type="A10G",   # or "T4", "A100", etc.
+)
+
+llm_server = LLMServer.from_llm_config(config)
+serve.run(llm_server)
+```
+
+```bash
+# Start
+serve run serve_llm.py
+
+# Query — standard OpenAI API
+curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "meta-llama/Llama-3.1-8B-Instruct",
+    "messages": [{"role": "user", "content": "Explain KV caching in one paragraph."}]
+  }'
+```
+
+## Multi-model serving
+
+Add a second `LLMConfig` entry with a different `model_id` — Ray Serve routes requests by the `model` field in each API call. No load balancer config needed; Ray handles it.
+
+## Why queue depth, not CPU
+
+Traditional autoscalers trigger on CPU or memory. LLMs are I/O-bound: a GPU can be 100% utilized but still have headroom for more requests in the batch. Ray Serve autoscales on `target_ongoing_requests` — the number of requests currently being processed per replica. This correctly captures backpressure and scales before the queue grows too long.
+
+## What this covers beyond raw vLLM
+
+| Feature | Raw `vllm serve` | Ray Serve LLM |
+|---|---|---|
+| OpenAI-compatible API | Yes | Yes |
+| Autoscaling | No | Yes (queue-depth) |
+| Multi-model routing | No | Yes |
+| Rolling upgrades | No | Yes |
+| Multi-node tensor parallel | Yes | Yes |
+| Health checks | Basic | Enterprise-grade |
+
+**Sources:** [Serving LLMs — Ray 2.56.0 docs](https://docs.ray.io/en/latest/serve/llm/index.html) · [Ray Serve LLM Quickstart](https://docs.ray.io/en/latest/serve/llm/quick-start.html) · [Announcing Native LLM APIs in Ray Data and Ray Serve — Anyscale blog](https://www.anyscale.com/blog/llm-apis-ray-data-serve)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Claude Code Self-Hosted Environments Are Now in Public Beta: Run Agent Sessions on Your Own Compute</title>
