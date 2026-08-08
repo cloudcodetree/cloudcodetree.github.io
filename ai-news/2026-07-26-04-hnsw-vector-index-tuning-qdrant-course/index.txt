@@ -1,0 +1,75 @@
+1:"$Sreact.fragment"
+2:I[68977,["5914","static/chunks/5914-78fa75be6ca6de8c.js","1860","static/chunks/1860-1e5afbc2d94aafa0.js","7177","static/chunks/app/layout-226110c5f1d969af.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/26dc4a78f0c7af7f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e0f4b1ebfdbd83f9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e4af272ccee01ff0-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/e2dabe4f14a0dbf4.css","style"]
+0:{"P":null,"b":"DASI2ZFXaK89gPNEMx7QS","p":"https://cloudcodetree.com","c":["","ai-news","2026-07-26-04-hnsw-vector-index-tuning-qdrant-course",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-07-26-04-hnsw-vector-index-tuning-qdrant-course","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/e2dabe4f14a0dbf4.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_f5e841 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_c9a639","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-07-26-04-hnsw-vector-index-tuning-qdrant-course","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[17655,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+11:I[82566,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+12:Tdf0,**HNSW is the graph index inside pgvector, Qdrant, Weaviate, ChromaDB, and FAISS — three knobs control all of them: m (connectivity), ef_construction (build quality), and ef (query depth).**
+
+**What you'll be able to do after this:**
+- Explain why HNSW finds approximate nearest neighbors in sub-millisecond time across millions of vectors — and why brute-force can't
+- Tune `m`, `ef_construction`, and `ef` for the right recall/latency tradeoff in any vector database
+- Benchmark your own collection and find the performance knee that fits your workload
+
+**Resource:** [Qdrant Essentials Course, Day 2: HNSW Indexing](https://qdrant.tech/course/essentials/day-2/what-is-hnsw/) + [YouTube walkthrough](https://www.youtube.com/watch?v=-q-pLgGDYr4)
+
+## How HNSW works
+
+HNSW builds a multi-layer graph. Higher layers contain fewer nodes connected by long-range "highway" edges — they let a search jump quickly across the vector space. Lower layers are dense with local connections for fine-grained lookup.
+
+At query time, search enters at the top (coarsest) layer, follows the closest edges downward through increasingly dense layers, and returns approximate nearest neighbors. This is typically 10–100× faster than brute-force scan, with 95–99% recall — which is why every major vector database uses it as the default index.
+
+All the databases covered in this learning track use HNSW: pgvector, Qdrant, Weaviate, ChromaDB, and FAISS (`IndexHNSWFlat`).
+
+## The three parameters you control
+
+| Parameter | Controls | When set |
+|---|---|---|
+| `m` | Edges per node per layer — higher = better recall, more memory and build time | Index creation |
+| `ef_construction` | Candidates explored during build — higher = better index quality, slower build | Index creation |
+| `ef` (or `ef_search`) | Candidates explored per query — higher = better recall, slower queries | Query time (tunable live) |
+
+**Starting values:** `m=16`, `ef_construction=200`, `ef=128`. Raise `m` when recall matters more than memory. Raise `ef` at query time for a recall boost without rebuilding the index.
+
+## Hands-on walk-through (Qdrant course)
+
+The [Qdrant Essentials Day 2 course](https://qdrant.tech/course/essentials/day-2/what-is-hnsw/) runs you through a 100K-vector benchmark:
+
+1. Upload vectors with HNSW disabled — measure brute-force baseline latency
+2. Enable HNSW with default params — observe the latency drop
+3. Tune `m` and `ef_construction`, rebuild — measure recall against a ground-truth set
+4. Use the [HNSW Performance Benchmarking project](https://qdrant.tech/course/essentials/day-2/pitstop-project/) to find the recall/latency knee for your collection
+
+The [YouTube video](https://www.youtube.com/watch?v=-q-pLgGDYr4) is the clearest visual walkthrough of the layer traversal before you run the code.
+
+The same parameters exist in every major vector DB — they just use different names:
+
+| Database | m | ef_construction | ef at query time |
+|---|---|---|---|
+| Qdrant | `m` | `ef_construct` | `ef` |
+| pgvector | `m` | `ef_construction` | `hnsw.ef_search` |
+| Weaviate | `maxConnections` | `efConstruction` | `ef` |
+| ChromaDB | `M` | `ef_construction` | `ef` |
+
+Once you understand the three knobs, you're fluent across all of them.
+
+**Sources:** [HNSW Indexing Fundamentals — Qdrant](https://qdrant.tech/course/essentials/day-2/what-is-hnsw/) · [HNSW Performance Tuning Demo](https://qdrant.tech/course/essentials/day-2/collection-tuning-demo/) · [YouTube: Fast Vector Search with HNSW Indexing](https://www.youtube.com/watch?v=-q-pLgGDYr4)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-07-26-04-hnsw-vector-index-tuning-qdrant-course","title":"The Algorithm Inside Every Vector Database: Understand and Tune HNSW in 20 Minutes","excerpt":"HNSW powers pgvector, Qdrant, Weaviate, ChromaDB, and FAISS. Learn what m, ef_construction, and ef do — then tune them on a 100K dataset with Qdrant's free hands-on course.","author":"Chris Harper","date":"07-26-2026","publishedAt":"2026-07-26T12:06:00.000Z","tags":["AI","Tutorial","Embeddings","Vectors","Best Practices"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-26-04-hnsw-vector-index-tuning-qdrant-course.jpg","imageSource":"https://qdrant.tech/course/essentials/day-2/what-is-hnsw/","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"The Algorithm Inside Every Vector Database: Understand and Tune HNSW in 20 Minutes | AI News"}],["$","meta","1",{"name":"description","content":"HNSW powers pgvector, Qdrant, Weaviate, ChromaDB, and FAISS. Learn what m, ef_construction, and ef do — then tune them on a 100K dataset with Qdrant's free hands-on course."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-07-26-04-hnsw-vector-index-tuning-qdrant-course/"}],["$","meta","3",{"property":"og:title","content":"The Algorithm Inside Every Vector Database: Understand and Tune HNSW in 20 Minutes"}],["$","meta","4",{"property":"og:description","content":"HNSW powers pgvector, Qdrant, Weaviate, ChromaDB, and FAISS. Learn what m, ef_construction, and ef do — then tune them on a 100K dataset with Qdrant's free hands-on course."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-07-26-04-hnsw-vector-index-tuning-qdrant-course/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-26-04-hnsw-vector-index-tuning-qdrant-course.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"The Algorithm Inside Every Vector Database: Understand and Tune HNSW in 20 Minutes"}],["$","meta","13",{"name":"twitter:description","content":"HNSW powers pgvector, Qdrant, Weaviate, ChromaDB, and FAISS. Learn what m, ef_construction, and ef do — then tune them on a 100K dataset with Qdrant's free hands-on course."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-07-26-04-hnsw-vector-index-tuning-qdrant-course.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"
