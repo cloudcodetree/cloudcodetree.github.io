@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-08-08-09-claude-code-memory-layers-claude-md",
+    "title": "Four Memory Layers in Claude Code: Stop Putting Everything in CLAUDE.md",
+    "excerpt": "Claude Code has four distinct surfaces for persistent context — CLAUDE.md files (three scopes), hooks, skills, and auto-memory. Most developers only use one. A field guide to what belongs where.",
+    "author": "Chris Harper",
+    "date": "08-08-2026",
+    "publishedAt": "2026-08-08T20:07:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/memory",
+    "content": "**Claude Code has four distinct surfaces for persistent context — CLAUDE.md files, hooks, skills, and auto-memory — and most developers only use one. Knowing which to use triples session effectiveness.**\n\nThe common failure mode: a 600-line CLAUDE.md that buries critical rules in the middle, where the \"lost in the middle\" attention effect means the model reads them but doesn't weight them. The fix is matching each type of persistent information to the surface designed to carry it.\n\n## The four surfaces\n\n### 1. CLAUDE.md files (three scopes, additive)\n\nCLAUDE.md loads into every session's context at startup. Three scope layers stack additively — all contribute simultaneously, with narrower scopes taking precedence on conflicts:\n\n| Scope | Location | Use for |\n|---|---|---|\n| Project | `.claude/CLAUDE.md` | Codebase conventions, architecture notes, run commands — things Claude would get wrong without them |\n| Local | `.claude/CLAUDE.local.md` | Your personal machine overrides, test credentials, local paths — gitignored, never shared |\n| User | `~/.claude/CLAUDE.md` | Cross-project preferences you always want: output style, preferred tools, personal workflow rules |\n\n**Keep each file under ~200–300 lines.** The \"lost in the middle\" effect means accuracy drops 30%+ for content buried in a long context. Front-load the most critical instructions at the top.\n\n### 2. Hooks — enforced, deterministic side effects\n\nIf a rule must be enforced regardless of what Claude decides, put it in a hook. Hooks run shell commands on specific events and block or allow based on exit code. They can't be \"ignored\" the way a CLAUDE.md instruction can:\n\n```json\n{\n  \"hooks\": {\n    \"PostToolUse\": [{\n      \"matcher\": \"Write|Edit\",\n      \"hooks\": [{\"type\": \"command\", \"command\": \"node scripts/validate-blog.mjs\"}]\n    }]\n  }\n}\n```\n\nUse hooks for: linting on save, secret scanning before push, running tests after edits, blocking banned commands.\n\n### 3. Skills (`.claude/skills/`) — reusable multi-step workflows\n\nA skill is a markdown file with instructions Claude loads on demand. Use skills for complex, repeatable multi-step workflows (publish a post, scaffold a feature, run a review) that shouldn't be in every session's context budget.\n\nUnlike CLAUDE.md, skills only load when invoked with the Skill tool or a slash command — zero context cost at startup.\n\n### 4. Auto-memory\n\nWhen you correct Claude (\"always use single quotes in this project\"), Claude writes a note to `.claude/memory/` that persists across sessions without any manual CLAUDE.md editing. This is behavioral learning built into the loop.\n\n## What goes where: the cheat sheet\n\n| Type of information | Right surface |\n|---|---|\n| \"How this codebase works\" | CLAUDE.md (project scope) |\n| \"My local environment quirks\" | CLAUDE.md (local scope) |\n| \"Preferences across all my projects\" | CLAUDE.md (user scope) |\n| \"Always lint before commit\" | Hooks |\n| \"Do this 10-step workflow on request\" | Skill |\n| \"Remember my style correction\" | Auto-memory |\n\n**Sources:** [How Claude remembers your project — code.claude.com](https://code.claude.com/docs/en/memory) · [Explore the .claude directory — code.claude.com](https://code.claude.com/docs/en/claude-directory) · [Claude Code settings — code.claude.com](https://code.claude.com/docs/en/settings)"
+  },
+  {
+    "id": "2026-08-08-08-github-copilot-vscode-july-worktrees-parallel",
+    "title": "GitHub Copilot in VS Code Now Gives Each Agent Session Its Own Git Worktree",
+    "excerpt": "The July 2026 Copilot in VS Code release gives each agent session its own isolated git worktree, adds /side for parallel side chats, and surfaces subagent model and elapsed-time details inline.",
+    "author": "Chris Harper",
+    "date": "08-08-2026",
+    "publishedAt": "2026-08-08T20:06:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.blog/changelog/2026-07-30-github-copilot-in-visual-studio-code-july-2026-releases/",
+    "content": "**The July VS Code update gives every Copilot agent session an isolated git worktree so parallel sessions can't step on each other — and a /side command lets you open a second chat without disrupting your main task.**\n\nThe [July 2026 Copilot in VS Code release](https://github.blog/changelog/2026-07-30-github-copilot-in-visual-studio-code-july-2026-releases/) ships four additions worth knowing:\n\n- **Git worktrees per session:** start a Copilot, Claude, or Codex session in its own worktree — each agent works on an isolated copy of the repo, preventing conflicts when two agents run in parallel\n- **Side chats (`/side`):** open a parallel exploration thread that shares the session context but keeps its own history and title, so you can ask a tangential question without losing your main thread\n- **Subagent visibility:** each subagent shows its model name, elapsed time, and active tool call inline in the session panel\n- **Credit usage:** Copilot Business and Enterprise users can see their billing-cycle credit consumption in the VS Code status menu\n\n**Why it matters:** Git worktree isolation for agents solves the same race condition that `isolation: worktree` in Claude Code's SDK addresses — two agents editing the same files simultaneously is a data-loss scenario. Copilot's built-in worktree support makes parallel coding agents production-safe without extra configuration.\n\n**Sources:** [GitHub Copilot in VS Code, July 2026 releases — GitHub Changelog](https://github.blog/changelog/2026-07-30-github-copilot-in-visual-studio-code-july-2026-releases/)"
+  },
+  {
+    "id": "2026-08-08-07-rag-vs-fine-tuning-decision-framework",
+    "title": "Stop Forcing One Tool to Do Both Jobs: A RAG vs Fine-Tuning Decision Framework",
+    "excerpt": "RAG handles what the model knows; fine-tuning handles how it responds. Mixing these up is the most common LLM engineering mistake. A decision framework plus a runnable QLoRA walk-through with Unslo…",
+    "author": "Chris Harper",
+    "date": "08-08-2026",
+    "publishedAt": "2026-08-08T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Fine-Tuning",
+      "HuggingFace"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/blog/mlabonne/sft-llama3",
+    "content": "**RAG handles \"what the model knows\" — fine-tuning handles \"how it responds.\" Mixing up these two jobs is the most common LLM engineering mistake and the easiest to fix.**\n\n**What you'll be able to do after this:**\n- Identify in under five minutes whether your problem needs RAG, fine-tuning, prompt engineering, or none of the above\n- Understand why most production apps use both, and how to divide the work cleanly between them\n- Start a standard supervised QLoRA fine-tune on a free Colab T4 using Unsloth\n\n## The decision frame\n\nRAG and fine-tuning solve different problems. Confusing them burns weeks on the wrong tool.\n\n| Problem | Right tool |\n|---|---|\n| Model doesn't know recent or private information | RAG |\n| Answers need to cite sources or be auditable | RAG |\n| Model consistently uses wrong format or tone | Fine-tuning |\n| Classification labels are inconsistent | Fine-tuning |\n| Policy adherence is unstable | Fine-tuning |\n\n**RAG is the default.** For roughly 80% of production use cases, it's the right starting point:\n- Update source data without retraining\n- Cite which document generated each answer\n- Switch base models freely at any time\n\n**Fine-tune when behavior is the failure mode, not knowledge.** If your pipeline retrieves the right documents but the model formats the answer wrong, that's a behavior problem — and behavior lives in the weights, not in retrieval. Fine-tuning teaches the model *how* to respond; RAG teaches it *what* to say.\n\n**Prompt engineering first.** Before reaching for either tool, try few-shot examples in the system prompt. Many \"we need to fine-tune\" problems dissolve with 3–5 well-chosen examples. Only move to fine-tuning when the examples need to be so numerous or consistent that they'd overflow every context window.\n\n## The hybrid pattern (most production apps)\n\nMost mature applications use both:\n- **RAG layer:** current documents, product data, user history, tickets — anything that changes\n- **Fine-tuned layer:** consistent output structure, domain vocabulary, classification behavior, stable tone\n\nThey compose cleanly: the retrieval system passes relevant chunks into context; the fine-tuned model knows how to turn those chunks into correctly structured responses.\n\n## Start with supervised QLoRA on a free Colab T4\n\nOnce fine-tuning is the right tool, the standard path is **supervised fine-tuning (SFT)** with QLoRA. Maxime Labonne's [canonical HuggingFace guide](https://huggingface.co/blog/mlabonne/sft-llama3) walks through the full loop:\n\n```bash\npip install \"unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git\"\npip install --no-deps trl peft accelerate bitsandbytes\n```\n\nKey steps:\n1. **Load with 4-bit quantization** — QLoRA compresses the base model from 32-bit to 4-bit, so an 8B model fits on a free T4 GPU (16 GB VRAM)\n2. **Add LoRA adapters** — only ~1% of parameters are trained; the rest are frozen, preserving the base model's capabilities\n3. **Format in ChatML** — instruction datasets need `<|im_start|>system` / `<|im_start|>user` / `<|im_end|>` wrapping for the model to generalize correctly\n4. **SFTTrainer from TRL** — handles the training loop, prompt-token masking, and packing\n5. **Export** — save to GGUF or push to the Hub for inference in Ollama or vLLM\n\nResult: an 8B model fine-tuned on your task in under 2 hours, at zero GPU cost.\n\n**Sources:** [Fine-tune Llama 3.1 Ultra-Efficiently with Unsloth — Maxime Labonne, HuggingFace](https://huggingface.co/blog/mlabonne/sft-llama3) · [RAG vs Fine-Tuning for LLMs: A Comprehensive Guide — HuggingFace](https://huggingface.co/blog/airabbitX/rag-vs-fine-tuning-for-llms-a-com) · [Fine-Tuning vs RAG in 2026: A Decision Guide — codercops.com](https://blog.codercops.com/blog/fine-tuning-vs-rag-llm-decision-guide-2026)"
+  },
+  {
     "id": "2026-08-08-06-github-copilot-comment-automations-agentic-trigger",
     "title": "Automate Your Team's Agentic Workflows with a Comment: GitHub Copilot Cloud Agent Automations",
     "excerpt": "GitHub Copilot can now run a full cloud agent task whenever someone posts a matching comment on an issue or PR — type /docs on a PR and Copilot writes the documentation and opens a follow-up PR.",
