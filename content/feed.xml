@@ -10,7 +10,178 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 09 Aug 2026 04:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 09 Aug 2026 12:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Your Agent Is Just a Python Class: NVIDIA's NOOA Collapses Tool Definitions, State, and Prompts Into One Object</title>
+      <link>https://github.com/NVIDIA-NeMo/labs-OO-Agents</link>
+      <guid isPermaLink="false">2026-08-09-05-nvidia-nooa-oop-agents</guid>
+      <pubDate>Sun, 09 Aug 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Developer Tools</category>
+      <description>NVIDIA's NOOA (open-sourced Aug 7, Apache 2.0) makes a Python class the entire agent: methods are tools, docstrings are prompts, and ... bodies complete at LLM runtime — model-agnostic via LiteLLM.</description>
+      <content:encoded><![CDATA[
+**NVIDIA's NOOA (open-sourced Aug 7, Apache 2.0) makes a Python class the entire agent — methods are tool calls, docstrings are prompts, and a `...` method body hands execution to the LLM at runtime.**
+
+Most agent frameworks make you write tool schemas, register handlers, wire in a loop, and manage state separately. NOOA collapses all of that into one class. You write Python; the framework figures out the rest.
+
+## The core idea
+
+| Python construct | NOOA meaning |
+|---|---|
+| Instance field | Agent state the LLM can read and update |
+| Class/method docstring | System prompt or tool description |
+| Method body = `...` | LLM executes this at runtime |
+| Method body = real code | Always deterministic, never LLM-completed |
+
+Models plug in via LiteLLM — Claude, OpenAI, local Ollama, and any vLLM endpoint all work without changing your class.
+
+## Quickstart
+
+```bash
+pip install nooa  # v0.0.8, Apache 2.0, Python 3.12-3.13
+```
+
+```python
+from nooa import Agent
+
+class FileOrganizer(Agent):
+    """You are a file organization assistant."""
+
+    working_dir: str = "."
+    organized: list[str] = []
+
+    def list_files(self) -> list[str]:
+        """List all files in the working directory."""
+        import os
+        return os.listdir(self.working_dir)
+
+    def move_file(self, filename: str, destination: str) -> str:
+        """Move a file to a destination folder. Create the folder if needed."""
+        ...  # LLM decides when and how to call this
+
+    def summarize(self) -> str:
+        """Summarize what was organized and why."""
+        ...  # LLM writes the summary
+
+agent = FileOrganizer(working_dir="./src")
+result = agent.run(
+    "Organize the Python files into subfolders by module.",
+    model="anthropic/claude-sonnet-4-6"  # any LiteLLM model string
+)
+print(result)
+```
+
+Methods with `...` bodies are completed by the LLM-driven loop — it decides when to call them, with what arguments, and in what order. Methods with real Python bodies always run deterministically. You mix both freely in one class, which means you can test, trace, and refactor agent behavior exactly like ordinary software.
+
+## Benchmark context
+
+NVIDIA reports 82.2% on SWE-bench Verified and 86.8% on CyberGym L1 at roughly half the tokens of comparable open harnesses — attributed to NOOA's structured state reducing prompt bloat.
+
+**Status:** research preview (alpha on PyPI) — not production-ready for critical paths, but the design is immediately useful for prototyping agents that behave like regular code.
+
+**Sources:** [NVIDIA NOOA on GitHub (Apache 2.0)](https://github.com/NVIDIA-NeMo/labs-OO-Agents) · [arXiv: NVIDIA-labs OO Agents](https://arxiv.org/abs/2607.20709) · [nooa on PyPI](https://pypi.org/project/nooa/) · [NVIDIA AI Releases NOOA — MarkTechPost](https://www.marktechpost.com/2026/08/07/nvidia-ai-releases-nooa-an-object-oriented-python-framework/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Database Already Has a Vector Store: Semantic Search in PostgreSQL in 5 Steps With pgvector and Supabase</title>
+      <link>https://supabase.com/docs/guides/ai/semantic-search</link>
+      <guid isPermaLink="false">2026-08-09-04-pgvector-supabase-vector-store</guid>
+      <pubDate>Sun, 09 Aug 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Vectors</category>
+      <category>Embeddings</category>
+      <description>pgvector turns any PostgreSQL database into a vector store. Enable the extension, create a vector column, build an HNSW index, and run semantic search — no separate vector service needed.</description>
+      <media:content url="https://supabase.com/images/og/supabase-og.png" medium="image" />
+      <media:thumbnail url="https://supabase.com/images/og/supabase-og.png" />
+      <content:encoded><![CDATA[
+**pgvector is a PostgreSQL extension that adds a native vector column type and nearest-neighbor operators — enable it in any Postgres database (Supabase's free tier included) to get semantic search without a separate vector service.**
+
+**What you'll be able to do after this:**
+- Store embeddings in the same database that holds the rest of your application data — no extra service, no sync lag, JOIN-able with your users and metadata
+- Build an HNSW index that keeps nearest-neighbor queries under 10ms at 1M+ vectors
+- Write a complete semantic search pipeline — raw text to ranked results — entirely in PostgreSQL and Python
+
+## Why put vectors in Postgres?
+
+Running a separate vector database doubles your operational surface area and breaks JOIN semantics: you can't filter by user ID, access control, or any column in your app database in a single query. pgvector keeps everything in one place — and on Supabase, you get a free tier with a REST API and Python client out of the box.
+
+## Step 1: Enable pgvector
+
+On Supabase: Dashboard → Database → Extensions → toggle **vector**. Or raw SQL:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+## Step 2: Create a table with a vector column
+
+```sql
+CREATE TABLE documents (
+  id        BIGSERIAL PRIMARY KEY,
+  content   TEXT NOT NULL,
+  embedding VECTOR(384)   -- match your embedding model's output dimension
+);
+```
+
+Common dimensions: `384` for `all-MiniLM-L6-v2`, `768` for `all-mpnet-base-v2`, `1536` for OpenAI's text-embedding-3-small.
+
+## Step 3: Insert embeddings from Python
+
+```python
+from sentence_transformers import SentenceTransformer
+from supabase import create_client
+
+model = SentenceTransformer("all-MiniLM-L6-v2")  # 384 dims, fast, free
+sb = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+texts = [
+    "Claude Code can spawn parallel subagents for independent tasks.",
+    "Use HNSW indexes for fast approximate nearest-neighbor search.",
+]
+embeddings = model.encode(texts).tolist()
+
+sb.table("documents").insert([
+    {"content": t, "embedding": e}
+    for t, e in zip(texts, embeddings)
+]).execute()
+```
+
+## Step 4: Build an HNSW index
+
+```sql
+CREATE INDEX ON documents
+USING hnsw (embedding vector_cosine_ops)
+WITH (m = 16, ef_construction = 64);
+```
+
+HNSW is the recommended index type for 2026 — it builds a navigable graph so queries skip exhaustive comparison. Benchmarks show 95%+ recall on 1M-vector datasets with sub-10ms p99 latency on a standard Supabase Pro instance.
+
+## Step 5: Query
+
+```python
+query_vec = model.encode("How do I run agents in parallel?").tolist()
+# Using raw SQL via psycopg2:
+cur.execute("""
+    SELECT content,
+           1 - (embedding <=> %s::vector) AS similarity
+    FROM   documents
+    ORDER  BY embedding <=> %s::vector
+    LIMIT  5;
+""", (query_vec, query_vec))
+```
+
+The `<=>` operator is cosine distance; `<->` is L2; `<#>` is negative inner product. Pick `<=>` for text embeddings — it's distance-normalized by default.
+
+**Sources:** [Semantic Search — Supabase Docs](https://supabase.com/docs/guides/ai/semantic-search) · [pgvector Extension — Supabase Docs](https://supabase.com/docs/guides/database/extensions/pgvector) · [HNSW Indexes — Supabase Docs](https://supabase.com/docs/guides/ai/vector-indexes/hnsw-indexes)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Your Claude Code Safety Rules Are Suggestions Until You Use Hooks</title>
