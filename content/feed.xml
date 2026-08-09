@@ -10,7 +10,253 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 09 Aug 2026 12:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 09 Aug 2026 20:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>The History Collapse Pattern: Keep Long-Running Claude API Agents Focused and Affordable</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/compaction</link>
+      <guid isPermaLink="false">2026-08-09-08-claude-api-conversation-compression-pattern</guid>
+      <pubDate>Sun, 09 Aug 2026 20:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>After N turns, inject one structured summary message and discard the raw history above it. Cost stays flat, the agent remembers what matters, and context never hits the wall mid-task.</description>
+      <content:encoded><![CDATA[
+**After N turns, inject one structured summary and truncate the raw message history above it — cost stays flat, the agent stays sharp, and you never hit the token wall mid-task.**
+
+Claude Code has `/compact` to compress an interactive session. If you're building your own multi-turn agent with the Claude API, you need to wire this yourself. Here's the pattern.
+
+## Why message history grows into a problem
+
+Each API call sends the full `messages` array. A 10-turn coding agent with long file reads can easily accumulate 40,000–80,000 input tokens. At Claude Sonnet's current pricing, that's $0.12–$0.24 per turn *just in history* — and the longer the session runs, the worse it gets. Beyond cost, context quality degrades: early context crowds out attention for recent work.
+
+The fix is not to blindly truncate (you lose decisions made 30 turns ago). The fix is to *compress semantically*: extract what matters and discard the rest.
+
+## The compression call
+
+```python
+def compress_history(client, messages: list, model: str) -> list:
+    """Collapses message history into one summary + system context."""
+    if len(messages) < 2:
+        return messages
+
+    compression_prompt = """You are summarizing a coding agent's work session.
+Produce a concise technical summary covering:
+1. The task being worked on and its current state
+2. Files created, modified, or deleted (with paths)
+3. Key decisions made and why
+4. Errors encountered and how they were resolved
+5. Immediate next steps
+
+Be specific and preserve exact file paths, function names, and error messages.
+Format as structured markdown."""
+
+    response = client.messages.create(
+        model=model,
+        max_tokens=2000,
+        system=compression_prompt,
+        messages=messages,
+    )
+
+    summary = response.content[0].text
+    return [
+        {"role": "user",
+         "content": f"[SESSION CONTEXT — compressed from {len(messages)} messages]
+
+{summary}"},
+        {"role": "assistant",
+         "content": "Understood. I'll continue from where we left off."},
+    ]
+```
+
+## When to trigger it
+
+```python
+TOKEN_THRESHOLD = 60_000   # compress before you hit 80k+ expensive territory
+TURN_THRESHOLD  = 20       # or every 20 turns
+
+def should_compress(messages: list) -> bool:
+    # Rough token estimate: ~4 chars per token
+    approx_tokens = sum(len(str(m)) // 4 for m in messages)
+    return approx_tokens > TOKEN_THRESHOLD or len(messages) > TURN_THRESHOLD * 2
+```
+
+## Full agent loop
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic()
+MODEL  = "claude-sonnet-4-6-20261001"
+
+messages = []
+
+while True:
+    user_input = input("You: ")
+    if user_input.lower() == "exit":
+        break
+
+    messages.append({"role": "user", "content": user_input})
+
+    if should_compress(messages[:-1]):          # compress everything except the new turn
+        messages = compress_history(client, messages[:-1], MODEL) + [messages[-1]]
+        print("[context compressed]")
+
+    response = client.messages.create(
+        model=MODEL,
+        max_tokens=8096,
+        messages=messages,
+    )
+
+    reply = response.content[0].text
+    messages.append({"role": "assistant", "content": reply})
+    print(f"Claude: {reply}")
+```
+
+## What to preserve in the summary
+
+The compression prompt matters more than the timing. Include: current task state, file paths and their contents' purpose, key design decisions, open errors. Exclude: full file reads that can be re-read, exploratory dead ends.
+
+For longer sessions, run two levels: compress every 20 turns into a "session chunk," then once per hour compress all chunks into a "project context." The pattern scales to sessions hours or days long.
+
+**Sources:** [Compaction — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/compaction) · [Context Window Management — Claude Code Docs](https://code.claude.com/docs/en/context-management) · [Claude Code /compact Deep-Dive — claudefa.st](https://claudefa.st/blog/guide/mechanics/context-management)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Self-Host Your Content Moderation: Mistral Shieldstral 1.0 Is an Open-Weight 3B Guard Model</title>
+      <link>https://www.marktechpost.com/2026/08/07/mistral-ai-releases-shieldstral-1-0-3b/</link>
+      <guid isPermaLink="false">2026-08-09-07-mistral-shieldstral-safety-classifier</guid>
+      <pubDate>Sun, 09 Aug 2026 20:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Security</category>
+      <category>LLM</category>
+      <description>Mistral released Shieldstral 1.0 (Aug 4, Apache 2.0) — a 3B multimodal safety classifier where you write moderation policies in plain English, run it on a 16GB GPU, and it matches models 7x its size.</description>
+      <content:encoded><![CDATA[
+**Mistral released Shieldstral 1.0 (Aug 4, Apache 2.0) — a 3B open-weight safety classifier where moderation policies are plain-English strings you pass at inference time, not categories baked into the model.**
+
+Most guard models ship with fixed categories. Shieldstral inverts this: you write a natural-language policy ("block content promoting self-harm, harassment, or explicit material targeting minors") and the model scores against it on each call. Change what you're guarding against by changing a string — no retraining, no fine-tuning.
+
+**Key specs:** 3B parameters, runs on a single 16GB GPU (A100, RTX 3090, or similar), covers text and images, 12 languages, Apache 2.0 on HuggingFace. Mistral reports parity with guard models up to 21B on text safety benchmarks and SOTA on multimodal moderation.
+
+**For developers building agentic pipelines:** Shieldstral fits as a post-output filter — call it before any user-facing response leaves your system. Because the model is open-weight and runs locally, there's no outbound API, no data leaving your infrastructure, and updating your policy is a string change in your config.
+
+**Why it matters:** Agentic systems that execute code, browse the web, and take real actions need a last-gate output filter that doesn't add a third-party API dependency. Shieldstral is the first open-weight option compact enough to serve on the same machine as your application server without a dedicated GPU node.
+
+**Sources:** [Mistral AI Releases Shieldstral 1.0 3B — MarkTechPost](https://www.marktechpost.com/2026/08/07/mistral-ai-releases-shieldstral-1-0-3b/) · [Shieldstral 1.0 — Medium](https://medium.com/data-science-in-your-pocket/shieldstral-1-0-mistrals-policy-adaptive-3b-safety-classifier-ba3fe6e2f728) · [Mistral Releases Shieldstral for Multimodal Moderation — TestingCatalog](https://www.testingcatalog.com/mistral-releases-shieldstral-for-multimodal-moderation/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>The Adapter Trick That Makes LLM Fine-Tuning Free: LoRA and QLoRA Explained From the Ground Up</title>
+      <link>https://unsloth.ai/docs/get-started/fine-tuning-llms-guide</link>
+      <guid isPermaLink="false">2026-08-09-06-lora-qlora-mechanism-unsloth</guid>
+      <pubDate>Sun, 09 Aug 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>LoRA adds two small matrices (B x A) to each weight layer and trains only those — about 1% of parameters. QLoRA freezes the base model in 4-bit so the whole thing fits on a free Colab T4 GPU.</description>
+      <media:content url="https://unsloth.ai/images/unsloth.png" medium="image" />
+      <media:thumbnail url="https://unsloth.ai/images/unsloth.png" />
+      <content:encoded><![CDATA[
+**LoRA freezes a model's weights and adds two small matrices (B×A) to each layer — only those train, roughly 1% of total parameters. QLoRA compresses the frozen base model to 4-bit so the whole thing fits on a free Colab GPU.**
+
+Every other fine-tuning post in this curriculum has *used* LoRA. This one explains why it works and what the knobs actually do.
+
+**What you'll be able to do after this:**
+- Explain the B×A decomposition: why training a rank-r update captures meaningful behavioral change while touching a fraction of the weights
+- Choose `r`, `lora_alpha`, and `target_modules` with intention instead of copying defaults
+- Run a complete supervised fine-tune of Llama 3.1 8B on a free Colab T4 using Unsloth + QLoRA
+
+## The problem LoRA solves
+
+Full fine-tuning a 7B model requires storing gradients and optimizer states alongside the weights — roughly 80+ GB of memory. That's beyond any free GPU and barely fits on a single A100. You need to train *some* parameters without training all of them.
+
+## The core mechanism
+
+LoRA's insight: the updates a model needs during fine-tuning live in a low-dimensional subspace. Instead of updating weight matrix W (size d×k), you add an adapter ΔW = B×A where:
+
+- **A** is (r × k) — initialized with random Gaussian values
+- **B** is (d × r) — initialized to zero, so ΔW starts at zero and training begins from the pre-trained behavior
+- **r** is the rank — your budget for adapter capacity
+
+At inference time, the effective weight is W + (α/r) × B×A. Only B and A are trained; W is frozen.
+
+## What r and alpha actually mean
+
+| Hyperparameter | What it controls | Typical values |
+|---|---|---|
+| `r` (rank) | How many "directions of change" the adapter can represent — higher r = more capacity, more memory | 8, 16, 32, 64 |
+| `lora_alpha` | Scales the adapter's contribution: effective scale = alpha/r | Set to r (1× scale) or 2r (2× scale) |
+| `target_modules` | Which layer projections get adapters | Start with q_proj + v_proj; add k, o, gate, up, down_proj for stronger adaptation |
+
+The *ratio* alpha/r matters more than either value alone. r=16, alpha=32 gives 2× scale — the adapter pushes harder relative to the base weights. r=64, alpha=64 gives 1× scale — more capacity but the same influence.
+
+## QLoRA adds 4-bit compression
+
+QLoRA loads the frozen base model in NF4 (normalized float 4-bit) format using `bitsandbytes`. An 8B model drops from ~16 GB to ~5–6 GB. Only the LoRA adapters (A and B matrices) are trained in BF16. Combined, a 7-8B QLoRA fine-tune fits in ~8-10 GB VRAM — well within a free Colab T4's 16 GB.
+
+## Run it: the Unsloth SFT Colab
+
+```python
+# Install: pip install unsloth
+from unsloth import FastLanguageModel
+
+# Step 1 — load base model in 4-bit (QLoRA)
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name="unsloth/Meta-Llama-3.1-8B-Instruct",
+    max_seq_length=2048,
+    load_in_4bit=True,   # NF4 quantization of the frozen base
+)
+
+# Step 2 — attach LoRA adapters
+model = FastLanguageModel.get_peft_model(
+    model,
+    r=16,
+    lora_alpha=16,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                    "gate_proj", "up_proj", "down_proj"],
+    lora_dropout=0.05,
+    bias="none",
+    use_gradient_checkpointing="unsloth",  # 30% more VRAM savings
+)
+
+# Step 3 — SFTTrainer from TRL (standard HuggingFace fine-tuning loop)
+from trl import SFTTrainer
+from transformers import TrainingArguments
+
+trainer = SFTTrainer(
+    model=model,
+    tokenizer=tokenizer,
+    train_dataset=dataset,   # mlabonne/FineTome-100k or your own
+    dataset_text_field="text",
+    max_seq_length=2048,
+    args=TrainingArguments(
+        per_device_train_batch_size=2,
+        gradient_accumulation_steps=4,
+        warmup_steps=5,
+        max_steps=60,         # ~30 min on a free T4
+        learning_rate=2e-4,
+        fp16=not is_bfloat16_supported(),
+        bf16=is_bfloat16_supported(),
+        output_dir="outputs",
+    ),
+)
+trainer.train()
+```
+
+Unsloth's custom CUDA kernels train 2× faster and use 60% less VRAM than stock Hugging Face PEFT — critical on a 16 GB T4. The [Unsloth Llama 3.1 SFT Colab](https://colab.research.google.com/drive/1Ys44kVvmeZtnICzWz0xgpRnrIOjZAuxp?usp=sharing) includes the full loop: dataset loading, trainer config, evaluation, and GGUF export so you can run the result locally with Ollama.
+
+**Sources:** [Fine-tuning LLMs Guide — Unsloth Docs](https://unsloth.ai/docs/get-started/fine-tuning-llms-guide) · [LoRA Hyperparameters Guide — Unsloth Docs](https://unsloth.ai/docs/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide) · [Unsloth Llama 3.1 SFT Colab — Google Colab](https://colab.research.google.com/drive/1Ys44kVvmeZtnICzWz0xgpRnrIOjZAuxp?usp=sharing)
+]]></content:encoded>
+    </item>
+
 
     <item>
       <title>Your Agent Is Just a Python Class: NVIDIA's NOOA Collapses Tool Definitions, State, and Prompts Into One Object</title>
