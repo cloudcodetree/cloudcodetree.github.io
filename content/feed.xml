@@ -10,7 +10,155 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 10 Aug 2026 04:17:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 10 Aug 2026 12:15:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Claude Code Auto Mode Becomes the Default on August 14 — What Changes and What to Configure</title>
+      <link>https://claude.com/blog/auto-mode-default-in-claude-code</link>
+      <guid isPermaLink="false">2026-08-10-06-claude-code-auto-mode-default-aug14</guid>
+      <pubDate>Mon, 10 Aug 2026 12:15:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Starting August 14, new Claude Code sessions on Pro, Max, and Team plans run in auto mode by default — a safety classifier replaces per-action prompts with an 89% catch rate vs. 13.6% for manual review.</description>
+      <content:encoded><![CDATA[
+**Starting August 14, new Claude Code sessions on Pro, Max, and Team plans will skip per-action approval prompts — a safety classifier handles them automatically, catching 89% of dangerous commands vs. 13.6% for manual review.**
+
+Auto mode has been opt-in since March. On August 14 it becomes the default for new sessions on Pro, Max, and Team plans. Anthropic's own testing explains why: users approve 97% of permission prompts reflexively — approval fatigue means manual oversight only catches 13.6% of dangerous commands. Auto mode's background classifier caught 89% of the same commands in the same study. Effective today, the classifier overhead is also free — no additional token charges.
+
+## What changes
+
+**Auto mode replaces per-action prompts with a classifier** that evaluates each tool call in real time. If it flags something irreversible or out-of-bounds, Claude tries a safer path or asks for permission. After repeated blocks, the session falls back to manual approval.
+
+**Pinned defaults and managed admin settings are preserved.** Claude Enterprise, API, Bedrock, Vertex AI, and Foundry remain opt-in for now — Anthropic plans a broader rollout there separately.
+
+## What to check before August 14
+
+**1. If you rely on per-action prompts for a specific workflow**, pin your preference now:
+
+```json
+// ~/.claude/settings.json
+{
+  "disableAutoMode": true
+}
+```
+
+**2. If your CLAUDE.md permission rules have drifted**, run:
+
+```bash
+claude auto-mode reset
+```
+
+This restores the default auto-mode classifier behavior without touching your other settings.
+
+**3. Your `--allowlist-file` permissions are fully respected** — anything you've explicitly permitted stays permitted; auto mode only handles the undecided cases.
+
+After August 14, the Claude Code session header shows the active mode so you always know which approval flow is running.
+
+**Sources:** [Auto mode is now the default in Claude Code for Pro, Max, and Team plans — Anthropic](https://claude.com/blog/auto-mode-default-in-claude-code) · [TechCrunch](https://techcrunch.com/2026/08/09/anthropic-is-turning-claude-codes-auto-mode-on-by-default/) · [Simon Willison's notes](https://simonwillison.net/2026/Aug/8/auto-mode/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code and Cowork Land in FedRAMP-High Government Desktop Beta</title>
+      <link>https://claude.com/blog/bringing-claude-code-and-claude-cowork-to-government</link>
+      <guid isPermaLink="false">2026-08-10-05-claude-for-government-desktop-beta</guid>
+      <pubDate>Mon, 10 Aug 2026 12:14:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>Anthropic launches Claude for Government Desktop in public beta with FedRAMP High authorization — Claude Code and Cowork are now available to federal agencies, with tamper-evident audit logs and admin controls.</description>
+      <content:encoded><![CDATA[
+**Claude for Government Desktop is in public beta today — FedRAMP High authorized, with Claude Code and Cowork available to federal agencies and a $1/agency unlimited-seat price through August.**
+
+Anthropic launched the public beta of Claude for Government Desktop today. It brings FedRAMP High authorization, Claude Code for software modernization, and Claude Cowork for document-heavy agency workflows (memo drafting, RFP reviews, casework). Admins get spend controls per department and tamper-evident audit logs that support the agency ATO process. A limited-time offer sets the price at $1 per agency with unlimited seats through August 2026.
+
+**Why it matters:** Engineers at govtech firms and federal contractors can now use Claude Code in FedRAMP High environments without a custom authorization-to-operate process — the compliance lift just got much shorter.
+
+**Sources:** [Bringing Claude Code and Cowork to government — Anthropic](https://claude.com/blog/bringing-claude-code-and-claude-cowork-to-government) · [Get started with Claude for Government — Anthropic Help Center](https://support.claude.com/en/articles/14503590-get-started-with-claude-for-government)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Why Pure Vector Search Fails on "React 18.3" and "GPT-4o" — and How BM25 + RRF Hybrid Search Fixes It</title>
+      <link>https://www.youtube.com/watch?v=D8LmsEOJvPI</link>
+      <guid isPermaLink="false">2026-08-10-04-hybrid-bm25-vector-search-rrf</guid>
+      <pubDate>Mon, 10 Aug 2026 12:13:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Embeddings</category>
+      <description>Vector search excels at meaning; BM25 excels at exact terms. Combining them with Reciprocal Rank Fusion lifts RAG recall from ~78% to ~91% and takes about 10 lines of LlamaIndex code.</description>
+      <media:content url="https://img.youtube.com/vi/D8LmsEOJvPI/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/D8LmsEOJvPI/maxresdefault.jpg" />
+      <content:encoded><![CDATA[
+**Vector search excels at meaning; BM25 excels at exact terms. Combining them with Reciprocal Rank Fusion lifts RAG recall from ~78% to ~91% — and takes about 10 lines of LlamaIndex code.**
+
+**What you'll be able to do after this:**
+- Understand why exact-term failures happen in vector-only RAG and when hybrid search fixes them
+- Implement a BM25 + dense vector retriever with RRF fusion using LlamaIndex in one runnable block
+- Know when hybrid search is worth the added complexity (and when it isn't)
+
+## The problem with vector-only retrieval
+
+Dense embeddings encode *meaning* well — "GPT-4o" and "the latest OpenAI model" land close in embedding space. But that's also the problem: "GPT-4o" and "GPT-4.1" land close too, so version-number queries, product codes, API names, and identifiers confuse vector retrievers. A user searching "React 18.3 concurrent features" may miss the document that says exactly that, because the embedding for "React 18.3" overlaps with every React document.
+
+**BM25 solves this.** BM25 is a keyword retrieval algorithm that scores documents by term frequency (TF) and inverse document frequency (IDF). A document containing "React 18.3" literally outscores a document that only discusses React in general — exact-term precision that embeddings trade away for semantic breadth.
+
+## How Reciprocal Rank Fusion combines them
+
+Run both retrievers in parallel, then merge their ranked lists with **RRF**:
+
+```
+score(doc) = Σ 1 / (k + rank_i(doc))
+```
+
+RRF works on *ranks*, not raw scores — which sidesteps the incompatibility between BM25's TF-IDF scores and cosine similarity values. No calibration needed. Benchmarks: hybrid + RRF reaches ~91% recall@10 vs ~78% for vector-only and ~65% for BM25-only.
+
+## 10-line LlamaIndex implementation
+
+```bash
+pip install llama-index-core llama-index-retrievers-bm25
+```
+
+```python
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+from llama_index.core.retrievers import QueryFusionRetriever
+from llama_index.retrievers.bm25 import BM25Retriever
+
+docs = SimpleDirectoryReader("./data").load_data()
+index = VectorStoreIndex.from_documents(docs)
+
+vector_retriever = index.as_retriever(similarity_top_k=10)
+bm25_retriever   = BM25Retriever.from_defaults(
+    docstore=index.docstore, similarity_top_k=10
+)
+
+retriever = QueryFusionRetriever(
+    [vector_retriever, bm25_retriever],
+    similarity_top_k=5,
+    mode="reciprocal_rerank",   # RRF
+    num_queries=1,
+    use_async=True,
+)
+
+nodes = retriever.retrieve("React 18.3 concurrent features")
+```
+
+For LangChain users: `EnsembleRetriever([bm25_retriever, vector_retriever], weights=[0.4, 0.6])` does the same thing with automatic RRF via its built-in `weighted_reciprocal_rank` implementation.
+
+## When to add it
+
+Add hybrid search when users query with specific names, codes, version numbers, or identifiers. Skip it if your corpus is purely conceptual (e.g., abstract policy FAQs) — pure vector search handles those fine, and the added complexity isn't worth it.
+
+**Sources:** [BM25 Retriever — LlamaIndex official docs](https://developers.llamaindex.ai/python/examples/retrievers/bm25_retriever/) · [Hybrid Search in RAG Explained: BM25 + Semantic Search + RRF — YouTube](https://www.youtube.com/watch?v=D8LmsEOJvPI) · [Hybrid Search with Reranking — Qdrant official docs](https://qdrant.tech/documentation/tutorials-search-engineering/reranking-hybrid-search/)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Right-Size Your PR Reviews: GitHub Copilot Effort Levels (Lite vs. Balanced) Are Now GA</title>
