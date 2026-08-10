@@ -1,5 +1,60 @@
 [
   {
+    "id": "2026-08-10-09-local-agent-dev-ollama-openai-compat",
+    "title": "Prototype Agent Tool Loops Locally Before Paying for API Calls: Ollama's OpenAI Drop-In",
+    "excerpt": "Ollama exposes an OpenAI-compatible /v1 endpoint — swap one URL and use your existing tool-calling code to iterate locally at zero API cost before promoting to Claude or GPT-5 in production.",
+    "author": "Chris Harper",
+    "date": "08-10-2026",
+    "publishedAt": "2026-08-10T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Agents",
+      "Self-Hosting"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://ollama.com/blog/openai-compatibility",
+    "content": "**Ollama's OpenAI-compatible `/v1` endpoint lets you run your existing tool-calling agent code against local models — swap one URL to develop and debug at zero API cost, then swap back for production.**\n\nAgent development is expensive in API calls, not just money — every iteration that changes the tool schema, system prompt, or dispatch logic requires real inference. Running against a local model eliminates that cost during the iteration phase.\n\n## The drop-in swap\n\nOllama exposes an OpenAI-compatible endpoint at `http://localhost:11434/v1`. The OpenAI Python client accepts a `base_url` override, so the switch is two lines:\n\n```python\nfrom openai import OpenAI\n\n# ── Local development ──────────────────────────────────────────────────\nclient = OpenAI(\n    base_url=\"http://localhost:11434/v1\",\n    api_key=\"ollama\",   # required by the client, ignored by Ollama\n)\nmodel = \"muse-glimmer\"        # or \"qwen3:8b\", \"llama3.1:8b\"\n\n# ── Production ─────────────────────────────────────────────────────────\n# client = OpenAI()                            # uses OPENAI_API_KEY\n# model  = \"claude-sonnet-5-20250901\"          # or your Claude model via SDK\n```\n\nYour tool definitions, `tool_choice`, response parsing, and `tool_calls` dispatch code are identical in both environments. The only thing that changes is `base_url` and `model`.\n\n## What to validate locally\n\nUse the local loop for:\n- **Schema correctness** — verifying Claude will receive tool definitions with the right types and required fields\n- **Dispatch logic** — confirming your `if call.function.name == \"...\"` branches handle all tool names\n- **Error handling** — testing your `is_error` paths and retry behavior\n- **Message history** — catching append bugs before they cause API errors\n\n## When to switch to Claude\n\nMove to your production model when:\n- Your tool schemas and dispatch logic are stable\n- You need better reasoning on complex multi-step tasks\n- Local model's function-calling accuracy drops on your real queries\n- You're measuring latency or need longer context\n\nMuse Glimmer (released today, Apache 2.0, 4-bit quantized to 18–20 GB) is the strongest local option for agent workloads right now: `ollama pull muse-glimmer`.\n\n**Sources:** [Ollama OpenAI compatibility docs](https://ollama.com/blog/openai-compatibility) · [Muse Glimmer on Ollama via Unsloth GGUF](https://huggingface.co/unsloth/Muse-Glimmer-30B-GGUF) · [Ollama REST API reference](https://github.com/ollama/ollama/blob/main/docs/api.md)"
+  },
+  {
+    "id": "2026-08-10-08-meta-muse-glimmer-30b-open-agentic-consumer-gpu",
+    "title": "Meta Open-Sources Muse Glimmer: A 30B Agentic Model That Runs on One Consumer GPU",
+    "excerpt": "Meta releases Muse Glimmer today: a 30B open-weights agentic model (Apache 2.0) distilled from Muse Spark 1.2 that fits on a single consumer GPU at 18-20 GB with 4-bit quantization.",
+    "author": "Chris Harper",
+    "date": "08-10-2026",
+    "publishedAt": "2026-08-10T20:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Agents",
+      "Self-Hosting"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model",
+    "content": "**Meta releases Muse Glimmer today: 30B open-weights agentic model (Apache 2.0), distilled for tool use and failure recovery, fits on a single consumer GPU at 18-20 GB with 4-bit quantization.**\n\nMuse Glimmer is a 30-billion-parameter dense multimodal model distilled from Muse Spark 1.2 and specifically trained for agentic workloads: multi-step tool use, function calling, LLM-as-a-judge evaluations, and task failure recovery. Full weights are 55 GB; Unsloth's GGUF 4-bit build (already on HuggingFace as of today) cuts that to 18–20 GB, within reach of a single RTX 4090 or a Mac with 24 GB+ unified memory.\n\nNative integrations are available today for llama.cpp, MLX, ExecuTorch, and Ollama (`ollama pull muse-glimmer`). Text and image input supported.\n\n**Why it matters:** Until today, every open model that could handle real agentic workloads reliably (Kimi K3, DeepSeek V3.2, the Muse Spark series) required multi-GPU infra or cloud APIs. Muse Glimmer is the first credible open agentic model that fits on prosumer hardware — making local agent development and self-hosted production deployments genuinely viable.\n\n**Sources:** [Introducing Muse Glimmer — Meta AI Research](https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model) · [meta-models/Muse-Glimmer-30B — HuggingFace](https://huggingface.co/meta-models/Muse-Glimmer-30B) · [unsloth/Muse-Glimmer-30B-GGUF — HuggingFace](https://huggingface.co/unsloth/Muse-Glimmer-30B-GGUF) · [Muse Glimmer on Phoronix](https://www.phoronix.com/news/Meta-Muse-Glimmer)"
+  },
+  {
+    "id": "2026-08-10-07-claude-api-parallel-tool-calls-asyncio",
+    "title": "Fetch Multiple Data Points in One Claude Response: Parallel Tool Calls With asyncio.gather",
+    "excerpt": "Claude 4 returns multiple independent tool calls in one response — dispatch them with asyncio.gather to cut latency by N times instead of running them sequentially.",
+    "author": "Chris Harper",
+    "date": "08-10-2026",
+    "publishedAt": "2026-08-10T20:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+    "content": "**Claude 4 and later return multiple independent tool calls in a single response — dispatch them with `asyncio.gather` to cut latency by N× instead of running sequential round trips.**\n\n**What you'll be able to do after this:**\n- Understand how Claude signals parallel tool intent in a single response\n- Dispatch multiple tool calls concurrently with `asyncio.gather` and return all results in one user message\n- Know when to disable parallel tool use for sequential, side-effectful workflows\n\n## The serial trap\n\nMost agents are written as a simple while loop: call the API, get a tool request, execute it, return the result, repeat. If your agent needs to fetch a user profile, look up their orders, AND check their billing status, that is three sequential round trips — the total latency is T₁ + T₂ + T₃. Claude doesn't need them to be sequential; your code forces it.\n\n## How Claude signals parallel intent\n\nClaude 4 and later models return multiple `tool_use` blocks in a single assistant message when the calls are independent:\n\n```python\n# Claude returns ONE assistant message containing N tool_use blocks\nresponse.content = [\n    ToolUseBlock(id=\"toolu_01\", name=\"get_user_profile\", input={\"user_id\": \"u123\"}),\n    ToolUseBlock(id=\"toolu_02\", name=\"get_orders\",       input={\"user_id\": \"u123\"}),\n    ToolUseBlock(id=\"toolu_03\", name=\"get_billing\",      input={\"user_id\": \"u123\"}),\n]\n```\n\nYour responsibility: run all three, then return ALL results in a single `user` message before calling the API again.\n\n## The parallel dispatch pattern\n\n```python\nimport asyncio\nimport anthropic\n\nclient = anthropic.Anthropic()\n\nasync def dispatch_parallel(tool_calls, tool_map):\n    \"\"\"Run all tool calls concurrently; return tool_result blocks.\"\"\"\n    tasks = [tool_map[tc.name](**tc.input) for tc in tool_calls]\n    results = await asyncio.gather(*tasks, return_exceptions=True)\n    return [\n        {\n            \"type\": \"tool_result\",\n            \"tool_use_id\": tc.id,   # match by id, not by position\n            \"content\": str(r) if not isinstance(r, Exception) else f\"Error: {r}\",\n            \"is_error\": isinstance(r, Exception),\n        }\n        for tc, r in zip(tool_calls, results)\n    ]\n\nasync def agent_loop(prompt, tools, tool_map):\n    messages = [{\"role\": \"user\", \"content\": prompt}]\n    while True:\n        resp = client.messages.create(\n            model=\"claude-sonnet-5-20250901\",\n            max_tokens=1024,\n            tools=tools,\n            messages=messages,\n        )\n        if resp.stop_reason == \"end_turn\":\n            return next(b.text for b in resp.content if hasattr(b, \"text\"))\n\n        tool_calls = [b for b in resp.content if b.type == \"tool_use\"]\n\n        # 1. Append the full assistant message (keeps tool_use blocks intact)\n        messages.append({\"role\": \"assistant\", \"content\": resp.content})\n\n        # 2. Dispatch all calls in parallel\n        results = await dispatch_parallel(tool_calls, tool_map)\n\n        # 3. Return ALL results in a single user message\n        messages.append({\"role\": \"user\", \"content\": results})\n```\n\n## Two rules that catch most bugs\n\n**Match by `tool_use_id`, not list position.** Claude doesn't guarantee which tool appears first. Always pair calls and results by `id`.\n\n**Append `response.content` in full — never strip `tool_use` blocks.** The next API call expects to see Claude's own requests echoed back. Stripping them causes an API error.\n\n## Disable for sequential workflows\n\nIf your tools have side effects or ordering dependencies (e.g., `create_invoice` must succeed before `send_confirmation`):\n\n```python\nclient.messages.create(\n    ...,\n    tool_choice={\"type\": \"auto\", \"disable_parallel_tool_use\": True},\n)\n```\n\n**Sources:** [Parallel tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) · [Implement tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/implement-tool-use) · [Build a tool-using agent — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/build-a-tool-using-agent)"
+  },
+  {
     "id": "2026-08-10-06-claude-code-auto-mode-default-aug14",
     "title": "Claude Code Auto Mode Becomes the Default on August 14 — What Changes and What to Configure",
     "excerpt": "Starting August 14, new Claude Code sessions on Pro, Max, and Team plans run in auto mode by default — a safety classifier replaces per-action prompts with an 89% catch rate vs. 13.6% for manual re…",
