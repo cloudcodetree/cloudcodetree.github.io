@@ -10,7 +10,174 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 11 Aug 2026 12:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 11 Aug 2026 20:04:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Automated PR Review with claude-code-action: 10 Lines of YAML, Zero Manual Review Fatigue</title>
+      <link>https://code.claude.com/docs/en/github-actions</link>
+      <guid isPermaLink="false">2026-08-11-08-claude-code-action-github-pr-automation</guid>
+      <pubDate>Tue, 11 Aug 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <category>Best Practices</category>
+      <description>Drop 10 lines of YAML into .github/workflows/ and every PR gets a Claude Code review — reading the diff, understanding your codebase, and posting inline comments automatically.</description>
+      <content:encoded><![CDATA[
+**Drop `anthropics/claude-code-action@v1` into your GitHub Actions workflow and every PR gets a full Claude Code review — diff-aware, codebase-aware, and configurable to auto-fix.**
+
+`claude-code-action` is Anthropic's official GitHub Action. It spins up a Claude Code session for each trigger, reads the PR diff alongside your repository, and posts review comments — or pushes fixes directly — all from a standard Actions YAML file.
+
+**Minimal review setup** — add this to `.github/workflows/claude-review.yml`:
+
+```yaml
+name: Claude PR Review
+on:
+  pull_request:
+    types: [opened, synchronize]
+  issue_comment:
+    types: [created]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          trigger_phrase: "@claude"
+          mode: review
+```
+
+This fires on every new or updated PR and whenever someone comments `@claude review` — Claude reads the diff, checks against your codebase, and leaves inline review comments.
+
+**Key options:**
+
+| Option | What it does |
+|---|---|
+| `mode: fix` | Claude implements the fix and pushes commits |
+| `allowed_tools: "Read,Bash"` | Least-privilege tool list (default: all tools) |
+| `claude_md_path: ".claude/review.md"` | Custom review instructions per project |
+| `trigger_phrase: "@claude"` | Comment-triggered only (saves cost on draft PRs) |
+
+**Cost and safety notes.** Typical review runs $0.03–0.10 on Sonnet 5 — cheap enough to run on every commit. Pin to an audited SHA (`anthropics/claude-code-action@abc123`) rather than `@v1` for supply-chain safety; the Actions marketplace shows the latest verified SHA. Claude Code v2.1.227 (Aug 10) fixed a bug where all Bash commands would silently fail on GitHub-hosted runners when `allowed_non_write_users` was set — if you hit mysteriously empty tool results, that's the fix to pull.
+
+**What it can't do automatically:** push to protected branches without relaxed ruleset exceptions, or merge PRs — those still require human approval. Use `mode: review` for feedback-only and `mode: fix` for branches where you want Claude to author commits.
+
+**Sources:** [claude-code-action docs — Claude Code](https://code.claude.com/docs/en/github-actions) · [Complete CI/CD Integration Guide — The Prompt Shelf](https://thepromptshelf.dev/blog/claude-code-github-actions-cicd-complete-guide-2026/) · [v2.1.227 Bash fix — Claude Code Changelog](https://code.claude.com/docs/en/changelog)
+]]></content:encoded>
+      <media:content url="https://opengraph.githubassets.com/1/anthropics/claude-code-action" medium="image" />
+      <media:thumbnail url="https://opengraph.githubassets.com/1/anthropics/claude-code-action" />
+    </item>
+
+    <item>
+      <title>FAISS: Build a Lightning-Fast Local Vector Index in 15 Lines of Python</title>
+      <link>https://www.pinecone.io/learn/series/faiss/</link>
+      <guid isPermaLink="false">2026-08-11-07-faiss-local-vector-index-python</guid>
+      <pubDate>Tue, 11 Aug 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Vectors</category>
+      <category>Embeddings</category>
+      <category>HuggingFace</category>
+      <description>FAISS is Meta's in-memory vector search library — no server, no SQL, just fast nearest-neighbor lookup over millions of embeddings. Learn IndexFlatL2 and IndexIVFFlat in 15 lines of Python.</description>
+      <content:encoded><![CDATA[
+**FAISS is Meta's open-source library for searching millions of embeddings in milliseconds — pure in-memory, no server required, and the backbone of many production RAG systems.**
+
+**What you'll be able to do after this:**
+- Build an exact-search vector index (`IndexFlatL2`) and query it in two lines of Python
+- Switch to approximate-search (`IndexIVFFlat`) when your dataset grows past ~100K vectors, with configurable speed/recall trade-off
+- Save and reload a FAISS index to disk so your embeddings survive restarts
+
+---
+
+**FAISS vs. the alternatives.** pgvector lives inside Postgres; Chroma is a persistent managed store. FAISS is neither — it's a raw, in-memory C++ library with Python bindings. That makes it the fastest option for search-heavy workloads where you control the lifecycle, and the best tool for learning how vector similarity actually works under the hood before adding a database layer.
+
+**Two indexes every ML engineer should know:**
+
+| Index | How it works | Best for |
+|---|---|---|
+| `IndexFlatL2` | Brute-force L2 distance over all vectors | <100K vectors; always exact |
+| `IndexIVFFlat` | Partitions space into `nlist` cells; searches `nprobe` cells per query | 100K–100M vectors; ~1% recall trade-off for 10–100× speed |
+
+---
+
+**Walk-through**
+
+Install:
+```bash
+pip install faiss-cpu sentence-transformers numpy
+```
+
+**Step 1: Exact search with `IndexFlatL2`**
+
+```python
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
+docs = [
+    "Claude Code runs agentic sessions in your terminal",
+    "FAISS is a C++ library for fast vector similarity search",
+    "Embeddings encode meaning as high-dimensional float arrays",
+]
+doc_vecs = model.encode(docs, normalize_embeddings=True).astype("float32")
+d = doc_vecs.shape[1]          # 384 for MiniLM
+
+index = faiss.IndexFlatL2(d)   # exact L2 distance
+index.add(doc_vecs)            # add all vectors
+print(index.ntotal)            # 3
+
+query = model.encode(["vector similarity library"], normalize_embeddings=True).astype("float32")
+D, I = index.search(query, k=2)        # top-2 results
+print([docs[i] for i in I[0]])         # → ["FAISS is a C++ library…", "Embeddings encode…"]
+```
+
+**Step 2: Approximate search with `IndexIVFFlat` for large datasets**
+
+```python
+nlist = 100                               # cluster count (rule of thumb: sqrt(N))
+quantizer = faiss.IndexFlatL2(d)         # coarse-level quantizer
+index_ivf = faiss.IndexIVFFlat(quantizer, d, nlist)
+
+index_ivf.train(doc_vecs)                # required before adding
+index_ivf.add(doc_vecs)
+index_ivf.nprobe = 10                    # search 10 cells; raise for more recall
+
+D, I = index_ivf.search(query, k=2)
+print([docs[i] for i in I[0]])
+```
+
+Tune `nprobe` up to improve recall at the cost of speed. A value of 10 gives ~99% recall on most datasets; 1 gives maximum speed.
+
+**Step 3: Save and reload**
+
+```python
+faiss.write_index(index_ivf, "my_index.faiss")
+
+# --- later ---
+index_ivf = faiss.read_index("my_index.faiss")
+index_ivf.nprobe = 10                    # nprobe isn't saved — reset it
+```
+
+Note: FAISS doesn't store your original text — keep a parallel list or database to map integer indices back to documents (`docs[I[0][0]]` in the example above).
+
+---
+
+**Go deeper.** Pinecone's [FAISS: The Missing Manual](https://www.pinecone.io/learn/series/faiss/) series covers HNSW (graph-based, production-grade), Product Quantization (compress 97% of memory), and the Index Factory — and has runnable Colab notebooks for each.
+
+**Sources:** [FAISS: The Missing Manual — Pinecone](https://www.pinecone.io/learn/series/faiss/) · [Nearest Neighbor Indexes — Pinecone](https://www.pinecone.io/learn/series/faiss/vector-indexes/) · [Official FAISS Python tutorials — GitHub](https://github.com/facebookresearch/faiss/tree/main/tutorial/python) · [FAISS Python API reference — GoLinuxCloud](https://www.golinuxcloud.com/faiss-python-api/)
+]]></content:encoded>
+      <media:content url="https://www.pinecone.io/learn/series/faiss/og-image.png" medium="image" />
+      <media:thumbnail url="https://www.pinecone.io/learn/series/faiss/og-image.png" />
+    </item>
 
     <item>
       <title>Claude API: Swap Tools Mid-Conversation Without Invalidating the Cache</title>
