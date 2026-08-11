@@ -10,7 +10,183 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 11 Aug 2026 04:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 11 Aug 2026 12:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Claude API: Swap Tools Mid-Conversation Without Invalidating the Cache</title>
+      <link>https://platform.claude.com/docs/en/release-notes/overview</link>
+      <guid isPermaLink="false">2026-08-11-06-claude-api-mid-conversation-tools-beta</guid>
+      <pubDate>Tue, 11 Aug 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>New Claude API beta header lets agentic apps swap the tool list between turns while preserving the prompt cache — no more latency penalty for tool-list changes mid-conversation.</description>
+      <content:encoded><![CDATA[
+**A Claude API beta header lets agents swap tools between turns while preserving the prompt cache — no more latency tax for tool-list changes.**
+
+Multi-step agents often need different tools at different phases. Previously, changing the `tools` array between turns invalidated the entire prompt cache — paying full input cost again on every tool swap, plus re-processing the full conversation history.
+
+The `mid-conversation-tool-changes-2026-07-01` beta header fixes this on Opus 5, Fable 5, Opus 4.8, and Mythos 5:
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+BETA = ["mid-conversation-tool-changes-2026-07-01"]
+
+# Phase 1: read-only tools
+response = client.messages.create(
+    model="claude-opus-5-20260724",
+    betas=BETA,
+    system="You are a code analysis agent.",
+    messages=conversation,
+    tools=[search_tool, read_file_tool],   # read-only
+    max_tokens=4096,
+)
+conversation.extend(...)
+
+# Phase 2: write tools — cache stays hot despite different tool list
+response = client.messages.create(
+    model="claude-opus-5-20260724",
+    betas=BETA,
+    system="You are a code analysis agent.",  # still cached
+    messages=conversation,                    # history still cached
+    tools=[write_file_tool, run_cmd_tool],    # different list — no cache bust
+    max_tokens=4096,
+)
+```
+
+**Why this matters for agent design.** You can match tool access to the task's risk level per turn — give the planner phase read-only tools, give the executor write access — without paying cache penalties. Least-privilege tool design is now practical in long conversations.
+
+**Per-turn effort is also cache-friendly.** Opus 5 supports changing `budget_tokens` per turn without busting the cache. Start a planning pass at `effort="low"` and escalate to `effort="xhigh"` for a hard sub-problem, mid-conversation. One constraint: at `xhigh` or `max` effort, setting `thinking: {"type": "disabled"}` returns a 400 error — plan your effort ladder with this in mind.
+
+**Sources:** [Claude Platform release notes — Anthropic](https://platform.claude.com/docs/en/release-notes/overview) · [What's new in Opus 5 — Claude Platform Docs](https://platform.claude.com/docs/en/about-claude/models/whats-new-opus-5) · [Effort parameter — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/effort)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Ollama v0.32.6: MLX Speculative Decoding Auto-Enabled + Streaming Format Corrected</title>
+      <link>https://github.com/ollama/ollama/releases/tag/v0.32.6</link>
+      <guid isPermaLink="false">2026-08-11-05-ollama-v0326-mlx-streaming</guid>
+      <pubDate>Tue, 11 Aug 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <description>Ollama v0.32.6 (Aug 5) auto-enables MLX speculative decoding for Qwen3.5 on Apple Silicon and fixes /v1/chat/completions streaming to match OpenAI's wire format exactly.</description>
+      <content:encoded><![CDATA[
+**Ollama v0.32.6 (Aug 5) automatically enables MLX speculative decoding for Apple Silicon and corrects the `/v1/chat/completions` streaming format to match OpenAI's wire protocol exactly.**
+
+**MLX speculative decoding is now automatic.** The MLX engine uses a model's Multi-Token Prediction (MTP) head for speculative decoding without any configuration. Qwen3.5 and other MTP-capable models run noticeably faster on M-series chips — no flag to set, no separate draft model to manage. If the model doesn't support speculative decoding, Ollama falls back silently to standard inference.
+
+**OpenAI streaming wire format corrected.** The `/v1/chat/completions` SSE stream now behaves like the real OpenAI API: `role` appears only in the first chunk, `finish_reason` arrives on its own trailing chunk, and token usage arrives in a separate chunk when `stream_options.include_usage` is set. If you wrote streaming parsers that worked around Ollama's previous format quirks, test them after upgrading.
+
+**Why it matters:** Speculative decoding is a free latency improvement for local inference with no accuracy tradeoff, and the streaming fix removes the last common friction point when substituting Ollama for the OpenAI SDK in existing code.
+
+**Sources:** [Ollama v0.32.6 release — GitHub](https://github.com/ollama/ollama/releases/tag/v0.32.6) · [Ollama August 2026 updates — Releasebot](https://releasebot.io/updates/ollama)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Catch Prompt Regressions Before Users Do: LLM App Testing with Promptfoo</title>
+      <link>https://www.promptfoo.dev/docs/configuration/guide/</link>
+      <guid isPermaLink="false">2026-08-11-04-promptfoo-llm-eval-testing</guid>
+      <pubDate>Tue, 11 Aug 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <category>Developer Tools</category>
+      <description>Promptfoo runs every prompt variant against every model in parallel with YAML assertions — catch regressions and prompt-injection bugs in CI before users hit them.</description>
+      <content:encoded><![CDATA[
+**Promptfoo runs every prompt variant against every model in parallel with YAML-defined assertions — catch regressions and prompt injection in CI before users see them.**
+
+**What you'll be able to do after this:**
+
+- Define prompt variants and test cases in a single YAML file and evaluate all combinations in seconds
+- Write deterministic and LLM-graded assertions that pass/fail like unit tests
+- Run automated red-team scans with 67+ attack plugins to catch jailbreaks and prompt injection before shipping
+
+## Setup
+
+```bash
+npx promptfoo@latest init
+```
+
+This creates `promptfooconfig.yaml`:
+
+```yaml
+prompts:
+  - "Summarize the following text: {{text}}"
+  - "In 3 bullet points, summarize: {{text}}"
+
+providers:
+  - anthropic:claude-haiku-4-5-20251001
+  - openai:gpt-4o-mini
+
+tests:
+  - vars:
+      text: "Anthropic builds AI that is safe and helpful."
+    assert:
+      - type: contains
+        value: "Anthropic"
+      - type: llm-rubric
+        value: "Response is a concise summary, not a direct quote"
+      - type: latency
+        threshold: 5000
+
+  - vars:
+      text: "The meeting is at 3pm on Friday in room 4B."
+    assert:
+      - type: contains
+        value: "meeting"
+      - type: not-contains
+        value: "I cannot"
+```
+
+## Run the eval
+
+```bash
+npx promptfoo eval              # runs every test × provider combo in parallel
+npx promptfoo view              # opens local web UI — a grid of pass/fail results
+npx promptfoo eval --ci         # exits code 1 if any assertion fails
+```
+
+The web UI shows a grid: rows are test cases, columns are prompt-provider combinations, cells show pass/fail with the model's actual output. You see at a glance which prompt wording wins across all your cases and providers.
+
+**Assertion types:**
+- **Deterministic** (`contains`, `not-contains`, `regex`, `latency`, `cost`) — free and instant, no LLM call needed
+- **LLM-graded** (`llm-rubric`) — sends output to a judge model for subjective quality checks like tone or completeness
+- **Custom** — Python or JavaScript functions for domain-specific checks
+
+## Add to CI (GitHub Actions)
+
+```yaml
+- name: LLM regression test
+  run: npx promptfoo eval --ci
+  env:
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+```
+
+Fails the build on prompt regressions exactly like a unit test suite — no more "we broke the prompt in last week's deploy."
+
+## Red-teaming (optional, 2 commands)
+
+```bash
+npx promptfoo redteam init   # generates adversarial test cases for your app
+npx promptfoo redteam run    # runs 67+ attack plugins: jailbreaks, injections, policy violations
+```
+
+Promptfoo is Apache 2.0 open source, runs 100% locally, and supports 90+ model providers. The evaluation framework was acquired by OpenAI in March 2026 but remains open source with first-party Anthropic support.
+
+**Sources:** [Promptfoo configuration guide — promptfoo.dev](https://www.promptfoo.dev/docs/configuration/guide/) · [Promptfoo tutorial — DataCamp](https://www.datacamp.com/tutorial/promptfoo-tutorial) · [Red-team guide — promptfoo.dev](https://www.promptfoo.dev/docs/red-team/) · [CI/CD integration — promptfoo.dev](https://www.promptfoo.dev/docs/integrations/ci-cd/)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Run Claude Code Sessions on Your Own Machines: v2.1.224 Self-Hosted Runner</title>
