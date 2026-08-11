@@ -565,9 +565,9 @@ The acquisition layer is complete — every strategy from official API to broad 
 
 <LessonScreenshot
   src="/tutorials/screens/dealfinder-part-08/sources-endpoint.png"
-  alt="The /sources endpoint reporting seven sources with the three scraping tiers highlighted"
+  alt="The /sources endpoint reporting eight sources — the free tier armed, the metered scrapers off by default"
   caption="Real capture: GET /sources after this part — the app tells you exactly which acquisition strategies are armed."
-  lookFor="the three ringed rows — Apify (managed scraping), Shopify (keyless public feeds), Firecrawl (broad crawl) — all true. BestBuy false is honest reporting, not an error: its key is pending approval, and the aggregator simply skips it."
+  lookFor="the four green rows — eBay, RapidAPI, Shopify (keyless feeds), iTunes — are the free strategies armed by default. The three amber rows — Amazon, Apify (managed scraping), Firecrawl (broad crawl) — are metered scrapers, off by design: they light up with DEALFINDER_ENABLE_PAID_SOURCES=1 (zero-cost until you opt in). BestBuy false is honest reporting, not an error — its key is pending approval, and the aggregator simply skips it."
 />
 
 The demo line: *"the app can now acquire prices five different ways, and `/sources` is the honest inventory of which are live — blank keys degrade to `false`, never to a crash."*

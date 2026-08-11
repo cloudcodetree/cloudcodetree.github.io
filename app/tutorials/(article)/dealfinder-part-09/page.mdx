@@ -521,7 +521,7 @@ The fan-out is now an *operated* system — it reports its own behavior:
   src="/tutorials/screens/dealfinder-part-09/live-aggregate-envelope.png"
   alt="Live aggregation results with the status envelope highlighted"
   caption="Real capture: the aggregation envelope over a live run — count, sources actually used, cross-source median."
-  lookFor="the ringed status line: 18 offers · sources live: eBay, RapidAPI · median $61.99. Three sources are conspicuously absent — Apify, Shopify, Firecrawl were never called because tier 1 hit the target first (the early-stop working, visible in production). Every deal percentage on the cards below is computed against that live cross-source median."
+  lookFor="the ringed status envelope: count 24 · sources_live eBay + RapidAPI · median_price $94.99. The other configured sources — Shopify, iTunes, Apify, Firecrawl — were never called because tier 1 hit the result target first (the early-stop working, visible in production). Every deal percentage on the cards is computed against that live cross-source median. (Live numbers, so yours will differ.)"
 />
 
 The demo line: *"watch the status line, not just the cards — it tells you which sources ran, which were benched, and what median every deal is measured against. Kill a source's key and search again: the app degrades gracefully and the line tells the truth."*

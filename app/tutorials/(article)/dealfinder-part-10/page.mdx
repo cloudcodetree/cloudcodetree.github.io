@@ -496,7 +496,7 @@ Even without touching a GPU, two things are demonstrably new:
   src="/tutorials/screens/dealfinder-part-10/dataset-and-degradation.png"
   alt="Real dataset build counts and the adapter degradation chain returning valid data"
   caption="Real output: the deterministic dataset build, and the adapter chain surviving a missing artifact."
-  lookFor="the build counts — 161 of 270 labelable → 128/33 split (green ring), doubled to 256 by retailer-prefix augmentation (amber ring) — and below, llm_extract pointed at a nonexistent adapter still returning brand='Anker' (green ring): the degradation chain treats a missing model as a non-event."
+  lookFor="the build counts — 161 of 270 labelable → 128/33 split (green ring), doubled to 256 by retailer-prefix augmentation (amber ring) — and below, llm_extract pointed at a nonexistent adapter still returning valid data (brand='Cowin', green ring) by falling through to the rule path: the degradation chain treats a missing model as a non-event, never a crash."
 />
 
 The demo line: *"the training data is built from the real snapshot and poisoned on purpose — and the pipeline is already wired so that the model I train in Colab drops in with one argument, and its absence can never break extraction."* After your Colab run, the demo upgrades: same snippet, real artifact, and section 7's before/after on the hard titles.

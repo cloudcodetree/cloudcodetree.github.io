@@ -424,7 +424,7 @@ DealFinder now *reasons* — one plain-English goal drives a multi-step tool-usi
   src="/tutorials/screens/dealfinder-part-11/react-trace.png"
   alt="The real ReAct agent trace: sql_search then rank_deals surfacing the Anker Q20i"
   caption="Real output: python -m dealfinder.run_agent — a deterministic two-tool ReAct run over the snapshot."
-  lookFor="the ringed step-2 observation: after sql_search returns 4 candidates (Cowin, Anker, Bose, JBL), rank_deals surfaces the Anker Soundcore Q20i on top — because the same two-signal score from Part 3 demoted the $46 Bose QC45 trap (residual_frac 0.839). The agent didn't just filter; it reasoned about deal quality across two tools from one sentence."
+  lookFor="the ringed step-2 observation: after sql_search returns 4 matching candidates, rank_deals surfaces the Anker Soundcore Q20i on top — because the same two-signal score from Part 3 demoted the $46 Bose QC45 trap (residual_frac 0.839). The agent didn't just filter; it reasoned about deal quality across two tools, from one plain-English sentence."
 />
 
 The demo line: *"I gave it a sentence, not a query — it wrote its own SQL, ran it, then ranked the results by a deal model that knows the $46 Bose is a trap. Two tools, one plain-English goal, fully traceable."* Flip to the live `/ask_agentic` endpoint (with a key) and the same shape runs with a real LLM choosing the tools.

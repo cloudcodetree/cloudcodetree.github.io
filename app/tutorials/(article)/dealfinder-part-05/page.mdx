@@ -426,7 +426,7 @@ Run the same query through both rankers and show the failure that motivates hybr
   src="/tutorials/screens/dealfinder-part-05/bm25-vs-semantic.png"
   alt="BM25 vs semantic ranking for the query sony noise cancelling"
   caption="Real output: both rankers over the 270-item snapshot, query “sony noise cancelling”."
-  lookFor="BM25's #1 result is a Bose (red ring) — keyword scoring rewards the double “Noise Cancelling” match and treats “sony” as just one term of three. The semantic top-3 (green ring) is all-Sony. Neither ranker is wrong; they measure different things — which is exactly why this part fuses them."
+  lookFor="BM25 lets non-Sony items intrude high — a Bose at #2 and a Soundcore at #4 (red ring) score purely on the exact “Noise Cancelling” term match, with “sony” treated as just one term of three. The semantic top-3 (green ring) is all-Sony — it reads meaning, not keywords. Neither ranker is wrong; they measure different things, which is exactly why this part fuses them (RRF)."
 />
 
 The demo line: *"ask a keyword engine for Sony and it hands you a Bose with a straight face — then ask the embedding, and fuse."*
