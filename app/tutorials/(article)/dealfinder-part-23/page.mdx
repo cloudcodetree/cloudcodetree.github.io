@@ -38,8 +38,10 @@ Step tag: `step-23` (eval harness). Run the gate with `python -m dealfinder.run_
 6. [Why the median-only ranker fails](#why-the-median-only-ranker-fails)
 7. [A/B: measuring the delta](#ab-measuring-the-delta)
 8. [Wiring the gate into CI](#wiring-the-gate-into-ci)
-9. [The tests](#the-tests)
-10. [Where this goes next](#where-this-goes-next)
+9. [Seeing it in the product](#seeing-it-in-the-product)
+10. [The tests](#the-tests)
+11. [What you can demo now](#what-you-can-demo-now)
+12. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -289,6 +291,24 @@ The gate is the same threshold you will see in Part 24 (the MLOps drift-retrain 
 
 ---
 
+## Seeing it in the product
+
+A gate that only runs in CI is invisible until it breaks. So the app exposes it. An **`/evals`** endpoint (`serve.py`) runs precision@5 for both rankers on the golden set and returns the gate result; the static UI adds an **"evals (ML)"** mode that renders the two rankers side by side:
+
+```python
+@app.get("/evals")
+def evals_report():
+    # cached, deterministic against the frozen 20-item golden set
+    ts = evals.evaluate(evals.two_signal_ranker)   # 1.00 — PASS
+    mo = evals.evaluate(evals.median_only_ranker)  # 0.40 — FAIL
+    return {"gate": evals.GATE_PRECISION, "two_signal": {...}, "median_only": {...},
+            "ab": evals.ab_compare("two_signal", ts[...], "median_only", mo[...])}
+```
+
+It is query-independent — the golden set is fixed. Putting both top-5 lists next to each other makes the failure legible at a glance: you can *see* the median-only baseline surfacing a $10.75 Kindle and a $15 Galaxy Tab as its top two "deals," and the two-signal ranker refusing to.
+
+---
+
 ## The tests
 
 The eval harness is itself tested in `tests/test_evals.py`:
@@ -303,6 +323,30 @@ pytest tests/test_evals.py -v
 ```
 
 All four pass against the committed snapshot. They are part of the same `pytest -q` run that produces `17 passed` across the wave-3 parts.
+
+The same gate, live (server on `:8000`):
+
+```bash
+curl -s http://localhost:8000/evals \
+  | python -m json.tool | grep -E '"precision_at_5"|"passes"|"winner"|"delta"'
+```
+
+**Expect:** the two-signal ranker at `precision_at_5: 1.0` / `passes: true`, the median-only baseline at `0.4` / `false`, and the A/B `winner: "two_signal"` with `delta: 0.6` — the same numbers the tests pin, served from the running app.
+
+---
+
+## What you can demo now
+
+Open the app, pick **"evals (ML)"**, and hit Search (the box is ignored — the golden set is fixed). The eval gate runs and both rankers' top-5 paint side by side:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-23/eval-gate.png"
+  alt="The DealFinder eval gate: two_signal precision@5 1.00 PASS with an all-deal top-5, beside median_only 0.40 FAIL with suspicious traps in its top-5"
+  caption="Real capture: precision@5 on the 20-item golden set — the two-signal ranker clears the 0.80 gate, the naive median-only baseline is fooled and fails."
+  lookFor="the two columns. Left, two_signal: p@5 1.00, GATE PASS ✓ — all five top items carry a green 'deal' badge. Right, median_only: p@5 0.40, GATE FAIL ✗ — its #1 and #2 are amber 'suspicious' traps (a $10.75 Amazon Kindle Paperwhite and a $15 Samsung Galaxy Tab that read as huge discounts), plus a Cowin SE7 at #4. Same 20 hand-labeled listings, same metric; only the ranker differs. The A/B badge up top (+0.6) is the number that goes in the PR, and the gate is wired into CI so a regression below 0.80 can't merge."
+/>
+
+The demo line: *"Two rankers, one hand-labeled golden set, one number each. The naive baseline puts a $10.75 Kindle and a $15 tablet at the top of its 'best deals' — they're just cheap for the wrong reason — and scores 0.40. The two-signal ranker refuses the traps and scores a perfect 1.00. That +0.60 isn't a vibe; it's measured, reproducible, and wired into CI so nobody can quietly ship a regression."*
 
 ---
 
