@@ -38,8 +38,10 @@ Tests are in `tests/test_mlops.py` — seven functions, all passing.
 5. [Station 3: the eval gate](#station-3-the-eval-gate)
 6. [Station 4: champion/challenger promotion](#station-4-championchallenger-promotion)
 7. [Running the full cycle](#running-the-full-cycle)
-8. [What the tests pin](#what-the-tests-pin)
-9. [Where this goes next](#where-this-goes-next)
+8. [Seeing it in the product](#seeing-it-in-the-product)
+9. [What the tests pin](#what-the-tests-pin)
+10. [What you can demo now](#what-you-can-demo-now)
+11. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -342,6 +344,23 @@ The no-drift branch (frac=0.1, PSI 0.043) also short-circuits — no retrain, no
 
 ---
 
+## Seeing it in the product
+
+The `CycleDecision` is the artifact — so the app renders it. An **`/mlops`** endpoint (`serve.py`) runs the full cycle and returns the trace; the static UI adds an **"mlops (ML)"** mode that draws the four stations top to bottom:
+
+```python
+@app.get("/mlops")
+def mlops_report():
+    # cached, deterministic
+    d = mlops.run_mlops_cycle(frac=0.3, challenger="two_signal", champion="median_only")
+    return {"drift": {...}, "retrain": {...}, "gate": {...},
+            "champion": d.champion, "promote": d.promote, "reason": d.reason, "trace": list(d.trace)}
+```
+
+It is query-independent — the cycle reads the frozen snapshot. Each station shows its real result (PSI 0.3182 → DRIFT, GBDT $138.11, gate 1.00 PASS, promote), and the reason string is the same one the trace records. The decision is legible at a glance instead of buried in a log.
+
+---
+
 ## What the tests pin
 
 `tests/test_mlops.py` has seven tests. Each one pins a specific behavior so that none of these results can silently change:
@@ -375,6 +394,30 @@ The PSI values, MAE numbers, precision@5 scores, and promotion decisions are fix
 <Callout tone="warn">
 **The retrain here is offline and deterministic.** In production you would wire `retrain()` to your actual feature store and a fresh data pull, and the MAE would vary. What the tests guarantee is the *structure* of the decision — that the gate fires correctly, that the promotion rule is applied, that the trace records the reasoning. The snapshot numbers are the ground truth for this course; your production numbers will differ, and that is expected.
 </Callout>
+
+The same cycle, live (server on `:8000`):
+
+```bash
+curl -s http://localhost:8000/mlops \
+  | python -m json.tool | grep -E '"psi"|"gbdt_mae"|"precision_at_5"|"promote"|"reason"'
+```
+
+**Expect:** `psi: 0.3182`, `gbdt_mae: 138.11`, `precision_at_5: 1.0`, `promote: true`, and the reason string — the same decision the tests pin, served from the running app.
+
+---
+
+## What you can demo now
+
+Open the app, pick **"mlops (ML)"**, and hit Search (the box is ignored — the cycle reads the fixed snapshot). The four-station loop runs and the decision trace paints:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-24/mlops-cycle.png"
+  alt="The DealFinder MLOps cycle: four stations — drift (PSI 0.3182, DRIFT), retrain (GBDT $138.11), eval gate (1.00 PASS), promote — all green, with two_signal promoted over median_only"
+  caption="Real capture: the drift → retrain → gate → promote loop running end to end, with two_signal promoted over median_only and every decision recorded."
+  lookFor="the four stations top to bottom, each with a green check: drift detection (PSI 0.3182 vs the 0.2 threshold → DRIFT, retrain), deterministic retrain (GBDT MAE $138.11 vs linear $227.89, 39.4% better, 202/68 split), eval gate (two_signal p@5 1.00 vs 0.80 → PASS), and champion/challenger promote (challenger 1.00 beats champion median_only 0.40 → promote). The green reason line below is the auditable record: 'promoted: two_signal passed the gate (p@5=1.0 ≥ 0.8) and beat champion median_only (0.4)'. Promotion needs both conditions — pass the gate and strictly beat the champion — so a tie holds the incumbent."
+/>
+
+The demo line: *"This is the whole loop in one screen. A 30% category shift trips the drift threshold, the model retrains to the same pinned $138.11, the retrained ranker clears the precision@5 gate at 1.00, and because it beats the incumbent it gets promoted — with a reason string you can audit. Every number here is a decision the system made on evidence, not a vibe. That's what makes the loop, not the model, the product."*
 
 ---
 
