@@ -10,7 +10,195 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 11 Aug 2026 20:04:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 12 Aug 2026 04:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Three Models, One Pipeline: Claude Code's Per-Subagent Model Routing Cuts Costs 60-80%</title>
+      <link>https://code.claude.com/docs/en/model-config</link>
+      <guid isPermaLink="false">2026-08-12-04-claude-code-subagent-model-routing</guid>
+      <pubDate>Wed, 12 Aug 2026 04:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Assigning Haiku 4.5, Sonnet 5, and Fable 5 to the right tasks in a Claude Code Workflow SDK pipeline cuts API costs 60-80% — decision framework and runnable SDK code.</description>
+      <content:encoded><![CDATA[
+**Assigning Haiku 4.5, Sonnet 5, and Fable 5 to the right tasks in a multi-agent workflow cuts API costs 60-80% with no quality loss — here's the decision framework with copy-paste SDK code.**
+
+In Claude Code's Workflow SDK, every `agent()` call defaults to the session model (Sonnet 5). But Haiku 4.5 runs at $1/$5 per million tokens — half the cost of Sonnet 5 — and handles any task where reasoning depth isn't the bottleneck: file reads, searches, grep-equivalent scans, and simple classification. Reserving Fable 5 for decisions where a wrong answer is expensive keeps architectural reviews high-quality without applying that cost across every agent in the fan-out.
+
+**Decision framework:**
+
+| Task | Model | Why |
+|---|---|---|
+| Search, grep, file reads | Haiku 4.5 | Content retrieval — speed over depth |
+| Implement, debug, write | Sonnet 5 (default) | Strong code reasoning at locked-in $2/$10 |
+| Architectural decisions | Fable 5 | Complex judgment worth the extra cost |
+| Binary checks (test pass/fail) | Haiku 4.5 | One-token output; waste to use Sonnet |
+
+**SDK code:**
+
+```javascript
+export const meta = {
+  name: 'routed-workflow',
+  description: 'Model-routed multi-agent example',
+  phases: [{ title: 'Search' }, { title: 'Implement' }, { title: 'Review' }],
+}
+
+// Fan out cheap searches with Haiku
+const findings = await parallel(files.map(f => () =>
+  agent(`List all auth-related functions in ${f}`, {
+    model: 'claude-haiku-4-5-20251001',
+    label: `scan:${f}`,
+    phase: 'Search',
+  })
+))
+
+// Implement on default Sonnet 5
+const impl = await agent(
+  `Implement auth changes based on: ${findings.filter(Boolean).join('\n')}`,
+  { phase: 'Implement' }
+)
+
+// Escalate one architectural review to Fable
+const review = await agent(
+  `Review this auth implementation for security regressions and propose alternatives:\n${impl}`,
+  { model: 'claude-fable-5', phase: 'Review' }
+)
+```
+
+**Cost math example.** 20 files × 3K tokens (Haiku) + 1 implementation at 50K tokens (Sonnet 5) + 1 architectural review at 25K tokens (Fable):
+- Haiku searches: 60K tokens × $1/M = **$0.06**
+- Sonnet implementation: 50K × $2/M = **$0.10**
+- Fable review: 25K × ~$15/M = **$0.38**
+- Total: **$0.54** vs $1.50+ if everything ran on Fable
+
+With Sonnet 5's pricing [now locked in permanently at $2/$10](https://x.com/claudeai/status/2086891169217122586), these economics are stable — build the routing now.
+
+**Sources:** [Claude Code model config — code.claude.com](https://code.claude.com/docs/en/model-config) · [Claude model pricing — anthropic.com](https://www.anthropic.com/pricing) · [Multi-model routing guide — buildthisnow.com](https://www.buildthisnow.com/de/blog/guide/development/claude-code-model-routing-subagents)
+]]></content:encoded>
+      <media:content url="https://opengraph.githubassets.com/1/anthropics/claude-code" medium="image" />
+      <media:thumbnail url="https://opengraph.githubassets.com/1/anthropics/claude-code" />
+    </item>
+
+    <item>
+      <title>Sonnet 5 Stays at $2/$10 Per Million Tokens: Anthropic Cancels the September Price Increase</title>
+      <link>https://x.com/claudeai/status/2086891169217122586</link>
+      <guid isPermaLink="false">2026-08-12-03-sonnet5-pricing-permanent-anthropic</guid>
+      <pubDate>Wed, 12 Aug 2026 04:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>Anthropic made Sonnet 5's $2/$10 per million token introductory pricing permanent on August 10 -- the planned 50% September 1 increase is officially canceled.</description>
+      <content:encoded><![CDATA[
+**Anthropic locked Sonnet 5 at $2/$10 per million tokens permanently — the planned 50% September 1 price increase is canceled.**
+
+In [an August 10 announcement](https://x.com/claudeai/status/2086891169217122586), Anthropic made Claude Sonnet 5's introductory pricing permanent. The $2 input / $10 output per million token rate that launched in June will not step up to $3/$15 on September 1 — that planned increase is officially off.
+
+One nuance remains: Sonnet 5's tokenizer produces ~30% more tokens from the same text as Sonnet 4.6, so effective cost comparisons across model generations still require accounting for that. But for anyone already running Sonnet 5 workloads, the rate is now stable indefinitely.
+
+**Why it matters:** Any agent pipeline budgeted around a September 1 50% increase can drop that assumption. Lock in your model-tier routing now — $2/$10 is the permanent Sonnet 5 rate.
+
+**Sources:** [@claudeai announcement](https://x.com/claudeai/status/2086891169217122586) · [Techmeme coverage](https://www.techmeme.com/260810/p42) · [Analysis — explainx.ai](https://explainx.ai/blog/anthropic-sonnet-5-permanent-pricing-august-2026)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>OpenAI Ships GPT-5.6-Cyber: Specialized Security Model Lands Behind Daybreak Red Access Tier</title>
+      <link>https://www.neowin.net/news/openai-launches-gpt-56-cyber-and-expands-daybreak-with-red-and-blue-access-tiers/</link>
+      <guid isPermaLink="false">2026-08-12-02-gpt56cyber-daybreak-red-security</guid>
+      <pubDate>Wed, 12 Aug 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Security</category>
+      <category>LLM</category>
+      <description>GPT-5.6-Cyber completes 95% of security prompts that GPT-5.6 Sol refuses -- gated behind OpenAI's new Daybreak Red identity-verified access tier for vetted researchers.</description>
+      <content:encoded><![CDATA[
+**GPT-5.6-Cyber answers 95% of security prompts that GPT-5.6 Sol refuses — a purpose-built offensive research model gated behind OpenAI's new Daybreak Red vetted-access tier.**
+
+OpenAI [launched GPT-5.6-Cyber on August 10](https://www.neowin.net/news/openai-launches-gpt-56-cyber-and-expands-daybreak-with-red-and-blue-access-tiers/), a variant of GPT-5.6 Sol trained for cybersecurity workflows: zero-day vulnerability research, exploit chain development, and red-team automation. It's only available via Daybreak Red, where security vendors (CrowdStrike, Palo Alto Networks, Cisco, Cloudflare, IBM) vouch for applicants' legitimate defensive use.
+
+The companion Daybreak Blue tier gives approved defenders access to GPT-5.6 Sol with adjusted safeguards for vulnerability discovery, malware analysis, and patch validation — a lower access bar than Red.
+
+**Why it matters:** Specialized security model tiers separate from consumer APIs is emerging as the industry pattern for dual-use AI. Most engineers won't qualify for Daybreak Red today, but this signals where agentic offensive security tooling is heading — expect other labs to follow.
+
+**Sources:** [OpenAI Daybreak Red launch — Neowin](https://www.neowin.net/news/openai-launches-gpt-56-cyber-and-expands-daybreak-with-red-and-blue-access-tiers/) · [GPT-5.6-Cyber — The Hacker News](https://thehackernews.com/2026/08/openai-launches-gpt-56-cyber-with.html) · [Axios analysis](https://www.axios.com/2026/08/10/openai-gpt-astra-restrictions-safety-hacking-defenders)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Before You Instruction-Tune: Teach Your Model a New Domain With Continued Pre-Training in Unsloth</title>
+      <link>https://unsloth.ai/blog/contpretraining</link>
+      <guid isPermaLink="false">2026-08-12-01-domain-pretrain-unsloth-cpt</guid>
+      <pubDate>Wed, 12 Aug 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>Continued pre-training (CPT) adapts a base model's vocabulary to your domain BEFORE instruction fine-tuning -- closing the context gap that forces SFT to work twice as hard.</description>
+      <content:encoded><![CDATA[
+**Continued pre-training adapts a base model's vocabulary and patterns to your domain BEFORE instruction fine-tuning — Unsloth's free Colab does it in minutes, and the gains compound through every downstream SFT task.**
+
+**What you'll be able to do after this:**
+- Know when CPT is worth doing (niche vocabulary, specialized formats, low-resource languages)
+- Run Unsloth's QLoRA-based continued pre-training pipeline on raw domain text with a free Colab GPU
+- Chain CPT → SFT for a model that understands your domain AND follows instructions
+
+---
+
+Every instruction fine-tune (SFT) fights the base model's priors. If your domain — medical notes, legal filings, an internal codebase, a language the model rarely saw at scale — has vocabulary and sentence patterns that are out-of-distribution for the base model, your SFT data has to teach both "what this domain is" AND "how to follow instructions." That's two jobs for one fine-tune.
+
+Continued pre-training solves this with a "step 0": expose the base model to raw domain text as a next-token-prediction task. The model absorbs domain vocabulary and structure *without* changing output format. Then SFT your adapted model — you need fewer instruction pairs to hit the same quality, and domain-specific hallucinations drop significantly.
+
+**Walk-through (Unsloth, free Colab T4):**
+
+```python
+from unsloth import FastLanguageModel, UnslothTrainer, UnslothTrainingArguments
+from datasets import load_dataset
+
+# 1. Load a base (not instruction-tuned) model
+model, tokenizer = FastLanguageModel.from_pretrained(
+    "unsloth/Llama-3.2-3B-bnb-4bit",
+    max_seq_length=2048,
+)
+
+# 2. Prepare your domain corpus as raw text
+dataset = load_dataset("text", data_files={"train": "my_domain_corpus.txt"})
+
+# 3. CPT: raw text as next-token prediction, no instruction template
+trainer = UnslothTrainer(
+    model=model,
+    tokenizer=tokenizer,
+    train_dataset=dataset["train"],
+    dataset_text_field="text",
+    args=UnslothTrainingArguments(
+        per_device_train_batch_size=2,
+        gradient_accumulation_steps=4,
+        warmup_ratio=0.1,
+        num_train_epochs=1,
+        learning_rate=5e-5,            # lower than SFT (2e-4)
+        embedding_learning_rate=5e-6,  # 1/10th LR — keeps vocab stable
+        output_dir="cpt-adapter/",
+    ),
+)
+trainer.train()
+model.save_pretrained("cpt-adapter/")
+```
+
+**Key settings:** The lower learning rate (5e-5 vs SFT's typical 2e-4) prevents catastrophic forgetting of general capabilities. `embedding_learning_rate` at 1/10th of the main LR keeps vocabulary embeddings stable while the transformer layers adapt. After CPT, merge the adapter and use the merged checkpoint as your SFT base — you'll need less instruction data to reach the same output quality.
+
+**When CPT is worth it:** Medical/legal/scientific text, a low-resource language, a proprietary codebase with unique APIs or conventions. For general-purpose assistants built on general-domain data, skip CPT and go straight to SFT.
+
+**Sources:** [Continued LLM Pretraining — Unsloth Blog](https://unsloth.ai/blog/contpretraining) · [Unsloth CPT Documentation](https://unsloth.ai/docs/basics/continued-pretraining) · [Continuing Pre-Training on Raw Text — Chris McCormick](https://mccormickml.com/2025/01/18/continuing-pre-training-on-raw-text/)
+]]></content:encoded>
+      <media:content url="https://opengraph.githubassets.com/1/unslothai/unsloth" medium="image" />
+      <media:thumbnail url="https://opengraph.githubassets.com/1/unslothai/unsloth" />
+    </item>
 
     <item>
       <title>Automated PR Review with claude-code-action: 10 Lines of YAML, Zero Manual Review Fatigue</title>
