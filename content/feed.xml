@@ -10,9 +10,235 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 12 Aug 2026 04:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 12 Aug 2026 12:05:00 +0000</lastBuildDate>
+
+    
+    <item>
+      <title>Cut Claude API Costs 50% on Any Async Workload: The Message Batches API in 20 Lines</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/batches</link>
+      <guid isPermaLink="false">2026-08-12-07-anthropic-batch-api-50pct-async-workloads</guid>
+      <pubDate>Wed, 12 Aug 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Best Practices</category>
+      <category>Developer Tools</category>
+      <description>Any async workload — nightly evals, doc pipelines, bulk code analysis — can run at exactly 50% off standard Claude token prices using the Message Batches API. Submit up to 100K requests, retrieve results within hours.</description>
+      <content:encoded><![CDATA[
+**The Anthropic Message Batches API runs up to 100,000 Claude requests asynchronously at exactly 50% off standard token prices — submit, wait a few hours, retrieve.**
+
+Any workload that doesn't need instant results — nightly evaluations, document pipelines, offline enrichment, bulk code analysis — is paying double. The [Message Batches API](https://platform.claude.com/docs/en/build-with-claude/batches) costs 50% less per token with zero quality difference.
+
+## How it works
+
+You submit a list of `MessageBatchRequest` objects, each with a `custom_id` and the same parameters as a standard `/messages` call. Anthropic processes them asynchronously (typically 1-2 hours, max 24h) and makes results available via the batch id. No streaming, no webhooks — you poll for status or come back later.
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+docs = ["Article 1 text...", "Article 2 text...", "Article 3 text..."]
+
+# Submit the batch
+batch = client.messages.batches.create(
+    requests=[
+        {
+            "custom_id": f"doc-{i}",
+            "params": {
+                "model": "claude-sonnet-5-20260801",
+                "max_tokens": 256,
+                "messages": [{"role": "user", "content": f"Summarize in 2 sentences: {docs[i]}"}]
+            }
+        }
+        for i in range(len(docs))
+    ]
+)
+print(f"Batch {batch.id} submitted — status: {batch.processing_status}")
+```
+
+**Poll until complete:**
+
+```python
+import time
+
+while True:
+    status = client.messages.batches.retrieve(batch.id)
+    if status.processing_status == "ended":
+        break
+    print(f"Still processing... ({status.request_counts.processing} remaining)")
+    time.sleep(60)
+
+# Retrieve and print results
+for result in client.messages.batches.results(batch.id):
+    if result.result.type == "succeeded":
+        print(result.custom_id, result.result.message.content[0].text[:120])
+    else:
+        print(result.custom_id, "FAILED:", result.result.error.type)
+```
+
+## Cost math
+
+A nightly pipeline summarizing 1,000 documents (2,000 input + 500 output tokens each) on Sonnet 5:
+
+| Approach | Input | Output | Total/day | Annual |
+|---|---|---|---|---|
+| Synchronous | $4.00 | $5.00 | $9.00 | $3,285 |
+| Batch API | $2.00 | $2.50 | $4.50 | $1,642 |
+
+Add prompt caching on a shared system prompt and the cached tokens cost another 90% less, pushing complex pipelines toward 65-70% total savings.
+
+## Best uses
+
+Batch is ideal when latency doesn't matter: code analysis across a full repo at PR-merge time, generating descriptions for 10K embeddings, running eval suites against 1,000 test cases, nightly newsletter digests, classifying a backlog of support tickets.
+
+Not for: real-time chat, streaming responses, any user-facing flow where waiting hours isn't acceptable.
+
+**Sources:** [Message Batches API — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/batches) · [Anthropic Batch API: process thousands of prompts at 50% cost — CodeWords](https://www.codewords.ai/blog/anthropic-batch-api) · [Claude Batch API Tutorial — AI for Anything](https://aiforanything.io/blog/claude-batch-api-tutorial-high-volume-processing-2026)
+]]></content:encoded>
+    </item>
 
     <item>
+      <title>Claude Code v2.1.229: Agent-to-Agent Messages Now Permission-Screened; Managed Agents Get Budget Caps</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-08-12-06-claude-code-v2129-agent-security-managed-budget</guid>
+      <pubDate>Wed, 12 Aug 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.229 now runs permission-classifier checks on inter-agent SendMessage calls, closing a prompt-injection vector in multi-agent pipelines. Managed Agents also ships budget caps and geo controls.</description>
+      <content:encoded><![CDATA[
+**Claude Code v2.1.229 screens agent-to-agent messages through the permission classifier before dispatch, closing a prompt-injection vector; Managed Agents adds per-session budget caps and geo controls.**
+
+**Claude Code v2.1.229 (August 12)** adds a meaningful security layer for multi-agent workloads: any message dispatched to another Claude Code session via `SendMessage` now passes through the same permission classifier used for local tool calls before it reaches the target session. A compromised sub-agent can no longer silently instruct a parent session to run arbitrary bash or write to sensitive paths via a crafted message payload. The release also hardens synced skill/plugin directory naming on Windows, patches Remote Control session resume leaks, and restores CCR web-fetch/search proxy functionality after `/clear`.
+
+**Managed Agents** — Anthropic's server-hosted agent sessions accessed via the API — now include per-session budget caps (set a token-spend ceiling in your API call; the agent stops and returns a structured error when reached) and geo controls (pin session processing to a specific AWS region for data residency compliance). GitHub-loaded skills — pointing a Managed Agent at a repo to load its `.claude/skills/` directory on startup — are also now available.
+
+**Why it matters:** The `SendMessage` permission screen is the kind of hardening that separates a toy multi-agent project from a production one. If your pipeline has agents that talk to each other, update to v2.1.229 before shipping to prod.
+
+**Sources:** [Claude Code changelog](https://code.claude.com/docs/en/changelog) · [Anthropic Release Notes — Releasebot](https://releasebot.io/updates/anthropic)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Give Your AI Agent a Memory: Persistent Context Across Sessions With Mem0</title>
+      <link>https://docs.mem0.ai/open-source/python-quickstart</link>
+      <guid isPermaLink="false">2026-08-12-05-mem0-agent-persistent-memory-python</guid>
+      <pubDate>Wed, 12 Aug 2026 12:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Mem0 is an open-source memory layer that extracts, deduplicates, and retrieves facts from your agent conversations — add persistent cross-session memory to any Claude agent in 15 minutes.</description>
+      <media:content url="https://mem0.ai/og.png" medium="image" />
+      <media:thumbnail url="https://mem0.ai/og.png" />
+      <content:encoded><![CDATA[
+**Mem0 is an open-source memory layer that extracts, deduplicates, and surfaces facts from your agent conversations — add cross-session persistent memory to any Claude agent in 15 minutes.**
+
+**What you'll be able to do after this:**
+- Store and retrieve user-specific facts across any number of agent sessions
+- Integrate Mem0 with a Claude agent using `m.add()` and `m.search()` in under 20 lines
+- Self-host Mem0 with a local Qdrant vector store — no external API key required
+
+Every stateless agent faces the same wall: the context window resets each session. Your user told it their preferred stack, their company's coding conventions, and their deadline — three conversations ago. Mem0 fixes this by sitting between your agent and each conversation, extracting discrete facts, deduplicating them against what's already stored, and surfacing the relevant ones at the start of every new session.
+
+## Install and first memory
+
+```bash
+pip install mem0ai
+```
+
+The open-source version uses a local Qdrant vector store and your LLM of choice. Swap in Claude Haiku 4.5 as the extraction LLM for cost-efficient memory operations:
+
+```python
+from mem0 import Memory
+
+config = {
+    "llm": {
+        "provider": "anthropic",
+        "config": {
+            "model": "claude-haiku-4-5-20251001",
+            "api_key": "your-anthropic-key"
+        }
+    }
+}
+
+m = Memory.from_config(config)
+
+# Add a conversation — Mem0 extracts and stores salient facts
+result = m.add([
+    {"role": "user",      "content": "I work on a Python monorepo with 4 microservices."},
+    {"role": "assistant", "content": "Got it, I'll tailor examples to Python."}
+], user_id="alice")
+
+print(result)
+# [{"event": "ADD", "memory": "Works on a Python monorepo with 4 microservices"}]
+```
+
+## Retrieve relevant memories before each call
+
+```python
+# In a new session — pull what's relevant before calling Claude
+memories = m.search("what tech stack does this user prefer?", user_id="alice")
+context = "\n".join(f"- {r['memory']}" for r in memories[:5])
+print(context)  # - Works on a Python monorepo with 4 microservices
+```
+
+## Wire Mem0 into a Claude agent
+
+```python
+import anthropic
+from mem0 import Memory
+
+mem = Memory.from_config(config)
+claude = anthropic.Anthropic()
+
+def chat(user_message: str, user_id: str) -> str:
+    # 1. Pull relevant memories
+    memories = mem.search(user_message, user_id=user_id)
+    ctx = "\n".join(f"- {r['memory']}" for r in memories[:5])
+
+    # 2. Inject into system prompt
+    system = f"Known context about this user:\n{ctx}" if ctx else "You are a helpful assistant."
+    response = claude.messages.create(
+        model="claude-sonnet-5-20260801",
+        max_tokens=1024,
+        system=system,
+        messages=[{"role": "user", "content": user_message}]
+    )
+    answer = response.content[0].text
+
+    # 3. Store the exchange so memory grows with each conversation
+    mem.add([
+        {"role": "user",      "content": user_message},
+        {"role": "assistant", "content": answer}
+    ], user_id=user_id)
+    return answer
+```
+
+## Self-host with Docker (Qdrant backend)
+
+No external API keys for storage:
+
+```bash
+git clone https://github.com/mem0ai/mem0
+cd mem0
+docker-compose up -d   # Qdrant on :6333, Mem0 REST API on :8000
+```
+
+Then point the SDK at your local server: `Memory(host="http://localhost:8000")`.
+
+## How Mem0 V3 keeps memory coherent
+
+Mem0 V3 (April 2026) uses a single-pass extraction pipeline: each new fact from a conversation is checked against existing memories and emits `ADD`, `UPDATE`, `DELETE`, or `NONE`. After 100 conversations the store stays clean and relevant — not bloated with contradictions or duplicates. Retrieval hits 92.5 on the LoCoMo long-context memory benchmark.
+
+**Sources:** [Mem0 Python Quickstart — docs.mem0.ai](https://docs.mem0.ai/open-source/python-quickstart) · [The Easiest Way to Add Persistent Memory — Mem0 blog](https://mem0.ai/blog/the-easiest-way-to-add-persistent-memory-to-any-ai-agent) · [mem0ai/mem0 — GitHub](https://github.com/mem0ai/mem0)
+]]></content:encoded>
+    </item>
+
+<item>
       <title>Three Models, One Pipeline: Claude Code's Per-Subagent Model Routing Cuts Costs 60-80%</title>
       <link>https://code.claude.com/docs/en/model-config</link>
       <guid isPermaLink="false">2026-08-12-04-claude-code-subagent-model-routing</guid>
