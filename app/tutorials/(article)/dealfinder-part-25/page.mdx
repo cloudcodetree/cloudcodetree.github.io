@@ -39,8 +39,10 @@ Step tag: `step-25`. Compare with the previous step: `step-24...step-25`.
 7. [Layer 6 — The tool supply chain](#layer-6--the-tool-supply-chain)
 8. [Write a model card](#write-a-model-card)
 9. [It's all tested](#its-all-tested)
-10. [OWASP-LLM map](#owasp-llm-map)
-11. [Where this goes next](#where-this-goes-next)
+10. [Seeing it in the product](#seeing-it-in-the-product)
+11. [OWASP-LLM map](#owasp-llm-map)
+12. [What you can demo now](#what-you-can-demo-now)
+13. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -378,6 +380,22 @@ Diff `step-24...step-25` to see exactly what changed.
 
 ---
 
+## Seeing it in the product
+
+Guardrails are invisible when they work — which is exactly when you most want to *see* them. A **`/safety`** endpoint (`serve.py`) runs the canonical untrusted-text examples through every layer and returns each verdict; the static UI adds a **"safety (sec)"** mode that renders the whole stack:
+
+```python
+@app.get("/safety")
+def safety_report():
+    # runs the real detectors on the canonical examples; cached, offline
+    return {"injection": {...}, "pii": {"before": ..., "after": ...},
+            "spec": {...}, "audit": ..., "tool_trust": {"registered": ..., "quarantined": ...}}
+```
+
+It is query-independent — every value is a real detector output: the injection string blocked and the clean query allowed, the PII line redacted to `[email]`/`[phone]`/`[card]`, the `tents`/`mint` spec rejected, the poisoned `get_weather` tool quarantined, and the `reqests` typosquat blocked. Five layers, one screen, no API call.
+
+---
+
 ## OWASP-LLM map
 
 The five layers here map directly to the OWASP Top 10 for LLM Applications:
@@ -391,6 +409,29 @@ The five layers here map directly to the OWASP Top 10 for LLM Applications:
 | LLM09 — Overreliance | Model card names limits and calibration gaps |
 
 Part 35 extends this map for multi-tenant scale: GDPR data-subject requests, sliding-window rate limiting per user, and abuse detection. It imports `AuditLog` and `redact_pii` from here — this part owns the reusable modules; Part 35 extends them without reimplementation.
+
+The whole stack, live (server on `:8000`):
+
+```bash
+curl -s http://localhost:8000/safety | python -m json.tool
+```
+
+**Expect:** the injection attack `flagged: true` and the clean query `false`, the PII `after` redacted to `[email]`/`[phone]`/`[card]`, the bad spec's two errors, the audit entry, and `tool_trust` with `search_deals`/`score_deal` registered and `get_weather` quarantined — every layer's real verdict, served from the running app.
+
+---
+
+## What you can demo now
+
+Open the app, pick **"safety (sec)"**, and hit Search (the box is ignored — the guardrails run on fixed examples). Every layer of the stack reports its verdict at once:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-25/guardrail-stack.png"
+  alt="The DealFinder guardrail stack: injection blocked, PII redacted, an invalid spec rejected, the audit log entry, and a poisoned tool quarantined plus a typosquat dependency blocked"
+  caption="Real capture: the five-layer guardrail stack running the canonical untrusted-text examples — every layer's real verdict, no API call."
+  lookFor="the five layers top to bottom. (1) prompt-injection: the 'ignore all previous instructions' string is ✗ BLOCKED, the legitimate headphones query is ✓ allowed. (2) PII: the email/phone/card line is redacted to [email]/[phone]/[card] before it could be logged. (3) spec validation: a Sony/audio/new listing passes with [], while X/tents/mint is rejected with 'category unknown, condition invalid' — values the Pydantic types allow but the domain doesn't. (4) the append-only audit entry. (5) tool supply-chain: search_deals and score_deal are registered, the poisoned get_weather tool is quarantined for 3 reasons (off-allowlist, injection phrasing, 'exfiltrate'), and the 'reqests' typosquat is blocked as a slopsquat of 'requests'. Every one of these is untrusted text handled with the same rigor."
+/>
+
+The demo line: *"This is the boring layer that separates a demo from a shippable system. A scraped title, a user query, a tool description, a package name — all untrusted text, all handled the same way: detect the injection, redact the PII, reject the nonsense category, log the action, quarantine the poisoned tool. None of it needs an API call, all of it is under fifteen lines, and skipping any one of them is how the incidents in the news happen."*
 
 ---
 
