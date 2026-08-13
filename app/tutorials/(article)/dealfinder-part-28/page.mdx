@@ -41,7 +41,8 @@ Compare to `step-27`:
 7. [Terraform: infrastructure as code for the full local stack](#terraform-infrastructure-as-code-for-the-full-local-stack)
 8. [Run the full stack locally with Terraform](#run-the-full-stack-locally-with-terraform)
 9. [What this part proves](#what-this-part-proves)
-10. [Where this goes next](#where-this-goes-next)
+10. [What you can demo now](#what-you-can-demo-now)
+11. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -451,6 +452,21 @@ What these numbers mean in production terms: a push to `main` that regresses the
 <Callout tone="note">
 **Companion tests to read alongside this part:** `tests/test_deploy.py` (the three config-parity checks above) and `tests/test_evals.py` (pins the golden set size, the two-signal gate pass, and the median-only gate fail). Both must pass for CI to proceed.
 </Callout>
+
+---
+
+## What you can demo now
+
+The tests and the eval gate prove the *config* is honest. The container proves the *artifact* is. Build it, run it, and hit it — this is a real build of this exact repo:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-28/container-ships.png"
+  alt="A real docker build of DealFinder, the 1.15GB image, docker run, curl /healthz returning products 270 from inside the container, and docker ps showing it up"
+  caption="Real capture: `docker build` → `docker run` → `curl /healthz` — the DealFinder app serving from inside its own container, the same /healthz response the tests pin."
+  lookFor="the flow top to bottom. `docker build` finishes (DONE 20.6s) and names the image dealfinder-app:local. `docker images` shows it at 1.15GB — one self-contained artifact with the pinned Python, deps, and snapshot inside. `docker run -d -p 8010:8000` starts it; uvicorn boots inside the container and loads the snapshot. Then `curl http://localhost:8010/healthz` returns the ringed status-ok / products-270 line — byte-for-byte the response `tests/test_serve.py::test_healthz` pins, now coming from the containerized process, not your dev shell. `docker ps` confirms it's up, mapping host 8010 → container 8000. That is 'build once, run anywhere' made literal."
+/>
+
+The demo line: *"This is the whole point of containerizing. One `docker build` packages the Python version, every dependency, and the frozen snapshot into a single 1.15GB image. `docker run`, and the exact same app that passes CI is serving `/healthz` from inside the container — 270 products loaded, same response, on any machine that runs Docker. Push to main, CI runs the tests and the eval gate, and only if both pass does this image ship. The bytes you tested are the bytes that run."*
 
 ---
 
