@@ -38,8 +38,10 @@ Step tag: `step-27` — semantic cache tuning, CascadeRouter, batching model, an
 5. [Lever 3: Batching — amortizing call overhead](#lever-3-batching--amortizing-call-overhead)
 6. [Lever 4: Quantization and vLLM — anchored, requires a GPU](#lever-4-quantization-and-vllm--anchored-requires-a-gpu)
 7. [The full inference report](#the-full-inference-report)
-8. [Tests](#tests)
-9. [Where this goes next](#where-this-goes-next)
+8. [Seeing it in the product](#seeing-it-in-the-product)
+9. [Tests](#tests)
+10. [What you can demo now](#what-you-can-demo-now)
+11. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -84,10 +86,10 @@ report_095 = measure_cache_hit_rate(0.95)
 report_090 = measure_cache_hit_rate(0.90)
 
 print(report_095)
-# threshold=0.95  n_queries=14  hits=6  hit_rate=0.429  near_dup_cosine=0.9498  measured=True
+# threshold=0.95  n_queries=14  hits=6  hit_rate=0.429  near_duplicate_cosine=0.9498  measured=True
 
 print(report_090)
-# threshold=0.90  n_queries=14  hits=7  hit_rate=0.500  near_dup_cosine=0.9498  measured=True
+# threshold=0.90  n_queries=14  hits=7  hit_rate=0.500  near_duplicate_cosine=0.9498  measured=True
 ```
 
 The batch is constructed from the committed `electronics-2026-07.json` snapshot and its pre-computed 384-dim title embeddings (fastembed `BAAI/bge-small-en-v1.5`, introduced in Part 4). It contains six base queries (one per category, first item), each repeated once as an exact duplicate, plus the two Sony WH-1000XM5 listings as a near-duplicate pair. No model download; no network call.
@@ -318,10 +320,10 @@ from dealfinder.inference import run_inference_report
 report = run_inference_report()
 
 print(report.cache_at_095)
-# threshold=0.95  n_queries=14  hits=6  hit_rate=0.429  near_dup_cosine=0.9498  measured=True
+# threshold=0.95  n_queries=14  hits=6  hit_rate=0.429  near_duplicate_cosine=0.9498  measured=True
 
 print(report.cache_at_090)
-# threshold=0.90  n_queries=14  hits=7  hit_rate=0.500  near_dup_cosine=0.9498  measured=True
+# threshold=0.90  n_queries=14  hits=7  hit_rate=0.500  near_duplicate_cosine=0.9498  measured=True
 
 print(report.batching)
 # n_items=64  per_item_s=1.344  batched_s=0.084  speedup=16.0  illustrative=True
@@ -333,6 +335,23 @@ for ref in report.anchored:
 ```
 
 The `measured=True` fields (`cache_at_095`, `cache_at_090`) are real outputs computed from the committed snapshot. The `illustrative=True` fields (`batching`, `anchored`) carry assumed constants or require hardware you may not have. Nothing in `run_inference_report` requires a network call, a GPU, or any environment variable.
+
+---
+
+## Seeing it in the product
+
+The four levers are easy to hand-wave and hard to trust — so the app runs the real report. An **`/inference`** endpoint (`serve.py`) assembles `run_inference_report()` and returns it; the static UI adds an **"inference (perf)"** mode that renders all four with their honesty flags:
+
+```python
+@app.get("/inference")
+def inference_report():
+    # cached, offline; every figure flagged measured vs illustrative
+    return {"cache_095": {...}, "cache_090": {...},
+            "batching": {..., "illustrative": True},
+            "anchored": [quantization_ref, vllm_ref]}
+```
+
+It is query-independent. The point the UI drives home is the `measured`/`illustrative`/`anchored` contract: the cache hit rates are green (measured on the committed embeddings), the batching speedup is amber (a model, not a benchmark), and the GPU refs are blue (anchored — they name a runnable script rather than print a number the CPU can't honestly produce).
 
 ---
 
@@ -363,6 +382,30 @@ The cache tests are fully deterministic: same embeddings from the committed snap
 <Callout tone="tip">
 **The near-duplicate cosine is pinned by a test.** `test_lowering_threshold_to_090_admits_the_real_near_duplicate` asserts `report.cache_at_090.near_duplicate_cosine == 0.9498`. If you change the embedding model or regenerate the snapshot, this test will catch the shift before the prose gets stale.
 </Callout>
+
+The same report, live (server on `:8000`):
+
+```bash
+curl -s http://localhost:8000/inference \
+  | python -m json.tool | grep -E '"hits"|"hit_rate"|"near_duplicate_cosine"|"speedup"'
+```
+
+**Expect:** `hits: 6` / `hit_rate: 0.429` at 0.95 and `hits: 7` / `0.5` at 0.90, `near_duplicate_cosine: 0.9498`, and `speedup: 16.0` — the same measured/illustrative figures the tests pin, served from the running app.
+
+---
+
+## What you can demo now
+
+Open the app, pick **"inference (perf)"**, and hit Search (the box is ignored — the report runs on fixed data). All four levers report at once, each with its honesty flag:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-27/inference-levers.png"
+  alt="The DealFinder inference-optimization levers: measured cache hit rates at 0.95 (6/14) and 0.90 (7/14), the illustrative 16x batching model, and anchored quantization/vLLM GPU references"
+  caption="Real capture: the four inference levers — two measured on the committed snapshot, two illustrative/anchored — each flagged so a number is never mistaken for a benchmark it isn't."
+  lookFor="the (MEASURED) / (ILLUSTRATIVE) / (ANCHORED) tags on each lever. Lever 1, the semantic cache, is measured: threshold 0.95 gives 6/14 hits (0.429), 0.90 gives 7/14 (0.5), because the Sony WH-1000XM5 near-duplicate pair sits at cosine 0.9498 — it misses at 0.95 and crosses the gate at 0.90. Lever 3, batching, is illustrative: 64 items take 1.344s one-at-a-time vs 0.084s batched (16× faster) — but that's a model from assumed constants, not a device benchmark. Lever 4, quantization and vLLM, is anchored: it names the VRAM shape (16→8→4 GB) and throughput shape (900→3200 tok/s) and points at a runnable bench script rather than printing GPU numbers a CPU can't honestly produce."
+/>
+
+The demo line: *"Four ways to make the same model cheaper, and the honest thing is labeling which numbers are real. The cache hit rates are measured — I can lower the threshold from 0.95 to 0.90 and watch it catch one more near-duplicate for free. The batching speedup is a model, clearly flagged. And the GPU levers point you at a script instead of faking a benchmark on a laptop. The fastest inference is the request you never send; everything below that is about paying less for the ones you do."*
 
 ---
 
