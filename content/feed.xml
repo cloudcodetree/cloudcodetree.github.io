@@ -10,8 +10,185 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 12 Aug 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 13 Aug 2026 04:07:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>One Prompt, One Free GPU: Tell Your Agent to Fine-Tune a Model With the Google Colab CLI</title>
+      <link>https://huggingface.co/blog/sergiopaniego/trl-colab-cli</link>
+      <guid isPermaLink="false">2026-08-13-04-colab-cli-agent-gpu-finetuning</guid>
+      <pubDate>Wed, 13 Aug 2026 04:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Developer Tools</category>
+      <description>The Google Colab CLI makes Colab GPUs scriptable from any terminal — hand an agent a dataset prompt and get a fine-tuned adapter pushed to the Hub, free, no notebook UI required.</description>
+      <content:encoded><![CDATA[
+**The Google Colab CLI makes Colab GPUs scriptable from any terminal — hand an agent a dataset prompt and get a fine-tuned adapter pushed to the Hub, free.**
+
+[Google's Colab CLI](https://colab.research.google.com/notebooks/colab-cli.ipynb) (`pip install colab`) removes the notebook UI from the equation. Any process that can run shell commands — Claude Code, a LangChain agent, a Python script — can provision a free T4 GPU, run training code on it, stream live metrics, and push results, all without a browser.
+
+HuggingFace published the proof of concept: an agent was given one instruction and handled every step.
+
+**What the agent did, step by step:**
+
+1. `colab start` — provisioned a free T4 runtime
+2. Installed TRL, trackio, and bitsandbytes on the remote Colab session
+3. Authenticated with HuggingFace Hub inside the runtime
+4. Read TRL's SFTTrainer examples, then wrote a QLoRA training script from them
+5. Ran training; wired `trackio` to stream the loss curve to a HuggingFace Space in real time
+6. `push_to_hub=True` — LoRA adapter uploaded when training finished
+7. `colab stop` — runtime cleaned up
+
+Total cost: $0. Base model: `Qwen2.5-0.5B-Instruct`; the whole run finished in a few minutes on a free T4.
+
+**Try it from a Claude Code session:**
+
+```bash
+pip install colab
+colab login   # authenticates with your Google account
+```
+
+Then give Claude Code this prompt:
+
+```
+Fine-tune Qwen2.5-0.5B-Instruct on ./data/train.jsonl using TRL SFTTrainer
+with QLoRA (r=16, alpha=32). Run on a Colab T4 via the Colab CLI, stream
+metrics with trackio, push the adapter to <your-hf-username>/<repo-name>.
+```
+
+Claude Code reads the TRL docs, writes the script, provisions and runs the runtime, and reports back when the adapter is live on the Hub.
+
+**Why this pattern matters:** agentic ML doesn't require you to own GPUs. The Colab CLI makes free compute programmable — combine it with an agent that knows the training APIs and you get a zero-infrastructure fine-tuning workflow that any developer can run today.
+
+**Sources:** [I fine-tuned a model for free from one prompt, with TRL and the Google Colab CLI — HuggingFace Blog](https://huggingface.co/blog/sergiopaniego/trl-colab-cli) · [TRL SFTTrainer docs — HuggingFace](https://huggingface.co/docs/trl/sft_trainer)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>TRL's GRPO Trainer Gets Continuous Batching: ~1.25x Throughput for Reasoning RL With No Extra Infrastructure</title>
+      <link>https://huggingface.co/blog/sergiopaniego/cb-trl-grpo</link>
+      <guid isPermaLink="false">2026-08-13-03-trl-grpo-continuous-batching</guid>
+      <pubDate>Wed, 13 Aug 2026 04:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>TRL's GRPOTrainer now uses continuous batching for rollout generation, recycling GPU slots as sequences finish — ~1.25x throughput on N≥32 reasoning workloads with no vLLM server required.</description>
+      <content:encoded><![CDATA[
+**TRL's GRPOTrainer now supports continuous batching for rollout generation, cutting idle GPU time during reasoning RL training with no server setup.**
+
+GRPO training is generation-heavy: producing the N rollouts (completions the model judges itself on) is typically the bottleneck. Standard batching waits for all N sequences to finish; continuous batching fills idle GPU slots as sequences complete, keeping utilization high. On an A100 80GB with Llama-3.2-1B and GSM8K at N=32: **~1.25x throughput** versus standard batching, with lower peak memory at the same time.
+
+It's a drop-in upgrade — set `use_vllm=False` in `GRPOConfig` (continuous batching is now the in-process default). TRL pre-allocates `max_memory_percent=0.5` of free VRAM for rollouts, leaving headroom for the backward pass. Async continuous batching — overlapping generation with the gradient update — is in progress (PR #5781).
+
+**Why it matters:** Reasoning RL fine-tuning (GRPO, DAPO) is the fastest-growing method for building capable open models. Any free throughput gain in the rollout phase directly reduces GPU-hours per training run.
+
+**Sources:** [Continuous batching for GRPO, now in TRL — HuggingFace Blog](https://huggingface.co/blog/sergiopaniego/cb-trl-grpo) · [GRPOTrainer — HuggingFace](https://huggingface.co/docs/trl/en/grpo_trainer)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude's Compliance API Now Covers Claude Code and Cowork Sessions — Full Audit Trail for Agentic Dev Tools</title>
+      <link>https://claude.com/blog/compliance-api-cowork-and-claude-code</link>
+      <guid isPermaLink="false">2026-08-13-02-compliance-api-claude-code-cowork</guid>
+      <pubDate>Wed, 13 Aug 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>Anthropic's Compliance API now covers Claude Code (CLI and desktop) and Cowork sessions in Enterprise beta — prompts, responses, and tool activity in one endpoint, same access key.</description>
+      <content:encoded><![CDATA[
+**Claude's Compliance API now returns full session transcripts for Claude Code (CLI and desktop) and Cowork (web, mobile, desktop) — one endpoint, same access key, no new integration.**
+
+Announced August 11, the extension is in beta for Claude Enterprise customers. Security and compliance teams already using the Compliance API for regular Claude chat get Claude Code and Cowork coverage automatically — no separate access key, no changes to existing integrations.
+
+**What each session record includes:**
+- Full prompt and response text
+- Tool call content: web browsing, MCP connector calls, skill runs, artifacts
+- Metadata: verified user ID, organization ID, session and per-message IDs, timestamps
+
+**Current beta scope:** Claude Code CLI and desktop app; Cowork desktop, web, and mobile. Not yet covered: Claude Code on the web, API-accessed Claude Code, or sessions on Bedrock, Vertex AI, or Foundry.
+
+**Why it matters:** For HIPAA, FedRAMP, and SOC 2 teams, full audit trail coverage of agentic coding sessions closes the last gap between "we use Claude Code" and "we can prove what Claude Code did." This is the feature that unlocks Claude Code for regulated-industry engineering teams without a custom ATO process.
+
+**Sources:** [Compliance API coverage extends to Claude Cowork and Claude Code — Anthropic](https://claude.com/blog/compliance-api-cowork-and-claude-code) · [Compliance API docs — Claude Platform](https://platform.claude.com/docs/en/manage-claude/compliance-api)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Fine-Tune Any LLM Without Writing Training Code: HuggingFace AutoTrain in 5 Minutes</title>
+      <link>https://huggingface.co/docs/autotrain/tasks/llm_finetuning</link>
+      <guid isPermaLink="false">2026-08-13-01-autotrain-no-code-llm-finetuning</guid>
+      <pubDate>Wed, 13 Aug 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>HuggingFace AutoTrain lets you SFT, DPO, or ORPO any open LLM through a web UI or single CLI command — no training code, no server setup, LoRA adapter pushed to Hub automatically.</description>
+      <content:encoded><![CDATA[
+**HuggingFace AutoTrain lets you SFT, DPO, or ORPO any open model in a web UI or single `autotrain` command — no training code, no server, adapter pushed to Hub automatically.**
+
+**What you'll be able to do after this:**
+
+- Launch a supervised fine-tuning (SFT), DPO, or ORPO run on any open LLM without writing training code
+- Prepare your dataset as JSONL and configure LoRA hyperparameters through AutoTrain's UI or a single CLI command
+- Have the fine-tuned LoRA adapter automatically pushed to your HuggingFace Hub repo when training finishes
+
+[AutoTrain Advanced](https://huggingface.co/autotrain) is HuggingFace's hosted fine-tuning platform. Pick a model, upload data, configure a few sliders — and it writes and runs the training loop for you. No `SFTTrainer` boilerplate, no CUDA debugging, no manual Hub upload.
+
+**Step 1: Prepare your dataset**
+
+AutoTrain expects JSONL with one training example per line. For SFT:
+
+```json
+{"prompt": "Classify the sentiment of this review:", "completion": "Positive"}
+{"prompt": "Summarize in one sentence:", "completion": "A bear visited a bakery."}
+```
+
+For DPO, each row needs `prompt`, `chosen`, and `rejected` fields.
+
+**Step 2: Create a project**
+
+Go to [huggingface.co/autotrain](https://huggingface.co/autotrain) → **Create new project** → **LLM** → pick your base model (e.g. `Qwen/Qwen2.5-7B-Instruct` or `meta-llama/Llama-3.2-3B-Instruct`) → upload JSONL → pick hardware (ZeroGPU is free for small runs) → **Start Training**.
+
+AutoTrain provisions compute, installs the right CUDA stack, and streams training logs in the Space UI.
+
+**Or use the CLI (works locally or in CI):**
+
+```bash
+pip install autotrain-advanced
+
+autotrain llm \
+  --train \
+  --model "Qwen/Qwen2.5-3B-Instruct" \
+  --data-path ./data \
+  --trainer sft \
+  --lora-r 16 \
+  --lora-alpha 32 \
+  --lr 2e-4 \
+  --batch-size 2 \
+  --gradient-accumulation 4 \
+  --num-train-epochs 3 \
+  --push-to-hub \
+  --username your-hf-username \
+  --token $HF_TOKEN
+```
+
+When training ends the LoRA adapter lands in your Hub repo — ready to merge with `peft.merge_and_unload()` or serve directly via AutoTrain's inference endpoint.
+
+**Safe starting defaults:**
+- `--lora-r 16`, `--lora-alpha 32`: balanced expressivity vs. adapter size
+- `--lr 2e-4`: standard for QLoRA SFT
+- `--batch-size 2` + `--gradient-accumulation 4`: effective batch size 8, fits on a 16GB GPU
+
+**Sources:** [AutoTrain LLM Fine-tuning — HuggingFace Docs](https://huggingface.co/docs/autotrain/tasks/llm_finetuning) · [Low-Code LLM Alignment with AutoTrain — HuggingFace Blog](https://huggingface.co/blog/burtenshaw/ui-finetune-llm-autotrain)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Warp Ships a Standalone Agent CLI: pty-Multiplexed Terminal Agent Runs Alongside Claude Code</title>
