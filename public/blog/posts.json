@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-08-13-10-gemini-37-flash-thinking-levels-agent-routing",
+    "title": "Think Less, Pay Less: Routing Agent Subworkloads by Thinking Level in Gemini 3.7 Flash",
+    "excerpt": "Gemini 3.7 Flash's thinking_level parameter (low/medium/high) lets you match reasoning effort to task complexity per request — same model, same endpoint, lower cost on simple steps.",
+    "author": "Chris Harper",
+    "date": "08-13-2026",
+    "publishedAt": "2026-08-13T20:09:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash",
+    "content": "**Gemini 3.7 Flash ships a per-request thinking_level parameter so your agent can dial reasoning up for hard steps and down for cheap lookups — one model, one endpoint, variable cost.**\n\nMost agentic pipelines treat every step identically: every tool call, every lookup, and every complex code analysis goes to the same max-reasoning inference tier. Gemini 3.7 Flash (GA today) breaks that pattern with a `thinking_level` parameter in `generation_config` that lets you tune per call.\n\n**Three levels:**\n\n| Level | Best for | Cost profile |\n|---|---|---|\n| `low` | Quick lookups, file listing, simple tool calls | Lowest |\n| `medium` | Default for most agentic steps, code analysis | ~1.5× low |\n| `high` | Hard debugging, complex code gen, architectural design | Highest |\n\n**Routing pattern:**\n\n```python\nfrom google import genai\n\nclient = genai.Client()\n\ndef step(task: str, thinking_level: str) -> str:\n    return client.interactions.create(\n        model=\"gemini-3.7-flash\",\n        input=task,\n        generation_config={\"thinking_level\": thinking_level},\n    ).output_text\n\n# Cheap: simple context-prep steps\nfile_list = step(\n    \"List all Python files modified in the last 24h\",\n    thinking_level=\"low\",\n)\n\n# Balanced: most analytical steps\nplan = step(\n    f\"Given these files: {file_list}\\n\"\n    \"Identify which ones might contain auth logic.\",\n    thinking_level=\"medium\",\n)\n\n# Full depth: complex debugging\nfix = step(\n    f\"Review this auth module: {plan}\\n\"\n    \"Find any race conditions and rewrite the transaction lock safely.\",\n    thinking_level=\"high\",\n)\n```\n\n**Via OpenRouter** (OpenAI-compatible client):\n\n```python\nimport openai\n\nclient = openai.OpenAI(\n    base_url=\"https://openrouter.ai/api/v1\",\n    api_key=\"<openrouter-key>\",\n)\n\nresp = client.chat.completions.create(\n    model=\"google/gemini-3.7-flash\",\n    messages=[{\"role\": \"user\", \"content\": task}],\n    extra_body={\"generation_config\": {\"thinking_level\": \"high\"}},\n)\n```\n\n**Why this matters for Claude Code workflows:** On days when Anthropic quota is under pressure, Gemini 3.7 Flash is a solid background-task model — particularly for the compute-heavy \"write a migration plan\" or \"find the bug\" steps where you want real reasoning but don't need Claude's specific strengths. The thinking-level routing keeps those background costs proportional to actual task complexity.\n\n**Sources:** [Gemini 3.7 Flash — ai.google.dev](https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash) · [Gemini thinking guide](https://ai.google.dev/gemini-api/docs/thinking) · [Gemini 3 Developer Guide](https://ai.google.dev/gemini-api/docs/gemini-3)"
+  },
+  {
+    "id": "2026-08-13-09-gemini-37-flash-gpt56-ultrafast-model-speed",
+    "title": "Two Speed Records Today: Gemini 3.7 Flash GA for Coding Agents, GPT-5.6 Sol Ultrafast at 750 Tok/s",
+    "excerpt": "Gemini 3.7 Flash hits GA today for coding and agents at $0.75/1M tokens with tunable thinking levels; OpenAI previews GPT-5.6 Sol Ultrafast at 750 tokens/second via Cerebras.",
+    "author": "Chris Harper",
+    "date": "08-13-2026",
+    "publishedAt": "2026-08-13T20:08:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash/",
+    "content": "**Two new top-tier inference options landed today: Gemini 3.7 Flash is GA for coding agents at $0.75/1M input tokens; GPT-5.6 Sol Ultrafast previews at 14× speed (750 tokens/sec) via Cerebras.**\n\n**Gemini 3.7 Flash (GA, August 13)** is Google's new workhorse model for coding and agentic workloads, available now in the Gemini API and AI Studio. The headline improvements: better issue resolution, fewer failed agent loops, and higher-fidelity code generated directly from design mocks. Introductory pricing: $0.75/1M input, $3.75/1M output through December 31, 2026.\n\nThe standout feature is tunable reasoning per request via `thinking_level` in `generation_config`:\n- **Low** — fast, lowest cost; tool calls, lookups, simple steps\n- **Medium** (default) — recommended for complex code and multi-step agents\n- **High** — maximum reasoning; hard problems, complex debugging\n\n**GPT-5.6 Sol Ultrafast (limited preview):** OpenAI is previewing a Cerebras-powered tier that runs GPT-5.6 Sol at up to 750 output tokens/second — roughly 14× faster than Standard processing. Available now to a select group of API customers; targets real-time and highly interactive applications.\n\n**Why it matters:** Per-request thinking-level routing inside a single model endpoint is a cleaner pattern than managing multiple models. And 750 tokens/second changes what \"real-time agent UI\" means — streaming a full code diff in under two seconds becomes viable.\n\n**Sources:** [Gemini 3.7 Flash — blog.google](https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash/) · [Gemini 3.7 Flash API docs](https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash) · [Previewing Ultrafast — openai.com](https://openai.com/index/previewing-ultrafast/)"
+  },
+  {
+    "id": "2026-08-13-08-arize-phoenix-llm-tracing-observability",
+    "title": "See Inside Every Agent Step: LLM Observability with Arize Phoenix",
+    "excerpt": "Arize Phoenix is a free, open-source LLM observability platform — three lines of code give you a local dashboard showing every LLM call, tool span, and eval score from your agent.",
+    "author": "Chris Harper",
+    "date": "08-13-2026",
+    "publishedAt": "2026-08-13T20:07:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://arize.com/docs/phoenix/get-started/get-started-tracing",
+    "content": "**Arize Phoenix is a free, open-source observability platform — three lines of code give you a local dashboard showing every LLM call, tool span, and eval score from your agent, with no signup or data sent off-device.**\n\n**What you'll be able to do after this:**\n\n- Start Phoenix locally with one command and see structured traces of every LLM call, tool use, and retrieval step — no account or API key required\n- Attach built-in LLM-judge evaluators (hallucination, relevance, faithfulness) to live traces to find exactly where your agent produces bad outputs\n- Auto-instrument a Claude Agent SDK session in three lines and watch spans appear live in the Phoenix UI as your agent runs\n\nYou can score outputs with promptfoo (already covered) or build assertions into your CI pipeline. Observability is the complementary layer that answers a different question: \"what actually happened during that run?\" When an agent goes off the rails, tracing shows you the exact token sequence, tool call chain, and retrieval result that led there — without adding debug logs everywhere.\n\n**Install:**\n\n```bash\npip install arize-phoenix arize-phoenix-otel openinference-instrumentation-anthropic\n```\n\n**Start Phoenix and instrument your Anthropic client in three lines:**\n\n```python\nimport phoenix as px\nfrom phoenix.otel import register\n\n# Start the local Phoenix server — opens a UI at http://localhost:6006\npx.launch_app()\n\n# Auto-instrument all Anthropic API calls in this process\nregister(project_name=\"my-agent\", auto_instrument=True)\n\n# From here, every call you make appears as a trace\nimport anthropic\nclient = anthropic.Anthropic()\n\nresponse = client.messages.create(\n    model=\"claude-sonnet-5\",\n    max_tokens=1024,\n    messages=[{\"role\": \"user\", \"content\": \"Summarize the quarterly financials.\"}],\n)\n```\n\nOpen http://localhost:6006 and you'll see one trace: an `LLM` span with the prompt, response, token counts, and latency. Add a retrieval step and it nests as a child span. Add a tool call and it appears as a sibling. Every agent run builds the trace tree automatically.\n\n**Run built-in evals against your traces:**\n\n```python\nfrom phoenix.evals import (\n    HallucinationEvaluator,\n    QACorrectnessEvaluator,\n    run_evals,\n)\nfrom phoenix.session.evaluation import get_qa_with_reference\n\n# Pull live traces from the running Phoenix session\ndf = get_qa_with_reference(px.active_session())\n\n# Score them — Phoenix uses an LLM judge internally\nresults = run_evals(\n    dataframe=df,\n    evaluators=[HallucinationEvaluator(), QACorrectnessEvaluator()],\n    provide_explanation=True,\n)\n```\n\nScores attach to each trace span in the UI. Filter by `hallucination == True` and you immediately see the exact inputs that caused it — the retrieval context, the user query, and the model response, all in one view.\n\n**Three deployment modes:**\n\n| Mode | Command | When to use |\n|---|---|---|\n| Ephemeral (in-process) | `px.launch_app()` | Notebooks, quick debug runs |\n| Persistent server | `phoenix serve` | Local dev — data survives restarts |\n| Self-hosted (Docker) | `docker run -p 6006:6006 arizephoenix/phoenix` | Team-shared trace store |\n\nAll three modes expose the same UI and accept the same trace data — switch deployment modes without changing your instrumentation code.\n\n**Sources:** [Arize Phoenix docs](https://arize.com/docs/phoenix) · [Claude Agent SDK integration](https://arize.com/docs/phoenix/integrations/python/claude-agent-sdk) · [Quickstart: Tracing (Python)](https://arize.com/docs/phoenix/tracing/llm-traces-1/quickstart-tracing-python) · [YouTube tutorial: Arize Phoenix Overview](https://www.youtube.com/watch?v=5PXRRXM8Iqo)"
+  },
+  {
     "id": "2026-08-13-07-claude-code-verification-loops-skills",
     "title": "Claude Code Skills That Fix Their Own Mistakes: Building Verification Loops",
     "excerpt": "Package your build-test-fix cycle as a Claude Code skill and every session checks and corrects its own work automatically — standalone, chained, or wired to a PreToolUse hook.",
