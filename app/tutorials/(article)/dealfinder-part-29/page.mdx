@@ -44,7 +44,8 @@ Step tag: `step-29` — the eight Kubernetes manifests live in `infra/k8s/`. Com
 7. [Kustomization — apply everything, exclude the secret template](#kustomization--apply-everything-exclude-the-secret-template)
 8. [Apply the stack](#apply-the-stack)
 9. [What this part proves](#what-this-part-proves)
-10. [Where this goes next](#where-this-goes-next)
+10. [What you can demo now](#what-you-can-demo-now)
+11. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -462,6 +463,21 @@ service.yaml        -> ['Service']
 Every file parses to its expected kind. This is structural verification — it catches typos, indentation errors, and missing required fields before you touch a cluster.
 
 The broader claim this part proves: the DealFinder service is operable, not just runnable. `minReplicas: 2` means no single-pod SPOF. `/healthz` probes mean bad pods stop receiving traffic before a user sees an error. `proxy-buffering: "off"` means the Part 31 SSE stream works end-to-end, not just in local dev. `secret.example.yaml` placeholders-only means no key ever lands in the git log. These are not niceties — they are the difference between a demo and a service.
+
+---
+
+## What you can demo now
+
+You don't need a cluster to prove the manifests are sound — validate all eight the same way the tests do, and read the operability decisions straight off them:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-29/k8s-manifests.png"
+  alt="All 8 k8s manifests parsing to their expected kinds, plus the operability decisions: 2 replicas, HPA 2 to 10 at 70% CPU, SSE-safe ingress annotations, /healthz probes"
+  caption="Real capture: yaml.safe_load_all over infra/k8s/ — every manifest parses to its expected kind, and the hardening decisions read straight off them."
+  lookFor="the eight files each resolving to exactly one kind (green): namespace → Namespace, configmap → ConfigMap, secret.example → Secret (placeholders only, real secret.yaml gitignored), deployment → Deployment, service → Service, ingress → Ingress, hpa → HorizontalPodAutoscaler, kustomization → Kustomization. Below, the operability decisions pulled from the actual manifests: replicas = 2 (ringed — no single-pod SPOF), the HPA scaling 2 → 10 at 70% CPU with a 120s scale-in window, the ingress SSE annotations (proxy-buffering off, proxy-read-timeout 3600 — ambered — that keep the Part 31 /search/stream live through the proxy), and both probes calling the real /healthz route. Structural verification catches typos and missing fields before you ever touch a cluster."
+/>
+
+The demo line: *"Eight YAML files turn the container from Part 28 into an operable service. I don't need a cluster to prove they're sound — every manifest parses to exactly the kind it should, and the decisions that matter are right there in the text: two replicas so a node drain doesn't take the service down, an autoscaler that rides CPU from 2 to 10 pods, and the two ingress annotations that keep server-sent events flowing instead of buffering. That's the jump from 'it runs' to 'it stays up.'"*
 
 ---
 
