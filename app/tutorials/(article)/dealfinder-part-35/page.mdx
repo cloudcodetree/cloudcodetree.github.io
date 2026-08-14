@@ -28,13 +28,14 @@ Single-request defenses are necessary but not sufficient once your system serves
 
 ## Table of contents
 
-1. [The split: Part 25 vs Part 35](#the-split-part-22-vs-part-32)
+1. [The split: Part 25 vs Part 35](#the-split-part-25-vs-part-35)
 2. [Sliding-window rate limiting](#sliding-window-rate-limiting)
 3. [GDPR data-subject requests](#gdpr-data-subject-requests)
 4. [Abuse detection](#abuse-detection)
 5. [Putting it together: compliance.py](#putting-it-together-compliancepy)
 6. [Tests](#tests)
-7. [Where this goes next](#where-this-goes-next)
+7. [What you can demo now](#what-you-can-demo-now)
+8. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -397,7 +398,7 @@ The companion test file is `tests/test_compliance.py`. All eleven tests pass aga
 - `test_store_reuses_part21_audit_log` — `isinstance(store.audit, safety.AuditLog)` is `True`.
 - `test_abuse_detector_flags_injection_burst` — four injection probes → `flagged=True`, reason contains `"injection: 4 attempts in 60s"`.
 - `test_abuse_detector_flags_velocity_burst` — six benign requests with `max_events=5` → `flagged=True`, reason contains `"velocity: 6 requests in 60s"`.
-- `test_abuse_detector_does_not_flag_normal_use` — five requests at `max_events=5` → `flagged=False`.
+- `test_abuse_detector_does_not_flag_normal_use` — five well-paced benign requests at `max_events=20` → `flagged=False`.
 - `test_abuse_detector_window_evicts_old_events` — events outside the window do not count toward the threshold.
 
 Run them with:
@@ -413,6 +414,31 @@ All eleven must pass. The ground-truth run recorded all 23 tests across the thre
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
 The compliance module lands at step tag `step-35`. Compare from step-34 to see exactly what is added.
 </Callout>
+
+---
+
+## What you can demo now
+
+These three guardrails are library classes, not routes — so the app ships a `/compliance` inspector that exercises all of them read-only over an injected clock. Open the app, pick **"compliance (sec)"**, and hit **Search** (the box is ignored):
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-35/compliance-guardrails.png"
+  alt="The DealFinder compliance inspector: a sliding-window rate limiter showing allow,allow,allow,block,block then a slide; GDPR export (2 records) and delete (2 removed) with the audit trail; and the abuse detector flagging an injection burst and a velocity burst but leaving normal use clean"
+  caption="Real capture: dealfinder/compliance.py — which extends Part 25's safety.py — exercised over an injected clock. Rate limiting, GDPR export/erasure with an audit trail, and abuse detection, all deterministic and offline."
+  lookFor="three sections. RATE LIMIT (3/10s): five green/red pills — t=0,1,2 allow, t=3,4 BLOCK — then a note that at t=10 the window slides past t=0 and the request is allowed again. This is a true sliding window, not a fixed bucket. GDPR: export returned 2 records for u1, delete removed 2 (u1 now holds 0, u2 untouched at 1), and two audit lines — gdpr_export · user u1 · count 2, then gdpr_delete · user u1 · count 2 — written to Part 25's AuditLog. ABUSE: 'injection burst' FLAGGED (injection: 4 attempts in 60s), 'velocity burst' FLAGGED (velocity: 6 requests in 60s), and 'normal use' clean (no thresholds tripped). The whole point of the split is in that last block: Part 25 asks 'is this request an injection?'; this asks 'is this user abusing the system across many requests?'"
+/>
+
+**Check it works** from the terminal — the same three guardrails as JSON:
+
+```bash
+curl -s localhost:8000/compliance | python -m json.tool
+# → rate_limit.decisions [allow,allow,allow,block,block], gdpr.audit
+#   [gdpr_export, gdpr_delete], abuse.{injection_burst, velocity_burst} flagged.
+```
+
+Notice what the inspector does *not* do: it never re-implements Part 25. The audit entries land in a real `safety.AuditLog`, and the abuse detector's injection half calls Part 25's `detect_prompt_injection` directly. That is the whole design of this part — the single-request safety surface stays in `safety.py`, and `compliance.py` adds only the multi-tenant, at-scale concerns on top of it.
+
+The demo line: *"This is what 'security at scale' actually means, made concrete. A sliding-window limiter that lets three requests through and blocks the fourth — then forgives you as the window slides. GDPR export and erasure that leave an audit trail a regulator can read. And abuse detection that watches a user across many requests, not just one — four injection probes or six fast hits and you're flagged, but well-paced normal traffic sails through. None of it re-invents the per-request safety from Part 25; it imports it and builds the tenant-level layer on top."*
 
 ---
 
