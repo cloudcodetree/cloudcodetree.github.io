@@ -43,7 +43,8 @@ Step tag: `step-33` (worker.py + tests/test_worker.py). Compare to the previous 
 7. [Idempotency proof](#idempotency-proof)
 8. [A newly covered saved search](#a-newly-covered-saved-search)
 9. [Tests](#tests)
-10. [Where this goes next](#where-this-goes-next)
+10. [What you can demo now](#what-you-can-demo-now)
+11. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -427,6 +428,31 @@ pytest tests/test_worker.py -v
 ```
 
 The step uses the same committed snapshot (`data/snapshots/electronics-2026-07.json`) and no network access. The test suite is fully offline.
+
+---
+
+## What you can demo now
+
+The worker has no UI of its own — it is a background job. So the app ships a `/suggestions` inspector that runs the real `run_suggestions()` over the snapshot three times and shows the diff loop end to end. Open the app, pick **"suggestions (worker)"**, and hit **Search** (the box is ignored — the runs are fixed):
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-33/suggestions-diff-loop.png"
+  alt="The DealFinder suggestions inspector: three runs of the worker — run 1 notifies the Anker Soundcore Q20i deal, run 2 with the same state fed back notifies nothing (idempotent), run 3 adds a bluetooth-speaker saved search and fires exactly one new notification"
+  caption="Real capture: dealfinder/worker.py's run_suggestions over the frozen snapshot. Run 1 fires the Anker hero deal, run 2 is idempotent, run 3 fires exactly one new deal for a newly-saved search."
+  lookFor="the header line: run 1 → 1 new · run 2 → 0 (idempotent) · run 3 → 1 new · threshold 0.3. Run 1 saves 'noise cancelling headphones' and notifies the honest Anker Soundcore Q20i at $44.99, score 0.7239 — 72% under the $162.97 median, and the model fair price ($108.33) validates it as a real deal, not a trap. Run 2 feeds the returned state back: '0 — nothing new', because the Anker's item id is already in last-seen. Run 3 adds a second saved search, 'bluetooth speaker' (k=1); the headphones deal is still suppressed, but one fresh deal — Rechargeable Battery Bluetooth Speaker, $9.99, score 0.8001 — fires. The Bose QuietComfort 45 at $46 never appears: cheap on the median signal, but its model residual (fair $285.15) flags it SUSPICIOUS, so the two-signal score keeps it out."
+/>
+
+**Check it works** from the terminal — the same three runs as JSON:
+
+```bash
+curl -s localhost:8000/suggestions | python -m json.tool
+# → threshold 0.3, then runs[]: run 1 notifies the Anker Q20i ($44.99, 0.7239),
+#   run 2 notifications == [] (idempotent), run 3 notifies the bluetooth speaker.
+```
+
+The load-bearing property is right there on screen: **the same job run twice notifies once.** The diff against last-seen state is what turns "run this search on a cron" into "email me only when something actually changes" — no duplicate "we found you a deal" spam. And because `run_suggestions` takes state as an argument and returns a fresh copy, the same call is deterministic: run it a hundred times with the same state and you get the same notification every time.
+
+The demo line: *"This is the price-tracker 'we found you a deal' email, minus the email. A saved search runs on a schedule; the first time it finds the Anker Q20i under median it notifies once — and never again, because the next run diffs against what you've already seen. Add a second saved search and exactly one new deal fires. The Bose at $46 looks cheaper still, but the price model says its fair value is $285 — that's a mispriced-listing trap, and the two-signal score keeps it out of your inbox. Delivery hides behind a Notifier seam, so swapping print for real email never touches the diff."*
 
 ---
 
