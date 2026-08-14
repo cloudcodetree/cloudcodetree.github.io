@@ -41,7 +41,8 @@ This is **Part 32 of DealFinder**. The React frontend you built in Part 31 alrea
 7. [Wiring it into serve.py](#wiring-it-into-servepy)
 8. [Offline tests](#offline-tests)
 9. [Running with live keys](#running-with-live-keys)
-10. [Where this goes next](#where-this-goes-next)
+10. [What you can demo now](#what-you-can-demo-now)
+11. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -233,10 +234,10 @@ Part 34 adds `require_plan_quota` on top of `require_user` for metered usage —
 
 ## Wiring it into serve.py
 
-`serve.py` mounts `require_user` on the `GET /me` route at line 142:
+`serve.py` mounts `require_user` on the `GET /me` route:
 
 ```python
-# serve.py:142
+# serve.py — the /me route
 @app.get("/me")
 def me(user: User = Depends(require_user)):
     return {"id": user.id, "email": user.email, "role": user.role}
@@ -322,6 +323,32 @@ To promote a user to pro, update `app_metadata` via the Supabase dashboard (Tabl
 <Callout tone="note">
 **No in-cluster Supabase.** The `infra/k8s/secret.example.yaml` from Part 29 already has a `SUPABASE_JWT_SECRET` placeholder. Fill it with your project secret and apply the real `secret.yaml` out-of-band. The deployment picks it up via `envFrom: secretRef`.
 </Callout>
+
+---
+
+## What you can demo now
+
+You do not need a Supabase project to see the verifier work. The app ships an `/auth` inspector that mints canonical Supabase-style HS256 tokens with a *throwaway demo secret* and drives each one through the real `dealfinder/auth.py` — the same `_decode`, `_role_from_claims`, and role check the live dependency uses. Open the app, pick **"auth (SaaS)"**, and hit **Search** (the box is ignored — the scenarios are fixed):
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-32/auth-verdicts.png"
+  alt="The DealFinder auth inspector: eight Supabase-style JWT scenarios run through the real verifier — two valid tokens return 200 with a User, four bad tokens return 401, and a free user hitting a pro route returns 403"
+  caption="Real capture: every JWT verdict from dealfinder/auth.py on one screen — 200 (verified, green), 401 (rejected, red), 403 (forbidden, amber). Offline, a demo secret, never your SUPABASE_JWT_SECRET."
+  lookFor="the header line: HS256 · 3 verified · 4 rejected (401) · 1 forbidden (403). Then the eight rows. Two greens — valid·pro resolves to a User with role pro (read from app_metadata), valid·free to role free. Four reds, each a distinct failure mapped to the right message: expired → 'token expired' (its own message so the client can trigger a refresh), tampered and wrong-secret both → 'invalid token' (the HMAC check can't tell them apart, by design), missing-subject → 'token missing subject'. And one amber: a valid free-tier token hitting a require_role('pro') route is 403 'requires role pro' — authenticated but not authorized. The last row proves the gate opens for a real pro token (200)."
+/>
+
+**Check it works** from the terminal — the same eight verdicts as JSON:
+
+```bash
+curl -s localhost:8000/auth | python -m json.tool | head -30
+# → algo "HS256", audience "authenticated", and the scenarios array:
+#   valid·pro → 200, expired/tampered/wrong-secret/missing-subject → 401,
+#   role gate free→/pro → 403, role gate pro→/pro → 200
+```
+
+The whole point is visible in one glance: the difference between **401** ("we don't know who you are" — every malformed or unsigned token) and **403** ("we know exactly who you are, and you lack the role"). That distinction is what lets the frontend decide whether to prompt for re-login or for an upgrade — and it is enforced once, at the dependency layer, not re-checked in every handler.
+
+The demo line: *"This is the entire auth surface on one screen, and it runs with no cloud account at all. A valid token becomes a typed User with a plan; every broken token — expired, tampered, wrong secret, no subject — is a flat 401; and a real user without the pro role is a 403, not a 401. Signature, expiry and audience are all checked locally in one PyJWT call — no round-trip to Supabase on the hot path. Search stays public; only the routes that opt in with `require_user` are gated."*
 
 ---
 
