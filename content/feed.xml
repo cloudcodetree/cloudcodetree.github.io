@@ -10,8 +10,208 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 14 Aug 2026 04:21:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 14 Aug 2026 12:14:00 +0000</lastBuildDate>
 
+    <item>
+      <title>Fork Subagents Inherit Context by Default and @ Mentions Route Across Sessions: Two Claude Code Defaults Live Today</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-08-14-06-claude-code-fork-default-session-mentions</guid>
+      <pubDate>Thu, 14 Aug 2026 12:14:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <category>Workflow</category>
+      <description>Starting August 14, fork subagents in Claude Code inherit the full conversation and prompt cache by default, and typing @ in a prompt routes a message directly to any named live session.</description>
+      <content:encoded><![CDATA[
+**Fork subagents now inherit the full conversation and prompt cache by default; @ in your prompt routes a message to any named live Claude Code session.**
+
+Two defaults changed in Claude Code v2.1.232 (released today, August 14). Both affect multi-session workflows and are worth knowing before your next agentic run.
+
+## Fork subagents: context inheritance on by default
+
+A fork subagent inherits the parent session's full conversation history, system prompt, tool list, and model. Before today, you had to opt in. Now it's the default for subagents you want to hand context to, without re-briefing.
+
+The practical payoff is **prompt cache reuse.** A fork's first request hits the same cached prefix as the parent — you build context once, the fork reads it at cache-read rates (roughly 4–10× cheaper than re-sending). For reviewers, auditors, or parallel variations that need your full context, this makes forks the clear first choice over fresh subagents.
+
+```python
+# Spawn a reviewer that inherits everything the main session has built up
+result = await agent(
+    "Audit the implementation above for edge cases the tests don't cover",
+    subagent_type="fork"   # inherits conversation + cached prefix; no re-briefing needed
+)
+```
+
+**Non-teammate subagent spawns in interactive sessions now background by default.** When you trigger a subagent in an interactive session, it runs without blocking your main window. Results arrive asynchronously; the main conversation keeps moving.
+
+## When fork wins vs. a named subagent
+
+| Use case | Pattern |
+|---|---|
+| Review / audit with full context | `subagent_type: "fork"` |
+| Specialist agent (different model/tools) | Named subagent (starts cold, own cache) |
+| One-off parallel variation | Fork — cache-sharing cuts cost |
+| Long-running background session | Background agent + @ mention |
+
+## @ session mentions
+
+Type `@` followed by a session name in any Claude Code prompt — Claude routes the message via `SendMessage` without you writing the tool call explicitly. `SendMessage` now also resolves a bare name if exactly one live session matches, so you no longer need to append a `[ref]` suffix when the name is unambiguous:
+
+```
+@test-runner please run the auth spec suite and report any failures here
+```
+
+List all mentionable sessions with `ListAgents` or `/agents` in the TUI — only sessions that registered with a name are @-reachable. This is particularly useful when a background session (a running test harness, a long deploy watcher) is the right target for a side task.
+
+## Practical pipeline: fork for review, mention for dispatch
+
+1. Main session implements a feature, building rich context
+2. At each milestone: `subagent_type: "fork"` spawns a reviewer — it inherits everything, costs cache-read rates
+3. If a dedicated test session is live, `@test-runner` dispatches the test run without context-switching the main session
+
+**Sources:** [Claude Code changelog v2.1.232 — code.claude.com](https://code.claude.com/docs/en/changelog) · [Cross-session messaging — code.claude.com](https://code.claude.com/docs/en/cross-session-messaging) · [Fork subagent updates — DevelopersIO](https://dev.classmethod.jp/en/articles/20260814-cc-updates-v2-1-232/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code Platform Fixes This Week: SSE Keepalive for Vertex/Bedrock, MCP OAuth Fix, Usage Boost Through Aug 19</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-08-14-05-claude-code-aug14-platform-fixes</guid>
+      <pubDate>Thu, 14 Aug 2026 12:13:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Claude Code</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <description>Claude Code v2.1.229-231 (Aug 12-13): SSE keepalive prevents mid-response disconnects on Vertex/Bedrock streaming; MCP OAuth redirect URI fixed for pre-registered clients; usage boost extended to Aug 19.</description>
+      <content:encoded><![CDATA[
+**Claude Code v2.1.229–231: SSE keepalive for Vertex/Bedrock streaming prevents mid-response disconnects, MCP OAuth redirect is fixed, and the usage boost runs through August 19.**
+
+Three fixes from the past two days, each addressing a distinct failure mode.
+
+**SSE keepalive during long thinking pauses (v2.1.229, Aug 12).** When Claude runs extended reasoning on Vertex AI or Amazon Bedrock with streaming on, the upstream gateway can time out if the model thinks for too long without emitting a token. The connection closes silently, and your code gets a truncated response or an error — with no obvious reason why. Claude Code now sends SSE keepalive pings during those pauses, preventing the idle-timeout from triggering. If you've been seeing intermittent mid-response disconnects on Claude Sonnet 5 or Haiku 4.5 through Vertex or Bedrock, this is the fix.
+
+**MCP OAuth redirect URI mismatch (v2.1.231, Aug 13).** OAuth sign-in was silently failing for MCP servers that use a pre-registered OAuth client — Slack, and any server that registers specific redirect URIs in advance. The URI Claude Code sent didn't match the server's expected value. Fixed. If your Slack MCP or a similar OAuth-backed server was failing to authenticate, upgrade and retry.
+
+**Usage boost extended through August 19.** The 50% weekly usage boost for Claude Code subscribers (Pro, Max, Team) runs five more days. If you have large multi-agent workflow runs queued, schedule them before August 20 when normal limits resume.
+
+**Why it matters:** The Vertex/Bedrock SSE fix is the most impactful for production pipelines — enterprises routing Claude through cloud provider APIs were seeing silent failures on extended-reasoning calls. The MCP fix unblocks Slack and any OAuth server with pre-registered redirect URIs.
+
+**Sources:** [Claude Code changelog — code.claude.com](https://code.claude.com/docs/en/changelog) · [Claude Code August updates — Releasebot](https://releasebot.io/updates/anthropic/claude-code)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Zero to Serverless GPU in 30 Lines: Deploy Any HuggingFace Model with Modal + vLLM</title>
+      <link>https://modal.com/blog/how-to-deploy-vllm</link>
+      <guid isPermaLink="false">2026-08-14-04-modal-vllm-serverless-gpu-deploy</guid>
+      <pubDate>Thu, 14 Aug 2026 12:12:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>HuggingFace</category>
+      <description>Modal is Python-native serverless GPU: annotate a function, name a model, and modal deploy gives you an OpenAI-compatible inference endpoint on a real H100 that scales to zero when idle.</description>
+      <content:encoded><![CDATA[
+**Modal is Python-native serverless GPU: annotate a function, name a model, and `modal deploy` gives you an OpenAI-compatible inference endpoint on a real H100 that scales to zero when idle.**
+
+**What you'll be able to do after this:**
+
+- Deploy a vLLM-backed LLM endpoint to a real GPU with ~30 lines of Python and no Dockerfile, Kubernetes, ECR push, or cluster management
+- Get an OpenAI-compatible `/v1/chat/completions` endpoint that scales to zero when idle — you pay only for inference time (Modal bills per second of container uptime)
+- Cache model weights in a Modal Volume so cold starts drop from several minutes to 10–30 seconds for a 7–8B model
+
+Modal fills a gap between "local Ollama" (great for your machine, not shareable) and "Together/OpenRouter" (someone else's model). With Modal you control the model, the GPU tier, and the serving configuration — but you still write plain Python and let Modal handle provisioning.
+
+## Install and authenticate
+
+```bash
+pip install modal
+modal setup   # opens browser to authenticate with your modal.com account
+```
+
+Modal gives you $30/month of free credits — enough for several hours of H100 time per month for experiments.
+
+## Write the inference server (inference.py)
+
+```python
+import modal
+import subprocess
+
+app = modal.App("vllm-server")
+
+MODEL = "mistralai/Mistral-7B-Instruct-v0.3"   # swap any vLLM-supported HF model
+
+vllm_image = (
+    modal.Image.from_registry("nvidia/cuda:12.8.0-devel-ubuntu22.04", add_python="3.12")
+    .uv_pip_install(
+        "vllm==0.10.2",
+        "huggingface_hub[hf_transfer]==0.35.0",
+    )
+    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})   # faster HF downloads
+)
+
+weights = modal.Volume.from_name("llm-weights", create_if_missing=True)  # persists across deploys
+
+@app.cls(
+    image=vllm_image,
+    gpu="H100",                    # or "A10G" for smaller/cheaper experiments
+    volumes={"/models": weights},
+    concurrency_limit=2,           # scale up replicas beyond this threshold
+    timeout=3600,
+)
+@modal.web_server(8000)            # expose vLLM's HTTP server as a Modal web endpoint
+class VLLMServer:
+    @modal.enter()
+    def run_server(self):
+        subprocess.Popen([
+            "vllm", "serve", MODEL,
+            "--download-dir", "/models",
+            "--host", "0.0.0.0",
+            "--port", "8000",
+        ])
+```
+
+## Deploy and call it
+
+```bash
+modal deploy inference.py
+# → Deployed! URL: https://your-workspace--vllm-server.modal.run
+```
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://your-workspace--vllm-server.modal.run/v1",
+    api_key="not-needed",
+)
+response = client.chat.completions.create(
+    model=MODEL,
+    messages=[{"role": "user", "content": "What is PagedAttention and why does it matter?"}],
+)
+print(response.choices[0].message.content)
+```
+
+The endpoint is identical to the OpenAI API — any code that calls `openai.chat.completions.create` works without modification, just swap the `base_url`.
+
+## What happens when you hit the endpoint
+
+1. If no container is running, Modal cold-starts one: CUDA image pulls (cached after the first deploy), vLLM process starts, model weights load from the Volume.
+2. vLLM serves the request using PagedAttention for efficient KV-cache management.
+3. After idle timeout, the container shuts down — zero cost while it's not running.
+
+The weight Volume is the key optimization: model files are downloaded once on the first request and stored in Modal's networked storage, so subsequent cold starts skip the HuggingFace download and load directly from the Volume (10–30 seconds for a 7B model vs. 2–10 minutes for a fresh download).
+
+## Swap models with one line change
+
+Change `MODEL` to any model vLLM supports — `meta-llama/Llama-3.1-8B-Instruct`, `Qwen/Qwen2.5-7B-Instruct`, `google/gemma-2-9b-it` — and redeploy. For gated models (Llama), add a HuggingFace token as a Modal Secret and pass it to the container.
+
+**Sources:** [How to deploy vLLM — Modal blog](https://modal.com/blog/how-to-deploy-vllm) · [Modal vLLM examples — modal.com/docs](https://modal.com/docs/examples/ministral3_inference) · [Running LLMs on Modal — Medium](https://pguso.medium.com/running-llms-on-modal-gpu-powered-inference-that-scales-to-zero-635854513557)
+]]></content:encoded>
+      <media:content url="https://modal.com/assets/modal-og.png" medium="image" type="image/png" />
+      <media:thumbnail url="https://modal.com/assets/modal-og.png" />
+    </item>
 
     <item>
       <title>Planner, Generator, Evaluator: Anthropic's Three-Agent Harness for Long-Running Agents That Never Forget</title>
