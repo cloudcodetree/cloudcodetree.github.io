@@ -37,7 +37,9 @@ step tag **step-30**. Compare against the previous step:
 5. [Catch decay: population stability index](#catch-decay-population-stability-index)
 6. [Closing the loop: drift triggers retrain](#closing-the-loop-drift-triggers-retrain)
 7. [Tests that pin the behavior](#tests-that-pin-the-behavior)
-8. [Where this goes next](#where-this-goes-next)
+8. [Seeing it in the product](#seeing-it-in-the-product)
+9. [What you can demo now](#what-you-can-demo-now)
+10. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -319,6 +321,38 @@ pytest tests/test_ops.py -v
 ```
 
 All three pass against the committed `dealfinder/ops.py`. These tests are the contract: if a refactor changes cost accounting or a drift-threshold tweak accidentally breaks PSI normalization, the suite catches it before it ships.
+
+---
+
+## Seeing it in the product
+
+Cost and drift are exactly the things that stay invisible until they hurt — so the app surfaces them. An **`/ops`** endpoint (`serve.py`) runs the canonical FinOps + drift examples through `ops.py` and returns them; the static UI adds an **"ops (cost)"** mode that renders the three utilities on one screen:
+
+```python
+@app.get("/ops")
+def ops_report():
+    t = ops.CostTracker(); t.record("gpt-4o-mini", 1000, 500); t.record("gpt-4o", 1000, 0)
+    return {"cost": {"total": t.total(), "by_model": t.by_model()},
+            "budget": {str(s): ops.budget_status(s, 1.0) for s in (0.5, 0.85, 1.2)},
+            "drift": {name: {"psi": ..., "drifted": ...} for name, cur in scenarios.items()}}
+```
+
+It is query-independent. Each figure is a real `ops.py` output: the per-model spend split, the ok/warn/over thresholds, and the PSI values for identical/tiny/big query-mix shifts. The numbers are the same ones `tests/test_ops.py` pins.
+
+---
+
+## What you can demo now
+
+Open the app, pick **"ops (cost)"**, and hit Search (the box is ignored — the utilities run on fixed examples). The three ops disciplines report at once:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-30/ops-dashboard.png"
+  alt="The DealFinder ops dashboard: per-model cost attribution (gpt-4o 85% of spend), budget thresholds (ok/warn/over), and PSI drift scenarios (identical and tiny hold, big triggers retrain)"
+  caption="Real capture: the three ops.py utilities — FinOps cost attribution, budget alert thresholds, and PSI drift detection — on one screen."
+  lookFor="three sections. FinOps: a $0.00045 gpt-4o-mini call and a $0.00250 gpt-4o call, session total $0.00295 — gpt-4o (extraction) driving 85% of spend, the actionable signal. Budget: the three thresholds against a $1 budget — 50% → ok, 85% → warn (the window that pages before the invoice), 120% → over. And PSI drift: an identical distribution reads 0 (hold), a tiny shift reads 0.00053 (hold), but audio queries collapsing from 50% to 10% of traffic reads 1.08322 — 5× the 0.2 threshold — flagged ✗ DRIFT — retrain. That's the loop that fires a retrain before the Anker Q20i quietly starts misclassifying."
+/>
+
+The demo line: *"A live AI system you can't see is a liability, so this is the three things you have to watch. What every model costs — here gpt-4o extraction is 85% of the bill, which tells me exactly what to cache. Whether I'm about to blow the budget — warn fires at 85%, before the invoice. And whether the world has drifted from what the model learned — a big shift in the query mix reads PSI 1.08, five times the threshold, and trips a retrain before deal scores rot. Cost, budget, drift — all measured, all tested."*
 
 ---
 
