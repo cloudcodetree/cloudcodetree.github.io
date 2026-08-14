@@ -10,8 +10,236 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 13 Aug 2026 20:09:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 14 Aug 2026 04:21:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Planner, Generator, Evaluator: Anthropic's Three-Agent Harness for Long-Running Agents That Never Forget</title>
+      <link>https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents</link>
+      <guid isPermaLink="false">2026-08-14-03-anthropic-harness-design-long-running-agents</guid>
+      <pubDate>Thu, 14 Aug 2026 04:21:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <category>Workflow</category>
+      <description>When agents run for hours across context resets, Anthropic's three-role harness — Planner, Generator, Evaluator — with structured handoff files prevents context drift and compounding errors across sessions.</description>
+      <content:encoded><![CDATA[
+**When agents run for hours across context resets, Anthropic's three-role harness — Planner, Generator, Evaluator — with structured handoff files prevents context drift and compounding errors across sessions.**
+
+Longer context windows are a footgun. When a long-running agent works in a single expanding window, it accumulates "context anxiety" — the model starts wrapping up prematurely and cutting corners as it senses the session ending. Anthropic's engineering blog addresses this directly with a harness built around *context resets, not compression*.
+
+## The three roles
+
+**Planner** — runs once at the start. Takes the high-level requirement and expands it into a structured product spec: a JSON feature list where every feature has a clear acceptance criterion. JSON over Markdown is intentional — models are less likely to accidentally overwrite or mangle a structured file than a freeform doc.
+
+**Generator** — runs in each fresh session. Reads the feature list and progress file, picks one pending feature, implements it, commits to git, and updates the progress log. One feature per session, never a multi-feature sprint, to avoid the one-shot failure mode where the model tries to do everything and finishes nothing cleanly.
+
+**Evaluator** — also runs each session, *separately from the Generator*. Opens a browser (Playwright or similar), exercises the just-committed feature end-to-end, and writes structured pass/fail feedback to a shared file the next Generator session reads. The separation is load-bearing: when a model self-evaluates its own output, it tends to confidently praise mediocre work. An external evaluator creates actionable feedback loops.
+
+## The handoff artifacts
+
+Three files are the project's memory across context resets:
+
+```
+feature_list.json    # Planner output; marks each feature passing / failing / pending
+progress.md          # Per-session summary: what ran, what the next session picks up
+CLAUDE.md            # Env setup, dev server commands, repo conventions
+```
+
+At the start of every Generator or Evaluator session, the harness prepends instructions to read these three files and check `git log --oneline -20` before writing a single line of code. The agent's memory is the files plus the commit history — not the conversation history.
+
+## The sprint contract
+
+Before each Generator session starts implementing, the harness asks Generator and Evaluator to agree on **testable success criteria for this session's feature**. This "sprint contract" bridges the gap between the Planner's abstract spec and the Evaluator's concrete browser tests. Without it, you get endless disagreement about what "working" means.
+
+## Minimal implementation sketch
+
+```python
+def run_session(role: str, feature_list_path: str, progress_path: str):
+    prompt = f"""
+You are the {role}. Before doing anything else:
+1. Read {feature_list_path} — find the next pending feature
+2. Read {progress_path} — understand what the last session completed
+3. Run `git log --oneline -20` and verify the dev server starts
+
+Then: {'implement exactly one feature and commit' if role == 'Generator' else
+       'test the last committed feature and write pass/fail to progress.md'}
+"""
+    response = client.messages.create(
+        model="claude-opus-5",
+        max_tokens=8096,
+        messages=[{"role": "user", "content": prompt}],
+        tools=[bash_tool, file_read_tool, file_write_tool],
+    )
+    # run agentic tool-use loop until stop_reason == "end_turn"
+```
+
+The critical point is what happens *between* sessions: the harness resets the conversation, re-reads artifacts from disk, and starts completely fresh — not from a compacted summary.
+
+## When to strip components
+
+Every component in a harness encodes an assumption about what the model *cannot* do on its own. As models improve, previously necessary scaffolding becomes overhead. If your model self-evaluates reliably on the task, collapse Generator and Evaluator into one. If the Planner simply restates the prompt, skip it. Audit your harness assumptions after every model upgrade — the right harness for Claude 3 is probably over-engineered for Claude 5.
+
+**Sources:** [Effective Harnesses for Long-Running Agents — Anthropic Engineering](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) · [Harness Design for Long-Running Application Development — Anthropic Engineering](https://www.anthropic.com/engineering/harness-design-long-running-apps)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>DeepSeek V4 Pro 0813 Goes GA: 1M-Context, Agent-Focused, Under a Dollar per Million Tokens</title>
+      <link>https://www.unite.ai/deepseek-ships-v4-pro-as-its-flagship-model-leaves-preview/</link>
+      <guid isPermaLink="false">2026-08-14-02-deepseek-v4-pro-0813-ga</guid>
+      <pubDate>Thu, 14 Aug 2026 04:20:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Models</category>
+      <category>News</category>
+      <description>DeepSeek V4 Pro 0813 reached general availability August 13 — 1.6T-parameter MoE with 1M-token context, configurable reasoning levels, and sub-dollar pricing ahead of an announced (but undated) price increase.</description>
+      <content:encoded><![CDATA[
+**DeepSeek V4 Pro 0813 left preview on August 13 — 1.6T-parameter MoE with 1M-token context, agentic tool use, and sub-dollar pricing before a price hike lands.**
+
+DeepSeek's V4 Pro (build 0813) reached general availability on August 13, becoming the lab's new flagship. The architecture is a mixture-of-experts system with **1.6 trillion total parameters** and roughly **49 billion active per forward pass**. The 0813 release adds DSpark speculative decoding for faster output and exposes configurable reasoning-effort levels (low / high / max) per request.
+
+**Key specs:**
+- Context window: **1 million tokens** (384K max output)
+- Pricing: **$0.435/1M input** (cache miss) · **$0.003625/1M cached** · **$0.87/1M output**
+- Native OpenAI Responses API support (one-click Codex-style setup)
+- Reasoning effort: `low`, `high`, or `max` per request — same model, variable cost
+
+The model is positioned around agentic workloads: multi-step tool use, long-horizon reasoning, and code generation. Vendor-reported SWE-bench scores are striking (up to ~91%), but no independent evaluator has replicated them as of publication.
+
+**Why it matters:** At $0.435/1M input (and sub-cent cached), V4 Pro undercuts most closed frontier models for high-context agentic pipelines. The 1M-token window means entire codebases or document collections can fit in a single call.
+
+**Heads up:** DeepSeek has announced a price increase is coming — no timeline, no figure, no affected tiers disclosed. Current pricing likely reflects a promotional discount. Factor in a conservative multiplier before baking these numbers into production cost projections.
+
+Available via the DeepSeek API and through OpenRouter.
+
+**Sources:** [DeepSeek Ships V4 Pro — Unite.AI](https://www.unite.ai/deepseek-ships-v4-pro-as-its-flagship-model-leaves-preview/) · [DeepSeek V4 Pro Review — CoderSera](https://codersera.com/blog/deepseek-v4-pro-review-benchmarks-pricing-2026/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>No Server, No Docker: LanceDB Is the Disk-Persisted Vector Store Your RAG Pipeline Has Been Missing</title>
+      <link>https://lancedb.github.io/lancedb/</link>
+      <guid isPermaLink="false">2026-08-14-01-lancedb-embedded-vector-store</guid>
+      <pubDate>Thu, 14 Aug 2026 04:19:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>Vector Search</category>
+      <category>Foundations</category>
+      <category>RAG</category>
+      <category>Tutorial</category>
+      <description>LanceDB is an embedded vector database that persists to disk — no server, no Docker, native hybrid (vector + BM25 keyword) search built in. Build and query a local vector store in under 20 lines of Python.</description>
+      <content:encoded><![CDATA[
+**LanceDB is an embedded vector database that persists to disk like a file — no server, no Docker, and native hybrid (vector + BM25 keyword) search built in.**
+
+You've seen the vector store spectrum already: [FAISS](https://cloudcodetree.com/ai-news/2026-08-11-07-faiss-local-vector-index-python) is blazing fast but resets on restart; [Chroma](https://cloudcodetree.com/ai-news/2026-08-13-01-chroma-local-vector-db-rag) persists to disk and has a great developer API; [pgvector](https://cloudcodetree.com/ai-news/2026-08-09-04-pgvector-supabase-vector-store) integrates with your existing Postgres. LanceDB fills a distinct gap: fully embedded (no server process), automatic disk persistence in the [Apache Lance](https://github.com/lancedb/lance) columnar format, and **hybrid search — vector similarity plus BM25 keyword — built in without extra infrastructure**.
+
+Think of it as the DuckDB of vector stores: embed it in your process, close the connection, reopen it next week, and your indexed embeddings are exactly where you left them.
+
+## Install
+
+```bash
+pip install lancedb sentence-transformers
+```
+
+## Connect and populate
+
+```python
+import lancedb
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("all-MiniLM-L6-v2")   # 384-dim, no API key needed
+
+# creates ./rag_db/ on first call; subsequent calls reopen the same store
+db = lancedb.connect("./rag_db")
+
+docs = [
+    {"id": "doc-1", "text": "LanceDB stores vectors alongside any metadata column", "source": "docs"},
+    {"id": "doc-2", "text": "Hybrid search blends vector similarity with BM25 keyword ranking", "source": "blog"},
+    {"id": "doc-3", "text": "The Lance columnar format enables fast filtered scans over billions of rows", "source": "blog"},
+]
+
+rows = [{**d, "vector": model.encode(d["text"]).tolist()} for d in docs]
+
+table = db.create_table("knowledge", data=rows, mode="overwrite")
+```
+
+## Vector search
+
+```python
+query = "how does column storage help retrieval?"
+q_vec = model.encode(query).tolist()
+
+results = (
+    table.search(q_vec)
+         .metric("cosine")
+         .limit(3)
+         .select(["id", "text", "_distance"])
+         .to_pandas()
+)
+print(results)
+```
+
+## Hybrid search (vector + BM25)
+
+```python
+from lancedb.rerankers import RRFReranker
+
+# build the BM25 full-text index once; persists to disk with the table
+table.create_fts_index("text")
+
+results = (
+    table.search(
+            "columnar storage retrieval",
+            query_type="hybrid",
+            vector_column_name="vector",
+            fts_columns="text",
+         )
+         .rerank(RRFReranker())   # Reciprocal Rank Fusion blends both lists
+         .limit(3)
+         .to_pandas()
+)
+```
+
+RRF promotes any result that ranks highly in *both* vector and keyword lists — a result that appears in position 3 of the vector results and position 2 of the BM25 results floats to the top.
+
+## Metadata filtering
+
+```python
+# SQL WHERE clause on any column, combined with vector search
+results = (
+    table.search(q_vec)
+         .where("source = 'docs'")   # prune before ranking
+         .limit(5)
+         .to_pandas()
+)
+```
+
+## ANN index for large tables
+
+Once your table exceeds ~100K rows, add an approximate nearest-neighbor index so search stays sub-millisecond:
+
+```python
+table.create_index(metric="cosine", vector_column_name="vector")
+```
+
+## Vector store comparison
+
+| | FAISS | Chroma | LanceDB | pgvector |
+|---|---|---|---|---|
+| Embedded (no server) | Yes | Yes | Yes | No |
+| Auto disk persistence | No (manual save) | Yes | Yes | Yes |
+| Hybrid search built-in | No | No | Yes (BM25 + RRF) | Partial |
+| Metadata filter | No | Yes | Yes (SQL) | Yes (SQL) |
+| Production path | Self-manage | Chroma Cloud | LanceDB Cloud | Managed Postgres |
+
+## From local to cloud
+
+When you're ready to scale beyond a single machine, point at LanceDB Cloud — the same table, index, and search code works unchanged, you just swap the connection URI. No rewrite required.
+
+**Sources:** [LanceDB documentation](https://lancedb.github.io/lancedb/) · [Full-Text Search — LanceDB docs](https://docs.lancedb.com/search/full-text-search) · [Hybrid Search — LanceDB docs](https://lancedb.com/docs/search/hybrid-search/) · [lancedb/lancedb — GitHub](https://github.com/lancedb/lancedb)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Think Less, Pay Less: Routing Agent Subworkloads by Thinking Level in Gemini 3.7 Flash</title>
