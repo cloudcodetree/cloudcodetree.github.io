@@ -78,7 +78,7 @@ const BANDS: Band[] = [
     color: '#8b98a8',
     label: 'Infra & ops',
     parts: '24–26,32',
-    chips: ['Docker + Terraform', 'K8s HPA 2→10 @70%', 'CI eval gate', 'Grafana/Langfuse', '166 tests · 5 e2e', 'RUNBOOK.md'],
+    chips: ['Docker + Terraform', 'K8s HPA 2→10 @70%', 'CI eval gate', 'Grafana/Langfuse', '224 tests · 5 e2e', 'RUNBOOK.md'],
   },
 ];
 

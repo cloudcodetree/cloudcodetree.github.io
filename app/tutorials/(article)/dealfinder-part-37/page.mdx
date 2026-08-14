@@ -37,7 +37,8 @@ to reproduce the 31/31 pass and verify every number before you quote it in an in
 4. [Write it up as a case study](#write-it-up-as-a-case-study)
 5. [Resume bullets from pinned numbers](#resume-bullets-from-pinned-numbers)
 6. [Mock system-design interview](#mock-system-design-interview)
-7. [Closing the arc](#closing-the-arc)
+7. [What you can demo now](#what-you-can-demo-now)
+8. [Closing the arc](#closing-the-arc)
 
 ---
 
@@ -111,9 +112,9 @@ A strong case study is four beats: **problem → approach → results → what y
 4. A ReAct agent exposed as an MCP server; the web frontend streams results via SSE with a GET fallback.
 5. A full SaaS platform: Supabase JWT auth, Stripe plan gating (free 25 / pro 1,000 queries), sliding-window rate limiter, GDPR export and delete, abuse detection.
 6. An MLOps loop pinned to real numbers: PSI 0.043 holds, 0.318 triggers retrain; the eval gate (precision@5 ≥ 0.80) promotes the two-signal ranker (1.00) and rejects the median-only ranker (0.40).
-7. Deployed on Docker + Terraform + Kubernetes (HPA 2→10 pods at 70% CPU); 166 tests pass; 5 Playwright e2e scenarios pass; load measurements anchored locally at /healthz p50 2.4ms / 346 req/s, /search p50 10.1s (network-bound).
+7. Deployed on Docker + Terraform + Kubernetes (HPA 2→10 pods at 70% CPU); 224 tests pass; 5 Playwright e2e scenarios pass; load measurements anchored locally at /healthz p50 2.4ms / 346 req/s, /search p50 10.1s (network-bound).
 
-**Results (all real, all test-pinned).** Linear MAE $227.89 → GBDT MAE $138.11 (−39.4%). Precision@5 on the 20-item golden set: 1.00 (two-signal) vs 0.40 (median-only). Semantic cache hit rate 0.500 at threshold 0.90. PSI-triggered retrain promotes with probability 1.00 on the 20-item gate. 166 tests pass across the full stack.
+**Results (all real, all test-pinned).** Linear MAE $227.89 → GBDT MAE $138.11 (−39.4%). Precision@5 on the 20-item golden set: 1.00 (two-signal) vs 0.40 (median-only). Semantic cache hit rate 0.500 at threshold 0.90. PSI-triggered retrain promotes with probability 1.00 on the 20-item gate. 224 tests pass across the full stack.
 
 **What comes next.** A learned reranker trained on user click signals would replace the heuristic RRF fusion. Real-time price-drop alerts from a Kafka stream would replace the batch MLOps loop. A production vector database (Pinecone or Qdrant) would replace the local pgvector instance for horizontal scale. The eval golden set should grow from 20 to 200+ items with user-labeled relevance, and the LLM judge (Part 23) should gate on that larger set.
 
@@ -125,7 +126,7 @@ Lead with the result, not the tool. Every number below is test-pinned and reprod
 
 - **Built an end-to-end AI deal-finder over real electronics data:** live multi-source aggregation (5 sources, tiered early-stop, 90s circuit breaker), a two-signal deal score (GBDT price model MAE $138.11, precision@5 1.00 vs 0.40 median-only), and hybrid semantic + BM25 + RRF retrieval reranked by deal score.
 - **Owned the full MLOps loop:** MLflow experiment tracking, PSI drift detection (threshold 0.318 → retrain), eval gate (precision@5 ≥ 0.80 gates promotion), canary rollout — all connected and exercised against the frozen snapshot.
-- **Shipped production-grade:** Supabase JWT auth, Stripe free/pro metering, OWASP-LLM injection/PII hardening, GDPR data-subject requests, sliding-window rate limiter — 166 tests pass, 5 Playwright e2e pass, deployed on K8s with HPA and Terraform IaC.
+- **Shipped production-grade:** Supabase JWT auth, Stripe free/pro metering, OWASP-LLM injection/PII hardening, GDPR data-subject requests, sliding-window rate limiter — 224 tests pass, 5 Playwright e2e pass, deployed on K8s with HPA and Terraform IaC.
 - **Designed for reproducibility:** one committed 270-item electronics snapshot powers all training, CI evals, and golden sets; every quoted metric is pinned in a companion test that runs in CI.
 
 ---
@@ -174,6 +175,33 @@ First, the golden set is only 20 items. For a production system you'd need 200+ 
 
 ---
 
+## What you can demo now
+
+The case study above makes a strong claim: *every number is real and test-pinned.* Here is how you prove it in one sitting. Clone the companion, then reproduce the entire thing offline — no cloud account, no API keys:
+
+```bash
+pytest tests/                              # the whole companion suite
+# 224 passed, 1 skipped in ~20s
+
+pytest tests/test_part01.py -q             # data-quality claims
+pytest tests/test_models.py tests/test_evals.py -q   # the ML payoff
+pytest tests/test_chaos.py -q              # resilience: kill every source
+(cd frontend && npx playwright test search.spec.ts)  # badge contract in a browser
+```
+
+Every headline figure in the case study is one of those assertions:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-37/case-study-reproduced.png"
+  alt="A terminal showing the full companion test suite reproducing every case-study number: 224 passed / 1 skipped, snapshot 270 items, brand-polluted 154/270, median $162.97, linear MAE $227.89 → GBDT $138.11 (−39.4%), precision@5 1.00 vs 0.40, chaos 5 passed, Playwright 5 passed"
+  caption="Real capture: every headline number in the case study is a passing test. The full suite (224 passed, 1 skipped) reproduces offline, plus the 5 chaos and 5 Playwright browser tests."
+  lookFor="the whole suite green — 224 passed, 1 skipped (the 1 is a @pytest.mark.slow release check). Then the pinned facts each case-study claim rests on: snapshot 270 items · 18 queries · 11 categories; brand holds the retailer in 154 / 270 rows; anchor median $162.97; the ML payoff — linear MAE $227.89 (R² 0.268) → GBDT $138.11 (R² 0.727), −39.4%, and precision@5 1.00 (two-signal) vs 0.40 (median-only) against the 0.80 gate; chaos 5 passed (one bad source → healthy still serve, all down → empty envelope, never a 500); and the Playwright 5 passed guarding the four-token badge contract in a real browser. The naive signal all of this replaced bottomed out at −3785.7% — a $13,599 RTX card measured against a $350 median."
+/>
+
+That is the whole point of the course made concrete: you can walk an interviewer through this system and, for every claim, point at the test that proves it. Nothing here is aspirational — it runs, in CI, on every commit.
+
+---
+
 ## Closing the arc
 
 <Callout tone="note">
@@ -182,7 +210,7 @@ This is the final part. The series is complete.
 
 Part 1 started with a `brand` field that holds "Walmart - COWIN" instead of "COWIN", a 270-item snapshot of real electronics listings, and a naive deal signal that bottoms out at −3785%. Every part after that was motivated by the real messiness in that data.
 
-By Part 36 you had 166 passing tests, 5 Playwright e2e scenarios, a RUNBOOK with anchored load numbers, and a Kubernetes deployment with HPA scaling. By this part you have the case study, the numbers, and the interview prep to talk about it like the system it is.
+By Part 36 you had 224 passing tests, 5 Playwright e2e scenarios, a RUNBOOK with anchored load numbers, and a Kubernetes deployment with HPA scaling. By this part you have the case study, the numbers, and the interview prep to talk about it like the system it is.
 
 The companion repo is a public record of a real AI system built part by part. Put it on your profile. Quote the numbers. Answer the design question from the system you ran — not from a textbook.
 

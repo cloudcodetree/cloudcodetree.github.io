@@ -26,7 +26,7 @@ type Row = {
 const ROWS: Row[] = [
   // Phase 1 — Data
   { phase: 'Data layer',    metric: 'Snapshot size',               value: '270 items · 18 queries · 11 categories', status: 'pass',     part: '1'    },
-  { phase: 'Data layer',    metric: 'Retailer-polluted brand rows', value: '156 / 270',                              status: 'pass',     part: '1'    },
+  { phase: 'Data layer',    metric: 'Retailer-polluted brand rows', value: '154 / 270',                              status: 'pass',     part: '1'    },
   { phase: 'Data layer',    metric: 'Anchor query median',          value: '$162.97 (noise cancelling headphones)', status: 'pass',     part: '3'    },
   { phase: 'Data layer',    metric: 'Dedup cosine threshold',       value: '0.90 course-wide',                       status: 'pass',     part: '1,9'  },
 
@@ -49,7 +49,7 @@ const ROWS: Row[] = [
   // Phase 5 — Infra
   { phase: 'Infra',         metric: '/healthz load  p50 / rps',     value: '2.4ms  346 req/s  (anchored, local)',    status: 'anchored', part: '26,32'},
   { phase: 'Infra',         metric: '/search load  p50',            value: '10.1s (network-bound, anchored)',        status: 'anchored', part: '26,32'},
-  { phase: 'Infra',         metric: 'Total tests passing',          value: '166 tests pass',                         status: 'pass',     part: '32'   },
+  { phase: 'Infra',         metric: 'Total tests passing',          value: '224 tests pass',                         status: 'pass',     part: '32'   },
   { phase: 'Infra',         metric: 'Playwright e2e',               value: '5 passed · 1 skipped (opt-in live)',    status: 'pass',     part: '32'   },
 
   // Phase 6 — SaaS
