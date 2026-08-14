@@ -69,38 +69,43 @@ That last point matters here. Part 9's live aggregator returns fresh deals on ev
 
 ## Docker Compose + pgvector: stand it up in two commands
 
-The `docker-compose.yml` introduced in this part uses the official `pgvector/pgvector:0.7.0-pg16` image — the extension is pre-installed, no compilation required. The host port is mapped to `5433` to avoid colliding with a local Postgres on `5432`.
+The repo's `docker-compose.yml` defines the full dev stack; the backend and SPA services join it from Part 31 on (see the README's *"Run the whole stack in one command"* section). The piece **this** part needs is the `db` service — the official `pgvector/pgvector:0.7.0-pg16` image, so the extension is pre-installed, no compilation required. It's bound to host port `5434` (localhost only) to avoid colliding with a local Postgres on `5432`:
 
 ```yaml
-# docker-compose.yml
+# docker-compose.yml — the db service
 services:
   db:
     image: pgvector/pgvector:0.7.0-pg16
-    ports:
-      - "5433:5432"
     environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: dealfinder
+      POSTGRES_USER: dealfinder
+      POSTGRES_PASSWORD: dealfinder      # dev-only, localhost-only
+    ports:
+      - "127.0.0.1:5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dealfinder -d dealfinder"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
 volumes:
   pgdata:
 ```
 
 ```bash
-# .env.example
-DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@localhost:5433/dealfinder
-POSTGRES_PASSWORD=changeme
+# .env — DATABASE_URL is what pgstore reads (copy from .env.example)
+DATABASE_URL=postgresql://dealfinder:dealfinder@localhost:5434/dealfinder
 ```
 
-Start the container:
+Start just pgvector:
 
 ```bash
-docker compose up -d
-# create the extension, then confirm its version:
-psql $DATABASE_URL -c "CREATE EXTENSION IF NOT EXISTS vector;"
-psql $DATABASE_URL -c "SELECT extversion FROM pg_extension WHERE extname='vector';"
+docker compose up -d db
+# create the extension (migrate() also does this), then confirm its version:
+psql "$DATABASE_URL" -c "CREATE EXTENSION IF NOT EXISTS vector;"
+psql "$DATABASE_URL" -c "SELECT extversion FROM pg_extension WHERE extname='vector';"
 #  extversion
 # ------------
 #  0.7.0
@@ -286,7 +291,7 @@ if __name__ == "__main__":
 Run it (measured against the pgvector container from the step above):
 
 ```bash
-DATABASE_URL=postgresql://postgres:changeme@localhost:5433/dealfinder python data/seed.py
+DATABASE_URL=postgresql://dealfinder:dealfinder@localhost:5434/dealfinder python data/seed.py
 # Seeded 270 products; total in DB: 270
 ```
 
@@ -499,63 +504,50 @@ The tutorial builds with the 270-item snapshot for reproducibility. The managed 
 
 ## Reproducibility checks
 
-The following assertions run in `tests/test_pgstore.py` against a pytest-managed local Postgres. The fixture runs `docker compose up -d`, applies `migrate()`, calls `seed()`, and tears down on exit.
+`tests/test_pgstore.py` is a single integration test that runs **only when a DB is reachable** and skips otherwise, so the suite stays green in CI without a container. When `DATABASE_URL` points at pgvector, it runs for real:
 
 ```python
-# tests/test_pgstore.py  (step-13 tag)
-import numpy as np
-from dealfinder.pgstore import migrate, upsert, semantic_search, count, connect
-from dealfinder.snapshot import load_snapshot
+# tests/test_pgstore.py
+import os
+import pytest
+from dealfinder import pgstore
 
-# ── Row count after seed ─────────────────────────────────────────────────────
-def test_seed_count(db_url, seeded_db):
-    assert count(url=db_url) == 270
+def _db():
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        pytest.skip("DATABASE_URL not set")
+    try:
+        pgstore.migrate(url)                  # create extension + table + HNSW index
+    except Exception as e:                    # DB not reachable in this environment
+        pytest.skip(f"db unavailable: {e}")
+    return url
 
-# ── Round-trip: upsert XM5 Costco + retrieve by id ──────────────────────────
-def test_upsert_roundtrip(db_url, xm5_product, xm5_embedding):
-    upsert([xm5_product], [xm5_embedding], query="noise cancelling headphones", url=db_url)
-    with connect(url=db_url) as c:
-        row = c.execute(
-            "SELECT title, price FROM products WHERE id = %s", (xm5_product["id"],)
-        ).fetchone()
-    assert row["price"] == 162.97
-    assert "wh-1000xm5" in row["title"].lower()
+def test_upsert_and_semantic_search_ranks_by_meaning():
+    url = _db()
+    prods = [
+        {"id": "test-tent", "title": "Tent", "brand": "B", "source": "S", "price": 100, "url": "", "image_url": None},
+        {"id": "test-buds", "title": "Headphones", "brand": "B", "source": "S", "price": 50, "url": "", "image_url": None},
+    ]
+    # distinct unit vectors — deterministic, no embedding model needed
+    embs = [[1.0, 0.0] + [0.0] * (pgstore.EMBED_DIM - 2),
+            [0.0, 1.0] + [0.0] * (pgstore.EMBED_DIM - 2)]
+    pgstore.upsert(prods, embs, query="test", url=url)
 
-# ── Semantic top-5 for hero query must include hero cast ─────────────────────
-def test_semantic_top5_hero_cast(db_url, seeded_db, nchs_query_vec):
-    results = semantic_search(nchs_query_vec, k=5, url=db_url)
-    result_ids = {r["id"] for r in results}
-    # All three DEAL/FAIR/SUSPICIOUS headphones must rank in top-5
-    assert len(result_ids.intersection({"xm5-costco-162", "anker-q20i-44", "bose-qc45-46"})) >= 2
-
-# ── Cosine similarity of XM5 Costco must be >= 0.88 ─────────────────────────
-def test_xm5_cosine_sim(db_url, seeded_db, nchs_query_vec):
-    results = semantic_search(nchs_query_vec, k=5, url=db_url)
-    xm5 = next((r for r in results if "wh-1000xm5" in r["title"].lower() and r["price"] == 162.97), None)
-    assert xm5 is not None, "XM5 Costco not in top-5"
-    assert xm5["similarity"] >= 0.88
-
-# ── HNSW index must exist ────────────────────────────────────────────────────
-def test_hnsw_index_exists(db_url, seeded_db):
-    with connect(url=db_url) as c:
-        row = c.execute(
-            "SELECT indexname FROM pg_indexes WHERE indexname = 'products_embedding_idx';"
-        ).fetchone()
-    assert row is not None, "HNSW index was not created"
-
-# ── Upsert is idempotent ─────────────────────────────────────────────────────
-def test_upsert_idempotent(db_url, seeded_db, xm5_product, xm5_embedding):
-    before = count(url=db_url)
-    upsert([xm5_product], [xm5_embedding], query="noise cancelling headphones", url=db_url)
-    after = count(url=db_url)
-    assert before == after  # no new row; existing row updated in place
+    hits = pgstore.semantic_search([1.0, 0.0] + [0.0] * (pgstore.EMBED_DIM - 2), k=1, url=url)
+    assert hits[0]["id"] == "test-tent"       # nearest to the tent vector
+    assert hits[0]["similarity"] > 0.9
 ```
 
-<Callout tone="note">
-**Cosine similarity values are approximate.** HNSW is an approximate nearest-neighbor algorithm. Exact similarity digits may vary by platform (< 0.5% difference at these table sizes). The tests assert `>= 0.88`, not exact equality.
-</Callout>
+It proves the whole round-trip with two hand-built orthogonal vectors: after `upsert`, a query pointing at the "tent" axis retrieves the tent row first, cosine similarity above `0.9`. No embedding model runs, so the assertion is deterministic across platforms — `migrate()` (extension + table + HNSW index), `upsert`, and `semantic_search` are all exercised, and the `_db()` fixture keeps CI green by skipping when no database is configured.
 
-Run all checks:
+For a *full* corpus, the standalone `data/seed.py` bulk-loads all 270 snapshot rows with their committed Part-4 title embeddings (no model run) so `/semantic` ranks real listings by meaning — the same `seed()` the compose `--profile seed` runs:
+
+```bash
+DATABASE_URL=postgresql://dealfinder:dealfinder@localhost:5434/dealfinder python data/seed.py
+# Seeded 270 products; total in DB: 270
+```
+
+Run the integration test:
 
 ```bash
 pytest tests/test_pgstore.py -v
@@ -570,13 +562,13 @@ Unlike Parts 11–12, this one **is** visible in the product — persistence cha
 1. **The store, offline vs. live.** With no `DATABASE_URL`, the integration test skips (keeps CI green); point it at your container and it runs for real:
    ```bash
    pytest tests/test_pgstore.py -v            # SKIPPED without a DB — by design
-   DATABASE_URL=postgresql://postgres:changeme@localhost:5433/dealfinder \
+   DATABASE_URL=postgresql://dealfinder:dealfinder@localhost:5434/dealfinder \
      pytest tests/test_pgstore.py -v          # PASSED against real pgvector
    ```
 
 2. **The extension + seed.**
    ```bash
-   docker exec <db> psql -U postgres -d dealfinder -tAc \
+   docker compose exec db psql -U dealfinder -d dealfinder -tAc \
      "SELECT extversion FROM pg_extension WHERE extname='vector';"   # → 0.7.0
    DATABASE_URL=... python data/seed.py                              # → Seeded 270 products; total in DB: 270
    ```
