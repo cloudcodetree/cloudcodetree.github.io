@@ -42,7 +42,8 @@ run fully offline against a stub source and pass on a clean clone. Step tags:
 8. [Supabase Auth and the /me route](#supabase-auth-and-the-me-route)
 9. [What the SSE tests prove](#what-the-sse-tests-prove)
 10. [What this does not cover](#what-this-does-not-cover)
-11. [Where this goes next](#where-this-goes-next)
+11. [What you can demo now](#what-you-can-demo-now)
+12. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -430,6 +431,30 @@ This part builds the working SPA and proves the SSE contract. Three things are i
 - **JWT verification in the backend** — `dealfinder/auth.py`, `require_user`, `require_role`, and the full claim resolution chain live in **Part 32 — Auth & accounts**.
 - **Plan gating and quota enforcement** — `dealfinder/billing.py`, the free (25 searches/month) and pro (1000 searches/month) plans, and the Stripe Checkout integration live in **Part 34 — Payments & SaaS mechanics**.
 - **Playwright end-to-end tests** — `[data-badge="DEAL"]` selectors, full search flow assertions, and the load/chaos suite live in **Part 36 — Ship & operate**.
+
+---
+
+## What you can demo now
+
+Start the backend (`uvicorn dealfinder.serve:app`), then start the SPA from the `frontend/` directory:
+
+```bash
+VITE_API_PROXY_TARGET=http://localhost:8000 npm run dev
+# ➜  Local:   http://localhost:5173/
+```
+
+Open **http://localhost:5173/**, type *noise cancelling headphones*, and hit **Search**. With no Supabase keys set you get the honest **"Auth is off"** banner — public search works regardless. Results stream in as each source answers; the instant the terminal `done` frame lands with the query median, every card backfills its percentage and its `DealBadge` recolors.
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-31/live-badge-spectrum.png"
+  alt="The live DealFinder React SPA showing a column of DealBadges — SUSPICIOUS, DEAL, FAIR, OVERPRICED — rendered against real streamed offers from eBay and a dozen RapidAPI retailers, ranked by percentage off the query median"
+  caption="Real capture from the running Vite + React SPA (localhost:5173) streaming live sources — all four §9 verdict tokens rendered by the same DealBadge component, ranked by deal percentage off the query median."
+  lookFor="the four badge tokens the DealBadge component maps from one number. A DEAL run first: JBL Vibe Buds $29.95 (47.9% under), Soundcore Q20i $44.99 (21.8% under), Sugift $47.99, then two $49.99 Anker/Sony listings at 13.1% under — green #16a34a. FAIR brackets the median: Sony $55.00 (4.3% under) and Cowin/JLab $59.99 (4.3% over) — the neutral ±10% dead zone. Then OVERPRICED climbs away in grey: AirPods Pro 3 $65 (13% over) through Soundcore Space One $79.99 (39.1% over). Above the DEALs (scrolled off here) the amber SUSPICIOUS run sits at ≥60% under. Every row names its real source — eBay:New, RapidAPI:Target, RapidAPI:Micro Center, RapidAPI:Walmart — because this is a live stream, not the snapshot."
+/>
+
+This is the **live** path, not the pinned snapshot from §7. The worked-example table uses the frozen wave-8 snapshot (median **$162.97**); this live run reads median **$57.50**, dragged down because the iTunes connector keyword-matches media titles ("Godzilla", "Noises Off") into the result set. Real connectors return messier inventory than a curated snapshot — and the front end faithfully renders whatever the backend streams. The badge logic is unchanged and median-only, exactly as documented: each card's percentage is backfilled from the `done` frame's median, and `badgeFor` maps it to one of the four tokens.
+
+The demo line: *"This is the whole system made visible. A user types four words; the page opens one streaming connection and fills in as eBay, Walmart, Target and a dozen more answer. When the last frame lands with the median, every card scores itself — green DEAL, neutral FAIR, amber SUSPICIOUS, grey OVERPRICED — from a single number. No spinner-until-done, no CORS dance, no framework ceremony. A ninety-line hook and one badge component turn a backend into a product."*
 
 ---
 
