@@ -39,7 +39,8 @@ Compare the diff at each step from the repo's branch view.
 6. [Offline test suite: 8 passes, no network](#offline-test-suite-8-passes-no-network)
 7. [Wiring it into serve.py](#wiring-it-into-servepy)
 8. [Running live with your own keys](#running-live-with-your-own-keys)
-9. [Where this goes next](#where-this-goes-next)
+9. [What you can demo now](#what-you-can-demo-now)
+10. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -168,7 +169,7 @@ Three decisions are worth explaining:
 
 **`client_reference_id=user.id`** is the primary link between Stripe and your user database. When the webhook fires, this field tells you which user just paid, even if the customer's email address has changed since the session was created. `metadata` carries `user_id` and `plan` as a secondary backup.
 
-**`client=stripe`** is a dependency-injection seam. Tests pass a `MagicMock()` instead of the real Stripe SDK so the test suite never makes a network call.
+**`client=stripe`** is a dependency-injection seam. Tests pass a small hand-rolled mock (a `_MockClient` class exposing `checkout.Session.create`) instead of the real Stripe SDK, so the test suite never makes a network call.
 
 The function returns `{"id": session_id, "url": checkout_url}`. `serve.py` returns the URL to the frontend, which redirects the user to Stripe's hosted checkout page. After payment, Stripe sends the user back to `success_url`.
 
@@ -241,7 +242,7 @@ tests/test_billing.py::test_checkout_missing_price_raises               PASSED
 8 passed in 0.xx s
 ```
 
-These 8 tests run entirely offline. Webhook signatures are constructed with Stripe's own `stripe.WebhookSignature._compute_signature` helper against a throwaway test secret — the same HMAC logic the real Stripe infrastructure uses, but without touching their servers. The checkout builder runs against a `MagicMock()` client that returns a dict shaped like a real Checkout Session.
+These 8 tests run entirely offline. Webhook signatures are constructed with Stripe's own `stripe.WebhookSignature._compute_signature` helper against a throwaway test secret — the same HMAC logic the real Stripe infrastructure uses, but without touching their servers. The checkout builder runs against a small hand-rolled mock client (`_MockClient`, injected via the `client=` parameter) that returns a dict shaped like a real Checkout Session.
 
 Here is what each test proves:
 
@@ -269,7 +270,7 @@ Here is what each test proves:
 
 ## Wiring it into serve.py
 
-`billing.py` is a library module. `serve.py` calls it at two points:
+`billing.py` is a pure library module — the committed `serve.py` keeps it that way, so the 8 offline tests own the contract and the live payment routes stay out of the codebase until you supply your own Stripe keys. The three sketches below show the integration points you add when you go live: metering on search, the checkout route, and the webhook. (This part's demo endpoint, `/billing`, exercises the same functions read-only — see "What you can demo now".)
 
 **On every authenticated search request**, `meter_usage` runs before the aggregator:
 
@@ -331,7 +332,7 @@ The 400 on `SignatureVerificationError` is intentional and required by Stripe's 
 **Live payments require your own Stripe account.** The offline tests prove the logic without any keys. To actually open a checkout page and receive a webhook, follow the steps below with your own test-mode credentials. Never use production keys in development.
 </Callout>
 
-To run live in Stripe test mode:
+These steps assume you have first added the three sketched routes from the previous section (`POST /billing/checkout`, `POST /webhook`, and the `meter_usage` guard on `/search`) to your own `serve.py` — the committed version keeps `billing.py` as a pure library, so the live routes are yours to wire in. To run live in Stripe test mode:
 
 1. Create a Stripe account and navigate to the [test dashboard](https://dashboard.stripe.com/test/dashboard).
 2. Create a recurring product and copy its Price ID (starts with `price_`).
@@ -353,11 +354,37 @@ stripe listen --forward-to http://localhost:8000/webhook
 5. Set `STRIPE_WEBHOOK_SECRET` to the signing secret printed by the CLI.
 6. Start the DealFinder server (`uvicorn dealfinder.serve:app --reload`) and hit `POST /billing/checkout?plan_key=pro` from a logged-in session.
 
-The Stripe CLI will print each event as it arrives. Use test card `4242 4242 4242 4242` (any future date, any CVC) to complete a payment. You should see `checkout.session.completed` in the CLI output and the `Entitlement` logged by `serve.py`.
+The Stripe CLI will print each event as it arrives. Use test card `4242 4242 4242 4242` (any future date, any CVC) to complete a payment. You should see `checkout.session.completed` in the CLI output and the `Entitlement` granted by your webhook handler.
 
 <Callout tone="note">
 **The Kubernetes secret manifest does not contain real keys.** `infra/k8s/secret.example.yaml` (from Part 29) has placeholder strings for `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, and `STRIPE_WEBHOOK_SECRET`. The real `secret.yaml` is gitignored and must be applied out-of-band — via External Secrets Operator, Sealed Secrets, or a CI secret injection step. Never commit live keys to the repo.
 </Callout>
+
+---
+
+## What you can demo now
+
+You do not need a Stripe account to see the billing logic run. The app ships a `/billing` inspector that exercises `dealfinder/billing.py` read-only — the plan catalog, the quota gate, the webhook signature verifier (real HMAC via Stripe's own helper against a demo secret), and the Checkout builder (an injected mock client, never the network). Open the app, pick **"billing (Stripe)"**, and hit **Search** (the box is ignored):
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-34/billing-mechanics.png"
+  alt="The DealFinder billing inspector: the free (25/mo) and pro (1000/mo) plans, the quota gate raising QuotaExceeded on the 26th free search, four Stripe webhook verdicts (good signature grants an Entitlement, tampered and wrong-secret are rejected, a non-checkout event is ignored), and the Checkout session builder output"
+  caption="Real capture: the four things a SaaS billing layer must get right — plan catalog, quota gate, cryptographically-verified webhook, and a checkout builder — all from dealfinder/billing.py, with real HMAC and a mock Stripe client. No keys, no network."
+  lookFor="four sections. PLANS: Free 25 searches/mo, Pro 1000/mo. QUOTA GATE: a free user runs 25 searches, and the 26th raises QuotaExceeded ('Free plan allows 25 searches/mo (used 25)') → the caller returns HTTP 402 and prompts upgrade; a pro user at that same 25-search level is still within quota. WEBHOOK: a correctly-signed checkout.session.completed → Entitlement(user-123, pro) in green; a tampered payload and a wrong-secret signature both → SignatureVerificationError in red (this is the security property — a forged event can never grant an upgrade); a signed invoice.paid → ignored (None), because the handler only acts on checkout completion. CHECKOUT: the mock client is called with mode=subscription, line_items=[{price: price_demo_pro_123, quantity: 1}], client_reference_id=user-9 and metadata linking the payment back to the user, returning the hosted checkout URL."
+/>
+
+**Check it works** from the terminal — the same four sections as JSON:
+
+```bash
+curl -s localhost:8000/billing | python -m json.tool
+# → plans (free 25 / pro 1000), metering.free_blocked (the QuotaExceeded message),
+#   webhook.good_signature → Entitlement, bad/wrong → SignatureVerificationError,
+#   other_event → null, and the checkout session the mock client built.
+```
+
+The load-bearing line is the webhook: **a tampered or wrong-secret event is a `SignatureVerificationError`, not an upgrade.** Payment webhooks are the one endpoint an attacker would love to forge — "pretend Stripe told us to make me a pro user" — so the signature check is the whole game. The inspector proves the cryptographic path with real HMAC, only the signing secret is a throwaway. Everything else is the plumbing that turns a verified event into an entitlement and a plan into a quota.
+
+The demo line: *"This is the entire money path, and it runs with no Stripe account. Two plans, a quota gate that blocks the 26th free search with a 402, a webhook that grants pro only when the signature verifies — a forged event is a flat 400 — and a checkout builder that stamps the user's id into the session so the payment finds its way back. Real HMAC, a mock Stripe client, no network. The offline tests own this contract so a refactor can't silently break the thing that takes people's money."*
 
 ---
 
