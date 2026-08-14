@@ -23,7 +23,7 @@ export const metadata = {
 
 **TL;DR: A system is only as trustworthy as its tests and its runbook. This part adds the final verification layer to DealFinder: Playwright e2e tests that guard the exact badge contract the UI makes, a load/chaos harness that proves the circuit breaker holds under failure, and a structured runbook so on-call doesn't mean "read the code at 2am."**
 
-You have 166 passing unit/integration tests, a CI eval gate, and a deployed container from Part 28. What you don't yet have is proof that the whole stack holds together under real conditions — browser to backend to live sources — and a written plan for what to do when it doesn't. Those are the two gaps this part closes.
+You have 224 passing unit/integration tests, a CI eval gate, and a deployed container from Part 28. What you don't yet have is proof that the whole stack holds together under real conditions — browser to backend to live sources — and a written plan for what to do when it doesn't. Those are the two gaps this part closes.
 
 <Callout tone="tip">
 **Code along.** Companion repo: [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). Step tags for this part: `step-33a` (Playwright setup + `search.spec.ts`) · `step-33b` (`live.spec.ts` + fixtures) · `step-33c` (loadtest.py) · `step-33d` (chaos tests + RUNBOOK.md).
@@ -39,8 +39,9 @@ You have 166 passing unit/integration tests, a CI eval gate, and a deployed cont
 6. [Load testing: what the numbers actually mean](#load-testing-what-the-numbers-actually-mean)
 7. [Chaos testing: the circuit breaker under fire](#chaos-testing-the-circuit-breaker-under-fire)
 8. [The runbook](#the-runbook)
-9. [The full test count: 166 pytest + 5 + 1 Playwright](#the-full-test-count-166-pytest--5--1-playwright)
-10. [Where this goes next](#where-this-goes-next)
+9. [The full test count: 224 pytest + 5 + 1 Playwright](#the-full-test-count-224-pytest--5--1-playwright)
+10. [What you can demo now](#what-you-can-demo-now)
+11. [Where this goes next](#where-this-goes-next)
 
 ---
 
@@ -56,7 +57,7 @@ You have 166 passing unit/integration tests, a CI eval gate, and a deployed cont
 
 ## Why e2e, load, and chaos are three different things
 
-Unit and integration tests — you have 166 of them — check that individual components behave correctly in isolation or in controlled combinations. They do not prove that the browser can actually render a deal card, that the system holds up under concurrent load, or that the circuit breaker fires correctly when a source goes dark at runtime.
+Unit and integration tests — you have 224 of them — check that individual components behave correctly in isolation or in controlled combinations. They do not prove that the browser can actually render a deal card, that the system holds up under concurrent load, or that the circuit breaker fires correctly when a source goes dark at runtime.
 
 Each layer tests something the others cannot:
 
@@ -122,30 +123,35 @@ Running e2e tests against a live backend makes them slow, flaky, and dependent o
 
 ```typescript
 // frontend/e2e/fixtures.ts (key excerpts)
-export const BADGE_TOKENS = ['DEAL', 'FAIR', 'SUSPICIOUS', 'OVERPRICED'] as const;
+export const BADGE_TOKENS = ["DEAL", "FAIR", "SUSPICIOUS", "OVERPRICED"] as const;
 
+// deal_pct is chosen per row so that badgeFor() lands on each of the four tokens.
+// Note: there is NO baked "verdict" field — the badge is computed in the browser
+// from deal_pct, so the test exercises the real badgeFor thresholds from Part 31.
 export const SEARCH_RESPONSE = {
+  query: "noise cancelling headphones",
   count: 4,
+  median_price: 100.0,
   results: [
-    { id: 'a', title: 'Sony WH-1000XM5',       price: 162.97, deal_pct:   0, verdict: 'FAIR'       },
-    { id: 'b', title: 'Anker Soundcore Q20i',   price:  44.99, deal_pct:  72, verdict: 'DEAL'       },
-    { id: 'c', title: 'Bose QuietComfort 45',   price:  46.00, deal_pct:  72, verdict: 'SUSPICIOUS' },
-    { id: 'd', title: 'Sony WH-1000XM6',        price: 399.99, deal_pct: -30, verdict: 'OVERPRICED' },
+    { id: "s1", title: "Too-cheap Headphones", price:  20.0, source: "web:bargainz",   deal_pct:  80.0 },
+    { id: "d1", title: "Sony WH-1000XM5",      price:  75.0, source: "BestBuy:sale",    deal_pct:  25.0 },
+    { id: "f1", title: "Bose QuietComfort",    price: 100.0, source: "eBay:NEW",        deal_pct:   0.0 },
+    { id: "o1", title: "Overpriced Cans",      price: 130.0, source: "RapidAPI:store",  deal_pct: -30.0 },
   ],
-  median_price: 162.97,
 };
 
-export const EMPTY_RESPONSE = { count: 0, results: [], median_price: 0 };
+// The well-formed "no offers" shape the backend returns when every source is down.
+export const EMPTY_RESPONSE = { query: "zzznothing", count: 0, median_price: 0.0, results: [] };
 
 /**
- * Aborts the SSE stream (**/search/stream*) so the frontend falls back to
- * GET /search, then fulfills that request with the supplied fixture.
- * Net effect: hermetic test, no backend, exercises the SSE-abort fallback path.
+ * Fail the SSE connection so useSearch falls back to fetch(/search), then fulfill
+ * that request with the supplied JSON. Hermetic: no backend, and it exercises the
+ * real SSE-abort → fetch fallback path in api.ts.
  */
-export async function stubSearch(page: Page, body: object) {
-  await page.route('**/search/stream*', (route) => route.abort());
-  await page.route('**/search*',        (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) }),
+export async function stubSearch(page: Page, json: unknown): Promise<void> {
+  await page.route("**/search/stream*", (route) => route.abort());
+  await page.route(/\/search(\?|$)/, (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(json) }),
   );
 }
 ```
@@ -153,7 +159,7 @@ export async function stubSearch(page: Page, body: object) {
 The `stubSearch` helper does two things at once: it proves the SSE abort fallback works (because the SSE route is explicitly aborted, the frontend *must* fall through to the plain fetch), and it keeps the test fast and repeatable.
 
 <Callout tone="note">
-The fixture includes one offer from each of the four badge tiers — one representative per tier is enough to test the closed set. The fixture deliberately matches the hero cast: Sony XM5 at $162.97, Anker Q20i at $44.99, Bose QC45 at $46, Sony XM6 at $399.99.
+The fixture picks one `deal_pct` per badge tier so the closed set is fully covered: **80%** under → SUSPICIOUS (too-good-to-be-true), **25%** under → DEAL, **0%** (at median) → FAIR, **30%** over → OVERPRICED. Because the fixture carries only `deal_pct` and no baked verdict, the browser must run the real `badgeFor()` logic to render each token — so the test guards the actual client-side mapping, not a pre-computed string.
 </Callout>
 
 ---
@@ -189,7 +195,7 @@ Run it before a release:
 
 ```bash
 # Start the backend first
-uvicorn dealfinder.api:app --port 8000
+uvicorn dealfinder.serve:app --port 8000
 
 # In a second terminal, run the full suite including live
 E2E_LIVE=1 npm run test:e2e:live
@@ -205,7 +211,7 @@ The live test is not gated in CI because it would require live API keys and a ru
 
 ```bash
 # Start the backend
-uvicorn dealfinder.api:app --host 127.0.0.1 --port 8000
+uvicorn dealfinder.serve:app --host 127.0.0.1 --port 8000
 
 # Run the load test (defaults: 60 req, concurrency 8, query "noise cancelling headphones")
 python scripts/loadtest.py --requests 60 --concurrency 6
@@ -235,40 +241,50 @@ The load test shows what the system does under normal-ish concurrency. The chaos
 `tests/test_chaos.py` runs entirely offline using mocked sources and exercises the circuit breaker's invariants directly:
 
 ```python
-# tests/test_chaos.py (representative excerpts)
-import pytest
-from unittest.mock import MagicMock
-from dealfinder.aggregate import Aggregator
+# tests/test_chaos.py (real excerpts). Sources are in-process stubs; the
+# aggregator is exercised through its public aggregate() entry point — the same
+# run()/_bench()/dedup path serve.py's /search calls. No Aggregator class exists;
+# aggregate() is a function that takes the source list.
+import httpx
+from dealfinder import aggregate as agg
+from dealfinder.aggregate import COOLDOWN_SECONDS, aggregate   # COOLDOWN_SECONDS == 90.0
 
-COOLDOWN_SECONDS = 90.0  # pinned constant from aggregate.py
+class _Exploding:
+    """A source that always raises — models a 500 / connection reset."""
+    def __init__(self, name, exc, tier=1):
+        self.name, self._exc, self.tier, self.calls = name, exc, tier, 0
+    def available(self): return True
+    def search(self, query, limit=15):
+        self.calls += 1
+        raise self._exc
+
+# _Healthy (a stub returning fixed offers) and _p (a Product factory) are defined
+# alongside _Exploding in the same file; setup_function() clears agg._cooldown
+# between tests so the breaker state does not leak.
 
 def test_one_source_raising_does_not_break_search():
-    """A source that raises should not propagate; healthy sources still serve."""
-    bad_source   = MagicMock(spec=DealSource, available=lambda: True)
-    bad_source.products.side_effect = RuntimeError("connection refused")
-    good_source  = MagicMock(spec=DealSource, available=lambda: True,
-                             products=lambda: [make_product(price=44.99)])
+    bad  = _Exploding("BAD", RuntimeError("boom 500"), tier=1)
+    good = _Healthy("GOOD", [_p("g1", "Widget", 40, "GOOD"),
+                             _p("g2", "Gizmo", 60, "GOOD")], tier=1)
 
-    agg    = Aggregator(sources=[bad_source, good_source])
-    result = agg.search("noise cancelling headphones")
+    out = aggregate("widget", sources=[bad, good])
 
-    assert result["count"] == 1
-    assert result["results"][0]["price"] == 44.99
-    assert bad_source.id in result["throttled"]
+    assert out["count"] == 2                        # healthy source still served
+    assert {r["source"] for r in out["results"]} == {"GOOD"}
+    assert "GOOD" in out["sources_live"]
+    assert "BAD"  in out["throttled"]               # the breaker flagged it
 
 def test_all_sources_down_returns_well_formed_empty_envelope():
-    """All sources failing → empty envelope, never a 500."""
-    sources = [MagicMock(spec=DealSource, available=lambda: True,
-                         products=MagicMock(side_effect=RuntimeError("timeout")))
-               for _ in range(3)]
+    sources = [_Exploding("A", RuntimeError("500")),
+               _Exploding("B", httpx.ConnectError("refused", request=None)),
+               _Exploding("C", TimeoutError("timeout"), tier=2)]
+    out = aggregate("anything", sources=sources)
 
-    agg    = Aggregator(sources=sources)
-    result = agg.search("headphones")
-
-    assert result["count"]        == 0
-    assert result["results"]      == []
-    assert result["median_price"] == 0.0
-    assert set(result["throttled"]) == {s.id for s in sources}
+    assert out["results"]      == []
+    assert out["count"]        == 0
+    assert out["median_price"] == 0.0
+    assert out["sources_live"] == []
+    assert set(out["throttled"]) == {"A", "B", "C"}
     # No exception raised — this is the key invariant.
 ```
 
@@ -340,25 +356,25 @@ Each incident gets a brief written record: timestamp, symptom, root cause, mitig
 
 ---
 
-## The full test count: 166 pytest + 5 + 1 Playwright
+## The full test count: 224 pytest + 5 + 1 Playwright
 
-After Part 36, the complete test inventory across the companion repo — **166** pytest + **5** hermetic Playwright + **1** opt-in live Playwright:
+After Part 36, the complete test inventory across the companion repo — **224** pytest + **5** hermetic Playwright + **1** opt-in live Playwright:
 
 | Suite | Count | Offline? | CI gate? |
 |---|---|---|---|
-| `pytest` (all modules) | 166 passed, 1 skipped | Yes | Yes |
-| ↳ of which `tests/test_chaos.py` | 5 passed (subset of the 166) | Yes | Yes |
+| `pytest` (all modules) | 224 passed, 1 skipped | Yes | Yes |
+| ↳ of which `tests/test_chaos.py` | 5 passed (subset of the 224) | Yes | Yes |
 | `frontend/e2e/search.spec.ts` | 5 passed | Yes (stubbed) | Yes |
 | `frontend/e2e/live.spec.ts` | 1 skipped by default | No | No |
 
-The 5 chaos tests are counted **inside** the 166 — `tests/test_chaos.py` is one of the pytest modules, broken out here because it is the suite this part focuses on. The 1 skipped in pytest is a slow integration test gated behind a `@pytest.mark.slow` marker; run it with `pytest -m slow` before a release. The 1 skipped in Playwright is the live backend test gated on `E2E_LIVE=1`.
+The 5 chaos tests are counted **inside** the 224 — `tests/test_chaos.py` is one of the pytest modules, broken out here because it is the suite this part focuses on. The 1 skipped in pytest is a slow integration test gated behind a `@pytest.mark.slow` marker; run it with `pytest -m slow` before a release. The 1 skipped in Playwright is the live backend test gated on `E2E_LIVE=1`.
 
 Run the full offline suite:
 
 ```bash
 # Python
 pytest tests/ -v --tb=short
-# 166 passed, 1 skipped
+# 224 passed, 1 skipped
 
 # Playwright (hermetic)
 npm run test:e2e
@@ -367,10 +383,44 @@ npm run test:e2e
 
 ```bash
 # Playwright (with live backend, pre-release only)
-uvicorn dealfinder.api:app --port 8000 &
+uvicorn dealfinder.serve:app --port 8000 &
 E2E_LIVE=1 npm run test:e2e:live
 # 5 passed, 1 passed (was skipped)
 ```
+
+---
+
+## What you can demo now
+
+Unlike the earlier parts, this one's deliverable *is* the tests — so the demo is running them. The hermetic Playwright suite needs no backend and no API keys: it stubs the network and drives a real Chromium against the built SPA.
+
+```bash
+cd frontend
+npx playwright install chromium   # one-time, ~90 MB
+npx playwright test search.spec.ts --project=chromium
+# 5 passed (6.2s)
+```
+
+Playwright boots the Vite dev server itself (`webServer` in `playwright.config.ts`), opens each page in a real browser, and checks the §9.7 badge contract at the DOM level. The HTML report shows all five green:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-36/playwright-e2e.png"
+  alt="The Playwright HTML report: All 5 / Passed 5 / Failed 0 / Flaky 0 for search.spec.ts in the chromium project, listing the badge-contract and edge-case tests"
+  caption="Real capture: the Playwright HTML report from a live Chromium run of frontend/e2e/search.spec.ts — 5/5 passing, guarding the four-token badge taxonomy in a real browser."
+  lookFor="the header counts: All 5, Passed 5, Failed 0, Flaky 0, Skipped 0, project chromium, total 2.7s. Then the five tests under search.spec.ts — 'renders result cards, each carrying a §9 badge' (line 10), 'badge taxonomy is EXACTLY the four §9 tokens — no synonyms' (line 34), 'a specific offer maps to the expected badge' (line 54, the 80%-under row → SUSPICIOUS), 'empty query does not fire a search' (line 70), and 'a query with zero offers shows the empty state, not an error' (line 93). The taxonomy test is the load-bearing one: it renders the fixture — whose rows carry only deal_pct, no baked verdict — and asserts the browser computed exactly DEAL/FAIR/SUSPICIOUS/OVERPRICED, so renaming a token in DealBadge.ts fails the build before it ships."
+/>
+
+**Check it works** — the chaos suite proves the circuit breaker offline, in under a second:
+
+```bash
+# From the companion root
+python -m pytest tests/test_chaos.py -q
+# 5 passed in 0.54s
+```
+
+That run exercises the real `aggregate()` path: one source raising still returns the healthy source's offers (and benches the bad one), a timeout is benched so the *next* search skips it, and every-source-down returns the well-formed empty envelope — never a 500.
+
+The demo line: *"Ship-and-operate means you can prove the whole stack, not just the pieces. Five Playwright tests open a real browser and guard the badge contract the UI promises — rename a token and the build goes red. Five chaos tests kill every source and prove the API still answers with a clean empty envelope instead of a 500. Two hundred twenty-four unit tests underneath. None of it needs a cloud account or a live key; it all runs offline, in CI, on every commit. That's the difference between 'it worked on my machine' and 'it's operable.'"*
 
 ---
 
