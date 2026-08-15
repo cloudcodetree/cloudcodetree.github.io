@@ -83,11 +83,12 @@ from dealfinder.snapshot import load_snapshot
 
 items = load_snapshot("data/snapshots/electronics-2026-07.json")
 
-# Titles where the raw brand field starts with a known retailer token
-retailer_tokens = {"walmart", "target", "best buy", "costco", "macy's", "amazon", "newegg"}
+# Rows whose raw brand field carries a known retailer token
+# (same list pinned in tests/test_part01.py::test_brand_field_is_retailer_polluted)
+retailer_tokens = ["Walmart", "Target", "Costco", "Macy", "Best Buy", "Amazon", "mountainlifestyle", "kohl"]
 polluted = [
     i for i in items
-    if any(tok in (i.get("brand") or "").lower() for tok in retailer_tokens)
+    if any(tok.lower() in (i.get("brand") or "").lower() for tok in retailer_tokens)
 ]
 print(f"{len(polluted)} of {len(items)} rows have a retailer in 'brand'")
 ```
