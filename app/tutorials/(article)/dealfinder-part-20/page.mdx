@@ -419,6 +419,10 @@ curl -s http://localhost:8000/pipeline \
 **Expect:** `has_prefect: true`, the gate at `valid: 270` / `total: 270` / `passed: true`, and `good_deals: 111` — the same `FlowResult` the tests pin, served from the running app.
 
 <Callout tone="note">
+**venv vs the compose dev container.** `has_prefect: true` needs the `prefect` extra. The light `docker compose` dev image omits it (and the torch/mlflow/prefect endpoints want a ≥4 GB Docker VM), so there it reports `has_prefect: false` — the stage results (270/270, 111 good deals) are byte-identical either way, since the flow runs plain-Python without Prefect by design. To see `true`, run in the venv: `pip install -e ".[dev,torch,mlflow,prefect]"` then `uvicorn dealfinder.serve:app`.
+</Callout>
+
+<Callout tone="note">
 **The normalize assertion.** `test_normalize_attaches_title_extracted_brand` checks that the Anker Soundcore Q20i row — where the raw `brand` field holds the retailer, not the manufacturer — emerges from `normalize_rows` with `true_brand == "Soundcore"`. That is the `title_brand()` function from Part 1 applied at pipeline scale: 270 rows, one pass, no API calls.
 </Callout>
 

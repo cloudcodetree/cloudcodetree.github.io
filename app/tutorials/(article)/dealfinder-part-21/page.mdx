@@ -398,6 +398,10 @@ Open the app, pick **"models (ML)"**, and hit Search (the box is ignored — the
 
 The demo line: *"Same split, three models, real numbers. Gradient boosting on the three hand features actually does worse than the plain linear model — it overfits. The thing that wins isn't the fancier model, it's the richer features: compress the title embedding to 16 dimensions, feed it in, and MAE drops 39%. That's the lesson — reach for better signal before a bigger hammer."*
 
+<Callout tone="note">
+**This demo needs torch.** `/models` (the "models (ML)" mode) fits a PyTorch MLP, so it needs the `torch` extra and real memory. The light `docker compose` dev image omits torch — the endpoint returns 500 there — and fitting the MLP wants a ≥ 4 GB Docker VM. Run it in the venv: `pip install -e ".[dev,torch,mlflow,prefect]"` then `uvicorn dealfinder.serve:app`.
+</Callout>
+
 ---
 
 ## Companion repo callout

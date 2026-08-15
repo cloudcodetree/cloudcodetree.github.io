@@ -392,6 +392,10 @@ curl -s http://localhost:8000/tracking \
 **Expect:** `winner: "gbdt"`, `winner_mae: 138.11`, `registered_model: "dealfinder-fair-price"` — the same registered winner the tests pin, served from the running app.
 
 <Callout tone="note">
+**Run this against the venv.** `/tracking` needs the `mlflow` extra, which the light `docker compose` dev image omits — there it returns `{"mlflow_available": false}` with no winner. Run it in the venv (`pip install -e ".[dev,torch,mlflow,prefect]"` then `uvicorn dealfinder.serve:app`), or add the extras to `Dockerfile.dev` and raise the Docker VM to ≥ 4 GB.
+</Callout>
+
+<Callout tone="note">
 **The companion module also runs deterministically.** `run_tracking()` is seeded (`random_state=0`, `torch.manual_seed(0)`) and uses the same `_split()` function as `models.gbdt_vs_linear()` — so the GBDT MAE here ($138.11) matches the number pinned in `tests/test_models.py` from Part 21. The two test files are testing the same underlying numbers from different angles.
 </Callout>
 
