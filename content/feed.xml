@@ -10,7 +10,223 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 15 Aug 2026 04:09:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 15 Aug 2026 12:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>GitLab Teams: Claude Code's --worktree Flag Now Accepts Merge Request URLs</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-08-15-05-claude-code-gitlab-mr-worktree</guid>
+      <pubDate>Sat, 15 Aug 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>Claude Code v2.1.233 extends --worktree to accept GitLab MR URLs, so GitLab teams get the same isolated-workspace code-review workflow GitHub users have had.</description>
+      <content:encoded><![CDATA[
+**Claude Code v2.1.233 adds GitLab MR URL support to --worktree — GitLab teams now get the same isolated code-review workflow GitHub PR users have had, plus memory and cache controls.**
+
+If you're on a GitLab team, `--worktree` just became more useful. The flag previously accepted GitHub PR URLs and spun up an isolated git worktree scoped to that PR's branch. v2.1.233 extends that to **GitLab merge request URLs**, so you can point Claude Code at any MR and work against it without touching your main checkout. MRs now also display as `!N` in the `claude agents` view alongside any GitHub PRs.
+
+## The workflow
+
+**Review or test a merge request without switching branches:**
+
+```bash
+# Review an MR for correctness and security issues
+claude --worktree https://gitlab.com/your-org/your-repo/-/merge_requests/417 \
+  "Review this MR for correctness issues and any security concerns. Check that error handling covers all paths."
+
+# Run the test suite against the MR's changes
+claude --worktree https://gitlab.com/your-org/your-repo/-/merge_requests/417 \
+  "Run pnpm test and report any new failures introduced by this MR's diff."
+```
+
+Claude checks out the MR's branch into a temporary worktree, scoped to those changes. Your working tree and branch are untouched. When the session ends, the worktree is cleaned up.
+
+**Watch active MRs in the agents view:**
+
+```bash
+claude agents  # MRs appear as !N alongside GitHub PRs
+```
+
+## Two new environment controls also in v2.1.233
+
+**`CLAUDE_CODE_TOOL_MEMORY_LIMIT`** (Linux, opt-in): caps memory for Bash tool commands via cgroup — useful on shared CI machines or self-hosted runners where a runaway build (`pnpm install` on a cold cache, `gradle build`, large Docker builds) can starve the session.
+
+```bash
+# Limit Bash tool commands to 4GB
+export CLAUDE_CODE_TOOL_MEMORY_LIMIT=4g
+claude ...
+```
+
+**`CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS`**: controls how long the WebFetch tool caches page fetches within a session. Default is 15 minutes (900000 ms). Reduce it if your agent needs fresh data on each loop iteration:
+
+```bash
+export CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS=60000  # 1-minute cache
+```
+
+## Why this matters for GitLab shops
+
+Claude Code's `--worktree` pattern is the foundation for AI-assisted code review in CI/CD pipelines. Teams on GitHub have been running Claude as a code-review step in Actions since the agent-as-reviewer pattern emerged earlier this year. GitLab shops can now set up the equivalent in GitLab CI:
+
+```yaml
+# .gitlab-ci.yml
+ai-review:
+  stage: review
+  script:
+    - claude --worktree $CI_MERGE_REQUEST_PROJECT_URL/-/merge_requests/$CI_MERGE_REQUEST_IID
+        "Review this MR for correctness and performance issues. Post a markdown summary."
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+```
+
+**Sources:** [Claude Code v2.1.233 release — GitHub](https://github.com/anthropics/claude-code/releases/tag/v2.1.233) · [Claude Code changelog — code.claude.com](https://code.claude.com/docs/en/changelog) · [Claude Code worktree guide — claudefa.st](https://claudefa.st/blog/guide/development/worktree-guide)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Fine-Tune Might Be Lying to You: Measure It With lm-evaluation-harness</title>
+      <link>https://github.com/EleutherAI/lm-evaluation-harness</link>
+      <guid isPermaLink="false">2026-08-15-04-evaluate-fine-tuned-model-lm-eval-harness</guid>
+      <pubDate>Sat, 15 Aug 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>Training loss drops — but does the model actually work? Three layers of evaluation (held-out set, lm-eval-harness benchmarks, LLM-as-judge) tell you before production does.</description>
+      <media:content url="https://opengraph.githubassets.com/1/EleutherAI/lm-evaluation-harness" medium="image" />
+      <media:thumbnail url="https://opengraph.githubassets.com/1/EleutherAI/lm-evaluation-harness" />
+      <content:encoded><![CDATA[
+**Training loss drops — but your fine-tuned model can still quietly break on everything it wasn't tested on. Three layers of evaluation catch regressions before production does.**
+
+**What you'll be able to do after this:**
+- Detect catastrophic forgetting before shipping a fine-tuned model
+- Run standard benchmarks (MMLU, ARC, GSM8K) on any HuggingFace model with one command using lm-evaluation-harness
+- Know when to use benchmark evals vs task-specific evals vs LLM-as-judge
+
+## The hidden trap
+
+Training loss goes down. The model responds fluently. But did it improve on your task — without quietly regressing on everything else? Most devs skip evaluation and ship on vibes. The risk is **catastrophic forgetting**: a model fine-tuned on customer support data might score 10–15 points lower on math reasoning (GSM8K) after just two epochs, with no warning in the training logs.
+
+Three evaluation layers catch this before users do.
+
+## Layer 1: Your held-out eval set (task accuracy)
+
+Before training, set aside 10–20% of your dataset as a held-out test set. Score your fine-tuned model against it after training:
+
+```python
+from datasets import load_dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+model_id = "./outputs/my-fine-tuned-model"
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(
+    model_id, torch_dtype=torch.float16, device_map="auto"
+)
+
+test_data = load_dataset("json", data_files="test.jsonl")["train"]
+
+correct = 0
+for example in test_data:
+    inputs = tokenizer(example["prompt"], return_tensors="pt").to("cuda")
+    with torch.no_grad():
+        output = model.generate(**inputs, max_new_tokens=256)
+    response = tokenizer.decode(output[0], skip_special_tokens=True)
+    if example["expected"] in response:
+        correct += 1
+
+print(f"Task accuracy: {correct/len(test_data)*100:.1f}%")
+```
+
+For structured outputs (JSON, SQL, code), use exact-match. For freeform text, use ROUGE or BERTScore. This is your primary signal.
+
+## Layer 2: Benchmark regression with lm-evaluation-harness
+
+[lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) (EleutherAI) is the framework behind the HuggingFace Open LLM Leaderboard — the standard infrastructure for evaluating models at benchmark scale. One command runs your model on 200+ tasks. Run it on the **base model first**, save the results, then compare after fine-tuning.
+
+```bash
+pip install lm-eval
+
+# Step 1: baseline the base model
+lm_eval --model hf \
+  --model_args pretrained=meta-llama/Llama-3.1-8B-Instruct \
+  --tasks mmlu,gsm8k,arc_challenge \
+  --device cuda:0 --batch_size 8 \
+  --output_path ./eval-results/base
+
+# Step 2: eval your fine-tuned model with the same tasks
+lm_eval --model hf \
+  --model_args pretrained=./outputs/my-fine-tuned-model \
+  --tasks mmlu,gsm8k,arc_challenge \
+  --device cuda:0 --batch_size 8 \
+  --output_path ./eval-results/fine-tuned
+```
+
+Then diff the result JSON files. What to watch:
+- **MMLU**: general knowledge across 57 subjects — a broad regression signal
+- **GSM8K**: grade-school math — catches reasoning degradation fast
+- **ARC-Challenge**: science questions requiring multi-step reasoning
+
+**Interpreting the delta:**
+
+| GSM8K / MMLU drop | Verdict |
+|---|---|
+| 0–3% | Normal — fine-tuning always trades some generality |
+| 3–10% | Investigate — check training epochs, learning rate, data mix |
+| 10%+ | Catastrophic forgetting — roll back; revisit LoRA rank, dataset balance, or add a regularization term |
+
+## Layer 3: LLM-as-judge for generative quality
+
+Automated metrics can't assess response quality for open-ended tasks. For that, use a frontier model as a judge:
+
+```python
+import anthropic, json
+
+client = anthropic.Anthropic()
+
+def judge_response(prompt: str, response: str, rubric: str) -> dict:
+    result = client.messages.create(
+        model="claude-opus-4-7",
+        max_tokens=512,
+        messages=[{
+            "role": "user",
+            "content": f"""Rate this response on a 1–5 scale.
+
+Rubric: {rubric}
+
+User prompt: {prompt}
+Model response: {response}
+
+Return JSON only: {{"score": 1-5, "reason": "one sentence"}}"""
+        }]
+    )
+    return json.loads(result.content[0].text)
+
+# Run on 50–100 held-out examples
+results = [
+    judge_response(ex["prompt"], generate(model, ex["prompt"]), rubric)
+    for ex in eval_set
+]
+avg_score = sum(r["score"] for r in results) / len(results)
+print(f"LLM-judge avg score: {avg_score:.2f}/5.0")
+```
+
+Run this against your base model too to get a baseline. A fine-tune that scores below the base on the judge is a regression.
+
+## Which layer for which task
+
+| Task type | Layer 1 | Layer 2 | Layer 3 |
+|---|---|---|---|
+| Structured output (JSON, SQL, code) | Exact-match | Always | Optional |
+| Freeform generation (chat, summaries) | ROUGE | Always | Required |
+| Any fine-tune | Required | Required | Recommended |
+
+**Sources:** [lm-evaluation-harness — EleutherAI/GitHub](https://github.com/EleutherAI/lm-evaluation-harness) · [lm-eval-harness quickstart — readthedocs.io](https://lm-evaluation-harness.readthedocs.io/getting_started/quickstart/) · [Evaluate Fine-Tuned LLMs: MMLU, MT-Bench, Custom Evals — markaicode.com](https://markaicode.com/fine-tuning-evaluation-mmlu-mt-bench-custom-evals/)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Let Claude Think Between Tool Calls, Not Just Before: Interleaved Thinking in Your Agent Loop</title>
