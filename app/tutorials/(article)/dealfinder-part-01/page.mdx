@@ -132,8 +132,8 @@ for p in products[:3]:
 Running this against the live API gives output like:
 
 ```
-Costco                         | Sony WH-1000XM5 Wireless Industry Leading...   | $162.97
-Macy's                         | Sony WH-1000XM5 Wireless Industry Leading...   | $248.00
+Costco                         | Sony WH-1000XM5 Wireless Headphones            | $162.97
+Macy's                         | SONY WH-1000XM5 Wireless Noise-Canceling...    | $248.00
 Walmart - COWIN                | COWIN E7 Active Noise Cancelling Headphones ... | $29.99
 ```
 
@@ -227,7 +227,7 @@ No LLM. No API call. About 15 lines of deterministic regex. Verify it against th
 from dealfinder.features import title_brand
 
 cases = [
-    ("Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Headphones", "Sony"),
+    ("Sony WH-1000XM5 Wireless Headphones", "Sony"),
     ("COWIN E7 Active Noise Cancelling Headphones", "Cowin"),
     ("Bose QuietComfort 45 Bluetooth Wireless Over Ear Headphones", "Bose"),
     ("Anker Soundcore Q20i Active Noise Cancelling Headphones", "Anker"),
@@ -239,7 +239,7 @@ for title, expected in cases:
 ```
 
 ```
-✓ 'Sony' from: Sony WH-1000XM5 Wireless Industry Leading Noise Ca
+✓ 'Sony' from: Sony WH-1000XM5 Wireless Headphones
 ✓ 'Cowin' from: COWIN E7 Active Noise Cancelling Headphones
 ✓ 'Bose' from: Bose QuietComfort 45 Bluetooth Wireless Over Ear He
 ✓ 'Anker' from: Anker Soundcore Q20i Active Noise Cancelling Headph
