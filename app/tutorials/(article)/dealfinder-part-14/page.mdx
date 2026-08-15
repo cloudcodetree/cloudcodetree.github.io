@@ -113,7 +113,7 @@ class RagAnswer:
 
 ## retrieve(): the value-reranked evidence
 
-`retrieve()` is not a bare cosine query. It reuses the full Part 5 retriever — hybrid semantic + BM25, fused with RRF, then **value-reranked** over the cached title embeddings — and attaches each item's deal verdict from the Part 3 model. That value-reranked, cached path is the reproducible one shown below. (When `DATABASE_URL` is set, the code can instead pull the *semantic candidates* from pgvector — the Part 13 persistence path — but that returns raw cosine order, the `/semantic` demo's job, not the value rerank; see the note under the output.)
+`retrieve()` is not a bare cosine query. It reuses the full Part 5 retriever — hybrid semantic + BM25, fused with RRF, then **value-reranked** over the cached title embeddings — and attaches each item's deal verdict from the Part 3 model. It's deterministic by design: it ranks over the committed cached vectors, so the output below reproduces on any machine, `DATABASE_URL` or not. The pgvector store (Part 13) holds the same vectors and powers the raw-cosine `/semantic` browser; you can opt `retrieve` into it with `use_db=True`, but that returns raw semantic candidates *without* the value rerank — a different tool for a different job.
 
 ```python
 def retrieve(query: str, k: int = 5, products=None, embeddings=None) -> list[RetrievedItem]:
@@ -145,7 +145,7 @@ def retrieve(query: str, k: int = 5, products=None, embeddings=None) -> list[Ret
     return items
 ```
 
-Run it against the hero query, on the deterministic cached path — run with `DATABASE_URL` unset (or pass `use_db=False`) to reproduce this exactly. This is real output from the frozen snapshot:
+Run it against the hero query. This is real output from the frozen snapshot — deterministic, so it reproduces exactly whether or not you've exported `DATABASE_URL`:
 
 ```python
 from dealfinder import rag
@@ -162,7 +162,7 @@ SUSPICIOUS  $  46.00  sim=-0.2823  Bose QuietComfort 45 Wireless Noise Cancellin
 ```
 
 <Callout tone="note">
-**This is not raw cosine order.** In Part 13, a pure `<=>` cosine query surfaced the pricier, most canonically-described listings first — the $359.99 Bose QuietComfort at similarity 0.8652 — with the budget Anker Q20i nowhere near the top. Here the **Anker Q20i is rank 1** — the value rerank blends relevance with the deal score, so a genuine bargain outranks a merely-relevant listing. The `similarity` field is the *post-rerank* score, which is why the OVERPRICED Bose sits at −1.21: relevant, but pushed down for being a bad buy. Same corpus, a ranking objective tuned for a deal-finder. If you export `DATABASE_URL` (Part 13's pgvector), `retrieve` draws its semantic candidates from the DB in *raw cosine* order instead — great for the `/semantic` browser, but not this value-reranked view; leave it unset (or pass `use_db=False`) for the output above. The `tests/test_rag.py` suite pins this deterministic path regardless of your environment.
+**This is not raw cosine order.** In Part 13, a pure `<=>` cosine query surfaced the pricier, most canonically-described listings first — the $359.99 Bose QuietComfort at similarity 0.8652 — with the budget Anker Q20i nowhere near the top. Here the **Anker Q20i is rank 1** — the value rerank blends relevance with the deal score, so a genuine bargain outranks a merely-relevant listing. The `similarity` field is the *post-rerank* score, which is why the OVERPRICED Bose sits at −1.21: relevant, but pushed down for being a bad buy. Same corpus, a ranking objective tuned for a deal-finder. This value-reranked path is what `retrieve` always runs — the pgvector store (Part 13) is a separate raw-cosine retriever behind `/semantic`, opt-in here via `use_db=True` — so `tests/test_rag.py` reproduces this exact ordering on any machine.
 </Callout>
 
 Notice the two Bose rows. The QuietComfort 45 at **$46.00** is flagged SUSPICIOUS, not DEAL — its `median_signal` (0.7177, i.e. 72% under median) looks like the Anker's, but its `residual_frac` is 0.839: the price sits 84% below the model's $285.15 fair price, the signature of a refurb or a mislisting. Retrieval surfaces it; the verdict warns about it. Both facts travel with the item into the answer.
