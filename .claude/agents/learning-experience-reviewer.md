@@ -39,7 +39,29 @@ mismatch as a **[Blocker]** ("will learn something false"), quoting the real val
   test and confirm. "The fixture runs `docker compose up` + `seed()` + teardown"
   when the real fixture just skips-if-no-DB is a fabrication.
 - **Commands.** Run (or dry-run) the commands a learner is told to type; a command
-  that errors or references a nonexistent target is [Blocker].
+  that errors or references a nonexistent target is [Blocker]. `ls` / `python -c
+  "import X"` every `python -m X`, `pytest <path>`, and CLI invocation before
+  trusting it — non-existent modules and test files are a common fabrication.
+- **Real output blocks.** Any block presented as program output — a top-N ranking,
+  a result set, a seeded-DB query, a JSON tool response, a `pytest` transcript —
+  must be **reproduced by running the producing code and diffed row-for-row**, not
+  eyeballed. Invented-but-plausible rows are the signature failure: products / ids /
+  prices that are not in the data, an impossible sort order (a 71.8% item printed
+  above a 72.4% one in a descending list), a `PASSED` line for a test that does not
+  exist. A result that merely *looks* right is a [Blocker] — regenerate it.
+
+Two traps that cause false negatives and false positives — avoid both:
+
+- **Value vs. gate.** A threshold *definition* must equal the real constant (e.g.
+  `DEAL_MEDIAN_FRAC = 0.15`), but an *assertion about one item's value* may
+  legitimately use a different number — a test asserting `median_signal >= 0.70`
+  for the Bose is correct because the Bose's actual signal is 0.718. Don't flag that
+  as the wrong gate; DO flag prose that defines the gate itself as `>= 0.70`.
+- **Verify against the deployment the lesson NAMES.** If the reader is told "run
+  `docker compose up`, then hit `/models`", verify against *that* container — not a
+  venv where it happens to work. A claim true in one environment but false in the
+  one the learner is sent to (an endpoint that 500s in the shipped image because a
+  dependency is missing) is still a [Blocker].
 
 Concrete how-to for this repo: the companion exposes read-only inspector
 endpoints (`/auth`, `/billing`, `/compliance`, `/ops`, `/evals`, …) and a
@@ -63,6 +85,20 @@ report every part that disagrees with the code's canonical value:
 
 Each disagreement is a [Blocker] or [Friction] depending on whether it teaches a
 false value or just reads inconsistently. Pin the code's value as the source of truth.
+
+**Propagate every mismatch — errors travel in packs.** The moment you confirm a
+shared value is stated wrong in one part, `grep` the ENTIRE series for that value or
+claim and report *every* occurrence, not the first. A wrong fact is rarely alone: a
+false `median_signal >= 0.70` gate lived in four parts (an earlier pass that caught
+only one *missed three real Blockers*); a stale test count `166` sat in four files;
+a `5433` port in two. Finding it once and moving on is the main way a series audit
+under-reports — so the last step for any confirmed-wrong shared value is a
+whole-series grep for it.
+
+**Growing shared files.** An exact test count pinned on a file that *later* parts add
+to drifts by construction — `test_live_sources.py` shows "5 passed" at Part 7 but 7
+by Part 8, same file. Flag exact counts quoted for shared, growing files; recommend
+per-step-tag counts, or not quoting an exact number there at all.
 
 ## Instructional-design framework (after accuracy)
 
@@ -115,7 +151,9 @@ they are correct or stale — say which specific thing a human should eyeball.
    cross-check the lesson's numbers, snippets, filenames, routes, and claimed test
    behavior. Note exactly what you executed.
 2. **Check series invariants** (for a series audit) — build the shared-facts table
-   and flag cross-part disagreements against the code's canonical value.
+   and flag cross-part disagreements against the code's canonical value. For every
+   value you confirm is wrong (here or in Dimension 0), grep the whole series and
+   list *all* occurrences — never stop at the first.
 3. **Read as a first-time learner.** Read the MDX end to end; note every point where
    you'd stall, re-read, or need outside knowledge. Read `manifest.ts` for series
    context and at least one sibling part to calibrate conventions.
