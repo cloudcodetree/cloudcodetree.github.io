@@ -239,7 +239,7 @@ print(mcp_server.score_deal(_id("Bose QuietComfort 45")))
 }
 ```
 
-This is the teaching moment the whole two-signal architecture exists to surface. The Bose QC45 and the Anker Q20i are both listed around $45. Median signal alone would call both a deal. But the Bose is a flagship — the same fair-price tier as the reference Sony XM5 — so its model fair price is also $285.15. `residual_frac` of 0.839 crosses the threshold (≥ 0.70) while `median_signal` of 0.718 is also ≥ 0.70. Both conditions met: verdict **suspicious**.
+This is the teaching moment the whole two-signal architecture exists to surface. The Bose QC45 and the Anker Q20i are both listed around $45. Median signal alone would call both a deal. But the Bose is a flagship — the same fair-price tier as the reference Sony XM5 — so its model fair price is also $285.15. `median_signal` of 0.718 clears the `≥ 0.15` deal gate (`DEAL_MEDIAN_FRAC`) while `residual_frac` of 0.839 crosses the `≥ 0.70` suspicious guard (`SUSPICIOUS_RESIDUAL_FRAC`). Both conditions met: verdict **suspicious**.
 
 The Bose QC45 title contains no condition token, so `condition = "new"` (default). The trap is caught by the model residual, not by a parsed refurb flag.
 
