@@ -359,7 +359,7 @@ The JavaScript `card()` template reads `p.badge` and applies a colour class.
 Start the server with `DATABASE_URL` pointing at the pgvector instance from Part 13:
 
 ```bash
-DATABASE_URL=postgresql://user:pass@localhost:5432/dealfinder \
+DATABASE_URL=postgresql://dealfinder:dealfinder@localhost:5434/dealfinder \
   uvicorn dealfinder.serve:app --reload
 ```
 

@@ -76,7 +76,7 @@ The SPA lives in `companions/dealfinder/frontend/`:
 ```
 frontend/
 ├── index.html
-├── package.json          # name: dealfinder-part-31
+├── package.json          # name: dealfinder-frontend
 ├── tsconfig.json         # strict TypeScript
 ├── vite.config.ts        # dev proxy config
 └── src/
@@ -301,7 +301,7 @@ export function badgeFor(dealPct: number | undefined): Badge {
 }
 ```
 
-The thresholds carry the residual reasoning from Part 4. `deal_pct >= 60` maps to `SUSPICIOUS` rather than `DEAL` because the $46 Bose QuietComfort 45 — a flagship headphone with a median fair price of $285.15 — lands at 71.8% below the query median. Without the model residual (Part 4), a naive threshold would mark it `DEAL`. With the threshold set at 60%, it is already `SUSPICIOUS` on the median signal alone, before the model even runs.
+The thresholds carry the residual reasoning from Part 3. `deal_pct >= 60` maps to `SUSPICIOUS` rather than `DEAL` because the $46 Bose QuietComfort 45 — a flagship headphone with a median fair price of $285.15 — lands at 71.8% below the query median. Without the model residual (Part 3), a naive threshold would mark it `DEAL`. With the threshold set at 60%, it is already `SUSPICIOUS` on the median signal alone, before the model even runs.
 
 ```typescript
 const STYLES: Record<Badge, { bg: string; fg: string }> = {
@@ -347,7 +347,7 @@ The `done` frame for this query carries `median_price: 162.97` — the pinned sn
 | Sony WH-1000XM6 | $399.99 | −145.4% | **OVERPRICED** |
 
 <Callout tone="note">
-**Why are both Anker and Bose marked SUSPICIOUS?** The `deal_pct` threshold at 60% is a conservative heuristic — anything that far below the query median is unusual enough to warrant a second look. The Anker Q20i is a genuine budget deal that happens to cross that threshold. The full two-signal deal score from Part 4 (combining the median signal with the model residual) separates them: Anker's residual fraction is +0.585 (below model fair price of $108.33), while Bose's is +0.839 (below model fair price of $285.15). A UI that surfaces the model score would show Anker as `DEAL` and Bose as `SUSPICIOUS`. The badge in this part is median-only — Part 4 is where the two-signal separation happens.
+**Why are both Anker and Bose marked SUSPICIOUS?** The `deal_pct` threshold at 60% is a conservative heuristic — anything that far below the query median is unusual enough to warrant a second look. The Anker Q20i is a genuine budget deal that happens to cross that threshold. The full two-signal deal score from Part 3 (combining the median signal with the model residual) separates them: Anker's residual fraction is +0.585 (below model fair price of $108.33), while Bose's is +0.839 (below model fair price of $285.15). A UI that surfaces the model score would show Anker as `DEAL` and Bose as `SUSPICIOUS`. The badge in this part is median-only — Part 3 is where the two-signal separation happens.
 </Callout>
 
 The result array is sorted cheapest-first after backfill. The Sony WH-1000XM5 at $162.97 appears once — the backend's `_stream_search` deduplication (using `dedup_key`) already collapsed the $248 Macy's listing, keeping only the cheaper Costco price (Part 1 established this dedup pattern).
@@ -380,7 +380,7 @@ The sign-in flow:
 1. User submits email + password to `supabase.auth.signInWithPassword`.
 2. Supabase returns a session. The session's `access_token` is a JWT signed with your project's `SUPABASE_JWT_SECRET`.
 3. The `Auth` component calls `fetchMe(session.access_token)` — a `GET /me` with `Authorization: Bearer <token>`.
-4. The FastAPI backend (`serve.py:142`, `require_user` dependency) verifies the JWT locally using `SUPABASE_JWT_SECRET`, extracts the `sub` claim as the user id, and reads the role from `app_metadata.plan` or `app_metadata.role` (Part 32 covers the full claim resolution chain).
+4. The FastAPI backend's `require_user` dependency (defined in `dealfinder/auth.py`, mounted on `GET /me` in `serve.py`) verifies the JWT locally using `SUPABASE_JWT_SECRET`, extracts the `sub` claim as the user id, and reads the role from `app_metadata.plan` or `app_metadata.role` (Part 32 covers the full claim resolution chain).
 5. `/me` returns `{ id, email, role }`. The component gates the "pro features unlocked" affordance on `me.role === "pro"`.
 
 This lives in Part 31's code but the backend auth module (`dealfinder/auth.py`) is the Part 32 topic. The `frontend/` code is deliberately thin on the auth side — it signs in, holds the session token, and passes it to the backend. The backend does all JWT verification.

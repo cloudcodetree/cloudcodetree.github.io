@@ -226,7 +226,7 @@ The gate parameters are defined as module-level constants in `dealfinder/evals.p
 - `GATE_PRECISION = 0.80` — at least 4 of the top 5 must be labeled `deal`.
 - `GOLDEN_LABELS` — 20 hand-labeled snapshot items: 15 from the "noise cancelling headphones" query (audio category) + 5 cross-category items (Kindle Paperwhite, Galaxy Tab A11+, Armitron Link Smart Watch, Arlo Ultra 3, PNY RTX PRO 6000).
 
-The `two_signal` ranker — which uses both the cross-source median and the model residual — scores precision@5 = **1.00** on the golden set. The `median_only` ranker scores **0.40**, because the naive median is fooled by the same listings that motivated the two-signal approach in Part 4: the Bose QC45 at $46 (residual_frac 0.839, labeled `suspicious`) and the Kindle Paperwhite mislisting both rank high on median signal alone, but neither is a genuine deal.
+The `two_signal` ranker — which uses both the cross-source median and the model residual — scores precision@5 = **1.00** on the golden set. The `median_only` ranker scores **0.40**, because the naive median is fooled by the same listings that motivated the two-signal approach in Part 3: the Bose QC45 at $46 (residual_frac 0.839, labeled `suspicious`) and the Kindle Paperwhite mislisting both rank high on median signal alone, but neither is a genuine deal.
 
 If you introduce a change that breaks the two-signal ranker — say, a bad merge that reverts the residual-frac threshold — the eval gate catches it. The deploy step never runs. The Anker Q20i badge stays `DEAL` in production because the CI gate does not pass unless precision@5 remains at or above 0.80.
 

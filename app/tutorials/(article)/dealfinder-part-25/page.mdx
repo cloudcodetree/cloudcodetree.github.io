@@ -242,7 +242,7 @@ Record every tool call the agent makes, along with enough context to reconstruct
 
 ## Layer 6 — The tool supply chain
 
-Layers 1–5 harden the *model* surface: injection in listings, PII, output validation. But DealFinder both **exposes** an MCP server (Part 20) and **consumes** tools — and the agent reads every tool's *description* as trusted context. That opens a supply-chain surface the 2026 news was full of: Agentjacking, SymJack, poisoned MCP configs, slopsquatted dependencies. `dealfinder/tool_trust.py` closes three gaps.
+Layers 1–5 harden the *model* surface: injection in listings, PII, output validation. But DealFinder both **exposes** an MCP server (Part 12) and **consumes** tools — and the agent reads every tool's *description* as trusted context. That opens a supply-chain surface the 2026 news was full of: Agentjacking, SymJack, poisoned MCP configs, slopsquatted dependencies. `dealfinder/tool_trust.py` closes three gaps.
 
 **Tool-description poisoning.** A malicious tool ships a description containing injected instructions; the agent reads it at registration and obeys. Scan descriptions like any other untrusted input — reusing the Layer 1 detector plus tool-specific red flags:
 
