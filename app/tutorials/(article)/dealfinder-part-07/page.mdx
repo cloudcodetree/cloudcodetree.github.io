@@ -354,17 +354,16 @@ Rate limits on the free tier are 10 requests per second. The `search()` implemen
 
 ## Live smoke test: all three sources
 
-With all three sources configured in `.env`, fire the smoke test:
+The committed tests never hit the network — `tests/test_live_sources.py` has 7 offline tests that mock the HTTP layer with `respx` and run on every CI push. To sanity-check *real* credentials, drop a small local smoke script like the one below (it's illustrative — not a committed repo file, so it never runs in CI):
 
 ```python
-# tests/test_live_sources_smoke.py — marked @pytest.mark.live
-import asyncio, os, pytest
+# a local smoke script — real credentials, real HTTP (never committed / never in CI)
+import os
 from dealfinder.live_sources import EbaySource, RapidApiSource, BestBuySource
 
 QUERY = "noise cancelling headphones"
 
-@pytest.mark.live
-def test_all_sources_return_results():
+def smoke():
     sources = []
     if os.getenv("EBAY_APP_ID"):
         sources.append(EbaySource())
@@ -377,25 +376,27 @@ def test_all_sources_return_results():
 
     for src in sources:
         results = src.search(QUERY, limit=5)
-        assert len(results) >= 1, f"{src.name}: expected >= 1 result, got 0"
-        for p in results:
-            assert p.price > 0, f"{src.name}: price must be positive"
-            assert p.currency, f"{src.name}: currency must be set"
+        assert results, f"{src.name}: expected >= 1 result, got 0"
+        print(f"---- {src.name} ({QUERY!r}) → {len(results)} results")
+        for i, p in enumerate(results):
+            assert p.price > 0 and p.currency
+            print(f"  [{i}] {p.title[:48]} ...  ${p.price}  {p.source}")
+
+if __name__ == "__main__":
+    smoke()
 ```
 
-Run it with:
+Run it locally (with your keys in `.env`):
 
 ```bash
-LIVE_TESTS=1 pytest -m live tests/test_live_sources_smoke.py -v
+python smoke_live_sources.py
 ```
 
-The `@pytest.mark.live` marker means CI skips this test by default (`LIVE_TESTS` is not set in CI). The offline unit tests in `tests/test_live_sources.py` run on every push and use respx to mock the HTTP layer. The smoke test is opt-in: run it locally before committing a connector change.
+Live calls stay out of CI on purpose: what runs on every push is `tests/test_live_sources.py` — 7 offline tests that mock the HTTP layer with `respx`. This script is the opt-in check you run by hand before committing a connector change.
 
-Expected truncated output with all three configured:
+Expected truncated output with all three configured (live prices vary):
 
 ```
-tests/test_live_sources_smoke.py::test_all_sources_return_results PASSED
-
 ---- EbaySource ("noise cancelling headphones") → 5 results
   [0] Sony WH-1000XM5 Wireless Noise Canceling Headphones ...   $159.99  eBay:New
   [1] Sony WH-1000XM5 Premium Headphones Certified Refurb ...   $127.00  eBay:Refurbished
@@ -418,7 +419,7 @@ Live prices will differ from this example — the snapshot prices are the anchor
 
 ## The Bose QC45 contrast: source trust matters
 
-The snapshot contains a Bose QuietComfort 45 at $46.00, sourced from a third-party Google Shopping listing. The deal-score model flags it as suspicious: at a fair value of $285.15, the residual is $239.15, giving `residual_frac = 0.839`. The thresholds for suspicious are `median_signal >= 0.70` AND `residual_frac > 0.70` — both conditions are met. The product has no condition token in its title, so `condition = "new"` by default (the model residual catches the trap, not a condition flag).
+The snapshot contains a Bose QuietComfort 45 at $46.00, sourced from a third-party Google Shopping listing. The deal-score model flags it as suspicious: at a fair value of $285.15, the residual is $239.15, giving `residual_frac = 0.839`. The thresholds for suspicious are `median_signal >= 0.15` AND `residual_frac >= 0.70` — both conditions are met (median_signal is 0.718, residual_frac 0.839). The product has no condition token in its title, so `condition = "new"` by default (the model residual catches the trap, not a condition flag).
 
 Now look at what BestBuy returns for the same product. A direct BestBuy search for Bose QuietComfort 45 headphones returns `salePrice` values in the $199–$249 range — the legitimate current retail price for a flagship that carries a $329 MSRP.
 
