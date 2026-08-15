@@ -49,24 +49,43 @@ The `.devcontainer/` gives you Python 3.11 in one click.
 
 Part 1 built the snapshot: 270 real electronics listings from 18 queries. Every item already carries `deal_pct` — the percentage below the same-query cross-source median. It's fast and model-free. So why isn't it enough?
 
-Run `python -m dealfinder.train_model` on the full corpus and ask for the top "deals" by raw `deal_pct`:
+Rank the whole corpus by raw `deal_pct` — the same-query cross-source discount — straight from the snapshot:
+
+```python
+import statistics
+from collections import defaultdict
+from dealfinder.snapshot import load_snapshot
+
+rows = load_snapshot()
+med = defaultdict(list)
+for r in rows:
+    med[r["query"]].append(float(r["price"]))
+med = {q: statistics.median(p) for q, p in med.items()}
+
+def deal_pct(r):
+    m = med[r["query"]]
+    return (m - float(r["price"])) / m * 100
+
+for r in sorted(rows, key=deal_pct, reverse=True)[:5]:
+    print(f'{deal_pct(r):+5.1f}%  ${float(r["price"]):>8.2f}  {r["title"][:38]:38}  (query: {r["query"]})')
+```
 
 ```
-$ python -m dealfinder.describe_deal_pct
-deal_pct range: -3785.1% to +91.7%
+deal_pct range: -3785.7% to +91.7%
 
 top 5 by deal_pct (naive):
-  1. Kindle cover accessory     $10.75  +91.7%   (query: "kindle paperwhite")
-  2. Bose QuietComfort 45       $46.00  +71.8%   (query: "noise cancelling headphones")
-  3. Anker Soundcore Q20i       $44.99  +72.4%   (query: "noise cancelling headphones")
-  ...
+  +91.7%  $   10.75  Amazon Kindle Paperwhite E-reader       (query: kindle e-reader)
+  +89.3%  $   29.88  Onn. 2.0 LED Soundbar                   (query: soundbar)
+  +88.8%  $   15.00  Samsung Galaxy Tab A11+ 128GB Gray      (query: android tablet)
+  +86.6%  $   47.00  Graphics Cards 30xx Series NVIDIA GeFo  (query: graphics card rtx)
+  +85.4%  $   51.00  Rtx 2070 Nvidia Turing Cards Introduci  (query: graphics card rtx)
 ```
 
 Three things jump out:
 
-1. **An accessory is ranked #1.** A $10.75 Kindle cover sits in the same "kindle paperwhite" query bucket as a $139 reader. The median is pulled up by the device, so the cover looks like a 91.7% discount. The "deal" is a category mismatch.
-2. **A $329-MSRP flagship at $46 ranks #2.** The Bose QuietComfort 45 is listed at $46 — 71.8% under the $162.97 headphone median. The Anker Q20i, also at ~$45, ranks right next to it at 72.4% under. Both look identical on this signal.
-3. **The outlier at −3785%.** One mispriced listing pulls the full-corpus minimum to a number that makes every ranking comparison meaningless.
+1. **The top 5 are cross-category noise.** A $10.75 "Kindle Paperwhite" (a real reader is ~$139), a $29.88 soundbar, a $15 tablet, two cut-price graphics cards — each is cheap *relative to its own query's median*, but none is a genuine headline deal; they're mispriced or mislabeled listings dragging their peer-group median around.
+2. **The items we actually care about are buried and indistinguishable.** The Anker Soundcore Q20i ($44.99) lands at rank #23 (+72.4% under the $162.97 headphone median) and the Bose QuietComfort 45 ($46.00) right behind it at #25 (+71.8%). On this signal the honest budget deal and the too-good-to-be-true flagship look identical — the exact problem this part solves.
+3. **The outlier at −3785%.** One mispriced listing — a $13,599 RTX PRO 6000 against a $350 "graphics card rtx" median — pulls the corpus minimum to a number that makes raw comparisons meaningless.
 
 The signal breaks on broad data because it has no opinion about what a product *should* cost — it only knows where it sits relative to a noisy peer group. A $46 Bose QC45 could be:
 - a refurb or mislisted item (the likely truth), or
@@ -227,7 +246,7 @@ def verdict(actual, median, fair) -> Verdict:
     return Verdict("fair", ...)
 ```
 
-The suspicious condition is `median_signal >= 0.70 AND residual_frac > 0.70`. Both must fire. The Anker Q20i has `residual_frac = 0.585` — it passes the residual guard. The Bose QC45 has `residual_frac = 0.839` — it does not.
+The suspicious condition is `median_signal >= 0.15 AND residual_frac >= 0.70` — the same `DEAL_MEDIAN_FRAC` gate a deal must clear, plus the residual guard. Both must fire. The Anker Q20i has `residual_frac = 0.585` — it passes the residual guard. The Bose QC45 has `residual_frac = 0.839` — it does not.
 
 <DealResidual />
 
@@ -270,61 +289,66 @@ All the hero-cast values above are not just examples — they are **test asserti
 
 ```python
 # tests/test_dealscore.py — pinned against electronics-2026-07.json
-from dealfinder.dealscore import median_signal, residual, residual_fraction, verdict
+ANCHOR_MEDIAN = 162.97  # "noise cancelling headphones" median at capture (spec §3)
 
-SNAP_MEDIAN = 162.97   # anchor query median (spec §3)
+@pytest.fixture(scope="module")
+def audio_model_and_products():
+    """Fit the linear baseline on the audio category (comparable → brand tier bites)."""
+    products = load_products()
+    audio = [p for p in products if p.category == "audio"]
+    model = LinearModel().fit(feature_matrix(audio), [p.price for p in audio])
+    return model, audio
 
-def test_median_signal_hero_cast():
-    assert median_signal(162.97, SNAP_MEDIAN) == pytest.approx(0.000, abs=0.01)  # XM5 Costco
-    assert median_signal( 44.99, SNAP_MEDIAN) == pytest.approx(0.724, abs=0.01)  # Anker Q20i
-    assert median_signal( 46.00, SNAP_MEDIAN) == pytest.approx(0.718, abs=0.01)  # Bose QC45
+def test_median_signal_math():
+    assert median_signal(44.99, 162.97) == pytest.approx(0.724, abs=0.01)
+    assert median_signal(200.0, 162.97) < 0                       # above median
 
-def test_model_residuals_hero_cast(audio_model):
-    # Both XM5 and Bose share fair price: same tier-4, audio, new features
-    assert audio_model.predict(xm5_features)  == pytest.approx(285.15, abs=5.0)
-    assert audio_model.predict(bose_features) == pytest.approx(285.15, abs=5.0)
-    assert audio_model.predict(anker_features) == pytest.approx(108.33, abs=5.0)
+def test_anker_q20i_is_an_honest_deal(audio_model_and_products):
+    model, audio = audio_model_and_products
+    anker = _find(audio, "Q20i")                                  # $44.99
+    v = verdict(anker.price, ANCHOR_MEDIAN, fair_price(model, featurize(anker)))
+    assert v.label == "deal"                                      # true positive
+    assert v.median_signal == pytest.approx(0.724, abs=0.01)
 
-def test_residual_fraction_guard():
-    # Bose: residual_frac > 0.70 (suspicious threshold)
-    assert residual_fraction(46.00, 285.15) == pytest.approx(0.839, abs=0.01)
-    assert residual_fraction(46.00, 285.15) > 0.70
+def test_bose_qc45_trap_is_suspicious(audio_model_and_products):
+    model, audio = audio_model_and_products
+    bose = _find(audio, "QuietComfort 45")                        # $46.00
+    v = verdict(bose.price, ANCHOR_MEDIAN, fair_price(model, featurize(bose)))
+    assert v.median_signal >= 0.70          # median ALONE says "72%-off steal"
+    assert v.label == "suspicious"          # …but the blend rejects it
+    assert v.residual_frac > 0.70           # way below the flagship fair price
 
-    # Anker: residual_frac < 0.70 (below suspicious threshold — genuine deal)
-    assert residual_fraction(44.99, 108.33) == pytest.approx(0.585, abs=0.01)
-    assert residual_fraction(44.99, 108.33) < 0.70
+def test_trap_and_honest_deal_are_separated_by_the_residual(audio_model_and_products):
+    """Both are ~72% under median at ~$45; only the residual tells them apart."""
+    model, audio = audio_model_and_products
+    rf_anker = residual_fraction(44.99, fair_price(model, featurize(_find(audio, "Q20i"))))
+    rf_bose  = residual_fraction(46.00, fair_price(model, featurize(_find(audio, "QuietComfort 45"))))
+    assert rf_bose > rf_anker                                     # flagship is further below fair
 
-def test_verdict_hero_cast(audio_model):
-    assert verdict(44.99, SNAP_MEDIAN, 108.33).label == "deal"
-    assert verdict(46.00, SNAP_MEDIAN, 285.15).label == "suspicious"
-    assert verdict(162.97, SNAP_MEDIAN, 285.15).label == "fair"
-    assert verdict(399.99, SNAP_MEDIAN, 285.15).label == "overpriced"
-
-def test_blended_score_ordering(audio_model):
-    # The Anker must outscore the Bose — the guard works
-    scores = {
-        "anker": blend_deal_score(44.99, SNAP_MEDIAN, 108.33),
-        "bose":  blend_deal_score(46.00, SNAP_MEDIAN, 285.15),
-        "xm5":   blend_deal_score(162.97, SNAP_MEDIAN, 285.15),
-    }
-    assert scores["anker"] > scores["bose"]
-    assert scores["anker"] > scores["xm5"]
-
-def test_model_mae_within_tolerance(audio_model, test_split):
-    assert audio_model.held_out_mae < 85.0   # dollars; real value committed to repo
+@pytest.mark.parametrize("deal_pct,residual_frac,expected", [
+    (0.724, 0.585, "DEAL"),          # Anker Q20i: 72% under median, plausible residual
+    (0.000, 0.428, "FAIR"),          # priced at the same-query median
+    (0.718, 0.839, "SUSPICIOUS"),    # Bose QC45 $46: 72% under, but far below model fair
+    (-1.454, -0.403, "OVERPRICED"),  # Sony XM6 $399.99: well above the median
+])
+def test_render_badge_maps_the_two_signals(deal_pct, residual_frac, expected):
+    assert render_badge(deal_pct, residual_frac) == expected
 ```
 
-Run them:
+Run them (the file has **9** tests — the four above plus `test_anchor_sits_at_median` and the four parametrized `render_badge` cases):
 
 ```
 $ pytest tests/test_dealscore.py -v
-test_median_signal_hero_cast  PASSED
-test_model_residuals_hero_cast PASSED
-test_residual_fraction_guard  PASSED
-test_verdict_hero_cast        PASSED
-test_blended_score_ordering   PASSED
-test_model_mae_within_tolerance PASSED
-6 passed in 0.43s
+test_median_signal_math                                    PASSED
+test_anchor_sits_at_median                                 PASSED
+test_anker_q20i_is_an_honest_deal                          PASSED
+test_bose_qc45_trap_is_suspicious                          PASSED
+test_trap_and_honest_deal_are_separated_by_the_residual    PASSED
+test_render_badge_maps_the_two_signals[0.724-0.585-DEAL]        PASSED
+test_render_badge_maps_the_two_signals[0.0-0.428-FAIR]         PASSED
+test_render_badge_maps_the_two_signals[0.718-0.839-SUSPICIOUS] PASSED
+test_render_badge_maps_the_two_signals[-1.454--0.403-OVERPRICED] PASSED
+9 passed in 0.21s
 ```
 
 Because the normal equation is exact and the split is deterministic (`seed=0`), the model needs no serialized artifact — `python -m dealfinder.train_model` refits the identical weights from the frozen snapshot every run, so the tests pin the numbers directly.
@@ -362,7 +386,7 @@ trained on 202 listings, tested on 68
 
 ```bash
 pytest tests/test_dealscore.py tests/test_dealmodel.py
-# 11 passed
+# 15 passed  (9 in test_dealscore.py + 6 in test_dealmodel.py)
 ```
 
 **See it in the running product:**
