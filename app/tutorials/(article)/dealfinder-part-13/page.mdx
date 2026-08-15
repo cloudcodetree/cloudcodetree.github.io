@@ -249,7 +249,7 @@ with connect() as c:
     assert row["price"] == 162.97
     assert "wh-1000xm5" in row["title"].lower()
     print(row["title"], row["price"])
-# Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Headphones  162.97
+# Sony WH-1000XM5 Wireless Headphones 162.97
 ```
 
 ---
@@ -329,16 +329,16 @@ for r in results:
 Expected output against the seeded 270-item snapshot:
 
 ```
-0.9121  $162.97  Sony WH-1000XM5 Wireless Industry Leading Noise Cancelin
-0.8934  $ 44.99  Anker Soundcore Q20i Active Noise Cancelling Headphones H
-0.8881  $ 46.00  Bose QuietComfort 45 Bluetooth Wireless Over Ear Headphon
-0.8702  $399.99  Sony WH-1000XM6 Wireless Noise Canceling Headphones
-0.8619  $ 37.95  JBL Tune 510BT Wireless On-Ear Headphones
+0.8652  $ 359.99  Bose QuietComfort Noise Cancelling Wireless Headphones
+0.8511  $ 129.99  Sony WH-CH720N/P Wireless Noise Canceling Headphones
+0.8442  $ 248.00  SONY WH-1000XM5 Wireless Noise-Canceling Headphones
+0.8411  $ 129.99  Soundcore Space 2 Active Noise Cancelling Headphones
+0.8373  $ 399.99  Sony WH-1000XM6 Wireless Noise Canceling Headphones
 ```
 
 The top-5 match what you would get from the Part 5 numpy dot product — identical embeddings, identical cosine metric. The difference is that this result came from a durable Postgres index, not a matrix that evaporates on restart.
 
-Notice rank 3: the Bose QuietComfort 45 at $46.00, verdict SUSPICIOUS. Cosine similarity is 0.888 — correct by relevance, because the QC45 is unambiguously a noise-cancelling headphone. pgvector does its job. The deal-score guard (Part 3's model residual: fair price $285.15 − actual $46.00 = residual_frac 0.839, above the suspicious threshold of 0.70) is a downstream signal, not a retrieval concern. The `semantic_search` tool returns raw cosine-ranked results; the agent (Part 11) applies the deal guard.
+Notice what retrieval does **and does not** do: every one of the top-5 is unambiguously a noise-cancelling headphone — pgvector ranks by *semantic relevance*, and the highest cosine scores go to the canonical, fully-described listings (the $359.99 Bose, the $248 XM5). The cheap traps this course cares about — the $46 Bose QC45 and the $44.99 Anker Q20i — are relevant too, but they do **not** float to the top on cosine alone, because price is not a retrieval signal. That is the point: `semantic_search` returns raw cosine-ranked results; the deal-score guard (Part 3's model residual — e.g. the QC45's fair price $285.15 vs actual $46.00 → residual_frac 0.839, above the 0.70 suspicious threshold) is a separate downstream layer the agent (Part 11) applies *after* retrieval.
 
 You can also run the raw SQL directly in psql to inspect the query plan:
 
@@ -450,9 +450,9 @@ mcp__dealfinder__semantic_search query="wireless earbuds gym" top_k=3
 
 ```json
 [
-  { "id": "anker-spe2-p5019", "title": "Soundcore Sport X10 True Wireless Earbuds", "price": 59.99, "similarity": 0.881 },
-  { "id": "jbl-ref-flow-pro", "title": "JBL Reflect Flow Pro True Wireless Earbuds", "price": 74.95, "similarity": 0.873 },
-  { "id": "jaybird-vista2-b", "title": "Jaybird Vista 2 True Wireless Earbuds", "price": 89.00, "similarity": 0.861 }
+  { "id": "rapidapi-catalogid:8392322776607535404,productid:",  "title": "Soundcore Space A40 Wireless Earbuds",       "price": 59.99, "similarity": 0.810 },
+  { "id": "rapidapi-catalogid:3305493310583775721,productid:",  "title": "ProBuds V2 True Wireless Bluetooth Earbuds", "price": 19.98, "similarity": 0.788 },
+  { "id": "rapidapi-catalogid:13355876079085642476,productid:", "title": "Sony WF-C510 Truly Wireless Earbuds",        "price": 68.00, "similarity": 0.779 }
 ]
 ```
 

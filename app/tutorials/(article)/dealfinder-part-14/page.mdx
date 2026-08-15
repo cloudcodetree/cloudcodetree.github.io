@@ -162,7 +162,7 @@ SUSPICIOUS  $  46.00  sim=-0.2823  Bose QuietComfort 45 Wireless Noise Cancellin
 ```
 
 <Callout tone="note">
-**This is not raw cosine order.** In Part 13, a pure `<=>` cosine query put the Sony WH-1000XM5 at rank 1 (similarity 0.9121). Here the **Anker Q20i is rank 1** — the value rerank blends relevance with the deal score, so a genuine bargain outranks a merely-relevant listing. The `similarity` field is the *post-rerank* score, which is why the OVERPRICED Bose sits at −1.21: relevant, but pushed down for being a bad buy. Same corpus, a ranking objective tuned for a deal-finder.
+**This is not raw cosine order.** In Part 13, a pure `<=>` cosine query surfaced the pricier, most canonically-described listings first — the $359.99 Bose QuietComfort at similarity 0.8652 — with the budget Anker Q20i nowhere near the top. Here the **Anker Q20i is rank 1** — the value rerank blends relevance with the deal score, so a genuine bargain outranks a merely-relevant listing. The `similarity` field is the *post-rerank* score, which is why the OVERPRICED Bose sits at −1.21: relevant, but pushed down for being a bad buy. Same corpus, a ranking objective tuned for a deal-finder.
 </Callout>
 
 Notice the two Bose rows. The QuietComfort 45 at **$46.00** is flagged SUSPICIOUS, not DEAL — its `median_signal` (0.7177, i.e. 72% under median) looks like the Anker's, but its `residual_frac` is 0.839: the price sits 84% below the model's $285.15 fair price, the signature of a refurb or a mislisting. Retrieval surfaces it; the verdict warns about it. Both facts travel with the item into the answer.
