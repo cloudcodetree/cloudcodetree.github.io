@@ -23,7 +23,7 @@ export const metadata = {
 
 **TL;DR: A system is only as trustworthy as its tests and its runbook. This part adds the final verification layer to DealFinder: Playwright e2e tests that guard the exact badge contract the UI makes, a load/chaos harness that proves the circuit breaker holds under failure, and a structured runbook so on-call doesn't mean "read the code at 2am."**
 
-You have 224 passing unit/integration tests, a CI eval gate, and a deployed container from Part 28. What you don't yet have is proof that the whole stack holds together under real conditions — browser to backend to live sources — and a written plan for what to do when it doesn't. Those are the two gaps this part closes.
+You have 219 passing unit/integration tests (the chaos suite in this part brings that to 224), a CI eval gate, and a deployed container from Part 28. What you don't yet have is proof that the whole stack holds together under real conditions — browser to backend to live sources — and a written plan for what to do when it doesn't. Those are the two gaps this part closes.
 
 <Callout tone="tip">
 **Code along.** Companion repo: [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). Step tags for this part: `step-33a` (Playwright setup + `search.spec.ts`) · `step-33b` (`live.spec.ts` + fixtures) · `step-33c` (loadtest.py) · `step-33d` (chaos tests + RUNBOOK.md).
@@ -57,7 +57,7 @@ You have 224 passing unit/integration tests, a CI eval gate, and a deployed cont
 
 ## Why e2e, load, and chaos are three different things
 
-Unit and integration tests — you have 224 of them — check that individual components behave correctly in isolation or in controlled combinations. They do not prove that the browser can actually render a deal card, that the system holds up under concurrent load, or that the circuit breaker fires correctly when a source goes dark at runtime.
+Unit and integration tests — you have 219 of them entering this part — check that individual components behave correctly in isolation or in controlled combinations. They do not prove that the browser can actually render a deal card, that the system holds up under concurrent load, or that the circuit breaker fires correctly when a source goes dark at runtime.
 
 Each layer tests something the others cannot:
 
@@ -288,7 +288,7 @@ def test_all_sources_down_returns_well_formed_empty_envelope():
     # No exception raised — this is the key invariant.
 ```
 
-All five tests pass offline in 0.08 seconds:
+All five tests pass offline in well under a second:
 
 <ChaosBreaker />
 
@@ -316,8 +316,8 @@ Check these first on any incident:
 ```bash
 curl http://your-host/healthz          # { "status": "ok" }
 curl http://your-host/sources          # per-source live/throttled state
-curl 'http://your-host/search?q=headphones&limit=3'  # end-to-end smoke test
-curl 'http://your-host/deal?id=<id>'   # deal-score calculation
+curl 'http://your-host/search?q=headphones'  # end-to-end smoke test
+curl 'http://your-host/deal/<id>'   # deal-score calculation (path param)
 curl http://your-host/me               # auth context (requires token)
 ```
 
@@ -367,7 +367,7 @@ After Part 36, the complete test inventory across the companion repo — **224**
 | `frontend/e2e/search.spec.ts` | 5 passed | Yes (stubbed) | Yes |
 | `frontend/e2e/live.spec.ts` | 1 skipped by default | No | No |
 
-The 5 chaos tests are counted **inside** the 224 — `tests/test_chaos.py` is one of the pytest modules, broken out here because it is the suite this part focuses on. The 1 skipped in pytest is a slow integration test gated behind a `@pytest.mark.slow` marker; run it with `pytest -m slow` before a release. The 1 skipped in Playwright is the live backend test gated on `E2E_LIVE=1`.
+The 5 chaos tests are counted **inside** the 224 — `tests/test_chaos.py` is one of the pytest modules, broken out here because it is the suite this part focuses on. The 1 skipped in pytest is `tests/test_pgstore.py`, which skips unless `DATABASE_URL` points at a reachable Postgres; run it against a live DB with `DATABASE_URL=… pytest tests/test_pgstore.py`. The 1 skipped in Playwright is the live backend test gated on `E2E_LIVE=1`.
 
 Run the full offline suite:
 

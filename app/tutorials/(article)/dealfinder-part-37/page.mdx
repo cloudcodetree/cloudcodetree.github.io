@@ -94,7 +94,7 @@ The Bose and the Anker are at nearly the same price and both look like deals by 
 pytest tests/test_dealscore.py -v
 ```
 
-The sign convention is fixed course-wide: `residual = predicted_fair − actual`. Large positive residual means suspiciously cheap. The suspicious threshold is `median_signal ≥ 0.70 AND residual_frac > 0.70`. The Bose triggers both (median_signal 0.718, residual_frac 0.839). The Anker clears the median gate but not the model gate (residual_frac 0.585 < 0.70) — so it correctly lands as DEAL, not SUSPICIOUS.
+The sign convention is fixed course-wide: `residual = predicted_fair − actual`. Large positive residual means suspiciously cheap. The suspicious threshold is `median_signal ≥ 0.15 AND residual_frac ≥ 0.70`. The Bose triggers both (median_signal 0.718, residual_frac 0.839). The Anker clears the median gate but not the model gate (residual_frac 0.585 < 0.70) — so it correctly lands as DEAL, not SUSPICIOUS.
 
 ---
 
@@ -151,7 +151,7 @@ Each source implements a `DealSource` interface. The aggregator runs them in tie
 
 **Q: Why hybrid search instead of just embeddings?**
 
-Embeddings capture semantic similarity but miss exact model numbers — "WH-1000XM5" and "WH-1000XM6" are neighbors in embedding space but very different products and price points. BM25 catches exact-match queries but fails on synonyms ("noise cancelling" vs "ANC"). RRF fuses the two rankings without a tuned weight parameter: each retriever contributes its rank, and the combined score is robust to either retriever misfiring. The deal score reranks on top of that, so the final order reflects both relevance and value. All embeddings are `BAAI/bge-small-en-v1.5` (384-dim, fastembed) — one model, course-wide, cached in pgvector from Part 4.
+Embeddings capture semantic similarity but miss exact model numbers — "WH-1000XM5" and "WH-1000XM6" are neighbors in embedding space but very different products and price points. BM25 catches exact-match queries but fails on synonyms ("noise cancelling" vs "ANC"). RRF fuses the two rankings without a tuned weight parameter: each retriever contributes its rank, and the combined score is robust to either retriever misfiring. The deal score reranks on top of that, so the final order reflects both relevance and value. All embeddings are `BAAI/bge-small-en-v1.5` (384-dim, fastembed) — one model, course-wide (Part 5), persisted in pgvector from Part 13.
 
 **Q: How do you know the deal score is correct — and won't regress?**
 
@@ -195,7 +195,7 @@ Every headline figure in the case study is one of those assertions:
   src="/tutorials/screens/dealfinder-part-37/case-study-reproduced.png"
   alt="A terminal showing the full companion test suite reproducing every case-study number: 224 passed / 1 skipped, snapshot 270 items, brand-polluted 154/270, median $162.97, linear MAE $227.89 → GBDT $138.11 (−39.4%), precision@5 1.00 vs 0.40, chaos 5 passed, Playwright 5 passed"
   caption="Real capture: every headline number in the case study is a passing test. The full suite (224 passed, 1 skipped) reproduces offline, plus the 5 chaos and 5 Playwright browser tests."
-  lookFor="the whole suite green — 224 passed, 1 skipped (the 1 is a @pytest.mark.slow release check). Then the pinned facts each case-study claim rests on: snapshot 270 items · 18 queries · 11 categories; brand holds the retailer in 154 / 270 rows; anchor median $162.97; the ML payoff — linear MAE $227.89 (R² 0.268) → GBDT $138.11 (R² 0.727), −39.4%, and precision@5 1.00 (two-signal) vs 0.40 (median-only) against the 0.80 gate; chaos 5 passed (one bad source → healthy still serve, all down → empty envelope, never a 500); and the Playwright 5 passed guarding the four-token badge contract in a real browser. The naive signal all of this replaced bottomed out at −3785.7% — a $13,599 RTX card measured against a $350 median."
+  lookFor="the whole suite green — 224 passed, 1 skipped (the 1 is test_pgstore.py, which skips unless DATABASE_URL points at a live Postgres). Then the pinned facts each case-study claim rests on: snapshot 270 items · 18 queries · 11 categories; brand holds the retailer in 154 / 270 rows; anchor median $162.97; the ML payoff — linear MAE $227.89 (R² 0.268) → GBDT $138.11 (R² 0.727), −39.4%, and precision@5 1.00 (two-signal) vs 0.40 (median-only) against the 0.80 gate; chaos 5 passed (one bad source → healthy still serve, all down → empty envelope, never a 500); and the Playwright 5 passed guarding the four-token badge contract in a real browser. The naive signal all of this replaced bottomed out at −3785.7% — a $13,599 RTX card measured against a $350 median."
 />
 
 That is the whole point of the course made concrete: you can walk an interviewer through this system and, for every claim, point at the test that proves it. Nothing here is aspirational — it runs, in CI, on every commit.
