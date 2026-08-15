@@ -192,7 +192,7 @@ MAE improvement: 39.4%
 
 The full-corpus R² moves from 0.268 to 0.727 and MAE drops $89.79 (−39.4%). These are the pinned numbers; `test_gbdt_beats_linear_on_full_corpus` in `tests/test_models.py` asserts them.
 
-Now run the same comparison on only the audio category — the 15-item noise-cancelling headphones subset from the hero cast:
+Now run the same comparison on only the audio category — 60 items (a 45/15 train/test split), the noise-cancelling headphones and their audio peers from the hero cast:
 
 ```python
 audio = gbdt_vs_linear("audio")
