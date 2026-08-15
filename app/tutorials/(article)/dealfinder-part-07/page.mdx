@@ -354,7 +354,7 @@ Rate limits on the free tier are 10 requests per second. The `search()` implemen
 
 ## Live smoke test: all three sources
 
-The committed tests never hit the network — `tests/test_live_sources.py` has 7 offline tests that mock the HTTP layer with `respx` and run on every CI push. To sanity-check *real* credentials, drop a small local smoke script like the one below (it's illustrative — not a committed repo file, so it never runs in CI):
+The committed tests never hit the network — `tests/test_live_sources.py` mocks the HTTP layer with `respx` and runs on every CI push (it grows as later parts add connectors, so its exact count climbs). To sanity-check *real* credentials, drop a small local smoke script like the one below (it's illustrative — not a committed repo file, so it never runs in CI):
 
 ```python
 # a local smoke script — real credentials, real HTTP (never committed / never in CI)
@@ -392,7 +392,7 @@ Run it locally (with your keys in `.env`):
 python smoke_live_sources.py
 ```
 
-Live calls stay out of CI on purpose: what runs on every push is `tests/test_live_sources.py` — 7 offline tests that mock the HTTP layer with `respx`. This script is the opt-in check you run by hand before committing a connector change.
+Live calls stay out of CI on purpose: what runs on every push is `tests/test_live_sources.py` — offline tests that mock the HTTP layer with `respx`. This script is the opt-in check you run by hand before committing a connector change.
 
 Expected truncated output with all three configured (live prices vary):
 
@@ -468,7 +468,7 @@ Run the offline suite:
 pytest tests/test_snapshot.py tests/test_live_sources.py -v
 ```
 
-All assertions must pass without any live credential. The smoke test (`@pytest.mark.live`) is separate and opt-in.
+All assertions must pass without any live credential. The local smoke script above is separate and opt-in — you run it by hand, it never runs in CI.
 
 ---
 
