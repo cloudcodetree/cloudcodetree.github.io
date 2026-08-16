@@ -112,10 +112,19 @@ what gets written into the feed.
 > single most important thing to internalize about volume: the reader sees the
 > *day's* output, not your run's. Budget accordingly.
 > - **Per run: 2–4 items.** Never more than 4.
-> - **Per day: ~8 items, hard ceiling 10.** Before writing, read the existing
->   `content/feed.xml` and count items already published with today's UTC date. If
->   the day already holds 8+, publish only something genuinely important — or
->   nothing at all. **Exiting without writing is a valid, good outcome.**
+> - **Per day: 8 items. This is a TARGET, not headroom to spend.** Before writing,
+>   count the items in `content/feed.xml` carrying today's UTC date. Then:
+>   **the number you may publish is `8 − (items already published today)`.**
+>   Compute that number explicitly and state it in your report. If it is 0 or
+>   negative, publish nothing unless a story is genuinely important.
+> - **10 is a hard ceiling, not a goal.** It exists for an exceptional news day —
+>   a major release, a security incident — where an extra item or two is
+>   genuinely warranted. Landing on 10 as a matter of routine means the rule was
+>   read backwards. Do not treat the gap between 8 and 10 as budget available to
+>   you: if your last candidate is only justified by "we're still under 10",
+>   that is exactly the item to cut.
+> - **Exiting without writing is a valid, good outcome.** So is publishing one
+>   item. A quiet day should look quiet.
 > - The other two runs cannot see your draft, only what you commit. So the feed is
 >   the only coordination mechanism: read it first, every time.
 >
@@ -216,11 +225,23 @@ what gets written into the feed.
 > curriculum areas — foundations, retrieval, fine-tuning, run & serve,
 > applied/agentic, and agentic design — rather than dwelling on any one.
 > **Derive the balance from the feed, never from memory or from this document:**
-> count the topic tags currently present, pick the area with the FEWEST teachable
-> posts, and cycle through all six before repeating an area. Do not carry forward
-> any hard-coded claim about which area is ahead or behind — those go stale, and a
-> stale claim will steer you wrong for months. The counts in the feed are the only
-> authority.
+> count the teachable posts per area, pick the area with the FEWEST, and cycle
+> through all six before repeating an area. Do not carry forward any hard-coded
+> claim about which area is ahead or behind — those go stale, and a stale claim
+> will steer you wrong for months. The counts in the feed are the only authority.
+>
+> **How to count — do NOT map areas to tag sets.** Several tags belong to more
+> than one area (`RAG` fits both Foundations and Better RAG; `Agents` fits both
+> Applied/agentic and others), so intersecting tag sets produces phantom empty
+> areas. A run has already been misled this way: it mapped `RAG` into Foundations,
+> concluded "Better RAG: 0 tutorials", and picked Better RAG as least-covered on
+> an artifact rather than a fact.
+> Instead: **attribute each `Tutorial` post to exactly ONE area by its actual
+> subject** — read the title, not just the tags — and count those. A post about a
+> minimal end-to-end RAG pipeline is Foundations; one about reranking or hybrid
+> search is Better RAG, even though both carry `RAG`. When a post genuinely spans
+> two areas, count it for the EARLIER one. Show the per-area counts in your report
+> so the attribution is visible and can be challenged.
 > This rotation governs the **teachable (AI-engineering) slot only** — it does not
 > shrink the other buckets. **General industry news** (bucket 1) and **AI-assisted /
 > agentic development** (the practitioner bucket — Claude Code, subagents, MCP, agent
@@ -314,10 +335,24 @@ what gets written into the feed.
 > today — `validate-blog.mjs` starts warning once the feed passes 1.5× the window,
 > and that warning means your dedup context is silently degrading.
 >
-> **Your dedup window is ~2 weeks.** For anything older, do not assume the feed
+> **Your dedup window is ~15 days.** For anything older, do not assume the feed
 > tells you whether a story ran — it won't. Check `public/blog/posts.json` (search
 > it for the topic) before writing up something that may already be covered. This
 > matters most for evergreen technique posts, which are the easiest to repeat.
+>
+> **QUERY the feed; do not read it whole.** At ~437 KB it exceeds the Read tool's
+> 256 KB limit, and reading it whole would burn most of your context for no gain.
+> This is expected — it is sized for dedup coverage, not for one read. Use
+> targeted queries instead, e.g.:
+> ```bash
+> grep -c "<item>" content/feed.xml                       # how many items
+> grep "<guid" content/feed.xml | head -20                # today's item numbers
+> grep -c "<category>Design</category>" content/feed.xml  # design ramp-up count
+> grep -i "reranking\|hybrid search" content/feed.xml     # already covered?
+> ```
+> A Python `xml.etree` one-liner works well for anything structured (per-item
+> tags, dates, per-area counts). Reserve `Read` for the head of the file when you
+> need the channel/item skeleton, via `limit`.
 >
 > **Research log (full audit trail — required every run).** Append a section to
 > `content/research-log/<UTC-date>.md` (create the dir/file if missing — multiple
