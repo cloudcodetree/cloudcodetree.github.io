@@ -10,7 +10,176 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 16 Aug 2026 04:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 16 Aug 2026 12:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Start Receiving Tool Arguments Immediately: Enable eager_input_streaming on Large-Output Tools</title>
+      <link>https://platform.claude.com/docs/en/agents-and-tools/tool-use/fine-grained-tool-streaming</link>
+      <guid isPermaLink="false">2026-08-16-06-eager-input-streaming-tool-latency</guid>
+      <pubDate>Sun, 16 Aug 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Add "eager_input_streaming": true to any tool definition and Claude streams partial JSON arguments instantly — first-byte latency drops from ~15s to ~3s for large parameters like generated documents.</description>
+      <content:encoded><![CDATA[
+**Add `"eager_input_streaming": true` to a tool definition and Claude streams partial JSON arguments to your client instantly — first-byte latency drops from ~15s to ~3s for large parameters.**
+
+By default, the Claude API buffers a tool's entire `input` JSON until it is valid before delivering it. For a `write_file` tool producing a 2,000-word document, that means 15+ seconds of silence before your UI sees anything. Fine-grained tool streaming, now GA on all models and platforms (no beta header needed), removes that buffer per tool.
+
+## One field, on the tool definition
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+tools = [{
+    "name": "write_file",
+    "description": "Write content to a file",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "path": {"type": "string"},
+            "content": {"type": "string", "description": "File content — can be thousands of words"}
+        },
+        "required": ["path", "content"]
+    },
+    "eager_input_streaming": True   # <- the only change
+}]
+
+with client.messages.stream(
+    model="claude-sonnet-5-20260130",
+    max_tokens=4096,
+    tools=tools,
+    messages=[{"role": "user", "content": "Write a thorough README for a Python CLI tool."}]
+) as stream:
+    for event in stream:
+        if hasattr(event, "delta") and event.delta.type == "input_json_delta":
+            # Partial JSON string — write to UI as it arrives
+            print(event.delta.partial_json, end="", flush=True)
+```
+
+## Three things to know before shipping
+
+1. **User-defined tools only.** `eager_input_streaming` cannot be set on built-in tools (`web_search`, `code_execution`, etc.).
+
+2. **Partial JSON is not valid JSON.** The SDK exposes a `snapshot` dict (partially parsed Python dict) on each delta — safe to read for real-time display. Wait for `content_block_stop` before passing the completed arguments to your actual tool executor.
+
+3. **Different from Agent SDK streaming.** `include_partial_messages=True` in the Claude Agent SDK (covered Aug 1) signals when a tool call starts and stops. `eager_input_streaming` is lower-level: it streams the actual argument content *while Claude is generating it*, before the tool call completes. Use both together for the fastest possible UI.
+
+**Sources:** [Fine-grained tool streaming — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/fine-grained-tool-streaming) · [Streaming messages — Anthropic Docs](https://docs.anthropic.com/en/docs/build-with-claude/streaming)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Anthropic's August Risk Report: Safety Benchmarks Saturate as Misalignment Risk Rises to 'Low'</title>
+      <link>https://www.anthropic.com/aug-2026-risk-report</link>
+      <guid isPermaLink="false">2026-08-16-05-anthropic-aug2026-risk-report-saturation</guid>
+      <pubDate>Sun, 16 Aug 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Best Practices</category>
+      <description>Anthropic's August 2026 Risk Report (released Aug 14) upgrades misalignment risk from 'very low' to 'low' as its internal capability threshold benchmark saturates — can no longer register incremental gains.</description>
+      <content:encoded><![CDATA[
+**Anthropic's August 2026 Risk Report bumped misalignment risk to "low" and revealed a deeper structural problem: its internal safety benchmark for the most dangerous capability threshold has saturated and can no longer register capability gains.**
+
+Released August 14, the report covers February–July 2026. The risk upgrade was driven by increased uncertainty following recent incident disclosures — Anthropic's underlying assessment still supports the lower "very low" rating, but the label was raised to reflect that confidence. An internal "Model 2" (stronger than Mythos 5) exists but is being withheld pending further safety review.
+
+The more technically significant finding is benchmark saturation. The evaluations designed to detect when models cross the most dangerous capability threshold have stopped registering incremental gains at precisely the moment early signs of acceleration are appearing. The instrument built to sound the alarm can no longer differentiate between capability levels.
+
+**Why it matters:** Benchmark saturation has a direct parallel for engineers building production AI systems — any single evaluation metric will eventually plateau while the underlying behavior keeps shifting. The lesson: run diverse, behavioral test suites alongside capability benchmarks and invest in evals that measure *what the model does*, not only *what score it achieves*. When your benchmark looks flat, that is the moment to add a new one.
+
+**Sources:** [Anthropic August 2026 Risk Report](https://www.anthropic.com/aug-2026-risk-report) · [Benchmark Saturation — TechTimes](https://www.techtimes.com/articles/324573/20260815/anthropic-upgrades-misalignment-risk-key-safety-benchmarks-saturate.htm) · [Anthropic Raises Misalignment Risk — Unite.AI](https://www.unite.ai/anthropic-raises-misalignment-risk-to-low-and-shelves-internal-model-2/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Orchestrate a Team of AI Agents in 25 Lines: The LangGraph Supervisor Pattern</title>
+      <link>https://www.youtube.com/watch?v=BM39OouLNsM</link>
+      <guid isPermaLink="false">2026-08-16-04-langgraph-supervisor-multi-agent-team</guid>
+      <pubDate>Sun, 16 Aug 2026 12:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>MCP</category>
+      <description>Use create_supervisor() from langgraph-supervisor and one LLM orchestrator routes tasks to specialist agents — no custom state machines or routing logic, and memory is one extra argument.</description>
+      <content:encoded><![CDATA[
+**`pip install langgraph-supervisor` and `create_supervisor()` gives you a routing orchestrator that delegates to specialist agents — 25 lines of Python, no custom routing logic.**
+
+**What you'll be able to do after this:**
+
+- Build a multi-agent system where a supervisor LLM reads each step and routes to the right specialist
+- Use `create_supervisor()` to skip hand-coded state machines and transition logic
+- Add memory and human-in-the-loop checkpointing to the same graph with two extra lines
+
+**The pattern:** The supervisor is an LLM that reads the current conversation state and calls one of two built-in tools: `transfer_to_<agent_name>()` (delegate to a specialist) or returns a final response. Each specialist runs its own ReAct loop with its own tools. When the specialist finishes, control returns to the supervisor.
+
+## Setup
+
+```bash
+pip install langgraph-supervisor langchain-anthropic
+```
+
+```python
+from langgraph_supervisor import create_supervisor
+from langgraph.prebuilt import create_react_agent
+from langchain_anthropic import ChatAnthropic
+
+model = ChatAnthropic(model="claude-sonnet-5-20260130")
+
+# Specialist 1: web researcher
+researcher = create_react_agent(
+    model,
+    tools=[web_search_tool],
+    name="researcher",
+    prompt="You search the web and return verified facts. Be concise."
+)
+
+# Specialist 2: Python analyst
+analyst = create_react_agent(
+    model,
+    tools=[python_repl_tool],
+    name="analyst",
+    prompt="You run Python code and return computed results with the code used."
+)
+
+# Supervisor routes between them
+app = create_supervisor(
+    model,
+    agents=[researcher, analyst],
+    prompt=(
+        "You manage researcher and analyst. "
+        "Send information-gathering tasks to researcher, "
+        "and computation tasks to analyst. "
+        "When both are done, synthesize a final answer."
+    )
+).compile()
+
+# Run it
+result = app.invoke({
+    "messages": [{"role": "user", "content": "What is the population of Tokyo? Calculate how many people that is per square kilometer (area: 2,194 km2)."}]
+})
+print(result["messages"][-1].content)
+```
+
+## Two things that make this practical
+
+**State is shared.** The researcher's answer goes into the shared `messages` state, so the analyst can read it in the next step — no custom handoff code.
+
+**Memory is one argument.** Pass `checkpointer=MemorySaver()` to `.compile()` and the graph persists state across invocations for the same `thread_id`. Multi-turn conversations and human-in-the-loop interrupts use the same API.
+
+The video below walks through a complete version with MCP tool calls, guardrails, observability, and a Streamlit UI — worth watching once you have the basic pattern running.
+
+**Sources:** [Build a Multi-Agent System with LangGraph, MCP, Supervisor, Guardrails — YouTube](https://www.youtube.com/watch?v=BM39OouLNsM) · [LangGraph Agent Supervisor tutorial — LangChain GitHub](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/agent_supervisor.md) · [langgraph-supervisor — PyPI](https://pypi.org/project/langgraph-supervisor/)
+]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/BM39OouLNsM/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/BM39OouLNsM/maxresdefault.jpg" />
+    </item>
 
     <item>
       <title>Handle Claude Refusals in One Line: The API's fallbacks: 'default' Server-Side Fallback</title>
