@@ -193,10 +193,28 @@ what gets written into the feed.
 >    is written for reader (a), the engineer. Left to itself this bucket will pick
 >    an engineer angle every single time, because that's where the concrete detail
 >    is. So: **at least one in every three design posts must be written for reader
->    (b) — the product/design person starting from zero.** Before writing a design
->    post, look at the last two `Design`-tagged items in `posts.json`; if BOTH were
->    engineer-facing, this one MUST be a reader-(b) post. State which reader you
->    wrote for in your run report (`design reader: (a) engineer` or `(b) design/PM`).
+>    (b) — the product/design person starting from zero.**
+>
+>    **How to decide, in order — this is mechanical, do not improvise:**
+>    1. List the `Design`-tagged posts in `posts.json`, newest first.
+>    2. **Zero exist** → write reader **(a)**. The engineer angle establishes the
+>       workflow that a reader-(b) post can then point back at.
+>    3. **Exactly one exists** → write **the opposite reader** from that one. (Do
+>       not wait for a third post to start balancing; during ramp-up the archive is
+>       small and one lopsided pair sets the pattern for months.)
+>    4. **Two or more exist** → look at the newest two. If BOTH are reader (a),
+>       this one MUST be reader (b). Otherwise either is allowed, but prefer (b)
+>       whenever the last (b) post is more than three design posts back.
+>
+>    **How to tell which reader an existing post targeted** — judge the post, not
+>    your memory of it: if it opens with a repo, a package name, a CLI command, or
+>    a framework, it is reader (a). If it opens at a URL or in the product UI with
+>    no build step, it is reader (b). (The run report also records this, but the
+>    post itself is the authority.)
+>
+>    State which reader you wrote for in your run report (`design reader:
+>    (a) engineer` or `(b) design/PM`), along with what the previous posts targeted
+>    and which rule above applied.
 >    A reader-(b) post assumes no repo, no component library, and no build step:
 >    the genuine first hour, what the tool can and can't do, the vocabulary an
 >    engineer will use back at you, and how to hand work off without reading code.
