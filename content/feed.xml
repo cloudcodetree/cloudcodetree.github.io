@@ -10,7 +10,133 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 16 Aug 2026 12:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 16 Aug 2026 20:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Stop Letting Claude Skip the Tool: Four Modes of tool_choice for Reliable Agent Pipelines</title>
+      <link>https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-reference</link>
+      <guid isPermaLink="false">2026-08-16-08-tool-choice-force-specific-tool</guid>
+      <pubDate>Sun, 16 Aug 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <category>Best Practices</category>
+      <description>tool_choice: {type: "any"} forces Claude to call a tool; {type: "tool", name: "X"} forces a specific one — eliminating stochastic skips that break agent pipelines.</description>
+      <content:encoded><![CDATA[
+**`tool_choice: {type: "any"}` forces Claude to call a tool; `{type: "tool", name: "X"}` forces a specific one — eliminating the stochastic skips that break agent pipelines.**
+
+By default (`tool_choice: {type: "auto"}`), Claude decides on its own whether to call a tool or answer directly. That's fine for chat — but in an agent pipeline it will occasionally surprise you: a research agent skips `save_findings` because the answer fits in a paragraph; a pricing step answers from training data instead of calling `get_current_price`. The fix is one field.
+
+## The four modes
+
+| Mode | What Claude does | Use when |
+|------|-----------------|----------|
+| `{type: "auto"}` | Decides on its own | Default; fine for open-ended chat |
+| `{type: "any"}` | Must call *any* tool | Force live data retrieval; prevent stale-training answers |
+| `{type: "tool", name: "X"}` | Must call tool X | Structured output, persisting state, required audit logging |
+| `{type: "none"}` | No tool calls | Synthesis turn after data is gathered |
+
+## Walk-through
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+tools = [
+    {
+        "name": "save_findings",
+        "description": "Persist research findings. Always call this before finishing.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "summary": {"type": "string"},
+                "confidence": {"type": "number"},
+            },
+            "required": ["summary", "confidence"],
+        },
+    }
+]
+
+# Claude MUST call save_findings — no skipping, no text-only responses
+response = client.messages.create(
+    model="claude-sonnet-5-20251001",
+    max_tokens=1024,
+    tools=tools,
+    tool_choice={"type": "tool", "name": "save_findings"},
+    messages=[
+        {"role": "user", "content": "Summarize this week's AI security news."}
+    ],
+)
+
+# stop_reason == "tool_use" — guaranteed
+tool_call = next(b for b in response.content if b.type == "tool_use")
+print(tool_call.input)  # {"summary": "...", "confidence": 0.91}
+```
+
+**Pattern for multi-step loops:** use `{type: "any"}` on collection turns (force at least one lookup), then flip to `{type: "none"}` for the synthesis turn (synthesize what you have; no new fetches). Your agent loop becomes a predictable state machine instead of a probabilistic guess.
+
+**Parallel guard:** add `"disable_parallel_tool_use": true` alongside `tool_choice` when your tools have ordering dependencies — forces one call at a time, deterministic sequence.
+
+**Sources:** [Parallel tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) · [Tool choice — Claude Cookbook](https://platform.claude.com/cookbook/tool-use-tool-choice) · [Tool reference — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-reference)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Run Any Open-Weight Model as a Private Local API: LM Studio in 3 Clicks and 2 Lines of Python</title>
+      <link>https://lmstudio.ai/docs/developer</link>
+      <guid isPermaLink="false">2026-08-16-07-lm-studio-local-llm-api-server</guid>
+      <pubDate>Sun, 16 Aug 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>Developer Tools</category>
+      <description>LM Studio (free, Mac/Windows/Linux) turns any GGUF or MLX model into a private OpenAI-compatible server at localhost:1234 — no CLI, no cloud, one toggle in the app.</description>
+      <content:encoded><![CDATA[
+**LM Studio (free, Mac/Windows/Linux) turns any GGUF or MLX model into a private OpenAI-compatible server at localhost:1234 — no CLI, no cloud, one toggle in the app.**
+
+**What you'll be able to do after this:** prototype AI features against local open-weight models without a cloud API key, swap any open-weight model into your existing OpenAI SDK code by changing one URL, and keep every token on your machine.
+
+Ollama and vLLM are great — but they require a terminal. LM Studio gives you the same OpenAI-compatible local server with a GUI for browsing, downloading, and loading models. Three things that matter for engineers:
+
+- **HuggingFace browser built in.** The Discover tab searches HuggingFace directly and filters GGUF files by compatibility with your hardware. Click Download — model lands in `~/.cache/lm-studio/models/`.
+- **OpenAI-compatible server in one toggle.** Load a model → open the Developer tab → click **Start Server**. Binds to `http://localhost:1234/v1`. Serves `/v1/chat/completions`, `/v1/embeddings`, `/v1/models`, structured output, and tool calling.
+- **Tool use + structured JSON output.** Any model that supports it gets JSON Schema-constrained outputs and tool calling — test your agent's tool-use logic locally before hitting the production API.
+
+## Walk-through
+
+1. [Download LM Studio](https://lmstudio.ai) — free for Mac, Windows, Linux.
+2. **Discover tab** → search `qwen3-8b` → filter "Recommended for my hardware" → **Download**.
+3. Click the downloaded model → **Load**. Then open the **Developer tab** → toggle **Start Server**.
+4. Point your OpenAI SDK at the local endpoint — two lines change:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:1234/v1",
+    api_key="lm-studio",  # any non-empty string; LM Studio ignores it
+)
+
+response = client.chat.completions.create(
+    model="qwen3-8b",   # exact name shown in LM Studio's model list
+    messages=[{"role": "user", "content": "Explain KV cache in one paragraph."}],
+)
+print(response.choices[0].message.content)
+```
+
+No tokens leave your machine. If you get a model-not-found error, call `GET /v1/models` to see the exact `id` string LM Studio uses.
+
+**For teams:** LM Studio 0.4.0+ supports token-based auth (Server Settings → Require Authentication) and can bind to your local network — useful for shared dev access without standing up a full vLLM instance.
+
+**Sources:** [Getting started with LM Studio — YouTube](https://www.youtube.com/watch?v=fTUGVA2EKq0) · [LM Studio developer docs](https://lmstudio.ai/docs/developer) · [OpenAI-compatible endpoints — lmstudio.ai](https://lmstudio.ai/docs/developer/openai-compat)
+]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/fTUGVA2EKq0/maxresdefault.jpg" medium="image"/>
+      <media:thumbnail url="https://img.youtube.com/vi/fTUGVA2EKq0/maxresdefault.jpg"/>
+    </item>
 
     <item>
       <title>Start Receiving Tool Arguments Immediately: Enable eager_input_streaming on Large-Output Tools</title>
