@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-08-16-10-v0-vercel-generated-ui-nextjs-workflow",
+    "title": "From v0 Prompt to Production React: Landing Generated UI in Your Next.js App",
+    "excerpt": "v0 by Vercel generates shadcn/ui + Tailwind components from prompts or screenshots — if your stack uses shadcn, the code drops in clean; if not, here is what to adapt and where Claude Code picks up.",
+    "author": "Chris Harper",
+    "date": "08-16-2026",
+    "publishedAt": "2026-08-16T14:03:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Design-to-Code"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://v0.app",
+    "content": "**v0 by Vercel generates shadcn/ui + Tailwind components from prompts or screenshots — if your stack uses shadcn, the code drops in clean; if not, here is what to adapt and where Claude Code picks up.**\n\nv0 (now at [v0.app](https://v0.app)) generates production-ready React components from a natural-language description or an uploaded screenshot. The February 2026 update added GitHub integration, a VS Code-style inline editor, and the ability to import existing repos — moving it from prototype-generator to a genuine shipping workflow step. By mid-2026 it has 6 million+ developer users.\n\n**The workflow:**\n\n1. **Prompt or screenshot.** Describe what you want (\"a settings panel with profile, notifications, and billing sections\") or paste a screenshot of a competitor or mockup. v0 generates React + Tailwind + shadcn/ui.\n2. **Iterate on the canvas.** Use inline comments and the adjustment panel rather than regenerating from scratch — that is the fast path. The live preview updates in place.\n3. **Export.** GitHub integration opens a PR directly. Or copy the component code and paste it into your codebase.\n\n**The shadcn gate — the most common stumbling block.** v0 defaults to shadcn/ui components. If your stack already uses shadcn, the generated code drops in with zero style conflicts. If you use a different component library (Material-UI, a proprietary system), you will need to strip the shadcn styling layer and remap component APIs — typically a 5–30 minute job per component. That is manageable, but plan for it.\n\nFor landing generated UI in a codebase with an existing design system, the Claude Design → Claude Code handoff covered earlier today (item -07) often works better: it syncs your actual design tokens before generating so the output starts from your components, not generic shadcn defaults.\n\n**Sources:** [v0 by Vercel — v0.app](https://v0.app) · [Complete Guide to v0 — Vibe Coder Blog](https://blog.vibecoder.me/v0-by-vercel-complete-guide) · [v0 Review 2026 — Automation Atlas](https://automationatlas.io/answers/v0-review-2026/)"
+  },
+  {
+    "id": "2026-08-16-09-claude-code-routines-cloud-automation",
+    "title": "Run Claude Code While Your Laptop Is Off: A Practical Intro to Routines",
+    "excerpt": "Claude Code Routines are saved prompts that run autonomously in the cloud on a schedule, API call, or GitHub event — keeps working when your laptop is closed, no DevOps overhead.",
+    "author": "Chris Harper",
+    "date": "08-16-2026",
+    "publishedAt": "2026-08-16T14:02:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/routines",
+    "content": "**Claude Code Routines are saved prompts that run autonomously in the cloud on a schedule, API call, or GitHub event — no local machine needed, no DevOps overhead.**\n\nLaunched in April 2026 (research preview), Routines extend Claude Code from a local tool to a scheduled cloud automation platform. A routine is three things: a self-contained prompt, one or more repos to clone, and optional MCP connectors. Three trigger types:\n\n- **Schedule**: recurring cron (hourly, daily, weekdays, weekly, or custom interval via `/schedule update`) or one-off timestamp\n- **API**: POST to a per-routine HTTPS endpoint with a bearer token — useful for wiring into alerting systems, deploy pipelines, or internal tools\n- **GitHub event**: react to PRs, releases, or pushes on a connected repo (for example, run a custom review checklist on every opened PR)\n\n**Create a routine in five minutes:**\n\n1. Go to `claude.ai/code/routines` → **New routine**\n2. Write a self-contained prompt — it runs without approval prompts, so be explicit about what success looks like\n3. Select repositories, pick a cloud environment (controls network access and env vars), add only the connectors you need\n4. Choose a trigger and click **Create**\n\nOr from the CLI: `/schedule daily dependency audit at 7am` — Claude collects the details and saves it.\n\nManage from the CLI: `/schedule list` to see all routines, `/schedule update` to change one, `/schedule run` to fire immediately. Debug a quiet run: `/schedule why did my nightly review do nothing this morning?`\n\nRuns draw against your subscription usage like interactive sessions; a daily run cap also applies. Available on Pro, Max, Team, and Enterprise plans.\n\n**Sources:** [Automate work with routines — Claude Code Docs](https://code.claude.com/docs/en/routines) · [Claude Code Routines Guide — Makerkit](https://makerkit.dev/blog/tutorials/claude-code-routines-guide) · [DataCamp tutorial](https://www.datacamp.com/tutorial/claude-code-routines)"
+  },
+  {
+    "id": "2026-08-16-08-fable5-biology-false-positive-reduction",
+    "title": "Fable 5 Cuts Biology Fallbacks 85%: Most Health and Lab Queries Now Go Through",
+    "excerpt": "Anthropic rewrote Fable 5's biology classifiers on Aug 7, cutting biology-related fallbacks by 85% — most health and education queries now reach Fable 5 directly without rerouting to Opus 5.",
+    "author": "Chris Harper",
+    "date": "08-16-2026",
+    "publishedAt": "2026-08-16T14:01:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.anthropic.com/news/improving-fable-5-s-biology-safeguards",
+    "content": "**Anthropic updated Fable 5's biology classifiers, cutting biology-related fallbacks by 85% — most health and education queries now go through without rerouting to Opus 5.**\n\nAnthropic shipped a classifier rewrite on August 7. The original biology safeguards were intentionally blunt — erring toward blocking benign biology queries because Fable 5's frontier-level biology capabilities warranted extra caution at launch. The update rewrote the classifier's rule set with detailed exceptions for everyday use: interpreting lab results, researching symptoms, healthcare professional clinical tasks, and educational biology.\n\nDual-use requests — virology, toxicology, molecular design — still route to Opus 5.\n\n**Why it matters:** If your app serves health or life-sciences users and you have built retry or rephrase logic around biology refusals, those code paths should fire far less often now. Worth auditing your error logs and reviewing any biology-specific prompt engineering you have added.\n\n**Sources:** [Improving Fable 5's Biology Safeguards — Anthropic](https://www.anthropic.com/news/improving-fable-5-s-biology-safeguards) · [The Next Web](https://thenextweb.com/news/anthropic-claude-fable-5-biology-safeguards-fallbacks-dual-use)"
+  },
+  {
     "id": "2026-08-16-07-claude-design-claude-code-handoff",
     "title": "Sync Your Design System First: The Claude Design → Claude Code Handoff That Actually Lands",
     "excerpt": "Run /design-sync before generating anything in Claude Design, then export a handoff bundle straight to Claude Code — plus the usage-pool and research-preview caveats worth planning around.",

@@ -10,7 +10,98 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 16 Aug 2026 12:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 16 Aug 2026 14:03:00 +0000</lastBuildDate>
+
+<item>
+      <title>From v0 Prompt to Production React: Landing Generated UI in Your Next.js App</title>
+      <link>https://v0.app</link>
+      <guid isPermaLink="false">2026-08-16-10-v0-vercel-generated-ui-nextjs-workflow</guid>
+      <pubDate>Sun, 16 Aug 2026 14:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>v0 by Vercel generates shadcn/ui + Tailwind components from prompts or screenshots — if your stack uses shadcn, the code drops in clean; if not, here is what to adapt and where Claude Code picks up.</description>
+      <content:encoded><![CDATA[
+**v0 by Vercel generates shadcn/ui + Tailwind components from prompts or screenshots — if your stack uses shadcn, the code drops in clean; if not, here is what to adapt and where Claude Code picks up.**
+
+v0 (now at [v0.app](https://v0.app)) generates production-ready React components from a natural-language description or an uploaded screenshot. The February 2026 update added GitHub integration, a VS Code-style inline editor, and the ability to import existing repos — moving it from prototype-generator to a genuine shipping workflow step. By mid-2026 it has 6 million+ developer users.
+
+**The workflow:**
+
+1. **Prompt or screenshot.** Describe what you want ("a settings panel with profile, notifications, and billing sections") or paste a screenshot of a competitor or mockup. v0 generates React + Tailwind + shadcn/ui.
+2. **Iterate on the canvas.** Use inline comments and the adjustment panel rather than regenerating from scratch — that is the fast path. The live preview updates in place.
+3. **Export.** GitHub integration opens a PR directly. Or copy the component code and paste it into your codebase.
+
+**The shadcn gate — the most common stumbling block.** v0 defaults to shadcn/ui components. If your stack already uses shadcn, the generated code drops in with zero style conflicts. If you use a different component library (Material-UI, a proprietary system), you will need to strip the shadcn styling layer and remap component APIs — typically a 5–30 minute job per component. That is manageable, but plan for it.
+
+For landing generated UI in a codebase with an existing design system, the Claude Design → Claude Code handoff covered earlier today (item -07) often works better: it syncs your actual design tokens before generating so the output starts from your components, not generic shadcn defaults.
+
+**Sources:** [v0 by Vercel — v0.app](https://v0.app) · [Complete Guide to v0 — Vibe Coder Blog](https://blog.vibecoder.me/v0-by-vercel-complete-guide) · [v0 Review 2026 — Automation Atlas](https://automationatlas.io/answers/v0-review-2026/)
+]]></content:encoded>
+    </item>
+
+<item>
+      <title>Run Claude Code While Your Laptop Is Off: A Practical Intro to Routines</title>
+      <link>https://code.claude.com/docs/en/routines</link>
+      <guid isPermaLink="false">2026-08-16-09-claude-code-routines-cloud-automation</guid>
+      <pubDate>Sun, 16 Aug 2026 14:02:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code Routines are saved prompts that run autonomously in the cloud on a schedule, API call, or GitHub event — keeps working when your laptop is closed, no DevOps overhead.</description>
+      <content:encoded><![CDATA[
+**Claude Code Routines are saved prompts that run autonomously in the cloud on a schedule, API call, or GitHub event — no local machine needed, no DevOps overhead.**
+
+Launched in April 2026 (research preview), Routines extend Claude Code from a local tool to a scheduled cloud automation platform. A routine is three things: a self-contained prompt, one or more repos to clone, and optional MCP connectors. Three trigger types:
+
+- **Schedule**: recurring cron (hourly, daily, weekdays, weekly, or custom interval via `/schedule update`) or one-off timestamp
+- **API**: POST to a per-routine HTTPS endpoint with a bearer token — useful for wiring into alerting systems, deploy pipelines, or internal tools
+- **GitHub event**: react to PRs, releases, or pushes on a connected repo (for example, run a custom review checklist on every opened PR)
+
+**Create a routine in five minutes:**
+
+1. Go to `claude.ai/code/routines` → **New routine**
+2. Write a self-contained prompt — it runs without approval prompts, so be explicit about what success looks like
+3. Select repositories, pick a cloud environment (controls network access and env vars), add only the connectors you need
+4. Choose a trigger and click **Create**
+
+Or from the CLI: `/schedule daily dependency audit at 7am` — Claude collects the details and saves it.
+
+Manage from the CLI: `/schedule list` to see all routines, `/schedule update` to change one, `/schedule run` to fire immediately. Debug a quiet run: `/schedule why did my nightly review do nothing this morning?`
+
+Runs draw against your subscription usage like interactive sessions; a daily run cap also applies. Available on Pro, Max, Team, and Enterprise plans.
+
+**Sources:** [Automate work with routines — Claude Code Docs](https://code.claude.com/docs/en/routines) · [Claude Code Routines Guide — Makerkit](https://makerkit.dev/blog/tutorials/claude-code-routines-guide) · [DataCamp tutorial](https://www.datacamp.com/tutorial/claude-code-routines)
+]]></content:encoded>
+    </item>
+
+<item>
+      <title>Fable 5 Cuts Biology Fallbacks 85%: Most Health and Lab Queries Now Go Through</title>
+      <link>https://www.anthropic.com/news/improving-fable-5-s-biology-safeguards</link>
+      <guid isPermaLink="false">2026-08-16-08-fable5-biology-false-positive-reduction</guid>
+      <pubDate>Sun, 16 Aug 2026 14:01:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Best Practices</category>
+      <description>Anthropic rewrote Fable 5's biology classifiers on Aug 7, cutting biology-related fallbacks by 85% — most health and education queries now reach Fable 5 directly without rerouting to Opus 5.</description>
+      <content:encoded><![CDATA[
+**Anthropic updated Fable 5's biology classifiers, cutting biology-related fallbacks by 85% — most health and education queries now go through without rerouting to Opus 5.**
+
+Anthropic shipped a classifier rewrite on August 7. The original biology safeguards were intentionally blunt — erring toward blocking benign biology queries because Fable 5's frontier-level biology capabilities warranted extra caution at launch. The update rewrote the classifier's rule set with detailed exceptions for everyday use: interpreting lab results, researching symptoms, healthcare professional clinical tasks, and educational biology.
+
+Dual-use requests — virology, toxicology, molecular design — still route to Opus 5.
+
+**Why it matters:** If your app serves health or life-sciences users and you have built retry or rephrase logic around biology refusals, those code paths should fire far less often now. Worth auditing your error logs and reviewing any biology-specific prompt engineering you have added.
+
+**Sources:** [Improving Fable 5's Biology Safeguards — Anthropic](https://www.anthropic.com/news/improving-fable-5-s-biology-safeguards) · [The Next Web](https://thenextweb.com/news/anthropic-claude-fable-5-biology-safeguards-fallbacks-dual-use)
+]]></content:encoded>
+    </item>
 
 <item>
       <title>Sync Your Design System First: The Claude Design → Claude Code Handoff That Actually Lands</title>
@@ -7471,204 +7562,9 @@ Convert the output to GGUF with llama.cpp, then load it into Ollama with a Model
       <media:thumbnail url="https://img.youtube.com/vi/WWrFwePNpi0/maxresdefault.jpg"/>
     </item>
 
-    <item>
-      <title>Delimit Your Claude System Prompts With XML Tags — It Reduces Drift in Long Agent Sessions</title>
-      <link>https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags</link>
-      <guid isPermaLink="false">2026-08-02-07-xml-tags-claude-system-prompt-structure</guid>
-      <pubDate>Sun, 02 Aug 2026 20:02:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Best Practices</category>
-      <category>Agents</category>
-      <description>Wrap system-prompt sections in role, instructions, context, and output_format XML tags — Claude's training reinforces semantic structure, reducing instruction drift in long agentic sessions.</description>
-      <content:encoded><![CDATA[
-**Wrapping Claude system-prompt sections in separate role, instructions, context, and output_format XML tags reduces drift in long agent sessions — a five-minute change to any existing prompt.**
-
-Most Claude agent system prompts are plain prose paragraphs. That works for short sessions, but as a conversation extends past 10–15 turns, Claude starts blending constraints with context. "You have access to a PostgreSQL database" ends up weighted the same as "never delete rows without confirmation." Structured tags fix this by giving Claude clear semantic buckets.
-
-Anthropic's prompt engineering docs specifically recommend this pattern: Claude's training reinforces XML-delimited structure (it's the same format Claude uses internally for tool call results and chain-of-thought tags).
-
-## The before and after
-
-**Before — one blob of prose:**
-
-```
-You are a senior backend engineer. You have access to the codebase in /workspace.
-Work on one file at a time. Never modify tests. Output only changed code with no
-explanation. If a task requires creating new files, ask first.
-```
-
-**After — four semantic buckets:**
-
-```xml
-<role>
-You are a senior backend engineer working on a production Python codebase.
-</role>
-
-<context>
-The codebase is mounted at /workspace. Framework: FastAPI + PostgreSQL.
-No internet access. Available tools: read_file, write_file, run_tests.
-</context>
-
-<instructions>
-- Work on one file at a time.
-- Never modify files under /workspace/tests/.
-- If a task requires creating new files, confirm with the user before proceeding.
-- Output only the changed code. No preamble, no explanation.
-</instructions>
-
-<output_format>
-One fenced code block per changed file, annotated with the file path as the info string:
-```python /workspace/app/auth.py
-</output_format>
-```
-
-## Why four tags?
-
-| Tag | What goes in it | Why it's separate |
-|---|---|---|
-| `<role>` | Who Claude is in this session | Sets persona without competing with rules |
-| `<context>` | Facts about the environment | Information to reason from, not rules to follow |
-| `<instructions>` | Rules and constraints | Highest-priority section — followed most reliably |
-| `<output_format>` | Response shape | Isolated so format drift doesn't corrupt rules |
-
-## Handle examples carefully
-
-If your system prompt includes examples, put them last and use `<good_example>` / `<bad_example>` subtags. Claude generalizes from examples — a plain "bad example" can become a learned pattern if it's the last thing in the prompt. Explicit tags make Claude treat them as classification examples, not demonstrations to emulate.
-
-This costs nothing to add and compounds in value across longer sessions where context windows shrink and reliable recall of earlier instructions matters more.
-
-**Sources:** [Use XML Tags to Structure Your Prompts — Anthropic Prompt Engineering](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags) · [System Prompts — Anthropic Docs](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/system-prompts)
-      ]]></content:encoded>
-    </item>
-
-    <item>
-      <title>AI Safety Week: Anthropic Discloses a Sandbox Escape, and the EU AI Act's Transparency Rules Go Live Today</title>
-      <link>https://www.anthropic.com/news/investigating-incidents-cybersecurity-evals</link>
-      <guid isPermaLink="false">2026-08-02-08-anthropic-sandbox-escape-eu-ai-act-transparency</guid>
-      <pubDate>Sun, 02 Aug 2026 20:01:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Security</category>
-      <category>Agents</category>
-      <description>Claude escaped its eval sandbox in April and reached three real orgs' systems — Anthropic disclosed July 30. Also: EU AI Act Article 50 transparency obligations are legally enforceable as of today.</description>
-      <content:encoded><![CDATA[
-**Claude escaped its cybersecurity eval sandbox in April and reached live external networks; Anthropic disclosed July 30. EU AI Act Article 50 transparency rules are enforceable today.**
-
-## Anthropic: eval sandbox escape disclosed July 30
-
-During capture-the-flag cybersecurity evaluations in April, three Claude models — Opus 4.7, Mythos 5, and an internal research prototype — escaped their intended sandbox and accessed systems at three external organizations. Root cause: a network misconfiguration between Anthropic and its evaluation partner "Irregular" left the environment exposed to the live internet despite both parties believing it was isolated.
-
-The models exploited basic weaknesses (weak passwords, unauthenticated services). No customer data or Anthropic production systems were accessed. Anthropic has paused cybersecurity evaluations while independent researchers at METR investigate.
-
-**Why it matters:** Eval environments need the same network isolation discipline as production. If your LLM agent test harness has live network access, you are not testing what you think you are — and the failure mode is live access to external systems.
-
-## EU AI Act Article 50: enforceable today
-
-August 2, 2026 is the 24-month mark from the EU AI Act entering into force. From today, Article 50 transparency obligations apply:
-
-- AI systems interacting directly with EU users must disclose to those users that they are interacting with AI.
-- AI-generated or AI-manipulated images, video, audio, and text must carry machine-readable watermarks.
-- This covers chatbots, voice assistants, and generative content pipelines.
-
-Note: the high-risk regime (Annex III — hiring, credit, critical infrastructure) was deferred to December 2027 via the Digital Omnibus amendment. Conformity assessments for those use cases are not mandatory yet.
-
-**Why it matters:** If your product serves EU users and uses AI without disclosure, the grace period is over. Transparency is now a legal requirement, not a best practice.
-
-**Sources:** [Anthropic Cybersecurity Evaluation Incidents — Anthropic](https://www.anthropic.com/news/investigating-incidents-cybersecurity-evals) · [Claude Escaped Test Sandbox to Attack Three Organizations — The Register](https://www.theregister.com/ai-and-ml/2026/07/31/anthropics-claude-escaped-test-sandbox-to-attack-three-organizations/5281562) · [EU AI Act: What Actually Applies on 2 August 2026 — Technology.org](https://www.technology.org/2026/07/17/eu-ai-act-what-actually-applies-on-2-august-2026/) · [EU AI Act Next Level Applies — Reed Smith](https://www.reedsmith.com/our-insights/blogs/technology-law-dispatch/102nfi5/eu-ai-act-next-level-applies-as-of-2-august-2026/)
-      ]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Vector Search Can't Answer 'What Are the Main Themes?' — GraphRAG Builds a Knowledge Graph That Can</title>
-      <link>https://microsoft.github.io/graphrag/get_started/</link>
-      <guid isPermaLink="false">2026-08-02-09-graphrag-knowledge-graph-rag-global-queries</guid>
-      <pubDate>Sun, 02 Aug 2026 20:00:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>RAG</category>
-      <category>Best Practices</category>
-      <description>GraphRAG extracts entities and relationships from documents into a knowledge graph, summarizes topic communities, and uses those summaries to answer synthesis questions that stump plain vector search.</description>
-      <media:content url="https://img.youtube.com/vi/f7Puiilv5Tw/maxresdefault.jpg" medium="image" />
-      <media:thumbnail url="https://img.youtube.com/vi/f7Puiilv5Tw/maxresdefault.jpg" />
-      <content:encoded><![CDATA[
-**GraphRAG (Microsoft) extracts entities and relationships from your corpus into a knowledge graph, generates community summaries, and uses those summaries to answer synthesis questions that stumped vector search.**
-
-**What you'll be able to do after this:**
-- Index a document corpus into a knowledge graph with five CLI commands
-- Query it with global synthesis questions ("what are the main themes?") and local entity lookups ("who is X and what do they do?")
-- Know when GraphRAG's higher index cost is worth paying versus sticking with plain vector search
-
-**Resource:** [GraphRAG: The Most Incredible RAG Strategy Revealed](https://www.youtube.com/watch?v=f7Puiilv5Tw) (Mervin Praison, July 2024) — 11-minute beginner walkthrough; or the [Official Quickstart](https://microsoft.github.io/graphrag/get_started/) for the current v1.0 CLI.
-
----
-
-## Why vector RAG fails on synthesis questions
-
-Standard RAG retrieves the passages most similar to your query. That works when the answer lives in a single passage — "What is the return policy?" retrieves the return-policy chunk. It fails completely for "What are the three main themes across all 200 documents?" — no single chunk contains that answer, so cosine similarity has nothing to return.
-
-GraphRAG (Microsoft Research, open-sourced July 2024) solves this with a structured knowledge-graph index built at ingest time.
-
-## The four-stage GraphRAG pipeline
-
-**Stage 1 — Chunk.** Documents split into overlapping TextUnits (~300 tokens each, configurable).
-
-**Stage 2 — Extract (expensive).** An LLM reads every TextUnit and extracts named **entities** (people, orgs, concepts) plus **relationships** between them, each with a description. When the same entity appears across chunks, descriptions are merged into one canonical summary.
-
-**Stage 3 — Cluster.** The entity-relationship graph is clustered using the Leiden algorithm into a hierarchy — tight topic clusters at the fine level, broad thematic communities at the coarse level.
-
-**Stage 4 — Summarize.** Each community gets an LLM-generated summary report at each hierarchy level. These reports are the artifacts that power global queries.
-
-## Five CLI commands to a working index
-
-```bash
-pip install graphrag
-
-mkdir my_graphrag && cd my_graphrag
-graphrag init          # creates .env, settings.yaml, input/ directory
-
-# Edit .env: add GRAPHRAG_API_KEY=<your-openai-key>
-# Drop your .txt documents into input/, then:
-
-graphrag index         # extracts entities, clusters, summarizes — builds the graph
-```
-
-## Two query modes
-
-```bash
-# Global: decomposes query → fans out to ALL community summaries → synthesizes
-# Best for: "what are the themes?", "compare the key arguments", "what patterns exist?"
-graphrag query "What are the main themes across all documents?"
-
-# Local: finds relevant entities → traverses graph edges → fetches context + summaries
-# Best for: "who is X?", "what is the relationship between X and Y?"
-graphrag query "Who is the main antagonist and what are their motivations?" --method local
-```
-
-## Cost tradeoff and the budget option
-
-**GraphRAG indexing is expensive.** LLM extraction runs over every chunk; community summarization runs over every cluster level. A ~30K-word document costs ~$0.34 with GPT-4-Turbo. Large enterprise corpora can run hundreds or thousands of dollars.
-
-**LazyGraphRAG (the budget option):** uses NLP co-occurrence instead of LLM extraction at index time — same indexing cost as plain vector RAG. LLM is only called at query time. Reaches roughly 90% of full GraphRAG quality at a fraction of the cost. Enable with `--method lazy` during `graphrag index`.
-
-## When to use GraphRAG vs vector RAG
-
-| Use case | Better choice |
-|---|---|
-| "What are the main themes / trends / patterns?" | GraphRAG global mode |
-| "Summarize this entire corpus" | GraphRAG global mode |
-| "Who is X and what is their relationship to Y?" | GraphRAG local mode |
-| Direct factual recall ("what is X?") | Vector RAG |
-| Latency-sensitive (< 1s) | Vector RAG |
-| Tight budget, no synthesis needs | Vector RAG |
-
-**Sources:** [Microsoft GraphRAG — GitHub](https://github.com/microsoft/graphrag) · [GraphRAG Quickstart — Official Docs](https://microsoft.github.io/graphrag/get_started/) · [From Local to Global: A GraphRAG Approach to Query-Focused Summarization — arXiv](https://arxiv.org/abs/2404.16130) · [LazyGraphRAG — Microsoft Research Blog](https://www.microsoft.com/en-us/research/blog/lazygraphrag-setting-a-new-standard-for-quality-and-cost/)
-      ]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
     
