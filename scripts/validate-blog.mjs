@@ -9,6 +9,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { FEED_WINDOW, FEED_WINDOW_LIMIT } from './lib/feed-window.mjs';
+import { isFeedEra } from './lib/feed-era.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BLOG_DIR = path.join(ROOT, 'public', 'blog');
@@ -31,18 +32,9 @@ const KNOWN_TAGS = new Set(['AI', ...CONTENT_TYPES, ...TOPIC_TAGS]);
 /** Retired tags that must never come back (duplicates that fragment the filter). */
 const BANNED_TAGS = new Map([['AI News', 'News']]);
 
-/**
- * The tag rules apply to the feed era — every post published on or after the
- * 2026-06-09 cutover to the RSS pipeline. Before that date sits the 150-post
- * back-catalog from the retired Desktop importer: frozen history that no current
- * tool regenerates, so re-tagging it would mean inventing metadata.
- *
- * Deliberately a DATE cutoff, not "is it in content/feed.xml". Feed membership was
- * equivalent until scripts/trim-feed.mjs started keeping the feed to a rolling
- * window; with trimming, feed membership would quietly drop posts out of
- * enforcement as the window advances. The cutover date is fixed and stays correct.
- */
-const FEED_ERA_START = Date.UTC(2026, 5, 9); // 2026-06-09, the RSS cutover
+/* Scope of the tag rules (feed era vs frozen back-catalogue) lives in
+ * scripts/lib/feed-era.mjs, shared with normalize-tags.mjs so the rule that FINDS
+ * a tag problem and the rule that FIXES it cannot disagree about scope. */
 
 /**
  * Backstop for the rolling feed window. Nothing breaks the moment the feed grows —
@@ -67,12 +59,6 @@ async function checkFeedWindow(warnings) {
   );
 }
 
-function isFeedEra(post) {
-  const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(post.date ?? '');
-  if (!m) return true; // malformed dates are already an error; don't also exempt them
-  const [, mm, dd, yyyy] = m;
-  return Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd)) >= FEED_ERA_START;
-}
 
 async function main() {
   const errors = [];

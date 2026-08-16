@@ -28,6 +28,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isFeedEra } from './lib/feed-era.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FEED = path.join(ROOT, 'content', 'feed.xml');
@@ -74,15 +75,18 @@ function normalize(tags, id) {
 async function main() {
   const stats = { renamed: 0, typed: 0, feedItems: 0 };
 
-  // ---- posts.json (only entries that exist in the feed; archive is frozen) ----
+  // ---- posts.json (feed-era entries only; the pre-cutover archive is frozen) ----
+  //
+  // Scoped by DATE, not by feed membership. trim-feed.mjs keeps the feed to a
+  // rolling ~15-day window, so membership would limit repairs to the last two
+  // weeks — which is exactly how a merge once reverted 50 posts' tags that this
+  // script then refused to fix. validate-blog.mjs uses the same predicate, so
+  // anything it flags, this can repair.
   const feedXml = await readFile(FEED, 'utf8');
-  const feedIds = new Set(
-    [...feedXml.matchAll(/<guid[^>]*>([^<]+)<\/guid>/g)].map((m) => m[1].trim()),
-  );
 
   const posts = JSON.parse(await readFile(POSTS_JSON, 'utf8'));
   for (const p of posts) {
-    if (!feedIds.has(p.id)) continue;
+    if (!isFeedEra(p)) continue;
     const before = p.tags || [];
     const after = normalize(before, p.id);
     if (JSON.stringify(before) === JSON.stringify(after)) continue;
