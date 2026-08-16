@@ -175,9 +175,24 @@ what gets written into the feed.
 >      what to iterate on in the editor, and how to keep the two from fighting.
 >    - Prompting a design tool well — what it responds to, where it goes wrong.
 >    - Design tokens, specs, and system docs an agent can actually consume.
->    - Onboarding: a designer's or PM's genuine first hour with the tool.
+>    - Reviewing and correcting AI-generated UI; accessibility and responsive
+>      behavior in generated components; when to regenerate vs. hand-edit.
 >    Format like a practitioner post (~150–350 words, concrete steps, real
 >    screenshots/links where they help). Tag it `Design` plus the tool's tag.
+>
+>    **Serve BOTH readers — this is a quota, not a suggestion.** Every angle above
+>    is written for reader (a), the engineer. Left to itself this bucket will pick
+>    an engineer angle every single time, because that's where the concrete detail
+>    is. So: **at least one in every three design posts must be written for reader
+>    (b) — the product/design person starting from zero.** Before writing a design
+>    post, look at the last two `Design`-tagged items in `posts.json`; if BOTH were
+>    engineer-facing, this one MUST be a reader-(b) post. State which reader you
+>    wrote for in your run report (`design reader: (a) engineer` or `(b) design/PM`).
+>    A reader-(b) post assumes no repo, no component library, and no build step:
+>    the genuine first hour, what the tool can and can't do, the vocabulary an
+>    engineer will use back at you, and how to hand work off without reading code.
+>    Do not simply retitle an engineer post — if it opens with a repo or a package
+>    name, it is not a reader-(b) post.
 >    **Ramp-up and exit — check this yourself, don't guess.** Count feed items
 >    tagged `Design`. While that count is **under 12**, this bucket runs **once
 >    every run** and takes priority over the teachable slot when the run is tight.
@@ -378,7 +393,9 @@ what gets written into the feed.
 > - **Today's item count across all runs** (items in the feed with today's UTC
 >   date, including yours) against the ~8/day budget and 10 ceiling.
 > - **Design bucket mode** — `ramp-up, N/12` or `steady` — with N being the live
->   count of feed items tagged `Design`.
+>   count of feed items tagged `Design`; plus, for any design post you wrote,
+>   **which reader it targets** (`(a) engineer` or `(b) design/PM`) and what the
+>   previous two design posts targeted, so the one-in-three quota is auditable.
 >
 > **Before you finish, run these in order** — do not commit if either fails:
 > ```bash
