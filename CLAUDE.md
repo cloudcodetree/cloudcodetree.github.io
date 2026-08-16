@@ -15,7 +15,7 @@ This is CloudCodeTree's professional portfolio website built with Next.js 15 (Ap
 - **Responsive Design**: Mobile-first design with glass morphism, animations, and modern CSS
 - **Custom Domain**: Configured for cloudcodetree.com with Route53 DNS and GitHub Pages
 - **SEO Optimized**: Next.js Metadata API (per-page titles/descriptions, per-post Open Graph images, canonicals) + build-time sitemap.xml and RSS feed
-- **Performance Optimized**: Static export, build-time blog rendering, paginated blog data chunks
+- **Performance Optimized**: Static export, build-time blog rendering, slim client-paginated list index
 
 ## Development Commands
 
@@ -76,7 +76,7 @@ app/                          # Next.js App Router
 
 scripts/                      # Blog automation (Node; deps: fast-xml-parser, sharp — used by ingest)
 ├── ingest-feed.mjs          # content/feed.xml (RSS 2.0 + Media RSS) → posts.json + CDN images
-├── generate-feeds.mjs       # posts.json → public/feed.xml + sitemap.xml + blog/pages/<n>.json (prebuild + dev)
+├── generate-feeds.mjs       # posts.json → public/feed.xml + sitemap.xml (prebuild + dev)
 ├── publish-post.mjs         # Manual publishing: draft → posts.json entry (content inline)
 ├── normalize-tags.mjs       # One-off: canonicalize tags in feed.xml + posts.json (idempotent)
 ├── trim-feed.mjs            # Keep content/feed.xml to a rolling ~120-item window
@@ -116,8 +116,8 @@ public/
 - Call-to-action sections for resume and contact
 
 **BlogPage.tsx / BlogPost.tsx**: the AI News blog (see "Blog" below):
-- List page gets page 1 embedded at build time; later pages fetch
-  `/blog/pages/<n>.json` chunks (10 posts each, generated at prebuild)
+- List page paginates client-side from a slim, content-free index the server route
+  embeds at build time, with a reader-selectable page size (no per-page fetches)
 - Article pages are fully prerendered — the post is passed as a prop by the
   server route (`app/ai-news/[id]/page.tsx`), no client-side fetch
 - Markdown rendered via `react-markdown` + `remark-gfm`
@@ -196,8 +196,8 @@ See the **Blog ("AI News")** section below — posts live inline in
 
 - **Static export**: every route (incl. all blog articles) is prerendered HTML —
   no server, no client data fetch for article content
-- **Paginated blog data**: the list page embeds page 1 and fetches ~28KB
-  `/blog/pages/<n>.json` chunks on pagination instead of the whole posts.json
+- **Slim list index**: the list page embeds a content-free index (no post bodies)
+  and paginates client-side, instead of shipping the whole posts.json
 - **React 19 / Next 15**: build-time type + lint checks are ON
   (`next.config.js` no longer ignores build errors)
 - **Lazy Loading**: Framer Motion animations animate when components enter viewport
@@ -227,7 +227,7 @@ See the **Blog ("AI News")** section below — posts live inline in
 ## Development Workflow
 
 1. **Local Development**: `pnpm run dev` serves at `http://localhost:3000/` with hot
-   reload (it first runs `generate-feeds.mjs` so feed/sitemap/page chunks exist)
+   reload (it first runs `generate-feeds.mjs` so the feed and sitemap exist)
 2. **Code Quality**: `pnpm run lint` for ESLint validation
 3. **Type Checking**: enforced during `pnpm run build` (TS + ESLint failures fail the build)
 4. **Build**: `pnpm run build` generates the static export in `./out`
@@ -272,9 +272,9 @@ post's body **inlined in `posts.json`** (no per-post `.md` files). The only comm
 asset is `public/blog/posts.json`; **images are not in the repo** — they live on the GitHub
 Release `blog-images` (CDN) and `posts.json` stores their URLs.
 
-**Rendering.** The list (`/ai-news`, `app/ai-news/page.tsx` → `BlogPage`) embeds page 1
-at build time (read from `posts.json` server-side) and, when paginating, fetches only
-`/blog/pages/<n>.json` chunks (10 posts each, generated at prebuild, gitignored); the page
+**Rendering.** The list (`/ai-news`, `app/ai-news/page.tsx` → `BlogPage`) embeds a slim,
+content-free index at build time (read from `posts.json` server-side) and paginates
+**client-side** from it, with a reader-selectable page size — no per-page fetches; the page
 is kept in the URL as `?page=N`. Bodies render via `react-markdown` + `remark-gfm`. Each
 post title links to `/ai-news/<id>` (`app/ai-news/[id]/page.tsx` → `BlogPost`); the server
 route reads the post at build time and passes it as a prop — article HTML is fully baked,
@@ -285,9 +285,9 @@ with per-post Open Graph metadata from `generateMetadata`. Shared types/styling 
 **Generated artifacts (emit).** `scripts/generate-feeds.mjs` runs at `prebuild` (and
 before `dev`; also `npm run feeds`) and builds, from `posts.json`:
 `public/feed.xml` (RSS 2.0 + Media RSS + `content:encoded`; item links point to
-`/ai-news/<id>`, images absolute), `public/sitemap.xml` (static routes + every article),
-and `public/blog/pages/<n>.json` (the list's pagination chunks). All three are gitignored
-(regenerated each build). The feed is discoverable via a `<link rel="alternate">` in
+`/ai-news/<id>`, images absolute) and `public/sitemap.xml` (static routes + every article).
+Both are gitignored (regenerated each build). Per-page JSON chunks were retired — the list
+paginates client-side. The feed is discoverable via a `<link rel="alternate">` in
 `app/layout.tsx`, the sitemap via robots.txt. This is separate from the **ingest** feed at
 `content/feed.xml` (task → site).
 
