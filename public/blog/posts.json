@@ -259,7 +259,7 @@
     "publishedAt": "2026-08-14T04:20:00.000Z",
     "tags": [
       "AI",
-      "Models",
+      "LLM",
       "News"
     ],
     "readTime": 2,
@@ -275,8 +275,8 @@
     "date": "08-14-2026",
     "publishedAt": "2026-08-14T04:19:00.000Z",
     "tags": [
-      "Vector Search",
-      "Foundations",
+      "AI",
+      "Vectors",
       "RAG",
       "Tutorial"
     ],
@@ -8868,7 +8868,7 @@
       "AI",
       "Developer Tools",
       "Best Practices",
-      "AI News"
+      "News"
     ],
     "readTime": 3,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-17-03-openai-deployment-simulation.jpg",
@@ -8887,7 +8887,7 @@
     "tags": [
       "AI",
       "LLM",
-      "AI News",
+      "News",
       "Security"
     ],
     "readTime": 3,
@@ -8907,7 +8907,7 @@
     "tags": [
       "AI",
       "LLM",
-      "AI News",
+      "News",
       "Best Practices"
     ],
     "readTime": 3,
@@ -8927,7 +8927,8 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "Best Practices"
+      "Best Practices",
+      "News"
     ],
     "readTime": 3,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-16-04-vscode-1124-autopilot-default-agents.jpg",
@@ -8946,7 +8947,8 @@
     "tags": [
       "AI",
       "LLM",
-      "Developer Tools"
+      "Developer Tools",
+      "News"
     ],
     "readTime": 3,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-16-03-glm52-zai-1m-context-claude-code.jpg",
@@ -8965,7 +8967,7 @@
     "tags": [
       "AI",
       "LLM",
-      "AI News"
+      "News"
     ],
     "readTime": 3,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-16-02-fable5-kalshi-polymarket-june22.jpg",
@@ -8982,7 +8984,7 @@
     "tags": [
       "AI",
       "LLM",
-      "AI News",
+      "News",
       "Best Practices"
     ],
     "readTime": 3,
@@ -9001,7 +9003,7 @@
       "AI",
       "LLM",
       "Security",
-      "AI News"
+      "News"
     ],
     "readTime": 3,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-15-01-amazon-fable5-whitehouse-90min.jpg",
@@ -9018,7 +9020,7 @@
     "tags": [
       "AI",
       "LLM",
-      "AI News"
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-15-02-g7-evian-day-one-ai-ceos.jpg",
@@ -9038,7 +9040,7 @@
       "AI",
       "Developer Tools",
       "Cloud",
-      "AI News"
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-15-03-openai-acquires-ona-codex-cloud.jpg",
@@ -9055,7 +9057,8 @@
     "tags": [
       "AI",
       "Security",
-      "Developer Tools"
+      "Developer Tools",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-14-01-symjack-six-coding-agents-supply-chain.jpg",
@@ -9074,7 +9077,8 @@
     "tags": [
       "AI",
       "Security",
-      "Developer Tools"
+      "Developer Tools",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-14-02-agentjacking-sentry-mcp-injection.jpg",
@@ -9090,7 +9094,7 @@
     "publishedAt": "2026-06-14T12:08:00.000Z",
     "tags": [
       "AI",
-      "AI News",
+      "News",
       "Security"
     ],
     "readTime": 2,
@@ -9110,7 +9114,7 @@
     "tags": [
       "AI",
       "LLM",
-      "AI News",
+      "News",
       "Security"
     ],
     "readTime": 2,
@@ -9130,7 +9134,8 @@
     "tags": [
       "AI",
       "LLM",
-      "Developer Tools"
+      "Developer Tools",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-13-02-kimi-k27-code-open-weight-1t.jpg",
@@ -9147,7 +9152,8 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "Best Practices"
+      "Best Practices",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-13-03-claude4-api-deprecated-june15-48h.jpg",
@@ -9164,7 +9170,8 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "Best Practices"
+      "Best Practices",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-13-04-anthropic-agent-sdk-billing-split-june15.jpg",
@@ -9183,7 +9190,7 @@
     "tags": [
       "AI",
       "LLM",
-      "AI News"
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-13-05-g7-evian-ai-ceos-altman-amodei-hassabis.jpg",
@@ -9200,7 +9207,8 @@
     "tags": [
       "AI",
       "Security",
-      "Developer Tools"
+      "Developer Tools",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-12-01-litellm-badhost-chain-cvss-10-rce.jpg",
@@ -9219,7 +9227,7 @@
     "tags": [
       "AI",
       "LLM",
-      "AI News"
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-12-02-amodei-faa-regulation-g7-summit.jpg",
@@ -9238,7 +9246,7 @@
     "tags": [
       "AI",
       "Cloud",
-      "AI News"
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-12-03-spacex-spcx-ipo-opens-ai-infrastructure.jpg",
@@ -9257,7 +9265,8 @@
     "tags": [
       "AI",
       "LLM",
-      "Developer Tools"
+      "Developer Tools",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-12-04-openai-assistants-api-august-sunset.jpg",
@@ -9276,7 +9285,8 @@
     "tags": [
       "AI",
       "Security",
-      "Developer Tools"
+      "Developer Tools",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-11-09-badhost-starlette-mcp-auth-bypass.jpg",
@@ -9293,7 +9303,7 @@
     "tags": [
       "AI",
       "Security",
-      "AI News"
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-11-10-sysdig-first-llm-agent-attack-marimo.jpg",
@@ -9310,7 +9320,8 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "Best Practices"
+      "Best Practices",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-11-11-opencode-lsp-model-agnostic-tops-rankings.jpg",
@@ -9329,7 +9340,7 @@
     "tags": [
       "AI",
       "LLM",
-      "AI News"
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-11-12-openai-anthropic-dual-ipo-race.jpg",
@@ -9346,7 +9357,8 @@
     "tags": [
       "AI",
       "Security",
-      "Developer Tools"
+      "Developer Tools",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-11-06-miasma-npm-ai-assistant-backdoor.jpg",
@@ -9365,7 +9377,8 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "LLM"
+      "LLM",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-11-07-mai-code-1-flash-copilot.jpg",
@@ -9384,7 +9397,7 @@
     "tags": [
       "AI",
       "Cloud",
-      "AI News"
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-11-08-openai-oracle-cloud-credits.jpg",
@@ -9403,7 +9416,7 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "AI News"
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-11-01-webmcp-chrome-canary-early-preview.jpg",
@@ -9420,7 +9433,8 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "Best Practices"
+      "Best Practices",
+      "Workflow"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-11-02-claude-code-fast-mode-economics.jpg",
@@ -9437,7 +9451,8 @@
     "tags": [
       "AI",
       "Security",
-      "Best Practices"
+      "Best Practices",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-11-03-one-cent-prompt-injection-bank-memo.jpg",
@@ -9454,7 +9469,8 @@
     "tags": [
       "AI",
       "LLM",
-      "Developer Tools"
+      "Developer Tools",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-11-04-deepseek-legacy-retirement-v4-migration.jpg",
@@ -9471,7 +9487,8 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "Best Practices"
+      "Best Practices",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-11-05-ai-coding-tools-pricing-reset.jpg",
@@ -9488,7 +9505,7 @@
     "tags": [
       "AI",
       "LLM",
-      "AI News"
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-10-01-claude-fable-5-mythos-class-ga.jpg",
@@ -9506,7 +9523,8 @@
       "AI",
       "LLM",
       "Developer Tools",
-      "Best Practices"
+      "Best Practices",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-10-02-fable-5-coding-benchmarks.jpg",
@@ -9523,7 +9541,8 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "Best Practices"
+      "Best Practices",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-10-03-claude-code-v2-1-169-safe-mode-cd.jpg",
@@ -9540,7 +9559,7 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "AI News"
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-10-04-copilot-cloud-agent-scriptable.jpg",
@@ -9557,7 +9576,8 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "Best Practices"
+      "Best Practices",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-10-05-cursor-sdk-custom-tools-auto-review.jpg",
@@ -9576,7 +9596,8 @@
     "tags": [
       "AI",
       "LLM",
-      "Best Practices"
+      "Best Practices",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-10-06-swe-explore-repo-exploration-benchmark.jpg",
@@ -9595,7 +9616,8 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "LLM"
+      "LLM",
+      "News"
     ],
     "readTime": 2,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-09-10-claude-foundation-models-swift-package.jpg",
@@ -9612,7 +9634,7 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "AI News"
+      "News"
     ],
     "readTime": 1,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-09-01-xcode-27-goes-agent-native.jpg",
@@ -9629,7 +9651,8 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "LLM"
+      "LLM",
+      "News"
     ],
     "readTime": 1,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-09-02-claude-code-fallback-models.jpg",
@@ -9647,7 +9670,8 @@
       "AI",
       "Developer Tools",
       "Security",
-      "Best Practices"
+      "Best Practices",
+      "Workflow"
     ],
     "readTime": 1,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-09-03-skill-hygiene-untrusted-community-skills.jpg",
@@ -9664,7 +9688,8 @@
     "tags": [
       "AI",
       "Developer Tools",
-      "Best Practices"
+      "Best Practices",
+      "News"
     ],
     "readTime": 1,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-09-04-wwdc-sirikit-deprecated-app-intents.jpg",
@@ -9681,7 +9706,8 @@
     "tags": [
       "AI",
       "Best Practices",
-      "Developer Tools"
+      "Developer Tools",
+      "Workflow"
     ],
     "readTime": 1,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-09-05-verification-is-the-bottleneck.jpg",
@@ -9698,7 +9724,8 @@
     "tags": [
       "AI",
       "Best Practices",
-      "Developer Tools"
+      "Developer Tools",
+      "Workflow"
     ],
     "readTime": 1,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-09-06-pin-one-mcp-per-system.jpg",
@@ -9715,7 +9742,8 @@
     "tags": [
       "AI",
       "LLM",
-      "Best Practices"
+      "Best Practices",
+      "Workflow"
     ],
     "readTime": 1,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-09-07-agentic-rag-references.jpg",
@@ -9733,7 +9761,7 @@
     "publishedAt": "2026-06-09T11:30:00.000Z",
     "tags": [
       "AI",
-      "AI News",
+      "News",
       "Developer Tools"
     ],
     "readTime": 1,
@@ -9750,7 +9778,7 @@
     "publishedAt": "2026-06-09T11:00:00.000Z",
     "tags": [
       "AI",
-      "AI News"
+      "News"
     ],
     "readTime": 1,
     "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-06-09-09-siri-ai-delayed-eu-dma.jpg",
