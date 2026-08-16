@@ -1,5 +1,23 @@
 [
   {
+    "id": "2026-08-16-08-claude-design-pm-designer-first-hour",
+    "title": "Your First Prototype in 15 Minutes: What Claude Design Is (and Isn't) for PMs and Designers Starting From Zero",
+    "excerpt": "Claude Design turns a plain-English description into a clickable prototype on a live canvas — your first useful output takes about fifteen minutes and no developer is needed.",
+    "author": "Chris Harper",
+    "date": "08-16-2026",
+    "publishedAt": "2026-08-16T14:41:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Claude Design"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://support.claude.com/en/articles/14604416-get-started-with-claude-design",
+    "content": "**Claude Design turns a plain-English description into a clickable prototype on a live canvas — your first useful output takes about fifteen minutes and no developer is needed.**\n\n[Claude Design](https://claude.com/product/design) is Anthropic's design-from-text tool: you describe a screen, and it draws working, clickable HTML on a canvas you can share, iterate on, and hand to an engineer as a complete package. No Figma file, no dev environment, no build step.\n\n**What you'll be able to do after this:**\n- Generate a clickable prototype from a text description in under 20 minutes\n- Iterate without writing a line of code or involving a developer\n- Hand the result to your engineer with a single bundled export\n\n**Starting from zero:**\n\n1. Go to **claude.ai/design** (Pro, Max, Team, or Enterprise plan)\n2. Click \"New project\" — for now, skip the design system step; your engineer sets that up later\n3. Describe your first screen in plain English: *\"A dashboard for a recruiting app with a jobs list on the left and candidate pipeline stages on the right, muted blues and grays\"*\n4. Claude draws it on a live canvas — it's real HTML you can click, not a mock-up image\n5. Refine in the chat pane (\"add a filter for department\") or click directly on the canvas to tweak text\n6. When ready, share the canvas link for stakeholder reviews, or click **Export → Send to Claude Code** to hand it off to your engineering team\n\n**Vocabulary for your first engineer conversation:**\n- **Design sync** — how your engineer connects Claude Design to the team's codebase so generated components match your existing style system\n- **Handoff bundle** — the export Claude Design produces when you click \"Send to Claude Code\"; your engineer passes it to Claude Code as one instruction\n\n**What Claude Design is not:** It doesn't replace Figma on a complex product with a large existing design system. It shines for exploratory work, internal tools, quick pitch decks, and the kinds of screens where you'd otherwise wait weeks for dev time. It also shares your usage quota with Claude chat and Claude Code — a long design session shortens your coding session.\n\n**Sources:** [Get started with Claude Design — support.claude.com](https://support.claude.com/en/articles/14604416-get-started-with-claude-design) · [Claude Design product page](https://claude.com/product/design)"
+  },
+  {
     "id": "2026-08-16-07-claude-design-claude-code-handoff",
     "title": "Sync Your Design System First: The Claude Design → Claude Code Handoff That Actually Lands",
     "excerpt": "Run /design-sync before generating anything in Claude Design, then export a handoff bundle straight to Claude Code — plus the usage-pool and research-preview caveats worth planning around.",

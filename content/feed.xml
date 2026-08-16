@@ -10,7 +10,47 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 16 Aug 2026 12:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 16 Aug 2026 14:41:00 +0000</lastBuildDate>
+
+<item>
+      <title>Your First Prototype in 15 Minutes: What Claude Design Is (and Isn&#x27;t) for PMs and Designers Starting From Zero</title>
+      <link>https://support.claude.com/en/articles/14604416-get-started-with-claude-design</link>
+      <guid isPermaLink="false">2026-08-16-08-claude-design-pm-designer-first-hour</guid>
+      <pubDate>Sun, 16 Aug 2026 14:41:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Claude Design turns a plain-English description into a clickable prototype on a live canvas — your first useful output takes about fifteen minutes and no developer is needed.</description>
+      <content:encoded><![CDATA[
+**Claude Design turns a plain-English description into a clickable prototype on a live canvas — your first useful output takes about fifteen minutes and no developer is needed.**
+
+[Claude Design](https://claude.com/product/design) is Anthropic's design-from-text tool: you describe a screen, and it draws working, clickable HTML on a canvas you can share, iterate on, and hand to an engineer as a complete package. No Figma file, no dev environment, no build step.
+
+**What you'll be able to do after this:**
+- Generate a clickable prototype from a text description in under 20 minutes
+- Iterate without writing a line of code or involving a developer
+- Hand the result to your engineer with a single bundled export
+
+**Starting from zero:**
+
+1. Go to **claude.ai/design** (Pro, Max, Team, or Enterprise plan)
+2. Click "New project" — for now, skip the design system step; your engineer sets that up later
+3. Describe your first screen in plain English: *"A dashboard for a recruiting app with a jobs list on the left and candidate pipeline stages on the right, muted blues and grays"*
+4. Claude draws it on a live canvas — it's real HTML you can click, not a mock-up image
+5. Refine in the chat pane ("add a filter for department") or click directly on the canvas to tweak text
+6. When ready, share the canvas link for stakeholder reviews, or click **Export → Send to Claude Code** to hand it off to your engineering team
+
+**Vocabulary for your first engineer conversation:**
+- **Design sync** — how your engineer connects Claude Design to the team's codebase so generated components match your existing style system
+- **Handoff bundle** — the export Claude Design produces when you click "Send to Claude Code"; your engineer passes it to Claude Code as one instruction
+
+**What Claude Design is not:** It doesn't replace Figma on a complex product with a large existing design system. It shines for exploratory work, internal tools, quick pitch decks, and the kinds of screens where you'd otherwise wait weeks for dev time. It also shares your usage quota with Claude chat and Claude Code — a long design session shortens your coding session.
+
+**Sources:** [Get started with Claude Design — support.claude.com](https://support.claude.com/en/articles/14604416-get-started-with-claude-design) · [Claude Design product page](https://claude.com/product/design)
+]]></content:encoded>
+    </item>
 
 <item>
       <title>Sync Your Design System First: The Claude Design → Claude Code Handoff That Actually Lands</title>
@@ -7581,94 +7621,7 @@ Note: the high-risk regime (Annex III — hiring, credit, critical infrastructur
       ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Vector Search Can't Answer 'What Are the Main Themes?' — GraphRAG Builds a Knowledge Graph That Can</title>
-      <link>https://microsoft.github.io/graphrag/get_started/</link>
-      <guid isPermaLink="false">2026-08-02-09-graphrag-knowledge-graph-rag-global-queries</guid>
-      <pubDate>Sun, 02 Aug 2026 20:00:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>RAG</category>
-      <category>Best Practices</category>
-      <description>GraphRAG extracts entities and relationships from documents into a knowledge graph, summarizes topic communities, and uses those summaries to answer synthesis questions that stump plain vector search.</description>
-      <media:content url="https://img.youtube.com/vi/f7Puiilv5Tw/maxresdefault.jpg" medium="image" />
-      <media:thumbnail url="https://img.youtube.com/vi/f7Puiilv5Tw/maxresdefault.jpg" />
-      <content:encoded><![CDATA[
-**GraphRAG (Microsoft) extracts entities and relationships from your corpus into a knowledge graph, generates community summaries, and uses those summaries to answer synthesis questions that stumped vector search.**
-
-**What you'll be able to do after this:**
-- Index a document corpus into a knowledge graph with five CLI commands
-- Query it with global synthesis questions ("what are the main themes?") and local entity lookups ("who is X and what do they do?")
-- Know when GraphRAG's higher index cost is worth paying versus sticking with plain vector search
-
-**Resource:** [GraphRAG: The Most Incredible RAG Strategy Revealed](https://www.youtube.com/watch?v=f7Puiilv5Tw) (Mervin Praison, July 2024) — 11-minute beginner walkthrough; or the [Official Quickstart](https://microsoft.github.io/graphrag/get_started/) for the current v1.0 CLI.
-
----
-
-## Why vector RAG fails on synthesis questions
-
-Standard RAG retrieves the passages most similar to your query. That works when the answer lives in a single passage — "What is the return policy?" retrieves the return-policy chunk. It fails completely for "What are the three main themes across all 200 documents?" — no single chunk contains that answer, so cosine similarity has nothing to return.
-
-GraphRAG (Microsoft Research, open-sourced July 2024) solves this with a structured knowledge-graph index built at ingest time.
-
-## The four-stage GraphRAG pipeline
-
-**Stage 1 — Chunk.** Documents split into overlapping TextUnits (~300 tokens each, configurable).
-
-**Stage 2 — Extract (expensive).** An LLM reads every TextUnit and extracts named **entities** (people, orgs, concepts) plus **relationships** between them, each with a description. When the same entity appears across chunks, descriptions are merged into one canonical summary.
-
-**Stage 3 — Cluster.** The entity-relationship graph is clustered using the Leiden algorithm into a hierarchy — tight topic clusters at the fine level, broad thematic communities at the coarse level.
-
-**Stage 4 — Summarize.** Each community gets an LLM-generated summary report at each hierarchy level. These reports are the artifacts that power global queries.
-
-## Five CLI commands to a working index
-
-```bash
-pip install graphrag
-
-mkdir my_graphrag && cd my_graphrag
-graphrag init          # creates .env, settings.yaml, input/ directory
-
-# Edit .env: add GRAPHRAG_API_KEY=<your-openai-key>
-# Drop your .txt documents into input/, then:
-
-graphrag index         # extracts entities, clusters, summarizes — builds the graph
-```
-
-## Two query modes
-
-```bash
-# Global: decomposes query → fans out to ALL community summaries → synthesizes
-# Best for: "what are the themes?", "compare the key arguments", "what patterns exist?"
-graphrag query "What are the main themes across all documents?"
-
-# Local: finds relevant entities → traverses graph edges → fetches context + summaries
-# Best for: "who is X?", "what is the relationship between X and Y?"
-graphrag query "Who is the main antagonist and what are their motivations?" --method local
-```
-
-## Cost tradeoff and the budget option
-
-**GraphRAG indexing is expensive.** LLM extraction runs over every chunk; community summarization runs over every cluster level. A ~30K-word document costs ~$0.34 with GPT-4-Turbo. Large enterprise corpora can run hundreds or thousands of dollars.
-
-**LazyGraphRAG (the budget option):** uses NLP co-occurrence instead of LLM extraction at index time — same indexing cost as plain vector RAG. LLM is only called at query time. Reaches roughly 90% of full GraphRAG quality at a fraction of the cost. Enable with `--method lazy` during `graphrag index`.
-
-## When to use GraphRAG vs vector RAG
-
-| Use case | Better choice |
-|---|---|
-| "What are the main themes / trends / patterns?" | GraphRAG global mode |
-| "Summarize this entire corpus" | GraphRAG global mode |
-| "Who is X and what is their relationship to Y?" | GraphRAG local mode |
-| Direct factual recall ("what is X?") | Vector RAG |
-| Latency-sensitive (< 1s) | Vector RAG |
-| Tight budget, no synthesis needs | Vector RAG |
-
-**Sources:** [Microsoft GraphRAG — GitHub](https://github.com/microsoft/graphrag) · [GraphRAG Quickstart — Official Docs](https://microsoft.github.io/graphrag/get_started/) · [From Local to Global: A GraphRAG Approach to Query-Focused Summarization — arXiv](https://arxiv.org/abs/2404.16130) · [LazyGraphRAG — Microsoft Research Blog](https://www.microsoft.com/en-us/research/blog/lazygraphrag-setting-a-new-standard-for-quality-and-cost/)
-      ]]></content:encoded>
-    </item>
-
+    
     
     
     
