@@ -10,7 +10,42 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 16 Aug 2026 04:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 16 Aug 2026 13:29:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Sync Your Design System First: The Claude Design → Claude Code Handoff That Actually Lands</title>
+      <link>https://support.claude.com/en/articles/14604416-get-started-with-claude-design</link>
+      <guid isPermaLink="false">2026-08-16-04-claude-design-claude-code-handoff</guid>
+      <pubDate>Sun, 16 Aug 2026 13:29:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Run /design-sync before generating anything in Claude Design, then export a handoff bundle straight to Claude Code — plus the usage-pool and research-preview caveats worth planning around.</description>
+      <content:encoded><![CDATA[
+**Run `/design-sync` before you generate anything — it pulls your real design system in, so what Claude Code receives is built from your components instead of generic AI styling.**
+
+[Claude Design](https://claude.com/product/design) shipped from Anthropic Labs on April 17, 2026 as a research preview for Pro, Max, Team, and Enterprise plans. It's a chat pane on the left and a canvas on the right, and the output isn't a picture — it's live HTML you can click through. The interesting part, if you already ship with Claude Code, is the last mile.
+
+**The workflow that holds up:**
+
+1. **Sync first, design second.** `/design-sync` imports a design system from a GitHub repo, design files, or a codebase. Do it at project creation. Skip it and you get plausible-looking work in someone else's design language — and you pay for that in review, not in the design tool.
+2. **Iterate on the canvas, not in the prompt.** Inline comments, direct text editing, and the adjustment controls move faster than regenerating from a rewritten prompt.
+3. **Hand off with the bundle.** When it's ready, use *send to local coding agent* or *Send to Claude Code Web*. Claude packages a handoff bundle you pass to Claude Code with a single instruction. That bundle — not a screenshot, not a description — is what makes generated UI land close to your codebase.
+
+**Two things to know before you lean on it:**
+
+- **It shares your usage budget.** Claude Design draws from the same pool as chat, Claude Code, and Cowork; there's no separate allowance. A long design session shortens your coding session that day.
+- **It's a research preview and it shows.** Comment persistence is intermittent, simultaneous multi-person editing is unreliable, and design-system import is only as good as the source you point it at. Enterprise orgs get it **off by default** — an admin enables it in Organization settings.
+
+Beyond the code handoff, exports include ZIP, PDF, PPTX, standalone HTML, plus Canva, Miro, and Vercel.
+
+**Sources:** [Get started with Claude Design](https://support.claude.com/en/articles/14604416-get-started-with-claude-design) · [Introducing Claude Design](https://www.anthropic.com/news/claude-design-anthropic-labs) · [Claude Design product page](https://claude.com/product/design)
+]]></content:encoded>
+      <media:content url="https://www.anthropic.com/api/opengraph-illustration?name=Hand%20Quill&amp;backgroundColor=cactus" medium="image" />
+      <media:thumbnail url="https://www.anthropic.com/api/opengraph-illustration?name=Hand%20Quill&amp;backgroundColor=cactus" />
+    </item>
 
     <item>
       <title>Handle Claude Refusals in One Line: The API's fallbacks: 'default' Server-Side Fallback</title>
@@ -7675,83 +7710,7 @@ ChromaDB handles millions of vectors comfortably on a single node. When you need
       ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Stop Letting a Hung Tool Call Sink Your Agent: LangGraph's TimeoutPolicy and Error Handlers</title>
-      <link>https://www.langchain.com/blog/fault-tolerance-in-langgraph</link>
-      <guid isPermaLink="false">2026-08-02-03-langgraph-timeout-error-handler-fault-tolerant-agent</guid>
-      <pubDate>Sun, 02 Aug 2026 04:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>Add TimeoutPolicy and error_handler= to any LangGraph node in two arguments — agents that time out gracefully and route to recovery nodes instead of hanging on a stalled API call.</description>
-      <content:encoded><![CDATA[
-**Add `TimeoutPolicy` and `error_handler=` to any LangGraph node in two extra arguments — production agents that fail gracefully instead of hanging indefinitely.**
-
-Every agent hits a slow tool eventually: a rate-limited API, a database query that stalls, an LLM call that never comes back. Without explicit fault tolerance, your LangGraph agent waits until the cloud provider drops the connection. Here's how to fix that with three primitives that attach directly to `add_node()`.
-
-## RetryPolicy — handle transient errors automatically
-
-```python
-from langgraph.types import RetryPolicy
-
-retry = RetryPolicy(
-    initial_interval=0.5,
-    backoff_factor=2.0,
-    max_attempts=3,
-    retry_on=(ConnectionError, TimeoutError)
-)
-```
-
-Exponential backoff with jitter. Only retries on the exception types you specify — other exceptions propagate immediately.
-
-## TimeoutPolicy — cap wall-clock and idle time per attempt
-
-```python
-from langgraph.types import TimeoutPolicy
-
-timeout = TimeoutPolicy(
-    run_timeout=30.0,   # hard wall-clock cap per attempt
-    idle_timeout=5.0    # fires if no progress signal for 5s
-)
-```
-
-When a timeout fires, the attempt is cancelled and a `NodeTimeoutError` is raised — which counts as a retryable error for the retry policy above.
-
-## error_handler — run a recovery function after retries exhaust
-
-```python
-from langgraph.types import NodeError, Command
-
-def on_call_llm_failed(state: State, error: NodeError):
-    log.error("LLM call failed on node %s: %s", error.node, error.error)
-    return Command(update={"status": "llm_unavailable"}, goto="handle_failure")
-```
-
-The handler receives the failing node's name (`error.node`) and the exception (`error.error`). Returning a `Command` updates graph state and routes to a recovery subgraph — the Saga/compensation pattern without a try/except anywhere in your node code.
-
-## Wire it all together
-
-```python
-builder = StateGraph(State)
-builder.add_node(
-    "call_llm",
-    call_llm_node,
-    retry=retry,
-    timeout=timeout,
-    error_handler=on_call_llm_failed
-)
-```
-
-That's the full stack: retry on transient failures, cap wall-clock time, route to recovery when retries exhaust. The error handler only fires after all retry attempts have run — normal successes and retried-then-succeeded calls never touch it.
-
-**Sources:** [Fault Tolerance in LangGraph — LangChain Blog](https://www.langchain.com/blog/fault-tolerance-in-langgraph) · [LangGraph API Reference](https://langchain-ai.github.io/langgraph/reference/types/)
-]]></content:encoded>
-      <media:content url="https://cdn.prod.website-files.com/65c81e88c254bb0f97633a71/6a21b46ce3c7b10f36e622cc_image%20(19).png" medium="image" />
-      <media:thumbnail url="https://cdn.prod.website-files.com/65c81e88c254bb0f97633a71/6a21b46ce3c7b10f36e622cc_image%20(19).png" />
-    </item>
-
+    
     
     
 
