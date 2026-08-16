@@ -1,6 +1,6 @@
 [
   {
-    "id": "2026-08-16-04-claude-design-claude-code-handoff",
+    "id": "2026-08-16-07-claude-design-claude-code-handoff",
     "title": "Sync Your Design System First: The Claude Design → Claude Code Handoff That Actually Lands",
     "excerpt": "Run /design-sync before generating anything in Claude Design, then export a handoff bundle straight to Claude Code — plus the usage-pool and research-preview caveats worth planning around.",
     "author": "Chris Harper",
@@ -13,9 +13,65 @@
       "Claude Design"
     ],
     "readTime": 2,
-    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-16-04-claude-design-claude-code-handoff.jpg",
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-16-07-claude-design-claude-code-handoff.jpg",
     "imageSource": "https://support.claude.com/en/articles/14604416-get-started-with-claude-design",
     "content": "**Run `/design-sync` before you generate anything — it pulls your real design system in, so what Claude Code receives is built from your components instead of generic AI styling.**\n\n[Claude Design](https://claude.com/product/design) shipped from Anthropic Labs on April 17, 2026 as a research preview for Pro, Max, Team, and Enterprise plans. It's a chat pane on the left and a canvas on the right, and the output isn't a picture — it's live HTML you can click through. The interesting part, if you already ship with Claude Code, is the last mile.\n\n**The workflow that holds up:**\n\n1. **Sync first, design second.** `/design-sync` imports a design system from a GitHub repo, design files, or a codebase. Do it at project creation. Skip it and you get plausible-looking work in someone else's design language — and you pay for that in review, not in the design tool.\n2. **Iterate on the canvas, not in the prompt.** Inline comments, direct text editing, and the adjustment controls move faster than regenerating from a rewritten prompt.\n3. **Hand off with the bundle.** When it's ready, use *send to local coding agent* or *Send to Claude Code Web*. Claude packages a handoff bundle you pass to Claude Code with a single instruction. That bundle — not a screenshot, not a description — is what makes generated UI land close to your codebase.\n\n**Two things to know before you lean on it:**\n\n- **It shares your usage budget.** Claude Design draws from the same pool as chat, Claude Code, and Cowork; there's no separate allowance. A long design session shortens your coding session that day.\n- **It's a research preview and it shows.** Comment persistence is intermittent, simultaneous multi-person editing is unreliable, and design-system import is only as good as the source you point it at. Enterprise orgs get it **off by default** — an admin enables it in Organization settings.\n\nBeyond the code handoff, exports include ZIP, PDF, PPTX, standalone HTML, plus Canva, Miro, and Vercel.\n\n**Sources:** [Get started with Claude Design](https://support.claude.com/en/articles/14604416-get-started-with-claude-design) · [Introducing Claude Design](https://www.anthropic.com/news/claude-design-anthropic-labs) · [Claude Design product page](https://claude.com/product/design)"
+  },
+  {
+    "id": "2026-08-16-06-eager-input-streaming-tool-latency",
+    "title": "Start Receiving Tool Arguments Immediately: Enable eager_input_streaming on Large-Output Tools",
+    "excerpt": "Add \"eager_input_streaming\": true to any tool definition and Claude streams partial JSON arguments instantly — first-byte latency drops from ~15s to ~3s for large parameters like generated documents.",
+    "author": "Chris Harper",
+    "date": "08-16-2026",
+    "publishedAt": "2026-08-16T12:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-16-06-eager-input-streaming-tool-latency.jpg",
+    "imageSource": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/fine-grained-tool-streaming",
+    "content": "**Add `\"eager_input_streaming\": true` to a tool definition and Claude streams partial JSON arguments to your client instantly — first-byte latency drops from ~15s to ~3s for large parameters.**\n\nBy default, the Claude API buffers a tool's entire `input` JSON until it is valid before delivering it. For a `write_file` tool producing a 2,000-word document, that means 15+ seconds of silence before your UI sees anything. Fine-grained tool streaming, now GA on all models and platforms (no beta header needed), removes that buffer per tool.\n\n## One field, on the tool definition\n\n```python\nimport anthropic\n\nclient = anthropic.Anthropic()\n\ntools = [{\n    \"name\": \"write_file\",\n    \"description\": \"Write content to a file\",\n    \"input_schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"path\": {\"type\": \"string\"},\n            \"content\": {\"type\": \"string\", \"description\": \"File content — can be thousands of words\"}\n        },\n        \"required\": [\"path\", \"content\"]\n    },\n    \"eager_input_streaming\": True   # <- the only change\n}]\n\nwith client.messages.stream(\n    model=\"claude-sonnet-5-20260130\",\n    max_tokens=4096,\n    tools=tools,\n    messages=[{\"role\": \"user\", \"content\": \"Write a thorough README for a Python CLI tool.\"}]\n) as stream:\n    for event in stream:\n        if hasattr(event, \"delta\") and event.delta.type == \"input_json_delta\":\n            # Partial JSON string — write to UI as it arrives\n            print(event.delta.partial_json, end=\"\", flush=True)\n```\n\n## Three things to know before shipping\n\n1. **User-defined tools only.** `eager_input_streaming` cannot be set on built-in tools (`web_search`, `code_execution`, etc.).\n\n2. **Partial JSON is not valid JSON.** The SDK exposes a `snapshot` dict (partially parsed Python dict) on each delta — safe to read for real-time display. Wait for `content_block_stop` before passing the completed arguments to your actual tool executor.\n\n3. **Different from Agent SDK streaming.** `include_partial_messages=True` in the Claude Agent SDK (covered Aug 1) signals when a tool call starts and stops. `eager_input_streaming` is lower-level: it streams the actual argument content *while Claude is generating it*, before the tool call completes. Use both together for the fastest possible UI.\n\n**Sources:** [Fine-grained tool streaming — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/fine-grained-tool-streaming) · [Streaming messages — Anthropic Docs](https://docs.anthropic.com/en/docs/build-with-claude/streaming)"
+  },
+  {
+    "id": "2026-08-16-05-anthropic-aug2026-risk-report-saturation",
+    "title": "Anthropic's August Risk Report: Safety Benchmarks Saturate as Misalignment Risk Rises to 'Low'",
+    "excerpt": "Anthropic's August 2026 Risk Report (released Aug 14) upgrades misalignment risk from 'very low' to 'low' as its internal capability threshold benchmark saturates — can no longer register increment…",
+    "author": "Chris Harper",
+    "date": "08-16-2026",
+    "publishedAt": "2026-08-16T12:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-16-05-anthropic-aug2026-risk-report-saturation.jpg",
+    "imageCredit": "Daniil Komov",
+    "imageCreditUrl": "https://www.pexels.com/photo/reflection-in-a-laptop-screen-showing-code-34804011/",
+    "imageSource": "https://www.anthropic.com/aug-2026-risk-report",
+    "content": "**Anthropic's August 2026 Risk Report bumped misalignment risk to \"low\" and revealed a deeper structural problem: its internal safety benchmark for the most dangerous capability threshold has saturated and can no longer register capability gains.**\n\nReleased August 14, the report covers February–July 2026. The risk upgrade was driven by increased uncertainty following recent incident disclosures — Anthropic's underlying assessment still supports the lower \"very low\" rating, but the label was raised to reflect that confidence. An internal \"Model 2\" (stronger than Mythos 5) exists but is being withheld pending further safety review.\n\nThe more technically significant finding is benchmark saturation. The evaluations designed to detect when models cross the most dangerous capability threshold have stopped registering incremental gains at precisely the moment early signs of acceleration are appearing. The instrument built to sound the alarm can no longer differentiate between capability levels.\n\n**Why it matters:** Benchmark saturation has a direct parallel for engineers building production AI systems — any single evaluation metric will eventually plateau while the underlying behavior keeps shifting. The lesson: run diverse, behavioral test suites alongside capability benchmarks and invest in evals that measure *what the model does*, not only *what score it achieves*. When your benchmark looks flat, that is the moment to add a new one.\n\n**Sources:** [Anthropic August 2026 Risk Report](https://www.anthropic.com/aug-2026-risk-report) · [Benchmark Saturation — TechTimes](https://www.techtimes.com/articles/324573/20260815/anthropic-upgrades-misalignment-risk-key-safety-benchmarks-saturate.htm) · [Anthropic Raises Misalignment Risk — Unite.AI](https://www.unite.ai/anthropic-raises-misalignment-risk-to-low-and-shelves-internal-model-2/)"
+  },
+  {
+    "id": "2026-08-16-04-langgraph-supervisor-multi-agent-team",
+    "title": "Orchestrate a Team of AI Agents in 25 Lines: The LangGraph Supervisor Pattern",
+    "excerpt": "Use create_supervisor() from langgraph-supervisor and one LLM orchestrator routes tasks to specialist agents — no custom state machines or routing logic, and memory is one extra argument.",
+    "author": "Chris Harper",
+    "date": "08-16-2026",
+    "publishedAt": "2026-08-16T12:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Agents",
+      "MCP"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-16-04-langgraph-supervisor-multi-agent-team.jpg",
+    "imageSource": "https://www.youtube.com/watch?v=BM39OouLNsM",
+    "content": "**`pip install langgraph-supervisor` and `create_supervisor()` gives you a routing orchestrator that delegates to specialist agents — 25 lines of Python, no custom routing logic.**\n\n**What you'll be able to do after this:**\n\n- Build a multi-agent system where a supervisor LLM reads each step and routes to the right specialist\n- Use `create_supervisor()` to skip hand-coded state machines and transition logic\n- Add memory and human-in-the-loop checkpointing to the same graph with two extra lines\n\n**The pattern:** The supervisor is an LLM that reads the current conversation state and calls one of two built-in tools: `transfer_to_<agent_name>()` (delegate to a specialist) or returns a final response. Each specialist runs its own ReAct loop with its own tools. When the specialist finishes, control returns to the supervisor.\n\n## Setup\n\n```bash\npip install langgraph-supervisor langchain-anthropic\n```\n\n```python\nfrom langgraph_supervisor import create_supervisor\nfrom langgraph.prebuilt import create_react_agent\nfrom langchain_anthropic import ChatAnthropic\n\nmodel = ChatAnthropic(model=\"claude-sonnet-5-20260130\")\n\n# Specialist 1: web researcher\nresearcher = create_react_agent(\n    model,\n    tools=[web_search_tool],\n    name=\"researcher\",\n    prompt=\"You search the web and return verified facts. Be concise.\"\n)\n\n# Specialist 2: Python analyst\nanalyst = create_react_agent(\n    model,\n    tools=[python_repl_tool],\n    name=\"analyst\",\n    prompt=\"You run Python code and return computed results with the code used.\"\n)\n\n# Supervisor routes between them\napp = create_supervisor(\n    model,\n    agents=[researcher, analyst],\n    prompt=(\n        \"You manage researcher and analyst. \"\n        \"Send information-gathering tasks to researcher, \"\n        \"and computation tasks to analyst. \"\n        \"When both are done, synthesize a final answer.\"\n    )\n).compile()\n\n# Run it\nresult = app.invoke({\n    \"messages\": [{\"role\": \"user\", \"content\": \"What is the population of Tokyo? Calculate how many people that is per square kilometer (area: 2,194 km2).\"}]\n})\nprint(result[\"messages\"][-1].content)\n```\n\n## Two things that make this practical\n\n**State is shared.** The researcher's answer goes into the shared `messages` state, so the analyst can read it in the next step — no custom handoff code.\n\n**Memory is one argument.** Pass `checkpointer=MemorySaver()` to `.compile()` and the graph persists state across invocations for the same `thread_id`. Multi-turn conversations and human-in-the-loop interrupts use the same API.\n\nThe video below walks through a complete version with MCP tool calls, guardrails, observability, and a Streamlit UI — worth watching once you have the basic pattern running.\n\n**Sources:** [Build a Multi-Agent System with LangGraph, MCP, Supervisor, Guardrails — YouTube](https://www.youtube.com/watch?v=BM39OouLNsM) · [LangGraph Agent Supervisor tutorial — LangChain GitHub](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/agent_supervisor.md) · [langgraph-supervisor — PyPI](https://pypi.org/project/langgraph-supervisor/)"
   },
   {
     "id": "2026-08-16-03-claude-api-fallbacks-default-refusal-handling",
