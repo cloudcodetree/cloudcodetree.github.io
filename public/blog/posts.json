@@ -1,5 +1,58 @@
 [
   {
+    "id": "2026-08-16-03-claude-api-fallbacks-default-refusal-handling",
+    "title": "Handle Claude Refusals in One Line: The API's fallbacks: 'default' Server-Side Fallback",
+    "excerpt": "Add fallbacks: \"default\" plus one beta header to your Claude API call and safety-classifier refusals automatically retry on Anthropic's recommended safe model — no try/catch loop required.",
+    "author": "Chris Harper",
+    "date": "08-16-2026",
+    "publishedAt": "2026-08-16T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+    "content": "**Add `fallbacks: \"default\"` and one beta header to your `/v1/messages` call — when Claude's safety classifier declines, the API retries on Anthropic's recommended safe alternative in the same round trip.**\n\nWhen a Claude model declines a request for safety reasons, your code normally receives a `stop_reason: \"end_turn\"` response with no useful content. Detecting that, deciding what to do, and retrying is extra logic in every agent that calls the API. The server-side fallback beta removes that loop for safety-classifier declines.\n\n## The change\n\nAdd two things to any `/v1/messages` call:\n\n```python\nresponse = client.messages.create(\n    model=\"claude-fable-5-20260201\",\n    max_tokens=1024,\n    messages=[{\"role\": \"user\", \"content\": prompt}],\n    fallbacks=\"default\",                                         # <- add this\n    extra_headers={\n        \"anthropic-beta\": \"server-side-fallback-2026-07-01\"     # <- and this\n    }\n)\n\n# Check which model actually served the response:\nprint(response.model)   # may differ from \"claude-fable-5-20260201\"\n```\n\nWhen the primary model's classifier declines, the API immediately retries on Anthropic's recommended alternative for that refusal category. You get one response — already answered — in the same round trip, with no error surfaced to your caller.\n\n## Three things to know\n\n1. **Only safety-classifier declines trigger the fallback.** Overload errors (429/529), token-limit hits, and network errors are not covered — handle those with your existing retry logic or `fallbackModel` in Claude Code config.\n\n2. **Direct API only.** The `fallbacks` parameter is not available on Amazon Bedrock, Google Cloud Vertex, or Microsoft Foundry — only the Anthropic API.\n\n3. **Track per-model usage.** The response's `model` field shows which model served it. Check `usage.iterations` for per-model token accounting when billing back to teams or cost-tracking by model.\n\nYou can also pass an explicit list of up to three fallback models instead of `\"default\"`:\n\n```python\nfallbacks=[\"claude-opus-5-20260201\", \"claude-sonnet-5-20260130\"]\n```\n\nThe `\"default\"` mode is the easier path for most teams — Anthropic updates the recommended fallback chain as models change, so your code stays current without maintenance.\n\n**Sources:** [Refusals and Fallback — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback) · [Fallback Credit — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/fallback-credit) · [Classifier Fallback and Billing — Claude Cookbook](https://platform.claude.com/cookbook/fable-5-fallback-billing-guide)"
+  },
+  {
+    "id": "2026-08-16-02-mai-code-11-flash-github-copilot-cheaper-vision",
+    "title": "GitHub Copilot Upgrades Its Coding Model: MAI-Code-1.1-Flash Cuts Cost 73% and Adds Vision",
+    "excerpt": "MAI-Code-1.1-Flash is now in GitHub Copilot: 73% cheaper than 1-Flash, 22% better on CLI benchmarks, 25% faster streaming, and native vision support. MAI-Code-1-Flash retires September 10.",
+    "author": "Chris Harper",
+    "date": "08-16-2026",
+    "publishedAt": "2026-08-16T04:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.blog/changelog/2026-08-11-mai-code-1-1-flash-available-in-github-copilot/",
+    "content": "**Microsoft's MAI-Code-1.1-Flash is now in GitHub Copilot: 73% cheaper than its predecessor, 22% better on Terminal-Bench CLI tasks, and it can now read images — MAI-Code-1-Flash retires September 10.**\n\nMicrosoft [released MAI-Code-1.1-Flash on August 11](https://github.blog/changelog/2026-08-11-mai-code-1-1-flash-available-in-github-copilot/) as the mandatory successor to MAI-Code-1-Flash across all Copilot surfaces. The upgrade is significant on every dimension that matters for repetitive agentic workflows:\n\n- **73% lower list price** than MAI-Code-1-Flash\n- **25% fewer tokens** for the same output (lower effective cost on top of the rate cut)\n- **25% faster streaming**\n- **22% better on Terminal-Bench 2.1** for Copilot CLI tasks; 15% better on .NET completions\n- **Native vision** — the model accepts images, enabling screenshot-to-component, diagram-to-spec, and error-screenshot-to-fix directly in Copilot Chat\n\nPaid individual, business, and enterprise customers can select MAI-Code-1.1-Flash now across Copilot CLI, Copilot Chat on GitHub.com, VS Code, Visual Studio, JetBrains, Eclipse, Xcode, and GitHub Mobile. MAI-Code-1-Flash retires on **September 10, 2026**.\n\n**Why it matters:** The combined price and token-efficiency gains make 1.1-Flash the clear default for high-volume, repetitive Copilot CLI workflows — the kind where a coding agent calls the model hundreds of times per task. Vision support closes a gap that required pasting screenshot text into prompts; now you can pass the image directly.\n\n**Sources:** [MAI-Code-1.1-Flash available in GitHub Copilot — GitHub Changelog](https://github.blog/changelog/2026-08-11-mai-code-1-1-flash-available-in-github-copilot/) · [Microsoft releases MAI-Code-1.1-Flash — Neowin](https://www.neowin.net/news/microsoft-releases-mai-code-11-flash-coding-model-to-better-compete-with-chinese-models/)"
+  },
+  {
+    "id": "2026-08-16-01-autotrain-no-code-llm-finetuning",
+    "title": "Fine-Tune Any LLM Without Writing Code: HuggingFace AutoTrain Does the Hard Part",
+    "excerpt": "Upload a JSONL file, pick a model, click train — HuggingFace AutoTrain handles LoRA, quantization, and chat-template formatting without any code. Walkthrough included.",
+    "author": "Chris Harper",
+    "date": "08-16-2026",
+    "publishedAt": "2026-08-16T04:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Fine-Tuning",
+      "HuggingFace"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://parlance-labs.com/education/fine_tuning/abhishek.html",
+    "content": "**Upload a JSONL file, pick a model, click train — AutoTrain handles LoRA, quantization, and chat-template formatting for you. No Python required to run your first fine-tune.**\n\n**What you'll be able to do after this:**\n- Fine-tune any HuggingFace model (Llama 3.1, Qwen 3, Mistral, Gemma) using only a CSV or JSONL file — no training code\n- Choose SFT, DPO, or ORPO from a dropdown and let AutoTrain configure LoRA hyperparameters\n- Run a complete fine-tune on managed HuggingFace compute for under $1 for a small model\n\n## Why AutoTrain\n\nEvery fine-tuning tutorial on this blog so far has used TRL, Unsloth, or Axolotl — all great tools, but all require writing Python. AutoTrain is HuggingFace's no-code path: it wraps those same training libraries in a UI and CLI so you can go from dataset to adapter without a training script. Abhishek Thakur (AutoTrain's creator) built it specifically for people who know what they want to train but don't want to spend hours on training boilerplate.\n\n## Walk-through (UI path)\n\n**1. Prepare your dataset.**\n\nFor SFT (most common), create a JSONL file with a single `text` column containing your formatted prompt+response pairs:\n\n```jsonl\n{\"text\": \"<|im_start|>user\\nWhat is LoRA?\\n<|im_end|>\\n<|im_start|>assistant\\nLoRA (Low-Rank Adaptation)...<|im_end|>\"}\n```\n\nFor DPO, use `prompt`, `chosen`, `rejected` columns instead.\n\n**2. Create a project** at [huggingface.co/autotrain](https://huggingface.co/autotrain) → \"Create new project.\" AutoTrain spins up a Space for you.\n\n**3. Upload your dataset** (CSV or JSONL), map columns, pick a base model from the Hub.\n\n**4. Choose task and configuration.** Select \"LLM SFT\" and accept the LoRA defaults for your first run (rank=16, alpha=32 are sensible starting values).\n\n**5. Click Train.** AutoTrain provisions a GPU, runs the fine-tune, and saves the LoRA adapter to your HuggingFace Hub as a private model.\n\n## CLI path (scriptable, same results)\n\n```bash\npip install autotrain-advanced\n\nautotrain llm \\\n  --train \\\n  --model \"meta-llama/Llama-3.1-8B\" \\\n  --data-path ./data.csv \\\n  --text-column text \\\n  --lora-r 16 \\\n  --lora-alpha 32 \\\n  --batch-size 2 \\\n  --num-train-epochs 3 \\\n  --push-to-hub \\\n  --username your-hf-username \\\n  --token $HF_TOKEN\n```\n\nThe CLI generates identical results to the UI and integrates naturally into CI pipelines or scheduled retraining jobs.\n\n**Sources:** [Train (almost) any LLM using AutoTrain — Parlance Labs](https://parlance-labs.com/education/fine_tuning/abhishek.html) · [LLM Finetuning with AutoTrain Advanced — HuggingFace Docs](https://huggingface.co/docs/autotrain/tasks/llm_finetuning) · [Low-Code LLM Alignment — HuggingFace Blog](https://huggingface.co/blog/burtenshaw/ui-finetune-llm-autotrain) · [autotrain-advanced — GitHub](https://github.com/huggingface/autotrain-advanced)"
+  },
+  {
     "id": "2026-08-15-06-mcp-tunnels-private-network-claude-agents",
     "title": "Your Internal Tools, Claude's Reach: Private-Network MCP via Anthropic Tunnels",
     "excerpt": "MCP tunnels (research preview) let Claude Agents call tools inside your private network over an outbound-only connection — no open firewall ports, no public endpoints, no VPN required.",
