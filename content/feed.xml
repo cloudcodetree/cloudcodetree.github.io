@@ -10,7 +10,135 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 17 Aug 2026 04:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 17 Aug 2026 12:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Connect v0 to Your Real GitHub Repo: AI-Generated Components That Go Through PRs, Not Around Them</title>
+      <link>https://v0.app/docs/faqs</link>
+      <guid isPermaLink="false">2026-08-17-07-v0-github-existing-repo-workflow</guid>
+      <pubDate>Mon, 17 Aug 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>v0's GitHub integration creates one branch per chat and never touches main — generated components land as a PR you review like any other code change.</description>
+      <content:encoded><![CDATA[
+**v0's GitHub integration creates one branch per chat and never commits to main — generated UI lands as a PR you review like any other code change, not as a mystery diff in your working tree.**
+
+The common fear with v0: you prototype something useful and then face a pile of generated code with no clear path into an existing Next.js/React codebase. The February 2026 update added native GitHub integration that addresses this with a branch-per-chat workflow.
+
+## Setup
+
+1. In v0's project settings, connect your GitHub account.
+2. Create a new project → + → "Import from GitHub" → select your repo.
+3. For private repos: grant v0 access in your GitHub App settings.
+4. v0 creates one branch per chat session and never commits to `main` by design.
+
+## The workflow
+
+- Every code change in v0 is an automatic commit on that branch.
+- Create a PR directly from v0 — it goes through your normal review process.
+- Pull the branch locally with `git fetch && git checkout <branch>` to inspect the generated code in your editor before merging.
+
+## Before merging, check for
+
+- Does the generated component use your existing design system, or does it shadow it with its own Tailwind/MUI classes?
+- Are prop types and import paths consistent with the rest of the codebase?
+- Are there `useEffect` calls with missing or empty deps arrays where the actual dependencies weren't inferred?
+
+## After merge: hand off to Claude Code
+
+The generated component is now in your repo and tracked by git. Run `/code-review` against the branch for a bug-finding pass, then iterate in your editor. v0 gets you to a workable shape; Claude Code closes the gap on correctness and integration.
+
+**Sources:** [v0 docs: import from GitHub — v0.app](https://v0.app/docs/faqs) · [Integrating v0 with existing GitHub repos — Vercel Community](https://community.vercel.com/t/integrating-v0-with-existing-github-repositories-and-vercel-projects/34005) · [v0 complete guide 2026 — NxCode](https://www.nxcode.io/resources/news/v0-by-vercel-complete-guide-2026)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>What /code-review Does That the GitHub App Doesn't: Effort Levels, --fix, and REVIEW.md</title>
+      <link>https://code.claude.com/docs/en/code-review</link>
+      <guid isPermaLink="false">2026-08-17-06-code-review-slash-command-effort-reviewmd</guid>
+      <pubDate>Mon, 17 Aug 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>The /code-review slash command runs a bug-hunting subagent in the background without consuming your session context — tune effort, auto-apply fixes, and scope it with REVIEW.md.</description>
+      <content:encoded><![CDATA[
+**`/code-review` runs a background bug-hunting subagent that doesn't consume your session context — tune effort, auto-apply fixes, and give it a project-specific mandate with `REVIEW.md`.**
+
+Claude Code's `/code-review` command is distinct from the GitHub App-based Code Review service. It runs locally as a forked background subagent — the findings arrive in your conversation when the review completes, without filling your context window with intermediate reasoning.
+
+## Effort controls confidence vs. coverage
+
+`low` and `medium` report only high-confidence findings, so you see fewer false positives but narrower coverage. `high` through `max` broaden coverage but include findings the review is less certain about. Claude remembers the last level you typed explicitly, so always pass one in scripts:
+
+```
+/code-review high          # background review, report findings
+/code-review high --fix    # same, plus auto-apply findings to working tree
+```
+
+**Caveat:** `--fix` edits land outside your session checkpoints. `/rewind` won't undo them — use git if you want to inspect before applying.
+
+## REVIEW.md gives the review a project mandate
+
+A `REVIEW.md` file at your repo root is injected at highest priority into every agent in the pipeline — higher than your `CLAUDE.md`. Use it to define what "Important" means in your codebase, which paths to skip, and what checks to always run:
+
+```markdown
+## What Important means here
+Reserve 🔴 for bugs that break behavior or leak data.
+Style and naming are Nit at most.
+
+## Always check
+- New API routes have an integration test
+- Log lines exclude email addresses and user IDs
+
+## Skip
+- Generated code under src/gen/
+- Any *.lock file
+```
+
+Keep `REVIEW.md` focused: a long file dilutes the rules that matter most.
+
+## For cloud-level review
+
+`/code-review ultra` (Team/Enterprise) escalates to a multi-agent swarm on Anthropic infrastructure, with findings posted inline to your PR via `--post`. From CI scripts: `claude -p '/code-review ultra'` launches the review non-interactively.
+
+**Sources:** [Claude Code Review — code.claude.com](https://code.claude.com/docs/en/code-review) · [REVIEW.md reference — code.claude.com](https://code.claude.com/docs/en/code-review#customize-reviews) · [Ultrareview — code.claude.com](https://code.claude.com/docs/en/ultrareview)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Stripe Buys OpenRouter for $7B+; Google Imagen 4 API Retires Today</title>
+      <link>https://techcrunch.com/2026/08/16/stripe-will-reportedly-acquire-ai-gateway-startup-openrouter-for-7b/</link>
+      <guid isPermaLink="false">2026-08-17-05-stripe-openrouter-imagen4-ai-infra</guid>
+      <pubDate>Mon, 17 Aug 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>Stripe finalizes a $7B+ deal for OpenRouter, the 400-model AI gateway; and Google retires three Imagen 4 model IDs today, breaking generate_images() with no grace period.</description>
+      <content:encoded><![CDATA[
+**Stripe buys the AI model routing layer that millions of developers depend on; Google's Imagen 4 `generate_images()` API shuts down today — two AI infra moves with immediate impact.**
+
+## Stripe finalizes OpenRouter acquisition
+
+Stripe has closed a deal to acquire OpenRouter — the AI model gateway that routes requests across 400+ models from 70+ providers — for more than $7 billion. OpenRouter's CEO described the company as "the Stripe for AI": one OpenAI-compatible endpoint, automatic provider failover, cost-based routing, and 8 million users. Service continues unchanged for now; no migration required, no pricing changes announced.
+
+**Why it matters:** OpenRouter is load-bearing infrastructure for many production AI apps. The acquisition puts it inside Stripe's developer platform ecosystem — watch for pricing and API terms as the integration matures. If OpenRouter is in your critical path, now is a good time to review your fallback strategy.
+
+## Google Imagen 4 API retires today
+
+Three Imagen 4 model IDs shut down August 17: `imagen-4.0-generate-001`, `imagen-4.0-ultra-generate-001`, and `imagen-4.0-fast-generate-001`. The `generate_images()` method is removed entirely; migration requires switching to `gemini-3.1-flash-image` and calling `generate_content()` instead. Test your real prompts against the new model first — aspect ratios, safety filters, and output quality may differ.
+
+**Why it matters:** Any application calling the Imagen 4 API without migration will return hard errors starting today.
+
+**Sources:** [Stripe acquires OpenRouter — Bloomberg](https://www.bloomberg.com/news/articles/2026-08-16/stripe-nears-deal-to-buy-ai-firm-openrouter-for-over-7-billion) · [TechCrunch](https://techcrunch.com/2026/08/16/stripe-will-reportedly-acquire-ai-gateway-startup-openrouter-for-7b/) · [Imagen 4 shutdown details — kingy.ai](https://kingy.ai/ai-launch-tracker/google-will-shut-down-three-imagen-4-api-models-august-17/) · [Firebase migration guide](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Your First Prototype in 10 Minutes: What Designers and PMs Need to Know About Claude Design</title>
@@ -7453,181 +7581,9 @@ If your team uses the legacy Workbench in the Anthropic Console, you have until 
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>You Fine-Tuned It — Now Who Hosts It? Together.ai Serves Your Custom Model and 200+ Open Models via One API</title>
-      <link>https://huggingface.co/blog/togethercomputer/together-ft</link>
-      <guid isPermaLink="false">2026-08-03-06-together-ai-fine-tuned-model-serving-api</guid>
-      <pubDate>Mon, 03 Aug 2026 20:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Self-Hosting</category>
-      <category>Fine-Tuning</category>
-      <category>LLM</category>
-      <description>Together.ai is a pay-per-token inference API for 200+ open models -- and the same platform where you can fine-tune and then serve your own LoRA checkpoint via the same OpenAI-compatible endpoint.</description>
-      <content:encoded><![CDATA[
-**Together.ai is one API key for 200+ open-source models and your own LoRA fine-tunes — training and serving on one platform, no GPU infrastructure to manage.**
-
-**What you'll be able to do after this:**
-- Call Llama, Qwen, Mistral, and DeepSeek via an OpenAI-compatible endpoint in three lines of Python
-- Upload training data, run a fine-tuning job, and serve the output — all in one platform, no GPU provisioning
-- Switch from a base model to your fine-tuned checkpoint with a one-line model-name change
-
-After the fine-tuning tutorials (QLoRA with Unsloth, MLX-LM on Mac), the next question is: where does the resulting checkpoint actually run in production? Together.ai answers it cleanly: one platform for inference, fine-tuning, and serving your own checkpoints.
-
-### Base model inference (3 lines)
-
-```bash
-pip install together
-```
-
-```python
-from together import Together
-
-client = Together()  # reads TOGETHER_API_KEY from env
-
-response = client.chat.completions.create(
-    model="Qwen/Qwen3-72B-Instruct",   # 200+ options at docs.together.ai/docs/serverless/models
-    messages=[{"role": "user", "content": "Explain LoRA in one paragraph."}]
-)
-print(response.choices[0].message.content)
-```
-
-The Together client is OpenAI-compatible. If you already use the OpenAI SDK, swap the import and base URL — your streaming, tool-calling, and structured output code works without changes.
-
-### Fine-tune and serve your own checkpoint
-
-```python
-import time
-from together import Together
-
-client = Together()
-
-# 1. Upload training data (JSONL, one example per line)
-upload = client.files.upload(file=("training.jsonl", open("training.jsonl", "rb")))
-
-# 2. Start fine-tuning
-ft = client.fine_tuning.create(
-    training_file=upload.id,
-    model="meta-llama/Llama-3.2-8B-Instruct",
-    n_epochs=3,
-    suffix="my-domain"
-)
-
-# 3. Wait for completion
-while (job := client.fine_tuning.retrieve(ft.id)).status != "completed":
-    time.sleep(30)
-
-# 4. Serve via the same API — one-line model name change
-response = client.chat.completions.create(
-    model=job.output_name,
-    messages=[{"role": "user", "content": "..."}]
-)
-```
-
-**Why Together.ai over self-hosting with vLLM:** serverless endpoints mean no GPU reservations, no Docker, no capacity planning. You pay per token, and your fine-tuned model is available immediately after the training job completes. For high-volume workloads, `client.endpoints.create()` provisions a reserved instance.
-
-**Sources:** [Fine-Tune Any LLM from HuggingFace Hub with Together AI](https://huggingface.co/blog/togethercomputer/together-ft) · [Together.ai Finetuning Cookbook](https://github.com/togethercomputer/together-cookbook/blob/main/Finetuning/Finetuning_Guide.ipynb) · [Deploying a fine-tuned model — Together.ai Docs](https://docs.together.ai/docs/deploying-a-fine-tuned-model)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>PostToolUse Fires Even When the Model Won't: Add Deterministic Side-Effects to Every Claude Code Session</title>
-      <link>https://code.claude.com/docs/en/hooks</link>
-      <guid isPermaLink="false">2026-08-03-05-claude-code-posttooluse-hook-deterministic-automation</guid>
-      <pubDate>Mon, 03 Aug 2026 12:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Claude Code's PostToolUse hook runs after every tool call regardless of model intent — the right place to auto-format, commit checkpoints, and run tests deterministically.</description>
-      <content:encoded><![CDATA[
-**Claude Code's PostToolUse hook fires after every tool call whether or not the model decides to — use it to build auto-format, checkpoint commits, and test runs that happen deterministically, outside model control.**
-
-The critical property of Claude Code hooks is that they run **outside** the model's decision loop. When PostToolUse fires after a `Write` call, the model can't skip it, defer it, or decide it's unnecessary. That gap between "the model might do X" and "X will always happen" is the key to building reliable Claude Code workflows in production.
-
-### How the hook receives its input
-
-Every hook gets a JSON payload on `stdin`. For PostToolUse after a `Write`, the relevant fields are `tool_input.path` (the file just written) and `tool_response` (the tool's result). Use that path to trigger follow-on work:
-
-```bash
-#!/usr/bin/env bash
-# .claude/hooks/auto-format.sh
-set -euo pipefail
-input="$(cat)"
-fp="$(printf '%s' "$input" | node -e   'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
-    try{const j=JSON.parse(s);const ti=j.tool_input||{};
-    process.stdout.write(ti.path||ti.file_path||"")}catch{process.stdout.write("")}
-  })')"
-[ -z "$fp" ] && exit 0
-npx prettier --write "$fp" 2>&1 || true
-```
-
-Wire it up in `.claude/settings.json`:
-
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write",
-        "hooks": [{ "type": "command", "command": ".claude/hooks/auto-format.sh" }]
-      }
-    ]
-  }
-}
-```
-
-### Patterns that become reliable with this setup
-
-- **Auto-format every write.** Run Prettier/Black/gofmt after each `Write` — output is always formatted regardless of what the model produced
-- **Checkpoint commits.** `git add "$fp" && git commit -m "checkpoint: ${fp##*/}"` gives a diff trail of every model edit you can roll back to
-- **Test on change.** After a Write to `src/`, trigger `pnpm test --testPathPattern=$(basename "$fp")` so you see red/green before the model continues
-- **Audit log.** Append `echo "$(date -u): wrote $fp" >> .claude/audit.log` — useful in regulated environments that need a record of AI-assisted edits
-
-### The PreToolUse / PostToolUse split
-
-Use **PreToolUse** to block: return exit code `2` with a reason to stop the tool entirely (this is how `.env*` file guards work). Use **PostToolUse** for side-effects: it runs after the tool completes and Claude receives a summary of what your hook did. That means you can also use PostToolUse to feed structured context back — e.g., "formatted: 3 lines changed" — which Claude can reference in its next step.
-
-**Sources:** [Claude Code Hooks — Official Docs](https://code.claude.com/docs/en/hooks), [Claude Code Hooks Practical Guide — DataCamp](https://www.datacamp.com/tutorial/claude-code-hooks)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Ops Alert: Claude Opus 4.1 API Retires This Tuesday — One-Line Fix Before Your Calls Error Out</title>
-      <link>https://platform.claude.com/docs/en/release-notes/overview</link>
-      <guid isPermaLink="false">2026-08-03-04-opus41-api-retirement-tuesday-deadline</guid>
-      <pubDate>Mon, 03 Aug 2026 12:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <category>Developer Tools</category>
-      <description>Claude Opus 4.1 (claude-opus-4-1-20250805) hits hard API end-of-life on August 5 — two days away. Change one string to claude-opus-4-8 before requests start failing.</description>
-      <content:encoded><![CDATA[
-**Claude Opus 4.1 (`claude-opus-4-1-20250805`) hits hard API end-of-life on August 5 — two days away — and any route still sending requests to that model ID will get errors starting Tuesday.**
-
-The fix is a one-string change:
-
-```python
-# Before
-model = "claude-opus-4-1-20250805"
-
-# After
-model = "claude-opus-4-8"
-```
-
-Claude Opus 4.8 is backward-compatible: same API interface, same parameters, same prompt format. Check env vars, config files, and hardcoded model strings across your codebase — the migration typically takes under an hour including testing.
-
-Also in the queue: **OpenAI refreshed GPT-5.5 Instant** with style and quality improvements and removed Canvas in favor of in-chat code and writing blocks. And **o3 retires from ChatGPT on August 26** — start moving any eval suites or benchmarks that depend on o3 to o4-mini or GPT-5 now before the sunset.
-
-**Why it matters:** August 5 is a hard cut-off — requests to the retired endpoint return errors, not degraded responses. "It worked yesterday" will turn into a broken CI run or a failed production deploy overnight. A one-line fix in dev takes minutes; diagnosing an unexpected API error in prod takes much longer.
-
-**Sources:** [Claude Platform Release Notes](https://platform.claude.com/docs/en/release-notes/overview), [Opus 4.1 Migration Guide — TheRouter.ai](https://therouter.ai/news/anthropic-deprecates-claude-opus-4-1-august-5-migration-guide/), [OpenAI Model Release Notes](https://help.openai.com/en/articles/9624314-model-release-notes)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
     
