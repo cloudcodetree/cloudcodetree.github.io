@@ -10,7 +10,274 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 16 Aug 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 17 Aug 2026 04:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Your First Prototype in 10 Minutes: What Designers and PMs Need to Know About Claude Design</title>
+      <link>https://support.claude.com/en/articles/14604416-get-started-with-claude-design</link>
+      <guid isPermaLink="false">2026-08-17-04-claude-design-first-hour-pm-designer</guid>
+      <pubDate>Mon, 17 Aug 2026 04:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Claude Design turns a plain-text brief into a clickable prototype in your browser — no Figma, no code. Here is the genuine first hour for designers and PMs starting from zero.</description>
+      <content:encoded><![CDATA[
+**Claude Design turns a plain-text brief into a clickable, interactive prototype directly in your browser — no Figma account, no code, no engineer standing next to you.**
+
+If you have been avoiding Claude Design because it sounds like an engineering tool, this post is for you. It is not. You start with a sentence. You end with something you can click through and share.
+
+## What you will actually see
+
+Go to [claude.ai](https://claude.ai). If you are on Pro, Max, Team, or Enterprise, the Design tab is there. Click it and you get a blank canvas with a chat panel on the left.
+
+Type a brief — not a prompt, just what you would say to a designer:
+
+> "I need a sign-up flow for a B2B SaaS product. Three steps: email, then team setup, then invite teammates. Keep it clean and professional."
+
+Claude Design generates an **interactive HTML prototype** you can click through right in the browser. Not a static mockup. Not a screenshot. Actual clickable flows.
+
+## What it can and cannot do (the honest version)
+
+**Can:** multi-step flows, forms, buttons that navigate between screens, basic responsive layouts, on-brand colors if you paste your style guide, presentations, one-pagers.
+
+**Cannot:** production-ready component code, pixel-perfect fidelity to a complex design system, backend logic, or animations beyond CSS transitions. Think of it as a high-fidelity sketch, not a delivered design.
+
+## The vocabulary engineers will use with you
+
+When you hand this off:
+- **"Regenerate the component"** — describe what needs to change and run Claude Design again
+- **"Hand off to Claude Code"** — the engineer takes your prompt and screens and continues building in the codebase
+- **"Design sync"** — Claude Code reads your design system to match what it generates to your real components (the engineer runs this, not you)
+
+## How to write a brief that works
+
+The gap between a thin result and a useful one is almost always the brief. Include:
+1. **What it is** — sign-up flow, dashboard, pricing page
+2. **Who uses it** — B2B team admin, first-time consumer
+3. **What they do** — the three steps they take, in order
+4. **Any brand constraints** — paste hex codes, name your font
+
+One sentence per item is enough. The model fills in sensible defaults for everything else.
+
+## Handing off without reading code
+
+When you are happy with a screen, share the canvas link with your engineer. They can see the design and ask Claude Code to match it. You do not need to export files or write specs. The engineer's job is to build the real thing; your job is to make the direction impossible to misread. A clickable prototype does that better than any document.
+
+**Sources:** [Get started with Claude Design — support.claude.com](https://support.claude.com/en/articles/14604416-get-started-with-claude-design) · [How the product designer who built Claude Design uses it — claude.com](https://claude.com/blog/how-the-product-designer-who-built-claude-design-uses-it-to-explore-ideas-before-building-them) · [Using Claude Design for prototypes and UX — claude.com](https://claude.com/resources/tutorials/using-claude-design-for-prototypes-and-ux)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>One Field Cuts Your Claude API Bill 60-90%: Prompt Caching With cache_control</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/prompt-caching</link>
+      <guid isPermaLink="false">2026-08-17-03-claude-api-prompt-caching-cost</guid>
+      <pubDate>Mon, 17 Aug 2026 04:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Add cache_control to any stable system prompt block and pay 10% of the normal input price on every repeated call — one field, no refactoring.</description>
+      <content:encoded><![CDATA[
+**Add `"cache_control": {"type": "ephemeral"}` to any stable content block and Claude reads it from cache on subsequent calls at roughly 10% of the normal input-token price.**
+
+Any API workflow that sends the same system prompt, long instruction set, or reference document on every call is paying 100% of input cost each time. Prompt caching marks those stable blocks once; Claude caches them for an hour and charges cache-read rates on hits — about $0.30/M for Sonnet 5 instead of $3.00/M.
+
+## How to add it
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+system_prompt = """[Your stable system prompt — 1,024 tokens minimum to qualify]"""
+
+response = client.messages.create(
+    model="claude-sonnet-5-20260801",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": system_prompt,
+            "cache_control": {"type": "ephemeral"}  # one field — this is all it takes
+        }
+    ],
+    messages=[{"role": "user", "content": "What is the refund policy?"}],
+)
+
+# Inspect whether you got a cache hit
+print(response.usage)
+# cache_creation_input_tokens: N  (first call — writes the cache)
+# cache_read_input_tokens: N      (subsequent calls — reads from cache)
+```
+
+The `cache_control` marker goes at the **end of the stable block** — Claude caches everything up to that point. Put volatile content (the user's question, the current date) after it. Never let timestamps or UUIDs drift into the cacheable prefix; that kills your hit rate.
+
+## Where the savings are largest
+
+| Workload | Stable block | Typical hit rate |
+|---|---|---|
+| Support bot | Full product docs + policy | 90-95% |
+| Code review CI | Repo conventions + style guide | 85-90% |
+| Eval suite | All test cases + rubric | ~100% |
+| Multi-turn chat | System prompt + tool list | 60-80% |
+
+## Cost math
+
+A support bot sending a 10,000-token system prompt on 1,000 daily requests:
+
+| Approach | Daily input cost (Sonnet 5) |
+|---|---|
+| No caching | 1,000 × 10K × $3/M = **$30.00** |
+| Prompt caching | $3.00 (cache write) + 999 × 10K × $0.30/M = **$6.00** |
+
+**80% saved, same responses, zero code refactoring beyond adding one field.**
+
+Caching also works on tool definitions and large user-turn messages — add `cache_control` to any block 1,024+ tokens long that appears on multiple requests. The minimum is 1,024 tokens for standard models; 2,048 for extended context.
+
+**Sources:** [Prompt caching — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) · [Prompt caching cookbook — platform.claude.com](https://platform.claude.com/cookbook/prompt-caching) · [How to cut Claude API costs 90% with prompt caching — Iron Mind](https://iron-mind.ai/blog/prompt-caching-claude-production)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Agent Plugins 1.0: One Package Format That Works Across ChatGPT, Copilot, Cursor, VS Code, and Kiro</title>
+      <link>https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app/</link>
+      <guid isPermaLink="false">2026-08-17-02-agent-plugins-1-0-open-standard</guid>
+      <pubDate>Mon, 17 Aug 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>MCP</category>
+      <description>Agent Plugins 1.0 is an open standard backed by GitHub, OpenAI, AWS, Google, and Microsoft: one plugin.json + skills/ + mcp.json installs into any compatible coding agent.</description>
+      <content:encoded><![CDATA[
+**A single `plugin.json` + `skills/` + `mcp.json` directory now installs into GitHub Copilot, VS Code, ChatGPT, Codex, Cursor, and Kiro — no separate manifest per client.**
+
+[Agent Plugins 1.0](https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app/) is an open standard published August 6 with AWS, Anysphere, Microsoft, OpenAI, Vercel, and Google as co-maintainers. It bundles agent skills and MCP servers into one installable format governed independently of any vendor. Build a deployment runbook skill with its MCP tool integration once; your whole team gets it on all their coding agents without you maintaining a separate manifest for each one.
+
+**Why it matters:** Any team-specific skill or internal MCP integration you build now becomes portable — publish it to a skills registry or a shared repo directory and it works wherever your engineers happen to be.
+
+**Sources:** [Agent Plugins 1.0 GA — GitHub Changelog](https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app/) · [What the standard fixes — digitalapplied.com](https://www.digitalapplied.com/blog/agent-plugins-1-0-open-standard-portable-skills)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your RAG Gives Answers. These Lines Make It Cite Its Work.</title>
+      <link>https://www.youtube.com/watch?v=-wGzSnhQKPM</link>
+      <guid isPermaLink="false">2026-08-17-01-rag-citations-source-attribution</guid>
+      <pubDate>Mon, 17 Aug 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>Tag retrieved chunks with IDs, ask Claude for inline citations, and return a sources list — your RAG answers become verifiable instead of just plausible. Walk-through included.</description>
+      <content:encoded><![CDATA[
+**Tag retrieved chunks with IDs, ask Claude to cite them inline, and return a sources list — your RAG answers become verifiable, not just plausible.**
+
+**What you will be able to do after this:**
+- Return `[1]` / `[2]` inline citations in any RAG response alongside a `sources` list
+- Verify that cited documents actually support each claim using a structured `quote` field
+- Build the citation layer in under 50 lines on top of your existing retriever
+
+A RAG system that returns "Refunds take 5-7 days" is useful. One that returns "Refunds take 5-7 days [1]" with `[1]: Refund Policy, section 3.2` is trustworthy. That is the difference between a demo and a production tool.
+
+**Resource:** [RAG with Verified Citations — Trelis Research (YouTube, 34 min)](https://www.youtube.com/watch?v=-wGzSnhQKPM)
+
+## The pattern
+
+Your retriever returns chunks. Tag each one with a sequential ID and include them in the user turn:
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+def rag_with_citations(question: str, chunks: list[dict]) -> dict:
+    # chunks = [{"id": 1, "text": "...", "source": "Refund Policy 3.2"}, ...]
+    context = "
+
+".join(f"[{c['id']}] {c['text']}" for c in chunks)
+
+    response = client.messages.create(
+        model="claude-sonnet-5-20260801",
+        max_tokens=1024,
+        system="""You are a helpful assistant. Answer using ONLY the provided context.
+Cite every factual claim with a bracketed ID like [1] inline.
+If the answer is not in the context, say so.""",
+        messages=[{
+            "role": "user",
+            "content": f"Context:
+{context}
+
+Question: {question}"
+        }]
+    )
+    return {
+        "answer": response.content[0].text,
+        "sources": [{"id": c["id"], "source": c["source"]} for c in chunks]
+    }
+```
+
+## Structured output version (more reliable for parsing)
+
+```python
+import json
+
+response = client.messages.create(
+    model="claude-sonnet-5-20260801",
+    max_tokens=1024,
+    tools=[{
+        "name": "answer_with_citations",
+        "description": "Return an answer with inline citations",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "string",
+                    "description": "Answer text with [N] inline citations"
+                },
+                "citations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "integer"},
+                            "quote": {
+                                "type": "string",
+                                "description": "Exact text from document [N] that supports the claim"
+                            },
+                            "source": {"type": "string"}
+                        },
+                        "required": ["id", "quote", "source"]
+                    }
+                }
+            },
+            "required": ["answer", "citations"]
+        }
+    }],
+    tool_choice={"type": "tool", "name": "answer_with_citations"},
+    system="Answer using ONLY the provided context. Cite every factual claim inline.",
+    messages=[{"role": "user", "content": f"Context:
+{context}
+
+Question: {question}"}]
+)
+
+result = json.loads(response.content[0].input)
+# result["answer"]    = "Refunds take 5-7 days [1]."
+# result["citations"] = [{"id": 1, "quote": "Refunds are processed in 5-7 business days", "source": "Refund Policy 3.2"}]
+```
+
+The `quote` field in each citation forces Claude to locate the exact supporting text — surfacing any hallucination where no supporting passage exists. If Claude cannot find a quote, it cannot fabricate a citation.
+
+**Sources:** [RAG with Verified Citations — Trelis Research (YouTube)](https://www.youtube.com/watch?v=-wGzSnhQKPM) · [Citation-aware RAG — Tensorlake](https://www.tensorlake.ai/blog/rag-citations) · [Attributing sources in RAG — apxml.com](https://apxml.com/courses/getting-started-rag/chapter-4-rag-generation-augmentation/attributing-sources)
+]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/-wGzSnhQKPM/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/-wGzSnhQKPM/maxresdefault.jpg" />
+    </item>
 
     <item>
       <title>Stop Letting Claude Skip the Tool: Four Modes of tool_choice for Reliable Agent Pipelines</title>
@@ -7361,314 +7628,10 @@ Also in the queue: **OpenAI refreshed GPT-5.5 Instant** with style and quality i
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Instrument Every LLM Call Once and Route Traces Anywhere: OpenTelemetry's GenAI Semantic Conventions</title>
-      <link>https://opentelemetry.io/blog/2026/genai-observability</link>
-      <guid isPermaLink="false">2026-08-03-03-otel-genai-semantic-conventions-agent-tracing</guid>
-      <pubDate>Mon, 03 Aug 2026 12:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>OTel's 2026 GenAI conventions add standard gen_ai.* span attributes to every LLM call — instrument once with three setup lines and swap backends without touching your code.</description>
-      <media:content url="https://img.youtube.com/vi/17pfYqcGciw/maxresdefault.jpg" medium="image"/>
-      <media:thumbnail url="https://img.youtube.com/vi/17pfYqcGciw/maxresdefault.jpg"/>
-      <content:encoded><![CDATA[
-**OpenTelemetry's GenAI semantic conventions let you add standard `gen_ai.*` attributes to every LLM call in three lines of Python, then route traces to any OTel-compatible backend without changing your instrumentation.**
-
-Every observability tool — LangSmith, Arize Phoenix, W&B Weave, Langfuse — has its own SDK you install, wrap your LLM calls with, and maintain. Switch tools and you rewrite your instrumentation. OpenTelemetry's [2026 GenAI semantic conventions](https://opentelemetry.io/blog/2026/genai-observability) fix that: they define exactly what a "LLM call span" looks like across any provider, so one instrumentation pass works everywhere.
-
-**What you'll be able to do after this:**
-- Add standard `gen_ai.system`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`, and tool-call spans to every LLM call and agent step with three lines of setup — no manual span creation
-- Swap observability backends (LangSmith → Arize Phoenix → Grafana → Jaeger) by changing one env var without touching instrumentation code
-- Track per-call token costs, model latency, and agent step timing in structured trace data that any OTel-compatible backend can ingest
-
-### The key span attributes
-
-| Attribute | What it captures |
-|---|---|
-| `gen_ai.system` | Provider (`anthropic`, `openai`, `cohere`) |
-| `gen_ai.request.model` | Model string |
-| `gen_ai.usage.input_tokens` | Tokens consumed from prompt |
-| `gen_ai.usage.output_tokens` | Tokens consumed in completion |
-| `gen_ai.tool.name` | Tool/function name on tool-call spans |
-
-### Walk-through: instrument any LLM client in 3 lines
-
-[OpenLLMetry](https://www.youtube.com/watch?v=17pfYqcGciw) is an open-source library that auto-instruments OpenAI, Anthropic, LangChain, and 15+ other providers with the GenAI conventions — no manual span creation required.
-
-```bash
-pip install traceloop-sdk
-```
-
-```python
-from traceloop.sdk import Traceloop
-
-# One call at startup — every subsequent LLM and agent call is traced
-Traceloop.init(app_name="my-agent", disable_batch=True)
-```
-
-That's the entire instrumentation. Every call to LangChain, the Anthropic SDK, or OpenAI automatically gets `gen_ai.*` spans with token counts, latency, inputs, and outputs.
-
-**Swap backends by setting one env var** — no code change needed:
-
-```bash
-# Route to LangSmith
-export TRACELOOP_BASE_URL="https://api.smith.langchain.com"
-
-# Route to Arize Phoenix (local)
-export TRACELOOP_BASE_URL="http://localhost:6006"
-
-# Route to any OTel collector
-export TRACELOOP_BASE_URL="http://otel-collector:4318"
-```
-
-What you get: a trace tree for each agent run — top-level agent span → LLM call spans (with token counts) → tool-call spans (with inputs and outputs). Every step is addressable for cost analysis, latency debugging, and regression detection, regardless of which backend you're currently using.
-
-**Sources:** [OpenTelemetry Blog — GenAI Observability 2026](https://opentelemetry.io/blog/2026/genai-observability), [OpenLLMetry Video Tutorial](https://www.youtube.com/watch?v=17pfYqcGciw), [SigNoz — Observing LLM Applications with OpenTelemetry](https://signoz.io/blog/opentelemetry-llm)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Claude Can Call Multiple Tools in One Turn — Process Them in Parallel With asyncio.gather</title>
-      <link>https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use</link>
-      <guid isPermaLink="false">2026-08-03-02-claude-api-parallel-tool-use-asyncio</guid>
-      <pubDate>Mon, 03 Aug 2026 04:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>When Claude returns multiple tool_use blocks in one turn, running them with asyncio.gather instead of sequentially cuts your agent's wall time to the slowest single call.</description>
-      <content:encoded><![CDATA[
-**When Claude's response includes multiple tool_use blocks, running them with asyncio.gather instead of sequentially cuts your agent's wall time to the slowest single call — a one-function change to any client loop.**
-
-When you define multiple tools, Claude sometimes returns several `tool_use` blocks in a single turn — each an independent function call it wants to make simultaneously. Most client loops process them sequentially. That leaves latency on the table.
-
-Anthropic's [parallel tool use docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) make this explicit: collect all blocks, execute them concurrently, then return **all results together in a single user turn**.
-
-## The pattern
-
-```python
-import asyncio
-import anthropic
-
-client = anthropic.AsyncAnthropic()
-
-async def run_tool(name: str, tool_input: dict) -> str:
-    match name:
-        case "search_web": return await web_search(tool_input["query"])
-        case "read_file":  return await read_file(tool_input["path"])
-        case "fetch_url":  return await fetch_url(tool_input["url"])
-    raise ValueError(f"unknown tool: {name}")
-
-async def agent_loop(messages: list, tools: list) -> str:
-    while True:
-        response = await client.messages.create(
-            model="claude-sonnet-5-20261001",
-            max_tokens=4096,
-            tools=tools,
-            messages=messages,
-        )
-
-        if response.stop_reason != "tool_use":
-            return next(b.text for b in response.content if hasattr(b, "text"))
-
-        tool_uses = [b for b in response.content if b.type == "tool_use"]
-
-        # Run all tool calls concurrently, not sequentially
-        results = await asyncio.gather(
-            *[run_tool(tu.name, tu.input) for tu in tool_uses]
-        )
-
-        # Return all results in one user turn
-        messages.append({"role": "assistant", "content": response.content})
-        messages.append({
-            "role": "user",
-            "content": [
-                {"type": "tool_result", "tool_use_id": tu.id, "content": result}
-                for tu, result in zip(tool_uses, results)
-            ],
-        })
-```
-
-## Why it matters
-
-A search + file read that each take 200 ms sequentially takes 400 ms. In parallel: 200 ms. The speedup compounds over agents that make many tool calls per turn.
-
-**One caveat:** only parallelize independent operations. Tools with ordering requirements or shared side effects (write a file then read it; increment a counter twice) should run sequentially — extract those into a separate sequential pass.
-
-**Sources:** [Parallel Tool Use — Anthropic Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) · [Implementing Async Tool Execution — CodeSignal](https://codesignal.com/learn/courses/parallelizing-claude-agentic-systems-in-python/lessons/parallelizing-tool-execution) · [Parallel Tool Execution with Claude — Medium](https://medium.com/@gor17v/parallel-tool-execution-with-claude-4-building-high-performing-agents-with-bedrock-converse-api-433da0efab60)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Fine-Tune Any LLM on Your Mac in 30 Minutes: LoRA With MLX-LM on Apple Silicon</title>
-      <link>https://www.youtube.com/watch?v=WWrFwePNpi0</link>
-      <guid isPermaLink="false">2026-08-03-01-mlx-lm-lora-fine-tuning-apple-silicon-mac</guid>
-      <pubDate>Mon, 03 Aug 2026 04:02:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Fine-Tuning</category>
-      <category>Self-Hosting</category>
-      <description>Apple's MLX-LM runs a full LoRA fine-tune on Mistral 7B in under 30 minutes on any M-series Mac — install, prepare JSONL, train, and run inference with your adapter for free.</description>
-      <content:encoded><![CDATA[
-**Apple's MLX-LM framework lets you LoRA fine-tune a 7B open-weight model on any M-series Mac in under 30 minutes — no cloud GPU, no cost, and the whole adapter fits alongside the quantized base model in unified memory.**
-
-**What you'll be able to do after this:**
-
-- Install MLX-LM and verify your Mac can run a 7B model in two commands
-- Prepare a JSONL dataset and launch a LoRA training run in minutes
-- Run inference with your adapter and optionally export for Ollama
-
-Apple's [MLX framework](https://github.com/ml-explore/mlx) uses the unified memory architecture of Apple Silicon — your full RAM pool is available for weights and compute with no separate VRAM ceiling. `mlx-lm` is the pip-installable Python package that wraps MLX for text generation and fine-tuning. A 16 GB M2 MacBook Pro runs Mistral 7B at ~40 tokens/sec and can complete a LoRA adapter fine-tune in under 30 minutes, entirely offline.
-
-## Step 1: Install and verify
-
-```bash
-pip install mlx-lm
-
-# Pull and test a 4-bit quantized model from the mlx-community HuggingFace org
-mlx_lm.generate \
-  --model mlx-community/Mistral-7B-Instruct-v0.3-4bit \
-  --prompt "Explain LoRA in one sentence"
-```
-
-The `mlx-community` HuggingFace org hosts pre-quantized, MLX-ready versions of most popular open models — no manual conversion needed.
-
-## Step 2: Prepare your dataset
-
-MLX-LM expects JSONL — one JSON object per line with `prompt` and `completion` keys:
-
-```jsonl
-{"prompt": "Summarize this ticket: <ticket>", "completion": "Bug: login form..."}
-{"prompt": "Write a SQL query that returns active users", "completion": "SELECT ..."}
-```
-
-Save as `data/train.jsonl` and `data/valid.jsonl`.
-
-## Step 3: Fine-tune
-
-```bash
-mlx_lm.lora \
-  --model mlx-community/Mistral-7B-Instruct-v0.3-4bit \
-  --train \
-  --data ./data \
-  --iters 600 \
-  --batch-size 1 \
-  --num-layers 16
-```
-
-Adapter weights save to `./adapters/` by default. Key flags:
-
-| Flag | What it does |
-|---|---|
-| `--fine-tune-type` | `lora` (default), `dora`, or `full` |
-| `--num-layers` | Transformer layers that receive adapters (default 16; lower = faster) |
-| `--iters` | Training steps — 600–1000 for small datasets |
-
-## Step 4: Inference with your adapter
-
-```bash
-mlx_lm.generate \
-  --model mlx-community/Mistral-7B-Instruct-v0.3-4bit \
-  --adapter-path ./adapters \
-  --prompt "Your domain-specific test prompt"
-```
-
-## Step 5 (optional): Merge and export for Ollama
-
-```bash
-mlx_lm.fuse \
-  --model mlx-community/Mistral-7B-Instruct-v0.3-4bit \
-  --adapter-path ./adapters \
-  --save-path ./fused-model
-```
-
-Convert the output to GGUF with llama.cpp, then load it into Ollama with a Modelfile for persistent local serving.
-
-**Hardware floor:** M1/M2/M3/M4 (all variants); 8 GB RAM works for 1B–3B models; 16 GB for 7B fine-tuning; 32 GB for 13B+.
-
-**Sources:** [Fine-tune LLM on Apple Silicon Using MLX — YouTube](https://www.youtube.com/watch?v=WWrFwePNpi0) · [Run and Fine-Tune LLMs on Mac with MLX-LM — Markaicode](https://markaicode.com/run-fine-tune-llms-mac-mlx-lm/) · [LoRA Fine-Tuning on Apple Silicon MacBook — Towards Data Science](https://towardsdatascience.com/lora-fine-tuning-on-your-apple-silicon-macbook-432c7dab614a/) · [Fine-Tuning LLMs Locally Using MLX LM — DZone](https://dzone.com/articles/fine-tuning-llms-locally-using-mlx-lm-guide)
-]]></content:encoded>
-      <media:content url="https://img.youtube.com/vi/WWrFwePNpi0/maxresdefault.jpg" medium="image"/>
-      <media:thumbnail url="https://img.youtube.com/vi/WWrFwePNpi0/maxresdefault.jpg"/>
-    </item>
-
-    <item>
-      <title>Delimit Your Claude System Prompts With XML Tags — It Reduces Drift in Long Agent Sessions</title>
-      <link>https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags</link>
-      <guid isPermaLink="false">2026-08-02-07-xml-tags-claude-system-prompt-structure</guid>
-      <pubDate>Sun, 02 Aug 2026 20:02:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Best Practices</category>
-      <category>Agents</category>
-      <description>Wrap system-prompt sections in role, instructions, context, and output_format XML tags — Claude's training reinforces semantic structure, reducing instruction drift in long agentic sessions.</description>
-      <content:encoded><![CDATA[
-**Wrapping Claude system-prompt sections in separate role, instructions, context, and output_format XML tags reduces drift in long agent sessions — a five-minute change to any existing prompt.**
-
-Most Claude agent system prompts are plain prose paragraphs. That works for short sessions, but as a conversation extends past 10–15 turns, Claude starts blending constraints with context. "You have access to a PostgreSQL database" ends up weighted the same as "never delete rows without confirmation." Structured tags fix this by giving Claude clear semantic buckets.
-
-Anthropic's prompt engineering docs specifically recommend this pattern: Claude's training reinforces XML-delimited structure (it's the same format Claude uses internally for tool call results and chain-of-thought tags).
-
-## The before and after
-
-**Before — one blob of prose:**
-
-```
-You are a senior backend engineer. You have access to the codebase in /workspace.
-Work on one file at a time. Never modify tests. Output only changed code with no
-explanation. If a task requires creating new files, ask first.
-```
-
-**After — four semantic buckets:**
-
-```xml
-<role>
-You are a senior backend engineer working on a production Python codebase.
-</role>
-
-<context>
-The codebase is mounted at /workspace. Framework: FastAPI + PostgreSQL.
-No internet access. Available tools: read_file, write_file, run_tests.
-</context>
-
-<instructions>
-- Work on one file at a time.
-- Never modify files under /workspace/tests/.
-- If a task requires creating new files, confirm with the user before proceeding.
-- Output only the changed code. No preamble, no explanation.
-</instructions>
-
-<output_format>
-One fenced code block per changed file, annotated with the file path as the info string:
-```python /workspace/app/auth.py
-</output_format>
-```
-
-## Why four tags?
-
-| Tag | What goes in it | Why it's separate |
-|---|---|---|
-| `<role>` | Who Claude is in this session | Sets persona without competing with rules |
-| `<context>` | Facts about the environment | Information to reason from, not rules to follow |
-| `<instructions>` | Rules and constraints | Highest-priority section — followed most reliably |
-| `<output_format>` | Response shape | Isolated so format drift doesn't corrupt rules |
-
-## Handle examples carefully
-
-If your system prompt includes examples, put them last and use `<good_example>` / `<bad_example>` subtags. Claude generalizes from examples — a plain "bad example" can become a learned pattern if it's the last thing in the prompt. Explicit tags make Claude treat them as classification examples, not demonstrations to emulate.
-
-This costs nothing to add and compounds in value across longer sessions where context windows shrink and reliable recall of earlier instructions matters more.
-
-**Sources:** [Use XML Tags to Structure Your Prompts — Anthropic Prompt Engineering](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags) · [System Prompts — Anthropic Docs](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/system-prompts)
-      ]]></content:encoded>
-    </item>
-
+    
+    
+    
+    
     
     
     
