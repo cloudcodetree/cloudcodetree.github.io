@@ -10,8 +10,184 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 17 Aug 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 18 Aug 2026 04:11:00 +0000</lastBuildDate>
 
+    <item>
+      <title>Generate On-Brand React Components from Your Design System, Then Hand Them to Claude Code via MCP</title>
+      <link>https://www.magicpatterns.com/docs/documentation/features/mcp-server/overview</link>
+      <guid isPermaLink="false">2026-08-18-04-magic-patterns-mcp-claude-code-design-system</guid>
+      <pubDate>Tue, 18 Aug 2026 04:11:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>Magic Patterns' MCP server connects your design system directly to Claude Code — generate on-brand React components and hand them off without copy-paste or manual token cleanup.</description>
+      <content:encoded><![CDATA[**Magic Patterns MCP lets Claude Code pull AI-generated components straight from your design system spec — no copy-paste, no manual cleanup of token names or import paths.**
+
+The workflow gap: you prototype a UI in an AI design tool, then manually translate the generated code into your codebase's conventions — fixing token names, swapping component aliases, correcting import paths. Magic Patterns' MCP server closes that gap by making the generated component visible to Claude Code as a machine-readable spec, not a blob of pasted JSX.
+
+## Setup (~5 minutes)
+
+1. In Magic Patterns, import your design system: upload your `@company/tokens` package or link your Figma library. Magic Patterns reads your primitives, components, and brand tokens.
+2. Run `/mcp` inside Claude Code to trigger OAuth — the Magic Patterns Remote MCP Server connects automatically.
+3. Add the Integration Skill via `/install magic-patterns`. This tells Claude Code to treat the Magic Patterns output as a spec and adapt it to your codebase's conventions rather than pasting the prototype verbatim.
+
+## The workflow
+
+Once connected, you describe the component you need inside Claude Code and it calls the MCP server, retrieves the component spec that matches your design system, and writes a file that uses your existing packages:
+
+```bash
+# In Claude Code:
+Generate a FilterBar component using our design system tokens for the dashboard sidebar
+# Claude Code calls Magic Patterns MCP, retrieves the spec,
+# adapts it to your Button, Chip, and TextField components, and writes FilterBar.tsx
+```
+
+## Before merging, always check
+
+- **Token usage:** does the component use `color.primary.600` from your tokens, or re-declare it as `#1d4ed8`?
+- **Import paths:** are packages referenced in the file actually in your `package.json`?
+- **Component aliases:** did it map Magic Patterns' `Tag` to your codebase's `Chip`, or introduce a new primitive?
+
+The Integration Skill handles token mapping well; component-name aliases between your system and Magic Patterns still need a spot-check on the first few components until you've confirmed the mapping is right.
+
+**Sources:** [Magic Patterns MCP Overview](https://www.magicpatterns.com/docs/documentation/features/mcp-server/overview) · [Design Systems — Magic Patterns](https://www.magicpatterns.com/product/design-systems)
+]]></content:encoded>
+      <media:content url="https://www.magicpatterns.com/og-image.png" medium="image" />
+      <media:thumbnail url="https://www.magicpatterns.com/og-image.png" />
+    </item>
+
+    <item>
+      <title>Don't Ctrl+Z Your AI Work — Claude Code's /rewind Menu Gives You Three Better Options</title>
+      <link>https://code.claude.com/docs/en/checkpointing</link>
+      <guid isPermaLink="false">2026-08-18-03-claude-code-rewind-checkpoints</guid>
+      <pubDate>Tue, 18 Aug 2026 04:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Press Esc twice or type /rewind to independently revert code, conversation, or both — surgical rollback without running git reset or losing session context.</description>
+      <content:encoded><![CDATA[**Press Esc twice or type /rewind to get a menu that independently rewinds code, conversation, or both — without losing the other, and without running git reset.**
+
+Claude Code automatically snapshots your file state before each user prompt. When something goes sideways, most engineers reach for `git restore` or `git reset` and lose progress. `/rewind` is more surgical.
+
+## What /rewind gives you
+
+**Restore code, keep conversation.** Revert the files to the checkpoint, but keep the chat context. You can immediately try a different approach without re-explaining the task, the constraints, or the background.
+
+**Restore conversation, keep code.** Go back to an earlier message while keeping whatever Claude just wrote. Useful when you want the code but want to re-ask a question differently — e.g., you got the output you wanted but the conversation drifted and you need to redirect.
+
+**Summarize from here.** Compress the conversation backward from this point, freeing context window space without touching the code. Equivalent to a manual `/compact` targeted at one section.
+
+## Activate it
+
+```
+Esc Esc    → opens the rewind menu (fastest)
+/rewind    → same menu from the prompt
+```
+
+Navigate the checkpoint list, pick one, and choose which dimension to restore.
+
+## What checkpoints do and don't capture
+
+- **Captured:** every file Claude edits through its own file editing tools.
+- **Not captured:** files modified by `Bash` commands or external processes.
+
+For Bash-modified files, `git diff` is still your source of truth. Before a risky batch of edits, consider asking Claude to explain what it's about to do, then let it proceed. If the output is wrong: Esc+Esc → Restore code, keep conversation → redirect.
+
+**Sources:** [Checkpointing — code.claude.com](https://code.claude.com/docs/en/checkpointing)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>DeepSeek V4 Pricing Is Now Peak/Off-Peak — and Peak Can Be 10x the Old Flat Rate</title>
+      <link>https://api-docs.deepseek.com/quick_start/pricing</link>
+      <guid isPermaLink="false">2026-08-18-02-deepseek-v4-peak-offpeak-pricing</guid>
+      <pubDate>Tue, 18 Aug 2026 04:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>DeepSeek V4 Flash and V4 Pro switched to peak/off-peak pricing on August 16 — peak rates are up to 10x the old flat rate; off-peak is half of peak.</description>
+      <content:encoded><![CDATA[**DeepSeek's new peak/off-peak pricing, live since August 16, replaces the flat V4 rates — peak can be up to 10x the old promotional price; off-peak is half of peak.**
+
+The [August 14 post here](https://cloudcodetree.com/ai-news/2026-08-14-02-deepseek-v4-pro-0813-ga) flagged that DeepSeek had announced a price increase with no details. The numbers are now live:
+
+| Model | Old flat | Off-peak | Peak |
+|---|---|---|---|
+| deepseek-v4-flash | $0.14 / $0.28 | $0.22 / $0.66 | $0.44 / $1.32 |
+| deepseek-v4-pro | $0.435 / $0.87 | $0.66 / $1.98 | $1.32 / $3.96 |
+
+*Per 1M input / output tokens.*
+
+Peak hours run 01:00–04:00 UTC and 06:00–10:00 UTC daily. Everything else is off-peak.
+
+**Why it matters:** If your pipeline is schedulable or batched, routing calls outside peak hours halves the cost. Budget projections built before August 16 need revision — V4 Flash at peak is now 3x the old rate, V4 Pro is 3x–4x.
+
+**Sources:** [DeepSeek API Pricing](https://api-docs.deepseek.com/quick_start/pricing) · [qz.com](https://qz.com/deepseek-api-price-increase-v4-peak-off-peak-081326)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Retriever Is Looking at Your Data Through One Keyhole — Multi-Query RAG Gives It Five</title>
+      <link>https://www.youtube.com/watch?v=LyMWMnguo1E</link>
+      <guid isPermaLink="false">2026-08-18-01-multi-query-retriever-langchain-rag</guid>
+      <pubDate>Tue, 18 Aug 2026 04:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>LangChain's MultiQueryRetriever generates 3-5 reformulations of every user question, runs them in parallel, and deduplicates results — surfacing relevant chunks a single query embedding would miss.</description>
+      <content:encoded><![CDATA[**LangChain's MultiQueryRetriever generates 3–5 reformulations of every user question, runs them in parallel against your vector store, and deduplicates — surfacing relevant chunks that a single query embedding would miss.**
+
+**What you'll be able to do after this:**
+- Boost RAG recall without touching your embedding model, chunk size, or vector store
+- Understand why a single query vector misses semantically related documents
+- Wire up multi-query retrieval in ~15 lines of Python on top of any existing retriever
+
+## The problem
+
+Vector similarity search embeds your user's question into a point in space and returns the nearest neighbors. If the user asks "How does chunking affect embedding quality?", the embedding might miss a document titled "Optimal text splitting strategies for dense retrieval" — even though they cover the same idea — because the surface-form distance is large. One query = one angle of attack.
+
+## The fix: generate multiple angles
+
+MultiQueryRetriever calls a cheap LLM to rewrite the query three to five different ways, runs each one against the vector store, and returns the union (deduplicated). The union is almost always a superset of what any single query would return.
+
+## Code
+
+```python
+from langchain.retrievers.multi_query import MultiQueryRetriever
+from langchain_anthropic import ChatAnthropic
+from langchain_chroma import Chroma
+
+vectorstore = Chroma(collection_name="docs", embedding_function=embeddings)
+
+retriever = MultiQueryRetriever.from_llm(
+    retriever=vectorstore.as_retriever(search_kwargs={"k": 5}),
+    llm=ChatAnthropic(model="claude-haiku-4-5-20251001"),  # cheap for query gen
+)
+
+docs = retriever.invoke("How does chunking affect embedding quality?")
+# Returns union of k=5 results across 3–5 generated query variations
+```
+
+The LLM call for query generation is cheap — use Haiku or another small model, not Sonnet or Opus. The total latency overhead is roughly one extra LLM round-trip, which runs in parallel with the first vector search.
+
+## Pair it with a reranker
+
+Multi-query gives you high recall; a cross-encoder reranker (e.g., `cross-encoder/ms-marco-MiniLM-L-6-v2`) gives you high precision from the expanded candidate set. The combination is the standard recipe for production RAG that needs both.
+
+**Resource:** [LangChain MultiQueryRetriever — YouTube tutorial #43](https://www.youtube.com/watch?v=LyMWMnguo1E) · [LangChain retrieval docs](https://docs.langchain.com/oss/python/langchain/retrieval) · [GitHub notebook with full examples](https://github.com/edumunozsala/langchain-rag-techniques/blob/main/Multiquery-retrieval.ipynb)
+
+**Sources:** [LangChain MultiQueryRetriever — YouTube](https://www.youtube.com/watch?v=LyMWMnguo1E) · [LangChain docs](https://docs.langchain.com/oss/python/langchain/retrieval)
+]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/LyMWMnguo1E/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/LyMWMnguo1E/maxresdefault.jpg" />
+    </item>
 
     <item>
       <title>Stop Reprompting the Whole Component: Figma Make Now Has a Properties Panel and In-Context Annotations</title>
@@ -7409,180 +7585,10 @@ Compare the diffs at the end and keep whichever worked.
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>MCP's Biggest Spec Update Is Final: Sessions Are Gone and Stateless HTTP Is In</title>
-      <link>https://blog.modelcontextprotocol.io/posts/2026-07-28/</link>
-      <guid isPermaLink="false">2026-08-04-03-mcp-2026-07-28-stateless-spec</guid>
-      <pubDate>Tue, 04 Aug 2026 04:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>MCP</category>
-      <category>Security</category>
-      <description>The July 28 MCP spec goes stateless -- the initialize handshake and session IDs are gone, Tasks moved to an extension, and W3C distributed tracing is built in.</description>
-      <content:encoded><![CDATA[
-**The July 28 MCP spec goes stateless — sessions, sticky routing, and the initialize handshake are gone; Tasks moved to an extension; W3C tracing is now built in.**
-
-The 2026-07-28 Model Context Protocol specification is final. The headline change: **the session model is gone**. Before, every MCP conversation required an `initialize`/`initialized` handshake, `Mcp-Session-Id` headers on subsequent requests, and sticky routing so load balancers could reach the same server instance. Now every request is self-contained — standard round-robin load balancing works, no shared session store needed.
-
-**Breaking changes to make now:**
-- Remove the `initialize`/`initialized` exchange and `Mcp-Session-Id` headers from your client
-- Migrate from the experimental Tasks API (2025-11-25) to the revised Tasks extension lifecycle
-- Update any literal error-code checks: missing-resource errors moved from `-32002` → `-32602`
-
-**New capabilities:** MCP Apps (server-rendered HTML UI in sandboxed iframes), a formal Extensions framework for opt-in features, and built-in W3C Trace Context + OpenTelemetry propagation across agent hops. Authorization also tightens with RFC 9207 `iss` parameter validation to block mix-up attacks.
-
-**Why it matters:** The stateless core is what makes MCP viable in containerized, auto-scaling deployments. If you were running MCP servers behind a load balancer with Redis session state, you can drop that complexity now.
-
-**Sources:** [MCP 2026-07-28 Specification](https://blog.modelcontextprotocol.io/posts/2026-07-28/) · [Security Implications — SecurityWeek](https://www.securityweek.com/new-enterprise-ready-mcp-specification-brings-new-security-challenges/) · [modelcontextprotocol.io](https://modelcontextprotocol.io)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Open Weights Week: DeepSeek Publishes 284B MIT Model; Anthropic Draws Its Line on What It Won't Restrict</title>
-      <link>https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash</link>
-      <guid isPermaLink="false">2026-08-04-02-open-weights-deepseek-v4-flash-anthropic-stance</guid>
-      <pubDate>Tue, 04 Aug 2026 04:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <category>Self-Hosting</category>
-      <description>DeepSeek released V4 Flash 0731, a 284B MoE model under MIT on July 31; Anthropic simultaneously published its position opposing blanket bans on open-weights models.</description>
-      <content:encoded><![CDATA[
-**DeepSeek released a 284B MIT-licensed MoE model on July 31; Anthropic published a position opposing blanket bans on open-weights models while backing safety-test mandates and distillation controls.**
-
-**DeepSeek V4 Flash 0731**
-
-The July 31 build is a production-candidate refresh of DeepSeek's V4 Flash architecture: 284B total parameters, 13B active per forward pass (Mixture of Experts), MIT license, [available on Hugging Face](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash). The API runs at ~122 tokens/second.
-
-Practical caveat for self-hosters: "Flash" refers to the active-parameter efficiency, not the weight footprint. Full weights are 140GB+ in mixed precision, 70-80GB heavily quantized — you need multi-GPU server hardware to run it locally. For single-GPU or CPU inference, smaller open models remain more practical.
-
-**Anthropic's open-weights stance**
-
-In a July 27 post, Anthropic stated it has never advocated for a blanket ban on open-weights models. What it does support: mandatory safety evaluations for all sufficiently capable models (open and closed), cracking down on industrial-scale distillation, and restricting advanced chip exports — but not open-weights releases categorically.
-
-**Why it matters:** V4 Flash weights are commercially usable under MIT. On policy, the major lab position is now explicit: chip controls and distillation restrictions are the levers, not a blanket ban on open release.
-
-**Sources:** [DeepSeek-V4-Flash — HuggingFace](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash) · [V4 Flash Analysis — Artificial Analysis](https://artificialanalysis.ai/models/deepseek-v4-flash) · [Anthropic Open Weights Position](https://www.anthropic.com/news/position-open-weights-models)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Dense Embeddings Flatten a Document to One Vector: ColBERT Keeps Every Token — RAGatouille Makes It Three Lines</title>
-      <link>https://github.com/AnswerDotAI/RAGatouille</link>
-      <guid isPermaLink="false">2026-08-04-01-colbert-ragatouille-late-interaction-retrieval</guid>
-      <pubDate>Tue, 04 Aug 2026 04:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>RAG</category>
-      <category>Best Practices</category>
-      <description>Dense biencoder embeddings compress a document to one vector; ColBERT's late interaction scores every query token against every document token -- RAGatouille makes it a 3-line swap.</description>
-      <content:encoded><![CDATA[
-**ColBERT keeps a separate embedding per token instead of one per document — dense embeddings lose exact-match signals ColBERT catches; RAGatouille makes it three lines.**
-
-**What you'll be able to do after this:**
-- Build a ColBERT index and search it in under 20 lines of Python with RAGatouille
-- Explain why single-vector (biencoder) embeddings lose per-token precision and when that costs recall
-- Use ColBERT as a drop-in reranker on top of any retriever you already have
-
-**Why dense-only fails on precision queries**
-
-A biencoder embedding model flattens every document to a single 768-d vector via mean pooling. Two documents mentioning "HNSW" and "pgvector" score almost identically against a query for either — the averaging hides token-level specificity. ColBERT's **late interaction** keeps one embedding per token for every document. At query time it computes `MaxSim`: for each query token, find its highest-scoring match across all document tokens, then sum those per-token scores. The "HNSW" token in a query gets a strong match against the document that uses it, not the one that doesn't.
-
-**Walk-through with RAGatouille**
-
-```bash
-pip install ragatouille
-```
-
-```python
-from ragatouille import RAGPretrainedModel
-
-# Step 1: Index (downloads ColBERTv2 weights ~500MB on first run)
-RAG = RAGPretrainedModel.from_pretrained("colbert-ir/colbertv2.0")
-
-documents = [
-    "pgvector stores vector embeddings natively inside PostgreSQL.",
-    "HNSW is a graph-based approximate nearest-neighbor index algorithm.",
-    "ColBERT keeps a separate embedding per token for late interaction scoring.",
-]
-
-RAG.index(
-    index_name="my-docs",
-    collection=documents,
-    document_ids=["doc-0", "doc-1", "doc-2"],
-)
-
-# Step 2: Search
-results = RAG.search("how does HNSW differ from flat vector search?", k=3)
-for r in results:
-    print(r["rank"], round(r["score"], 2), r["content"][:70])
-```
-
-**Use it as a reranker (no index needed)**
-
-If you already have a retriever, ColBERT can re-score its top-N candidates on the fly without a pre-built index:
-
-```python
-# Pass any candidate strings from your existing retriever
-reranked = RAG.rerank(
-    query="pgvector vs HNSW: which index is faster?",
-    documents=initial_candidates,  # list[str] from your dense retriever
-    k=5,
-)
-```
-
-This is the lowest-friction entry point: keep your existing embedding pipeline, add `.rerank()` as a second-stage pass to improve precision at virtually no infrastructure cost.
-
-**When to reach for ColBERT:** high-precision technical docs, code search, legal text, or any domain where exact terminology matters. For general semantic similarity, dense embeddings remain fast and sufficient.
-
-**Sources:** [RAGatouille — GitHub](https://github.com/AnswerDotAI/RAGatouille) · [Late Interaction Overview — Weaviate](https://weaviate.io/blog/late-interaction-overview) · [Supercharge Your RAG with Late Interactions — YouTube](https://www.youtube.com/watch?v=xTzUn3G9YA0)
-]]></content:encoded>
-      <media:content url="https://img.youtube.com/vi/xTzUn3G9YA0/maxresdefault.jpg" medium="image" />
-      <media:thumbnail url="https://img.youtube.com/vi/xTzUn3G9YA0/maxresdefault.jpg" />
-    </item>
-
-    <item>
-      <title>Run /context Before Your Claude Code Session Hits the Token Wall — Then Choose Between /compact and /clear</title>
-      <link>https://platform.claude.com/docs/en/build-with-claude/compaction</link>
-      <guid isPermaLink="false">2026-08-03-08-claude-code-context-command-token-audit</guid>
-      <pubDate>Mon, 03 Aug 2026 20:09:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>/context prints a live token-usage breakdown in Claude Code -- run it after heavy file reads to see what's eating your 200k window before a turn's cost compounds.</description>
-      <content:encoded><![CDATA[
-**/context prints a live breakdown of your Claude Code session's token usage — the fastest way to catch a bloating context before each turn's cost compounds to 5× what it was an hour ago.**
-
-Claude Code's context window starts at 200k tokens. What's in it matters for both cost and quality: a session starts lean (system prompt + CLAUDE.md ≈ 6k tokens), but each file read adds 1–2k tokens, MCP servers can add 40k+, and conversation history compounds fast. By the time you feel the session slowing down, you're often deep into the expensive zone.
-
-**Run `/context` to see the breakdown:**
-
-```
-/context
-```
-
-The output groups usage by category — system prompt, CLAUDE.md rules, loaded files, MCP servers, and conversation history. The MCP server line is frequently the biggest surprise: a server with broad tool schemas can add 30–50k tokens before any work begins.
-
-**After you see the breakdown, two commands respond to it:**
-
-- **`/compact`** — replaces conversation history with a structured summary, typically cutting 60–80% of accumulated context. Key decisions, code changes, and file states carry over. Use this for ongoing work where you want to continue the same session.
-- **`/clear`** — wipes conversation history entirely. Context returns to near-zero. Better for task-switching or when the current thread is irrelevant to what comes next.
-
-**The cost math is the reason this matters.** At Sonnet 5's current pricing ($3/MTok input), a turn at 150k context costs roughly $0.45; the same turn at 30k after compaction costs $0.06. Over a two-hour session of 100 turns, that's the difference between $45 and $6 in input costs alone.
-
-**Practical rule:** run `/context` after heavy file reads (initial project exploration, test suite loads), when you switch sub-tasks, and before any loop that will repeat many turns. If MCP servers dominate the breakdown, consider `/clear` and reconnecting only the servers you need for the current task.
-
-The cheapest time to compact is earlier than you think — before the session visibly slows. Make `/context` part of your session hygiene.
-
-**Sources:** [Claude Code Context Management — claudefa.st](https://claudefa.st/blog/guide/mechanics/context-management) · [Claude Code Context Window — Unblocked](https://getunblocked.com/blog/claude-code-context-window/) · [Compaction — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/compaction)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
+    
     
     
     
