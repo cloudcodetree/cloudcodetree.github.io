@@ -1,5 +1,23 @@
 [
   {
+    "id": "2026-08-18-10-v0-first-hour-designer-pm-no-code",
+    "title": "Describe a Component, Get Real Code: v0 for Designers and PMs Who Don't Write React",
+    "excerpt": "v0.dev generates a clickable React component from a plain-text description — nothing to install, free to start, and the code hands straight to your engineer or Claude Code.",
+    "author": "Chris Harper",
+    "date": "08-18-2026",
+    "publishedAt": "2026-08-18T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Design-to-Code"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://v0.dev",
+    "content": "**v0.dev turns a plain sentence into a clickable React component — nothing to install, free to start, and the output is code your engineer or Claude Code can take straight into a real codebase.**\n\nYou start at [v0.dev](https://v0.dev) with a free account (per v0's free plan, 200 credits per month — enough for roughly 10–20 components). The interface is a text box. Write what you need:\n\n> \"A card showing a user's name, avatar, and two-line bio. Three cards per row on desktop. Soft drop shadow, white background.\"\n\nv0 renders a live, interactive preview alongside the generated code in seconds.\n\n**What you'll be able to do after this:** describe a UI component in plain English, refine it visually, and hand the resulting code to your engineering team or Claude Code — without opening a code editor.\n\n**Three ways to refine from the first draft:**\n- Type a follow-up message: \"Center the name, increase the font size, add a subtle hover state\"\n- Upload a screenshot or rough sketch — image-to-code often produces more accurate results than an equivalent text description\n- Switch to **Design Mode** (the paint icon) to drag spacing, swap colors, and tweak typography without touching the prompt\n\n**Getting the code to your team.** When the component looks right, click the code tab and copy. That is all the handoff requires — paste it into a Slack message, a GitHub Gist, or a new file and send it. Engineers can also pull it directly into an existing Next.js project with `npx v0 add` on their machine.\n\n**The one thing to name at handoff time:** v0 generates components in shadcn/ui and Tailwind CSS. The component reflects your brief's *shape and behavior*, but not your brand's colors, fonts, or tokens. An engineer (or Claude Code) needs one pass to swap in the real design system. That is the expected division of work: you define the structure and the interaction, they land it in the actual codebase. Naming this upfront avoids the \"it doesn't look like our brand\" conversation after the handoff.\n\n**Sources:** [v0.dev](https://v0.dev) · [UI with v0 — Vercel Academy](https://vercel.com/academy/ai-sdk/ui-with-v0) · [What Is v0? A Designer's Complete 2026 Guide — Mantlr](https://mantlr.com/blog/what-is-v0-2026) · [How to Use v0 for Beginners — Ultimate QA](https://ultimateqa.com/how-to-use-v0-by-vercel-for-beginners/)"
+  },
+  {
     "id": "2026-08-18-09-parent-document-retrieval-chunk-size",
     "title": "Embed Sentences, Answer With Paragraphs: Parent-Document Retrieval Fixes the Chunk-Size Tradeoff",
     "excerpt": "Small chunks retrieve precisely but lack context; big chunks have context but retrieve poorly. Parent-document retrieval lets you stop choosing: embed the sentence, return the paragraph.",
