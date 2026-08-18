@@ -342,6 +342,38 @@ what gets written into the feed.
 > TL;DR (≤30 words)** so a skimmer gets the point without scrolling — it shows on
 > both the list and the article page. Then the body, then the `**Sources:**` line.
 >
+> **NOTHING MAY READ LIKE ADVERTISING. This applies to every bucket, every run.**
+> The blog covers tools constantly, which makes it very easy to drift into writing
+> the vendor's copy for them. Four rules, all checkable:
+>
+> 1. **Organize around the reader's task, not the product.** The title and TL;DR
+>    say what the reader will be able to DO. "Cache your system prompt so repeat
+>    calls bill at ~10%" is a task; "Product X now supports caching" is a tour.
+>    **The test — apply it to every item before publishing:** *could this post be
+>    published unchanged on the vendor's own blog?* If yes, rewrite it. A vendor
+>    will happily publish "here is our feature and why it's great"; they will not
+>    publish "here is the specific case where this bites you".
+> 2. **A vendor's numbers are CLAIMS, not facts.** Any performance, price, scale
+>    or benchmark figure that originates with the vendor gets attributed inline —
+>    "Anthropic reports", "per Vercel's own benchmark", "the changelog claims".
+>    Never state one in the blog's own voice, and **never put an unattributed
+>    vendor number in a headline**. If you have not seen an independent
+>    measurement, say so. ("One Field Cuts Your Bill 60–90%" asserts a vendor
+>    figure as established fact — that is the shape to avoid.)
+> 3. **Name at least one real limit.** Every post about a tool or feature states a
+>    cost, constraint, failure mode, or "when to reach for something else". If you
+>    genuinely could not find one, write that you couldn't — an absence you have
+>    checked for is information; silence reads as a sales sheet.
+> 4. **No marketing register.** No superlatives, no "revolutionary",
+>    "game-changing", "effortless", "seamless", "blazing-fast". No bullet list that
+>    mirrors a pricing or features page. Describe mechanism and trade-off, not
+>    excitement. Enthusiasm belongs in what the reader can now build, never in
+>    adjectives about the product.
+>
+> This is not a reason to avoid covering products — new capabilities are genuinely
+> the news. It is a rule about **stance**: you are a practitioner reporting what a
+> thing does and where it breaks, never a channel for the vendor's pitch.
+>
 > **Second-draft / consolidation pass (required).** After drafting all items,
 > re-read the whole set and revise: merge anything redundant, cut filler and
 > hedging, tighten every item to its essential signal, and confirm each news item
@@ -349,6 +381,13 @@ what gets written into the feed.
 > news-heavy and long — actively correct for that. **Length tracks substance:** a
 > genuinely quiet day is fine — ship a shorter run (even a single "quiet day" note
 > with a couple of links) rather than padding. Never inflate an item to hit length.
+>
+> **In the same pass, run the advertising check on every item** (see "Nothing may
+> read like advertising"): could the vendor publish this unchanged? Is every vendor
+> number attributed? Is there at least one stated limit? Any marketing adjectives
+> to cut? Fix what fails — and if an item only survives by having its pitch removed
+> and nothing is left underneath, cut the item. In your run report, confirm you ran
+> this check and note anything you rewrote or dropped because of it.
 >
 > **Sourcing.** Prefer primary sources (vendor blogs, official docs, papers,
 > release notes, the tool's own site) over aggregators. For teachable posts, a
