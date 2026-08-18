@@ -340,8 +340,10 @@ they live only in `posts.json` now. `2026-06-09` onward is the feed.
 **Auto-publish (cloud).** The **"AI News Publisher" Claude Code cloud routine**
 (claude.ai/code/routines) runs **3×/day (≈04:00, 12:00, 20:00 UTC)**; each run is an
 independent session whose only shared state is the committed feed — which is why the
-contract's volume rules are expressed as a **per-day** budget (~8 items, ceiling 10)
-that each run derives by reading `content/feed.xml`. It researches the day's stories, updates
+contract's volume rules are expressed **per-day** (~8 items is where a run should
+start doubting itself, not a cap) and derived by each run from `content/feed.xml`.
+The budget is a brake on filler, never a cap on signal: a genuinely new and useful
+item is always publishable, and past 8 each one must be justified in the run report. It researches the day's stories, updates
 `content/feed.xml` per `docs/ai-news-feed-contract.md`, runs ingest + `validate-blog`,
 and commits/pushes — no local machine involved. The routine's environment can't
 authenticate `gh`, so its posts land with placeholder images; the **`rehost-images`

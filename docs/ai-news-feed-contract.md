@@ -141,22 +141,42 @@ what gets written into the feed.
 > **You are one of THREE runs per day (≈04:00, 12:00, 20:00 UTC).** This is the
 > single most important thing to internalize about volume: the reader sees the
 > *day's* output, not your run's. Budget accordingly.
-> - **Per run: 2–4 items.** Never more than 4.
-> - **Per day: 8 items. This is a TARGET, not headroom to spend.** Before writing,
->   count the items in `content/feed.xml` carrying today's UTC date. Then:
->   **the number you may publish is `8 − (items already published today)`.**
->   Compute that number explicitly and state it in your report. If it is 0 or
->   negative, publish nothing unless a story is genuinely important.
-> - **10 is a hard ceiling, not a goal.** It exists for an exceptional news day —
->   a major release, a security incident — where an extra item or two is
->   genuinely warranted. Landing on 10 as a matter of routine means the rule was
->   read backwards. Do not treat the gap between 8 and 10 as budget available to
->   you: if your last candidate is only justified by "we're still under 10",
->   that is exactly the item to cut.
-> - **Exiting without writing is a valid, good outcome.** So is publishing one
->   item. A quiet day should look quiet.
+> **THE BUDGET IS A BRAKE ON FILLER, NEVER A CAP ON SIGNAL.** Read this before the
+> numbers below, because it governs them: **a genuinely new and useful item is
+> always publishable, at any count.** If you have something the reader would be
+> glad to have — a real capability that shipped, a technique that works, a
+> security issue that matters — publish it. Never withhold it because a number
+> says the day is full. Suppressing real information to hit a target is a worse
+> failure than publishing one item too many, and it is not what these numbers are
+> for.
+>
+> What the budget actually exists to stop is the opposite habit: publishing
+> *because there is room*. The blog drifted news-heavy and long by treating a
+> per-run allowance as a quota to fill, so:
+>
+> - **Per run: 2–4 items** is the normal shape. More is fine when the news is
+>   genuinely there; padding to reach it is not.
+> - **8 items a day is the level at which you should start doubting yourself**,
+>   not a wall. Count the items in `content/feed.xml` carrying today's UTC date
+>   and state that count in your report. Below 8, use ordinary editorial
+>   judgement. **At or above 8, every further item must be justified individually
+>   in your run report**: name what is new about it and who it helps. "We are
+>   still under the ceiling" is not a justification and never was; "this shipped
+>   today and changes how you do X" is.
+> - There is **no hard ceiling**. An exceptional day — a major release, a
+>   security incident, a model launch — can legitimately run long. A day that
+>   runs long on thin items is the failure, and the fix is cutting the thin
+>   items, not the count.
+> - **Exiting without writing is a valid, good outcome** when there is genuinely
+>   nothing. So is publishing one item, or six. Length tracks substance, in both
+>   directions.
 > - The other two runs cannot see your draft, only what you commit. So the feed is
->   the only coordination mechanism: read it first, every time.
+>   the only coordination mechanism: read it first, every time. Coordination is
+>   about not duplicating each other, not about rationing.
+>
+> **The test for any candidate, at any count:** would a reader who has already
+> read today's other posts be glad this one exists? If yes, publish it. If it only
+> survives because there was space, cut it — that is the item the brake is for.
 >
 > **Each run produces a MIX across four buckets — not just news.** Prioritize the
 > practitioner and design buckets; they are the point of the blog. You are not
@@ -539,7 +559,10 @@ what gets written into the feed.
 > total feed item count; and confirm you appended this run's section to
 > `content/research-log/<UTC-date>.md`. Also report:
 > - **Today's item count across all runs** (items in the feed with today's UTC
->   date, including yours) against the ~8/day budget and 10 ceiling.
+>   date, including yours). If that count reached 8 or more, justify each item
+>   past 8 individually — what is new about it and who it helps. If you held
+>   something back, say what and why; "the day was full" is not a sufficient
+>   reason to withhold something genuinely new and useful.
 > - **Design bucket mode** — `ramp-up, N/12` or `steady` — with N being the live
 >   count of feed items tagged `Design`; plus, for any design post you wrote,
 >   **which reader it targets** (`(a) engineer` or `(b) design/PM`) and what the
