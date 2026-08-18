@@ -94,14 +94,22 @@ what gets written into the feed.
 > breadth; assume zero prior knowledge on a new topic and always link a real,
 > runnable resource.
 >
-> **Two readers for the design front, cover both.** (a) The *engineer* who wants
-> generated UI to survive contact with a real repo — how Claude Design output gets
-> into a Next.js/React codebase, how it coexists with an existing design system,
-> and how it hands off to Claude Code for iteration. This reader is primary. (b) The
-> *product/design person* starting from zero, who needs the vocabulary and the first
-> hour to make sense. Write so a designer isn't lost and an engineer isn't bored:
-> lead with the concrete task, keep the codebase details in the walk-through where
-> a non-engineer can skim past them.
+> **One reader for the design front: the technical person wearing a product hat.**
+> They own the repo and run Claude Code. They also do the product thinking —
+> deciding what to build, exploring options, speccing work for others. Design tools
+> sit in the middle of that, and what they want is **workflow integration**: how
+> these tools fit the way they already ship.
+>
+> The product angle is not a softer, less technical angle. It is the same reader
+> asking a different question — "how do I use this well as the person deciding what
+> gets built", not "what is this product". Assume a repo, a build, Claude Code, and
+> a reader who will maintain the result.
+>
+> **Do not write for a non-technical reader.** An earlier version of this contract
+> asked for posts aimed at "the product/design person starting from zero", and every
+> one of them turned into a product tour, because a reader with no codebase has no
+> technique to apply. If a post would make sense to someone who will never open an
+> editor, it is the wrong post. The product angle is a *role*, not a skill level.
 >
 > **EDITORIAL STANCE — augment the developer, never replace them.** This is the
 > single idea the rest of these rules exist to serve; when a judgement call isn't
@@ -262,37 +270,45 @@ what gets written into the feed.
 >    Format like a practitioner post (~150–350 words, concrete steps, real
 >    screenshots/links where they help). Tag it `Design` plus the tool's tag.
 >
->    **Serve BOTH readers — this is a quota, not a suggestion.** Every angle above
->    is written for reader (a), the engineer. Left to itself this bucket will pick
->    an engineer angle every single time, because that's where the concrete detail
->    is. So: **at least one in every three design posts must be written for reader
->    (b) — the product/design person starting from zero.**
+>    **ONE reader: the technical person wearing a product hat** (see the audience
+>    section). They own the repo, run Claude Code, and also decide what gets built.
+>    There is no second audience and no quota.
 >
->    **How to decide, in order — this is mechanical, do not improvise:**
->    1. List the `Design`-tagged posts in `posts.json`, newest first.
->    2. **Zero exist** → write reader **(a)**. The engineer angle establishes the
->       workflow that a reader-(b) post can then point back at.
->    3. **Exactly one exists** → write **the opposite reader** from that one. (Do
->       not wait for a third post to start balancing; during ramp-up the archive is
->       small and one lopsided pair sets the pattern for months.)
->    4. **Two or more exist** → look at the newest two. If BOTH are reader (a),
->       this one MUST be reader (b). Otherwise either is allowed, but prefer (b)
->       whenever the last (b) post is more than three design posts back.
+>    **What they actually want — work through these, they are the point of the
+>    bucket.** Every one assumes a repo and Claude Code on the other side:
+>    - **Claude Design → Claude Code.** The handoff that survives: what to carry
+>      across, what the bundle contains, what Claude Code does with it, where the
+>      result drifts from the design system and how to close that.
+>    - **Claude Code → Claude Design (the reverse direction).** Taking something
+>      that already exists in the repo back into the design surface to explore a
+>      change — round-tripping without the two fighting, and what gets lost each way.
+>    - **When to stay in which tool.** Regenerate in the design tool vs. iterate in
+>      the editor; the decision rule, not the feature comparison.
+>    - **Using a design tool well as the person deciding what to build.** Exploring
+>      three directions before committing; turning a rough idea into something
+>      concrete enough to spec; producing an artifact your engineers (or your own
+>      Claude Code session) can act on without a translation step.
+>    - **Design systems and tokens** an agent can consume, so generated output
+>      starts from your components rather than someone else's defaults.
+>    - **Reviewing generated UI** — accessibility, responsive behaviour, the failure
+>      modes that survive a good prompt.
 >
->    **How to tell which reader an existing post targeted** — judge the post, not
->    your memory of it: if it opens with a repo, a package name, a CLI command, or
->    a framework, it is reader (a). If it opens at a URL or in the product UI with
->    no build step, it is reader (b). (The run report also records this, but the
->    post itself is the authority.)
+>    An earlier version of this contract required one in every three design posts
+>    to target "the product/design person starting from zero — no repo, no build
+>    step". **Every post written to that brief became an advertisement.** Three
+>    were published; all three were removed. The cause is structural, not
+>    carelessness: if the reader owns no repo, there is no technique to teach, so
+>    the only thing left to write is the product. Do not reintroduce that framing
+>    in any form.
 >
->    State which reader you wrote for in your run report (`design reader:
->    (a) engineer` or `(b) design/PM`), along with what the previous posts targeted
->    and which rule above applied.
->    A reader-(b) post assumes no repo, no component library, and no build step:
->    the genuine first hour, what the tool can and can't do, the vocabulary an
->    engineer will use back at you, and how to hand work off without reading code.
->    Do not simply retitle an engineer post — if it opens with a repo or a package
->    name, it is not a reader-(b) post.
+>    **Banned outright, for every tool including Claude Design:**
+>    - Onboarding-tour shapes — "first hour", "getting started", "your first X",
+>      "for people who don't write code", "no-code". There is nothing underneath
+>      them.
+>    - Plan, pricing, credit-allowance, free-tier or sign-up copy, unless the post
+>      is specifically ABOUT cost. "Free to start, 200 credits a month" is the
+>      vendor's signup funnel, not information this reader needs.
+>    - Feature tours — "three ways to refine", "what's in the interface".
 >    **Ramp-up and exit — check this yourself, don't guess.** Count feed items
 >    tagged `Design`. While that count is **under 12**, this bucket runs **once
 >    every run** and takes priority over the teachable slot when the run is tight.
@@ -402,10 +418,21 @@ what gets written into the feed.
 > 1. **Organize around the reader's task, not the product.** The title and TL;DR
 >    say what the reader will be able to DO. "Cache your system prompt so repeat
 >    calls bill at ~10%" is a task; "Product X now supports caching" is a tour.
->    **The test — apply it to every item before publishing:** *could this post be
->    published unchanged on the vendor's own blog?* If yes, rewrite it. A vendor
->    will happily publish "here is our feature and why it's great"; they will not
->    publish "here is the specific case where this bites you".
+>    **The test — apply it to every item before publishing.** Not "could the vendor
+>    publish this?" (too easy to talk yourself out of), but the inverse:
+>    **would the vendor's marketing team object to a single sentence in this post?**
+>    If nothing in it would give them pause, you have written their copy for them.
+>    Something in a tool post must be inconvenient for the vendor: a case where it
+>    breaks, a cost they downplay, a job it is the wrong tool for.
+>
+>    **Three mechanical tells — if any fires, the post is an advertisement:**
+>    1. It contains plan, pricing, credit or sign-up detail and is not about cost.
+>    2. Every source is the vendor (docs, blog, academy, changelog) or an SEO
+>       "complete guide" farm. **A tool post needs at least one source that is
+>       neither the vendor nor a content farm** — an independent audit, a
+>       practitioner write-up, a standards body, your own testing.
+>    3. Removing the product's name leaves nothing — no problem, no technique, no
+>       decision. A post that only exists because the product exists is a tour.
 > 2. **A vendor's numbers are CLAIMS, not facts.** Any performance, price, scale
 >    or benchmark figure that originates with the vendor gets attributed inline —
 >    "Anthropic reports", "per Vercel's own benchmark", "the changelog claims".
@@ -565,9 +592,10 @@ what gets written into the feed.
 >   something back, say what and why; "the day was full" is not a sufficient
 >   reason to withhold something genuinely new and useful.
 > - **Design bucket mode** — `ramp-up, N/12` or `steady` — with N being the live
->   count of feed items tagged `Design`; plus, for any design post you wrote,
->   **which reader it targets** (`(a) engineer` or `(b) design/PM`) and what the
->   previous two design posts targeted, so the one-in-three quota is auditable.
+>   count of feed items tagged `Design`. For any tool post (design bucket or not),
+>   also state **the three advertising tells** explicitly: whether it contains
+>   plan/pricing/sign-up detail, which of its sources are neither the vendor nor an
+>   SEO guide, and what remains of the post if you delete the product's name.
 >
 > **Before you finish, run these in order** — do not commit if either fails:
 > ```bash

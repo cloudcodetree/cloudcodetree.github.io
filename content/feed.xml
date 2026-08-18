@@ -12,39 +12,6 @@
     <language>en-us</language>
     <lastBuildDate>Tue, 18 Aug 2026 20:05:00 +0000</lastBuildDate>
 
-    <item>
-      <title>Describe a Component, Get Real Code: v0 for Designers and PMs Who Don't Write React</title>
-      <link>https://v0.dev</link>
-      <guid isPermaLink="false">2026-08-18-10-v0-first-hour-designer-pm-no-code</guid>
-      <pubDate>Tue, 18 Aug 2026 20:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Design</category>
-      <category>Design-to-Code</category>
-      <description>v0.dev generates a clickable React component from a plain-text description — nothing to install, free to start, and the code hands straight to your engineer or Claude Code.</description>
-      <content:encoded><![CDATA[**v0.dev turns a plain sentence into a clickable React component — nothing to install, free to start, and the output is code your engineer or Claude Code can take straight into a real codebase.**
-
-You start at [v0.dev](https://v0.dev) with a free account (per v0's free plan, 200 credits per month — enough for roughly 10–20 components). The interface is a text box. Write what you need:
-
-> "A card showing a user's name, avatar, and two-line bio. Three cards per row on desktop. Soft drop shadow, white background."
-
-v0 renders a live, interactive preview alongside the generated code in seconds.
-
-**What you'll be able to do after this:** describe a UI component in plain English, refine it visually, and hand the resulting code to your engineering team or Claude Code — without opening a code editor.
-
-**Three ways to refine from the first draft:**
-- Type a follow-up message: "Center the name, increase the font size, add a subtle hover state"
-- Upload a screenshot or rough sketch — image-to-code often produces more accurate results than an equivalent text description
-- Switch to **Design Mode** (the paint icon) to drag spacing, swap colors, and tweak typography without touching the prompt
-
-**Getting the code to your team.** When the component looks right, click the code tab and copy. That is all the handoff requires — paste it into a Slack message, a GitHub Gist, or a new file and send it. Engineers can also pull it directly into an existing Next.js project with `npx v0 add` on their machine.
-
-**The one thing to name at handoff time:** v0 generates components in shadcn/ui and Tailwind CSS. The component reflects your brief's *shape and behavior*, but not your brand's colors, fonts, or tokens. An engineer (or Claude Code) needs one pass to swap in the real design system. That is the expected division of work: you define the structure and the interaction, they land it in the actual codebase. Naming this upfront avoids the "it doesn't look like our brand" conversation after the handoff.
-
-**Sources:** [v0.dev](https://v0.dev) · [UI with v0 — Vercel Academy](https://vercel.com/academy/ai-sdk/ui-with-v0) · [What Is v0? A Designer's Complete 2026 Guide — Mantlr](https://mantlr.com/blog/what-is-v0-2026) · [How to Use v0 for Beginners — Ultimate QA](https://ultimateqa.com/how-to-use-v0-by-vercel-for-beginners/)
-]]></content:encoded>
-    </item>
 
     <item>
       <title>Anthropic's First Operating Profit and the Path to a $2T IPO</title>
@@ -517,62 +484,6 @@ Three Imagen 4 model IDs shut down August 17: `imagen-4.0-generate-001`, `imagen
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Your First Prototype in 10 Minutes: What Designers and PMs Need to Know About Claude Design</title>
-      <link>https://support.claude.com/en/articles/14604416-get-started-with-claude-design</link>
-      <guid isPermaLink="false">2026-08-17-04-claude-design-first-hour-pm-designer</guid>
-      <pubDate>Mon, 17 Aug 2026 04:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Design</category>
-      <category>Claude Design</category>
-      <description>Claude Design turns a plain-text brief into a clickable prototype in your browser — no Figma, no code. Here is the genuine first hour for designers and PMs starting from zero.</description>
-      <content:encoded><![CDATA[
-**Claude Design turns a plain-text brief into a clickable, interactive prototype directly in your browser — no Figma account, no code, no engineer standing next to you.**
-
-If you have been avoiding Claude Design because it sounds like an engineering tool, this post is for you. It is not. You start with a sentence. You end with something you can click through and share.
-
-## What you will actually see
-
-Go to [claude.ai](https://claude.ai). If you are on Pro, Max, Team, or Enterprise, the Design tab is there. Click it and you get a blank canvas with a chat panel on the left.
-
-Type a brief — not a prompt, just what you would say to a designer:
-
-> "I need a sign-up flow for a B2B SaaS product. Three steps: email, then team setup, then invite teammates. Keep it clean and professional."
-
-Claude Design generates an **interactive HTML prototype** you can click through right in the browser. Not a static mockup. Not a screenshot. Actual clickable flows.
-
-## What it can and cannot do (the honest version)
-
-**Can:** multi-step flows, forms, buttons that navigate between screens, basic responsive layouts, on-brand colors if you paste your style guide, presentations, one-pagers.
-
-**Cannot:** production-ready component code, pixel-perfect fidelity to a complex design system, backend logic, or animations beyond CSS transitions. Think of it as a high-fidelity sketch, not a delivered design.
-
-## The vocabulary engineers will use with you
-
-When you hand this off:
-- **"Regenerate the component"** — describe what needs to change and run Claude Design again
-- **"Hand off to Claude Code"** — the engineer takes your prompt and screens and continues building in the codebase
-- **"Design sync"** — Claude Code reads your design system to match what it generates to your real components (the engineer runs this, not you)
-
-## How to write a brief that works
-
-The gap between a thin result and a useful one is almost always the brief. Include:
-1. **What it is** — sign-up flow, dashboard, pricing page
-2. **Who uses it** — B2B team admin, first-time consumer
-3. **What they do** — the three steps they take, in order
-4. **Any brand constraints** — paste hex codes, name your font
-
-One sentence per item is enough. The model fills in sensible defaults for everything else.
-
-## Handing off without reading code
-
-When you are happy with a screen, share the canvas link with your engineer. They can see the design and ask Claude Code to match it. You do not need to export files or write specs. The engineer's job is to build the real thing; your job is to make the direction impossible to misread. A clickable prototype does that better than any document.
-
-**Sources:** [Get started with Claude Design — support.claude.com](https://support.claude.com/en/articles/14604416-get-started-with-claude-design) · [How the product designer who built Claude Design uses it — claude.com](https://claude.com/blog/how-the-product-designer-who-built-claude-design-uses-it-to-explore-ideas-before-building-them) · [Using Claude Design for prototypes and UX — claude.com](https://claude.com/resources/tutorials/using-claude-design-for-prototypes-and-ux)
-]]></content:encoded>
-    </item>
 
     <item>
       <title>One Field Cuts Your Claude API Bill 60-90%: Prompt Caching With cache_control</title>

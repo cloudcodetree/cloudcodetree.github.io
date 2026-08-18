@@ -31,6 +31,10 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const LOG_DIR = path.join(ROOT, 'content', 'research-log');
 const POSTS_JSON = path.join(ROOT, 'public', 'blog', 'posts.json');
+// Posts unpublished on purpose via scripts/remove-post.mjs. A log entry pointing at
+// one of these is accurate history, not the "log says published, content missing"
+// bug this guard exists to catch — so they count as accounted for.
+const TOMBSTONES = path.join(ROOT, 'content', 'removed-posts.json');
 
 // A blog guid: YYYY-MM-DD-NN-slug
 const GUID = /\b(\d{4}-\d{2}-\d{2}-\d{2}-[a-z0-9-]+)\b/g;
@@ -45,6 +49,15 @@ async function main() {
   const publishedPrefixes = new Set(
     posts.map((p) => (String(p.id ?? '').match(PREFIX) || [])[1]).filter(Boolean),
   );
+
+  // Deliberate removals are accounted for, not missing.
+  if (existsSync(TOMBSTONES)) {
+    const removed = JSON.parse(await readFile(TOMBSTONES, 'utf8'));
+    for (const t of removed) {
+      const pfx = (String(t?.id ?? '').match(PREFIX) || [])[1];
+      if (pfx) publishedPrefixes.add(pfx);
+    }
+  }
 
   const files = (await readdir(LOG_DIR)).filter((f) => /^\d{4}-\d{2}-\d{2}\.md$/.test(f));
   const missing = [];
