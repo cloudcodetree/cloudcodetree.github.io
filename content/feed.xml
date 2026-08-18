@@ -10,7 +10,115 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 18 Aug 2026 04:11:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 18 Aug 2026 12:10:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Anthropic's First Operating Profit and the Path to a $2T IPO</title>
+      <link>https://www.anthropic.com/news</link>
+      <guid isPermaLink="false">2026-08-18-05-anthropic-first-profit-ipo-plan</guid>
+      <pubDate>Tue, 18 Aug 2026 12:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <description>Anthropic posted its first operating profit ($559M) in Q2 2026 on $11.5B in quarterly revenue — 14× year-over-year — with an annualized run-rate above $65B and an October IPO reportedly planned.</description>
+      <content:encoded><![CDATA[**Anthropic's Q2 2026 results: $11.5B in revenue (14× year-over-year), first operating profit of ~$559M, annualized run-rate above $65B, and a reported $2T IPO in October.**
+
+Q2 revenue rose 2.4× from Q1 ($4.73B) and the operating profit arrived roughly two years ahead of the timeline Anthropic had cited internally. The annualized run-rate figure — over $65B — reflects strong enterprise and API growth, primarily driven by Claude Code adoption and multi-seat API contracts.
+
+**Why it matters:** The company behind Claude's API is now financially self-sustaining, which changes the calculus for teams building production workloads on it. A profitable Anthropic with IPO-level transparency is under more obligation to maintain API stability and pricing predictability than a burn-rate startup. Watch IPO filings for the first public breakdown of API vs. consumer revenue.
+
+**Sources:** [Anthropic Q2 revenue $11.5B — CNBC](https://www.cnbc.com/2026/08/15/anthropic-revenue-jumps-to-over-11point5-billion-in-q2-report.html) · [Annualized run-rate surpasses $65B — Bloomberg](https://www.bloomberg.com/news/articles/2026-08-17/anthropic-revenue-run-rate-surpasses-65-billion-ahead-of-ipo) · [Plans for $2T IPO in October — Fortune](https://fortune.com/2026/08/13/anthropic-ipo-2-trillion-october-largest-ever-spacex/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Three Claude Code Cloud Tasks Running in Parallel — and a PR Watcher That Fixes Itself</title>
+      <link>https://code.claude.com/docs/en/claude-code-on-the-web</link>
+      <guid isPermaLink="false">2026-08-18-06-cloud-parallel-tasks-autofix-pr</guid>
+      <pubDate>Tue, 18 Aug 2026 12:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Three `claude --cloud` commands spawn three independent VMs that run in parallel. Pair with `/autofix-pr` and each resulting PR monitors and fixes itself while you keep coding.</description>
+      <content:encoded><![CDATA[**One `--cloud` command per task spawns an independent cloud VM. Stack three in a row and all three run in parallel while you stay in your editor.**
+
+```bash
+# These three execute simultaneously in separate cloud VMs
+claude --cloud "Fix the flaky test in auth.spec.ts"
+claude --cloud "Update the OpenAPI docs in docs/api.yaml"
+claude --cloud "Refactor the logger to use structured output"
+```
+
+Run `/tasks` inside any Claude Code session to monitor all three sessions at once, or check them at [claude.ai/code](https://claude.ai/code) from your phone.
+
+## Auto-fix: the PR that patches itself
+
+When each session opens a PR, you can turn on auto-fix: teleport into the session (or paste the PR URL into it) and run `/autofix-pr`. Claude subscribes to GitHub activity on that PR. When a check fails, Claude investigates and pushes a fix; when a reviewer leaves a comment, Claude resolves or responds to it. You don't need to babysit the PR.
+
+From the terminal (while on the PR's branch):
+
+```bash
+/autofix-pr
+# Claude detects the open PR with gh, spawns a web session,
+# and turns on auto-fix in one step
+```
+
+## Two things to do before you `--cloud`
+
+1. **Push first.** `--cloud` clones the remote at your current branch — local commits that aren't pushed won't be in the cloud session.
+2. **Check rate limits.** Three parallel sessions consume proportionately more of your account's rate limit. For long-running tasks, stagger them by a few minutes if you're near your limit.
+
+**When this pattern pays off:** large refactors you can decompose by file or subsystem, independent bug fixes on different features, or running the test-and-fix loop in the cloud while you continue writing new features locally.
+
+**Sources:** [Claude Code on the web — code.claude.com](https://code.claude.com/docs/en/claude-code-on-the-web) · [Auto-fix pull requests — code.claude.com](https://code.claude.com/docs/en/claude-code-on-the-web#auto-fix-pull-requests)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your First Working App in an Afternoon: Lovable for Product Managers and Designers</title>
+      <link>https://lovable.dev/guides/how-to-develop-app-idea-from-scratch</link>
+      <guid isPermaLink="false">2026-08-18-07-lovable-pm-designer-first-hour</guid>
+      <pubDate>Tue, 18 Aug 2026 12:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>Lovable turns a plain-English description into a clickable, shareable, full-stack app with no GitHub account, no build step, and no code required — a genuine first-hour guide for PMs and designers.</description>
+      <content:encoded><![CDATA[**Lovable builds a clickable, shareable, full-stack app from a plain-English prompt — no code, no GitHub account, no build step required.**
+
+Go to [lovable.dev](https://lovable.dev) and describe your idea the way you'd explain it to a developer over lunch — not a spec, a story. "I want a tool where our support team logs customer calls, tags each one by issue type, and can see a dashboard of the most common tags this week." Lovable builds the screens, the data model, and the backend in one pass.
+
+## Before it writes code: Plan Mode
+
+Lovable 2.0 (February 2026) introduced Plan Mode. Before any code is generated, Lovable shows you exactly what it intends to build — pages, user flows, data structures. You review, adjust, and approve. This is the design-review step that keeps the first version from going sideways. Enable it before you submit your first prompt.
+
+## What you can change without touching code
+
+- **Visual Edits**: click any element in the preview and adjust text, color, spacing, or layout directly. No code required.
+- **Themes**: set your brand colors and typography once in one panel; every page updates automatically.
+- **Voice Mode**: describe a change out loud and Lovable applies it — useful when you're reviewing on mobile.
+- **Prompt Queue**: stack up to 50 follow-up prompts and let Lovable execute them in order, good for batch changes across pages.
+
+## What Lovable can't do on its own
+
+- Match a complex existing design system (if your company has a component library, an engineer will need to sync tokens afterward).
+- Integrate with internal tools that require a custom auth layer or private network.
+- Export Figma specs — the output is working React/TypeScript code, not a design file.
+
+## Handing off to a developer — or to Claude Code
+
+Share the project URL and enable GitHub sync. The engineer or Claude Code session gets the full codebase, clones it, and picks up where you left off in the terminal. If you built the prototype, the handoff is a link, not a conversation.
+
+Monthly cost: $25–$50. Time to first shareable prototype: an afternoon.
+
+**Sources:** [Lovable guides — lovable.dev](https://lovable.dev/guides) · [Lovable for product managers — lovable.dev](https://lovable.dev/product-managers) · [Lovable for designers complete guide — Muzli](https://muz.li/blog/lovable-for-designers-the-complete-guide-to-building-apps-with-ai-2026/)
+]]></content:encoded>
+    </item>
+
 
     <item>
       <title>Generate On-Brand React Components from Your Design System, Then Hand Them to Claude Code via MCP</title>
@@ -7454,137 +7562,9 @@ Claude then runs `npm run build`, reads the errors, fixes them, reruns, and loop
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Inference Prices Keep Falling: OpenAI Slashes Luna 80% and Alibaba Debuts a 2.4T Rival</title>
-      <link>https://venturebeat.com/technology/ai-price-wars-openai-cuts-gpt-5-6-luna-prices-by-80-as-model-competition-shifts-toward-cost</link>
-      <guid isPermaLink="false">2026-08-04-07-inference-pricing-qwen-openai-cuts</guid>
-      <pubDate>Tue, 04 Aug 2026 12:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <description>Two moves in four days: OpenAI cuts GPT-5.6 Luna 80% to $0.20/$1.20 per MTok, and Alibaba releases Qwen3.8-Max -- a 2.4T-parameter MoE model claiming top computer-use benchmark scores.</description>
-      <content:encoded><![CDATA[
-**Two moves in four days signal accelerating commoditization: OpenAI cuts its mid-tier GPT-5.6 Luna by 80%, and Alibaba drops a 2.4-trillion-parameter MoE model with top computer-use scores.**
-
-**OpenAI (July 30):** GPT-5.6 Luna dropped from $1/$6 to $0.20/$1.20 per million input/output tokens — an 80% cut. Terra fell 20% (now $2/$12). Sol stays at $5/$30. Luna is now competitive with budget-tier pricing, making it an interesting option for high-volume agentic pipelines where you want frontier reasoning at commodity cost.
-
-**Qwen3.8-Max (Aug 3):** Alibaba released a 2.4-trillion-parameter MoE model (roughly 95B active parameters per token) under a permissive license. Alibaba's own benchmarks put it ahead of Fable 5 on OSWorld computer-use (86.1 vs 85.0) and ahead of Opus 4.8 on Terminal-Bench. SWE-bench and FrontierSWE still favor Fable 5 (Qwen scores 67.7/73.5 vs Fable 5's 80.0/88.8). Independent evals haven't landed yet — treat self-reported numbers with appropriate skepticism.
-
-**Why it matters:** Luna's new price removes the cost argument against frontier models for agentic loops. Qwen3.8-Max is a credible open-weight alternative for computer-use agents — watch for independent benchmarks this week.
-
-**Sources:** [OpenAI cuts GPT-5.6 Luna 80% — VentureBeat](https://venturebeat.com/technology/ai-price-wars-openai-cuts-gpt-5-6-luna-prices-by-80-as-model-competition-shifts-toward-cost) · [Qwen3.8-Max debut — VentureBeat](https://venturebeat.com/technology/qwen3-8-max-arrives-with-a-bold-claim-it-outperforms-gpt-5-6-sol-max-and-fable-5-on-agentic-computer-use) · [Qwen3.8-Max — MarkTechPost](https://www.marktechpost.com/2026/08/03/alibaba-qwen-releases-qwen3-8-max/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Four Commands Shrink Any Open Model to Fit Your Laptop: GGUF Quantization with llama.cpp</title>
-      <link>https://www.youtube.com/watch?v=vvrGfqd1oxE</link>
-      <guid isPermaLink="false">2026-08-04-05-gguf-quantization-llama-cpp</guid>
-      <pubDate>Tue, 04 Aug 2026 12:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Self-Hosting</category>
-      <category>LLM</category>
-      <description>GGUF quantization compresses 16-bit model weights to 4-bit, shrinking a 7B model from 14GB to 4GB with minimal quality loss -- runnable on a MacBook or any consumer GPU.</description>
-      <content:encoded><![CDATA[
-**GGUF quantization compresses 16-bit weights to 4-bit, shrinking a 7B model from 14GB to under 5GB with minimal quality loss — runnable on a MacBook, a gaming GPU, or a CPU.**
-
-**What you'll be able to do after this:**
-- Convert any Hugging Face model to GGUF and quantize it to Q4_K_M in under 10 minutes
-- Understand what Q4_K_M, Q5_K_M, and Q8_0 trade off and which to pick for your use case
-- Serve your quantized model as a local OpenAI-compatible API endpoint for use in any agent workflow
-
-Large language models ship as 16-bit floating-point files. A 7B-parameter model weighs roughly 14GB at full precision, requiring 16GB+ of VRAM to load. GGUF quantization compresses each weight from 16 bits to 4 (or 5, or 8), shrinking the same model to 4–5GB while preserving most of its reasoning quality.
-
-llama.cpp is the standard tool. Here's the full end-to-end workflow:
-
-```bash
-# 1. Build llama.cpp from source
-git clone https://github.com/ggml-org/llama.cpp && cd llama.cpp
-cmake -B build && cmake --build build --config Release -j$(nproc)
-
-# 2. Download a model from Hugging Face (example: Llama 3.1 8B)
-pip install huggingface_hub
-huggingface-cli download meta-llama/Meta-Llama-3.1-8B-Instruct --local-dir ./llama-3.1-8b
-
-# 3. Convert to FP16 GGUF (required intermediate step)
-python convert_hf_to_gguf.py ./llama-3.1-8b --outtype f16 --outfile llama-3.1-8b-f16.gguf
-
-# 4. Quantize to Q4_K_M
-./build/bin/llama-quantize llama-3.1-8b-f16.gguf llama-3.1-8b-q4km.gguf Q4_K_M
-```
-
-**Choosing a quantization level.** The `_K_M` suffix stands for "K-quants, medium" — attention and embedding layers stay at higher precision while feed-forward layers are aggressively quantized. Use **Q4_K_M** as your default. Step up to **Q5_K_M** if you have the VRAM and want near-lossless quality. **Q8_0** is effectively lossless but almost as large as FP16. Avoid Q3 and below for anything beyond simple chat — quality degrades noticeably.
-
-Once quantized, run it:
-
-```bash
-# Interactive chat session
-./build/bin/llama-cli -m llama-3.1-8b-q4km.gguf -n 512 --conversation
-
-# Or serve a local OpenAI-compatible API on port 8080
-./build/bin/llama-server -m llama-3.1-8b-q4km.gguf --port 8080
-```
-
-The `llama-server` endpoint is drop-in compatible with the OpenAI API: point any SDK or agent harness at `http://localhost:8080/v1/chat/completions` and it works without any code changes.
-
-**Sources:** [GGUF Quantization Tutorial: Run Fine-Tuned LLMs on CPU with llama.cpp — YouTube](https://www.youtube.com/watch?v=vvrGfqd1oxE) · [llama.cpp quantize README — GitHub](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md) · [Quantize Llama models with llama.cpp — Towards Data Science](https://towardsdatascience.com/quantize-llama-models-with-ggml-and-llama-cpp-3612dfbcc172/)
-]]></content:encoded>
-      <media:content url="https://img.youtube.com/vi/vvrGfqd1oxE/maxresdefault.jpg" medium="image"/>
-      <media:thumbnail url="https://img.youtube.com/vi/vvrGfqd1oxE/maxresdefault.jpg"/>
-    </item>
-
-    <item>
-      <title>One Dead End Shouldn't Ruin the Session: /fork Clones Your Claude Code Conversation Into a Parallel Experiment</title>
-      <link>https://code.claude.com/docs/en/whats-new/2026-w29</link>
-      <guid isPermaLink="false">2026-08-04-04-claude-code-fork-parallel-session-experiments</guid>
-      <pubDate>Tue, 04 Aug 2026 04:08:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>/fork copies your full Claude Code conversation history into a new background session -- try an alternative approach without rewinding or losing the original.</description>
-      <content:encoded><![CDATA[
-**/fork copies your full conversation history into a new background session so you can try an alternative approach without rewinding or losing the original.**
-
-When you're halfway through refactoring a module and hit a decision fork — "extract this into a service, or keep it as a helper?" — the old answer was to pick one and backtrack mentally if it failed. `/fork` removes that constraint.
-
-```
-/fork
-```
-
-Claude Code copies the full conversation history and current directory state into a new background session and returns its ID. The original session continues untouched. Switch between them with `/resume <session-id>`, or run both in separate terminals simultaneously.
-
-**Practical pattern — try two strategies in parallel:**
-
-```bash
-# Terminal A (original session):
-/fork
-# Prints: Forked → session abc123
-
-# Terminal A: implement the service extraction approach
-
-# Terminal B:
-claude --resume abc123
-# Implement the helper function approach here
-```
-
-Compare the diffs at the end and keep whichever worked.
-
-**When /fork pays off most:**
-- **Before a risky refactor** — fork, try it in the fork, merge back only if it worked
-- **Architecture choices** — stream and batch approaches running in parallel, pick the faster one
-- **Code review iterations** — fork before addressing comments; keep the original as a baseline
-
-**One gotcha:** both sessions share the same working directory on disk. If they write to the same files concurrently, you'll get conflicts. Fix: run `git checkout -b experiment-b` in the fork before starting work, so each session writes to its own branch.
-
-**Sources:** [/fork Explained — ClaudeKit](https://claudekit.app/blog/claude-code-fork-conversation-explained) · [Session Forking — BSWEN](https://docs.bswen.com/blog/2026-03-22-claude-code-session-forking/) · [Parallel Sessions — HeyClaude](https://heyclau.de/entry/guides/claude-code-desktop-parallel-sessions-workflow)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
     
