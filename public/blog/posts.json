@@ -1,5 +1,23 @@
 [
   {
+    "id": "2026-08-18-08-generated-ui-accessibility-review-pass",
+    "title": "A Better Prompt Won't Fix This: The Accessibility Failures That Survive AI UI Generation",
+    "excerpt": "An audit of two AI-generated storefronts found the same four critical accessibility failures in both — a detailed prompt removed the minor issues and none of the critical ones.",
+    "author": "Chris Harper",
+    "date": "08-18-2026",
+    "publishedAt": "2026-08-18T16:00:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Design-to-Code"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-18-08-generated-ui-accessibility-review-pass.jpg",
+    "imageSource": "https://accessibe.com/accessibility-platform/reports/gen-ai-ecommerce/accessibility-audit",
+    "content": "**Two AI-built storefronts audited against WCAG 2.2 AA hit the same four critical failures despite very different prompts. Prompt harder isn't the fix — a review pass is.**\n\naccessiBe [audited two Lovable-built storefronts](https://accessibe.com/accessibility-platform/reports/gen-ai-ecommerce/accessibility-audit) on 2026-06-16 against WCAG 2.2 AA, using screen readers and keyboard testing rather than a scanner alone. One was built from a one-line prompt, the other from a detailed, iterated brief. The detailed brief did help — 9 issues versus 15. But accessiBe reports **both sites shared the same four critical failures**. Better prompting moved the minor problems and left the serious ones untouched.\n\nThat result makes sense once you notice what the model is optimising for. ARIA roles, focus order, and accessible names are invisible in a rendered screenshot, so a model trained toward visually plausible output has no signal pushing it to get them right.\n\n**The recurring four**, worth checking in any generated UI:\n\n1. **Overlays** — modals, drawers, newsletter popups — with no `role=\"dialog\"`, no accessible label, no focus trap, no Escape handler. Focus stays on the page behind.\n2. **Inputs labelled only by placeholder text**, which disappears on typing and is not an accessible name.\n3. **Contrast failures**, usually on sale badges and secondary text.\n4. **Information carried only visually** — a struck-through price, a colour-coded state — with no text equivalent.\n\n**Where to put the effort.** [master.dev's write-up](https://master.dev/blog/ai-generated-ui-is-inaccessible-by-default/) found ten distinct failures in a single generated sidebar, and puts prevention at 3–8 minutes per component against 45–90 minutes to remediate after launch. The cheap layers, in order: generate onto accessible primitives (Radix, React Aria — this is why v0's shadcn output starts ahead), then `eslint-plugin-jsx-a11y` for static checks, then `jest-axe` or `@axe-core/playwright` in CI.\n\n**The limit worth knowing:** automated tooling catches roughly a third of WCAG criteria. Focus order, screen-reader narrative, and whether a flow makes sense without sight need a human keyboard pass — tab through the thing once before you ship it.\n\n**Sources:** [accessiBe: AI storefront accessibility audit](https://accessibe.com/accessibility-platform/reports/gen-ai-ecommerce/accessibility-audit) · [master.dev: AI-generated UI is inaccessible by default](https://master.dev/blog/ai-generated-ui-is-inaccessible-by-default/) · [W3C WAI evaluation tools](https://www.w3.org/WAI/test-evaluate/tools/list/)"
+  },
+  {
     "id": "2026-08-18-07-lovable-pm-designer-first-hour",
     "title": "Your First Working App in an Afternoon: Lovable for Product Managers and Designers",
     "excerpt": "Lovable turns a plain-English description into a clickable, shareable, full-stack app with no GitHub account, no build step, and no code required — a genuine first-hour guide for PMs and designers.",

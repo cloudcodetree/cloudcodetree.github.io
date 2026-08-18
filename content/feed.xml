@@ -78,6 +78,41 @@ From the terminal (while on the PR's branch):
     </item>
 
     <item>
+      <title>A Better Prompt Won't Fix This: The Accessibility Failures That Survive AI UI Generation</title>
+      <link>https://accessibe.com/accessibility-platform/reports/gen-ai-ecommerce/accessibility-audit</link>
+      <guid isPermaLink="false">2026-08-18-08-generated-ui-accessibility-review-pass</guid>
+      <pubDate>Tue, 18 Aug 2026 16:00:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>An audit of two AI-generated storefronts found the same four critical accessibility failures in both — a detailed prompt removed the minor issues and none of the critical ones.</description>
+      <content:encoded><![CDATA[
+**Two AI-built storefronts audited against WCAG 2.2 AA hit the same four critical failures despite very different prompts. Prompt harder isn't the fix — a review pass is.**
+
+accessiBe [audited two Lovable-built storefronts](https://accessibe.com/accessibility-platform/reports/gen-ai-ecommerce/accessibility-audit) on 2026-06-16 against WCAG 2.2 AA, using screen readers and keyboard testing rather than a scanner alone. One was built from a one-line prompt, the other from a detailed, iterated brief. The detailed brief did help — 9 issues versus 15. But accessiBe reports **both sites shared the same four critical failures**. Better prompting moved the minor problems and left the serious ones untouched.
+
+That result makes sense once you notice what the model is optimising for. ARIA roles, focus order, and accessible names are invisible in a rendered screenshot, so a model trained toward visually plausible output has no signal pushing it to get them right.
+
+**The recurring four**, worth checking in any generated UI:
+
+1. **Overlays** — modals, drawers, newsletter popups — with no `role="dialog"`, no accessible label, no focus trap, no Escape handler. Focus stays on the page behind.
+2. **Inputs labelled only by placeholder text**, which disappears on typing and is not an accessible name.
+3. **Contrast failures**, usually on sale badges and secondary text.
+4. **Information carried only visually** — a struck-through price, a colour-coded state — with no text equivalent.
+
+**Where to put the effort.** [master.dev's write-up](https://master.dev/blog/ai-generated-ui-is-inaccessible-by-default/) found ten distinct failures in a single generated sidebar, and puts prevention at 3–8 minutes per component against 45–90 minutes to remediate after launch. The cheap layers, in order: generate onto accessible primitives (Radix, React Aria — this is why v0's shadcn output starts ahead), then `eslint-plugin-jsx-a11y` for static checks, then `jest-axe` or `@axe-core/playwright` in CI.
+
+**The limit worth knowing:** automated tooling catches roughly a third of WCAG criteria. Focus order, screen-reader narrative, and whether a flow makes sense without sight need a human keyboard pass — tab through the thing once before you ship it.
+
+**Sources:** [accessiBe: AI storefront accessibility audit](https://accessibe.com/accessibility-platform/reports/gen-ai-ecommerce/accessibility-audit) · [master.dev: AI-generated UI is inaccessible by default](https://master.dev/blog/ai-generated-ui-is-inaccessible-by-default/) · [W3C WAI evaluation tools](https://www.w3.org/WAI/test-evaluate/tools/list/)
+]]></content:encoded>
+      <media:content url="https://master.dev/blog/wp-json/social-image-generator/v1/image/9221" medium="image" />
+      <media:thumbnail url="https://master.dev/blog/wp-json/social-image-generator/v1/image/9221" />
+    </item>
+
+    <item>
       <title>Your First Working App in an Afternoon: Lovable for Product Managers and Designers</title>
       <link>https://lovable.dev/guides/how-to-develop-app-idea-from-scratch</link>
       <guid isPermaLink="false">2026-08-18-07-lovable-pm-designer-first-hour</guid>
@@ -7522,46 +7557,7 @@ Any test falling below its threshold breaks the build. Add `deepeval login` to p
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Stop Re-Prompting Every Five Minutes: /goal Lets Claude Code Run Until Your Tests Pass</title>
-      <link>https://code.claude.com/docs/en/whats-new/2026-w20</link>
-      <guid isPermaLink="false">2026-08-04-06-claude-code-goal-persistent-autonomous</guid>
-      <pubDate>Tue, 04 Aug 2026 12:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Agents</category>
-      <description>/goal shifts Claude Code from turn-by-turn to persistent agent mode: state a measurable finish line and Claude keeps editing, running, and looping until the condition is true.</description>
-      <content:encoded><![CDATA[
-**/goal turns Claude Code from a turn-by-turn assistant into a persistent agent that loops until a measurable condition — "all tests pass," "no lint errors" — becomes true.**
-
-When you're debugging a flaky test suite or migrating a large codebase, the workflow usually looks like: edit, run, see result, prompt Claude again, repeat. `/goal` collapses that loop into one setup step.
-
-You describe a verifiable finish line, and Claude keeps going — reading files, running tests, editing code, interpreting output — until the condition holds or it needs to ask you something:
-
-```
-/goal All TypeScript compilation errors are resolved and `npm test` exits 0.
-   - Don't delete tests; fix the source.
-   - Ask before modifying package.json.
-```
-
-Claude then runs `npm run build`, reads the errors, fixes them, reruns, and loops. When the condition is true, it stops. No re-prompting.
-
-**What works well with /goal:**
-- **Test-pass targets**: "jest exits with code 0 and no skipped tests"
-- **Lint clean**: "eslint reports zero warnings across the src/ directory"
-- **Migration completion**: "every `require()` in the repo is replaced with ES import syntax"
-- **Deployment health**: "the /healthz endpoint returns 200 after `pnpm run build`"
-
-**Boundaries matter.** Add them to the goal string itself, not as a separate message — Claude reads the whole goal each loop iteration. "Don't touch the `vendor/` directory" and "ask before deleting any file" are constraints worth encoding directly.
-
-**Combine with /fork for parallel experiments.** If your goal is ambiguous ("make the auth tests pass"), fork two sessions with different fix strategies and let both run to completion, then compare results.
-
-**Sources:** [Claude Code /goal Command Guide — amitray.com](https://amitray.com/claude-code-goal-command-guide-2026/) · [/goal and /loop for Autonomous Tasks — MindStudio](https://www.mindstudio.ai/blog/claude-code-goal-loop-commands-autonomous-tasks) · [What's New: Week 20 — Claude Code Docs](https://code.claude.com/docs/en/whats-new/2026-w20)
-]]></content:encoded>
-    </item>
-
+    
     
     
     
