@@ -89,8 +89,16 @@ export default function BlogPage({ posts }: BlogPageProps) {
   }, []);
 
   // Keep the URL (?page, ?topics) in sync, clamped, on the CURRENT path (/ or /ai-news/).
+  //
+  // Skips its OWN first run. On mount `selectedTags`/`page` still hold their SSR
+  // defaults, so writing the URL here would serialize empty state over an incoming
+  // `?topics=…` — erasing the parameter before the effect above can apply it, and
+  // taking the filter with it. That made every shared filter link land unfiltered
+  // (`/?topics=Design` → `/`). Only sync once state can have come from somewhere.
+  const urlSyncArmed = useRef(false);
   useEffect(() => {
     if (page !== safePage) { setPage(safePage); return; }
+    if (!urlSyncArmed.current) { urlSyncArmed.current = true; return; }
     const params = new URLSearchParams();
     if (selectedTags.length) params.set('topics', selectedTags.join(','));
     if (safePage > 1) params.set('page', String(safePage));
