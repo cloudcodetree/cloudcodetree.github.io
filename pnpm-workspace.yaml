@@ -1,8 +1,16 @@
+# Dependency build scripts. pnpm 10+ blocks these by default and then refuses to
+# run ANY package script until each one is explicitly resolved — so leaving the
+# scaffolded "set this to true or false" placeholders here made `pnpm run dev`
+# and `pnpm run build` fail outright in a fresh checkout.
+#
+# Both genuinely need their build step:
+#   sharp         — native image pipeline used by scripts/ingest-feed.mjs
+#   unrs-resolver — native resolver used by the ESLint import plugin
 allowBuilds:
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
-# Packages whose install/build scripts are allowed to run.
-# pnpm 10+ blocks dependency build scripts by default; list approvals here.
+  sharp: true
+  unrs-resolver: true
+
+# Kept for pnpm 10 compatibility; pnpm 11 reads `allowBuilds` above.
 onlyBuiltDependencies:
   - sharp
   - unrs-resolver

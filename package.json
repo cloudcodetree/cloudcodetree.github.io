@@ -19,15 +19,15 @@
     "cloudcodetree"
   ],
   "scripts": {
-    "dev": "node scripts/generate-feeds.mjs && next dev --turbo",
-    "dev:slow": "node scripts/generate-feeds.mjs && next dev",
+    "dev": "node scripts/generate-feeds.mjs && next dev",
     "feeds": "node scripts/generate-feeds.mjs",
     "prebuild": "node scripts/generate-feeds.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "predeploy": "pnpm run build",
-    "deploy": "gh-pages -d out --dotfiles"
+    "deploy": "gh-pages -d out --dotfiles",
+    "dev:turbo": "node scripts/generate-feeds.mjs && next dev --turbo"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -64,5 +64,11 @@
     "gh-pages": "^6.3.0",
     "sharp": "^0.35.0",
     "typescript": "~5.8.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }
