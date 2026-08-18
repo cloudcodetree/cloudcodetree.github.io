@@ -1,5 +1,274 @@
 [
   {
+    "id": "2026-08-18-07-lovable-pm-designer-first-hour",
+    "title": "Your First Working App in an Afternoon: Lovable for Product Managers and Designers",
+    "excerpt": "Lovable turns a plain-English description into a clickable, shareable, full-stack app with no GitHub account, no build step, and no code required — a genuine first-hour guide for PMs and designers.",
+    "author": "Chris Harper",
+    "date": "08-18-2026",
+    "publishedAt": "2026-08-18T12:10:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Design-to-Code"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-18-07-lovable-pm-designer-first-hour.jpg",
+    "imageSource": "https://lovable.dev/guides/how-to-develop-app-idea-from-scratch",
+    "content": "**Lovable builds a clickable, shareable, full-stack app from a plain-English prompt — no code, no GitHub account, no build step required.**\n\nGo to [lovable.dev](https://lovable.dev) and describe your idea the way you'd explain it to a developer over lunch — not a spec, a story. \"I want a tool where our support team logs customer calls, tags each one by issue type, and can see a dashboard of the most common tags this week.\" Lovable builds the screens, the data model, and the backend in one pass.\n\n## Before it writes code: Plan Mode\n\nLovable 2.0 (February 2026) introduced Plan Mode. Before any code is generated, Lovable shows you exactly what it intends to build — pages, user flows, data structures. You review, adjust, and approve. This is the design-review step that keeps the first version from going sideways. Enable it before you submit your first prompt.\n\n## What you can change without touching code\n\n- **Visual Edits**: click any element in the preview and adjust text, color, spacing, or layout directly. No code required.\n- **Themes**: set your brand colors and typography once in one panel; every page updates automatically.\n- **Voice Mode**: describe a change out loud and Lovable applies it — useful when you're reviewing on mobile.\n- **Prompt Queue**: stack up to 50 follow-up prompts and let Lovable execute them in order, good for batch changes across pages.\n\n## What Lovable can't do on its own\n\n- Match a complex existing design system (if your company has a component library, an engineer will need to sync tokens afterward).\n- Integrate with internal tools that require a custom auth layer or private network.\n- Export Figma specs — the output is working React/TypeScript code, not a design file.\n\n## Handing off to a developer — or to Claude Code\n\nShare the project URL and enable GitHub sync. The engineer or Claude Code session gets the full codebase, clones it, and picks up where you left off in the terminal. If you built the prototype, the handoff is a link, not a conversation.\n\nMonthly cost: $25–$50. Time to first shareable prototype: an afternoon.\n\n**Sources:** [Lovable guides — lovable.dev](https://lovable.dev/guides) · [Lovable for product managers — lovable.dev](https://lovable.dev/product-managers) · [Lovable for designers complete guide — Muzli](https://muz.li/blog/lovable-for-designers-the-complete-guide-to-building-apps-with-ai-2026/)"
+  },
+  {
+    "id": "2026-08-18-06-cloud-parallel-tasks-autofix-pr",
+    "title": "Three Claude Code Cloud Tasks Running in Parallel — and a PR Watcher That Fixes Itself",
+    "excerpt": "Three `claude --cloud` commands spawn three independent VMs that run in parallel. Pair with `/autofix-pr` and each resulting PR monitors and fixes itself while you keep coding.",
+    "author": "Chris Harper",
+    "date": "08-18-2026",
+    "publishedAt": "2026-08-18T12:09:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-18-06-cloud-parallel-tasks-autofix-pr.jpg",
+    "imageSource": "https://code.claude.com/docs/en/claude-code-on-the-web",
+    "content": "**One `--cloud` command per task spawns an independent cloud VM. Stack three in a row and all three run in parallel while you stay in your editor.**\n\n```bash\n# These three execute simultaneously in separate cloud VMs\nclaude --cloud \"Fix the flaky test in auth.spec.ts\"\nclaude --cloud \"Update the OpenAPI docs in docs/api.yaml\"\nclaude --cloud \"Refactor the logger to use structured output\"\n```\n\nRun `/tasks` inside any Claude Code session to monitor all three sessions at once, or check them at [claude.ai/code](https://claude.ai/code) from your phone.\n\n## Auto-fix: the PR that patches itself\n\nWhen each session opens a PR, you can turn on auto-fix: teleport into the session (or paste the PR URL into it) and run `/autofix-pr`. Claude subscribes to GitHub activity on that PR. When a check fails, Claude investigates and pushes a fix; when a reviewer leaves a comment, Claude resolves or responds to it. You don't need to babysit the PR.\n\nFrom the terminal (while on the PR's branch):\n\n```bash\n/autofix-pr\n# Claude detects the open PR with gh, spawns a web session,\n# and turns on auto-fix in one step\n```\n\n## Two things to do before you `--cloud`\n\n1. **Push first.** `--cloud` clones the remote at your current branch — local commits that aren't pushed won't be in the cloud session.\n2. **Check rate limits.** Three parallel sessions consume proportionately more of your account's rate limit. For long-running tasks, stagger them by a few minutes if you're near your limit.\n\n**When this pattern pays off:** large refactors you can decompose by file or subsystem, independent bug fixes on different features, or running the test-and-fix loop in the cloud while you continue writing new features locally.\n\n**Sources:** [Claude Code on the web — code.claude.com](https://code.claude.com/docs/en/claude-code-on-the-web) · [Auto-fix pull requests — code.claude.com](https://code.claude.com/docs/en/claude-code-on-the-web#auto-fix-pull-requests)"
+  },
+  {
+    "id": "2026-08-18-05-anthropic-first-profit-ipo-plan",
+    "title": "Anthropic's First Operating Profit and the Path to a $2T IPO",
+    "excerpt": "Anthropic posted its first operating profit ($559M) in Q2 2026 on $11.5B in quarterly revenue — 14× year-over-year — with an annualized run-rate above $65B and an October IPO reportedly planned.",
+    "author": "Chris Harper",
+    "date": "08-18-2026",
+    "publishedAt": "2026-08-18T12:08:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-18-05-anthropic-first-profit-ipo-plan.jpg",
+    "imageSource": "https://www.anthropic.com/news",
+    "content": "**Anthropic's Q2 2026 results: $11.5B in revenue (14× year-over-year), first operating profit of ~$559M, annualized run-rate above $65B, and a reported $2T IPO in October.**\n\nQ2 revenue rose 2.4× from Q1 ($4.73B) and the operating profit arrived roughly two years ahead of the timeline Anthropic had cited internally. The annualized run-rate figure — over $65B — reflects strong enterprise and API growth, primarily driven by Claude Code adoption and multi-seat API contracts.\n\n**Why it matters:** The company behind Claude's API is now financially self-sustaining, which changes the calculus for teams building production workloads on it. A profitable Anthropic with IPO-level transparency is under more obligation to maintain API stability and pricing predictability than a burn-rate startup. Watch IPO filings for the first public breakdown of API vs. consumer revenue.\n\n**Sources:** [Anthropic Q2 revenue $11.5B — CNBC](https://www.cnbc.com/2026/08/15/anthropic-revenue-jumps-to-over-11point5-billion-in-q2-report.html) · [Annualized run-rate surpasses $65B — Bloomberg](https://www.bloomberg.com/news/articles/2026-08-17/anthropic-revenue-run-rate-surpasses-65-billion-ahead-of-ipo) · [Plans for $2T IPO in October — Fortune](https://fortune.com/2026/08/13/anthropic-ipo-2-trillion-october-largest-ever-spacex/)"
+  },
+  {
+    "id": "2026-08-18-04-magic-patterns-mcp-claude-code-design-system",
+    "title": "Generate On-Brand React Components from Your Design System, Then Hand Them to Claude Code via MCP",
+    "excerpt": "Magic Patterns' MCP server connects your design system directly to Claude Code — generate on-brand React components and hand them off without copy-paste or manual token cleanup.",
+    "author": "Chris Harper",
+    "date": "08-18-2026",
+    "publishedAt": "2026-08-18T04:11:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Design-to-Code"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-18-04-magic-patterns-mcp-claude-code-design-system.jpg",
+    "imageSource": "https://www.magicpatterns.com/docs/documentation/features/mcp-server/overview",
+    "content": "**Magic Patterns MCP lets Claude Code pull AI-generated components straight from your design system spec — no copy-paste, no manual cleanup of token names or import paths.**\n\nThe workflow gap: you prototype a UI in an AI design tool, then manually translate the generated code into your codebase's conventions — fixing token names, swapping component aliases, correcting import paths. Magic Patterns' MCP server closes that gap by making the generated component visible to Claude Code as a machine-readable spec, not a blob of pasted JSX.\n\n## Setup (~5 minutes)\n\n1. In Magic Patterns, import your design system: upload your `@company/tokens` package or link your Figma library. Magic Patterns reads your primitives, components, and brand tokens.\n2. Run `/mcp` inside Claude Code to trigger OAuth — the Magic Patterns Remote MCP Server connects automatically.\n3. Add the Integration Skill via `/install magic-patterns`. This tells Claude Code to treat the Magic Patterns output as a spec and adapt it to your codebase's conventions rather than pasting the prototype verbatim.\n\n## The workflow\n\nOnce connected, you describe the component you need inside Claude Code and it calls the MCP server, retrieves the component spec that matches your design system, and writes a file that uses your existing packages:\n\n```bash\n# In Claude Code:\nGenerate a FilterBar component using our design system tokens for the dashboard sidebar\n# Claude Code calls Magic Patterns MCP, retrieves the spec,\n# adapts it to your Button, Chip, and TextField components, and writes FilterBar.tsx\n```\n\n## Before merging, always check\n\n- **Token usage:** does the component use `color.primary.600` from your tokens, or re-declare it as `#1d4ed8`?\n- **Import paths:** are packages referenced in the file actually in your `package.json`?\n- **Component aliases:** did it map Magic Patterns' `Tag` to your codebase's `Chip`, or introduce a new primitive?\n\nThe Integration Skill handles token mapping well; component-name aliases between your system and Magic Patterns still need a spot-check on the first few components until you've confirmed the mapping is right.\n\n**Sources:** [Magic Patterns MCP Overview](https://www.magicpatterns.com/docs/documentation/features/mcp-server/overview) · [Design Systems — Magic Patterns](https://www.magicpatterns.com/product/design-systems)"
+  },
+  {
+    "id": "2026-08-18-03-claude-code-rewind-checkpoints",
+    "title": "Don't Ctrl+Z Your AI Work — Claude Code's /rewind Menu Gives You Three Better Options",
+    "excerpt": "Press Esc twice or type /rewind to independently revert code, conversation, or both — surgical rollback without running git reset or losing session context.",
+    "author": "Chris Harper",
+    "date": "08-18-2026",
+    "publishedAt": "2026-08-18T04:10:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-18-03-claude-code-rewind-checkpoints.jpg",
+    "imageSource": "https://code.claude.com/docs/en/checkpointing",
+    "content": "**Press Esc twice or type /rewind to get a menu that independently rewinds code, conversation, or both — without losing the other, and without running git reset.**\n\nClaude Code automatically snapshots your file state before each user prompt. When something goes sideways, most engineers reach for `git restore` or `git reset` and lose progress. `/rewind` is more surgical.\n\n## What /rewind gives you\n\n**Restore code, keep conversation.** Revert the files to the checkpoint, but keep the chat context. You can immediately try a different approach without re-explaining the task, the constraints, or the background.\n\n**Restore conversation, keep code.** Go back to an earlier message while keeping whatever Claude just wrote. Useful when you want the code but want to re-ask a question differently — e.g., you got the output you wanted but the conversation drifted and you need to redirect.\n\n**Summarize from here.** Compress the conversation backward from this point, freeing context window space without touching the code. Equivalent to a manual `/compact` targeted at one section.\n\n## Activate it\n\n```\nEsc Esc    → opens the rewind menu (fastest)\n/rewind    → same menu from the prompt\n```\n\nNavigate the checkpoint list, pick one, and choose which dimension to restore.\n\n## What checkpoints do and don't capture\n\n- **Captured:** every file Claude edits through its own file editing tools.\n- **Not captured:** files modified by `Bash` commands or external processes.\n\nFor Bash-modified files, `git diff` is still your source of truth. Before a risky batch of edits, consider asking Claude to explain what it's about to do, then let it proceed. If the output is wrong: Esc+Esc → Restore code, keep conversation → redirect.\n\n**Sources:** [Checkpointing — code.claude.com](https://code.claude.com/docs/en/checkpointing)"
+  },
+  {
+    "id": "2026-08-18-02-deepseek-v4-peak-offpeak-pricing",
+    "title": "DeepSeek V4 Pricing Is Now Peak/Off-Peak — and Peak Can Be 10x the Old Flat Rate",
+    "excerpt": "DeepSeek V4 Flash and V4 Pro switched to peak/off-peak pricing on August 16 — peak rates are up to 10x the old flat rate; off-peak is half of peak.",
+    "author": "Chris Harper",
+    "date": "08-18-2026",
+    "publishedAt": "2026-08-18T04:09:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-18-02-deepseek-v4-peak-offpeak-pricing.jpg",
+    "imageSource": "https://api-docs.deepseek.com/quick_start/pricing",
+    "content": "**DeepSeek's new peak/off-peak pricing, live since August 16, replaces the flat V4 rates — peak can be up to 10x the old promotional price; off-peak is half of peak.**\n\nThe [August 14 post here](https://cloudcodetree.com/ai-news/2026-08-14-02-deepseek-v4-pro-0813-ga) flagged that DeepSeek had announced a price increase with no details. The numbers are now live:\n\n| Model | Old flat | Off-peak | Peak |\n|---|---|---|---|\n| deepseek-v4-flash | $0.14 / $0.28 | $0.22 / $0.66 | $0.44 / $1.32 |\n| deepseek-v4-pro | $0.435 / $0.87 | $0.66 / $1.98 | $1.32 / $3.96 |\n\n*Per 1M input / output tokens.*\n\nPeak hours run 01:00–04:00 UTC and 06:00–10:00 UTC daily. Everything else is off-peak.\n\n**Why it matters:** If your pipeline is schedulable or batched, routing calls outside peak hours halves the cost. Budget projections built before August 16 need revision — V4 Flash at peak is now 3x the old rate, V4 Pro is 3x–4x.\n\n**Sources:** [DeepSeek API Pricing](https://api-docs.deepseek.com/quick_start/pricing) · [qz.com](https://qz.com/deepseek-api-price-increase-v4-peak-off-peak-081326)"
+  },
+  {
+    "id": "2026-08-18-01-multi-query-retriever-langchain-rag",
+    "title": "Your Retriever Is Looking at Your Data Through One Keyhole — Multi-Query RAG Gives It Five",
+    "excerpt": "LangChain's MultiQueryRetriever generates 3-5 reformulations of every user question, runs them in parallel, and deduplicates results — surfacing relevant chunks a single query embedding would miss.",
+    "author": "Chris Harper",
+    "date": "08-18-2026",
+    "publishedAt": "2026-08-18T04:08:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "RAG",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-18-01-multi-query-retriever-langchain-rag.jpg",
+    "imageSource": "https://www.youtube.com/watch?v=LyMWMnguo1E",
+    "content": "**LangChain's MultiQueryRetriever generates 3–5 reformulations of every user question, runs them in parallel against your vector store, and deduplicates — surfacing relevant chunks that a single query embedding would miss.**\n\n**What you'll be able to do after this:**\n- Boost RAG recall without touching your embedding model, chunk size, or vector store\n- Understand why a single query vector misses semantically related documents\n- Wire up multi-query retrieval in ~15 lines of Python on top of any existing retriever\n\n## The problem\n\nVector similarity search embeds your user's question into a point in space and returns the nearest neighbors. If the user asks \"How does chunking affect embedding quality?\", the embedding might miss a document titled \"Optimal text splitting strategies for dense retrieval\" — even though they cover the same idea — because the surface-form distance is large. One query = one angle of attack.\n\n## The fix: generate multiple angles\n\nMultiQueryRetriever calls a cheap LLM to rewrite the query three to five different ways, runs each one against the vector store, and returns the union (deduplicated). The union is almost always a superset of what any single query would return.\n\n## Code\n\n```python\nfrom langchain.retrievers.multi_query import MultiQueryRetriever\nfrom langchain_anthropic import ChatAnthropic\nfrom langchain_chroma import Chroma\n\nvectorstore = Chroma(collection_name=\"docs\", embedding_function=embeddings)\n\nretriever = MultiQueryRetriever.from_llm(\n    retriever=vectorstore.as_retriever(search_kwargs={\"k\": 5}),\n    llm=ChatAnthropic(model=\"claude-haiku-4-5-20251001\"),  # cheap for query gen\n)\n\ndocs = retriever.invoke(\"How does chunking affect embedding quality?\")\n# Returns union of k=5 results across 3–5 generated query variations\n```\n\nThe LLM call for query generation is cheap — use Haiku or another small model, not Sonnet or Opus. The total latency overhead is roughly one extra LLM round-trip, which runs in parallel with the first vector search.\n\n## Pair it with a reranker\n\nMulti-query gives you high recall; a cross-encoder reranker (e.g., `cross-encoder/ms-marco-MiniLM-L-6-v2`) gives you high precision from the expanded candidate set. The combination is the standard recipe for production RAG that needs both.\n\n**Resource:** [LangChain MultiQueryRetriever — YouTube tutorial #43](https://www.youtube.com/watch?v=LyMWMnguo1E) · [LangChain retrieval docs](https://docs.langchain.com/oss/python/langchain/retrieval) · [GitHub notebook with full examples](https://github.com/edumunozsala/langchain-rag-techniques/blob/main/Multiquery-retrieval.ipynb)\n\n**Sources:** [LangChain MultiQueryRetriever — YouTube](https://www.youtube.com/watch?v=LyMWMnguo1E) · [LangChain docs](https://docs.langchain.com/oss/python/langchain/retrieval)"
+  },
+  {
+    "id": "2026-08-17-08-figma-make-properties-annotations",
+    "title": "Stop Reprompting the Whole Component: Figma Make Now Has a Properties Panel and In-Context Annotations",
+    "excerpt": "Figma Make now has a properties panel for direct visual editing and in-context annotations so you mark exactly what you want the AI agent to change — no more reprompting the full component.",
+    "author": "Chris Harper",
+    "date": "08-17-2026",
+    "publishedAt": "2026-08-17T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Design-to-Code"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-17-08-figma-make-properties-annotations.jpg",
+    "imageSource": "https://www.figma.com/blog/properties-panel-and-annotations-now-in-figma-make/",
+    "content": "**Figma Make's new properties panel brings familiar Figma Design controls into the AI editor; in-context annotations let you mark exactly what the agent should change — no more reprompting the whole component.**\n\nWhen you iterate on a design in Figma Make, the default workflow is one big prompt: describe what you want and hope the AI scopes itself correctly. Two new tools shipped in late July change that.\n\n**Properties panel.** The same spacing, typography, layout, and color controls from Figma Design are now live in the Make editor. Select any element and adjust it directly — Make stages the change in the prompt box for you to review before it lands in the underlying code. For pure visual adjustments, this beats a natural-language prompt every time.\n\n**In-context annotations.** For changes that go beyond visual properties — an animation, a hover interaction, a conditional render — select \"Annotate for agent\" in the toolbar and mark the exact area on canvas. Write your instruction directly on the design. The agent sees precisely what you're pointing at without you having to describe the surrounding layout.\n\n**The workflow in practice:**\n1. Generate or open a component in Figma Make.\n2. Fix visual properties (padding, font size, color) directly in the properties panel.\n3. For behavior or animation changes, annotate the specific element — don't reprompt the full component.\n4. Review each staged change before committing — Make updates the underlying React/Next.js code automatically.\n5. Export or push to your repo when the component is right.\n\nThe practical gain: AI edits are scoped to exactly what you intended. Annotating one button's hover state on a complex dashboard is far less disruptive than reprompting the whole layout and reviewing a diff full of unrelated changes. Both tools work whether you're starting from scratch or editing existing Make-connected code.\n\n**Sources:** [A Properties Panel and Annotations, Now in Figma Make — Figma Blog](https://www.figma.com/blog/properties-panel-and-annotations-now-in-figma-make/) · [Figma Release Notes — Releasebot](https://releasebot.io/updates/figma)"
+  },
+  {
+    "id": "2026-08-17-07-v0-github-existing-repo-workflow",
+    "title": "Connect v0 to Your Real GitHub Repo: AI-Generated Components That Go Through PRs, Not Around Them",
+    "excerpt": "v0's GitHub integration creates one branch per chat and never touches main — generated components land as a PR you review like any other code change.",
+    "author": "Chris Harper",
+    "date": "08-17-2026",
+    "publishedAt": "2026-08-17T12:07:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Design-to-Code"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-17-07-v0-github-existing-repo-workflow.jpg",
+    "imageSource": "https://v0.app/docs/faqs",
+    "content": "**v0's GitHub integration creates one branch per chat and never commits to main — generated UI lands as a PR you review like any other code change, not as a mystery diff in your working tree.**\n\nThe common fear with v0: you prototype something useful and then face a pile of generated code with no clear path into an existing Next.js/React codebase. The February 2026 update added native GitHub integration that addresses this with a branch-per-chat workflow.\n\n## Setup\n\n1. In v0's project settings, connect your GitHub account.\n2. Create a new project → + → \"Import from GitHub\" → select your repo.\n3. For private repos: grant v0 access in your GitHub App settings.\n4. v0 creates one branch per chat session and never commits to `main` by design.\n\n## The workflow\n\n- Every code change in v0 is an automatic commit on that branch.\n- Create a PR directly from v0 — it goes through your normal review process.\n- Pull the branch locally with `git fetch && git checkout <branch>` to inspect the generated code in your editor before merging.\n\n## Before merging, check for\n\n- Does the generated component use your existing design system, or does it shadow it with its own Tailwind/MUI classes?\n- Are prop types and import paths consistent with the rest of the codebase?\n- Are there `useEffect` calls with missing or empty deps arrays where the actual dependencies weren't inferred?\n\n## After merge: hand off to Claude Code\n\nThe generated component is now in your repo and tracked by git. Run `/code-review` against the branch for a bug-finding pass, then iterate in your editor. v0 gets you to a workable shape; Claude Code closes the gap on correctness and integration.\n\n**Sources:** [v0 docs: import from GitHub — v0.app](https://v0.app/docs/faqs) · [Integrating v0 with existing GitHub repos — Vercel Community](https://community.vercel.com/t/integrating-v0-with-existing-github-repositories-and-vercel-projects/34005) · [v0 complete guide 2026 — NxCode](https://www.nxcode.io/resources/news/v0-by-vercel-complete-guide-2026)"
+  },
+  {
+    "id": "2026-08-17-06-code-review-slash-command-effort-reviewmd",
+    "title": "What /code-review Does That the GitHub App Doesn't: Effort Levels, --fix, and REVIEW.md",
+    "excerpt": "The /code-review slash command runs a bug-hunting subagent in the background without consuming your session context — tune effort, auto-apply fixes, and scope it with REVIEW.md.",
+    "author": "Chris Harper",
+    "date": "08-17-2026",
+    "publishedAt": "2026-08-17T12:06:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-17-06-code-review-slash-command-effort-reviewmd.jpg",
+    "imageSource": "https://code.claude.com/docs/en/code-review",
+    "content": "**`/code-review` runs a background bug-hunting subagent that doesn't consume your session context — tune effort, auto-apply fixes, and give it a project-specific mandate with `REVIEW.md`.**\n\nClaude Code's `/code-review` command is distinct from the GitHub App-based Code Review service. It runs locally as a forked background subagent — the findings arrive in your conversation when the review completes, without filling your context window with intermediate reasoning.\n\n## Effort controls confidence vs. coverage\n\n`low` and `medium` report only high-confidence findings, so you see fewer false positives but narrower coverage. `high` through `max` broaden coverage but include findings the review is less certain about. Claude remembers the last level you typed explicitly, so always pass one in scripts:\n\n```\n/code-review high          # background review, report findings\n/code-review high --fix    # same, plus auto-apply findings to working tree\n```\n\n**Caveat:** `--fix` edits land outside your session checkpoints. `/rewind` won't undo them — use git if you want to inspect before applying.\n\n## REVIEW.md gives the review a project mandate\n\nA `REVIEW.md` file at your repo root is injected at highest priority into every agent in the pipeline — higher than your `CLAUDE.md`. Use it to define what \"Important\" means in your codebase, which paths to skip, and what checks to always run:\n\n```markdown\n## What Important means here\nReserve 🔴 for bugs that break behavior or leak data.\nStyle and naming are Nit at most.\n\n## Always check\n- New API routes have an integration test\n- Log lines exclude email addresses and user IDs\n\n## Skip\n- Generated code under src/gen/\n- Any *.lock file\n```\n\nKeep `REVIEW.md` focused: a long file dilutes the rules that matter most.\n\n## For cloud-level review\n\n`/code-review ultra` (Team/Enterprise) escalates to a multi-agent swarm on Anthropic infrastructure, with findings posted inline to your PR via `--post`. From CI scripts: `claude -p '/code-review ultra'` launches the review non-interactively.\n\n**Sources:** [Claude Code Review — code.claude.com](https://code.claude.com/docs/en/code-review) · [REVIEW.md reference — code.claude.com](https://code.claude.com/docs/en/code-review#customize-reviews) · [Ultrareview — code.claude.com](https://code.claude.com/docs/en/ultrareview)"
+  },
+  {
+    "id": "2026-08-17-05-stripe-openrouter-imagen4-ai-infra",
+    "title": "Stripe Buys OpenRouter for $7B+; Google Imagen 4 API Retires Today",
+    "excerpt": "Stripe finalizes a $7B+ deal for OpenRouter, the 400-model AI gateway; and Google retires three Imagen 4 model IDs today, breaking generate_images() with no grace period.",
+    "author": "Chris Harper",
+    "date": "08-17-2026",
+    "publishedAt": "2026-08-17T12:05:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-17-05-stripe-openrouter-imagen4-ai-infra.jpg",
+    "imageSource": "https://techcrunch.com/2026/08/16/stripe-will-reportedly-acquire-ai-gateway-startup-openrouter-for-7b/",
+    "content": "**Stripe buys the AI model routing layer that millions of developers depend on; Google's Imagen 4 `generate_images()` API shuts down today — two AI infra moves with immediate impact.**\n\n## Stripe finalizes OpenRouter acquisition\n\nStripe has closed a deal to acquire OpenRouter — the AI model gateway that routes requests across 400+ models from 70+ providers — for more than $7 billion. OpenRouter's CEO described the company as \"the Stripe for AI\": one OpenAI-compatible endpoint, automatic provider failover, cost-based routing, and 8 million users. Service continues unchanged for now; no migration required, no pricing changes announced.\n\n**Why it matters:** OpenRouter is load-bearing infrastructure for many production AI apps. The acquisition puts it inside Stripe's developer platform ecosystem — watch for pricing and API terms as the integration matures. If OpenRouter is in your critical path, now is a good time to review your fallback strategy.\n\n## Google Imagen 4 API retires today\n\nThree Imagen 4 model IDs shut down August 17: `imagen-4.0-generate-001`, `imagen-4.0-ultra-generate-001`, and `imagen-4.0-fast-generate-001`. The `generate_images()` method is removed entirely; migration requires switching to `gemini-3.1-flash-image` and calling `generate_content()` instead. Test your real prompts against the new model first — aspect ratios, safety filters, and output quality may differ.\n\n**Why it matters:** Any application calling the Imagen 4 API without migration will return hard errors starting today.\n\n**Sources:** [Stripe acquires OpenRouter — Bloomberg](https://www.bloomberg.com/news/articles/2026-08-16/stripe-nears-deal-to-buy-ai-firm-openrouter-for-over-7-billion) · [TechCrunch](https://techcrunch.com/2026/08/16/stripe-will-reportedly-acquire-ai-gateway-startup-openrouter-for-7b/) · [Imagen 4 shutdown details — kingy.ai](https://kingy.ai/ai-launch-tracker/google-will-shut-down-three-imagen-4-api-models-august-17/) · [Firebase migration guide](https://firebase.google.com/docs/ai-logic/imagen-models-migration)"
+  },
+  {
+    "id": "2026-08-17-04-claude-design-first-hour-pm-designer",
+    "title": "Your First Prototype in 10 Minutes: What Designers and PMs Need to Know About Claude Design",
+    "excerpt": "Claude Design turns a plain-text brief into a clickable prototype in your browser — no Figma, no code. Here is the genuine first hour for designers and PMs starting from zero.",
+    "author": "Chris Harper",
+    "date": "08-17-2026",
+    "publishedAt": "2026-08-17T04:07:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Claude Design"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-17-04-claude-design-first-hour-pm-designer.jpg",
+    "imageSource": "https://support.claude.com/en/articles/14604416-get-started-with-claude-design",
+    "content": "**Claude Design turns a plain-text brief into a clickable, interactive prototype directly in your browser — no Figma account, no code, no engineer standing next to you.**\n\nIf you have been avoiding Claude Design because it sounds like an engineering tool, this post is for you. It is not. You start with a sentence. You end with something you can click through and share.\n\n## What you will actually see\n\nGo to [claude.ai](https://claude.ai). If you are on Pro, Max, Team, or Enterprise, the Design tab is there. Click it and you get a blank canvas with a chat panel on the left.\n\nType a brief — not a prompt, just what you would say to a designer:\n\n> \"I need a sign-up flow for a B2B SaaS product. Three steps: email, then team setup, then invite teammates. Keep it clean and professional.\"\n\nClaude Design generates an **interactive HTML prototype** you can click through right in the browser. Not a static mockup. Not a screenshot. Actual clickable flows.\n\n## What it can and cannot do (the honest version)\n\n**Can:** multi-step flows, forms, buttons that navigate between screens, basic responsive layouts, on-brand colors if you paste your style guide, presentations, one-pagers.\n\n**Cannot:** production-ready component code, pixel-perfect fidelity to a complex design system, backend logic, or animations beyond CSS transitions. Think of it as a high-fidelity sketch, not a delivered design.\n\n## The vocabulary engineers will use with you\n\nWhen you hand this off:\n- **\"Regenerate the component\"** — describe what needs to change and run Claude Design again\n- **\"Hand off to Claude Code\"** — the engineer takes your prompt and screens and continues building in the codebase\n- **\"Design sync\"** — Claude Code reads your design system to match what it generates to your real components (the engineer runs this, not you)\n\n## How to write a brief that works\n\nThe gap between a thin result and a useful one is almost always the brief. Include:\n1. **What it is** — sign-up flow, dashboard, pricing page\n2. **Who uses it** — B2B team admin, first-time consumer\n3. **What they do** — the three steps they take, in order\n4. **Any brand constraints** — paste hex codes, name your font\n\nOne sentence per item is enough. The model fills in sensible defaults for everything else.\n\n## Handing off without reading code\n\nWhen you are happy with a screen, share the canvas link with your engineer. They can see the design and ask Claude Code to match it. You do not need to export files or write specs. The engineer's job is to build the real thing; your job is to make the direction impossible to misread. A clickable prototype does that better than any document.\n\n**Sources:** [Get started with Claude Design — support.claude.com](https://support.claude.com/en/articles/14604416-get-started-with-claude-design) · [How the product designer who built Claude Design uses it — claude.com](https://claude.com/blog/how-the-product-designer-who-built-claude-design-uses-it-to-explore-ideas-before-building-them) · [Using Claude Design for prototypes and UX — claude.com](https://claude.com/resources/tutorials/using-claude-design-for-prototypes-and-ux)"
+  },
+  {
+    "id": "2026-08-17-03-claude-api-prompt-caching-cost",
+    "title": "One Field Cuts Your Claude API Bill 60-90%: Prompt Caching With cache_control",
+    "excerpt": "Add cache_control to any stable system prompt block and pay 10% of the normal input price on every repeated call — one field, no refactoring.",
+    "author": "Chris Harper",
+    "date": "08-17-2026",
+    "publishedAt": "2026-08-17T04:06:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-17-03-claude-api-prompt-caching-cost.jpg",
+    "imageSource": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+    "content": "**Add `\"cache_control\": {\"type\": \"ephemeral\"}` to any stable content block and Claude reads it from cache on subsequent calls at roughly 10% of the normal input-token price.**\n\nAny API workflow that sends the same system prompt, long instruction set, or reference document on every call is paying 100% of input cost each time. Prompt caching marks those stable blocks once; Claude caches them for an hour and charges cache-read rates on hits — about $0.30/M for Sonnet 5 instead of $3.00/M.\n\n## How to add it\n\n```python\nimport anthropic\n\nclient = anthropic.Anthropic()\n\nsystem_prompt = \"\"\"[Your stable system prompt — 1,024 tokens minimum to qualify]\"\"\"\n\nresponse = client.messages.create(\n    model=\"claude-sonnet-5-20260801\",\n    max_tokens=1024,\n    system=[\n        {\n            \"type\": \"text\",\n            \"text\": system_prompt,\n            \"cache_control\": {\"type\": \"ephemeral\"}  # one field — this is all it takes\n        }\n    ],\n    messages=[{\"role\": \"user\", \"content\": \"What is the refund policy?\"}],\n)\n\n# Inspect whether you got a cache hit\nprint(response.usage)\n# cache_creation_input_tokens: N  (first call — writes the cache)\n# cache_read_input_tokens: N      (subsequent calls — reads from cache)\n```\n\nThe `cache_control` marker goes at the **end of the stable block** — Claude caches everything up to that point. Put volatile content (the user's question, the current date) after it. Never let timestamps or UUIDs drift into the cacheable prefix; that kills your hit rate.\n\n## Where the savings are largest\n\n| Workload | Stable block | Typical hit rate |\n|---|---|---|\n| Support bot | Full product docs + policy | 90-95% |\n| Code review CI | Repo conventions + style guide | 85-90% |\n| Eval suite | All test cases + rubric | ~100% |\n| Multi-turn chat | System prompt + tool list | 60-80% |\n\n## Cost math\n\nA support bot sending a 10,000-token system prompt on 1,000 daily requests:\n\n| Approach | Daily input cost (Sonnet 5) |\n|---|---|\n| No caching | 1,000 × 10K × $3/M = **$30.00** |\n| Prompt caching | $3.00 (cache write) + 999 × 10K × $0.30/M = **$6.00** |\n\n**80% saved, same responses, zero code refactoring beyond adding one field.**\n\nCaching also works on tool definitions and large user-turn messages — add `cache_control` to any block 1,024+ tokens long that appears on multiple requests. The minimum is 1,024 tokens for standard models; 2,048 for extended context.\n\n**Sources:** [Prompt caching — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) · [Prompt caching cookbook — platform.claude.com](https://platform.claude.com/cookbook/prompt-caching) · [How to cut Claude API costs 90% with prompt caching — Iron Mind](https://iron-mind.ai/blog/prompt-caching-claude-production)"
+  },
+  {
+    "id": "2026-08-17-02-agent-plugins-1-0-open-standard",
+    "title": "Agent Plugins 1.0: One Package Format That Works Across ChatGPT, Copilot, Cursor, VS Code, and Kiro",
+    "excerpt": "Agent Plugins 1.0 is an open standard backed by GitHub, OpenAI, AWS, Google, and Microsoft: one plugin.json + skills/ + mcp.json installs into any compatible coding agent.",
+    "author": "Chris Harper",
+    "date": "08-17-2026",
+    "publishedAt": "2026-08-17T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "MCP"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-17-02-agent-plugins-1-0-open-standard.jpg",
+    "imageSource": "https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app/",
+    "content": "**A single `plugin.json` + `skills/` + `mcp.json` directory now installs into GitHub Copilot, VS Code, ChatGPT, Codex, Cursor, and Kiro — no separate manifest per client.**\n\n[Agent Plugins 1.0](https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app/) is an open standard published August 6 with AWS, Anysphere, Microsoft, OpenAI, Vercel, and Google as co-maintainers. It bundles agent skills and MCP servers into one installable format governed independently of any vendor. Build a deployment runbook skill with its MCP tool integration once; your whole team gets it on all their coding agents without you maintaining a separate manifest for each one.\n\n**Why it matters:** Any team-specific skill or internal MCP integration you build now becomes portable — publish it to a skills registry or a shared repo directory and it works wherever your engineers happen to be.\n\n**Sources:** [Agent Plugins 1.0 GA — GitHub Changelog](https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app/) · [What the standard fixes — digitalapplied.com](https://www.digitalapplied.com/blog/agent-plugins-1-0-open-standard-portable-skills)"
+  },
+  {
+    "id": "2026-08-17-01-rag-citations-source-attribution",
+    "title": "Your RAG Gives Answers. These Lines Make It Cite Its Work.",
+    "excerpt": "Tag retrieved chunks with IDs, ask Claude for inline citations, and return a sources list — your RAG answers become verifiable instead of just plausible. Walk-through included.",
+    "author": "Chris Harper",
+    "date": "08-17-2026",
+    "publishedAt": "2026-08-17T04:04:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "RAG",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-17-01-rag-citations-source-attribution.jpg",
+    "imageSource": "https://www.youtube.com/watch?v=-wGzSnhQKPM",
+    "content": "**Tag retrieved chunks with IDs, ask Claude to cite them inline, and return a sources list — your RAG answers become verifiable, not just plausible.**\n\n**What you will be able to do after this:**\n- Return `[1]` / `[2]` inline citations in any RAG response alongside a `sources` list\n- Verify that cited documents actually support each claim using a structured `quote` field\n- Build the citation layer in under 50 lines on top of your existing retriever\n\nA RAG system that returns \"Refunds take 5-7 days\" is useful. One that returns \"Refunds take 5-7 days [1]\" with `[1]: Refund Policy, section 3.2` is trustworthy. That is the difference between a demo and a production tool.\n\n**Resource:** [RAG with Verified Citations — Trelis Research (YouTube, 34 min)](https://www.youtube.com/watch?v=-wGzSnhQKPM)\n\n## The pattern\n\nYour retriever returns chunks. Tag each one with a sequential ID and include them in the user turn:\n\n```python\nimport anthropic\n\nclient = anthropic.Anthropic()\n\ndef rag_with_citations(question: str, chunks: list[dict]) -> dict:\n    # chunks = [{\"id\": 1, \"text\": \"...\", \"source\": \"Refund Policy 3.2\"}, ...]\n    context = \"\n\n\".join(f\"[{c['id']}] {c['text']}\" for c in chunks)\n\n    response = client.messages.create(\n        model=\"claude-sonnet-5-20260801\",\n        max_tokens=1024,\n        system=\"\"\"You are a helpful assistant. Answer using ONLY the provided context.\nCite every factual claim with a bracketed ID like [1] inline.\nIf the answer is not in the context, say so.\"\"\",\n        messages=[{\n            \"role\": \"user\",\n            \"content\": f\"Context:\n{context}\n\nQuestion: {question}\"\n        }]\n    )\n    return {\n        \"answer\": response.content[0].text,\n        \"sources\": [{\"id\": c[\"id\"], \"source\": c[\"source\"]} for c in chunks]\n    }\n```\n\n## Structured output version (more reliable for parsing)\n\n```python\nimport json\n\nresponse = client.messages.create(\n    model=\"claude-sonnet-5-20260801\",\n    max_tokens=1024,\n    tools=[{\n        \"name\": \"answer_with_citations\",\n        \"description\": \"Return an answer with inline citations\",\n        \"input_schema\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"answer\": {\n                    \"type\": \"string\",\n                    \"description\": \"Answer text with [N] inline citations\"\n                },\n                \"citations\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                            \"id\": {\"type\": \"integer\"},\n                            \"quote\": {\n                                \"type\": \"string\",\n                                \"description\": \"Exact text from document [N] that supports the claim\"\n                            },\n                            \"source\": {\"type\": \"string\"}\n                        },\n                        \"required\": [\"id\", \"quote\", \"source\"]\n                    }\n                }\n            },\n            \"required\": [\"answer\", \"citations\"]\n        }\n    }],\n    tool_choice={\"type\": \"tool\", \"name\": \"answer_with_citations\"},\n    system=\"Answer using ONLY the provided context. Cite every factual claim inline.\",\n    messages=[{\"role\": \"user\", \"content\": f\"Context:\n{context}\n\nQuestion: {question}\"}]\n)\n\nresult = json.loads(response.content[0].input)\n# result[\"answer\"]    = \"Refunds take 5-7 days [1].\"\n# result[\"citations\"] = [{\"id\": 1, \"quote\": \"Refunds are processed in 5-7 business days\", \"source\": \"Refund Policy 3.2\"}]\n```\n\nThe `quote` field in each citation forces Claude to locate the exact supporting text — surfacing any hallucination where no supporting passage exists. If Claude cannot find a quote, it cannot fabricate a citation.\n\n**Sources:** [RAG with Verified Citations — Trelis Research (YouTube)](https://www.youtube.com/watch?v=-wGzSnhQKPM) · [Citation-aware RAG — Tensorlake](https://www.tensorlake.ai/blog/rag-citations) · [Attributing sources in RAG — apxml.com](https://apxml.com/courses/getting-started-rag/chapter-4-rag-generation-augmentation/attributing-sources)"
+  },
+  {
     "id": "2026-08-16-08-tool-choice-force-specific-tool",
     "title": "Stop Letting Claude Skip the Tool: Four Modes of tool_choice for Reliable Agent Pipelines",
     "excerpt": "tool_choice: {type: \"any\"} forces Claude to call a tool; {type: \"tool\", name: \"X\"} forces a specific one — eliminating stochastic skips that break agent pipelines.",

@@ -10,7 +10,718 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 16 Aug 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 18 Aug 2026 12:10:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Anthropic's First Operating Profit and the Path to a $2T IPO</title>
+      <link>https://www.anthropic.com/news</link>
+      <guid isPermaLink="false">2026-08-18-05-anthropic-first-profit-ipo-plan</guid>
+      <pubDate>Tue, 18 Aug 2026 12:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <description>Anthropic posted its first operating profit ($559M) in Q2 2026 on $11.5B in quarterly revenue — 14× year-over-year — with an annualized run-rate above $65B and an October IPO reportedly planned.</description>
+      <content:encoded><![CDATA[**Anthropic's Q2 2026 results: $11.5B in revenue (14× year-over-year), first operating profit of ~$559M, annualized run-rate above $65B, and a reported $2T IPO in October.**
+
+Q2 revenue rose 2.4× from Q1 ($4.73B) and the operating profit arrived roughly two years ahead of the timeline Anthropic had cited internally. The annualized run-rate figure — over $65B — reflects strong enterprise and API growth, primarily driven by Claude Code adoption and multi-seat API contracts.
+
+**Why it matters:** The company behind Claude's API is now financially self-sustaining, which changes the calculus for teams building production workloads on it. A profitable Anthropic with IPO-level transparency is under more obligation to maintain API stability and pricing predictability than a burn-rate startup. Watch IPO filings for the first public breakdown of API vs. consumer revenue.
+
+**Sources:** [Anthropic Q2 revenue $11.5B — CNBC](https://www.cnbc.com/2026/08/15/anthropic-revenue-jumps-to-over-11point5-billion-in-q2-report.html) · [Annualized run-rate surpasses $65B — Bloomberg](https://www.bloomberg.com/news/articles/2026-08-17/anthropic-revenue-run-rate-surpasses-65-billion-ahead-of-ipo) · [Plans for $2T IPO in October — Fortune](https://fortune.com/2026/08/13/anthropic-ipo-2-trillion-october-largest-ever-spacex/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Three Claude Code Cloud Tasks Running in Parallel — and a PR Watcher That Fixes Itself</title>
+      <link>https://code.claude.com/docs/en/claude-code-on-the-web</link>
+      <guid isPermaLink="false">2026-08-18-06-cloud-parallel-tasks-autofix-pr</guid>
+      <pubDate>Tue, 18 Aug 2026 12:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Three `claude --cloud` commands spawn three independent VMs that run in parallel. Pair with `/autofix-pr` and each resulting PR monitors and fixes itself while you keep coding.</description>
+      <content:encoded><![CDATA[**One `--cloud` command per task spawns an independent cloud VM. Stack three in a row and all three run in parallel while you stay in your editor.**
+
+```bash
+# These three execute simultaneously in separate cloud VMs
+claude --cloud "Fix the flaky test in auth.spec.ts"
+claude --cloud "Update the OpenAPI docs in docs/api.yaml"
+claude --cloud "Refactor the logger to use structured output"
+```
+
+Run `/tasks` inside any Claude Code session to monitor all three sessions at once, or check them at [claude.ai/code](https://claude.ai/code) from your phone.
+
+## Auto-fix: the PR that patches itself
+
+When each session opens a PR, you can turn on auto-fix: teleport into the session (or paste the PR URL into it) and run `/autofix-pr`. Claude subscribes to GitHub activity on that PR. When a check fails, Claude investigates and pushes a fix; when a reviewer leaves a comment, Claude resolves or responds to it. You don't need to babysit the PR.
+
+From the terminal (while on the PR's branch):
+
+```bash
+/autofix-pr
+# Claude detects the open PR with gh, spawns a web session,
+# and turns on auto-fix in one step
+```
+
+## Two things to do before you `--cloud`
+
+1. **Push first.** `--cloud` clones the remote at your current branch — local commits that aren't pushed won't be in the cloud session.
+2. **Check rate limits.** Three parallel sessions consume proportionately more of your account's rate limit. For long-running tasks, stagger them by a few minutes if you're near your limit.
+
+**When this pattern pays off:** large refactors you can decompose by file or subsystem, independent bug fixes on different features, or running the test-and-fix loop in the cloud while you continue writing new features locally.
+
+**Sources:** [Claude Code on the web — code.claude.com](https://code.claude.com/docs/en/claude-code-on-the-web) · [Auto-fix pull requests — code.claude.com](https://code.claude.com/docs/en/claude-code-on-the-web#auto-fix-pull-requests)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your First Working App in an Afternoon: Lovable for Product Managers and Designers</title>
+      <link>https://lovable.dev/guides/how-to-develop-app-idea-from-scratch</link>
+      <guid isPermaLink="false">2026-08-18-07-lovable-pm-designer-first-hour</guid>
+      <pubDate>Tue, 18 Aug 2026 12:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>Lovable turns a plain-English description into a clickable, shareable, full-stack app with no GitHub account, no build step, and no code required — a genuine first-hour guide for PMs and designers.</description>
+      <content:encoded><![CDATA[**Lovable builds a clickable, shareable, full-stack app from a plain-English prompt — no code, no GitHub account, no build step required.**
+
+Go to [lovable.dev](https://lovable.dev) and describe your idea the way you'd explain it to a developer over lunch — not a spec, a story. "I want a tool where our support team logs customer calls, tags each one by issue type, and can see a dashboard of the most common tags this week." Lovable builds the screens, the data model, and the backend in one pass.
+
+## Before it writes code: Plan Mode
+
+Lovable 2.0 (February 2026) introduced Plan Mode. Before any code is generated, Lovable shows you exactly what it intends to build — pages, user flows, data structures. You review, adjust, and approve. This is the design-review step that keeps the first version from going sideways. Enable it before you submit your first prompt.
+
+## What you can change without touching code
+
+- **Visual Edits**: click any element in the preview and adjust text, color, spacing, or layout directly. No code required.
+- **Themes**: set your brand colors and typography once in one panel; every page updates automatically.
+- **Voice Mode**: describe a change out loud and Lovable applies it — useful when you're reviewing on mobile.
+- **Prompt Queue**: stack up to 50 follow-up prompts and let Lovable execute them in order, good for batch changes across pages.
+
+## What Lovable can't do on its own
+
+- Match a complex existing design system (if your company has a component library, an engineer will need to sync tokens afterward).
+- Integrate with internal tools that require a custom auth layer or private network.
+- Export Figma specs — the output is working React/TypeScript code, not a design file.
+
+## Handing off to a developer — or to Claude Code
+
+Share the project URL and enable GitHub sync. The engineer or Claude Code session gets the full codebase, clones it, and picks up where you left off in the terminal. If you built the prototype, the handoff is a link, not a conversation.
+
+Monthly cost: $25–$50. Time to first shareable prototype: an afternoon.
+
+**Sources:** [Lovable guides — lovable.dev](https://lovable.dev/guides) · [Lovable for product managers — lovable.dev](https://lovable.dev/product-managers) · [Lovable for designers complete guide — Muzli](https://muz.li/blog/lovable-for-designers-the-complete-guide-to-building-apps-with-ai-2026/)
+]]></content:encoded>
+    </item>
+
+
+    <item>
+      <title>Generate On-Brand React Components from Your Design System, Then Hand Them to Claude Code via MCP</title>
+      <link>https://www.magicpatterns.com/docs/documentation/features/mcp-server/overview</link>
+      <guid isPermaLink="false">2026-08-18-04-magic-patterns-mcp-claude-code-design-system</guid>
+      <pubDate>Tue, 18 Aug 2026 04:11:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>Magic Patterns' MCP server connects your design system directly to Claude Code — generate on-brand React components and hand them off without copy-paste or manual token cleanup.</description>
+      <content:encoded><![CDATA[**Magic Patterns MCP lets Claude Code pull AI-generated components straight from your design system spec — no copy-paste, no manual cleanup of token names or import paths.**
+
+The workflow gap: you prototype a UI in an AI design tool, then manually translate the generated code into your codebase's conventions — fixing token names, swapping component aliases, correcting import paths. Magic Patterns' MCP server closes that gap by making the generated component visible to Claude Code as a machine-readable spec, not a blob of pasted JSX.
+
+## Setup (~5 minutes)
+
+1. In Magic Patterns, import your design system: upload your `@company/tokens` package or link your Figma library. Magic Patterns reads your primitives, components, and brand tokens.
+2. Run `/mcp` inside Claude Code to trigger OAuth — the Magic Patterns Remote MCP Server connects automatically.
+3. Add the Integration Skill via `/install magic-patterns`. This tells Claude Code to treat the Magic Patterns output as a spec and adapt it to your codebase's conventions rather than pasting the prototype verbatim.
+
+## The workflow
+
+Once connected, you describe the component you need inside Claude Code and it calls the MCP server, retrieves the component spec that matches your design system, and writes a file that uses your existing packages:
+
+```bash
+# In Claude Code:
+Generate a FilterBar component using our design system tokens for the dashboard sidebar
+# Claude Code calls Magic Patterns MCP, retrieves the spec,
+# adapts it to your Button, Chip, and TextField components, and writes FilterBar.tsx
+```
+
+## Before merging, always check
+
+- **Token usage:** does the component use `color.primary.600` from your tokens, or re-declare it as `#1d4ed8`?
+- **Import paths:** are packages referenced in the file actually in your `package.json`?
+- **Component aliases:** did it map Magic Patterns' `Tag` to your codebase's `Chip`, or introduce a new primitive?
+
+The Integration Skill handles token mapping well; component-name aliases between your system and Magic Patterns still need a spot-check on the first few components until you've confirmed the mapping is right.
+
+**Sources:** [Magic Patterns MCP Overview](https://www.magicpatterns.com/docs/documentation/features/mcp-server/overview) · [Design Systems — Magic Patterns](https://www.magicpatterns.com/product/design-systems)
+]]></content:encoded>
+      <media:content url="https://www.magicpatterns.com/og-image.png" medium="image" />
+      <media:thumbnail url="https://www.magicpatterns.com/og-image.png" />
+    </item>
+
+    <item>
+      <title>Don't Ctrl+Z Your AI Work — Claude Code's /rewind Menu Gives You Three Better Options</title>
+      <link>https://code.claude.com/docs/en/checkpointing</link>
+      <guid isPermaLink="false">2026-08-18-03-claude-code-rewind-checkpoints</guid>
+      <pubDate>Tue, 18 Aug 2026 04:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Press Esc twice or type /rewind to independently revert code, conversation, or both — surgical rollback without running git reset or losing session context.</description>
+      <content:encoded><![CDATA[**Press Esc twice or type /rewind to get a menu that independently rewinds code, conversation, or both — without losing the other, and without running git reset.**
+
+Claude Code automatically snapshots your file state before each user prompt. When something goes sideways, most engineers reach for `git restore` or `git reset` and lose progress. `/rewind` is more surgical.
+
+## What /rewind gives you
+
+**Restore code, keep conversation.** Revert the files to the checkpoint, but keep the chat context. You can immediately try a different approach without re-explaining the task, the constraints, or the background.
+
+**Restore conversation, keep code.** Go back to an earlier message while keeping whatever Claude just wrote. Useful when you want the code but want to re-ask a question differently — e.g., you got the output you wanted but the conversation drifted and you need to redirect.
+
+**Summarize from here.** Compress the conversation backward from this point, freeing context window space without touching the code. Equivalent to a manual `/compact` targeted at one section.
+
+## Activate it
+
+```
+Esc Esc    → opens the rewind menu (fastest)
+/rewind    → same menu from the prompt
+```
+
+Navigate the checkpoint list, pick one, and choose which dimension to restore.
+
+## What checkpoints do and don't capture
+
+- **Captured:** every file Claude edits through its own file editing tools.
+- **Not captured:** files modified by `Bash` commands or external processes.
+
+For Bash-modified files, `git diff` is still your source of truth. Before a risky batch of edits, consider asking Claude to explain what it's about to do, then let it proceed. If the output is wrong: Esc+Esc → Restore code, keep conversation → redirect.
+
+**Sources:** [Checkpointing — code.claude.com](https://code.claude.com/docs/en/checkpointing)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>DeepSeek V4 Pricing Is Now Peak/Off-Peak — and Peak Can Be 10x the Old Flat Rate</title>
+      <link>https://api-docs.deepseek.com/quick_start/pricing</link>
+      <guid isPermaLink="false">2026-08-18-02-deepseek-v4-peak-offpeak-pricing</guid>
+      <pubDate>Tue, 18 Aug 2026 04:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>DeepSeek V4 Flash and V4 Pro switched to peak/off-peak pricing on August 16 — peak rates are up to 10x the old flat rate; off-peak is half of peak.</description>
+      <content:encoded><![CDATA[**DeepSeek's new peak/off-peak pricing, live since August 16, replaces the flat V4 rates — peak can be up to 10x the old promotional price; off-peak is half of peak.**
+
+The [August 14 post here](https://cloudcodetree.com/ai-news/2026-08-14-02-deepseek-v4-pro-0813-ga) flagged that DeepSeek had announced a price increase with no details. The numbers are now live:
+
+| Model | Old flat | Off-peak | Peak |
+|---|---|---|---|
+| deepseek-v4-flash | $0.14 / $0.28 | $0.22 / $0.66 | $0.44 / $1.32 |
+| deepseek-v4-pro | $0.435 / $0.87 | $0.66 / $1.98 | $1.32 / $3.96 |
+
+*Per 1M input / output tokens.*
+
+Peak hours run 01:00–04:00 UTC and 06:00–10:00 UTC daily. Everything else is off-peak.
+
+**Why it matters:** If your pipeline is schedulable or batched, routing calls outside peak hours halves the cost. Budget projections built before August 16 need revision — V4 Flash at peak is now 3x the old rate, V4 Pro is 3x–4x.
+
+**Sources:** [DeepSeek API Pricing](https://api-docs.deepseek.com/quick_start/pricing) · [qz.com](https://qz.com/deepseek-api-price-increase-v4-peak-off-peak-081326)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Retriever Is Looking at Your Data Through One Keyhole — Multi-Query RAG Gives It Five</title>
+      <link>https://www.youtube.com/watch?v=LyMWMnguo1E</link>
+      <guid isPermaLink="false">2026-08-18-01-multi-query-retriever-langchain-rag</guid>
+      <pubDate>Tue, 18 Aug 2026 04:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>LangChain's MultiQueryRetriever generates 3-5 reformulations of every user question, runs them in parallel, and deduplicates results — surfacing relevant chunks a single query embedding would miss.</description>
+      <content:encoded><![CDATA[**LangChain's MultiQueryRetriever generates 3–5 reformulations of every user question, runs them in parallel against your vector store, and deduplicates — surfacing relevant chunks that a single query embedding would miss.**
+
+**What you'll be able to do after this:**
+- Boost RAG recall without touching your embedding model, chunk size, or vector store
+- Understand why a single query vector misses semantically related documents
+- Wire up multi-query retrieval in ~15 lines of Python on top of any existing retriever
+
+## The problem
+
+Vector similarity search embeds your user's question into a point in space and returns the nearest neighbors. If the user asks "How does chunking affect embedding quality?", the embedding might miss a document titled "Optimal text splitting strategies for dense retrieval" — even though they cover the same idea — because the surface-form distance is large. One query = one angle of attack.
+
+## The fix: generate multiple angles
+
+MultiQueryRetriever calls a cheap LLM to rewrite the query three to five different ways, runs each one against the vector store, and returns the union (deduplicated). The union is almost always a superset of what any single query would return.
+
+## Code
+
+```python
+from langchain.retrievers.multi_query import MultiQueryRetriever
+from langchain_anthropic import ChatAnthropic
+from langchain_chroma import Chroma
+
+vectorstore = Chroma(collection_name="docs", embedding_function=embeddings)
+
+retriever = MultiQueryRetriever.from_llm(
+    retriever=vectorstore.as_retriever(search_kwargs={"k": 5}),
+    llm=ChatAnthropic(model="claude-haiku-4-5-20251001"),  # cheap for query gen
+)
+
+docs = retriever.invoke("How does chunking affect embedding quality?")
+# Returns union of k=5 results across 3–5 generated query variations
+```
+
+The LLM call for query generation is cheap — use Haiku or another small model, not Sonnet or Opus. The total latency overhead is roughly one extra LLM round-trip, which runs in parallel with the first vector search.
+
+## Pair it with a reranker
+
+Multi-query gives you high recall; a cross-encoder reranker (e.g., `cross-encoder/ms-marco-MiniLM-L-6-v2`) gives you high precision from the expanded candidate set. The combination is the standard recipe for production RAG that needs both.
+
+**Resource:** [LangChain MultiQueryRetriever — YouTube tutorial #43](https://www.youtube.com/watch?v=LyMWMnguo1E) · [LangChain retrieval docs](https://docs.langchain.com/oss/python/langchain/retrieval) · [GitHub notebook with full examples](https://github.com/edumunozsala/langchain-rag-techniques/blob/main/Multiquery-retrieval.ipynb)
+
+**Sources:** [LangChain MultiQueryRetriever — YouTube](https://www.youtube.com/watch?v=LyMWMnguo1E) · [LangChain docs](https://docs.langchain.com/oss/python/langchain/retrieval)
+]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/LyMWMnguo1E/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/LyMWMnguo1E/maxresdefault.jpg" />
+    </item>
+
+    <item>
+      <title>Stop Reprompting the Whole Component: Figma Make Now Has a Properties Panel and In-Context Annotations</title>
+      <link>https://www.figma.com/blog/properties-panel-and-annotations-now-in-figma-make/</link>
+      <guid isPermaLink="false">2026-08-17-08-figma-make-properties-annotations</guid>
+      <pubDate>Mon, 17 Aug 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>Figma Make now has a properties panel for direct visual editing and in-context annotations so you mark exactly what you want the AI agent to change — no more reprompting the full component.</description>
+      <content:encoded><![CDATA[**Figma Make's new properties panel brings familiar Figma Design controls into the AI editor; in-context annotations let you mark exactly what the agent should change — no more reprompting the whole component.**
+
+When you iterate on a design in Figma Make, the default workflow is one big prompt: describe what you want and hope the AI scopes itself correctly. Two new tools shipped in late July change that.
+
+**Properties panel.** The same spacing, typography, layout, and color controls from Figma Design are now live in the Make editor. Select any element and adjust it directly — Make stages the change in the prompt box for you to review before it lands in the underlying code. For pure visual adjustments, this beats a natural-language prompt every time.
+
+**In-context annotations.** For changes that go beyond visual properties — an animation, a hover interaction, a conditional render — select "Annotate for agent" in the toolbar and mark the exact area on canvas. Write your instruction directly on the design. The agent sees precisely what you're pointing at without you having to describe the surrounding layout.
+
+**The workflow in practice:**
+1. Generate or open a component in Figma Make.
+2. Fix visual properties (padding, font size, color) directly in the properties panel.
+3. For behavior or animation changes, annotate the specific element — don't reprompt the full component.
+4. Review each staged change before committing — Make updates the underlying React/Next.js code automatically.
+5. Export or push to your repo when the component is right.
+
+The practical gain: AI edits are scoped to exactly what you intended. Annotating one button's hover state on a complex dashboard is far less disruptive than reprompting the whole layout and reviewing a diff full of unrelated changes. Both tools work whether you're starting from scratch or editing existing Make-connected code.
+
+**Sources:** [A Properties Panel and Annotations, Now in Figma Make — Figma Blog](https://www.figma.com/blog/properties-panel-and-annotations-now-in-figma-make/) · [Figma Release Notes — Releasebot](https://releasebot.io/updates/figma)
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Connect v0 to Your Real GitHub Repo: AI-Generated Components That Go Through PRs, Not Around Them</title>
+      <link>https://v0.app/docs/faqs</link>
+      <guid isPermaLink="false">2026-08-17-07-v0-github-existing-repo-workflow</guid>
+      <pubDate>Mon, 17 Aug 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>v0's GitHub integration creates one branch per chat and never touches main — generated components land as a PR you review like any other code change.</description>
+      <content:encoded><![CDATA[
+**v0's GitHub integration creates one branch per chat and never commits to main — generated UI lands as a PR you review like any other code change, not as a mystery diff in your working tree.**
+
+The common fear with v0: you prototype something useful and then face a pile of generated code with no clear path into an existing Next.js/React codebase. The February 2026 update added native GitHub integration that addresses this with a branch-per-chat workflow.
+
+## Setup
+
+1. In v0's project settings, connect your GitHub account.
+2. Create a new project → + → "Import from GitHub" → select your repo.
+3. For private repos: grant v0 access in your GitHub App settings.
+4. v0 creates one branch per chat session and never commits to `main` by design.
+
+## The workflow
+
+- Every code change in v0 is an automatic commit on that branch.
+- Create a PR directly from v0 — it goes through your normal review process.
+- Pull the branch locally with `git fetch && git checkout <branch>` to inspect the generated code in your editor before merging.
+
+## Before merging, check for
+
+- Does the generated component use your existing design system, or does it shadow it with its own Tailwind/MUI classes?
+- Are prop types and import paths consistent with the rest of the codebase?
+- Are there `useEffect` calls with missing or empty deps arrays where the actual dependencies weren't inferred?
+
+## After merge: hand off to Claude Code
+
+The generated component is now in your repo and tracked by git. Run `/code-review` against the branch for a bug-finding pass, then iterate in your editor. v0 gets you to a workable shape; Claude Code closes the gap on correctness and integration.
+
+**Sources:** [v0 docs: import from GitHub — v0.app](https://v0.app/docs/faqs) · [Integrating v0 with existing GitHub repos — Vercel Community](https://community.vercel.com/t/integrating-v0-with-existing-github-repositories-and-vercel-projects/34005) · [v0 complete guide 2026 — NxCode](https://www.nxcode.io/resources/news/v0-by-vercel-complete-guide-2026)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>What /code-review Does That the GitHub App Doesn't: Effort Levels, --fix, and REVIEW.md</title>
+      <link>https://code.claude.com/docs/en/code-review</link>
+      <guid isPermaLink="false">2026-08-17-06-code-review-slash-command-effort-reviewmd</guid>
+      <pubDate>Mon, 17 Aug 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>The /code-review slash command runs a bug-hunting subagent in the background without consuming your session context — tune effort, auto-apply fixes, and scope it with REVIEW.md.</description>
+      <content:encoded><![CDATA[
+**`/code-review` runs a background bug-hunting subagent that doesn't consume your session context — tune effort, auto-apply fixes, and give it a project-specific mandate with `REVIEW.md`.**
+
+Claude Code's `/code-review` command is distinct from the GitHub App-based Code Review service. It runs locally as a forked background subagent — the findings arrive in your conversation when the review completes, without filling your context window with intermediate reasoning.
+
+## Effort controls confidence vs. coverage
+
+`low` and `medium` report only high-confidence findings, so you see fewer false positives but narrower coverage. `high` through `max` broaden coverage but include findings the review is less certain about. Claude remembers the last level you typed explicitly, so always pass one in scripts:
+
+```
+/code-review high          # background review, report findings
+/code-review high --fix    # same, plus auto-apply findings to working tree
+```
+
+**Caveat:** `--fix` edits land outside your session checkpoints. `/rewind` won't undo them — use git if you want to inspect before applying.
+
+## REVIEW.md gives the review a project mandate
+
+A `REVIEW.md` file at your repo root is injected at highest priority into every agent in the pipeline — higher than your `CLAUDE.md`. Use it to define what "Important" means in your codebase, which paths to skip, and what checks to always run:
+
+```markdown
+## What Important means here
+Reserve 🔴 for bugs that break behavior or leak data.
+Style and naming are Nit at most.
+
+## Always check
+- New API routes have an integration test
+- Log lines exclude email addresses and user IDs
+
+## Skip
+- Generated code under src/gen/
+- Any *.lock file
+```
+
+Keep `REVIEW.md` focused: a long file dilutes the rules that matter most.
+
+## For cloud-level review
+
+`/code-review ultra` (Team/Enterprise) escalates to a multi-agent swarm on Anthropic infrastructure, with findings posted inline to your PR via `--post`. From CI scripts: `claude -p '/code-review ultra'` launches the review non-interactively.
+
+**Sources:** [Claude Code Review — code.claude.com](https://code.claude.com/docs/en/code-review) · [REVIEW.md reference — code.claude.com](https://code.claude.com/docs/en/code-review#customize-reviews) · [Ultrareview — code.claude.com](https://code.claude.com/docs/en/ultrareview)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Stripe Buys OpenRouter for $7B+; Google Imagen 4 API Retires Today</title>
+      <link>https://techcrunch.com/2026/08/16/stripe-will-reportedly-acquire-ai-gateway-startup-openrouter-for-7b/</link>
+      <guid isPermaLink="false">2026-08-17-05-stripe-openrouter-imagen4-ai-infra</guid>
+      <pubDate>Mon, 17 Aug 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>Stripe finalizes a $7B+ deal for OpenRouter, the 400-model AI gateway; and Google retires three Imagen 4 model IDs today, breaking generate_images() with no grace period.</description>
+      <content:encoded><![CDATA[
+**Stripe buys the AI model routing layer that millions of developers depend on; Google's Imagen 4 `generate_images()` API shuts down today — two AI infra moves with immediate impact.**
+
+## Stripe finalizes OpenRouter acquisition
+
+Stripe has closed a deal to acquire OpenRouter — the AI model gateway that routes requests across 400+ models from 70+ providers — for more than $7 billion. OpenRouter's CEO described the company as "the Stripe for AI": one OpenAI-compatible endpoint, automatic provider failover, cost-based routing, and 8 million users. Service continues unchanged for now; no migration required, no pricing changes announced.
+
+**Why it matters:** OpenRouter is load-bearing infrastructure for many production AI apps. The acquisition puts it inside Stripe's developer platform ecosystem — watch for pricing and API terms as the integration matures. If OpenRouter is in your critical path, now is a good time to review your fallback strategy.
+
+## Google Imagen 4 API retires today
+
+Three Imagen 4 model IDs shut down August 17: `imagen-4.0-generate-001`, `imagen-4.0-ultra-generate-001`, and `imagen-4.0-fast-generate-001`. The `generate_images()` method is removed entirely; migration requires switching to `gemini-3.1-flash-image` and calling `generate_content()` instead. Test your real prompts against the new model first — aspect ratios, safety filters, and output quality may differ.
+
+**Why it matters:** Any application calling the Imagen 4 API without migration will return hard errors starting today.
+
+**Sources:** [Stripe acquires OpenRouter — Bloomberg](https://www.bloomberg.com/news/articles/2026-08-16/stripe-nears-deal-to-buy-ai-firm-openrouter-for-over-7-billion) · [TechCrunch](https://techcrunch.com/2026/08/16/stripe-will-reportedly-acquire-ai-gateway-startup-openrouter-for-7b/) · [Imagen 4 shutdown details — kingy.ai](https://kingy.ai/ai-launch-tracker/google-will-shut-down-three-imagen-4-api-models-august-17/) · [Firebase migration guide](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your First Prototype in 10 Minutes: What Designers and PMs Need to Know About Claude Design</title>
+      <link>https://support.claude.com/en/articles/14604416-get-started-with-claude-design</link>
+      <guid isPermaLink="false">2026-08-17-04-claude-design-first-hour-pm-designer</guid>
+      <pubDate>Mon, 17 Aug 2026 04:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Claude Design turns a plain-text brief into a clickable prototype in your browser — no Figma, no code. Here is the genuine first hour for designers and PMs starting from zero.</description>
+      <content:encoded><![CDATA[
+**Claude Design turns a plain-text brief into a clickable, interactive prototype directly in your browser — no Figma account, no code, no engineer standing next to you.**
+
+If you have been avoiding Claude Design because it sounds like an engineering tool, this post is for you. It is not. You start with a sentence. You end with something you can click through and share.
+
+## What you will actually see
+
+Go to [claude.ai](https://claude.ai). If you are on Pro, Max, Team, or Enterprise, the Design tab is there. Click it and you get a blank canvas with a chat panel on the left.
+
+Type a brief — not a prompt, just what you would say to a designer:
+
+> "I need a sign-up flow for a B2B SaaS product. Three steps: email, then team setup, then invite teammates. Keep it clean and professional."
+
+Claude Design generates an **interactive HTML prototype** you can click through right in the browser. Not a static mockup. Not a screenshot. Actual clickable flows.
+
+## What it can and cannot do (the honest version)
+
+**Can:** multi-step flows, forms, buttons that navigate between screens, basic responsive layouts, on-brand colors if you paste your style guide, presentations, one-pagers.
+
+**Cannot:** production-ready component code, pixel-perfect fidelity to a complex design system, backend logic, or animations beyond CSS transitions. Think of it as a high-fidelity sketch, not a delivered design.
+
+## The vocabulary engineers will use with you
+
+When you hand this off:
+- **"Regenerate the component"** — describe what needs to change and run Claude Design again
+- **"Hand off to Claude Code"** — the engineer takes your prompt and screens and continues building in the codebase
+- **"Design sync"** — Claude Code reads your design system to match what it generates to your real components (the engineer runs this, not you)
+
+## How to write a brief that works
+
+The gap between a thin result and a useful one is almost always the brief. Include:
+1. **What it is** — sign-up flow, dashboard, pricing page
+2. **Who uses it** — B2B team admin, first-time consumer
+3. **What they do** — the three steps they take, in order
+4. **Any brand constraints** — paste hex codes, name your font
+
+One sentence per item is enough. The model fills in sensible defaults for everything else.
+
+## Handing off without reading code
+
+When you are happy with a screen, share the canvas link with your engineer. They can see the design and ask Claude Code to match it. You do not need to export files or write specs. The engineer's job is to build the real thing; your job is to make the direction impossible to misread. A clickable prototype does that better than any document.
+
+**Sources:** [Get started with Claude Design — support.claude.com](https://support.claude.com/en/articles/14604416-get-started-with-claude-design) · [How the product designer who built Claude Design uses it — claude.com](https://claude.com/blog/how-the-product-designer-who-built-claude-design-uses-it-to-explore-ideas-before-building-them) · [Using Claude Design for prototypes and UX — claude.com](https://claude.com/resources/tutorials/using-claude-design-for-prototypes-and-ux)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>One Field Cuts Your Claude API Bill 60-90%: Prompt Caching With cache_control</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/prompt-caching</link>
+      <guid isPermaLink="false">2026-08-17-03-claude-api-prompt-caching-cost</guid>
+      <pubDate>Mon, 17 Aug 2026 04:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Add cache_control to any stable system prompt block and pay 10% of the normal input price on every repeated call — one field, no refactoring.</description>
+      <content:encoded><![CDATA[
+**Add `"cache_control": {"type": "ephemeral"}` to any stable content block and Claude reads it from cache on subsequent calls at roughly 10% of the normal input-token price.**
+
+Any API workflow that sends the same system prompt, long instruction set, or reference document on every call is paying 100% of input cost each time. Prompt caching marks those stable blocks once; Claude caches them for an hour and charges cache-read rates on hits — about $0.30/M for Sonnet 5 instead of $3.00/M.
+
+## How to add it
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+system_prompt = """[Your stable system prompt — 1,024 tokens minimum to qualify]"""
+
+response = client.messages.create(
+    model="claude-sonnet-5-20260801",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": system_prompt,
+            "cache_control": {"type": "ephemeral"}  # one field — this is all it takes
+        }
+    ],
+    messages=[{"role": "user", "content": "What is the refund policy?"}],
+)
+
+# Inspect whether you got a cache hit
+print(response.usage)
+# cache_creation_input_tokens: N  (first call — writes the cache)
+# cache_read_input_tokens: N      (subsequent calls — reads from cache)
+```
+
+The `cache_control` marker goes at the **end of the stable block** — Claude caches everything up to that point. Put volatile content (the user's question, the current date) after it. Never let timestamps or UUIDs drift into the cacheable prefix; that kills your hit rate.
+
+## Where the savings are largest
+
+| Workload | Stable block | Typical hit rate |
+|---|---|---|
+| Support bot | Full product docs + policy | 90-95% |
+| Code review CI | Repo conventions + style guide | 85-90% |
+| Eval suite | All test cases + rubric | ~100% |
+| Multi-turn chat | System prompt + tool list | 60-80% |
+
+## Cost math
+
+A support bot sending a 10,000-token system prompt on 1,000 daily requests:
+
+| Approach | Daily input cost (Sonnet 5) |
+|---|---|
+| No caching | 1,000 × 10K × $3/M = **$30.00** |
+| Prompt caching | $3.00 (cache write) + 999 × 10K × $0.30/M = **$6.00** |
+
+**80% saved, same responses, zero code refactoring beyond adding one field.**
+
+Caching also works on tool definitions and large user-turn messages — add `cache_control` to any block 1,024+ tokens long that appears on multiple requests. The minimum is 1,024 tokens for standard models; 2,048 for extended context.
+
+**Sources:** [Prompt caching — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) · [Prompt caching cookbook — platform.claude.com](https://platform.claude.com/cookbook/prompt-caching) · [How to cut Claude API costs 90% with prompt caching — Iron Mind](https://iron-mind.ai/blog/prompt-caching-claude-production)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Agent Plugins 1.0: One Package Format That Works Across ChatGPT, Copilot, Cursor, VS Code, and Kiro</title>
+      <link>https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app/</link>
+      <guid isPermaLink="false">2026-08-17-02-agent-plugins-1-0-open-standard</guid>
+      <pubDate>Mon, 17 Aug 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>MCP</category>
+      <description>Agent Plugins 1.0 is an open standard backed by GitHub, OpenAI, AWS, Google, and Microsoft: one plugin.json + skills/ + mcp.json installs into any compatible coding agent.</description>
+      <content:encoded><![CDATA[
+**A single `plugin.json` + `skills/` + `mcp.json` directory now installs into GitHub Copilot, VS Code, ChatGPT, Codex, Cursor, and Kiro — no separate manifest per client.**
+
+[Agent Plugins 1.0](https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app/) is an open standard published August 6 with AWS, Anysphere, Microsoft, OpenAI, Vercel, and Google as co-maintainers. It bundles agent skills and MCP servers into one installable format governed independently of any vendor. Build a deployment runbook skill with its MCP tool integration once; your whole team gets it on all their coding agents without you maintaining a separate manifest for each one.
+
+**Why it matters:** Any team-specific skill or internal MCP integration you build now becomes portable — publish it to a skills registry or a shared repo directory and it works wherever your engineers happen to be.
+
+**Sources:** [Agent Plugins 1.0 GA — GitHub Changelog](https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app/) · [What the standard fixes — digitalapplied.com](https://www.digitalapplied.com/blog/agent-plugins-1-0-open-standard-portable-skills)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your RAG Gives Answers. These Lines Make It Cite Its Work.</title>
+      <link>https://www.youtube.com/watch?v=-wGzSnhQKPM</link>
+      <guid isPermaLink="false">2026-08-17-01-rag-citations-source-attribution</guid>
+      <pubDate>Mon, 17 Aug 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>Tag retrieved chunks with IDs, ask Claude for inline citations, and return a sources list — your RAG answers become verifiable instead of just plausible. Walk-through included.</description>
+      <content:encoded><![CDATA[
+**Tag retrieved chunks with IDs, ask Claude to cite them inline, and return a sources list — your RAG answers become verifiable, not just plausible.**
+
+**What you will be able to do after this:**
+- Return `[1]` / `[2]` inline citations in any RAG response alongside a `sources` list
+- Verify that cited documents actually support each claim using a structured `quote` field
+- Build the citation layer in under 50 lines on top of your existing retriever
+
+A RAG system that returns "Refunds take 5-7 days" is useful. One that returns "Refunds take 5-7 days [1]" with `[1]: Refund Policy, section 3.2` is trustworthy. That is the difference between a demo and a production tool.
+
+**Resource:** [RAG with Verified Citations — Trelis Research (YouTube, 34 min)](https://www.youtube.com/watch?v=-wGzSnhQKPM)
+
+## The pattern
+
+Your retriever returns chunks. Tag each one with a sequential ID and include them in the user turn:
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+def rag_with_citations(question: str, chunks: list[dict]) -> dict:
+    # chunks = [{"id": 1, "text": "...", "source": "Refund Policy 3.2"}, ...]
+    context = "
+
+".join(f"[{c['id']}] {c['text']}" for c in chunks)
+
+    response = client.messages.create(
+        model="claude-sonnet-5-20260801",
+        max_tokens=1024,
+        system="""You are a helpful assistant. Answer using ONLY the provided context.
+Cite every factual claim with a bracketed ID like [1] inline.
+If the answer is not in the context, say so.""",
+        messages=[{
+            "role": "user",
+            "content": f"Context:
+{context}
+
+Question: {question}"
+        }]
+    )
+    return {
+        "answer": response.content[0].text,
+        "sources": [{"id": c["id"], "source": c["source"]} for c in chunks]
+    }
+```
+
+## Structured output version (more reliable for parsing)
+
+```python
+import json
+
+response = client.messages.create(
+    model="claude-sonnet-5-20260801",
+    max_tokens=1024,
+    tools=[{
+        "name": "answer_with_citations",
+        "description": "Return an answer with inline citations",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "string",
+                    "description": "Answer text with [N] inline citations"
+                },
+                "citations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "integer"},
+                            "quote": {
+                                "type": "string",
+                                "description": "Exact text from document [N] that supports the claim"
+                            },
+                            "source": {"type": "string"}
+                        },
+                        "required": ["id", "quote", "source"]
+                    }
+                }
+            },
+            "required": ["answer", "citations"]
+        }
+    }],
+    tool_choice={"type": "tool", "name": "answer_with_citations"},
+    system="Answer using ONLY the provided context. Cite every factual claim inline.",
+    messages=[{"role": "user", "content": f"Context:
+{context}
+
+Question: {question}"}]
+)
+
+result = json.loads(response.content[0].input)
+# result["answer"]    = "Refunds take 5-7 days [1]."
+# result["citations"] = [{"id": 1, "quote": "Refunds are processed in 5-7 business days", "source": "Refund Policy 3.2"}]
+```
+
+The `quote` field in each citation forces Claude to locate the exact supporting text — surfacing any hallucination where no supporting passage exists. If Claude cannot find a quote, it cannot fabricate a citation.
+
+**Sources:** [RAG with Verified Citations — Trelis Research (YouTube)](https://www.youtube.com/watch?v=-wGzSnhQKPM) · [Citation-aware RAG — Tensorlake](https://www.tensorlake.ai/blog/rag-citations) · [Attributing sources in RAG — apxml.com](https://apxml.com/courses/getting-started-rag/chapter-4-rag-generation-augmentation/attributing-sources)
+]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/-wGzSnhQKPM/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/-wGzSnhQKPM/maxresdefault.jpg" />
+    </item>
 
     <item>
       <title>Stop Letting Claude Skip the Tool: Four Modes of tool_choice for Reliable Agent Pipelines</title>
@@ -6851,824 +7562,21 @@ Claude then runs `npm run build`, reads the errors, fixes them, reruns, and loop
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Inference Prices Keep Falling: OpenAI Slashes Luna 80% and Alibaba Debuts a 2.4T Rival</title>
-      <link>https://venturebeat.com/technology/ai-price-wars-openai-cuts-gpt-5-6-luna-prices-by-80-as-model-competition-shifts-toward-cost</link>
-      <guid isPermaLink="false">2026-08-04-07-inference-pricing-qwen-openai-cuts</guid>
-      <pubDate>Tue, 04 Aug 2026 12:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <description>Two moves in four days: OpenAI cuts GPT-5.6 Luna 80% to $0.20/$1.20 per MTok, and Alibaba releases Qwen3.8-Max -- a 2.4T-parameter MoE model claiming top computer-use benchmark scores.</description>
-      <content:encoded><![CDATA[
-**Two moves in four days signal accelerating commoditization: OpenAI cuts its mid-tier GPT-5.6 Luna by 80%, and Alibaba drops a 2.4-trillion-parameter MoE model with top computer-use scores.**
-
-**OpenAI (July 30):** GPT-5.6 Luna dropped from $1/$6 to $0.20/$1.20 per million input/output tokens — an 80% cut. Terra fell 20% (now $2/$12). Sol stays at $5/$30. Luna is now competitive with budget-tier pricing, making it an interesting option for high-volume agentic pipelines where you want frontier reasoning at commodity cost.
-
-**Qwen3.8-Max (Aug 3):** Alibaba released a 2.4-trillion-parameter MoE model (roughly 95B active parameters per token) under a permissive license. Alibaba's own benchmarks put it ahead of Fable 5 on OSWorld computer-use (86.1 vs 85.0) and ahead of Opus 4.8 on Terminal-Bench. SWE-bench and FrontierSWE still favor Fable 5 (Qwen scores 67.7/73.5 vs Fable 5's 80.0/88.8). Independent evals haven't landed yet — treat self-reported numbers with appropriate skepticism.
-
-**Why it matters:** Luna's new price removes the cost argument against frontier models for agentic loops. Qwen3.8-Max is a credible open-weight alternative for computer-use agents — watch for independent benchmarks this week.
-
-**Sources:** [OpenAI cuts GPT-5.6 Luna 80% — VentureBeat](https://venturebeat.com/technology/ai-price-wars-openai-cuts-gpt-5-6-luna-prices-by-80-as-model-competition-shifts-toward-cost) · [Qwen3.8-Max debut — VentureBeat](https://venturebeat.com/technology/qwen3-8-max-arrives-with-a-bold-claim-it-outperforms-gpt-5-6-sol-max-and-fable-5-on-agentic-computer-use) · [Qwen3.8-Max — MarkTechPost](https://www.marktechpost.com/2026/08/03/alibaba-qwen-releases-qwen3-8-max/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Four Commands Shrink Any Open Model to Fit Your Laptop: GGUF Quantization with llama.cpp</title>
-      <link>https://www.youtube.com/watch?v=vvrGfqd1oxE</link>
-      <guid isPermaLink="false">2026-08-04-05-gguf-quantization-llama-cpp</guid>
-      <pubDate>Tue, 04 Aug 2026 12:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Self-Hosting</category>
-      <category>LLM</category>
-      <description>GGUF quantization compresses 16-bit model weights to 4-bit, shrinking a 7B model from 14GB to 4GB with minimal quality loss -- runnable on a MacBook or any consumer GPU.</description>
-      <content:encoded><![CDATA[
-**GGUF quantization compresses 16-bit weights to 4-bit, shrinking a 7B model from 14GB to under 5GB with minimal quality loss — runnable on a MacBook, a gaming GPU, or a CPU.**
-
-**What you'll be able to do after this:**
-- Convert any Hugging Face model to GGUF and quantize it to Q4_K_M in under 10 minutes
-- Understand what Q4_K_M, Q5_K_M, and Q8_0 trade off and which to pick for your use case
-- Serve your quantized model as a local OpenAI-compatible API endpoint for use in any agent workflow
-
-Large language models ship as 16-bit floating-point files. A 7B-parameter model weighs roughly 14GB at full precision, requiring 16GB+ of VRAM to load. GGUF quantization compresses each weight from 16 bits to 4 (or 5, or 8), shrinking the same model to 4–5GB while preserving most of its reasoning quality.
-
-llama.cpp is the standard tool. Here's the full end-to-end workflow:
-
-```bash
-# 1. Build llama.cpp from source
-git clone https://github.com/ggml-org/llama.cpp && cd llama.cpp
-cmake -B build && cmake --build build --config Release -j$(nproc)
-
-# 2. Download a model from Hugging Face (example: Llama 3.1 8B)
-pip install huggingface_hub
-huggingface-cli download meta-llama/Meta-Llama-3.1-8B-Instruct --local-dir ./llama-3.1-8b
-
-# 3. Convert to FP16 GGUF (required intermediate step)
-python convert_hf_to_gguf.py ./llama-3.1-8b --outtype f16 --outfile llama-3.1-8b-f16.gguf
-
-# 4. Quantize to Q4_K_M
-./build/bin/llama-quantize llama-3.1-8b-f16.gguf llama-3.1-8b-q4km.gguf Q4_K_M
-```
-
-**Choosing a quantization level.** The `_K_M` suffix stands for "K-quants, medium" — attention and embedding layers stay at higher precision while feed-forward layers are aggressively quantized. Use **Q4_K_M** as your default. Step up to **Q5_K_M** if you have the VRAM and want near-lossless quality. **Q8_0** is effectively lossless but almost as large as FP16. Avoid Q3 and below for anything beyond simple chat — quality degrades noticeably.
-
-Once quantized, run it:
-
-```bash
-# Interactive chat session
-./build/bin/llama-cli -m llama-3.1-8b-q4km.gguf -n 512 --conversation
-
-# Or serve a local OpenAI-compatible API on port 8080
-./build/bin/llama-server -m llama-3.1-8b-q4km.gguf --port 8080
-```
-
-The `llama-server` endpoint is drop-in compatible with the OpenAI API: point any SDK or agent harness at `http://localhost:8080/v1/chat/completions` and it works without any code changes.
-
-**Sources:** [GGUF Quantization Tutorial: Run Fine-Tuned LLMs on CPU with llama.cpp — YouTube](https://www.youtube.com/watch?v=vvrGfqd1oxE) · [llama.cpp quantize README — GitHub](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md) · [Quantize Llama models with llama.cpp — Towards Data Science](https://towardsdatascience.com/quantize-llama-models-with-ggml-and-llama-cpp-3612dfbcc172/)
-]]></content:encoded>
-      <media:content url="https://img.youtube.com/vi/vvrGfqd1oxE/maxresdefault.jpg" medium="image"/>
-      <media:thumbnail url="https://img.youtube.com/vi/vvrGfqd1oxE/maxresdefault.jpg"/>
-    </item>
-
-    <item>
-      <title>One Dead End Shouldn't Ruin the Session: /fork Clones Your Claude Code Conversation Into a Parallel Experiment</title>
-      <link>https://code.claude.com/docs/en/whats-new/2026-w29</link>
-      <guid isPermaLink="false">2026-08-04-04-claude-code-fork-parallel-session-experiments</guid>
-      <pubDate>Tue, 04 Aug 2026 04:08:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>/fork copies your full Claude Code conversation history into a new background session -- try an alternative approach without rewinding or losing the original.</description>
-      <content:encoded><![CDATA[
-**/fork copies your full conversation history into a new background session so you can try an alternative approach without rewinding or losing the original.**
-
-When you're halfway through refactoring a module and hit a decision fork — "extract this into a service, or keep it as a helper?" — the old answer was to pick one and backtrack mentally if it failed. `/fork` removes that constraint.
-
-```
-/fork
-```
-
-Claude Code copies the full conversation history and current directory state into a new background session and returns its ID. The original session continues untouched. Switch between them with `/resume <session-id>`, or run both in separate terminals simultaneously.
-
-**Practical pattern — try two strategies in parallel:**
-
-```bash
-# Terminal A (original session):
-/fork
-# Prints: Forked → session abc123
-
-# Terminal A: implement the service extraction approach
-
-# Terminal B:
-claude --resume abc123
-# Implement the helper function approach here
-```
-
-Compare the diffs at the end and keep whichever worked.
-
-**When /fork pays off most:**
-- **Before a risky refactor** — fork, try it in the fork, merge back only if it worked
-- **Architecture choices** — stream and batch approaches running in parallel, pick the faster one
-- **Code review iterations** — fork before addressing comments; keep the original as a baseline
-
-**One gotcha:** both sessions share the same working directory on disk. If they write to the same files concurrently, you'll get conflicts. Fix: run `git checkout -b experiment-b` in the fork before starting work, so each session writes to its own branch.
-
-**Sources:** [/fork Explained — ClaudeKit](https://claudekit.app/blog/claude-code-fork-conversation-explained) · [Session Forking — BSWEN](https://docs.bswen.com/blog/2026-03-22-claude-code-session-forking/) · [Parallel Sessions — HeyClaude](https://heyclau.de/entry/guides/claude-code-desktop-parallel-sessions-workflow)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>MCP's Biggest Spec Update Is Final: Sessions Are Gone and Stateless HTTP Is In</title>
-      <link>https://blog.modelcontextprotocol.io/posts/2026-07-28/</link>
-      <guid isPermaLink="false">2026-08-04-03-mcp-2026-07-28-stateless-spec</guid>
-      <pubDate>Tue, 04 Aug 2026 04:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>MCP</category>
-      <category>Security</category>
-      <description>The July 28 MCP spec goes stateless -- the initialize handshake and session IDs are gone, Tasks moved to an extension, and W3C distributed tracing is built in.</description>
-      <content:encoded><![CDATA[
-**The July 28 MCP spec goes stateless — sessions, sticky routing, and the initialize handshake are gone; Tasks moved to an extension; W3C tracing is now built in.**
-
-The 2026-07-28 Model Context Protocol specification is final. The headline change: **the session model is gone**. Before, every MCP conversation required an `initialize`/`initialized` handshake, `Mcp-Session-Id` headers on subsequent requests, and sticky routing so load balancers could reach the same server instance. Now every request is self-contained — standard round-robin load balancing works, no shared session store needed.
-
-**Breaking changes to make now:**
-- Remove the `initialize`/`initialized` exchange and `Mcp-Session-Id` headers from your client
-- Migrate from the experimental Tasks API (2025-11-25) to the revised Tasks extension lifecycle
-- Update any literal error-code checks: missing-resource errors moved from `-32002` → `-32602`
-
-**New capabilities:** MCP Apps (server-rendered HTML UI in sandboxed iframes), a formal Extensions framework for opt-in features, and built-in W3C Trace Context + OpenTelemetry propagation across agent hops. Authorization also tightens with RFC 9207 `iss` parameter validation to block mix-up attacks.
-
-**Why it matters:** The stateless core is what makes MCP viable in containerized, auto-scaling deployments. If you were running MCP servers behind a load balancer with Redis session state, you can drop that complexity now.
-
-**Sources:** [MCP 2026-07-28 Specification](https://blog.modelcontextprotocol.io/posts/2026-07-28/) · [Security Implications — SecurityWeek](https://www.securityweek.com/new-enterprise-ready-mcp-specification-brings-new-security-challenges/) · [modelcontextprotocol.io](https://modelcontextprotocol.io)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Open Weights Week: DeepSeek Publishes 284B MIT Model; Anthropic Draws Its Line on What It Won't Restrict</title>
-      <link>https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash</link>
-      <guid isPermaLink="false">2026-08-04-02-open-weights-deepseek-v4-flash-anthropic-stance</guid>
-      <pubDate>Tue, 04 Aug 2026 04:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <category>Self-Hosting</category>
-      <description>DeepSeek released V4 Flash 0731, a 284B MoE model under MIT on July 31; Anthropic simultaneously published its position opposing blanket bans on open-weights models.</description>
-      <content:encoded><![CDATA[
-**DeepSeek released a 284B MIT-licensed MoE model on July 31; Anthropic published a position opposing blanket bans on open-weights models while backing safety-test mandates and distillation controls.**
-
-**DeepSeek V4 Flash 0731**
-
-The July 31 build is a production-candidate refresh of DeepSeek's V4 Flash architecture: 284B total parameters, 13B active per forward pass (Mixture of Experts), MIT license, [available on Hugging Face](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash). The API runs at ~122 tokens/second.
-
-Practical caveat for self-hosters: "Flash" refers to the active-parameter efficiency, not the weight footprint. Full weights are 140GB+ in mixed precision, 70-80GB heavily quantized — you need multi-GPU server hardware to run it locally. For single-GPU or CPU inference, smaller open models remain more practical.
-
-**Anthropic's open-weights stance**
-
-In a July 27 post, Anthropic stated it has never advocated for a blanket ban on open-weights models. What it does support: mandatory safety evaluations for all sufficiently capable models (open and closed), cracking down on industrial-scale distillation, and restricting advanced chip exports — but not open-weights releases categorically.
-
-**Why it matters:** V4 Flash weights are commercially usable under MIT. On policy, the major lab position is now explicit: chip controls and distillation restrictions are the levers, not a blanket ban on open release.
-
-**Sources:** [DeepSeek-V4-Flash — HuggingFace](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash) · [V4 Flash Analysis — Artificial Analysis](https://artificialanalysis.ai/models/deepseek-v4-flash) · [Anthropic Open Weights Position](https://www.anthropic.com/news/position-open-weights-models)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Dense Embeddings Flatten a Document to One Vector: ColBERT Keeps Every Token — RAGatouille Makes It Three Lines</title>
-      <link>https://github.com/AnswerDotAI/RAGatouille</link>
-      <guid isPermaLink="false">2026-08-04-01-colbert-ragatouille-late-interaction-retrieval</guid>
-      <pubDate>Tue, 04 Aug 2026 04:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>RAG</category>
-      <category>Best Practices</category>
-      <description>Dense biencoder embeddings compress a document to one vector; ColBERT's late interaction scores every query token against every document token -- RAGatouille makes it a 3-line swap.</description>
-      <content:encoded><![CDATA[
-**ColBERT keeps a separate embedding per token instead of one per document — dense embeddings lose exact-match signals ColBERT catches; RAGatouille makes it three lines.**
-
-**What you'll be able to do after this:**
-- Build a ColBERT index and search it in under 20 lines of Python with RAGatouille
-- Explain why single-vector (biencoder) embeddings lose per-token precision and when that costs recall
-- Use ColBERT as a drop-in reranker on top of any retriever you already have
-
-**Why dense-only fails on precision queries**
-
-A biencoder embedding model flattens every document to a single 768-d vector via mean pooling. Two documents mentioning "HNSW" and "pgvector" score almost identically against a query for either — the averaging hides token-level specificity. ColBERT's **late interaction** keeps one embedding per token for every document. At query time it computes `MaxSim`: for each query token, find its highest-scoring match across all document tokens, then sum those per-token scores. The "HNSW" token in a query gets a strong match against the document that uses it, not the one that doesn't.
-
-**Walk-through with RAGatouille**
-
-```bash
-pip install ragatouille
-```
-
-```python
-from ragatouille import RAGPretrainedModel
-
-# Step 1: Index (downloads ColBERTv2 weights ~500MB on first run)
-RAG = RAGPretrainedModel.from_pretrained("colbert-ir/colbertv2.0")
-
-documents = [
-    "pgvector stores vector embeddings natively inside PostgreSQL.",
-    "HNSW is a graph-based approximate nearest-neighbor index algorithm.",
-    "ColBERT keeps a separate embedding per token for late interaction scoring.",
-]
-
-RAG.index(
-    index_name="my-docs",
-    collection=documents,
-    document_ids=["doc-0", "doc-1", "doc-2"],
-)
-
-# Step 2: Search
-results = RAG.search("how does HNSW differ from flat vector search?", k=3)
-for r in results:
-    print(r["rank"], round(r["score"], 2), r["content"][:70])
-```
-
-**Use it as a reranker (no index needed)**
-
-If you already have a retriever, ColBERT can re-score its top-N candidates on the fly without a pre-built index:
-
-```python
-# Pass any candidate strings from your existing retriever
-reranked = RAG.rerank(
-    query="pgvector vs HNSW: which index is faster?",
-    documents=initial_candidates,  # list[str] from your dense retriever
-    k=5,
-)
-```
-
-This is the lowest-friction entry point: keep your existing embedding pipeline, add `.rerank()` as a second-stage pass to improve precision at virtually no infrastructure cost.
-
-**When to reach for ColBERT:** high-precision technical docs, code search, legal text, or any domain where exact terminology matters. For general semantic similarity, dense embeddings remain fast and sufficient.
-
-**Sources:** [RAGatouille — GitHub](https://github.com/AnswerDotAI/RAGatouille) · [Late Interaction Overview — Weaviate](https://weaviate.io/blog/late-interaction-overview) · [Supercharge Your RAG with Late Interactions — YouTube](https://www.youtube.com/watch?v=xTzUn3G9YA0)
-]]></content:encoded>
-      <media:content url="https://img.youtube.com/vi/xTzUn3G9YA0/maxresdefault.jpg" medium="image" />
-      <media:thumbnail url="https://img.youtube.com/vi/xTzUn3G9YA0/maxresdefault.jpg" />
-    </item>
-
-    <item>
-      <title>Run /context Before Your Claude Code Session Hits the Token Wall — Then Choose Between /compact and /clear</title>
-      <link>https://platform.claude.com/docs/en/build-with-claude/compaction</link>
-      <guid isPermaLink="false">2026-08-03-08-claude-code-context-command-token-audit</guid>
-      <pubDate>Mon, 03 Aug 2026 20:09:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>/context prints a live token-usage breakdown in Claude Code -- run it after heavy file reads to see what's eating your 200k window before a turn's cost compounds.</description>
-      <content:encoded><![CDATA[
-**/context prints a live breakdown of your Claude Code session's token usage — the fastest way to catch a bloating context before each turn's cost compounds to 5× what it was an hour ago.**
-
-Claude Code's context window starts at 200k tokens. What's in it matters for both cost and quality: a session starts lean (system prompt + CLAUDE.md ≈ 6k tokens), but each file read adds 1–2k tokens, MCP servers can add 40k+, and conversation history compounds fast. By the time you feel the session slowing down, you're often deep into the expensive zone.
-
-**Run `/context` to see the breakdown:**
-
-```
-/context
-```
-
-The output groups usage by category — system prompt, CLAUDE.md rules, loaded files, MCP servers, and conversation history. The MCP server line is frequently the biggest surprise: a server with broad tool schemas can add 30–50k tokens before any work begins.
-
-**After you see the breakdown, two commands respond to it:**
-
-- **`/compact`** — replaces conversation history with a structured summary, typically cutting 60–80% of accumulated context. Key decisions, code changes, and file states carry over. Use this for ongoing work where you want to continue the same session.
-- **`/clear`** — wipes conversation history entirely. Context returns to near-zero. Better for task-switching or when the current thread is irrelevant to what comes next.
-
-**The cost math is the reason this matters.** At Sonnet 5's current pricing ($3/MTok input), a turn at 150k context costs roughly $0.45; the same turn at 30k after compaction costs $0.06. Over a two-hour session of 100 turns, that's the difference between $45 and $6 in input costs alone.
-
-**Practical rule:** run `/context` after heavy file reads (initial project exploration, test suite loads), when you switch sub-tasks, and before any loop that will repeat many turns. If MCP servers dominate the breakdown, consider `/clear` and reconnecting only the servers you need for the current task.
-
-The cheapest time to compact is earlier than you think — before the session visibly slows. Make `/context` part of your session hygiene.
-
-**Sources:** [Claude Code Context Management — claudefa.st](https://claudefa.st/blog/guide/mechanics/context-management) · [Claude Code Context Window — Unblocked](https://getunblocked.com/blog/claude-code-context-window/) · [Compaction — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/compaction)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Anthropic's August Housecleaning: Export Your Workbench Prompts Before August 17</title>
-      <link>https://platform.claude.com/docs/en/release-notes/overview</link>
-      <guid isPermaLink="false">2026-08-03-07-anthropic-workbench-experimental-api-retirement-aug17</guid>
-      <pubDate>Mon, 03 Aug 2026 20:08:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Developer Tools</category>
-      <category>LLM</category>
-      <description>The legacy Workbench and three experimental prompt-generation API endpoints retire August 17 -- saved prompts and evals won't transfer to the new stateless Workbench.</description>
-      <content:encoded><![CDATA[
-**The legacy Anthropic Workbench and its companion experimental API endpoints (/generate_prompt, /improve_prompt, /templatize_prompt) retire August 17 — saved prompts and evals won't transfer.**
-
-If your team uses the legacy Workbench in the Anthropic Console, you have until August 17 to export saved prompts, variable templates, and eval runs. None of those persist in the replacement.
-
-**What changes August 17:**
-- `Workbench (legacy)` disappears from the Console for all users. Saved prompts, variables, and evals are not supported in the updated Workbench.
-- `/v1/experimental/generate_prompt`, `/v1/experimental/improve_prompt`, `/v1/experimental/templatize_prompt` — these routes return an error after removal. Update any automation that calls them.
-
-**The replacement Workbench** is a simpler, stateless interface built directly on the public Messages API. What you construct there is the exact JSON payload you'd send from code — no abstraction layer. Better for copy-paste into your app, but nothing persists between sessions.
-
-**Also in the August release notes:** The Claude API no longer bills you when a request returns `stop_reason: "refusal"` with no output generated — a welcome change for safety-gated workloads. And the advisor tool now accepts a `max_tokens` cap to reduce latency on calls that don't need a full-length response.
-
-**Why it matters:** If you've built prompt templates or eval baselines inside the legacy Workbench, the clock is running — export anything you want to keep before August 17.
-
-**Sources:** [Claude Platform Release Notes](https://platform.claude.com/docs/en/release-notes/overview) · [Anthropic Workbench Help](https://support.claude.com/en/articles/8606378-how-do-i-use-the-workbench)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>You Fine-Tuned It — Now Who Hosts It? Together.ai Serves Your Custom Model and 200+ Open Models via One API</title>
-      <link>https://huggingface.co/blog/togethercomputer/together-ft</link>
-      <guid isPermaLink="false">2026-08-03-06-together-ai-fine-tuned-model-serving-api</guid>
-      <pubDate>Mon, 03 Aug 2026 20:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Self-Hosting</category>
-      <category>Fine-Tuning</category>
-      <category>LLM</category>
-      <description>Together.ai is a pay-per-token inference API for 200+ open models -- and the same platform where you can fine-tune and then serve your own LoRA checkpoint via the same OpenAI-compatible endpoint.</description>
-      <content:encoded><![CDATA[
-**Together.ai is one API key for 200+ open-source models and your own LoRA fine-tunes — training and serving on one platform, no GPU infrastructure to manage.**
-
-**What you'll be able to do after this:**
-- Call Llama, Qwen, Mistral, and DeepSeek via an OpenAI-compatible endpoint in three lines of Python
-- Upload training data, run a fine-tuning job, and serve the output — all in one platform, no GPU provisioning
-- Switch from a base model to your fine-tuned checkpoint with a one-line model-name change
-
-After the fine-tuning tutorials (QLoRA with Unsloth, MLX-LM on Mac), the next question is: where does the resulting checkpoint actually run in production? Together.ai answers it cleanly: one platform for inference, fine-tuning, and serving your own checkpoints.
-
-### Base model inference (3 lines)
-
-```bash
-pip install together
-```
-
-```python
-from together import Together
-
-client = Together()  # reads TOGETHER_API_KEY from env
-
-response = client.chat.completions.create(
-    model="Qwen/Qwen3-72B-Instruct",   # 200+ options at docs.together.ai/docs/serverless/models
-    messages=[{"role": "user", "content": "Explain LoRA in one paragraph."}]
-)
-print(response.choices[0].message.content)
-```
-
-The Together client is OpenAI-compatible. If you already use the OpenAI SDK, swap the import and base URL — your streaming, tool-calling, and structured output code works without changes.
-
-### Fine-tune and serve your own checkpoint
-
-```python
-import time
-from together import Together
-
-client = Together()
-
-# 1. Upload training data (JSONL, one example per line)
-upload = client.files.upload(file=("training.jsonl", open("training.jsonl", "rb")))
-
-# 2. Start fine-tuning
-ft = client.fine_tuning.create(
-    training_file=upload.id,
-    model="meta-llama/Llama-3.2-8B-Instruct",
-    n_epochs=3,
-    suffix="my-domain"
-)
-
-# 3. Wait for completion
-while (job := client.fine_tuning.retrieve(ft.id)).status != "completed":
-    time.sleep(30)
-
-# 4. Serve via the same API — one-line model name change
-response = client.chat.completions.create(
-    model=job.output_name,
-    messages=[{"role": "user", "content": "..."}]
-)
-```
-
-**Why Together.ai over self-hosting with vLLM:** serverless endpoints mean no GPU reservations, no Docker, no capacity planning. You pay per token, and your fine-tuned model is available immediately after the training job completes. For high-volume workloads, `client.endpoints.create()` provisions a reserved instance.
-
-**Sources:** [Fine-Tune Any LLM from HuggingFace Hub with Together AI](https://huggingface.co/blog/togethercomputer/together-ft) · [Together.ai Finetuning Cookbook](https://github.com/togethercomputer/together-cookbook/blob/main/Finetuning/Finetuning_Guide.ipynb) · [Deploying a fine-tuned model — Together.ai Docs](https://docs.together.ai/docs/deploying-a-fine-tuned-model)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>PostToolUse Fires Even When the Model Won't: Add Deterministic Side-Effects to Every Claude Code Session</title>
-      <link>https://code.claude.com/docs/en/hooks</link>
-      <guid isPermaLink="false">2026-08-03-05-claude-code-posttooluse-hook-deterministic-automation</guid>
-      <pubDate>Mon, 03 Aug 2026 12:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Claude Code's PostToolUse hook runs after every tool call regardless of model intent — the right place to auto-format, commit checkpoints, and run tests deterministically.</description>
-      <content:encoded><![CDATA[
-**Claude Code's PostToolUse hook fires after every tool call whether or not the model decides to — use it to build auto-format, checkpoint commits, and test runs that happen deterministically, outside model control.**
-
-The critical property of Claude Code hooks is that they run **outside** the model's decision loop. When PostToolUse fires after a `Write` call, the model can't skip it, defer it, or decide it's unnecessary. That gap between "the model might do X" and "X will always happen" is the key to building reliable Claude Code workflows in production.
-
-### How the hook receives its input
-
-Every hook gets a JSON payload on `stdin`. For PostToolUse after a `Write`, the relevant fields are `tool_input.path` (the file just written) and `tool_response` (the tool's result). Use that path to trigger follow-on work:
-
-```bash
-#!/usr/bin/env bash
-# .claude/hooks/auto-format.sh
-set -euo pipefail
-input="$(cat)"
-fp="$(printf '%s' "$input" | node -e   'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
-    try{const j=JSON.parse(s);const ti=j.tool_input||{};
-    process.stdout.write(ti.path||ti.file_path||"")}catch{process.stdout.write("")}
-  })')"
-[ -z "$fp" ] && exit 0
-npx prettier --write "$fp" 2>&1 || true
-```
-
-Wire it up in `.claude/settings.json`:
-
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write",
-        "hooks": [{ "type": "command", "command": ".claude/hooks/auto-format.sh" }]
-      }
-    ]
-  }
-}
-```
-
-### Patterns that become reliable with this setup
-
-- **Auto-format every write.** Run Prettier/Black/gofmt after each `Write` — output is always formatted regardless of what the model produced
-- **Checkpoint commits.** `git add "$fp" && git commit -m "checkpoint: ${fp##*/}"` gives a diff trail of every model edit you can roll back to
-- **Test on change.** After a Write to `src/`, trigger `pnpm test --testPathPattern=$(basename "$fp")` so you see red/green before the model continues
-- **Audit log.** Append `echo "$(date -u): wrote $fp" >> .claude/audit.log` — useful in regulated environments that need a record of AI-assisted edits
-
-### The PreToolUse / PostToolUse split
-
-Use **PreToolUse** to block: return exit code `2` with a reason to stop the tool entirely (this is how `.env*` file guards work). Use **PostToolUse** for side-effects: it runs after the tool completes and Claude receives a summary of what your hook did. That means you can also use PostToolUse to feed structured context back — e.g., "formatted: 3 lines changed" — which Claude can reference in its next step.
-
-**Sources:** [Claude Code Hooks — Official Docs](https://code.claude.com/docs/en/hooks), [Claude Code Hooks Practical Guide — DataCamp](https://www.datacamp.com/tutorial/claude-code-hooks)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Ops Alert: Claude Opus 4.1 API Retires This Tuesday — One-Line Fix Before Your Calls Error Out</title>
-      <link>https://platform.claude.com/docs/en/release-notes/overview</link>
-      <guid isPermaLink="false">2026-08-03-04-opus41-api-retirement-tuesday-deadline</guid>
-      <pubDate>Mon, 03 Aug 2026 12:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <category>Developer Tools</category>
-      <description>Claude Opus 4.1 (claude-opus-4-1-20250805) hits hard API end-of-life on August 5 — two days away. Change one string to claude-opus-4-8 before requests start failing.</description>
-      <content:encoded><![CDATA[
-**Claude Opus 4.1 (`claude-opus-4-1-20250805`) hits hard API end-of-life on August 5 — two days away — and any route still sending requests to that model ID will get errors starting Tuesday.**
-
-The fix is a one-string change:
-
-```python
-# Before
-model = "claude-opus-4-1-20250805"
-
-# After
-model = "claude-opus-4-8"
-```
-
-Claude Opus 4.8 is backward-compatible: same API interface, same parameters, same prompt format. Check env vars, config files, and hardcoded model strings across your codebase — the migration typically takes under an hour including testing.
-
-Also in the queue: **OpenAI refreshed GPT-5.5 Instant** with style and quality improvements and removed Canvas in favor of in-chat code and writing blocks. And **o3 retires from ChatGPT on August 26** — start moving any eval suites or benchmarks that depend on o3 to o4-mini or GPT-5 now before the sunset.
-
-**Why it matters:** August 5 is a hard cut-off — requests to the retired endpoint return errors, not degraded responses. "It worked yesterday" will turn into a broken CI run or a failed production deploy overnight. A one-line fix in dev takes minutes; diagnosing an unexpected API error in prod takes much longer.
-
-**Sources:** [Claude Platform Release Notes](https://platform.claude.com/docs/en/release-notes/overview), [Opus 4.1 Migration Guide — TheRouter.ai](https://therouter.ai/news/anthropic-deprecates-claude-opus-4-1-august-5-migration-guide/), [OpenAI Model Release Notes](https://help.openai.com/en/articles/9624314-model-release-notes)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Instrument Every LLM Call Once and Route Traces Anywhere: OpenTelemetry's GenAI Semantic Conventions</title>
-      <link>https://opentelemetry.io/blog/2026/genai-observability</link>
-      <guid isPermaLink="false">2026-08-03-03-otel-genai-semantic-conventions-agent-tracing</guid>
-      <pubDate>Mon, 03 Aug 2026 12:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>OTel's 2026 GenAI conventions add standard gen_ai.* span attributes to every LLM call — instrument once with three setup lines and swap backends without touching your code.</description>
-      <media:content url="https://img.youtube.com/vi/17pfYqcGciw/maxresdefault.jpg" medium="image"/>
-      <media:thumbnail url="https://img.youtube.com/vi/17pfYqcGciw/maxresdefault.jpg"/>
-      <content:encoded><![CDATA[
-**OpenTelemetry's GenAI semantic conventions let you add standard `gen_ai.*` attributes to every LLM call in three lines of Python, then route traces to any OTel-compatible backend without changing your instrumentation.**
-
-Every observability tool — LangSmith, Arize Phoenix, W&B Weave, Langfuse — has its own SDK you install, wrap your LLM calls with, and maintain. Switch tools and you rewrite your instrumentation. OpenTelemetry's [2026 GenAI semantic conventions](https://opentelemetry.io/blog/2026/genai-observability) fix that: they define exactly what a "LLM call span" looks like across any provider, so one instrumentation pass works everywhere.
-
-**What you'll be able to do after this:**
-- Add standard `gen_ai.system`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`, and tool-call spans to every LLM call and agent step with three lines of setup — no manual span creation
-- Swap observability backends (LangSmith → Arize Phoenix → Grafana → Jaeger) by changing one env var without touching instrumentation code
-- Track per-call token costs, model latency, and agent step timing in structured trace data that any OTel-compatible backend can ingest
-
-### The key span attributes
-
-| Attribute | What it captures |
-|---|---|
-| `gen_ai.system` | Provider (`anthropic`, `openai`, `cohere`) |
-| `gen_ai.request.model` | Model string |
-| `gen_ai.usage.input_tokens` | Tokens consumed from prompt |
-| `gen_ai.usage.output_tokens` | Tokens consumed in completion |
-| `gen_ai.tool.name` | Tool/function name on tool-call spans |
-
-### Walk-through: instrument any LLM client in 3 lines
-
-[OpenLLMetry](https://www.youtube.com/watch?v=17pfYqcGciw) is an open-source library that auto-instruments OpenAI, Anthropic, LangChain, and 15+ other providers with the GenAI conventions — no manual span creation required.
-
-```bash
-pip install traceloop-sdk
-```
-
-```python
-from traceloop.sdk import Traceloop
-
-# One call at startup — every subsequent LLM and agent call is traced
-Traceloop.init(app_name="my-agent", disable_batch=True)
-```
-
-That's the entire instrumentation. Every call to LangChain, the Anthropic SDK, or OpenAI automatically gets `gen_ai.*` spans with token counts, latency, inputs, and outputs.
-
-**Swap backends by setting one env var** — no code change needed:
-
-```bash
-# Route to LangSmith
-export TRACELOOP_BASE_URL="https://api.smith.langchain.com"
-
-# Route to Arize Phoenix (local)
-export TRACELOOP_BASE_URL="http://localhost:6006"
-
-# Route to any OTel collector
-export TRACELOOP_BASE_URL="http://otel-collector:4318"
-```
-
-What you get: a trace tree for each agent run — top-level agent span → LLM call spans (with token counts) → tool-call spans (with inputs and outputs). Every step is addressable for cost analysis, latency debugging, and regression detection, regardless of which backend you're currently using.
-
-**Sources:** [OpenTelemetry Blog — GenAI Observability 2026](https://opentelemetry.io/blog/2026/genai-observability), [OpenLLMetry Video Tutorial](https://www.youtube.com/watch?v=17pfYqcGciw), [SigNoz — Observing LLM Applications with OpenTelemetry](https://signoz.io/blog/opentelemetry-llm)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Claude Can Call Multiple Tools in One Turn — Process Them in Parallel With asyncio.gather</title>
-      <link>https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use</link>
-      <guid isPermaLink="false">2026-08-03-02-claude-api-parallel-tool-use-asyncio</guid>
-      <pubDate>Mon, 03 Aug 2026 04:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>When Claude returns multiple tool_use blocks in one turn, running them with asyncio.gather instead of sequentially cuts your agent's wall time to the slowest single call.</description>
-      <content:encoded><![CDATA[
-**When Claude's response includes multiple tool_use blocks, running them with asyncio.gather instead of sequentially cuts your agent's wall time to the slowest single call — a one-function change to any client loop.**
-
-When you define multiple tools, Claude sometimes returns several `tool_use` blocks in a single turn — each an independent function call it wants to make simultaneously. Most client loops process them sequentially. That leaves latency on the table.
-
-Anthropic's [parallel tool use docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) make this explicit: collect all blocks, execute them concurrently, then return **all results together in a single user turn**.
-
-## The pattern
-
-```python
-import asyncio
-import anthropic
-
-client = anthropic.AsyncAnthropic()
-
-async def run_tool(name: str, tool_input: dict) -> str:
-    match name:
-        case "search_web": return await web_search(tool_input["query"])
-        case "read_file":  return await read_file(tool_input["path"])
-        case "fetch_url":  return await fetch_url(tool_input["url"])
-    raise ValueError(f"unknown tool: {name}")
-
-async def agent_loop(messages: list, tools: list) -> str:
-    while True:
-        response = await client.messages.create(
-            model="claude-sonnet-5-20261001",
-            max_tokens=4096,
-            tools=tools,
-            messages=messages,
-        )
-
-        if response.stop_reason != "tool_use":
-            return next(b.text for b in response.content if hasattr(b, "text"))
-
-        tool_uses = [b for b in response.content if b.type == "tool_use"]
-
-        # Run all tool calls concurrently, not sequentially
-        results = await asyncio.gather(
-            *[run_tool(tu.name, tu.input) for tu in tool_uses]
-        )
-
-        # Return all results in one user turn
-        messages.append({"role": "assistant", "content": response.content})
-        messages.append({
-            "role": "user",
-            "content": [
-                {"type": "tool_result", "tool_use_id": tu.id, "content": result}
-                for tu, result in zip(tool_uses, results)
-            ],
-        })
-```
-
-## Why it matters
-
-A search + file read that each take 200 ms sequentially takes 400 ms. In parallel: 200 ms. The speedup compounds over agents that make many tool calls per turn.
-
-**One caveat:** only parallelize independent operations. Tools with ordering requirements or shared side effects (write a file then read it; increment a counter twice) should run sequentially — extract those into a separate sequential pass.
-
-**Sources:** [Parallel Tool Use — Anthropic Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) · [Implementing Async Tool Execution — CodeSignal](https://codesignal.com/learn/courses/parallelizing-claude-agentic-systems-in-python/lessons/parallelizing-tool-execution) · [Parallel Tool Execution with Claude — Medium](https://medium.com/@gor17v/parallel-tool-execution-with-claude-4-building-high-performing-agents-with-bedrock-converse-api-433da0efab60)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Fine-Tune Any LLM on Your Mac in 30 Minutes: LoRA With MLX-LM on Apple Silicon</title>
-      <link>https://www.youtube.com/watch?v=WWrFwePNpi0</link>
-      <guid isPermaLink="false">2026-08-03-01-mlx-lm-lora-fine-tuning-apple-silicon-mac</guid>
-      <pubDate>Mon, 03 Aug 2026 04:02:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Fine-Tuning</category>
-      <category>Self-Hosting</category>
-      <description>Apple's MLX-LM runs a full LoRA fine-tune on Mistral 7B in under 30 minutes on any M-series Mac — install, prepare JSONL, train, and run inference with your adapter for free.</description>
-      <content:encoded><![CDATA[
-**Apple's MLX-LM framework lets you LoRA fine-tune a 7B open-weight model on any M-series Mac in under 30 minutes — no cloud GPU, no cost, and the whole adapter fits alongside the quantized base model in unified memory.**
-
-**What you'll be able to do after this:**
-
-- Install MLX-LM and verify your Mac can run a 7B model in two commands
-- Prepare a JSONL dataset and launch a LoRA training run in minutes
-- Run inference with your adapter and optionally export for Ollama
-
-Apple's [MLX framework](https://github.com/ml-explore/mlx) uses the unified memory architecture of Apple Silicon — your full RAM pool is available for weights and compute with no separate VRAM ceiling. `mlx-lm` is the pip-installable Python package that wraps MLX for text generation and fine-tuning. A 16 GB M2 MacBook Pro runs Mistral 7B at ~40 tokens/sec and can complete a LoRA adapter fine-tune in under 30 minutes, entirely offline.
-
-## Step 1: Install and verify
-
-```bash
-pip install mlx-lm
-
-# Pull and test a 4-bit quantized model from the mlx-community HuggingFace org
-mlx_lm.generate \
-  --model mlx-community/Mistral-7B-Instruct-v0.3-4bit \
-  --prompt "Explain LoRA in one sentence"
-```
-
-The `mlx-community` HuggingFace org hosts pre-quantized, MLX-ready versions of most popular open models — no manual conversion needed.
-
-## Step 2: Prepare your dataset
-
-MLX-LM expects JSONL — one JSON object per line with `prompt` and `completion` keys:
-
-```jsonl
-{"prompt": "Summarize this ticket: <ticket>", "completion": "Bug: login form..."}
-{"prompt": "Write a SQL query that returns active users", "completion": "SELECT ..."}
-```
-
-Save as `data/train.jsonl` and `data/valid.jsonl`.
-
-## Step 3: Fine-tune
-
-```bash
-mlx_lm.lora \
-  --model mlx-community/Mistral-7B-Instruct-v0.3-4bit \
-  --train \
-  --data ./data \
-  --iters 600 \
-  --batch-size 1 \
-  --num-layers 16
-```
-
-Adapter weights save to `./adapters/` by default. Key flags:
-
-| Flag | What it does |
-|---|---|
-| `--fine-tune-type` | `lora` (default), `dora`, or `full` |
-| `--num-layers` | Transformer layers that receive adapters (default 16; lower = faster) |
-| `--iters` | Training steps — 600–1000 for small datasets |
-
-## Step 4: Inference with your adapter
-
-```bash
-mlx_lm.generate \
-  --model mlx-community/Mistral-7B-Instruct-v0.3-4bit \
-  --adapter-path ./adapters \
-  --prompt "Your domain-specific test prompt"
-```
-
-## Step 5 (optional): Merge and export for Ollama
-
-```bash
-mlx_lm.fuse \
-  --model mlx-community/Mistral-7B-Instruct-v0.3-4bit \
-  --adapter-path ./adapters \
-  --save-path ./fused-model
-```
-
-Convert the output to GGUF with llama.cpp, then load it into Ollama with a Modelfile for persistent local serving.
-
-**Hardware floor:** M1/M2/M3/M4 (all variants); 8 GB RAM works for 1B–3B models; 16 GB for 7B fine-tuning; 32 GB for 13B+.
-
-**Sources:** [Fine-tune LLM on Apple Silicon Using MLX — YouTube](https://www.youtube.com/watch?v=WWrFwePNpi0) · [Run and Fine-Tune LLMs on Mac with MLX-LM — Markaicode](https://markaicode.com/run-fine-tune-llms-mac-mlx-lm/) · [LoRA Fine-Tuning on Apple Silicon MacBook — Towards Data Science](https://towardsdatascience.com/lora-fine-tuning-on-your-apple-silicon-macbook-432c7dab614a/) · [Fine-Tuning LLMs Locally Using MLX LM — DZone](https://dzone.com/articles/fine-tuning-llms-locally-using-mlx-lm-guide)
-]]></content:encoded>
-      <media:content url="https://img.youtube.com/vi/WWrFwePNpi0/maxresdefault.jpg" medium="image"/>
-      <media:thumbnail url="https://img.youtube.com/vi/WWrFwePNpi0/maxresdefault.jpg"/>
-    </item>
-
-    <item>
-      <title>Delimit Your Claude System Prompts With XML Tags — It Reduces Drift in Long Agent Sessions</title>
-      <link>https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags</link>
-      <guid isPermaLink="false">2026-08-02-07-xml-tags-claude-system-prompt-structure</guid>
-      <pubDate>Sun, 02 Aug 2026 20:02:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Best Practices</category>
-      <category>Agents</category>
-      <description>Wrap system-prompt sections in role, instructions, context, and output_format XML tags — Claude's training reinforces semantic structure, reducing instruction drift in long agentic sessions.</description>
-      <content:encoded><![CDATA[
-**Wrapping Claude system-prompt sections in separate role, instructions, context, and output_format XML tags reduces drift in long agent sessions — a five-minute change to any existing prompt.**
-
-Most Claude agent system prompts are plain prose paragraphs. That works for short sessions, but as a conversation extends past 10–15 turns, Claude starts blending constraints with context. "You have access to a PostgreSQL database" ends up weighted the same as "never delete rows without confirmation." Structured tags fix this by giving Claude clear semantic buckets.
-
-Anthropic's prompt engineering docs specifically recommend this pattern: Claude's training reinforces XML-delimited structure (it's the same format Claude uses internally for tool call results and chain-of-thought tags).
-
-## The before and after
-
-**Before — one blob of prose:**
-
-```
-You are a senior backend engineer. You have access to the codebase in /workspace.
-Work on one file at a time. Never modify tests. Output only changed code with no
-explanation. If a task requires creating new files, ask first.
-```
-
-**After — four semantic buckets:**
-
-```xml
-<role>
-You are a senior backend engineer working on a production Python codebase.
-</role>
-
-<context>
-The codebase is mounted at /workspace. Framework: FastAPI + PostgreSQL.
-No internet access. Available tools: read_file, write_file, run_tests.
-</context>
-
-<instructions>
-- Work on one file at a time.
-- Never modify files under /workspace/tests/.
-- If a task requires creating new files, confirm with the user before proceeding.
-- Output only the changed code. No preamble, no explanation.
-</instructions>
-
-<output_format>
-One fenced code block per changed file, annotated with the file path as the info string:
-```python /workspace/app/auth.py
-</output_format>
-```
-
-## Why four tags?
-
-| Tag | What goes in it | Why it's separate |
-|---|---|---|
-| `<role>` | Who Claude is in this session | Sets persona without competing with rules |
-| `<context>` | Facts about the environment | Information to reason from, not rules to follow |
-| `<instructions>` | Rules and constraints | Highest-priority section — followed most reliably |
-| `<output_format>` | Response shape | Isolated so format drift doesn't corrupt rules |
-
-## Handle examples carefully
-
-If your system prompt includes examples, put them last and use `<good_example>` / `<bad_example>` subtags. Claude generalizes from examples — a plain "bad example" can become a learned pattern if it's the last thing in the prompt. Explicit tags make Claude treat them as classification examples, not demonstrations to emulate.
-
-This costs nothing to add and compounds in value across longer sessions where context windows shrink and reliable recall of earlier instructions matters more.
-
-**Sources:** [Use XML Tags to Structure Your Prompts — Anthropic Prompt Engineering](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags) · [System Prompts — Anthropic Docs](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/system-prompts)
-      ]]></content:encoded>
-    </item>
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
