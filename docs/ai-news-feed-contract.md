@@ -86,7 +86,7 @@ what gets written into the feed.
 > and customizing AI services: RAG, knowledge bases, embeddings/vectors,
 > fine-tuning/LoRA, self-hosting, and the surrounding stack — HuggingFace, Colab,
 > Ollama, Supabase, Cloudflare, OpenRouter, Fireworks, vLLM), and **(3) AI-native
-> design & design-to-code** (Claude Design, Magic Patterns, v0, Figma Make and
+> design & design-to-code** (Claude Design, v0, Magic Patterns, Figma Make and
 > friends — generating real UI with agents and landing it in a real codebase).
 > They're strong engineers but **beginners at the custom-model side**, so the blog
 > doubles as their **learning center**: a structured, hands-on teachable track (the
@@ -175,9 +175,29 @@ what gets written into the feed.
 >    resource for any uncovered topic — that should be rare, not routine.
 > 4. **Design & design-to-code (RAMP-UP: one every run until the base is built).**
 >    AI design tools and how they fit a real shipping workflow: **Claude Design**
->    first, plus Magic Patterns, v0, Figma Make, Lovable, Framer AI. The reader is
+>    first, plus v0, Magic Patterns, and Figma Make. The reader is
 >    adopting these right now and struggling with *how to work with them*, not with
->    what they are — so hands-on beats announcement every time. Good angles:
+>    what they are — so hands-on beats announcement every time.
+>
+>    **IN SCOPE vs OUT OF SCOPE — apply this test before you write.** The blog
+>    covers **design-to-code**: tools that emit code or components the reader takes
+>    into *their own repo*, where Claude Code picks the work up. It does NOT cover
+>    **app-builder SaaS**: products that build, host, and own the running app for
+>    you. Those compete with the reader's own stack, and a post about one is a
+>    product tour, not a technique.
+>    - **In:** Claude Design, v0, Magic Patterns, Figma (Make / Dev Mode / Code
+>      Connect) — each hands you components or a codebase you own.
+>    - **Out:** Lovable, Framer AI, Bolt, Replit Agent, and any comparable
+>      build-and-host platform. Also out, for ANY tool in or out of scope: the
+>      "here is $TOOL and what it does" product-tour post.
+>    - **The test:** at the end of the workflow, does the reader hold code in a repo
+>      they control, that Claude Code can then work on? If yes, in scope. If the
+>      answer is "the app lives on the vendor's platform", out of scope.
+>    - One Lovable post (`2026-08-18-07`) predates this rule and stays published.
+>      **It is not a precedent** — do not read its presence in the archive as
+>      licence to cover similar platforms.
+>
+>    Good angles:
 >    - Getting generated UI out of the tool and into a real repo (Next.js/React,
 >      an existing component library, an existing design system).
 >    - The **handoff to Claude Code**: what to regenerate in the design tool vs.
@@ -287,7 +307,7 @@ what gets written into the feed.
 >    responsive behavior in generated components; when to regenerate vs. hand-edit.
 > Feature these tools hands-on: HuggingFace, sentence-transformers, Google Colab,
 > Unsloth, Ollama, Supabase/pgvector, Cloudflare, OpenRouter, Fireworks, vLLM,
-> Claude Design, Magic Patterns, v0, Figma Make.
+> Claude Design, v0, Magic Patterns, Figma Make.
 >
 > **Sources to check every run — prefer official/first-party over aggregators.**
 > Scan these for new releases, features, and guides; the audience's most relevant
@@ -310,8 +330,10 @@ what gets written into the feed.
 > - **AI design & design-to-code (check every run during ramp-up):** Claude Design
 >   (`support.claude.com` guides + `claude.com/blog`), Magic Patterns
 >   (`magicpatterns.com` blog/changelog), v0 (`v0.dev`, Vercel changelog), Figma
->   (`figma.com/blog` — Make, Dev Mode, Code Connect), Lovable, Framer AI, plus
+>   (`figma.com/blog` — Make, Dev Mode, Code Connect), plus
 >   design-system-meets-AI writing from practitioners actually shipping with these.
+>   Do NOT scan app-builder platforms (Lovable, Framer, Bolt, Replit Agent) — they
+>   are out of scope; see the in/out test in bucket 4.
 >   For this bucket a good hands-on walk-through outranks a product announcement.
 > Surface a new product feature/guide as news (the announcement) or as a
 > practitioner/teachable post (how to use it) — whichever fits.
