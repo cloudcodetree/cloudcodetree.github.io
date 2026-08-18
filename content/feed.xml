@@ -10,7 +10,41 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 18 Aug 2026 12:10:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 18 Aug 2026 20:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Describe a Component, Get Real Code: v0 for Designers and PMs Who Don't Write React</title>
+      <link>https://v0.dev</link>
+      <guid isPermaLink="false">2026-08-18-10-v0-first-hour-designer-pm-no-code</guid>
+      <pubDate>Tue, 18 Aug 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>v0.dev generates a clickable React component from a plain-text description — nothing to install, free to start, and the code hands straight to your engineer or Claude Code.</description>
+      <content:encoded><![CDATA[**v0.dev turns a plain sentence into a clickable React component — nothing to install, free to start, and the output is code your engineer or Claude Code can take straight into a real codebase.**
+
+You start at [v0.dev](https://v0.dev) with a free account (per v0's free plan, 200 credits per month — enough for roughly 10–20 components). The interface is a text box. Write what you need:
+
+> "A card showing a user's name, avatar, and two-line bio. Three cards per row on desktop. Soft drop shadow, white background."
+
+v0 renders a live, interactive preview alongside the generated code in seconds.
+
+**What you'll be able to do after this:** describe a UI component in plain English, refine it visually, and hand the resulting code to your engineering team or Claude Code — without opening a code editor.
+
+**Three ways to refine from the first draft:**
+- Type a follow-up message: "Center the name, increase the font size, add a subtle hover state"
+- Upload a screenshot or rough sketch — image-to-code often produces more accurate results than an equivalent text description
+- Switch to **Design Mode** (the paint icon) to drag spacing, swap colors, and tweak typography without touching the prompt
+
+**Getting the code to your team.** When the component looks right, click the code tab and copy. That is all the handoff requires — paste it into a Slack message, a GitHub Gist, or a new file and send it. Engineers can also pull it directly into an existing Next.js project with `npx v0 add` on their machine.
+
+**The one thing to name at handoff time:** v0 generates components in shadcn/ui and Tailwind CSS. The component reflects your brief's *shape and behavior*, but not your brand's colors, fonts, or tokens. An engineer (or Claude Code) needs one pass to swap in the real design system. That is the expected division of work: you define the structure and the interaction, they land it in the actual codebase. Naming this upfront avoids the "it doesn't look like our brand" conversation after the handoff.
+
+**Sources:** [v0.dev](https://v0.dev) · [UI with v0 — Vercel Academy](https://vercel.com/academy/ai-sdk/ui-with-v0) · [What Is v0? A Designer's Complete 2026 Guide — Mantlr](https://mantlr.com/blog/what-is-v0-2026) · [How to Use v0 for Beginners — Ultimate QA](https://ultimateqa.com/how-to-use-v0-by-vercel-for-beginners/)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Anthropic's First Operating Profit and the Path to a $2T IPO</title>
