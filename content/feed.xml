@@ -78,6 +78,39 @@ From the terminal (while on the PR's branch):
     </item>
 
     <item>
+      <title>Embed Sentences, Answer With Paragraphs: Parent-Document Retrieval Fixes the Chunk-Size Tradeoff</title>
+      <link>https://dev.to/rushanksavant/sentence-window-retrieval-212d</link>
+      <guid isPermaLink="false">2026-08-18-09-parent-document-retrieval-chunk-size</guid>
+      <pubDate>Tue, 18 Aug 2026 16:26:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Embeddings</category>
+      <description>Small chunks retrieve precisely but lack context; big chunks have context but retrieve poorly. Parent-document retrieval lets you stop choosing: embed the sentence, return the paragraph.</description>
+      <content:encoded><![CDATA[
+**Stop tuning chunk size. Embed small chunks for precise retrieval, then send the LLM the larger passage each chunk came from.**
+
+Every RAG pipeline hits the same wall. Small chunks embed cleanly and match queries precisely, but hand the model a sentence with no surrounding context. Large chunks carry context but dilute the embedding, so retrieval gets vague. Tuning the number trades one failure for the other.
+
+**What you'll be able to do after this:**
+- Retrieve on precise, sentence-sized embeddings without starving the model of context
+- Wire it up in LangChain with two splitters instead of one
+- Know what it costs, so you can decide whether it's worth it
+
+**How it works.** You store two representations. Small *child* chunks go in the vector store and are the only thing you search. Each child keeps the id of the larger *parent* passage it came from, and parents live in a separate docstore. At query time: similarity search hits a child → read its parent id → fetch the parent from the docstore → send the parent to the model. You search the needle and answer with the paragraph.
+
+**In LangChain** this is `ParentDocumentRetriever`, built from a `child_splitter`, a `parent_splitter`, a `vectorstore`, and a `docstore`. [Rushank Savant's walk-through](https://dev.to/rushanksavant/sentence-window-retrieval-212d) uses a 100-character child splitter with no overlap against a 400-character parent splitter with 50-character overlap — a useful starting ratio. LlamaIndex does the same thing differently: `SentenceWindowNodeParser` embeds each sentence but stashes the neighbouring sentences in metadata, then `MetadataReplacementPostProcessor` swaps the window back in before the model sees it.
+
+**What it costs.** That write-up is honest about the tradeoffs, and they're real: you store your corpus twice, the id lookup adds a hop of latency, overlapping parents mean you resend some tokens, and the vector store and docstore now have to stay in sync. A fixed window also can't help when the context you need sits outside it.
+
+**Sources:** [Sentence window retrieval — Rushank Savant](https://dev.to/rushanksavant/sentence-window-retrieval-212d) · [LangChain ParentDocumentRetriever reference](https://reference.langchain.com/python/langchain-classic/retrievers/parent_document_retriever) · [Chunking for RAG — Vectara](https://www.vectara.com/blog/grounded-generation-done-right-chunking)
+]]></content:encoded>
+      <media:content url="https://media2.dev.to/dynamic/image/width=1200,height=627,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fsal6acets6eqjs75qwg5.jpg" medium="image" />
+      <media:thumbnail url="https://media2.dev.to/dynamic/image/width=1200,height=627,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fsal6acets6eqjs75qwg5.jpg" />
+    </item>
+
+    <item>
       <title>A Better Prompt Won't Fix This: The Accessibility Failures That Survive AI UI Generation</title>
       <link>https://accessibe.com/accessibility-platform/reports/gen-ai-ecommerce/accessibility-audit</link>
       <guid isPermaLink="false">2026-08-18-08-generated-ui-accessibility-review-pass</guid>
@@ -7458,105 +7491,7 @@ One migration warning: poorly designed multi-agent setups on AgentCore can cost 
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Catch LLM Regressions Before Your Users Do: Unit Testing AI Outputs with deepeval</title>
-      <link>https://deepeval.com/docs/getting-started</link>
-      <guid isPermaLink="false">2026-08-04-08-deepeval-llm-unit-testing-python</guid>
-      <pubDate>Tue, 04 Aug 2026 20:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>deepeval brings pytest-style unit testing to LLM outputs -- write a threshold assertion, run it in CI, and catch hallucinations and quality regressions before they ship.</description>
-      <media:content url="https://cdn.hashnode.com/res/hashnode/image/upload/v1764782216715/fc1f7b09-d71d-4917-a249-f95686d23520.png" medium="image" />
-      <media:thumbnail url="https://cdn.hashnode.com/res/hashnode/image/upload/v1764782216715/fc1f7b09-d71d-4917-a249-f95686d23520.png" />
-      <content:encoded><![CDATA[
-**deepeval brings pytest-style unit testing to LLM outputs — write a threshold assertion, run it in CI, catch regressions before they ship.**
-
-**What you'll be able to do after this:**
-
-- Write LLM unit tests that assert on answer quality, faithfulness, and hallucination — not just string equality
-- Apply 50+ research-backed metrics (GEval, answer relevancy, contextual faithfulness) to any Claude or OpenAI output
-- Wire deepeval into CI so quality regressions fail the build before reaching production
-
-## Why testing LLM outputs matters
-
-Once you've built a RAG system or agent, the hardest part isn't getting it to work — it's knowing when it stopped. A model upgrade, a prompt tweak, or a retrieval change can silently degrade answers. deepeval catches those regressions with the same discipline you apply to unit tests.
-
-## Install
-
-```bash
-pip install -U deepeval
-```
-
-## Write your first test (test_agent.py)
-
-```python
-from deepeval import assert_test
-from deepeval.test_case import LLMTestCase, SingleTurnParams
-from deepeval.metrics import GEval, AnswerRelevancyMetric
-
-def test_answer_quality():
-    # Call your LLM/agent here and capture the output
-    output = my_agent.answer("What is the capital of France?")
-
-    test_case = LLMTestCase(
-        input="What is the capital of France?",
-        actual_output=output,
-        expected_output="Paris"
-    )
-
-    correctness = GEval(
-        name="Correctness",
-        criteria="Is the actual output factually correct based on the expected output?",
-        evaluation_params=[SingleTurnParams.ACTUAL_OUTPUT, SingleTurnParams.EXPECTED_OUTPUT],
-        threshold=0.8
-    )
-    relevancy = AnswerRelevancyMetric(threshold=0.7)
-
-    assert_test(test_case, [correctness, relevancy])
-```
-
-## Run it
-
-```bash
-deepeval test run test_agent.py
-```
-
-The output shows per-metric scores, reasons for failures, and a pass/fail verdict. If `actual_output` scores below the threshold, the test fails — exactly like a pytest assertion.
-
-## Add RAG-specific metrics
-
-```python
-from deepeval.metrics import FaithfulnessMetric, ContextualRelevancyMetric
-
-test_case = LLMTestCase(
-    input="What's our return policy?",
-    actual_output=rag_output,
-    retrieval_context=retrieved_chunks  # the passages from your vector store
-)
-
-assert_test(test_case, [
-    FaithfulnessMetric(threshold=0.8),        # output doesn't hallucinate beyond context
-    ContextualRelevancyMetric(threshold=0.7)  # retrieved context was relevant to the question
-])
-```
-
-## Wire into CI
-
-```yaml
-# .github/workflows/eval.yml
-- name: Run LLM eval
-  run: deepeval test run tests/
-```
-
-Any test falling below its threshold breaks the build. Add `deepeval login` to push results to Confident AI for trend tracking across runs — useful for catching slow quality drift that no single test-run exposes.
-
-**Sources:** [deepeval Getting Started](https://deepeval.com/docs/getting-started) · [deepeval — The LLM Evaluation Framework](https://deepeval.com/) · [Using DeepEval for LLM Evaluation in Python — Codecademy](https://www.codecademy.com/article/using-deepeval-for-llm-evaluation-python)
-]]></content:encoded>
-    </item>
-
+    
     
     
     

@@ -1,5 +1,23 @@
 [
   {
+    "id": "2026-08-18-09-parent-document-retrieval-chunk-size",
+    "title": "Embed Sentences, Answer With Paragraphs: Parent-Document Retrieval Fixes the Chunk-Size Tradeoff",
+    "excerpt": "Small chunks retrieve precisely but lack context; big chunks have context but retrieve poorly. Parent-document retrieval lets you stop choosing: embed the sentence, return the paragraph.",
+    "author": "Chris Harper",
+    "date": "08-18-2026",
+    "publishedAt": "2026-08-18T16:26:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "RAG",
+      "Embeddings"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-18-09-parent-document-retrieval-chunk-size.jpg",
+    "imageSource": "https://dev.to/rushanksavant/sentence-window-retrieval-212d",
+    "content": "**Stop tuning chunk size. Embed small chunks for precise retrieval, then send the LLM the larger passage each chunk came from.**\n\nEvery RAG pipeline hits the same wall. Small chunks embed cleanly and match queries precisely, but hand the model a sentence with no surrounding context. Large chunks carry context but dilute the embedding, so retrieval gets vague. Tuning the number trades one failure for the other.\n\n**What you'll be able to do after this:**\n- Retrieve on precise, sentence-sized embeddings without starving the model of context\n- Wire it up in LangChain with two splitters instead of one\n- Know what it costs, so you can decide whether it's worth it\n\n**How it works.** You store two representations. Small *child* chunks go in the vector store and are the only thing you search. Each child keeps the id of the larger *parent* passage it came from, and parents live in a separate docstore. At query time: similarity search hits a child → read its parent id → fetch the parent from the docstore → send the parent to the model. You search the needle and answer with the paragraph.\n\n**In LangChain** this is `ParentDocumentRetriever`, built from a `child_splitter`, a `parent_splitter`, a `vectorstore`, and a `docstore`. [Rushank Savant's walk-through](https://dev.to/rushanksavant/sentence-window-retrieval-212d) uses a 100-character child splitter with no overlap against a 400-character parent splitter with 50-character overlap — a useful starting ratio. LlamaIndex does the same thing differently: `SentenceWindowNodeParser` embeds each sentence but stashes the neighbouring sentences in metadata, then `MetadataReplacementPostProcessor` swaps the window back in before the model sees it.\n\n**What it costs.** That write-up is honest about the tradeoffs, and they're real: you store your corpus twice, the id lookup adds a hop of latency, overlapping parents mean you resend some tokens, and the vector store and docstore now have to stay in sync. A fixed window also can't help when the context you need sits outside it.\n\n**Sources:** [Sentence window retrieval — Rushank Savant](https://dev.to/rushanksavant/sentence-window-retrieval-212d) · [LangChain ParentDocumentRetriever reference](https://reference.langchain.com/python/langchain-classic/retrievers/parent_document_retriever) · [Chunking for RAG — Vectara](https://www.vectara.com/blog/grounded-generation-done-right-chunking)"
+  },
+  {
     "id": "2026-08-18-08-generated-ui-accessibility-review-pass",
     "title": "A Better Prompt Won't Fix This: The Accessibility Failures That Survive AI UI Generation",
     "excerpt": "An audit of two AI-generated storefronts found the same four critical accessibility failures in both — a detailed prompt removed the minor issues and none of the critical ones.",
