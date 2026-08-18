@@ -245,9 +245,10 @@ what gets written into the feed.
 >    - **The test:** at the end of the workflow, does the reader hold code in a repo
 >      they control, that Claude Code can then work on? If yes, in scope. If the
 >      answer is "the app lives on the vendor's platform", out of scope.
->    - One Lovable post (`2026-08-18-07`) predates this rule and stays published.
->      **It is not a precedent** — do not read its presence in the archive as
->      licence to cover similar platforms.
+>    - A Lovable post was published on 2026-08-18 before this rule existed and has
+>      since been **removed** (see `content/removed-posts.json`). If you find
+>      app-builder coverage in the archive, treat it as a mistake that was
+>      corrected, never as licence to cover similar platforms.
 >
 >    Good angles:
 >    - Getting generated UI out of the tool and into a real repo (Next.js/React,

@@ -145,47 +145,6 @@ That result makes sense once you notice what the model is optimising for. ARIA r
       <media:thumbnail url="https://master.dev/blog/wp-json/social-image-generator/v1/image/9221" />
     </item>
 
-    <item>
-      <title>Your First Working App in an Afternoon: Lovable for Product Managers and Designers</title>
-      <link>https://lovable.dev/guides/how-to-develop-app-idea-from-scratch</link>
-      <guid isPermaLink="false">2026-08-18-07-lovable-pm-designer-first-hour</guid>
-      <pubDate>Tue, 18 Aug 2026 12:10:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Design</category>
-      <category>Design-to-Code</category>
-      <description>Lovable turns a plain-English description into a clickable, shareable, full-stack app with no GitHub account, no build step, and no code required — a genuine first-hour guide for PMs and designers.</description>
-      <content:encoded><![CDATA[**Lovable builds a clickable, shareable, full-stack app from a plain-English prompt — no code, no GitHub account, no build step required.**
-
-Go to [lovable.dev](https://lovable.dev) and describe your idea the way you'd explain it to a developer over lunch — not a spec, a story. "I want a tool where our support team logs customer calls, tags each one by issue type, and can see a dashboard of the most common tags this week." Lovable builds the screens, the data model, and the backend in one pass.
-
-## Before it writes code: Plan Mode
-
-Lovable 2.0 (February 2026) introduced Plan Mode. Before any code is generated, Lovable shows you exactly what it intends to build — pages, user flows, data structures. You review, adjust, and approve. This is the design-review step that keeps the first version from going sideways. Enable it before you submit your first prompt.
-
-## What you can change without touching code
-
-- **Visual Edits**: click any element in the preview and adjust text, color, spacing, or layout directly. No code required.
-- **Themes**: set your brand colors and typography once in one panel; every page updates automatically.
-- **Voice Mode**: describe a change out loud and Lovable applies it — useful when you're reviewing on mobile.
-- **Prompt Queue**: stack up to 50 follow-up prompts and let Lovable execute them in order, good for batch changes across pages.
-
-## What Lovable can't do on its own
-
-- Match a complex existing design system (if your company has a component library, an engineer will need to sync tokens afterward).
-- Integrate with internal tools that require a custom auth layer or private network.
-- Export Figma specs — the output is working React/TypeScript code, not a design file.
-
-## Handing off to a developer — or to Claude Code
-
-Share the project URL and enable GitHub sync. The engineer or Claude Code session gets the full codebase, clones it, and picks up where you left off in the terminal. If you built the prototype, the handoff is a link, not a conversation.
-
-Monthly cost: $25–$50. Time to first shareable prototype: an afternoon.
-
-**Sources:** [Lovable guides — lovable.dev](https://lovable.dev/guides) · [Lovable for product managers — lovable.dev](https://lovable.dev/product-managers) · [Lovable for designers complete guide — Muzli](https://muz.li/blog/lovable-for-designers-the-complete-guide-to-building-apps-with-ai-2026/)
-]]></content:encoded>
-    </item>
 
 
     <item>
