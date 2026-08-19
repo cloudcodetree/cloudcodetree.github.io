@@ -10,8 +10,115 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 19 Aug 2026 04:03:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 19 Aug 2026 12:04:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Your AI Agent Ignores Your Design System. DTCG Tokens + AGENTS.md Tells It to Stop.</title>
+      <link>https://styledictionary.com/info/dtcg/</link>
+      <guid isPermaLink="false">2026-08-19-04-design-tokens-dtcg-agents-md-ai</guid>
+      <pubDate>Wed, 19 Aug 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>Export Figma variables as W3C DTCG JSON, transform to CSS with Style Dictionary, and add one line to AGENTS.md — agents then generate components that match your actual design tokens.</description>
+      <content:encoded><![CDATA[**Export your design system as W3C DTCG JSON, build CSS custom properties with Style Dictionary, and add one line to AGENTS.md — Claude Code will then use your actual tokens instead of generic defaults in every component it generates.**
+
+**What you'll be able to do after this:** make Claude Code (and other agents) generate components that use your actual design tokens — brand colors, spacing, typography — rather than the plausible-looking defaults they fall back on when you haven't told them where to look.
+
+**Three things you'll take away:**
+- How to export your design system as W3C DTCG JSON — the format agents can parse without special tooling
+- How to compile those tokens to CSS custom properties your agent can find and use
+- The one AGENTS.md line that makes the whole pipeline stick
+
+**Why agents ignore your tokens without this.** Agents parse your codebase but don't know which values represent deliberate design decisions. Without explicit pointing, they pattern-match on whatever they see first — often Tailwind defaults or shadcn variables. A machine-readable token file plus an instruction in AGENTS.md fixes this without plugins.
+
+**Step 1 — Export DTCG JSON from Figma.** *Plugins → Tokens Studio → Export → W3C DTCG format.* (Tokens Studio is free; DTCG export requires Figma with Variables, which is on paid plans.) This produces a `tokens.json` with `$value` and `$type` fields that any JSON-capable process can read:
+
+```json
+{
+  "color": {
+    "brand": {
+      "primary": { "$value": "#3b82f6", "$type": "color" },
+      "secondary": { "$value": "#06b6d4", "$type": "color" }
+    }
+  },
+  "spacing": {
+    "md": { "$value": "16px", "$type": "dimension" }
+  }
+}
+```
+
+Add this as `design-system/tokens.json` at the repo root and commit it.
+
+**Step 2 — Build CSS custom properties with Style Dictionary.**
+
+```bash
+npm install --save-dev style-dictionary
+```
+
+`sd.config.json`:
+```json
+{
+  "source": ["design-system/tokens.json"],
+  "platforms": {
+    "css": {
+      "transformGroup": "css",
+      "files": [{ "destination": "design-system/tokens.css", "format": "css/variables" }]
+    }
+  }
+}
+```
+
+```bash
+npx style-dictionary build --config sd.config.json
+```
+
+This writes `design-system/tokens.css` with entries like `--color-brand-primary: #3b82f6`. Commit it so the agent can read it at session start.
+
+**Step 3 — Point Claude Code at the token file.** Add to `AGENTS.md` (or `.claude/CLAUDE.md`):
+
+```markdown
+## Design system
+Always read `design-system/tokens.css` before generating or editing any component.
+Use CSS custom properties from that file for all colors, spacing, and typography.
+Do not invent color values or use Tailwind defaults when a token exists.
+```
+
+Claude Code reads AGENTS.md at session start and applies the instruction consistently.
+
+**Where this breaks:** agents will still fall back to defaults wherever your token file has gaps — incomplete coverage in the spec means incomplete coverage in the output. Style Dictionary's default CSS naming (e.g. `--color-brand-primary`) may not match your existing component library's naming convention; if they diverge you'll need a custom formatter. DTCG export from Figma also requires the Variables feature, which is not on the free plan.
+
+**Sources:** [Stop AI from Ignoring Your Design Tokens — atomize.tools](https://atomize.tools/blog/figma-design-tokens-vibe-coding/) · [Style Dictionary DTCG docs](https://styledictionary.com/info/dtcg/) · [W3C Design Tokens Community Group](https://www.designtokens.org/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Cursor Launches Origin, a GitHub-Synced Code Host Designed for AI Agents</title>
+      <link>https://cursor.com/changelog/origin-code-hosting</link>
+      <guid isPermaLink="false">2026-08-19-03-cursor-origin-agent-native-git-host</guid>
+      <pubDate>Wed, 19 Aug 2026 12:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Agents</category>
+      <description>Cursor Origin launched for paid plans on Aug 18: a GitHub-synced code host designed for agent-scale workflows, with Vercel, Depot, and Buildkite integrations — agent-native features still coming.</description>
+      <content:encoded><![CDATA[**Cursor launched Origin for paid plans on Aug 18 — a code host built for agent workloads that syncs with GitHub rather than replacing it.**
+
+Origin is in early beta for Pro, Teams, and Enterprise plans. Initial features are basic: repos, pull requests, code browsing, and GitHub sync. Day-one integrations include Vercel (preview deployments per PR), Depot, and Buildkite (for existing GitHub Actions workflows). The "agent-native" features — per-agent identity and permissions, machine-readable PR descriptions, merge queues tuned for high-volume small diffs — are forthcoming.
+
+Two things to know before moving anything:
+- **No data terms published yet.** Cursor is now SpaceX-owned; what they can do with code stored on Origin isn't formally documented.
+- **GitHub sync is one-way.** GitHub stays the source of truth; Origin pulls from it, not the other way around.
+
+**Why it matters:** Version control designed for agent-scale commit rates and automated PRs is an unsolved gap in the toolchain. Origin is the first purpose-built attempt. Worth watching when the agent-native layer ships — per-agent identity in PRs would meaningfully change how you attribute and review Claude Code's work.
+
+**Sources:** [Cursor Origin](https://cursor.com/changelog/origin-code-hosting) · [TechCrunch](https://techcrunch.com/2026/08/18/cursor-capitalizes-on-github-frustration-launches-rival-hosting-platform/) · [data concerns — TechTimes](https://www.techtimes.com/articles/324838/20260818/cursor-origin-ships-no-data-terms-spacex-now-holds-paid-developers-code.htm)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Dial Reasoning Up on Hard Subagents, Down on Cheap Ones: opts.effort in Claude Code Workflows</title>
@@ -7435,78 +7542,8 @@ hits = client.search(
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Claude Code v2.1.221 Ships Today: Focus View for Cleaner Sessions and Credential Masking on Linux</title>
-      <link>https://code.claude.com/docs/en/changelog</link>
-      <guid isPermaLink="false">2026-08-04-10-claude-code-v2-1-221-focus-view-sandbox-creds</guid>
-      <pubDate>Tue, 04 Aug 2026 20:09:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Developer Tools</category>
-      <description>v2.1.221 (August 4) adds a VSCode Focus view that collapses tool noise into a per-turn summary, sandbox credential file masking on Linux/WSL, and a new prompt-audit subcommand.</description>
-      <content:encoded><![CDATA[
-**Claude Code v2.1.221 (August 4, 2026) lands a VSCode Focus view that collapses tool noise into one summary line, sandbox credential masking on Linux, and a new prompt-audit command.**
-
-## VSCode Focus View
-
-Toggle with `Ctrl+Alt+F` or "Claude Code: Toggle Focus view" in the command palette. When enabled, all tool activity — file reads, bash runs, search calls — collapses behind an expandable per-turn summary with a live running-tool indicator. Only Claude's reasoning and responses stay visible.
-
-Use it for: long editing sessions where watching every file read is noise, or when pair-coding and you want to show a colleague the high-level flow without wall-to-wall tool output.
-
-## Sandbox Credential Masking (Linux/WSL)
-
-Set `mode: "mask"` on sandbox credential files. Sandboxed commands read a sentinel copy; the sandbox proxy substitutes the real credential on egress. Previously Linux/WSL required workarounds (the feature existed on macOS with a `deny` fallback). Engineers running Claude Code in WSL or Linux containers now get the same credential-safe sandbox behavior as macOS users.
-
-## Prompt-audit subcommand
-
-```bash
-claude-api prompt-audit
-```
-
-The new `prompt-audit` subcommand in the `claude-api` skill scans system prompts and tool descriptions for patterns written for older model generations — explicit chain-of-thought instructions, temperature hacks, workarounds Claude 4.x and 5.x handle natively. Run this before your next model migration to surface stale prompt patterns.
-
-## Notable bug fixes
-
-- @-mentioned files were dropped on resubmit — fixed
-- WebSearch failed at `effort: xhigh/max` with thinking disabled — fixed
-- Reduced prompt-cache costs for auto-mode permission checks
-- Zsh `[[ ]]` regex conditionals and PowerShell quote-handling permission bypasses — fixed
-
-**Sources:** [Claude Code Changelog — code.claude.com](https://code.claude.com/docs/en/changelog) · [Claude Code Updates August 2026 — releasebot.io](https://releasebot.io/updates/anthropic/claude-code)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>AWS Retires Bedrock Agents Classic: New Projects Must Start on AgentCore</title>
-      <link>https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html</link>
-      <guid isPermaLink="false">2026-08-04-09-aws-bedrock-agentcore-classic-migration</guid>
-      <pubDate>Tue, 04 Aug 2026 20:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Agents</category>
-      <category>AWS</category>
-      <category>Cloud</category>
-      <description>Amazon Bedrock Agents Classic closed to new customers July 30 -- frozen model catalog, maintenance mode only. All new agent projects belong on AgentCore, AWS's microVM-isolated, model-agnostic runtime.</description>
-      <media:content url="https://servergurus.com/images/blog/aws-bedrock-agentcore-2026.jpg" medium="image" />
-      <media:thumbnail url="https://servergurus.com/images/blog/aws-bedrock-agentcore-2026.jpg" />
-      <content:encoded><![CDATA[
-**Amazon's original Bedrock Agents service entered maintenance mode July 30 — no new customers, frozen model catalog. New agent projects belong on AgentCore.**
-
-Amazon Bedrock Agents (launched November 2023) is now "Classic" and closed to new customers as of July 30, 2026. Existing deployments keep running, but the model catalog is frozen — models released after July 30 are only available through AgentCore.
-
-AgentCore is the architectural successor: each session runs in an isolated microVM (filesystem + shell access), orchestration is model-agnostic (Claude, OpenAI, Gemini, or any Bedrock model), and the managed harness handles the full reasoning/tool/memory loop automatically. Setup takes ~3 API calls. The harness went GA in June 2026.
-
-One migration warning: poorly designed multi-agent setups on AgentCore can cost ~3× more than a lean single-agent design on Classic — microVM billing makes architecture choices matter more.
-
-**Why it matters:** Don't start a new agent project on Bedrock Classic. It's a maintenance path, not a development platform.
-
-**Sources:** [Bedrock Agents Classic Maintenance Mode — AWS Docs](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html) · [AWS Cuts AI Agent Setup to 3 API Calls — Forbes](https://www.forbes.com/sites/janakirammsv/2026/04/26/aws-cuts-ai-agent-setup-to-3-api-calls-in-agentcore-update/) · [AWS Just Retired Its Flagship AI Agent — AWS in Plain English](https://aws.plainenglish.io/aws-just-retired-its-flagship-ai-agent-product-it-launched-in-2023-add395ae3fe8)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
