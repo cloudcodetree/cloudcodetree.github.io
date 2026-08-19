@@ -301,6 +301,25 @@ what gets written into the feed.
 >    the only thing left to write is the product. Do not reintroduce that framing
 >    in any form.
 >
+>    **THE SUBJECT IS A WORKFLOW, NEVER A PRODUCT.** This is the line every removed
+>    post crossed. A design post is about something the reader *does*: a handoff, a
+>    decision, a review, a way of structuring tokens. The tools appear inside that
+>    as the means, and the post should still make sense if the reader uses a
+>    different one. **Claude Design and Claude Code are the default pair** — that
+>    round trip is what this reader actually runs. Other tools (v0, Magic Patterns,
+>    Figma Make) may appear as supporting detail or comparison inside a technique,
+>    but a post whose subject is a third-party product is out, however well hedged.
+>
+>    **No release announcements in this bucket, at all.** "X is now generally
+>    available", "X ships Y", version posts — the entire news value is that a
+>    product now exists, which is promotion by category no matter how many caveats
+>    are attached. One was published and removed despite passing every advertising
+>    tell it was checked against (independent source, genuine limits listed): the
+>    shape was fine and the subject was still a product launch. If a design tool
+>    ships something that genuinely changes this reader's workflow, it belongs in
+>    the **news bucket** — consolidated, with a "why it matters" line — and the
+>    design bucket can cover the technique later, once there is one.
+>
 >    **Banned outright, for every tool including Claude Design:**
 >    - Onboarding-tour shapes — "first hour", "getting started", "your first X",
 >      "for people who don't write code", "no-code". There is nothing underneath
@@ -433,6 +452,10 @@ what gets written into the feed.
 >       practitioner write-up, a standards body, your own testing.
 >    3. Removing the product's name leaves nothing — no problem, no technique, no
 >       decision. A post that only exists because the product exists is a tour.
+>       **Apply this literally:** delete the product name from your title and read
+>       it back. "___ Is Now Generally Available" collapses to nothing; "Regenerate
+>       in the Design Tool or Edit in Your Editor" still names a real decision. The
+>       second is a post; the first is an announcement wearing one's clothes.
 > 2. **A vendor's numbers are CLAIMS, not facts.** Any performance, price, scale
 >    or benchmark figure that originates with the vendor gets attributed inline —
 >    "Anthropic reports", "per Vercel's own benchmark", "the changelog claims".
