@@ -15,6 +15,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BLOG_DIR = path.join(ROOT, 'public', 'blog');
 const POSTS_JSON = path.join(BLOG_DIR, 'posts.json');
 const FEED = path.join(ROOT, 'content', 'feed.xml');
+const TOMBSTONES = path.join(ROOT, 'content', 'removed-posts.json');
 const REQUIRED =['id', 'title', 'excerpt', 'author', 'date', 'tags', 'readTime', 'content', 'image'];
 
 /**
@@ -47,6 +48,32 @@ const BANNED_TAGS = new Map([['AI News', 'News']]);
  * NOTE: reading the feed here is only ever a SIZE check. Tag enforcement is scoped
  * by publish date (isFeedEra), deliberately NOT by feed membership — see above.
  */
+/**
+ * A removed post must actually be gone from posts.json.
+ *
+ * remove-post.mjs edits BOTH content/feed.xml and public/blog/posts.json, which
+ * makes it easy to commit half the removal — stage `content/` and forget
+ * `public/`, and the item vanishes from the feed while the page keeps building
+ * and deploying from posts.json. That happened once and the post stayed live
+ * through a green deploy, because nothing cross-checked the two.
+ *
+ * An error, not a warning: a post the owner asked to unpublish is still online.
+ */
+async function checkTombstones(posts, errors) {
+  if (!existsSync(TOMBSTONES)) return;
+  const removed = JSON.parse(await readFile(TOMBSTONES, 'utf8'));
+  const ids = new Set(posts.map((p) => p.id));
+  for (const t of removed) {
+    if (t?.id && ids.has(t.id)) {
+      errors.push(
+        `"${t.id}" is listed in content/removed-posts.json but is STILL in posts.json — ` +
+          'the removal was only half-committed (did you stage public/blog/posts.json?). ' +
+          'Re-run scripts/remove-post.mjs or restore the deletion.',
+      );
+    }
+  }
+}
+
 async function checkFeedWindow(warnings) {
   if (!existsSync(FEED)) return;
   const xml = await readFile(FEED, 'utf8');
@@ -114,6 +141,7 @@ async function main() {
   }
 
   await checkFeedWindow(warnings);
+  await checkTombstones(posts, errors);
 
   for (const w of warnings) console.warn(`  ! ${w}`);
 

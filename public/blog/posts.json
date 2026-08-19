@@ -1,23 +1,5 @@
 [
   {
-    "id": "2026-08-19-07-v0-api-agent-ci-component-gen",
-    "title": "v0 API Is Now Generally Available: Generate UI Components From Your Agent or CI Pipeline",
-    "excerpt": "The v0 API (GA August 13) lets you call v0 from your own agent or CI pipeline — send a prompt, get back React component files, commit them to your repo, and hand off to Claude Code.",
-    "author": "Chris Harper",
-    "date": "08-19-2026",
-    "publishedAt": "2026-08-19T20:08:00.000Z",
-    "tags": [
-      "AI",
-      "Workflow",
-      "Design",
-      "Developer Tools"
-    ],
-    "readTime": 2,
-    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-19-07-v0-api-agent-ci-component-gen.jpg",
-    "imageSource": "https://www.infoq.com/news/2026/08/vercel-v0-api/",
-    "content": "**The v0 API reached general availability on August 13. It lets you call v0 from your own Claude Code agent or CI pipeline and receive component files back — code you commit to your own repo, not a hosted app you don't control.**\n\nThe interactive v0.app works well for one-off components. The API is for when you want UI generation to happen automatically: inside a Claude Code workflow building a feature end-to-end, or a CI job that regenerates a stale component when a spec changes.\n\n**Install and call:**\n\n```bash\nnpm install v0-sdk\n# Set V0_API_KEY from your v0.app account settings\n```\n\n```typescript\nimport { v0 } from \"v0-sdk\";\n\n// Generate from a description:\nconst chat = await v0.chats.create({\n  initialMessage: \"A notification card with dismiss button, matching our design system\",\n});\n\n// Or start from an existing file you want to revise:\nconst chat2 = await v0.chats.init({\n  type: \"files\",\n  files: [{ name: \"CardBase.tsx\", content: existingSource }],\n});\n```\n\nThe response contains generated application files. Pull them into your directory, review and adjust for your stack, commit, and hand off to Claude Code for iteration and review.\n\n**The workflow this enables:** a Claude Code orchestrator that says \"draft this UI with v0, run the linter on the output, open a PR\" — the design tool and coding agent working in sequence from the same script.\n\n**Real limits:**\n- Pricing is not publicly listed — check your v0.app usage dashboard before building high-volume pipelines.\n- v0 generates Vercel-flavored React/TypeScript by default; non-Vercel stacks need post-processing.\n- Deployments via `v0.deployments.create()` target Vercel infrastructure; skip if you only want the component files.\n- No announced free tier for the API; API keys are self-service.\n\n**Sources:** [v0 API GA — InfoQ (Aug 13, 2026)](https://www.infoq.com/news/2026/08/vercel-v0-api/), [v0 API docs — v0.app/docs/api](https://v0.app/docs/api/v1)"
-  },
-  {
     "id": "2026-08-19-06-claude-agents-view-session-dashboard",
     "title": "claude agents: See Which Background Sessions Need Your Attention, From One Terminal",
     "excerpt": "Run 'claude agents' to see every background session's state at a glance. 'Needs input' (yellow star) is your priority queue — Space to peek and reply without leaving the list.",
