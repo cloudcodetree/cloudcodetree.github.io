@@ -1,5 +1,41 @@
 [
   {
+    "id": "2026-08-19-02-design-or-editor-decision-rule",
+    "title": "Regenerate in the Design Tool or Edit in Your Editor? The Decision Rule That Keeps Both From Fighting",
+    "excerpt": "Three questions decide whether to regenerate in Claude Design or iterate in Claude Code — plus what post-handoff changes you'll need to re-apply after each re-export.",
+    "author": "Chris Harper",
+    "date": "08-19-2026",
+    "publishedAt": "2026-08-19T04:03:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Claude Design"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://support.claude.com/en/articles/get-started-with-claude-design",
+    "content": "**If it's exploratory or spans components, go back to the design tool. If direction is settled and the change is local, stay in the editor.**\n\nThe tension is real: Claude Design generates a fresh component tree on every export, so any change you made in code after the last export disappears on the next one. That makes \"quick, I'll just tweak it in the tool\" expensive — and \"I'll just edit the code\" increasingly wrong as soon as you need to explore a different layout direction.\n\n## Three questions that decide\n\n1. **Am I exploring directions, or executing one?**\n   Still deciding between layouts, color schemes, or component structures → go back to Design. Direction is settled and you're implementing → stay in code.\n\n2. **Does the change span more than one component?**\n   A nav + hero + card consistency fix has to be done in the design tool — doing it piecemeal in code invites drift. A spacing fix inside one existing component is a one-liner in code.\n\n3. **Will Claude Code know what \"better\" looks like?**\n   Visual aesthetics and gestalt are things Claude Design reasons about holistically. Functional correctness (prop types, responsive breakpoints, a11y attributes) is what Claude Code is better positioned to verify.\n\n## What's safe to edit directly in code (after handoff)\n\n- Padding/margin/gap values within an existing component\n- Prop types and TypeScript interfaces\n- Responsive breakpoint tweaks (`sm:`, `md:` classes or MUI breakpoint objects)\n- Animation timing and easing\n- Accessibility attributes (`aria-label`, `role`, `tabIndex`)\n- Integration-specific imports and wiring (`useRouter`, `useSession`, data hooks)\n\n## What you'll lose on every re-export (the stateless re-export problem)\n\nClaude Design has no memory of your codebase — it regenerates from its own model of the design. Every re-export is a clean slate from the tool's perspective. That means:\n\n- Post-handoff a11y fixes\n- TypeScript types you added\n- Integration-specific imports\n- Any custom hooks you wired in\n\n**Recommendation:** maintain a `DIFF.md` (or a short comment block at the top of re-exported files) listing the changes you made post-handoff. Before every re-export, check it; after every re-export, re-apply it.\n\n## The workflow that avoids the fight\n\n1. Explore in Claude Design until direction is locked.\n2. Export once. Record post-handoff changes in `DIFF.md`.\n3. Iterate functionally in Claude Code from that point.\n4. If you need to re-explore layout, go back to Design — but bring `DIFF.md` so you know what to re-apply.\n\n**Sources:** [Get started with Claude Design — support.claude.com](https://support.claude.com/en/articles/get-started-with-claude-design) · [Claude Design handoff workflow — DEV Community](https://dev.to/claudeai/claude-design-to-code-handoff-workflow-2026) · [claudefa.st — community practitioner notes](https://claudefa.st)"
+  },
+  {
+    "id": "2026-08-19-01-workflow-effort-per-agent",
+    "title": "Dial Reasoning Up on Hard Subagents, Down on Cheap Ones: opts.effort in Claude Code Workflows",
+    "excerpt": "Set effort='low' on file scans and searches, effort='xhigh' on adversarial checks — same Claude Code workflow, 40-60% lower token cost where deep reasoning adds nothing.",
+    "author": "Chris Harper",
+    "date": "08-19-2026",
+    "publishedAt": "2026-08-19T04:02:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/workflows",
+    "content": "**Set `effort='low'` on scans, `effort='xhigh'` on verification — three reasoning tiers in one workflow cuts cost 40–60% without touching quality on hard steps.**\n\nEvery `agent()` call in a Claude Code workflow inherits the session's reasoning effort by default. The `opts.effort` parameter overrides it per call: `'low'` | `'medium'` | `'high'` | `'xhigh'` | `'max'`. The right tier depends on what kind of thinking the subagent actually needs.\n\n```js\nexport const meta = { name: 'audit-and-fix', description: 'Security audit with tiered effort' }\n\n// Stage 1: read files in parallel — no reasoning needed, just retrieval\nconst files = await parallel(paths.map(p => () =>\n  agent(`Read and return the full contents of ${p}`, { effort: 'low' })\n))\n\n// Stage 2: implement fixes — medium effort (default) is fine for local edits\nconst fixes = await pipeline(files, f =>\n  agent(`Fix any SQL injection risks in this file:\\n\\n${f}`)  // inherits session effort\n)\n\n// Stage 3: adversarial verify — xhigh: we want real scrutiny, not pattern-matching\nconst verdicts = await parallel(fixes.map(fix => () =>\n  agent(`Try to find a bypass for this SQL injection fix. Default to bypassed=true if uncertain.`,\n    { effort: 'xhigh', schema: VERDICT_SCHEMA })\n))\n```\n\n## Decision table\n\n| Stage type | Recommended effort | Reason |\n|---|---|---|\n| File reads, searches, grep | `low` | Output is deterministic; reasoning adds nothing |\n| Straightforward implementation | `medium` (default) | Balanced cost/quality |\n| Debugging, root-cause analysis | `high` | Benefits from reasoning steps |\n| Adversarial verification, security review | `xhigh` | Needs genuine scrutiny |\n\n## Limits to know\n\n- `max` effort is not available on Haiku 4.5 — use `xhigh` as the ceiling there.\n- Higher effort does not improve purely deterministic tasks (file reads, JSON parsing) — it just costs more tokens.\n- Combine with `opts.model` for maximum control: `effort: 'low', model: 'haiku'` for cheap scans; `effort: 'xhigh', model: 'opus'` for the final judgment stage.\n- Per-agent overrides are sticky within that agent only — the session's default effort is unaffected.\n\n**Sources:** [Workflow SDK reference — code.claude.com](https://code.claude.com/docs/en/workflows) · [Model configuration — code.claude.com](https://code.claude.com/docs/en/model-configuration) · [claudefa.st — community practitioner notes](https://claudefa.st)"
+  },
+  {
     "id": "2026-08-18-09-parent-document-retrieval-chunk-size",
     "title": "Embed Sentences, Answer With Paragraphs: Parent-Document Retrieval Fixes the Chunk-Size Tradeoff",
     "excerpt": "Small chunks retrieve precisely but lack context; big chunks have context but retrieve poorly. Parent-document retrieval lets you stop choosing: embed the sentence, return the paragraph.",
