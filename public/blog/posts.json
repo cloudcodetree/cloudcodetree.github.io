@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-08-19-07-v0-api-agent-ci-component-gen",
+    "title": "v0 API Is Now Generally Available: Generate UI Components From Your Agent or CI Pipeline",
+    "excerpt": "The v0 API (GA August 13) lets you call v0 from your own agent or CI pipeline — send a prompt, get back React component files, commit them to your repo, and hand off to Claude Code.",
+    "author": "Chris Harper",
+    "date": "08-19-2026",
+    "publishedAt": "2026-08-19T20:08:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.infoq.com/news/2026/08/vercel-v0-api/",
+    "content": "**The v0 API reached general availability on August 13. It lets you call v0 from your own Claude Code agent or CI pipeline and receive component files back — code you commit to your own repo, not a hosted app you don't control.**\n\nThe interactive v0.app works well for one-off components. The API is for when you want UI generation to happen automatically: inside a Claude Code workflow building a feature end-to-end, or a CI job that regenerates a stale component when a spec changes.\n\n**Install and call:**\n\n```bash\nnpm install v0-sdk\n# Set V0_API_KEY from your v0.app account settings\n```\n\n```typescript\nimport { v0 } from \"v0-sdk\";\n\n// Generate from a description:\nconst chat = await v0.chats.create({\n  initialMessage: \"A notification card with dismiss button, matching our design system\",\n});\n\n// Or start from an existing file you want to revise:\nconst chat2 = await v0.chats.init({\n  type: \"files\",\n  files: [{ name: \"CardBase.tsx\", content: existingSource }],\n});\n```\n\nThe response contains generated application files. Pull them into your directory, review and adjust for your stack, commit, and hand off to Claude Code for iteration and review.\n\n**The workflow this enables:** a Claude Code orchestrator that says \"draft this UI with v0, run the linter on the output, open a PR\" — the design tool and coding agent working in sequence from the same script.\n\n**Real limits:**\n- Pricing is not publicly listed — check your v0.app usage dashboard before building high-volume pipelines.\n- v0 generates Vercel-flavored React/TypeScript by default; non-Vercel stacks need post-processing.\n- Deployments via `v0.deployments.create()` target Vercel infrastructure; skip if you only want the component files.\n- No announced free tier for the API; API keys are self-service.\n\n**Sources:** [v0 API GA — InfoQ (Aug 13, 2026)](https://www.infoq.com/news/2026/08/vercel-v0-api/), [v0 API docs — v0.app/docs/api](https://v0.app/docs/api/v1)"
+  },
+  {
+    "id": "2026-08-19-06-claude-agents-view-session-dashboard",
+    "title": "claude agents: See Which Background Sessions Need Your Attention, From One Terminal",
+    "excerpt": "Run 'claude agents' to see every background session's state at a glance. 'Needs input' (yellow star) is your priority queue — Space to peek and reply without leaving the list.",
+    "author": "Chris Harper",
+    "date": "08-19-2026",
+    "publishedAt": "2026-08-19T20:07:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/agent-view",
+    "content": "**`claude agents` shows every background Claude Code session grouped by state — \"Needs input\" (yellow ✻) is the priority queue; `Space` lets you peek and reply without leaving the list.**\n\nWhen you're running multiple background sessions via `--bg`, `/fork`, or a Workflow fan-out, you can't tell which ones are blocked without reattaching to each one. `claude agents` solves that:\n\n```bash\nclaude agents\n# optional flags:\n# --cwd ~/projects/my-app   scope to one directory\n# --model opus              set dispatch defaults\n```\n\nSessions group by state. The three that matter:\n\n| State | Icon | What to do |\n|-------|------|------------|\n| **Needs input** | Yellow ✻ | Reply — Claude is blocked |\n| **Working** | Animated | Leave it running |\n| **Completed** | Green ✓ | Peek to read the result |\n\n**Navigate without fully attaching:**\n- `Space` opens a peek panel. Read the context, compose a reply, press `Enter` — Claude unblocks without you leaving the session list.\n- `Enter` or `→` attaches to the full interactive conversation.\n- `←` detaches and returns to the list.\n\n**Dispatch from the view:** type a task description in the input bar and press `Enter`. A new background session spins up alongside the existing ones. Use `Shift+Enter` to dispatch and attach immediately.\n\n**Other keybindings worth knowing:**\n- `Ctrl+T` — pin a session (prevents the 1-hour idle shutdown)\n- `Ctrl+R` — rename a session\n- `Ctrl+X` — stop; press twice to delete\n- `?` — full shortcut list\n\n**Stated limits:** Each background session draws on your rate-limit quota independently — 10 parallel sessions use roughly 10× your normal per-session rate. Non-pinned idle sessions stop after ~1 hour. The interface is still labeled research preview; shortcuts may change between releases.\n\nThe practical pattern: keep `claude agents` open in a split pane during a multi-agent run. Every yellow ✻ is a decision waiting for you; everything else is running fine.\n\n**Sources:** [Agent view docs — code.claude.com](https://code.claude.com/docs/en/agent-view), [Claude Code v2.1.234 changelog](https://code.claude.com/docs/en/changelog)"
+  },
+  {
+    "id": "2026-08-19-05-claude-code-weekly-limit-aug31",
+    "title": "Claude Code Weekly Quota +50% Extended to August 31; Anthropic Signals It May Become Permanent",
+    "excerpt": "Claude Code's 50% weekly quota boost (Pro, Max, Team, Enterprise) has been extended through August 31. First time Anthropic explicitly says they hope to make the increase permanent.",
+    "author": "Chris Harper",
+    "date": "08-19-2026",
+    "publishedAt": "2026-08-19T20:06:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Claude Code",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://x.com/ClaudeDevs/status/2089798442306711646",
+    "content": "**Claude Code's 50% weekly quota boost (Pro, Max, Team, and Enterprise) was extended through August 31 — and for the first time, Anthropic said they want to make it a permanent plan change.**\n\nThe 50% weekly usage increase was originally due to expire today. On August 18, @ClaudeDevs announced another extension through August 31 and said they \"hope to make this a permanent change to our plans.\" Previous extension announcements were framed as capacity-driven one-offs; this one explicitly names permanence as the goal, though Anthropic adds that strong model demand means they cannot commit to a timeline.\n\nIn practice: your weekly token budget remains 1.5× documented plan limits through at least month-end. If you were pacing large multi-agent pipeline runs against the weekly cap, that constraint is lifted.\n\n**Limit:** The five-hour per-session rate limits (permanently doubled in May) are a separate constraint this extension does not affect. Permanence is not confirmed — the next decision point is August 31.\n\n**Why it matters:** Multi-agent Claude Code workflows you've been throttling against weekly quota limits have two more weeks — and this bump may become the new baseline.\n\n**Sources:** [@ClaudeDevs on X (Aug 18, 2026)](https://x.com/ClaudeDevs/status/2089798442306711646), [Claude Code limits timeline — explainx.ai](https://explainx.ai/blog/claude-usage-limits-2026-timeline-explained)"
+  },
+  {
     "id": "2026-08-19-04-design-tokens-dtcg-agents-md-ai",
     "title": "Your AI Agent Ignores Your Design System. DTCG Tokens + AGENTS.md Tells It to Stop.",
     "excerpt": "Export Figma variables as W3C DTCG JSON, transform to CSS with Style Dictionary, and add one line to AGENTS.md — agents then generate components that match your actual design tokens.",
