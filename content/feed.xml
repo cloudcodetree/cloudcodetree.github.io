@@ -10,9 +10,99 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 19 Aug 2026 20:08:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 20 Aug 2026 04:05:00 +0000</lastBuildDate>
 
 
+
+
+    <item>
+      <title>Set Your Claude Code Sessions to Run Without You: ANTHROPIC_DEFAULT_MODEL, Auto-Resume, and notify_when_idle</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-08-20-01-claude-code-unattended-session-defaults</guid>
+      <pubDate>Thu, 20 Aug 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Three Claude Code defaults from weeks 33-34 that let long-running sessions finish without supervision: pin your startup model, auto-resume after a usage pause, and get pinged when a background session goes idle.</description>
+      <content:encoded><![CDATA[**Three Claude Code settings from the weeks 33–34 changelog that together cover the "start it and walk away" workflow: a persistent default model, a session that restarts itself, and a ping when a background session goes idle.**
+
+**`ANTHROPIC_DEFAULT_MODEL` — pin your startup model system-wide**
+
+Export it in your shell profile:
+
+```bash
+export ANTHROPIC_DEFAULT_MODEL=claude-sonnet-5-20260801
+```
+
+Unlike `ANTHROPIC_MODEL` (which applies only to the session you launch with the flag), `ANTHROPIC_DEFAULT_MODEL` sets the model every new session starts on. A `/model` pick in the session overrides it and persists across restarts — so per-project overrides still work. Use it if you have a preferred model you want without passing `--model` every time.
+
+**Auto-resume after a usage-limit pause**
+
+Claude Code now restarts your session automatically when a claude.ai usage limit resets, rather than dropping the session at the ceiling. If you're running a long-running job and step away, the session picks back up when your quota refills. Disable it in `/config` → "Continue session when usage limit resets" if you'd rather decide manually each time.
+
+**`notify_when_idle` in cross-session SendMessage**
+
+When you launch a background session, you can ask it to send a desktop notification the next time it goes idle:
+
+```json
+{"to": "my-review-session", "message": "notify_when_idle"}
+```
+
+One-shot and opt-in — the session sends one notification when it goes idle, then stops. Runs on macOS and Linux only (same-machine).
+
+**What these don't cover**
+
+- `notify_when_idle` is same-machine only — cloud sessions or remote runners can't ping back.
+- Auto-resume applies to claude.ai time-based usage limits, not API token quotas.
+- `ANTHROPIC_DEFAULT_MODEL` takes effect at session start, not mid-session.
+
+**Sources:** [Claude Code changelog — code.claude.com](https://code.claude.com/docs/en/changelog) · [Cross-session messaging — code.claude.com](https://code.claude.com/docs/en/cross-session-messaging) · [Model configuration — code.claude.com](https://code.claude.com/docs/en/model-config) · [Claude Code August changelog summary — releasebot.io](https://releasebot.io/updates/anthropic/claude-code)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>What Claude Design Hands You: Understanding the Output So You Can Land It in Your Codebase</title>
+      <link>https://newsletter.victordibia.com/p/how-good-is-anthropics-claude-design</link>
+      <guid isPermaLink="false">2026-08-20-02-claude-design-output-format-codebase-landing</guid>
+      <pubDate>Thu, 20 Aug 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Claude Design outputs standard HTML/CSS or React — here's what the handoff bundle contains, how giving it your CSS changes extraction quality, and where you'll still need a review pass.</description>
+      <content:encoded><![CDATA[**Claude Design outputs standard HTML/CSS/JS or React components — not a proprietary format. Giving it your existing CSS before generating changes the output quality significantly; here's how the extraction works and where it still falls short.**
+
+**What you'll be able to do after this:**
+- Know exactly what format Claude Design outputs, and what the handoff bundle passed to Claude Code actually contains
+- Prepare your existing CSS or component library so Claude Design starts from your design system rather than generic defaults
+- Know where automatic integration works and where you'll always need a review pass
+
+## What Claude Design generates
+
+Claude Design outputs HTML, CSS, and JavaScript for static prototypes, or React components when you ask for them. The output uses Tailwind or inline styles unless you specify otherwise. When you hand off to Claude Code, what passes across is the generated code plus context about design decisions — not a Figma file, not a design token spec, not a proprietary format. It's standard web code you can drop into version control.
+
+[Victor Dibia's independent review of Claude Design](https://newsletter.victordibia.com/p/how-good-is-anthropics-claude-design) tested it on a real production task: adding an interactive globe to a live dashboard, wired to Google Analytics and Stripe data. His finding on output quality: **Claude Design ingests your existing CSS to understand your design system, so output respects your design tokens rather than guessing at them.** That one sentence captures the entire setup step worth doing.
+
+## How to prep your codebase before generating (the step that changes output quality)
+
+**Step 1 — Upload your CSS or design system file at project start.** In Claude Design, go to Settings → Design System (or use `/design-sync` in the Claude Code handoff path). Claude extracts color tokens, typography scales, and component patterns from the file. The more semantically named your CSS variables are — `--color-brand-primary` rather than `--c1` — the better the extraction.
+
+**Step 2 — Upload your component library if you're working in React.** Provide the `components/` directory or a Storybook static build. Claude reads prop interfaces and naming conventions, so `<Button variant="primary">` comes out as your component, not a generic `<button className="bg-blue-500">`.
+
+**Step 3 — Scope what you upload.** Claude Design reads the first ~50 KB of CSS it receives and the top-level components it finds. In a monorepo, give it the specific package path (`packages/ui/src/components`), not the repo root — otherwise it extracts from whatever file it encounters first.
+
+## Where it still breaks
+
+- **Prop signature mismatches.** Generated code won't exactly match custom component APIs. Your `size="sm"` may come out as `className="text-sm"`. Budget a light review pass.
+- **Undocumented conventions.** If your system uses patterns that aren't expressed in CSS variables or JSDoc (custom a11y attributes, data-testid patterns, animation conventions), Claude Design won't infer them. Document what matters in a concise `DESIGN-SYSTEM.md` and include it in the upload.
+- **The handoff bundle reflects what you approved in the canvas.** Claude Code can't fix a design-system mismatch that made it through design review unchanged. The design tool review pass is where you catch it.
+
+**Sources:** [How Good is Anthropic's Claude Design? — Victor Dibia, Designing with AI newsletter](https://newsletter.victordibia.com/p/how-good-is-anthropics-claude-design) · [Set up your design system in Claude Design — support.claude.com](https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design) · [Get started with Claude Design — support.claude.com](https://support.claude.com/en/articles/14604416-get-started-with-claude-design)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>claude agents: See Which Background Sessions Need Your Attention, From One Terminal</title>
@@ -7366,75 +7456,7 @@ This is one-way (cloud → local). For the reverse — start locally, monitor fr
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Every Embedding Starts With a Cut: Document Chunking for RAG With RecursiveCharacterTextSplitter</title>
-      <link>https://www.youtube.com/watch?v=u5EsP3o32ds</link>
-      <guid isPermaLink="false">2026-08-05-04-document-chunking-recursive-splitter-rag</guid>
-      <pubDate>Wed, 05 Aug 2026 12:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>RAG</category>
-      <category>Embeddings</category>
-      <category>Best Practices</category>
-      <description>Before embeddings, documents must be split into overlapping chunks. RecursiveCharacterTextSplitter cuts at paragraphs, lines, then sentences — preserving natural structure regardless of document type.</description>
-      <media:content url="https://img.youtube.com/vi/u5EsP3o32ds/maxresdefault.jpg" medium="image" type="image/jpeg" />
-      <media:thumbnail url="https://img.youtube.com/vi/u5EsP3o32ds/maxresdefault.jpg" />
-      <content:encoded><![CDATA[
-**Before embeddings, documents must be split into overlapping chunks. RecursiveCharacterTextSplitter cuts at paragraphs first, then lines, then sentences — preserving natural structure no matter the document type.**
-
-You know about embeddings and vector databases. But there's a step that comes first — one most tutorials gloss over and production RAG engineers lose sleep over: chunking. Chunk too small and you lose context; chunk too big and the embedding averages over unrelated content. Get it wrong and retrieval returns the right document at the wrong granularity.
-
-**What you'll be able to do after this:**
-- Pick chunk size and overlap sensibly for any document type
-- Split any text with `RecursiveCharacterTextSplitter` in three lines of Python
-- Know when to step up to semantic chunking (embedding-based boundary detection)
-
-**Start here:** [LangChain Text Splitting — RecursiveCharacterTextSplitter (Video #32)](https://www.youtube.com/watch?v=u5EsP3o32ds) — 15 minutes from a full LangChain course; shows the concept, the code, and what goes wrong with naive splitting.
-
-## The concept
-
-Every chunk is a passage your retriever will embed and later return as context. Two parameters drive it:
-
-- **chunk_size**: max characters per chunk. Start at 500–1000.
-- **chunk_overlap**: characters repeated at chunk boundaries. Start at 10–20% of chunk_size — a sentence straddling a cut survives whole in at least one chunk.
-
-`RecursiveCharacterTextSplitter` tries the most natural boundary first: paragraph break `
-
-` → line break `
-` → sentence `. ` → word ` ` → character. A 1000-character chunk that ends mid-paragraph gets cut at the nearest paragraph break, not at character 1000.
-
-## Run it
-
-```python
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=500,
-    chunk_overlap=50,
-    separators=["
-
-", "
-", ". ", " ", ""],
-)
-
-with open("my_document.txt") as f:
-    text = f.read()
-
-chunks = splitter.create_documents([text])
-print(f"{len(chunks)} chunks, first: {chunks[0].page_content[:120]!r}")
-```
-
-Each `Document` carries `.page_content` (the text) and `.metadata` (source filename, page number, anything you want to filter on later).
-
-## When to step up
-
-Recursive splitting is the right default for most text. Switch to **semantic chunking** (`SemanticChunker` in `langchain-experimental`) when documents mix unrelated topics in the same section — long Wikipedia articles, manuals with many subsections. Cost: you pay embedding inference at ingest, not just at query time.
-
-**Sources:** [LangChain RecursiveCharacterTextSplitter docs](https://python.langchain.com/docs/how_to/recursive_text_splitter/) · [Best Chunking Strategies for RAG 2026 — Firecrawl](https://www.firecrawl.dev/blog/best-chunking-strategies-rag) · [LangChain Text Splitting Video #32 — YouTube](https://www.youtube.com/watch?v=u5EsP3o32ds)
-]]></content:encoded>
-    </item>
-
+    
     
     
     
