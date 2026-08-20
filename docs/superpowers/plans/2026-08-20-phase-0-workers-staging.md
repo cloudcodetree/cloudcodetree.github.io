@@ -6,14 +6,14 @@
 
 **Architecture:** A single Worker (`cct-site`) binds `./out` — the same static export `next build` already produces — as static assets. Ordinary pages are served at the edge without invoking Worker code; the handler is a pass-through that exists to establish config, tests, and deployment. A staging build variant makes assets self-referencing and marks the origin `noindex`. A parity script asserts an explicit behavioral contract against both origins.
 
-**Tech Stack:** Cloudflare Workers Static Assets, Wrangler 4.x, Vitest (plain Node pool), Terraform 1.9+ with `cloudflare/cloudflare ~> 5.23`, Next.js 15 static export, pnpm 10, Node 22 (CI).
+**Tech Stack:** Cloudflare Workers Static Assets, Wrangler 4.x, Vitest (plain Node pool), OpenTofu 1.9+ with `cloudflare/cloudflare ~> 5.23`, Next.js 15 static export, pnpm 10, Node 22 (CI).
 
 **Spec:** `docs/superpowers/specs/2026-08-20-projects-gated-demos-design.md`
 
 ## Global Constraints
 
 - **cloudcodetree.com must not be affected by any task in this phase.** No DNS change, no custom domain, no change to `.github/workflows/deploy.yml`'s gh-pages deploy path.
-- **Terraform must never declare anything inside the Worker** — not `assets`, not `assets.config`, not `run_worker_first`, not bindings. `wrangler.jsonc` is the single source of truth for those. (Spec: *Infrastructure as Code → Dual-write rule*.)
+- **OpenTofu must never declare anything inside the Worker** — not `assets`, not `assets.config`, not `run_worker_first`, not bindings. `wrangler.jsonc` is the single source of truth for those. (Spec: *Infrastructure as Code → Dual-write rule*.)
 - Asset routing options required for GitHub Pages parity: `not_found_handling: "404-page"` and `html_handling: "force-trailing-slash"`.
 - `run_worker_first` is `["/api/*", "/projects/*/demo/*"]` from the start. Those paths 404 until Phase 2; declaring them now proves the config deploys.
 - Staging asset URLs must be **relative**. Production keeps `https://cloudcodetree.com`.
@@ -867,7 +867,7 @@ production first, so passing on staging is evidence rather than assumption."
 
 ---
 
-### Task 5: Terraform bootstrap
+### Task 5: OpenTofu bootstrap
 
 **Files:**
 - Create: `infra/backend.tf`, `infra/providers.tf`, `infra/variables.tf`, `infra/backend.hcl.example`, `infra/README.md`
@@ -875,20 +875,20 @@ production first, so passing on staging is evidence rather than assumption."
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: an initialized Terraform working directory with remote state on R2 and the Cloudflare provider configured. Phase 1 adds `r2.tf`; Phase 2 adds `supabase.tf`, `google_oauth.tf`, `github.tf`; Phase 3 adds `dns.tf` and `worker.tf`.
+- Produces: an initialized OpenTofu working directory with remote state on R2 and the Cloudflare provider configured. Phase 1 adds `r2.tf`; Phase 2 adds `supabase.tf`, `google_oauth.tf`, `github.tf`; Phase 3 adds `dns.tf` and `worker.tf`.
 
-**Scope note:** this phase manages **no resources**. The deliverable is a working `terraform plan` that reports no changes — a walking skeleton that proves backend, credentials, and provider config before any real resource depends on them.
+**Scope note:** this phase manages **no resources**. The `cloudcodetree.com` zone and its 11 records already exist in Cloudflare, so Phase 3 will bring them in with `import` blocks rather than creating them. The deliverable is a working `tofu plan` that reports no changes — a walking skeleton that proves backend, credentials, and provider config before any real resource depends on them.
 
 - [ ] **Step 1: Create the state bucket (the one manual bootstrap step)**
 
 ```bash
-pnpm exec wrangler r2 bucket create cct-tfstate
+pnpm exec wrangler r2 bucket create cct-tofu-state
 pnpm exec wrangler r2 bucket list   # confirm it exists
 ```
 
-Terraform cannot create the bucket that stores its own state. This is the documented exception; everything after it is codified.
+OpenTofu cannot create the bucket that stores its own state. This is the documented exception; everything after it is codified.
 
-Then create an R2 **S3-compatible API token** in the Cloudflare dashboard (R2 → Manage API tokens, Object Read & Write on `cct-tfstate`) and export it:
+Then create an R2 **S3-compatible API token** in the Cloudflare dashboard (R2 → Manage API tokens, Object Read & Write on `cct-tofu-state`) and export it:
 
 ```bash
 export AWS_ACCESS_KEY_ID=<r2 access key id>
@@ -896,7 +896,7 @@ export AWS_SECRET_ACCESS_KEY=<r2 secret access key>
 export CLOUDFLARE_API_TOKEN=<workers + r2 token>
 ```
 
-- [ ] **Step 2: Write the Terraform configuration**
+- [ ] **Step 2: Write the OpenTofu configuration**
 
 Create `infra/backend.tf`:
 
@@ -952,8 +952,8 @@ Create `infra/backend.hcl.example`:
 
 ```hcl
 # Copy to backend.hcl and fill in. Not committed: it carries the account ID.
-# terraform init -backend-config=backend.hcl
-bucket    = "cct-tfstate"
+# tofu init -backend-config=backend.hcl
+bucket    = "cct-tofu-state"
 endpoints = { s3 = "https://<CLOUDFLARE_ACCOUNT_ID>.r2.cloudflarestorage.com" }
 ```
 
@@ -962,16 +962,16 @@ Create `infra/README.md`:
 ```markdown
 # Infrastructure
 
-Terraform owns account-level state: Cloudflare zone and DNS records, R2
+OpenTofu owns account-level state: Cloudflare zone and DNS records, R2
 buckets, the Worker's custom domain, the Supabase project and auth settings,
 the Google OAuth client, and GitHub Actions secrets.
 
-**Terraform does NOT own the Worker itself.** The script, its static assets,
+**OpenTofu does NOT own the Worker itself.** The script, its static assets,
 and everything under `assets` in `wrangler.jsonc` — `_headers`,
 `html_handling`, `not_found_handling`, `run_worker_first`, bindings — are
 wrangler's. `cloudflare_workers_script` *can* manage them, which is exactly
 why the rule needs stating: two writers on one resource produce state drift.
-The AI News routine publishes daily, and Terraform must stay out of that path.
+The AI News routine publishes daily, and OpenTofu must stay out of that path.
 
 The database schema, RLS policies, and views are SQL migrations under
 `supabase/migrations/`. This is forced, not preferred: the Supabase provider
@@ -979,19 +979,19 @@ has no resource for tables, policies, or views.
 
 ## Setup
 
-    pnpm exec wrangler r2 bucket create cct-tfstate   # once, out of band
+    pnpm exec wrangler r2 bucket create cct-tofu-state   # once, out of band
     cp backend.hcl.example backend.hcl               # fill in the account ID
     export AWS_ACCESS_KEY_ID=...                     # R2 S3 API token
     export AWS_SECRET_ACCESS_KEY=...
     export CLOUDFLARE_API_TOKEN=...
-    terraform init -backend-config=backend.hcl
-    terraform plan -var-file=terraform.tfvars
+    tofu init -backend-config=backend.hcl
+    tofu plan -var-file=terraform.tfvars
 ```
 
 Add to `.gitignore`:
 
 ```
-# Terraform
+# OpenTofu
 /infra/.terraform/
 /infra/backend.hcl
 /infra/terraform.tfvars
@@ -1006,9 +1006,9 @@ crash.log
 cd infra
 cp backend.hcl.example backend.hcl   # fill in the real account ID
 echo 'cloudflare_account_id = "<your account id>"' > terraform.tfvars
-terraform init -backend-config=backend.hcl
-terraform validate
-terraform plan -var-file=terraform.tfvars
+tofu init -backend-config=backend.hcl
+tofu validate
+tofu plan -var-file=terraform.tfvars
 ```
 
 Expected: `init` succeeds and reports the S3 backend configured; `validate` reports success; `plan` reports **"No changes. Your infrastructure matches the configuration."**
@@ -1018,7 +1018,7 @@ If `init` fails on the backend, the usual causes are a missing `use_path_style`,
 - [ ] **Step 4: Confirm state landed in R2**
 
 ```bash
-pnpm exec wrangler r2 object get cct-tfstate/cloudcodetree/terraform.tfstate --file=/tmp/state.json && head -c 200 /tmp/state.json
+pnpm exec wrangler r2 object get cct-tofu-state/cloudcodetree/terraform.tfstate --file=/tmp/state.json && head -c 200 /tmp/state.json
 ```
 
 Expected: a JSON state file with `"resources": []`.
@@ -1027,13 +1027,13 @@ Expected: a JSON state file with `"resources": []`.
 
 ```bash
 cd .. && git add infra/ .gitignore
-git commit -m "infra: Terraform bootstrap with remote state on R2
+git commit -m "infra: OpenTofu bootstrap with remote state on R2
 
 Walking skeleton only — no resources yet. Proves the backend, credentials,
 and provider config work before any real resource depends on them. State
 locking uses use_lockfile, so no DynamoDB equivalent is needed.
 
-Documents the ownership boundary: Terraform never declares anything inside
+Documents the ownership boundary: OpenTofu never declares anything inside
 the Worker (wrangler owns it, and it ships on every content push), and the
 database schema stays in SQL migrations because the Supabase provider has
 no resource for tables, policies, or views."
@@ -1236,5 +1236,5 @@ Phase 1 does not start until all of these hold:
 - [ ] Staging returns `X-Robots-Tag: noindex, nofollow`; production does not.
 - [ ] Staging HTML contains **zero** references to `https://cloudcodetree.com/_next`.
 - [ ] `/projects/<anything>/demo/` returns 404 from the Worker, proving `run_worker_first`'s array form deployed.
-- [ ] `terraform plan` reports no changes, with state in R2.
+- [ ] `tofu plan` reports no changes, with state in R2.
 - [ ] `cloudcodetree.com` still serves from GitHub Pages, unchanged, and `deploy.yml`'s gh-pages path is untouched.
