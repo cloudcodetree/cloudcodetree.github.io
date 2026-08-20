@@ -31,6 +31,39 @@ Settled during brainstorming; each replaces or extends the 2026-07-30 spec.
 | Demo build delivery | **Vendored into the site deploy** from pinned release artifacts. |
 | Repo topology | **Separate repos**, pinned `artifact` version in the manifest, env-driven base paths. |
 
+### Why Supabase (re-evaluated 2026-08-20)
+
+The requirement is not "an auth provider" — it is **auth plus a SQL analytics
+store**, because reading analytics was settled as saved SQL views. That
+eliminates most of the field: Clerk, Auth0, Cognito, and Entra ID are auth-only,
+so each would add a database vendor rather than remove one.
+
+- **Cloudflare Access** — zero auth code and single-vendor, but **free for 50
+  users**, then $7/user/month. A public signup funnel makes that a bill that
+  scales with success. Rejected.
+- **Cloudflare-native (D1 + OpenAuth/better-auth)** — appealing now that
+  hosting is Cloudflare, and D1 has a SQL console. But it means owning token
+  issuance, session lifecycle, and magic-link replay protection, and Cloudflare
+  cannot send email, so magic links still need Resend — not actually
+  single-vendor. Rejected for now; the strongest alternative if consolidation
+  later outweighs owning security-critical code.
+- **Firebase Auth** — best-in-class Google sign-in and Google sends the
+  magic-link email, but Firestore is not SQL; the "whom" questions would need a
+  BigQuery export and a second system. Fights the analytics decision. Rejected.
+- **Cognito / Entra ID** — magic links need custom Lambda triggers or OTP user
+  flows; heavy ops for a portfolio gate. Rejected.
+- **Vercel** — no auth product, and we are not hosting there. Not applicable.
+
+**Decision: Supabase.** The only option satisfying auth *and* the SQL analytics
+decision on one free tier with no security-critical code to own.
+
+**Amendment — keepalive.** Supabase free-tier projects pause after roughly a
+week of inactivity, and a paused project means auth is down for the next
+visitor. A portfolio site can genuinely go a week without a signup, so Phase 2
+adds a scheduled GitHub Actions job issuing a trivial query to keep the project
+warm. Confirm current pausing behavior when the project is created; $25/month
+Pro removes the concern entirely if it becomes noisy.
+
 ### Why a single gateway instead of per-demo Workers
 
 Cloudflare Workers Assets serves matching static files at the edge **without
@@ -377,11 +410,18 @@ documented recipe, not a plan.
   `https://cloudcodetree.com` in `next.config.js`, which would make a staging
   build pull its assets from production and silently invalidate every parity
   check. The staging build sets it to the `workers.dev` origin or empty.
-- **Staging must not be indexed.** The Worker returns
-  `X-Robots-Tag: noindex, nofollow` for any request whose hostname is not
-  `cloudcodetree.com`, so the staging origin cannot compete with production in
-  search or split link equity. One header, applied at the edge, covers every
-  route including the vendored demo assets.
+- **Two asset-routing options are required for GitHub Pages parity:**
+  `not_found_handling: "404-page"` so unmatched paths serve `public/404.html` as
+  Pages does (the default, `"none"`, returns a bare 404), and
+  `html_handling: "force-trailing-slash"` to match Pages' `/about` → `/about/`
+  redirect, consistent with `trailingSlash: true`.
+- **Staging must not be indexed.** The staging build appends a site-wide
+  `X-Robots-Tag: noindex, nofollow` rule to `out/_headers`, so the staging
+  origin cannot compete with production in search. Doing this in `_headers`
+  rather than in the Worker is deliberate: the Worker runs only for
+  `run_worker_first` paths and asset misses, so a Worker-set header would miss
+  every ordinary page. A build-time rule covers every response with zero Worker
+  invocations, and production simply never runs that step.
 - Supabase redirect allowlist and the Google OAuth authorized-redirect URIs must
   list the staging origin alongside production and `localhost:3000`.
 
@@ -436,25 +476,37 @@ Beyond the vitest suite, observed on the staging origin in a real browser:
 
 ## Risks and open items
 
-1. **`run_worker_first` accepting an array of route patterns is the single
-   load-bearing assumption in this design.** Verify against the current Wrangler
-   in Phase 0 before anything is built on it. Fallback: a `_routes.json`-style
-   exclusion, or a Worker fronting all requests.
-2. **DNS cutover** — recreate 4 GitHub Pages A records, the `www` CNAME, and any
+1. ~~`run_worker_first` accepting an array of route patterns~~ — **RESOLVED
+   2026-08-20.** Cloudflare documents the option as `boolean | string[]`, with
+   `*` glob and `!` exception patterns; patterns must begin with `/` or `!/`.
+   The single-gateway design is sound.
+2. **`public/_headers` becomes live on Workers and is currently wrong.** GitHub
+   Pages ignores `_headers` entirely, so this file has never been enforced.
+   Workers Assets supports it natively, so migrating switches on a never-tested
+   policy. As written it would (a) break `/about/schedule`, whose widget loads
+   from `https://assets.calendly.com` — absent from `script-src`; and (b) apply
+   `Cache-Control: no-cache, no-store` to `/*`, disabling caching for every
+   content-hashed Next.js bundle. Rewrite it in Phase 0; Phase 2 must extend
+   `connect-src` to reach Supabase and Google. The `/assets/*` rule is dead
+   Vite-era config — Next serves `/_next/static/*`.
+3. `public/sw.js` is **registered nowhere** in the app, so there is no stale
+   service worker to invalidate at cutover. Left in place; deleting it is
+   unrelated cleanup.
+4. **DNS cutover** — recreate 4 GitHub Pages A records, the `www` CNAME, and any
    MX/TXT records. Afterward remove the Pages custom domain and the `CNAME` file
    so GitHub holds no dangling claim on the hostname.
-3. **Google OAuth** uses only `email`/`profile` — non-sensitive scopes, so
+5. **Google OAuth** uses only `email`/`profile` — non-sensitive scopes, so
    production publishing should not need verification review. Confirm on the
    consent screen rather than assume.
-4. **Supabase built-in SMTP is rate-limited** on the free tier (single-digit
+6. **Supabase built-in SMTP is rate-limited** on the free tier (single-digit
    emails/hour). Acceptable at portfolio scale, and Google sign-in bypasses it.
    Custom SMTP (e.g. Resend) is the upgrade path.
-5. **Workers free tier is 100k requests/day**; one demo page load is ~30 gated
+7. **Workers free tier is 100k requests/day**; one demo page load is ~30 gated
    requests. Comfortable, but that is the multiplier.
-6. `assetPrefix` in `next.config.js` hardcodes `https://cloudcodetree.com`.
+8. `assetPrefix` in `next.config.js` hardcodes `https://cloudcodetree.com`.
    It must become environment-driven before staging is meaningful — see
    *Verification before cutover*.
-7. An hour-long cookie means a long demo session will hit the silent refresh.
+9. An hour-long cookie means a long demo session will hit the silent refresh.
    Test that path explicitly.
 
 ## Superseded by this spec
