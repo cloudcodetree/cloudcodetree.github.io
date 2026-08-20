@@ -1,7 +1,13 @@
 # Projects Section with Auth-Gated Live Demos — Design
 
 **Date:** 2026-07-30
-**Status:** Approved (brainstorming session)
+**Status:** **SUPERSEDED** by `2026-08-20-projects-gated-demos-design.md` — never implemented.
+
+> Retained for the rejected-approach record only. The 2026-08-20 spec moves the whole
+> site to Cloudflare Workers behind a single gateway, which removes the need for the
+> `@cloudcodetree/demo-gate` package, the per-demo Workers, and the
+> `*.demos.cloudcodetree.com` subdomains described below. It also adds Google OAuth,
+> project detail pages, and analytics.
 
 ## Goal
 
