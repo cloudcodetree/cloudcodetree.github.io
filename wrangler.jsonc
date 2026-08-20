@@ -1,0 +1,34 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cct-site",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-08-20",
+  "assets": {
+    "directory": "./out",
+    "binding": "ASSETS",
+    // Matches GitHub Pages' /about -> /about/ redirect; consistent with
+    // trailingSlash: true in next.config.js.
+    "html_handling": "force-trailing-slash",
+    // Serve public/404.html on a miss, as Pages does. The default ("none")
+    // would return a bare 404 and break parity.
+    "not_found_handling": "404-page",
+    // These paths 404 until Phase 2. Declared now so the array form is proven
+    // to deploy before anything depends on it.
+    "run_worker_first": ["/api/*", "/projects/*/demo/*"]
+  },
+  "observability": { "enabled": true },
+  "vars": { "PRODUCTION_HOSTNAME": "cloudcodetree.com" },
+  "env": {
+    "staging": {
+      "name": "cct-site-staging",
+      "vars": { "PRODUCTION_HOSTNAME": "cloudcodetree.com" },
+      "assets": {
+        "directory": "./out",
+        "binding": "ASSETS",
+        "html_handling": "force-trailing-slash",
+        "not_found_handling": "404-page",
+        "run_worker_first": ["/api/*", "/projects/*/demo/*"]
+      }
+    }
+  }
+}

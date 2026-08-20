@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["esnext"],
+    "types": ["@cloudflare/workers-types"],
+    "noEmit": true
+  },
+  "include": ["**/*.ts"],
+  // Required, not redundant: `exclude` inherited from the root config resolves
+  // relative to THAT file, so its "worker" entry becomes "../worker" here and
+  // would exclude every file this config is meant to check (TS18003).
+  "exclude": []
+}

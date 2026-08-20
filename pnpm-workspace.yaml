@@ -1,8 +1,17 @@
-allowBuilds:
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
 # Packages whose install/build scripts are allowed to run.
-# pnpm 10+ blocks dependency build scripts by default; list approvals here.
+# pnpm blocks dependency build scripts by default as a supply-chain defense;
+# each of these needs its postinstall to be functional at all:
+#   sharp         - image compression in scripts/ingest-feed.mjs
+#   unrs-resolver - native resolver used by eslint
+#   esbuild       - vitest's bundler
+#   workerd       - the Cloudflare Workers runtime behind `wrangler dev`
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+  workerd: true
 onlyBuiltDependencies:
+  - esbuild
   - sharp
   - unrs-resolver
+  - workerd
