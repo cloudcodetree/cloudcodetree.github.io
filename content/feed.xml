@@ -10,7 +10,119 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 20 Aug 2026 04:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 20 Aug 2026 12:12:00 +0000</lastBuildDate>
+
+
+    <item>
+      <title>Running /design-sync in Claude Code: What Your Codebase Feeds Into Claude Design (and Where the Round-Trip Gets Rough)</title>
+      <link>https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design</link>
+      <guid isPermaLink="false">2026-08-20-05-design-sync-codebase-round-trip</guid>
+      <pubDate>Thu, 20 Aug 2026 12:12:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Run /design-sync in your Claude Code session and Claude Design builds prototypes from your actual components, not generic ones. The code-to-design direction works cleanly; the full project round-trip is still rough.</description>
+      <content:encoded><![CDATA[**Run `/design-sync` in Claude Code and Claude Design builds your next prototype from your actual components instead of defaults. The code→design direction works cleanly; the design→code return trip still demands active attention.**
+
+**What the command reads from your codebase**
+
+`/design-sync` accepts a GitHub repo, a local directory, design files, or raw uploads. From your code it extracts:
+- Component APIs and structure
+- Color system, spacing scale, typography, CSS approach (custom properties, utility classes, etc.)
+- Framework patterns: hooks, state, file organization
+
+What it misses: conventions that live outside the code itself — custom `data-testid` patterns, undocumented a11y attributes, animation contracts. Before running `/design-sync` over a real codebase, write a short `DESIGN-SYSTEM.md` documenting those and include it in the upload. The day's earlier post on [understanding Claude Design's output format](https://cloudcodetree.com/ai-news/2026-08-20-02-claude-design-output-format-codebase-landing) covers what comes back.
+
+**Running it**
+
+```bash
+/design-sync   # in any Claude Code session
+```
+
+The sync is incremental — one component at a time — and presents a plan you approve before anything is written. First sync over a large library means multiple approval rounds.
+
+**The code→design direction: mostly solid**
+
+Practitioners report that once the design system is loaded, Claude Design generates prototypes that look like your system — your color tokens, your component variants — rather than Tailwind defaults. Deeply nested slot structures sometimes get flattened, but the extraction is reliable for standard component APIs.
+
+**The project round-trip: still rough**
+
+The design→code leg produces a handoff bundle Claude Code picks up directly, but practitioners flag it as still awkward: the moments that demanded human judgment were the permission approvals, catching when Claude read the wrong component version, and reviewing the output before accepting it. [One detailed walkthrough](https://paulkuo.tw/en/articles/claude-design-sync-codebase/) describes it as "I wish it were a little easier" — the direction works, but it needs more active shepherding than the code→design leg.
+
+**Requires:** Claude Pro, Max, or Team.
+
+**Sources:** [Set up your design system — Anthropic Help](https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design) · [Claude Design overhaul — VentureBeat](https://venturebeat.com/technology/anthropic-ships-major-claude-design-overhaul-with-design-system-imports-code-round-trips-and-a-fix-for-its-token-burning-problem) · [I Fed My Entire Design System to AI — Paul Kuo](https://paulkuo.tw/en/articles/claude-design-sync-codebase/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Stop Re-Prompting for the Same Voice Every Session: Claude Code's Five Built-In Output Styles</title>
+      <link>https://code.claude.com/docs/en/output-styles</link>
+      <guid isPermaLink="false">2026-08-20-04-claude-code-output-styles-guide</guid>
+      <pubDate>Thu, 20 Aug 2026 12:11:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code ships five built-in output styles — including Concise (added today) — each wired into the system prompt. Pick the one that matches the session job so you stop asking for the same voice every turn.</description>
+      <content:encoded><![CDATA[**Claude Code ships five built-in output styles that change how it responds — tone, detail, execution posture — without changing what it's allowed to do. Concise was added today in v2.1.237. If you keep re-prompting "be brief" or "explain your choices", you want a style instead.**
+
+**The five styles and when each fits:**
+
+| Style | What it changes | Best session type |
+|---|---|---|
+| **Default** | Standard Claude Code | Routine engineering |
+| **Concise** (new today) | Leads with results, skips narration | Experienced users, fast iteration |
+| **Proactive** | Executes immediately, assumes reasonable choices | Hands-off sessions, long background runs |
+| **Explanatory** | Adds "Insights" explaining choices | Learning a new codebase, audit trail |
+| **Learning** | Insights + `TODO(human)` markers | Active pair-programming, onboarding |
+
+**Proactive vs. auto mode:** Proactive adds *stronger* autonomous-execution guidance than auto mode does — Claude decides faster and narrates less — but it doesn't change your permission mode. Your permission settings still gate what runs without a prompt. If you want auto mode AND less narration, Proactive gives you that without opening new permissions.
+
+**Set it:**
+```bash
+# Interactive: run in any session
+/config   # → Output style → pick from menu
+
+# Or set in .claude/settings.json for a project default
+{ "outputStyle": "concise" }
+```
+Takes effect after `/clear` or a new session.
+
+**Token impact:** Explanatory and Learning produce noticeably longer responses — the trade-off is worth it when you need the reasoning, wasteful when you don't. Styles inject a few hundred tokens into the system prompt, but prompt caching handles that overhead after the first request in a session.
+
+**Limits:** One style per session — you can't blend them. Custom styles aren't in the built-in menu (you'd need a hook or SDK system-prompt edit). Independent practitioners note Proactive can miss edge cases that Default would flag; it's best for sessions where you've already validated the approach.
+
+**Sources:** [Output styles — code.claude.com](https://code.claude.com/docs/en/output-styles) · [Pair programming with Claude Code output styles — Shipyard](https://shipyard.build/blog/claude-code-output-styles-pair-programming/) · [Output styles practical reference — ClaudeKit](https://getclaudekit.com/blog/guide/mechanics/output-styles-reference)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Anthropic Files API Is Now Generally Available: Upload Once, Reuse Across Calls</title>
+      <link>https://docs.anthropic.com/en/docs/build-with-claude/files</link>
+      <guid isPermaLink="false">2026-08-20-03-anthropic-files-api-ga</guid>
+      <pubDate>Thu, 20 Aug 2026 12:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Agents</category>
+      <category>Developer Tools</category>
+      <description>Anthropic's Files API exits beta: upload a file once, reference it by ID across many Messages calls. No beta header needed. 1 TB per org, expires_at field added, new pagination on list endpoint.</description>
+      <content:encoded><![CDATA[**Anthropic's Files API is now generally available — no beta header required. Upload PDFs, images, and other documents once, then pass a `file_id` to any Messages call instead of re-uploading each time.**
+
+The GA release adds an `expires_at` field on file objects (so you can manage expiry proactively), pagination on the list endpoint (`page`/`next_page` + `ids[]` filter), and removes the `files-api-2025-04-14` beta header requirement.
+
+Storage is 1 TB per organization at 500 requests per minute. Files do expire, so long-lived agents need to detect and re-upload when `expires_at` passes — it's not zero-maintenance. The API stores raw bytes; it doesn't embed or index content, so it isn't a retrieval layer on its own.
+
+**Why it matters:** Multi-turn document agents — code review over a spec, analysis across a knowledge base — no longer pay re-upload latency and input-token overhead on every turn.
+
+**Sources:** [Files API — Anthropic Docs](https://docs.anthropic.com/en/docs/build-with-claude/files) · [Claude API release notes — Anthropic](https://docs.anthropic.com/en/release-notes/api)
+]]></content:encoded>
+    </item>
+
 
 
 
@@ -7296,166 +7408,9 @@ According to StatusGator, Anthropic has experienced 164 outages in 2026 — roug
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>One API Key, 500+ Models, Automatic Fallback: Getting Started with OpenRouter</title>
-      <link>https://www.youtube.com/watch?v=l-JZm60cpUU</link>
-      <guid isPermaLink="false">2026-08-05-07-openrouter-model-routing-fallback</guid>
-      <pubDate>Wed, 05 Aug 2026 20:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>LLM</category>
-      <category>Self-Hosting</category>
-      <category>Developer Tools</category>
-      <description>OpenRouter gives you one OpenAI-compatible endpoint for 500+ models across 70+ providers — define a fallback chain so your app stays live when any model or provider goes down.</description>
-      <media:content url="https://img.youtube.com/vi/l-JZm60cpUU/maxresdefault.jpg" medium="image" type="image/jpeg" />
-      <media:thumbnail url="https://img.youtube.com/vi/l-JZm60cpUU/maxresdefault.jpg" />
-      <content:encoded><![CDATA[
-**One OpenRouter key + one endpoint = access to 500+ models across 70+ providers — define a fallback chain so your app stays live when any model or provider goes down.**
-
-What you'll be able to do after this:
-- Call Claude, GPT-4.1, Gemini, Llama, Mistral, and hundreds more from a single `openrouter.ai/api/v1` endpoint using your existing OpenAI SDK
-- Define a fallback chain in the request body so your app stays up when a model hits a rate limit or outage
-- Route to the fastest available provider using the `:nitro` suffix — no extra code
-
-**Start here:** [Accessing Multiple AI Models With the OpenRouter API — Real Python (June 2026)](https://www.youtube.com/watch?v=l-JZm60cpUU) — full walkthrough from setup to intelligent routing.
-
-## Why OpenRouter
-
-Three providers means three SDK configs, three billing accounts, and three error handlers. OpenRouter collapses it to one. The API is OpenAI-compatible, so switching is one `base_url` change in your existing code.
-
-## Setup
-
-```bash
-pip install openai
-export OPENROUTER_API_KEY="sk-or-..."
-```
-
-## Basic call
-
-```python
-from openai import OpenAI
-import os
-
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=os.environ["OPENROUTER_API_KEY"],
-)
-
-response = client.chat.completions.create(
-    model="anthropic/claude-sonnet-4-6",
-    messages=[{"role": "user", "content": "Explain LoRA in one sentence."}],
-)
-print(response.choices[0].message.content)
-```
-
-Swap `model` to `openai/gpt-4.1`, `google/gemini-3.5-flash`, or any of the 500+ slugs at [openrouter.ai/models](https://openrouter.ai/models). No other changes.
-
-## Fallback chains
-
-Pass a `models` array in priority order:
-
-```python
-response = client.chat.completions.create(
-    extra_body={
-        "models": [
-            "anthropic/claude-sonnet-4-6",   # primary
-            "openai/gpt-4.1",                # if Claude rate-limits or is down
-            "google/gemini-3.5-flash",       # last resort
-        ]
-    },
-    messages=[{"role": "user", "content": "..."}],
-)
-```
-
-OpenRouter triggers the next model automatically on context-length errors, moderation flags, rate limits, or provider downtime — no retry logic needed in your code.
-
-## Speed routing
-
-Append `:nitro` to any model slug to route to the fastest available provider serving it:
-
-```python
-model="anthropic/claude-haiku-4-5:nitro"
-```
-
-The provider switches invisibly; your code stays the same.
-
-**Sources:** [How OpenRouter Model Routing Works — OpenRouter Blog](https://openrouter.ai/blog/insights/model-routing/) · [Complete Python guide — Real Python](https://realpython.com/openrouter-api/) · [Video tutorial — Real Python on YouTube](https://www.youtube.com/watch?v=l-JZm60cpUU)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Remote Control Requires User-Scope Enable Now — and How --teleport Pulls a Cloud Session Into Your Terminal</title>
-      <link>https://code.claude.com/docs/en/remote-control</link>
-      <guid isPermaLink="false">2026-08-05-06-claude-code-remote-control-user-scope-teleport</guid>
-      <pubDate>Wed, 05 Aug 2026 12:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>August 4 breaking change: repo-local .claude/settings.json can no longer enable Remote Control — fix it with /config. Plus: claude --teleport pulls any cloud session into your local terminal.</description>
-      <content:encoded><![CDATA[
-**August 4 change: repo-local `.claude/settings.json` can no longer enable Remote Control — fix it with `/config` in Claude Code. Bonus: `claude --teleport` pulls any cloud session to your local terminal.**
-
-Two changes in one: a Claude Code scope fix you need to make, and a workflow that makes web → local context hand-off seamless.
-
-## Breaking change: Remote Control must be enabled at user scope
-
-Before August 4, you could add `"remoteControlEnabled": true` to your project's `.claude/settings.json` or `.claude/settings.local.json` and Remote Control would auto-start. As of the August 4 release, repo-local settings can no longer *enable* it — they can still *disable* it, but enabling requires user-scoped config.
-
-**Fix it in 30 seconds:**
-
-```bash
-# Inside a Claude Code session:
-/config remoteControlEnabled true
-```
-
-This writes to `~/.claude/settings.json` at user scope, persists across all your projects, and allows repo-level settings to disable it where needed (e.g., sensitive repos). You only need to do this once per machine.
-
-The security rationale: a repository's settings file should not escalate your device's Remote Control exposure — that decision belongs to the machine owner, not the project.
-
-## Bonus: --teleport pulls a cloud session to your local terminal
-
-Remote Control is also what powers `claude --teleport`. If you kick off a task at [claude.ai/code](https://claude.ai/code) (or on mobile), `--teleport` pulls the full conversation history and working branch into your local terminal:
-
-```bash
-claude --teleport
-# → interactive picker of your active cloud sessions
-# → switches your local shell to the cloud session's git branch
-# → continue with all context intact
-```
-
-This is one-way (cloud → local). For the reverse — start locally, monitor from your phone — `/remote-control` starts a session you can observe and redirect from any browser. Enable it first with `/config remoteControlEnabled true` at user scope.
-
-**Sources:** [Remote Control docs — Claude Code](https://code.claude.com/docs/en/remote-control) · [Claude Code on the web docs](https://code.claude.com/docs/en/claude-code-on-the-web) · [Session teleportation guide — proflead.dev](https://proflead.dev/posts/claude-code-session-teleportation/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>MiniMax Opens H3 Video Weights — With a Geo Carve-Out — and Grok Voice 2.0 Becomes the Default Today</title>
-      <link>https://www.minimax.io/news/minimax-h3-open-source</link>
-      <guid isPermaLink="false">2026-08-05-05-minimax-h3-grok-voice-2-open-multimodal</guid>
-      <pubDate>Wed, 05 Aug 2026 12:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <category>Developer Tools</category>
-      <description>MiniMax H3 open weights on HuggingFace (Aug 3, US/EU/UK/Korea excluded); Grok Voice Think Fast 2.0 becomes grok-voice-latest today at $0.08/min.</description>
-      <content:encoded><![CDATA[
-**MiniMax H3 open weights hit HuggingFace on August 3 (US/EU/UK/Korea excluded from local use); Grok Voice Think Fast 2.0 becomes `grok-voice-latest` today.**
-
-**MiniMax H3 (August 3).** MiniMax published weights for H3 — an omni-modal video model that generates 2K, 15-second clips with native stereo audio — under a community license on Hugging Face with native ComfyUI support. Two checkpoints: FL2VA (text-to-video and first/last-frame conditioning) and Ref2VA (reference-based generation). **Critical caveat:** the license explicitly excludes the United States, EU, UK, and South Korea from local deployment. US and EU developers can use H3 via the API but not run the weights locally. Total download: ~42.5 GB.
-
-**Grok Voice Think Fast 2.0 (today, August 5).** As of today, `grok-voice-latest` routes to Think Fast 2.0: 1.5–2× better transcription WER across 24 languages, ~60% fewer reasoning tokens, and improved multi-turn tool use. Price unchanged at $0.08/min. The API is compatible with the OpenAI Realtime API spec. Lock in `grok-voice-think-fast-1.0` explicitly if you need to stay on the old version.
-
-**Why it matters:** Open video generation is becoming real infrastructure — even with restrictions, H3's ComfyUI launch accelerates pipelines for those who can run it locally. And Grok's OpenAI Realtime-compatible voice API means engineers can test a second voice provider without rewriting their stack.
-
-**Sources:** [MiniMax H3 Open Source Announcement](https://www.minimax.io/news/minimax-h3-open-source) · [H3 geo restriction details — TechTimes](https://www.techtimes.com/articles/322904/20260804/minimax-h3-open-weights-exclude-us-eu-uk-korea-local-deployment.htm) · [Grok Voice API — xAI](https://x.ai/news/grok-voice-agent-api) · [xAI release notes](https://releasebot.io/updates/xai)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
     

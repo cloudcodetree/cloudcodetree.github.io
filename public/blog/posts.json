@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-08-20-05-design-sync-codebase-round-trip",
+    "title": "Running /design-sync in Claude Code: What Your Codebase Feeds Into Claude Design (and Where the Round-Trip Gets Rough)",
+    "excerpt": "Run /design-sync in your Claude Code session and Claude Design builds prototypes from your actual components, not generic ones. The code-to-design direction works cleanly; the full project round-tr…",
+    "author": "Chris Harper",
+    "date": "08-20-2026",
+    "publishedAt": "2026-08-20T12:12:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Claude Design"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design",
+    "content": "**Run `/design-sync` in Claude Code and Claude Design builds your next prototype from your actual components instead of defaults. The code→design direction works cleanly; the design→code return trip still demands active attention.**\n\n**What the command reads from your codebase**\n\n`/design-sync` accepts a GitHub repo, a local directory, design files, or raw uploads. From your code it extracts:\n- Component APIs and structure\n- Color system, spacing scale, typography, CSS approach (custom properties, utility classes, etc.)\n- Framework patterns: hooks, state, file organization\n\nWhat it misses: conventions that live outside the code itself — custom `data-testid` patterns, undocumented a11y attributes, animation contracts. Before running `/design-sync` over a real codebase, write a short `DESIGN-SYSTEM.md` documenting those and include it in the upload. The day's earlier post on [understanding Claude Design's output format](https://cloudcodetree.com/ai-news/2026-08-20-02-claude-design-output-format-codebase-landing) covers what comes back.\n\n**Running it**\n\n```bash\n/design-sync   # in any Claude Code session\n```\n\nThe sync is incremental — one component at a time — and presents a plan you approve before anything is written. First sync over a large library means multiple approval rounds.\n\n**The code→design direction: mostly solid**\n\nPractitioners report that once the design system is loaded, Claude Design generates prototypes that look like your system — your color tokens, your component variants — rather than Tailwind defaults. Deeply nested slot structures sometimes get flattened, but the extraction is reliable for standard component APIs.\n\n**The project round-trip: still rough**\n\nThe design→code leg produces a handoff bundle Claude Code picks up directly, but practitioners flag it as still awkward: the moments that demanded human judgment were the permission approvals, catching when Claude read the wrong component version, and reviewing the output before accepting it. [One detailed walkthrough](https://paulkuo.tw/en/articles/claude-design-sync-codebase/) describes it as \"I wish it were a little easier\" — the direction works, but it needs more active shepherding than the code→design leg.\n\n**Requires:** Claude Pro, Max, or Team.\n\n**Sources:** [Set up your design system — Anthropic Help](https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design) · [Claude Design overhaul — VentureBeat](https://venturebeat.com/technology/anthropic-ships-major-claude-design-overhaul-with-design-system-imports-code-round-trips-and-a-fix-for-its-token-burning-problem) · [I Fed My Entire Design System to AI — Paul Kuo](https://paulkuo.tw/en/articles/claude-design-sync-codebase/)"
+  },
+  {
+    "id": "2026-08-20-04-claude-code-output-styles-guide",
+    "title": "Stop Re-Prompting for the Same Voice Every Session: Claude Code's Five Built-In Output Styles",
+    "excerpt": "Claude Code ships five built-in output styles — including Concise (added today) — each wired into the system prompt. Pick the one that matches the session job so you stop asking for the same voice…",
+    "author": "Chris Harper",
+    "date": "08-20-2026",
+    "publishedAt": "2026-08-20T12:11:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/output-styles",
+    "content": "**Claude Code ships five built-in output styles that change how it responds — tone, detail, execution posture — without changing what it's allowed to do. Concise was added today in v2.1.237. If you keep re-prompting \"be brief\" or \"explain your choices\", you want a style instead.**\n\n**The five styles and when each fits:**\n\n| Style | What it changes | Best session type |\n|---|---|---|\n| **Default** | Standard Claude Code | Routine engineering |\n| **Concise** (new today) | Leads with results, skips narration | Experienced users, fast iteration |\n| **Proactive** | Executes immediately, assumes reasonable choices | Hands-off sessions, long background runs |\n| **Explanatory** | Adds \"Insights\" explaining choices | Learning a new codebase, audit trail |\n| **Learning** | Insights + `TODO(human)` markers | Active pair-programming, onboarding |\n\n**Proactive vs. auto mode:** Proactive adds *stronger* autonomous-execution guidance than auto mode does — Claude decides faster and narrates less — but it doesn't change your permission mode. Your permission settings still gate what runs without a prompt. If you want auto mode AND less narration, Proactive gives you that without opening new permissions.\n\n**Set it:**\n```bash\n# Interactive: run in any session\n/config   # → Output style → pick from menu\n\n# Or set in .claude/settings.json for a project default\n{ \"outputStyle\": \"concise\" }\n```\nTakes effect after `/clear` or a new session.\n\n**Token impact:** Explanatory and Learning produce noticeably longer responses — the trade-off is worth it when you need the reasoning, wasteful when you don't. Styles inject a few hundred tokens into the system prompt, but prompt caching handles that overhead after the first request in a session.\n\n**Limits:** One style per session — you can't blend them. Custom styles aren't in the built-in menu (you'd need a hook or SDK system-prompt edit). Independent practitioners note Proactive can miss edge cases that Default would flag; it's best for sessions where you've already validated the approach.\n\n**Sources:** [Output styles — code.claude.com](https://code.claude.com/docs/en/output-styles) · [Pair programming with Claude Code output styles — Shipyard](https://shipyard.build/blog/claude-code-output-styles-pair-programming/) · [Output styles practical reference — ClaudeKit](https://getclaudekit.com/blog/guide/mechanics/output-styles-reference)"
+  },
+  {
+    "id": "2026-08-20-03-anthropic-files-api-ga",
+    "title": "Anthropic Files API Is Now Generally Available: Upload Once, Reuse Across Calls",
+    "excerpt": "Anthropic's Files API exits beta: upload a file once, reference it by ID across many Messages calls. No beta header needed. 1 TB per org, expires_at field added, new pagination on list endpoint.",
+    "author": "Chris Harper",
+    "date": "08-20-2026",
+    "publishedAt": "2026-08-20T12:10:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Agents",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://docs.anthropic.com/en/docs/build-with-claude/files",
+    "content": "**Anthropic's Files API is now generally available — no beta header required. Upload PDFs, images, and other documents once, then pass a `file_id` to any Messages call instead of re-uploading each time.**\n\nThe GA release adds an `expires_at` field on file objects (so you can manage expiry proactively), pagination on the list endpoint (`page`/`next_page` + `ids[]` filter), and removes the `files-api-2025-04-14` beta header requirement.\n\nStorage is 1 TB per organization at 500 requests per minute. Files do expire, so long-lived agents need to detect and re-upload when `expires_at` passes — it's not zero-maintenance. The API stores raw bytes; it doesn't embed or index content, so it isn't a retrieval layer on its own.\n\n**Why it matters:** Multi-turn document agents — code review over a spec, analysis across a knowledge base — no longer pay re-upload latency and input-token overhead on every turn.\n\n**Sources:** [Files API — Anthropic Docs](https://docs.anthropic.com/en/docs/build-with-claude/files) · [Claude API release notes — Anthropic](https://docs.anthropic.com/en/release-notes/api)"
+  },
+  {
     "id": "2026-08-20-02-claude-design-output-format-codebase-landing",
     "title": "What Claude Design Hands You: Understanding the Output So You Can Land It in Your Codebase",
     "excerpt": "Claude Design outputs standard HTML/CSS or React — here's what the handoff bundle contains, how giving it your CSS changes extraction quality, and where you'll still need a review pass.",
