@@ -471,21 +471,29 @@ documented recipe, not a plan.
 
 ### Parity gate (Phase 0 exit criteria)
 
-A script walks every path in the generated `sitemap.xml`, plus `/feed.xml`,
-`/robots.txt`, `/sitemap.xml`, the `/blog` and `/blog/<id>` redirect stubs, the
-legacy `/resume`, `/contact`, `/schedule` stubs, and a known-missing path, and
-compares production against staging. **Cutover does not proceed until:**
+`scripts/check-parity.mjs` asserts an **explicit behavioral contract** — status
+code, redirect `Location`, content type, and a required body marker — for the
+home page, every section index, the legacy redirect stubs, all five generated
+feeds, `robots.txt`, `sitemap.xml`, `404.html`, and a known-missing path. It
+then sweeps every URL in the generated `sitemap.xml` expecting 200.
 
-- every path returns the same status code from both origins;
-- HTML bodies match once the origin hostname is normalized;
-- trailing-slash behavior is identical (`/about` → `/about/` on both);
-- the 404 path serves the same `404.html`;
-- `feed.xml`, `sitemap.xml`, and `robots.txt` are byte-identical after
-  hostname normalization.
+**The contract is calibrated against production first.** A failure there means
+the contract is wrong, not that production is broken; it gets corrected until
+production passes cleanly. Only then does passing on staging mean anything.
 
-The blog is 500+ prerendered articles, so this is a real crawl, not a spot
-check — and it is exactly the kind of check that catches a Workers Assets
-path-resolution difference that a handful of manual clicks would miss.
+Comparing each origin to a contract rather than diffing HTML between origins is
+deliberate. Two builds differ by Next build ID and by feed timestamps even from
+identical source, so a body diff produces constant noise that hides real
+failures. Both origins serve the same build, so content equality is a given;
+what is actually in question is *serving behavior*.
+
+The blog is 500+ prerendered articles, so the sweep is a real crawl, not a spot
+check — and it is exactly what catches a Workers Assets path-resolution
+difference that a handful of manual clicks would miss.
+
+**Cutover does not proceed until the contract and the sweep both pass on
+staging**, staging returns `X-Robots-Tag: noindex`, and staging HTML contains no
+reference to the production asset origin.
 
 ### Gate verification (Phase 2 exit criteria)
 
