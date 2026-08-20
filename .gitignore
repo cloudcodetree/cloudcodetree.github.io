@@ -112,3 +112,6 @@ Thumbs.db
 
 # Brainstorm visual-companion artifacts
 /.superpowers/
+
+# Wrangler local state
+/.wrangler/
