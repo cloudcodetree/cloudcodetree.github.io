@@ -10,8 +10,121 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 20 Aug 2026 12:12:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 20 Aug 2026 20:09:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Search Hugging Face Without Leaving Claude Code: Wire Up the Official HF MCP Server in One Command</title>
+      <link>https://huggingface.co/docs/hub/en/hf-mcp-server</link>
+      <guid isPermaLink="false">2026-08-20-07-hf-mcp-server-hub-from-claude-code</guid>
+      <pubDate>Thu, 20 Aug 2026 20:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>MCP</category>
+      <category>HuggingFace</category>
+      <description>The official Hugging Face MCP server plugs the Hub into Claude Code with one command. Its hf_fs tool covers repos, docs, and semantic search in about 1,000 tokens — no more tab-hopping to hunt a model.</description>
+      <content:encoded><![CDATA[**One `claude mcp add` command wires the official Hugging Face MCP server into Claude Code — its `hf_fs` tool covers Hub search, semantic docs lookup, and dataset discovery without leaving your editor.**
+
+**The setup — one line**
+
+```bash
+claude mcp add hf-mcp-server -t http https://huggingface.co/mcp?login
+```
+
+Then start a Claude Code session and follow the browser prompt to sign in with your Hugging Face account (a READ-scope token is all it needs). Cursor, VS Code, Zed, and Claude Desktop all get client-specific snippets from [huggingface.co/settings/mcp](https://huggingface.co/settings/mcp) — that page generates the exact configuration your client expects; don't hand-write it.
+
+**What `hf_fs` gives your agent**
+
+`hf_fs` is the primary built-in tool, and one interface covers most Hub tasks: repos, storage, documentation, papers, Spaces. It includes semantic search over docs and Spaces, and HF's docs put its whole footprint at roughly 1,000 tokens — small enough to leave enabled by default without eating your context. Real prompts that work:
+
+- "Search Hugging Face for Qwen 3.6 quantizations under 5B parameters."
+- "Find a Space that transcribes audio."
+- "How do I use LoRA adapters with PEFT?" (semantic docs search)
+- "List datasets tagged `weather` and `time-series`."
+
+Optional add-on tools — Contribute Repos, Sandboxes, Run and Manage Jobs — you turn on per-server in the settings page when you actually need them.
+
+**Where it fits in a real workflow**
+
+The point is not "chat with Hugging Face." It's that when Claude Code is picking a model, hunting a dataset, or clarifying a library API mid-task, the answer is a tool call instead of a context-switch to a browser tab. Combined with skills, it composes cleanly: a skill teaches Claude *when* to reach for the Hub; the MCP server gives it the *access*.
+
+**Limits — name them upfront**
+
+- **You give the agent your account's read access.** That includes your private repos if any exist. Use a fresh READ-only token if you want a clean audit trail.
+- **`hf_fs` is search, not download.** It surfaces the right resource; pulling weights, running inference, or fine-tuning still happens through the normal Hub/transformers/vLLM path.
+- **Restart the client after adding Spaces.** New Space-backed tools don't appear until the MCP client reloads.
+- **Rate limits apply to your HF token**, not to Claude Code — heavy loops can hit them.
+
+**Sources:** [Hugging Face MCP Server docs](https://huggingface.co/docs/hub/en/hf-mcp-server) · [MCP Server changelog + client snippets](https://huggingface.co/changelog/hf-mcp-server) · [Claude Code Beyond Basics: Skills, MCP, and Open Models — Adam Bernard](https://adambernard.com/kb/claude-code-beyond-basics-skills-mcp-and-open-models/)
+]]></content:encoded>
+      <media:content url="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hf-mcp-vscode.png" medium="image" />
+      <media:thumbnail url="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hf-mcp-vscode.png" />
+    </item>
+
+    <item>
+      <title>The Chunker Underneath Almost Every RAG Tutorial: LangChain's RecursiveCharacterTextSplitter, With Sizes That Actually Work</title>
+      <link>https://docs.langchain.com/oss/python/integrations/splitters/recursive_text_splitter</link>
+      <guid isPermaLink="false">2026-08-20-06-langchain-recursive-splitter-chunking-foundations</guid>
+      <pubDate>Thu, 20 Aug 2026 20:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>Chunking is the least-glamorous, highest-leverage decision in a RAG pipeline. RecursiveCharacterTextSplitter is the sensible default; 512 chunks with ~64 overlap is the sensible starting size.</description>
+      <content:encoded><![CDATA[**What you'll be able to do after this:** split any document into chunks that survive the "which paragraph was that in?" question, using LangChain's `RecursiveCharacterTextSplitter` with sizes benchmarks actually justify.
+
+**The three-bullet takeaway:**
+- **Recursive beats fixed-length.** The splitter tries paragraph breaks first, then lines, then spaces, then characters — so a chunk almost always ends at a boundary that makes sense to a reader.
+- **512 characters with 64 overlap is the practical default.** Independent [chunking benchmarks](https://www.firecrawl.dev/blog/best-chunking-strategies-rag) put the sweet spot for general prose at 256–512 tokens with 10–20% overlap; use those knobs to open a bug report against your own retrieval, not to guess forever.
+- **Metadata is the piece most people skip.** Every chunk needs `source`, `page` or heading, and `chunk_index`. Without them, "cite where this came from" is impossible after the fact.
+
+**Walk-through — under 30 lines of Python**
+
+```python
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+with open("handbook.md") as f:
+    doc = f.read()
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=512,       # target characters per chunk
+    chunk_overlap=64,     # ~12% overlap keeps context across the seam
+    separators=["\n\n", "\n", ". ", " ", ""],  # tried in order
+    length_function=len,  # swap for a tokenizer for token-accurate sizes
+)
+
+chunks = splitter.create_documents(
+    [doc],
+    metadatas=[{"source": "handbook.md"}],
+)
+
+for i, c in enumerate(chunks):
+    c.metadata["chunk_index"] = i
+
+print(len(chunks), "chunks")
+print(chunks[0].page_content[:200])
+print(chunks[0].metadata)
+```
+
+**Why "recursive"?** The splitter walks the separator list top-down. Paragraph breaks come first because they're the strongest semantic seams; single newlines and sentences are fallbacks. It only reaches for spaces or raw characters when nothing better fits. That's why paragraphs stay whole for short documents and split gracefully when they don't.
+
+**Common gotchas**
+
+- **Character length ≠ token length.** `chunk_size=512` with `length_function=len` is 512 characters, roughly 100–150 tokens. If you want token-accurate sizes, swap in `tiktoken` or your model's tokenizer via `length_function`.
+- **Code and markdown want different splitters.** `RecursiveCharacterTextSplitter.from_language(Language.PYTHON, ...)` uses code-aware separators (`\nclass `, `\ndef `) instead of prose ones. `MarkdownHeaderTextSplitter` splits by heading level first, then hands chunks off — worth it when heading structure matters more than length.
+- **Overlap has diminishing returns.** Below ~10% you lose cross-chunk context; above ~25% you're paying to embed and store the same sentences repeatedly.
+
+**Before you commit to a size, benchmark it.** Assemble 20–30 real questions your users ask, run each through your retriever, and measure recall@3 (does the correct passage appear in the top three?). Change `chunk_size` and re-run; the "correct" default is the one your queries actually recover. Skipping this and picking `chunk_size=1000` because a tutorial did is why so many RAG systems get to production with mysteriously bad recall.
+
+**When to reach for something fancier:** semantic chunking (splitting where embedding similarity drops) is one option — Firecrawl's benchmark reports it lifts recall by roughly 70% over naïve fixed-size baselines while running ~14× slower than recursive. Reach for it after you have a baseline and a benchmark, never before.
+
+**Sources:** [Splitting recursively — LangChain docs](https://docs.langchain.com/oss/python/integrations/splitters/recursive_text_splitter) · [Best chunking strategies for RAG (2026) — Firecrawl](https://www.firecrawl.dev/blog/best-chunking-strategies-rag) · [Chunk-size intuition — LangChain issue #2026](https://github.com/langchain-ai/langchain/issues/2026)
+]]></content:encoded>
+      <media:content url="https://python.langchain.com/img/brand/theme-image.png" medium="image" />
+      <media:thumbnail url="https://python.langchain.com/img/brand/theme-image.png" />
+    </item>
 
     <item>
       <title>Running /design-sync in Claude Code: What Your Codebase Feeds Into Claude Design (and Where the Round-Trip Gets Rough)</title>
@@ -7312,102 +7425,8 @@ generate = TextGeneration(
     </item>
 
 
-    <item>
-      <title>Stop Parsing LLM JSON by Hand: Instructor + Pydantic Gets You Validated Python Objects Every Time</title>
-      <link>https://python.useinstructor.com/</link>
-      <guid isPermaLink="false">2026-08-05-09-instructor-structured-output-agents</guid>
-      <pubDate>Wed, 05 Aug 2026 20:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>The instructor library patches any LLM client to enforce a Pydantic schema and retry on validation failures — reliable structured output from any LLM in under 10 lines.</description>
-      <content:encoded><![CDATA[
-**The instructor library patches your OpenAI/Anthropic/Ollama client to enforce a Pydantic schema and automatically retry on validation failures — reliable structured output from any LLM in under 10 lines.**
-
-Every agent eventually needs to extract structured data from an LLM: a list of entities, a classification, a tool call argument. The raw approach — JSON mode, then `json.loads()`, then manual validation — breaks on malformed output and you write retry logic from scratch every time. Instructor automates the whole loop.
-
-## How it works
-
-Define a Pydantic model, patch your client once, and call `.messages.create()` with `response_model=`:
-
-```bash
-pip install instructor
-```
-
-```python
-import instructor
-from anthropic import Anthropic
-from pydantic import BaseModel
-from typing import Literal
-
-class MovieReview(BaseModel):
-    title: str
-    sentiment: Literal["positive", "negative", "neutral"]
-    score: int  # 1-10
-    summary: str
-
-client = instructor.from_anthropic(Anthropic())
-
-review = client.messages.create(
-    model="claude-sonnet-4-6",
-    max_tokens=512,
-    messages=[{
-        "role": "user",
-        "content": "Review: 'Dune Part 3 was stunning but three hours long.' Extract a structured review."
-    }],
-    response_model=MovieReview,
-)
-
-print(review.sentiment)   # "positive"
-print(review.score)       # 8
-print(type(review))       # <class '__main__.MovieReview'>
-```
-
-You get back a validated Python object, not a string or dict. If the model returns invalid JSON or a score outside 1–10, instructor feeds the Pydantic validation error back to the model and retries — up to 3 times by default. The loop is invisible to your code.
-
-## Why this matters for agents
-
-Reliable structured output is the invisible foundation of every agent tool call. When your agent decides `{"action": "search", "query": "..."}`, a validation failure means a dropped tool invocation. Instructor makes that failure mode disappear.
-
-It works across providers — the same `response_model=` API regardless of whether the provider uses native structured output, tool calling, or JSON mode:
-
-```python
-# One-line provider swap:
-client = instructor.from_openai(OpenAI())          # OpenAI native structured output
-client = instructor.from_anthropic(Anthropic())     # Claude tool-calling under the hood
-client = instructor.from_ollama(...)                # local Ollama JSON mode
-```
-
-**Sources:** [instructor docs](https://python.useinstructor.com/) · [Instructor + Pydantic video — YouTube](https://www.youtube.com/watch?v=3xUW1Do9zOs) · [Beginner's guide — DEV Community](https://dev.to/srujana_maddula_3b6ab05ff/a-beginners-guide-to-instructor-get-structured-outputs-from-llms-3lco) · [Production validation guide](https://devopsboys.com/blog/llm-output-validation-instructor-pydantic-production-2026)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Claude Was Down 7.5 Hours Today — What It Means for Engineers Building on the API</title>
-      <link>https://www.androidauthority.com/claude-outage-august-5-2026-3694847/</link>
-      <guid isPermaLink="false">2026-08-05-08-claude-outage-7h-resilience</guid>
-      <pubDate>Wed, 05 Aug 2026 20:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Claude Mythos 5, Fable 5, Opus 5, and Sonnet 5 all went down from 3:05 AM to 10:34 AM ET — the 164th documented Anthropic outage of 2026.</description>
-      <content:encoded><![CDATA[
-**All four Claude frontier models — Mythos 5, Fable 5, Opus 5, Sonnet 5 — went down simultaneously for 7.5 hours today; this was Anthropic's 164th documented outage since January.**
-
-The incident started at 3:05 AM ET when elevated errors hit all four models at once. Engineers pushed an initial fix at 9:08 AM ET, then a second Opus 5-specific degradation emerged at 9:51 AM, requiring its own resolution path. Both were fully resolved by 10:34 AM ET — a combined 7 hours 29 minutes of disruption.
-
-According to StatusGator, Anthropic has experienced 164 outages in 2026 — roughly one incident every 1.3 days. The platform's 90-day uptime figures translate to 14–23 hours of downtime per service per quarter, well short of the 99.9% enterprise standard.
-
-**Why it matters:** Any agentic pipeline that calls a single provider with no fallback inherits that provider's downtime. Today's outage is a good prompt to add a model fallback chain — OpenRouter makes this a one-field change in your API call (see today's tutorial).
-
-**Sources:** [Claude outage — Android Authority](https://www.androidauthority.com/claude-outage-august-5-2026-3694847/) · [Outage history — StatusGator](https://statusgator.com/services/claude/outage-history) · [Benzinga](https://www.benzinga.com/markets/tech/26/08/60943268/is-claude-down-anthropic-says-its-working-on-a-fix-after-users-report-widespread-issues)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
