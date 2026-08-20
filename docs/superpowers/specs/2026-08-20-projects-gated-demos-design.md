@@ -354,6 +354,50 @@ scripts/
 publish step and `pnpm run deploy` are retired. The `rehost-images` job is
 unchanged. New secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
 
+## Infrastructure as Code
+
+All account-level state is Terraform, in `infra/`, with three deliberate
+boundaries.
+
+### Ownership boundaries
+
+| Owner | Manages | Why |
+|---|---|---|
+| **Terraform** | Cloudflare zone + every DNS record, R2 buckets, the Worker's custom domain/route, Supabase project + auth settings, the Google OAuth client, GitHub Actions secrets | Slow-changing account state whose failure modes are silent (a missing MX record breaks mail). A reviewable `plan` replaces a cutover checklist. |
+| **wrangler** | Worker script, static assets, and `assets` config (`_headers`, `html_handling`, `not_found_handling`, `run_worker_first`), bindings | Ships on every content push. The AI News routine publishes daily; putting Terraform state locking and provider credentials in that path adds a failure mode to a pipeline that currently just works. |
+| **SQL migrations** | Tables, RLS policies, views (`supabase/migrations/*.sql`) | **Forced.** The Supabase provider (v1.10.1) exposes only `project`, `settings`, `apikey`, `branch`, `edge_function`, `edge_function_secrets`, `third_party_auth`. No resource models a table, policy, or view. |
+
+**Dual-write rule.** `cloudflare_workers_script` *can* manage assets
+(`assets.directory`, `assets.config.run_worker_first`, and the `_headers`
+contents). Terraform must **not** declare any of it. Two systems writing one
+resource is how state drift and surprising applies happen; `wrangler.jsonc` is
+the single source of truth for everything inside the Worker.
+
+### Layout
+
+```
+infra/
+  backend.tf          # S3-compatible backend on R2, use_lockfile = true
+  providers.tf        # cloudflare ~> 5.23, supabase ~> 1.10, google, github
+  variables.tf
+  dns.tf              # zone + every record (Phase 3)
+  r2.tf               # cct-media (Phase 1)
+  worker.tf           # custom domain / route only — never the script (Phase 3)
+  supabase.tf         # project + settings: providers, redirect allowlist (Phase 2)
+  google_oauth.tf     # OAuth client + consent screen (Phase 2)
+  github.tf           # Actions secrets (Phase 2)
+supabase/
+  config.toml
+  migrations/*.sql    # schema, RLS, views
+```
+
+**Bootstrap.** The state bucket cannot be created by the Terraform that stores
+its state in it. `wrangler r2 bucket create cct-tfstate` is the one documented
+manual step; everything after it is codified.
+
+**CI.** `terraform plan` runs on pull requests touching `infra/`. `apply` is
+manual and gated — never triggered by a content push, per the boundary above.
+
 ## Error handling
 
 - Auth failures are **redirects**, never error pages.
@@ -389,10 +433,10 @@ phase. Each phase ships independently.
 
 | Phase | Ships | cloudcodetree.com affected? |
 |---|---|---|
-| **0 · Workers staging** | `wrangler.jsonc`, pass-through Worker, deploy to `cct-site.<sub>.workers.dev`, parity verified against Pages | **No** |
+| **0 · Workers staging** | `wrangler.jsonc`, pass-through Worker, deploy to `cct-site.<sub>.workers.dev`, parity verified against Pages; Terraform bootstrap (state bucket + providers) | **No** |
 | **1 · Public gallery** | manifest, `/projects`, detail MDX pages, nav update, R2 media — built and verified on staging | No |
-| **2 · Gate** | Supabase, Google OAuth, `/api/session`, Worker gate, `demo_events` + views, profile dialog, pilot demo (span-calculator) — verified on staging | No |
-| **3 · Cutover** | DNS Route53 → Cloudflare, custom domain, Pages retired, pilot demo's Pages unpublished | **Yes** — the only phase that touches it |
+| **2 · Gate** | Supabase, Google OAuth, `/api/session`, Worker gate, `demo_events` + views, profile dialog, pilot demo — verified on staging; Terraform takes Supabase/Google/GitHub, migrations take the schema; Supabase keepalive cron | No |
+| **3 · Cutover** | DNS Route53 → Cloudflare **as Terraform**, custom domain, Pages retired, pilot demo's Pages unpublished | **Yes** — the only phase that touches it |
 | **4 · More demos** | repeat the per-demo recipe | Yes |
 
 Phase 3 is isolated deliberately: it is the only step whose blast radius is the
@@ -463,8 +507,10 @@ Beyond the vitest suite, observed on the staging origin in a real browser:
    minutes rather than hours. This is the single highest-leverage step and it
    must happen *before* cutover day, not during it.
 2. Inventory the existing zone — 4 A records, `www` CNAME, MX, TXT (SPF/DKIM,
-   domain verification) — and recreate every record in Cloudflare **before**
-   touching nameservers. Missing MX records silently break mail.
+   domain verification) — and express every record in `infra/dns.tf`, then
+   `terraform apply` it **before** touching nameservers. Review the plan output
+   against the Route53 inventory record-by-record: missing MX records silently
+   break mail, and this diff is the only place that omission is visible.
 3. Add the custom domain to the Worker; switch nameservers at the registrar.
 4. Smoke-check the parity script against the real hostname.
 5. Remove the GitHub Pages custom domain and the `CNAME` file so GitHub holds no
