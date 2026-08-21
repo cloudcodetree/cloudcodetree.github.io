@@ -557,24 +557,34 @@ Beyond the vitest suite, observed on the staging origin in a real browser:
    content-hashed Next.js bundle. Rewrite it in Phase 0; Phase 2 must extend
    `connect-src` to reach Supabase and Google. The `/assets/*` rule is dead
    Vite-era config — Next serves `/_next/static/*`.
-3. `public/sw.js` is **registered nowhere** in the app, so there is no stale
+3. **Five GitHub *project* Pages sites ride the apex domain** (discovered
+   2026-08-21): `/span-calculator/`, `/motion-expression/`, `/code_compare/`,
+   `/backlot/`, `/sheetwise/` are live public URLs served by GitHub's
+   project-pages mechanism under `cloudcodetree.com`. The Worker cutover takes
+   over the entire hostname, so **every one of these 404s at Phase 3** unless
+   handled. Resolution per path, decided before cutover: vendor it as a gated
+   demo (span-calculator pilot), add a `_redirects` rule to its
+   `/projects/<slug>` page, or accept the break. The parity contract cannot
+   assert these identical (they are a real, intended difference) — track them
+   in the cutover checklist instead.
+4. `public/sw.js` is **registered nowhere** in the app, so there is no stale
    service worker to invalidate at cutover. Left in place; deleting it is
    unrelated cleanup.
-4. **DNS cutover** — recreate 4 GitHub Pages A records, the `www` CNAME, and any
+10. **DNS cutover** — recreate 4 GitHub Pages A records, the `www` CNAME, and any
    MX/TXT records. Afterward remove the Pages custom domain and the `CNAME` file
    so GitHub holds no dangling claim on the hostname.
-5. **Google OAuth** uses only `email`/`profile` — non-sensitive scopes, so
+10. **Google OAuth** uses only `email`/`profile` — non-sensitive scopes, so
    production publishing should not need verification review. Confirm on the
    consent screen rather than assume.
-6. **Supabase built-in SMTP is rate-limited** on the free tier (single-digit
+10. **Supabase built-in SMTP is rate-limited** on the free tier (single-digit
    emails/hour). Acceptable at portfolio scale, and Google sign-in bypasses it.
    Custom SMTP (e.g. Resend) is the upgrade path.
-7. **Workers free tier is 100k requests/day**; one demo page load is ~30 gated
+10. **Workers free tier is 100k requests/day**; one demo page load is ~30 gated
    requests. Comfortable, but that is the multiplier.
-8. `assetPrefix` in `next.config.js` hardcodes `https://cloudcodetree.com`.
+10. `assetPrefix` in `next.config.js` hardcodes `https://cloudcodetree.com`.
    It must become environment-driven before staging is meaningful — see
    *Verification before cutover*.
-9. An hour-long cookie means a long demo session will hit the silent refresh.
+10. An hour-long cookie means a long demo session will hit the silent refresh.
    Test that path explicitly.
 
 ## Superseded by this spec
