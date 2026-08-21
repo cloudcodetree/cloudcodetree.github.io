@@ -1,32 +1,21 @@
-# Security and Cache control for GitHub Pages
+# Served by Cloudflare Workers Static Assets.
+#
+# IMPORTANT: GitHub Pages ignores this file entirely, so this policy was inert
+# until the Workers migration. It is LIVE now — changes here can break pages.
+# `node scripts/validate-csp.mjs` (run in CI) guards the origins the site
+# fetches at runtime.
+#
+# Phase 2 must add the Supabase project origin and Google's accounts origin to
+# connect-src, or sign-in will be blocked.
+
 /*
-  # Security Headers
-  Content-Security-Policy: default-src 'self' https:; script-src 'self' 'unsafe-inline' https://api.web3forms.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.web3forms.com; frame-src https://calendly.com;
+  Content-Security-Policy: default-src 'self' https:; script-src 'self' 'unsafe-inline' https://api.web3forms.com https://assets.calendly.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.web3forms.com; frame-src https://calendly.com;
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
-  X-XSS-Protection: 1; mode=block
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()
-  
-  # Cache Control
-  Cache-Control: no-cache, no-store, must-revalidate
-  Pragma: no-cache
-  Expires: 0
 
-# Cache static assets with hash for longer
-/assets/*
+# Content-hashed bundles: safe to cache forever. The previous file applied
+# no-store to /*, which would have disabled caching for these entirely.
+/_next/static/*
   Cache-Control: public, max-age=31536000, immutable
-
-# Cache markdown files for shorter time
-/*.md
-  Cache-Control: public, max-age=3600
-
-# Cache JSON files for shorter time  
-/*.json
-  Cache-Control: public, max-age=3600
-
-# No cache for HTML files
-/*.html
-  Cache-Control: no-cache, no-store, must-revalidate
-  Pragma: no-cache
-  Expires: 0
