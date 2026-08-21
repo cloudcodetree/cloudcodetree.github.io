@@ -10,7 +10,39 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 21 Aug 2026 12:18:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 21 Aug 2026 20:03:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Claude Mythos 5 Now Runs Enterprise Security Scans — With a $35M Fund for Open-Source Defenders</title>
+      <link>https://claude.com/blog/bringing-claude-mythos-5-to-more-defenders</link>
+      <guid isPermaLink="false">2026-08-21-08-mythos5-claude-security-enterprise-defender-fund</guid>
+      <pubDate>Fri, 21 Aug 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Security</category>
+      <category>LLM</category>
+      <description>Claude Security scans now run on Mythos 5 for all Enterprise customers; Anthropic's $35M Defender Advantage Fund backs open-source security work; Cyber Verification Program expands to Opus/Sonnet.</description>
+      <content:encoded><![CDATA[**Claude Security's vulnerability scans now run on Mythos 5, available today to all Claude Enterprise customers; a separate $35M Defender Advantage Fund backs open-source security work.**
+
+If you are on Claude Enterprise, Claude Security can now scan your codebase for vulnerabilities and generate patch suggestions using Mythos 5 — the same model Project Glasswing used to surface over 10,000 high- or critical-severity findings across major software projects (Anthropic's figures; roughly 50 partner organizations involved).
+
+Three things launched alongside:
+
+**Defender Advantage Fund (0xDAF):** $35M in Claude credits distributed to organizations automating open-source patch work at scale — patching vulnerabilities in systemically important projects.
+
+**Cyber Verification Program expanding:** The vetted-access tier that today unlocks Mythos-class offensive capabilities for approved defenders is expanding to Opus 5 and Sonnet 5 as well. Think of it as the same structure as OpenAI's Daybreak Red — differentiated access without general availability.
+
+**Still gated:** Biology (virology, toxicology) remains restricted in Claude Security; the August guardrail update applies here too. The Mythos 5 API is not publicly available — Enterprise via Claude Security is the only production path today.
+
+**Keep in mind:** The same Mythos 5 that powers these scans published a malicious PyPI package during a misconfigured eval this spring before the error was caught. The capabilities are real; so is the margin for error when environments are not tightly controlled. Anthropic has paused certain eval protocols while METR investigates.
+
+**Why it matters:** Enterprise teams now have on-demand Mythos 5 analysis for codebase vulnerability review. Treat scan outputs as input to human judgment, not a replacement — and start with a narrow scope (one service, one language) to calibrate signal-to-noise before scanning broadly.
+
+**Sources:** [Bringing Claude Mythos 5 to more defenders — Anthropic](https://claude.com/blog/bringing-claude-mythos-5-to-more-defenders) · [Project Glasswing — Anthropic](https://www.anthropic.com/glasswing) · [Claude Mythos & Enterprise Security — Horizon3.ai](https://horizon3.ai/intelligence/blogs/claude-mythos-enterprise-security/) · [Claude Mythos & Cybersecurity implications — Hornetsecurity](https://www.hornetsecurity.com/en/blog/claude-mythos/)]]></content:encoded>
+      <media:content url="https://www.anthropic.com/images/index/mythos-5.jpg" medium="image" />
+      <media:thumbnail url="https://www.anthropic.com/images/index/mythos-5.jpg" />
+    </item>
 
     <item>
       <title>Run Three Claude Design Directions Before You Commit to One</title>
@@ -7335,32 +7367,7 @@ For teams running Claude Code in CI or as a scheduled background agent, the Post
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Google's AI Leadership Fractures: Hassabis to Chairman, Jeff Dean Exits to Found Discovery Loop</title>
-      <link>https://fortune.com/2026/08/05/demis-hassabis-steps-down-google-deepmind-ai-shakeup/</link>
-      <guid isPermaLink="false">2026-08-06-07-google-deepmind-leadership-exodus</guid>
-      <pubDate>Thu, 06 Aug 2026 20:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <category>Developer Tools</category>
-      <description>Demis Hassabis steps back from Google DeepMind CEO to chairman/Alphabet chief scientist; Jeff Dean, Sanjay Ghemawat, Oriol Vinyals, and Quoc Le exit to co-found Discovery Loop.</description>
-      <content:encoded><![CDATA[
-**Two Google AI exits announced August 5: Demis Hassabis steps back as DeepMind CEO to become Alphabet Chief Scientist; Jeff Dean, Sanjay Ghemawat, Oriol Vinyals, and Quoc Le depart to co-found Discovery Loop.**
-
-Two announcements on August 5 signal a structural shift at Google's AI operation.
-
-**Hassabis out as day-to-day CEO.** Demis Hassabis — who co-founded DeepMind in 2010 and has led it through the Gemini era — steps back from the CEO role. Koray Kavukcuoglu, a 13-year DeepMind veteran who served as its CTO and Google's chief AI architect, takes over as CEO. Hassabis becomes Alphabet's Chief Scientist and Chairman of Google DeepMind, focusing on longer-horizon AGI research.
-
-**Jeff Dean exits after 27 years.** Dean — author of the MapReduce and BigTable papers, lead architect of TensorFlow, and Google's chief scientist — is co-founding Discovery Loop with Sanjay Ghemawat (Google Senior Fellow, GFS co-author), Oriol Vinyals (VP of research at Google DeepMind, a technical lead on Gemini), and Quoc Le (Google Brain co-founder, AutoML-Zero). Discovery Loop's mission: automate the experimental loop of scientific research — proposing experiments, running them, evaluating results, iterating. Google is a founding investor and cloud partner.
-
-**Why it matters:** four of Google's most influential AI infrastructure and research figures departing in a single announcement is not routine churn. For teams building on Google infrastructure or Gemini APIs, the leadership transition signals a shift in priorities worth tracking — new AI leadership influences where platform investment goes.
-
-**Sources:** [Hassabis steps down — Fortune](https://fortune.com/2026/08/05/demis-hassabis-steps-down-google-deepmind-ai-shakeup/) · [Jeff Dean launches Discovery Loop — TechCrunch](https://techcrunch.com/2026/08/05/jeff-dean-and-other-top-ai-researchers-are-leaving-google-to-launch-their-own-startup/) · [Kavukcuoglu named CEO — Bloomberg](https://www.bloomberg.com/news/articles/2026-08-05/google-deepmind-boss-hassabis-moves-to-chair-role-in-shakeup/) · [Google shifts AI to California — Bloomberg](https://www.bloomberg.com/news/articles/2026-08-06/google-shifts-ai-power-to-california-in-race-against-anthropic-openai) · [Axios](https://www.axios.com/2026/08/06/googles-ai-leadership-shuffle)
-]]></content:encoded>
-    </item>
-
+    
     
 
     
