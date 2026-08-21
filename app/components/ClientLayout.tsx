@@ -24,14 +24,19 @@ import {
   Close as CloseIcon,
   Article as ArticleIcon,
   School as SchoolIcon,
+  Widgets as WidgetsIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Trailing slashes are deliberate: trailingSlash:true means the real pages
+// live at /x/, and a bare /x costs a redirect hop on every click (301 on
+// Pages, 307 on Workers).
 const navItems = [
   { name: 'AI News', path: '/', icon: ArticleIcon },
-  { name: 'Tutorials', path: '/tutorials', icon: SchoolIcon },
-  { name: 'About', path: '/about', icon: PersonIcon },
+  { name: 'Tutorials', path: '/tutorials/', icon: SchoolIcon },
+  { name: 'Projects', path: '/projects/', icon: WidgetsIcon },
+  { name: 'About', path: '/about/', icon: PersonIcon },
 ];
 
 interface ClientLayoutProps {

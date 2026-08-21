@@ -1,0 +1,55 @@
+export const metadata = {
+  title: 'NAM Player · Projects · CloudCodeTree',
+  description:
+    'Cross-platform JUCE app to play guitar through Neural Amp Modeler captures, with A2 model support and TONE3000 cloud downloads.',
+  alternates: { canonical: 'https://cloudcodetree.com/projects/nam-app/' },
+  openGraph: {
+    title: 'NAM Player',
+    description: 'Cross-platform JUCE app to play guitar through Neural Amp Modeler captures, with A2 model support and TONE3000 cloud downloads.',
+    url: 'https://cloudcodetree.com/projects/nam-app/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/projects/covers/nam-app.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/projects/covers/nam-app.png'] },
+};
+
+<img src="/projects/covers/nam-app.png" alt="NAM Player" />
+
+# NAM Player
+
+A cross-platform app to play guitar through [Neural Amp Modeler](https://www.neuralampmodeler.com/) (NAM)
+amp captures — with first-class support for the newer **A2 / A2-Lite** model
+architecture and one-click tone downloads from [TONE3000](https://www.tone3000.com/).
+Plug in your guitar, load an amp model (locally or straight from TONE3000's
+catalog), and play, with a full practice-tone signal chain around it.
+
+One C++/JUCE codebase targets Windows, macOS, Linux, iOS, and Android;
+it is currently **desktop-verified end-to-end on macOS**.
+
+## What it does
+
+- **A2 neural amp models** — runs `.nam` captures (A1 and the newer A2
+  "SlimmableContainer" format) via `mikeoliphant/NeuralAudio`.
+- **Full signal chain**, each stage bypassable:
+  `input gain → noise gate → amp model → speaker-cab IR → 3-band EQ → output gain`.
+- **Speaker cab IRs** — loads `.wav` impulse responses through a direct-form FIR convolver.
+- **Local library** — import, favorite, and recent lists for models and IRs, stored offline.
+- **TONE3000 download** — OAuth2 PKCE against TONE3000's hosted picker; a chosen
+  tone's A2 model lands directly in the library.
+- **Low-latency audio** — native backends per OS (CoreAudio / ASIO / ALSA / Oboe),
+  a device/buffer picker, live latency readout, and a lock-free level/CPU/xrun meter.
+
+## The part I care most about
+
+The codebase splits into a **JUCE-free, headlessly unit-tested core** (DSP,
+model/library, networking — ~70 test cases) and a thin JUCE shell. The #1
+invariant: **the real-time audio callback never allocates, locks, throws, or
+does I/O.** Model and IR hand-offs use a lock-free atomic-pointer pattern with
+control-thread-owned lifetimes. Keeping the hard parts JUCE-free makes them
+portable — a WebAssembly build is a realistic future target.
+
+## Source
+
+- [github.com/cloudcodetree/nam-app](https://github.com/cloudcodetree/nam-app) —
+  CMake ≥ 3.22, C++17; JUCE and Catch2 fetched automatically, `asan`/`tsan` presets included.

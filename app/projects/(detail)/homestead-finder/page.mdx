@@ -1,0 +1,43 @@
+export const metadata = {
+  title: 'homestead.deals · Projects · CloudCodeTree',
+  description:
+    "A homestead-buyer\u2019s research desk: scraped listings, deal scoring, dashboard and email alerts. Supabase + Cloudflare + a Claude bridge.",
+  alternates: { canonical: 'https://cloudcodetree.com/projects/homestead-finder/' },
+  openGraph: {
+    title: 'homestead.deals',
+    description: "A homestead-buyer\u2019s research desk: scraped listings, deal scoring, dashboard and email alerts. Supabase + Cloudflare + a Claude bridge.",
+    url: 'https://cloudcodetree.com/projects/homestead-finder/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/projects/covers/homestead-finder.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/projects/covers/homestead-finder.png'] },
+};
+
+<img src="/projects/covers/homestead-finder.png" alt="homestead.deals" />
+
+# homestead.deals
+
+A homestead-buyer's research desk: it scrapes land and property listings,
+scores deals, and serves a dashboard with email alerts — so the search for the
+right acreage runs on data instead of doom-scrolling listing sites.
+
+## Architecture
+
+A Turborepo monorepo with npm workspaces:
+
+- **`apps/web`** — the consumer site ([homestead.deals](https://homestead.deals)), Vite/React on Cloudflare Pages
+- **`apps/admin`** — an operator dashboard behind RBAC
+- **`services/scraper`** — Python scraper + AI query bridge, hosted on a Mac mini
+- **`supabase/`** — migrations and edge functions; a shared Supabase client factory feeds every app
+- **`data/`** — the scraped corpus, committed as JSON
+
+The stack mirrors this portfolio's direction: Supabase for data and auth,
+Cloudflare for hosting, OpenTofu for infrastructure state, and a Claude bridge
+doing the reading no human wants to do.
+
+## Status
+
+The repo is private (it carries operational scraping config), so there is no
+public source link — but the product is live at
+[homestead.deals](https://homestead.deals).

@@ -28,6 +28,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readTutorials, seriesTotal } from './lib/tutorials-data.mjs';
+import { readProjects } from './lib/projects-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -189,6 +190,8 @@ ${media}  </item>`;
     { loc: `${SITE}/`, lastmod: newest, priority: '1.0' }, // home = AI News blog
     { loc: `${SITE}/tutorials/`, priority: '0.8' },
     ...tutorialSlugs.map((s) => ({ loc: `${SITE}/tutorials/${s}/`, priority: '0.7' })),
+    { loc: `${SITE}/projects/`, priority: '0.8' },
+    ...readProjects().map((p) => ({ loc: `${SITE}/projects/${p.slug}/`, priority: '0.6' })),
     { loc: `${SITE}/about/`, priority: '0.7' },
     { loc: `${SITE}/about/resume/`, priority: '0.6' },
     { loc: `${SITE}/about/contact/`, priority: '0.4' },
