@@ -10,8 +10,291 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 21 Aug 2026 04:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 21 Aug 2026 12:18:00 +0000</lastBuildDate>
 
+    <item>
+      <title>Run Three Claude Design Directions Before You Commit to One</title>
+      <link>https://support.claude.com/en/articles/14604416-get-started-with-claude-design</link>
+      <guid isPermaLink="false">2026-08-21-07-claude-design-three-directions-exploration</guid>
+      <pubDate>Fri, 21 Aug 2026 12:18:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Most designers commit to a direction too early. This three-direction exploration pattern uses Claude Design's canvas for rapid parallel iteration — then a structured comparison prompt to pick the winner before you spec anything out for Claude Code. Design ramp-up 11 of 12.</description>
+      <content:encoded><![CDATA[**Most designers commit to a direction too early. This three-direction exploration pattern uses Claude Design's canvas for rapid parallel iteration — then a structured comparison prompt to pick the winner before you spec anything out for Claude Code.**
+
+Previous: [Fix responsive failures before Claude Code handoff](/ai-news/2026-08-21-04-generated-components-responsive-review) · Design ramp-up 11 of 12.
+
+## Why three directions, not one iterated
+
+A single prompt to Claude Design produces one solution — which you then refine. That's not iteration; it's proofreading. You're optimizing a single local maximum.
+
+The directions pattern generates genuinely different structural approaches first, evaluates them against explicit criteria, and only then commits to a layout. You can defend the pick to a stakeholder, and you don't discard the best ideas from the directions you didn't choose.
+
+Three is the right number. Two is too few to reveal the tradeoff space. Four creates analysis paralysis. Each direction needs a different *starting constraint*, not just a different color scheme.
+
+## Step 1: Generate three constrained directions
+
+Open a fresh Claude Design canvas and send this in one prompt:
+
+```
+Generate three UI directions for a [your feature description] screen.
+Keep them on separate artboard areas so I can compare.
+
+Direction A — Information-first: structure this around data density.
+Show as much relevant context as possible before the fold.
+Navigation is secondary to content.
+
+Direction B — Action-first: the primary call-to-action is the visual
+anchor. Everything else exists to support the decision the user is
+about to make.
+
+Direction C — Progressive disclosure: show the minimum needed to start;
+reveal detail only as the user engages. Optimise for a first-time user
+who doesn't yet know what they need.
+
+Use the same color palette and type scale across all three so we're
+comparing layout structure and information hierarchy, not aesthetics.
+```
+
+The constraint per direction forces structural differences. "Round corners vs square corners" is not a direction; "data-dense vs action-anchored vs progressive" is.
+
+## Step 2: Score with the evaluation prompt
+
+After reviewing all three, send:
+
+```
+Review these three directions against these criteria:
+
+1. First-time user: which direction minimises time-to-first-meaningful-action?
+2. Returning power user: which direction puts repeat-use features closest to reach?
+3. Mobile at 375px: which direction degrades least at small viewports?
+4. Handoff complexity: which direction has the fewest layout-specific edge cases
+   a developer would need to handle?
+
+Score each direction 1–3 per criterion (3 = best). Recommend the winner.
+Then identify the single strongest element from each runner-up worth
+incorporating into the winning direction.
+```
+
+This does two things: it gives you a defensible scorecard you can show a stakeholder, and it surfaces the best ideas from the directions you're discarding so they don't disappear.
+
+## Step 3: Spec the winner, hand off to Claude Code
+
+Once you have a direction, spec it out before touching Claude Code:
+
+```
+Take the winning direction. Expand the primary content area into a
+full layout spec:
+
+- Exact spacing between elements (assume an 8px base grid)
+- Hover, focus, and active states for all interactive elements
+- Empty state: no data yet
+- Error state: action failed
+- Loading state: data is fetching
+
+Output this as a structured component spec I can hand to a developer.
+```
+
+Then hand that spec to Claude Code directly:
+
+```
+Build this component in React + Tailwind. Here's the spec:
+[paste the spec]
+
+Start with the desktop layout at 1280px. Responsive breakpoints come
+after the base layout is working and reviewed.
+```
+
+The structured spec gives Claude Code enough to produce a working component, not a layout approximation. "Here's a screenshot, make this" produces a guess. "Here's a spec with states and spacing" produces an implementation.
+
+## What this isn't
+
+This pattern is for **deciding what to build**, not for visual polish. Once you've picked a direction and produced the spec, Claude Design's job is done for this feature. Visual refinement happens in your real design tool and in code review — not by iterating further in the canvas.
+
+The pattern also doesn't replace user research. It accelerates *designer* decision-making, not *user* validation. Run usability sessions on the implemented component, not the canvas direction.
+
+**Sources:** [Get started with Claude Design — Anthropic Help](https://support.claude.com/en/articles/14604416-get-started-with-claude-design) · [Set up your design system in Claude Design — Anthropic Help](https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design) · [Claude Design plugin — claude.com](https://claude.com/plugins/figma)
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Keep Your RAG Index Fresh Without a Full Rebuild: LangChain RecordManager and Incremental Indexing</title>
+      <link>https://python.langchain.com/docs/how_to/indexing/</link>
+      <guid isPermaLink="false">2026-08-21-06-rag-incremental-index-recordmanager</guid>
+      <pubDate>Fri, 21 Aug 2026 12:17:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>Every day your docs change, only a fraction do — but a naive rebuild re-embeds everything. RecordManager tracks document hashes so you can add, update, and delete changed docs only, keeping your vector store in sync at a fraction of the cost.</description>
+      <content:encoded><![CDATA[**Every day your docs change, only a fraction of them do — but a naive rebuild re-embeds everything. `RecordManager` tracks document hashes so you can add, update, and delete changed docs only, keeping your vector store current at a fraction of the cost.**
+
+This is part of the *Better RAG* curriculum. Previous entry: [self-query metadata filtering with SelfQueryRetriever](/ai-news/2026-08-21-01-rag-self-query-metadata-filter).
+
+## The problem with full rebuilds
+
+A standard ingest script looks like this:
+
+```python
+docs = load_all_documents()          # Load every doc
+chunks = text_splitter.split(docs)   # Chunk all of them
+vectorstore.add_documents(chunks)    # Embed and store
+```
+
+Run this on a cron job and you re-embed the 95% of documents that haven't changed since yesterday. At `$0.00002` per token for `text-embedding-3-small`, a 10,000-document knowledge base costs roughly $2 per full rebuild. Run it daily and you're also accumulating duplicate chunks from any document that was split differently after an edit.
+
+`RecordManager` solves both problems.
+
+## How RecordManager works
+
+`RecordManager` maintains a SQLite (or Postgres) table that maps each document chunk to a content hash. On re-ingest, it computes hashes of incoming chunks and compares against the cache:
+
+- **New hash** → embed and add
+- **Existing hash, same source** → skip (no embedding call)
+- **Changed hash for a source** → delete old chunks, embed and add new ones
+- **Source no longer in the batch** → delete all chunks for that source (with `cleanup="incremental"`)
+
+```python
+from langchain.indexes import SQLRecordManager, index
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
+
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+vectorstore = Chroma(embedding_function=embeddings, persist_directory="./chroma_db")
+
+# One-time setup
+record_manager = SQLRecordManager(
+    namespace="my_kb",
+    db_url="sqlite:///record_manager_cache.sql"
+)
+record_manager.create_schema()
+
+def sync_documents(docs):
+    return index(
+        docs_source=docs,
+        record_manager=record_manager,
+        vector_store=vectorstore,
+        cleanup="incremental",   # delete chunks from removed or changed sources
+        source_id_key="source",  # group chunks by their originating document
+    )
+```
+
+## Running the sync
+
+```python
+from langchain_community.document_loaders import DirectoryLoader
+
+loader = DirectoryLoader("./docs", glob="**/*.md")
+all_docs = loader.load()
+
+# First run — embeds everything
+result = sync_documents(all_docs)
+print(result)
+# {'num_added': 10000, 'num_updated': 0, 'num_skipped': 0, 'num_deleted': 0}
+
+# Daily run after minor changes
+result = sync_documents(all_docs)
+print(result)
+# {'num_added': 3, 'num_updated': 7, 'num_skipped': 9990, 'num_deleted': 2}
+```
+
+The 9,990 `skipped` chunks are confirmed-unchanged by hash — zero embedding API calls.
+
+## The three cleanup modes
+
+- **`cleanup=None`**: add new docs, never delete. Default behavior. Stale chunks accumulate silently.
+- **`cleanup="incremental"`**: add new, update changed, delete chunks from sources no longer in the batch. Correct for ongoing sync jobs.
+- **`cleanup="full"`**: delete everything not in this exact batch. Correct only for a one-shot full refresh; too aggressive for incremental jobs because a transient loader failure can wipe your whole index.
+
+Use `"incremental"` for scheduled sync jobs.
+
+## Handling deletions correctly
+
+`"incremental"` cleanup relies on the `source_id_key` metadata field being stable and consistent. If your loader derives `source` from a file path, moving a file looks like a delete + new add — you pay for re-embedding the content, but you don't accumulate stale chunks.
+
+Add a simple assertion to catch unexpected bulk deletes:
+
+```python
+result = sync_documents(all_docs)
+assert result["num_deleted"] < 50, (
+    f"Unexpected bulk deletion: {result['num_deleted']} chunks removed. "
+    "Check whether source IDs changed (renamed files, changed loader)."
+)
+```
+
+Sudden deletion spikes usually mean a loader is regenerating `source` IDs (timestamps, hash-based names) rather than reflecting an actual content change.
+
+## What RecordManager doesn't fix
+
+**Embedding model changes.** If you switch embedding models, the hash comparison still works — hashes are over content, not embeddings — but the stored vectors are incompatible with your new model. A full rebuild is unavoidable on model changes.
+
+**Chunking strategy changes.** Any change to your `TextSplitter` parameters (chunk size, overlap, separators) invalidates all existing chunks. Reset both the vector store and the RecordManager cache together when you change chunking.
+
+**Cross-store consistency.** `RecordManager` is a separate SQLite/Postgres store; if you reset your vector store without resetting the RecordManager, subsequent syncs will skip re-adding documents because the hashes are still cached.
+
+The canonical reset pattern:
+
+```python
+# When you need to rebuild from scratch
+vectorstore.delete_collection()
+record_manager.create_schema()    # This drops and recreates the cache table
+result = sync_documents(all_docs)
+```
+
+**Sources:** [How to use the indexing API — LangChain Python docs](https://python.langchain.com/docs/how_to/indexing/) · [Efficient Document Indexing with LangChain RecordManager — particula.tech](https://particula.tech/langchain-recordmanager-efficient-document-indexing/) · [RAG Vector Store Sync Patterns: Incremental vs Full Rebuild — TianPan.co](https://tianpan.co/blog/rag-vector-store-sync)
+]]></content:encoded>
+    </item>
+    <item>
+      <title>CoSnitch: A Hidden URL Parameter Let Attackers Execute Prompts in Your Copilot Session (CVE-2026-24301, Patched)</title>
+      <link>https://www.varonis.com/blog/cosnitch-microsoft-copilot-personal-cve-2026-24301</link>
+      <guid isPermaLink="false">2026-08-21-05-cosnitch-copilot-prompt-injection</guid>
+      <pubDate>Fri, 21 Aug 2026 12:16:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Security</category>
+      <category>LLM</category>
+      <description>Varonis found an undocumented ?autorun=1 parameter in Microsoft Copilot Personal that silently executed attacker-controlled prompts in an authenticated session — reading Gmail, Drive, and Calendar data, then poisoning persistent memory. Microsoft patched it Aug 18.</description>
+      <content:encoded><![CDATA[**Varonis researchers found an undocumented `?autorun=1` URL parameter in Microsoft Copilot Personal that silently fed attacker-controlled prompts into a victim's authenticated session — no click required beyond opening the link, CVSS 8.8. Microsoft patched it server-side on August 18, 2026.**
+
+The attack, named "CoSnitch" by Varonis, required nothing beyond tricking a target into opening a crafted URL:
+
+1. Attacker constructs a URL: `https://copilot.microsoft.com/?autorun=1&prompt=<injected-instruction>`
+2. Victim opens the link — their authenticated Copilot Personal session loads
+3. The `autorun=1` parameter fires the injected prompt immediately, before any UI is visible
+4. The prompt directs Copilot to read Gmail, Google Drive, and Calendar via its connected OAuth integrations and relay the data to an attacker-controlled endpoint
+5. A follow-on injected prompt poisons Copilot's **persistent memory** with false context that persists across all future sessions
+
+Varonis confirmed the full exfiltration and memory-poisoning chain in a controlled demo. The researchers disclosed the flaw to Microsoft in late 2025 and published their full technical write-up after the Aug 18 patch.
+
+## Why enterprise Copilot wasn't affected
+
+Microsoft 365 Copilot (the enterprise product) uses a separate URL scheme and authentication flow. The `?autorun=1` parameter was not present in the enterprise product. CVE-2026-24301 is specific to the **Copilot Personal** consumer product at copilot.microsoft.com.
+
+## What was patched
+
+Microsoft removed the `?autorun=1` parameter in a server-side update on August 18. No client update is needed — the fix is deployed globally. If you're concerned about memory poisoning from prior exposure, audit your Copilot memory at **copilot.microsoft.com/settings/memory**.
+
+## Why this matters for developers building AI products with external integrations
+
+The attack surface here is a URL parameter that bypassed every user-intent signal: no typed prompt, no form submission, no approval dialog. The attacker used Copilot's own interface against the authenticated user.
+
+Three things to audit in your own products:
+
+**URL-driven prompt execution.** Never auto-execute a prompt sourced from a URL parameter or query string without a visible, interruptible confirmation step. Treat URL-delivered instructions as untrusted input at the same level as form input.
+
+**Broad OAuth scopes.** Copilot's wide-open Gmail + Drive + Calendar grants made mass exfiltration trivial once the prompt ran. Scope your OAuth grants to the minimum your feature actually requires. "Request everything now in case we need it later" is the pattern that turns a prompt injection into a data breach.
+
+**Persistent memory as an attack surface.** Any persistent context store your product maintains — user preferences, conversation history, agent memory — can be poisoned via prompt injection. Design write access to persistent memory with the same caution you'd apply to a database: validate sources, limit scope, and make writes auditable.
+
+No in-the-wild exploitation was reported. Varonis disclosed responsibly; the CVE was assigned and the fix shipped in August 2026.
+
+**Sources:** [CoSnitch: Prompt Injection via URL Parameter in Microsoft Copilot Personal (CVE-2026-24301) — Varonis](https://www.varonis.com/blog/cosnitch-microsoft-copilot-personal-cve-2026-24301) · [Microsoft Copilot CVE-2026-24301: Hidden Parameter Enabled Memory Poisoning — The Hacker News](https://thehackernews.com/2026/08/microsoft-copilot-cve-2026-24301.html) · [CoSnitch: How a URL Parameter Let Attackers Plant False Memories in Copilot — Dark Reading](https://www.darkreading.com/cyber-risk/cosnitch-copilot-memory-poisoning-cve-2026-24301)
+]]></content:encoded>
+    </item>
     <item>
       <title>Generated Components Don't Know Your Breakpoints: A Three-Step Responsive Review Before Claude Code Handoff</title>
       <link>https://support.claude.com/en/articles/14604416-get-started-with-claude-design</link>
@@ -7078,264 +7361,10 @@ Two announcements on August 5 signal a structural shift at Google's AI operation
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Guaranteed JSON From Claude: Two Native API Patterns That Never Need a Retry Loop</title>
-      <link>https://platform.claude.com/docs/en/build-with-claude/structured-outputs</link>
-      <guid isPermaLink="false">2026-08-06-08-claude-api-structured-outputs-tool-use</guid>
-      <pubDate>Thu, 06 Aug 2026 20:02:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>The Claude API has two orthogonal structured-output patterns: output_config JSON schema mode constrains Claude's text response; strict:true on tool definitions guarantees schema-valid tool inputs.</description>
-      <content:encoded><![CDATA[
-**The Claude API offers two orthogonal structured-output patterns — output_config JSON schema mode for constrained text responses and strict:true tool definitions for schema-valid tool inputs — that together eliminate JSON parse failures from agentic pipelines.**
+    
 
-**What you'll be able to do after this:**
-- Get parseable JSON from Claude every time without try/except retry loops
-- Guarantee tool call inputs match your schema exactly via grammar-constrained sampling
-- Combine both patterns to build reliable agentic pipelines where Claude calls tools AND returns structured data
-
-## The two patterns
-
-Pattern 1 controls what Claude *says* (its text response). Pattern 2 controls what Claude *does* (its tool call parameters). Both are orthogonal — use either or both together.
-
-**Pattern 1: output_config JSON schema (constrained text responses)**
-
-Pass an `output_config` block with a `json_schema` format. The API compiles your schema into a grammar and samples tokens only from schema-valid continuations — the response is always valid JSON matching your schema.
-
-```python
-import anthropic, json
-
-client = anthropic.Anthropic()
-
-schema = {
-    "type": "object",
-    "properties": {
-        "sentiment": {"type": "string", "enum": ["positive", "negative", "neutral"]},
-        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-        "key_phrases": {"type": "array", "items": {"type": "string"}, "maxItems": 5}
-    },
-    "required": ["sentiment", "confidence", "key_phrases"],
-    "additionalProperties": False
-}
-
-response = client.messages.create(
-    model="claude-sonnet-4-6-20260901",
-    max_tokens=512,
-    output_config={
-        "format": {
-            "type": "json_schema",
-            "json_schema": {
-                "name": "sentiment_result",
-                "schema": schema
-            }
-        }
-    },
-    messages=[{"role": "user", "content": "Analyze sentiment: 'The new API is incredibly fast and docs are clear.'"}]
-)
-
-result = json.loads(response.content[0].text)
-# {"sentiment": "positive", "confidence": 0.95, "key_phrases": ["incredibly fast", "docs are clear"]}
-# sentiment is always "positive", "negative", or "neutral" — no parse error possible
-```
-
-**Tradeoff:** complex schemas with many nested objects produce larger grammars that take longer to compile on the first call. Keep schemas focused; subsequent calls with the same schema benefit from server-side caching.
-
-**Pattern 2: strict:true tool use (guaranteed tool call parameters)**
-
-Add `"strict": true` as a top-level property in a tool definition. When Claude calls that tool, its `input` always matches your `input_schema` — no coercion, no extra keys, no missing required fields.
-
-```python
-tool = {
-    "name": "create_task",
-    "description": "Create a task in the task management system",
-    "strict": True,
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "title": {"type": "string", "maxLength": 100},
-            "priority": {"type": "integer", "minimum": 1, "maximum": 5},
-            "assignee_id": {"type": "string", "pattern": "^usr_[a-z0-9]+$"}
-        },
-        "required": ["title", "priority"],
-        "additionalProperties": False
-    }
-}
-
-response = client.messages.create(
-    model="claude-sonnet-4-6-20260901",
-    max_tokens=256,
-    tools=[tool],
-    messages=[{"role": "user", "content": "Create a high-priority task: 'Fix the auth bug', assigned to usr_abc123."}]
-)
-
-for block in response.content:
-    if block.type == "tool_use" and block.name == "create_task":
-        task_data = block.input
-        # task_data["priority"] is always 1-5, title always ≤ 100 chars — guaranteed
-```
-
-**Combining both patterns**
-
-You can set `strict: true` on tools AND pass `output_config` in the same request. Claude calls tools with guaranteed-valid parameters and returns a structured final response — the right shape for multi-step agentic workflows.
-
-```python
-response = client.messages.create(
-    model="claude-sonnet-4-6-20260901",
-    max_tokens=1024,
-    tools=[tool],           # strict: True
-    output_config={
-        "format": {
-            "type": "json_schema",
-            "json_schema": {"name": "summary", "schema": summary_schema}
-        }
-    },
-    messages=[{"role": "user", "content": "Create tasks for the auth bug fix and return a summary."}]
-)
-# Claude calls create_task (guaranteed-valid inputs) then returns structured summary JSON
-```
-
-This pattern is available on Claude Sonnet 4.5+, Opus 4.5+, Haiku 4.5+, and later.
-
-**Sources:** [Structured outputs — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) · [Strict tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use) · [How to implement tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/implement-tool-use)
-]]></content:encoded>
-    </item>
-
-
-    <item>
-      <title>Skip Permissions Safely: Run Claude Code in Full-Autonomy Mode Inside a Locked-Down Docker Container</title>
-      <link>https://www.docker.com/blog/docker-sandboxes-run-claude-code-and-other-coding-agents-unsupervised-but-safely/</link>
-      <guid isPermaLink="false">2026-08-06-06-claude-code-docker-devcontainer-sandbox</guid>
-      <pubDate>Thu, 06 Aug 2026 12:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>A deny-all Docker container makes --dangerously-skip-permissions safe: Claude gets full autonomy inside an isolated filesystem and network wall, never touching your host.</description>
-      <media:content url="https://www.docker.com/app/uploads/2025/07/2400x1260_docker-sandboxes-blog.png" medium="image" type="image/png" />
-      <media:thumbnail url="https://www.docker.com/app/uploads/2025/07/2400x1260_docker-sandboxes-blog.png" />
-      <content:encoded><![CDATA[
-**A deny-all Docker container makes `--dangerously-skip-permissions` safe: Claude gets full autonomy inside an isolated filesystem and network wall, never touching your host machine.**
-
-`--dangerously-skip-permissions` removes every approval dialog -- Claude can read, write, and execute without asking. On your laptop that means it can touch all your files and make any network request. Inside a container it can only touch what you explicitly mounted, and only reach the network endpoints you allow.
-
-This matters even more after today's v2.1.223 patches, which fixed two permission-bypass bugs. Container isolation is defense-in-depth: even if a future bypass exists, a sandboxed Claude cannot escape to your host.
-
-## Three paths to a sandboxed session
-
-**Option 1: Docker Desktop sbx launcher (fastest)**
-
-Docker Desktop 4.40+ ships a built-in sandbox launcher. One command gives you an isolated Claude Code environment:
-
-```bash
-docker sbx run anthropic/claude-code@latest --dangerously-skip-permissions
-```
-
-The launcher mounts your current directory into /workspace, installs a deny-all outbound firewall that permits only the Anthropic API and npm registry, and removes the container on exit.
-
-**Option 2: Anthropic official devcontainer feature (best for VS Code teams)**
-
-Add `.devcontainer/devcontainer.json` to any project:
-
-```json
-{
-  "name": "Claude Code Sandbox",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
-  "features": {
-    "ghcr.io/anthropics/claude-code-features/claude-code:latest": {}
-  },
-  "postCreateCommand": "npm install --prefix /workspace",
-  "remoteEnv": {
-    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
-  }
-}
-```
-
-Open in VS Code with the Dev Containers extension and run `claude --dangerously-skip-permissions` in the integrated terminal. Your project files are mounted read-write; everything else on your host is unreachable.
-
-**Option 3: Manual Dockerfile with firewall (most control)**
-
-For tighter control -- allow npm and GitHub but block everything else:
-
-```dockerfile
-FROM ubuntu:24.04
-RUN apt-get update && apt-get install -y nodejs npm nftables curl
-RUN npm install -g @anthropic-ai/claude-code
-COPY firewall.sh /usr/local/bin/firewall.sh
-RUN chmod +x /usr/local/bin/firewall.sh
-ENTRYPOINT ["/usr/local/bin/firewall.sh"]
-CMD ["claude", "--dangerously-skip-permissions"]
-```
-
-```bash
-# firewall.sh -- allow only Anthropic + npm, deny all else
-nft add table inet filter
-nft add chain inet filter output '{ type filter hook output priority 0 ; policy drop ; }'
-nft add rule inet filter output ip daddr 18.157.0.0/16 accept
-nft add rule inet filter output ip daddr 104.16.0.0/12 accept
-nft add rule inet filter output ct state established accept
-```
-
-Run it with:
-
-```bash
-docker build -f Dockerfile.claude-sandbox -t claude-sandbox .
-docker run -it --rm   -v "$(pwd)":/workspace   -e ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"   --cap-add NET_ADMIN   claude-sandbox
-```
-
-## What the container buys you
-
-| Threat | Without container | With container |
-|---|---|---|
-| Claude reads ~/.ssh | Possible | Blocked -- not mounted |
-| Claude exfiltrates to attacker server | Possible | Blocked -- deny-all firewall |
-| Permission bypass bug | Exploitable | Contained to workspace only |
-| Runaway file deletions | Host filesystem | Only mounted project dir |
-
-The setup takes under 10 minutes. For any team running Claude Code in auto-approve mode on production code, it is the right foundation.
-
-**Sources:** [Docker Sandboxes blog -- Docker.com](https://www.docker.com/blog/docker-sandboxes-run-claude-code-and-other-coding-agents-unsupervised-but-safely/) . [Trail of Bits devcontainer for Claude Code](https://github.com/trailofbits/claude-code-devcontainer) . [Run Claude Code Sandboxed -- DEV Community](https://dev.to/wartzarbee/how-to-run-claude-code-sandboxed-containers-network-walls-and-secret-isolation-2jkn) . [Claude Code on the web docs](https://code.claude.com/docs/en/claude-code-on-the-web)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Claude Code v2.1.223 Patches Two Permission-Layer Flaws That Let Commands Hide From You</title>
-      <link>https://code.claude.com/docs/en/changelog</link>
-      <guid isPermaLink="false">2026-08-06-05-claude-code-v2123-permission-security</guid>
-      <pubDate>Thu, 06 Aug 2026 12:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Claude Code</category>
-      <category>Security</category>
-      <description>Today v2.1.223 closes a Bash compound-statement bypass and an invisible Unicode trick that let crafted commands hide parts of themselves from Claude Code approval dialogs.</description>
-      <content:encoded><![CDATA[
-**Today v2.1.223 closes a Bash compound-statement bypass and invisible Unicode tab-padding that let crafted commands hide parts of themselves from Claude Code approval dialogs -- upgrade immediately if you run any auto-approve hooks.**
-
-Two security fixes shipped in today's release, both targeting the permission layer that decides whether Claude Code needs user approval before running a command.
-
-**Bash compound-statement bypass:** a crafted command using Bash compound-statement syntax could make the permission analyzer see a benign-looking command while Bash executed something else. The fix makes the analyzer fail closed on file-descriptor redirect forms it parses differently than Bash does.
-
-**Invisible Unicode / tab padding:** commands padded with tab characters or invisible Unicode code points could visually hide part of the command in the approval dialog. You would approve what looked like "git status" but Bash would run something more. This closes the same class of bypass that v2.1.211 patched for whitespace characters in June.
-
-These join a string of permission-hardening fixes since June (v2.1.211, v2.1.214, v2.1.216, now v2.1.223). The pattern suggests targeted fuzzing of the permission layer.
-
-**Other changes in v2.1.223:**
-- Added /teleport hint in cloud sessions showing the CLI handoff command
-- Added owner/* wildcard support in managed marketplace settings
-- Added a warning when a background agent's requested model is restricted by policy
-
-**What to do:** run `claude update` or `npm update -g @anthropic-ai/claude-code` to get v2.1.223. If you have allowedTools or auto-approve hooks configured, this update is particularly relevant -- the bypass classes fixed today affect exactly that mode.
-
-**Why it matters:** as Claude Code agents run unattended in CI and cloud sessions, the permission layer is the last defense between Claude and unintended system commands. Keeping it bypass-proof is foundational to safe agentic automation.
-
-**Sources:** [Claude Code changelog -- code.claude.com](https://code.claude.com/docs/en/changelog) . [Releasebot Anthropic Claude Code August 2026](https://releasebot.io/updates/anthropic/claude-code) . [Claude Code permission guide -- petefreitag.com](https://www.petefreitag.com/blog/claude-code-permissions/)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
