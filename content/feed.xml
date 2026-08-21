@@ -10,7 +10,235 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 20 Aug 2026 20:09:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 21 Aug 2026 04:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Generated Components Don't Know Your Breakpoints: A Three-Step Responsive Review Before Claude Code Handoff</title>
+      <link>https://support.claude.com/en/articles/14604416-get-started-with-claude-design</link>
+      <guid isPermaLink="false">2026-08-21-04-generated-components-responsive-review</guid>
+      <pubDate>Fri, 21 Aug 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>AI-generated UI is built at a fixed canvas size. Three concrete checks — pixel widths, missing mobile layout, text overflow — to run in Claude Design before sending the handoff bundle to Claude Code.</description>
+      <content:encoded><![CDATA[**Design tools generate components at the canvas size you give them. They don't know your Tailwind breakpoints. Here are three responsive failures to catch before the handoff bundle lands in Claude Code.**
+
+Sending a component straight to Claude Code with unresolved responsive issues means Claude Code tries to implement a layout that can't scale — and you spend the cleanup time you were hoping to skip.
+
+**Check 1: Fixed pixel widths where relative units belong.**
+
+Generated components commonly hard-code widths like `width: 480px`. In Claude Design, select each container element and look at the layout panel. Any explicit pixel width that should be fluid — a card, a content column, a grid cell — swap to `%`, `fr`, or a named token from your design system. The rule is simple: if the element should grow when the viewport grows, it needs a relative unit. If Claude Design locked it to pixels, it was working from what the canvas implied, not what your system requires.
+
+Before handing off, every container that crosses a layout boundary should be relative. Fixed widths are fine for icons, avatars, and constrained inline elements.
+
+**Check 2: No mobile layout rule.**
+
+A horizontal card grid looks correct on a 1280px canvas. It has no rule for what happens below 640px — it just overflows. In Claude Design, duplicate the frame to a mobile viewport (375 × 812 is the standard reference size), apply the same component, and specify explicitly what changes:
+
+- Grid collapses from three columns to one.
+- Card image stacks above text.
+- Font sizes drop one step in the type scale.
+- The CTA button goes full-width.
+
+Each breakpoint behavior you define in the canvas is a decision Claude Code doesn't have to guess. Whatever you don't specify, Claude Code invents — and it will invent something.
+
+**Check 3: Text overflow on real content.**
+
+Generated copy fills the design neatly because it was written to fit. Real content is longer. Before handing off, manually extend the text in two or three text nodes to 2× their current length and observe what breaks: truncation without ellipsis, overflow past the card boundary, a heading that wraps awkwardly. Add explicit handling in the canvas — `line-clamp`, `overflow: hidden`, or a `min-height` — for every case you find.
+
+**The handoff note that pays off.**
+
+When you pass the bundle to Claude Code, include a one-paragraph note alongside it:
+
+> "Grid collapses to 1 column below 640px (`sm:grid-cols-1`). All container widths use `w-full` or design-system `max-w-*` tokens — no hardcoded px widths. Text nodes use `clamp()` from the typography scale; long values clamp at two lines."
+
+Claude Code reads this note and implements to your spec instead of reconstructing intent from the component structure alone. The note costs 30 seconds and saves a review cycle.
+
+**What this pass doesn't cover:** accessibility (color contrast, ARIA roles, keyboard focus) — that's a separate checklist, covered in the [August 18 post](https://cloudcodetree.com/ai-news/2026-08-18-08-generated-ui-accessibility-review-pass).
+
+**Sources:** [Get started with Claude Design — Anthropic Help](https://support.claude.com/en/articles/14604416-get-started-with-claude-design) · [Set up your design system — Anthropic Help](https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design) · [Responsive design testing — Smashing Magazine](https://www.smashingmagazine.com/2024/09/responsive-design-testing-tools-techniques/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Catch What Claude Just Changed: A PostToolUse Hook That Validates Every File in Your Session</title>
+      <link>https://code.claude.com/docs/en/hooks-guide</link>
+      <guid isPermaLink="false">2026-08-21-03-claude-code-posttooluse-validation-hook</guid>
+      <pubDate>Fri, 21 Aug 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>A PostToolUse hook in .claude/settings.json runs a shell command after every Write or Edit. 12 lines of JSON catches lint errors, type failures, or schema violations before the session ends.</description>
+      <content:encoded><![CDATA[**A PostToolUse hook in `.claude/settings.json` runs your validator after every Write or Edit call. Claude sees the output, understands if something broke, and fixes it — without you prompting again.**
+
+Claude Code's hook system lets you intercept every tool call. `PostToolUse` fires after a tool succeeds. It is different from a pre-commit check: it runs in the middle of a session, while Claude still has context, can still fix the problem, and hasn't moved on to the next task.
+
+**The minimal pattern — 12 lines**
+
+In `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/validate-edit.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+In `.claude/hooks/validate-edit.sh`:
+
+```bash
+#!/bin/bash
+FILE=$(jq -r '.file_path // empty' -)
+[[ -z "$FILE" ]] && exit 0
+pnpm eslint --quiet "$FILE" 2>&1 | head -30
+```
+
+Exit codes determine what Claude does next:
+- **Exit 0** — nothing; Claude continues.
+- **Exit 1** — Claude sees the output and attempts to fix the error before continuing.
+- **Exit 2** — Claude stops and asks you before doing anything else.
+
+**What to validate:**
+
+- `pnpm eslint --quiet "$FILE"` — catch lint before the conversation ends.
+- `pnpm tsc --noEmit` — surface type errors immediately instead of at build time.
+- `jq empty` on any JSON file — structural validation; a corrupted JSON write is caught before it propagates.
+- A custom schema check — this blog's `.claude/hooks/validate-blog.sh` runs after every write to `public/blog/` and blocks commits if `posts.json` is inconsistent. That is PostToolUse in production.
+
+**What to watch out for:**
+
+Hook commands inherit the session's environment, not a login shell. If your validator requires `PATH` entries that only exist in a login shell (e.g., `nvm`-managed node, Homebrew tools), add `export PATH=...` at the top of the hook script.
+
+**The one gap:** hooks run in interactive sessions and the main loop. They do not fire inside Workflow SDK subagents. If your validation is critical in a multi-agent workflow, add it as an explicit `agent()` step after the write agent, not as a hook.
+
+**Sources:** [Automate actions with hooks — Claude Code Docs](https://code.claude.com/docs/en/hooks-guide) · [Hooks reference — Claude Code Docs](https://code.claude.com/docs/en/hooks) · [Intercept and control agent behavior — Claude Code SDK Docs](https://code.claude.com/docs/en/agent-sdk/hooks)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Fable 5 Biology Queries Mostly Unblocked: Anthropic Reports 85% Drop in False Positives</title>
+      <link>https://www.anthropic.com/news/improving-fable-5-s-biology-safeguards</link>
+      <guid isPermaLink="false">2026-08-21-02-fable5-biology-safeguards-update</guid>
+      <pubDate>Fri, 21 Aug 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Security</category>
+      <description>Anthropic retrained Fable 5's biology classifier, cutting false-positive fallbacks by ~85%. Everyday health and clinical queries now go through; virology and toxicology remain restricted to Opus 5.</description>
+      <content:encoded><![CDATA[**Anthropic reports ~85% fewer biology-related fallbacks on Fable 5 after retraining the classifier. Everyday health, clinical, and educational biology queries now reach the model. Dual-use research on pathogens and toxins remains restricted.**
+
+When Fable 5 launched, Anthropic blocked nearly all biology queries as a precaution — which meant interpreting lab results, explaining drug mechanisms, or answering clinical questions hit the same refusal wall as genuinely dangerous requests. The false-positive rate was high by design, accepted as the cost of a cautious launch.
+
+That tradeoff has now been recalibrated. Anthropic rewrote the classifier's rule set to carve out detailed exceptions for benign use cases, gathered feedback from medical and scientific reviewers, and retrained the model. Per Anthropic's announcement, biology-related fallbacks dropped by approximately 85% across product surfaces. The August 2026 Risk Report, published alongside this update, details the broader classifier framework: real-time blocking, jailbreak remediation, and a formal distinction between universal jailbreaks and targeted attacks.
+
+**For developers building on Fable 5:**
+
+If you added fallback handling (`model_fallback` credit logic, graceful degradation to Sonnet 5 for biology-adjacent queries), re-test your critical paths — most should now return a useful response. The fallback credit mechanism still applies for anything that does reach a block.
+
+**What remains restricted:** virology research, toxicology at the synthesis level, and similar dual-use areas. Per The Decoder's coverage, those capabilities remain gated to Opus 5, which carries stricter access controls. If your application depends on Fable 5 answering these queries, it still won't.
+
+**The underlying caveat:** classifiers don't publish precise boundaries, intentionally. Test your specific prompts — don't assume a topic category is safe because a neighboring category is. The boundaries will continue to shift as Anthropic gathers data on what the recalibrated classifier misses.
+
+**Why it matters:** developers who avoided Fable 5 for health, science, and clinical applications because of the fallback rate now have a substantially lower floor. The model is genuinely more usable for these workloads — though Opus 5 remains the right choice when dual-use biological research is the core task.
+
+**Sources:** [Improving Fable 5 Safeguards — Anthropic](https://www.anthropic.com/news/improving-fable-5-s-biology-safeguards) · [August 2026 Risk Report — Anthropic](https://www.anthropic.com/aug-2026-risk-report) · [Anthropic loosens Fable 5's biology restrictions — The Decoder](https://the-decoder.com/anthropic-loosens-fable-5s-biology-restrictions-but-keeps-the-guardrails-on-for-virology-and-toxicology/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Retriever Doesn't Know Which Documents Are Relevant — Metadata Filters Tell It Before Similarity Search Runs</title>
+      <link>https://python.langchain.com/docs/how_to/self_query/</link>
+      <guid isPermaLink="false">2026-08-21-01-rag-self-query-metadata-filter</guid>
+      <pubDate>Fri, 21 Aug 2026 04:02:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>Metadata filters narrow your vector search to the right source, date, or category before similarity scoring runs. LangChain's SelfQueryRetriever builds those filters from natural language automatically.</description>
+      <content:encoded><![CDATA[**What you'll be able to do after this:** query your vector store with natural language like "show me Python tutorials from 2024" and have the retriever automatically apply a structured filter — `language=Python AND year=2024` — before similarity search runs inside that subset.
+
+**Why cosine similarity alone isn't enough**
+
+Cosine similarity compares embedding vectors. It does not understand dates, categories, or document sources. A query like "what were the Q3 revenue numbers?" can return semantically close content from Q1 or Q2 if those happen to be nearest in embedding space. Metadata filtering adds an explicit pre-filter step: apply a WHERE clause first, then run similarity search inside the filtered subset.
+
+**Three takeaways**
+
+- Metadata filters run *before* similarity scoring — they narrow the haystack, they don't re-rank it.
+- You can mix structured filters (`year > 2023`, `category = "finance"`) with free-text semantic similarity in the same query.
+- LangChain's `SelfQueryRetriever` uses a small LLM call to translate natural language into filter predicates automatically — your users write plain queries, not structured filters.
+
+**Walk-through with Chroma and LangChain**
+
+First, store documents with metadata at index time:
+
+```python
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+
+# Each doc.metadata carries fields like:
+# {"source": "blog", "year": 2024, "topic": "rag", "language": "python"}
+vectorstore = Chroma.from_documents(docs, OpenAIEmbeddings())
+```
+
+Declare the metadata fields the retriever is allowed to filter on:
+
+```python
+from langchain.chains.query_constructor.base import AttributeInfo
+from langchain.retrievers.self_query.base import SelfQueryRetriever
+from langchain_openai import ChatOpenAI
+
+metadata_field_info = [
+    AttributeInfo(name="source",   description="Document source: blog, docs, or wiki",        type="string"),
+    AttributeInfo(name="year",     description="Year the document was published",               type="integer"),
+    AttributeInfo(name="topic",    description="Primary topic tag, e.g. rag, embeddings, llm", type="string"),
+    AttributeInfo(name="language", description="Programming language featured, if any",         type="string"),
+]
+
+retriever = SelfQueryRetriever.from_llm(
+    llm=ChatOpenAI(model="gpt-4o-mini"),   # or claude-haiku-4-5 — filter construction is cheap
+    vectorstore=vectorstore,
+    document_contents="Technical articles about building AI applications",
+    metadata_field_info=metadata_field_info,
+)
+```
+
+Query with plain English — the LLM translates it into a Chroma filter automatically:
+
+```python
+docs = retriever.invoke("Python RAG articles from 2024")
+# Chroma filter applied: {"year": {"$eq": 2024}, "topic": {"$eq": "rag"}, "language": {"$eq": "python"}}
+```
+
+**Three limits to know before you ship**
+
+1. **Latency:** the filter-construction LLM call adds 100–500 ms. For latency-critical paths, build filters explicitly from structured query parameters (a date picker, a category dropdown) and skip the LLM translation entirely.
+
+2. **Comparator support varies by store:** Chroma supports `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$in`, `$nin`. Qdrant, Pinecone, and Weaviate support overlapping but non-identical sets. Check your store's comparator list before designing the metadata schema — a filter your store can't execute silently falls back to full scan.
+
+3. **Filter accuracy depends on field descriptions:** the LLM generates filters from the `AttributeInfo` descriptions. Ambiguous descriptions produce wrong filters at the edges. Test queries that cross multiple fields before going to production.
+
+**Sources:** [LangChain self-querying retrieval — official docs](https://python.langchain.com/docs/how_to/self_query/) · [How to Build a RAG System with a Self-Querying Retriever — Towards Data Science](https://towardsdatascience.com/how-to-build-a-rag-system-with-a-self-querying-retriever-in-langchain-16b4fa23e9ad/) · [Advanced RAG techniques Part 7 — Medium](https://medium.com/@roberto.g.infante/advanced-rag-techniques-with-langchain-part-7-843ecd3199f0)
+]]></content:encoded>
+    </item>
+
+
 
 
     <item>
@@ -7108,322 +7336,10 @@ These join a string of permission-hardening fixes since June (v2.1.211, v2.1.214
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Your Code and My Code Don't Cost the Same: How BPE Tokenization Shapes Every LLM API Bill</title>
-      <link>https://huggingface.co/learn/llm-course/en/chapter6/5</link>
-      <guid isPermaLink="false">2026-08-06-04-bpe-tokenization-llm-vocab</guid>
-      <pubDate>Thu, 06 Aug 2026 12:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>LLM</category>
-      <category>HuggingFace</category>
-      <description>BPE tokenization is why code costs 2x more than prose and why different models see different context limits for the same text. Run the HuggingFace NLP course Colab notebook to see it work.</description>
-      <media:content url="https://huggingface.co/front/thumbnails/nlp_course.png" medium="image" type="image/png" />
-      <media:thumbnail url="https://huggingface.co/front/thumbnails/nlp_course.png" />
-      <content:encoded><![CDATA[
-**BPE tokenization is why code often costs 2x more than prose, why different models see different context limits for the same text, and why fine-tuning on padding-heavy data wastes compute -- it is the one foundational concept that makes everything else in AI engineering make sense.**
-
-**What you'll be able to do after this:**
-- Explain how BPE builds a vocabulary from scratch and tokenizes any string into integers
-- Use the HuggingFace tokenizers library to inspect and compare tokenization across any open model
-- Predict when your prompts will be expensive or hit context limits before you send them
-
-## What tokens actually are
-
-An LLM never sees your text. It sees a sequence of integers -- token IDs -- drawn from a fixed vocabulary. "Hello, world!" might become [9906, 11, 1917, 0]. The model learns probability distributions over these integers. Everything about cost, context limits, and generation speed is downstream of how many integers your text becomes.
-
-## How BPE builds a vocabulary
-
-BPE (Byte-Pair Encoding) starts with a vocabulary of individual bytes (256 entries). It then iteratively finds the most frequent adjacent pair of tokens in a training corpus and merges them into a new single token. Repeat ~50,000 times and you have a 50,257-token vocabulary (GPT-2's size). Common English words become single tokens ("the" -> token 0) while rare combinations split into multiple tokens.
-
-```python
-from tokenizers import Tokenizer
-from tokenizers.models import BPE
-from tokenizers.trainers import BpeTrainer
-
-# Train a BPE tokenizer from scratch on your own corpus
-tokenizer = Tokenizer(BPE(unk_token="[UNK]"))
-trainer = BpeTrainer(vocab_size=5000, special_tokens=["[UNK]", "[CLS]", "[SEP]"])
-tokenizer.train(["my_corpus.txt"], trainer)
-
-output = tokenizer.encode("Hello, world! def calculate():")
-print(output.tokens)
-# ['Hello', ',', 'world', '!', 'def', 'cal', 'culate', '(', ')', ':']
-print(len(output.tokens))  # 10 tokens for 30 characters
-```
-
-## Why this changes your cost math
-
-Code tokenizes more expensively than English prose. Special characters like `(`, `[`, `{`, `->` rarely appear adjacent to alphanumeric chars in English, so they do not get merged into efficient tokens. A Python function of 100 characters may cost 50-80 tokens. An English paragraph of 100 characters might be 25-35 tokens.
-
-Different model vocabularies (GPT-4's cl100k_base vs Llama 3's SentencePiece vs Claude's BPE variant) tokenize the same string to different lengths. Before choosing a model for a code-heavy workload, compare token counts:
-
-```python
-import tiktoken  # pip install tiktoken
-
-enc = tiktoken.get_encoding("cl100k_base")
-text = "def factorial(n):
-    return 1 if n <= 1 else n * factorial(n-1)"
-print(f"GPT-4 token count: {len(enc.encode(text))}")  # ~22
-
-from transformers import AutoTokenizer
-llama_tok = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
-print(f"Llama-3 token count: {len(llama_tok(text)['input_ids'])}")  # may differ
-```
-
-## Practical rules for AI engineers
-
-- **Budget context windows per-token, not per-character.** Rule of thumb: 1 token ~ 4 English chars, but 1 token ~ 2-3 code chars.
-- **Check vocabulary coverage before fine-tuning.** If your domain has many OOV-ish terms, they split into many subword tokens and inflate sequence lengths.
-- **Padding adds compute cost.** During fine-tuning, sequences are padded to the batch max length -- shorter, more uniform sequences mean less wasted GPU time.
-- **JSON and YAML structures are expensive.** Structural punctuation (`{`, `"`, `:`, `}`) resists merging and inflates token counts fast.
-- **Use count_tokens before sending large prompts.** Anthropic's SDK has `client.messages.count_tokens()` -- call it before a large structured prompt to confirm fit and estimate cost.
-
-## Go deeper
-
-The interactive chapter at [HuggingFace LLM Course Chapter 6](https://huggingface.co/learn/llm-course/en/chapter6/5) walks through BPE step by step with a live Colab notebook you can run in your browser -- no GPU needed. Chapter 6.8 builds a complete tokenizer from scratch on a small corpus so you can watch the merge algorithm work in real time.
-
-**Sources:** [BPE tokenization -- HuggingFace LLM Course Ch. 6](https://huggingface.co/learn/llm-course/en/chapter6/5) . [Colab: Tokenizer training from scratch](https://colab.research.google.com/github/huggingface/notebooks/blob/master/course/en/chapter6/section5.ipynb) . [Tokenization algorithms -- HuggingFace docs](https://huggingface.co/docs/transformers/tokenizer_summary)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Write Tool Descriptions Like Claude Reads Them: Five Rules That Double Agent Routing Accuracy</title>
-      <link>https://docs.anthropic.com/en/docs/build-with-claude/tool-use</link>
-      <guid isPermaLink="false">2026-08-06-03-tool-schema-descriptions-agent-routing</guid>
-      <pubDate>Thu, 06 Aug 2026 04:20:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>Claude selects tools based on their JSON Schema description alone — write clear, negative-framed descriptions and you eliminate most agent routing bugs without changing your prompts.</description>
-      <content:encoded><![CDATA[
-**Claude selects which tool to call based entirely on your JSON Schema description — write it like precise documentation with negative framing and you eliminate most routing bugs without touching your prompts.**
-
-Every agent's tool-calling loop runs the same model-side logic: Claude reads each tool's `description` field and decides whether to call it. If your descriptions are vague, Claude guesses wrong. If they're precise, routing works first time. Here are five rules that consistently close the gap.
-
-**Rule 1: Lead with what the tool does, not what it returns.**
-
-```python
-# Bad
-"description": "Returns a list of user records"
-
-# Good
-"description": "Search the user database for accounts matching a name, email, or ID. Returns matching records."
-```
-
-The model routes on intent (what is this for?), not output (what does it give me?).
-
-**Rule 2: Name every constraint in the description — not just the type.**
-
-```python
-# Bad
-"query": {"type": "string"}
-
-# Good
-"query": {
-    "type": "string",
-    "description": "A single search term. No boolean operators or wildcards. Example: 'alice@example.com'"
-}
-```
-
-The `type` tells Claude what to send. The `description` tells Claude *whether* to send it at all.
-
-**Rule 3: Use negative framing to disambiguate similar tools.**
-
-When two tools overlap, add one line stating what NOT to use this tool for:
-
-```
-"Use this to look up a specific user by ID or email.
- Do NOT use for listing all users — call list_users for that."
-```
-
-Claude weighs exclusion text heavily when choosing between tools.
-
-**Rule 4: Include one example input in the description.**
-
-A single concrete example resolves ambiguity faster than three paragraphs of prose. Paste it at the end of the description field, not in a comment.
-
-**Rule 5: Set required vs optional correctly.**
-
-If a parameter is in `required`, Claude will attempt to fill it before calling. Parameters not in `required` get omitted unless explicitly needed. Mismatches here cause unnecessary retry loops.
-
-**Putting it together:**
-
-```python
-tools = [
-    {
-        "name": "get_user",
-        "description": (
-            "Look up a single user account by ID, email, or username. "
-            "Returns the full user record including preferences and status. "
-            "Use for lookups of a known specific user. "
-            "Do NOT use for browsing or listing users — call list_users instead. "
-            "Example: get_user(identifier='alice@example.com')"
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "identifier": {
-                    "type": "string",
-                    "description": "A user ID (integer as string), email address, or username. Do not pass a display name."
-                }
-            },
-            "required": ["identifier"]
-        }
-    }
-]
-```
-
-Apply these five rules to every tool your agent exposes. The payoff is fewer retries, fewer wrong-tool calls, and agents that handle edge-case routing without a prompt rewrite.
-
-**Sources:** [Tool use — Anthropic docs](https://docs.anthropic.com/en/docs/build-with-claude/tool-use) · [Best practices for tool definitions — Anthropic prompt engineering](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/best-practices-for-tool-definitions)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Anthropic Ships Inference Hooks for Claude Enterprise: Real-Time DLP Before Claude Sees Your Data</title>
-      <link>https://claude.com/blog/claude-enterprise-inference-hooks</link>
-      <guid isPermaLink="false">2026-08-06-02-anthropic-inference-hooks-enterprise-dlp</guid>
-      <pubDate>Thu, 06 Aug 2026 04:19:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Claude Code</category>
-      <category>Security</category>
-      <description>Inference hooks lets Claude Enterprise orgs intercept every prompt and tool call before Claude processes it — enforcing DLP policy across chat, Claude Code, Cowork, and MCP connections.</description>
-      <media:content url="https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6a7362314ccf1158f2bffe5f_Claude-blog-prompt-hooks-DLP%20(1).png" medium="image" type="image/png" />
-      <media:thumbnail url="https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6a7362314ccf1158f2bffe5f_Claude-blog-prompt-hooks-DLP%20(1).png" />
-      <content:encoded><![CDATA[
-**Every Claude Enterprise prompt now optionally routes through your org's own security server — Netskope, Palo Alto, Zscaler, or a custom webhook — before the model ever processes it.**
-
-Launched August 5 in beta, inference hooks adds a compliance checkpoint at the inference layer. Turn it on once at the org level and it covers all Claude surfaces: chat, Claude Code, Cowork, and tool calls made through MCP connectors and skills — one configuration, all surfaces.
-
-**How it works:** every inference request goes through a signed WebSocket connection to your DLP server, which returns an allow, modify, or block decision in milliseconds. The protocol uses an open, published schema — plug it into the DLP tool your security team already operates (Netskope, Palo Alto Networks, Proofpoint, Zscaler) or a custom endpoint you write yourself.
-
-Three rollout options lower adoption friction: **shadow mode** (always allow, just log) for a zero-disruption audit pass; **role-based exclusions** to bypass specific users or groups; and **percentage-based rollouts** to canary before full deployment. Timeout tolerance and failure policy are configurable per org.
-
-**Why it matters:** As agentic pipelines move into production — Claude Code reading sensitive codebases, Cowork sessions touching customer data — intercepting at the model boundary rather than auditing after the fact is a compliance prerequisite. Inference hooks delivers this without per-app code changes, which matters when your org runs Claude across dozens of surfaces simultaneously.
-
-**Sources:** [Inference hooks announcement — claude.com/blog](https://claude.com/blog/claude-enterprise-inference-hooks) · [Anthropic puts inline DLP inside Claude Enterprise — Unite.AI](https://www.unite.ai/anthropic-puts-inline-data-loss-prevention-inside-claude-enterprise/) · [The Next Web coverage](https://thenextweb.com/news/anthropic-inference-hooks-dlp-claude-enterprise)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>No Training Data? Build a Synthetic Fine-Tuning Dataset with distilabel in 30 Minutes</title>
-      <link>https://huggingface.co/blog/dvilasuero/synthetic-data-with-llama3-distilabel</link>
-      <guid isPermaLink="false">2026-08-06-01-synthetic-dataset-distilabel-fine-tuning</guid>
-      <pubDate>Thu, 06 Aug 2026 04:18:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Fine-Tuning</category>
-      <category>HuggingFace</category>
-      <description>distilabel pipelines a teacher LLM to generate instruction-response pairs, scores them with an AI judge, and pushes to HuggingFace Hub — ready to load directly into a QLoRA fine-tune.</description>
-      <media:content url="https://cdn-uploads.huggingface.co/production/uploads/60420dccc15e823a685f2b03/kLyxVA5faEHpMY-1RkgOM.png" medium="image" type="image/png" />
-      <media:thumbnail url="https://cdn-uploads.huggingface.co/production/uploads/60420dccc15e823a685f2b03/kLyxVA5faEHpMY-1RkgOM.png" />
-      <content:encoded><![CDATA[
-**distilabel pipelines a teacher LLM to generate instruction-response pairs at scale, scores them with an AI judge, and pushes the result to HuggingFace Hub — so you can fine-tune before you've written a single training example by hand.**
-
-**What you'll be able to do after this:**
-- Generate hundreds of domain-specific instruction-response pairs using a free teacher LLM (HuggingFace Inference Endpoints or Ollama) — no manual labeling required
-- Score every generated response with an LLM judge (UltraFeedback) before committing to a GPU run
-- Push the dataset to HuggingFace Hub in ShareGPT format and load it directly into Unsloth or TRL
-
-Every fine-tuning tutorial skips the hard part: where do the training examples come from? For domain-specific use cases — a model that speaks your API's error messages, understands your schema, or follows your coding conventions — you need hundreds of (instruction, response) pairs in the right format, and hand-labeling at scale is expensive. distilabel uses a large teacher model to generate the pairs, and a judge model to filter out the weak ones.
-
-## Install
-
-```bash
-pip install distilabel "distilabel[hf-inference-endpoints]"
-```
-
-## Build a pipeline
-
-```python
-from distilabel.pipeline import Pipeline
-from distilabel.steps import LoadDataFromHub
-from distilabel.steps.tasks import TextGeneration, UltraFeedback
-from distilabel.llms import InferenceEndpointsLLM
-
-with Pipeline(name="synthetic-domain-dataset") as pipeline:
-    # Seed prompts — your domain questions, one per row
-    load_data = LoadDataFromHub(
-        name="load_instructions",
-        repo_id="argilla/distilabel-math-preference-dpo",  # swap for your seed prompts
-        num_examples=200,
-    )
-
-    # Teacher: generate 2 responses per instruction
-    generate = TextGeneration(
-        name="generate_responses",
-        llm=InferenceEndpointsLLM(
-            model_id="meta-llama/Meta-Llama-3.1-70B-Instruct",
-        ),
-        num_generations=2,
-    )
-
-    # Judge: score each response 1-10
-    judge = UltraFeedback(
-        name="judge_responses",
-        llm=InferenceEndpointsLLM(
-            model_id="meta-llama/Meta-Llama-3.1-70B-Instruct",
-        ),
-        aspect="overall-rating",
-    )
-
-    load_data >> generate >> judge
-
-distiset = pipeline.run(use_cache=True)
-distiset.push_to_hub("your-org/my-domain-dataset")
-```
-
-`use_cache=True` means interrupted runs resume from the last completed step — no wasted API calls.
-
-## Filter on quality score
-
-The `UltraFeedback` step gives each response a score (1–10). Filter before fine-tuning:
-
-```python
-from datasets import load_dataset
-
-dataset = load_dataset("your-org/my-domain-dataset", split="train")
-filtered = dataset.filter(lambda x: x["rating"] is not None and x["rating"] >= 6)
-print(f"Kept {len(filtered)} of {len(dataset)} examples")
-```
-
-## Connect to Unsloth
-
-The output is in ShareGPT/ChatML format. Unsloth's `standardize_sharegpt` normalizes it:
-
-```python
-from unsloth import FastLanguageModel, standardize_sharegpt
-from trl import SFTTrainer
-
-dataset = load_dataset("your-org/my-domain-dataset", split="train")
-dataset = standardize_sharegpt(dataset)
-# ... pass to SFTTrainer as usual
-```
-
-## Swap to Ollama for local generation
-
-Running locally with no API costs:
-
-```python
-from distilabel.llms import OllamaLLM
-
-generate = TextGeneration(
-    llm=OllamaLLM(model="llama3.1:70b"),
-    num_generations=2,
-)
-```
-
-**Sources:** [Using Llama3 and distilabel to build fine-tuning datasets — HuggingFace blog](https://huggingface.co/blog/dvilasuero/synthetic-data-with-llama3-distilabel) · [Generate a preference dataset with distilabel — HuggingFace Cookbook (Colab)](https://huggingface.co/learn/cookbook/en/generate_preference_dataset_distilabel) · [distilabel docs — Argilla](https://distilabel.argilla.io/)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
+    
 
     
     
