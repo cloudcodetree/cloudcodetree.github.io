@@ -30,7 +30,8 @@
     "deploy": "gh-pages -d out --dotfiles",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck:worker": "tsc -p worker/tsconfig.json"
+    "typecheck:worker": "tsc -p worker/tsconfig.json",
+    "build:staging": "SITE_ORIGIN= pnpm run build && node scripts/mark-staging-build.mjs out"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
