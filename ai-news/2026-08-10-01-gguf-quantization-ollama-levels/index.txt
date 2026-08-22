@@ -1,0 +1,92 @@
+1:"$Sreact.fragment"
+2:I[68977,["5914","static/chunks/5914-78fa75be6ca6de8c.js","1860","static/chunks/1860-1e5afbc2d94aafa0.js","7177","static/chunks/app/layout-226110c5f1d969af.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/26dc4a78f0c7af7f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e0f4b1ebfdbd83f9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e4af272ccee01ff0-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/c9bb9c4333985833.css","style"]
+0:{"P":null,"b":"53AIPiIevtRY1gttiYj8I","p":"https://cloudcodetree.com","c":["","ai-news","2026-08-10-01-gguf-quantization-ollama-levels",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-08-10-01-gguf-quantization-ollama-levels","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/c9bb9c4333985833.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_f5e841 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_c9a639","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-08-10-01-gguf-quantization-ollama-levels","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[17655,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+11:I[82566,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+12:T11c3,**Q4_K_M is Ollama's default and covers 99% of local setups: 4.5GB for a 7B model, roughly 96% of full-precision quality. Here's what the letters and numbers in every GGUF model tag actually mean.**
+
+**What you'll be able to do after this:**
+- Read any GGUF model tag (Q4_K_M, Q8_0, IQ4_XS, Q5_K_M) and know what it means for RAM and quality
+- Pull a specific quantized variant from Ollama or HuggingFace to match your hardware budget
+- Make an informed decision about when to trade quality for size — and understand why bigger-at-lower-precision often wins
+
+## What is GGUF?
+
+When you run `ollama pull llama3.1`, Ollama downloads a GGUF file — a single portable bundle containing model weights, the tokenizer, and metadata. GGUF (GGML Unified Format) is the universal format for local LLM inference, used by Ollama, llama.cpp, LM Studio, and GPT4All.
+
+GGUF files come in different quantization levels that compress the weights to reduce RAM and improve inference speed, at some quality cost. Think of it like JPEG compression: a Q4 quantization file is roughly 70% smaller than full-precision (fp16), while retaining ~96% of the original quality.
+
+## Reading the tags
+
+Ollama and HuggingFace model tags encode the quantization level directly. Here's a reference table for 7B-class models:
+
+| Tag | Bits | ~RAM (7B model) | Quality |
+|---|---|---|---|
+| `fp16` | 16 | ~14 GB | Reference (100%) |
+| `Q8_0` | 8 | ~8 GB | ≈99% |
+| `Q5_K_M` | 5 (mixed) | ~5.5 GB | ≈98% |
+| `Q4_K_M` | 4 (mixed) | ~4.5 GB | ≈96% |
+| `IQ4_XS` | 4 (i-quant) | ~4.2 GB | ≈95% |
+| `Q3_K_M` | 3 (mixed) | ~3.5 GB | ≈91% |
+| `Q2_K` | 2 | ~2.8 GB | ≈82% |
+
+**K-quants (Q4_K_M, Q5_K_S, Q3_K_L):** "K" means mixed precision. Attention layers (sensitive to precision loss) get slightly higher bit-width; feed-forward layers (less sensitive) get lower. M/S/L stand for Medium/Small/Large within the k-quant family — K_M is the balanced sweet spot.
+
+**I-quants (IQ4_XS, IQ3_XS):** "I" means importance-based quantization, which allocates bits according to weight importance rather than uniformly across all layers. Slightly smaller files than k-quants at the same nominal bit level, with similar quality.
+
+## How to pull a specific variant
+
+Ollama defaults to Q4_K_M for official models. To override:
+
+```bash
+# Default pull — gets Q4_K_M automatically
+ollama pull llama3.1
+
+# Explicit variant by tag
+ollama pull llama3.1:8b-instruct-q8_0       # higher quality, needs 8GB
+ollama pull llama3.1:70b-instruct-q4_K_M    # 70B at Q4, ~40GB
+
+# Pull GGUF models directly from HuggingFace
+# bartowski maintains regularly updated, high-quality GGUF quants
+ollama run hf.co/bartowski/Qwen3-8B-GGUF:Q4_K_M
+ollama run hf.co/bartowski/Llama-3.2-3B-Instruct-GGUF:Q8_0
+```
+
+## Choosing a quantization level
+
+Match the quantization to your available RAM:
+
+- **≤8 GB RAM (laptop, Pi):** Q4_K_M or IQ4_XS for 7B models
+- **16 GB RAM:** Q5_K_M or Q8_0 for 7B/8B; Q4_K_M for 13B
+- **24 GB GPU (RTX 3090/4090):** Q8_0 for 13B; Q4_K_M for 70B
+- **Apple Silicon (48 GB+):** Q8_0 for 70B models is practical
+
+**Counter-intuitive rule:** A larger model at lower quantization almost always beats a smaller model at higher quantization. A 70B at Q4_K_M (~40 GB) will outperform an 8B at Q8_0 (~8 GB) for most reasoning tasks, if you have the RAM to run it at GPU speed.
+
+The quality degradation below Q4 (Q3, Q2) becomes noticeable on reasoning-heavy tasks — responses get less coherent, facts less reliable. Q4_K_M is the floor for anything you'd put in front of a user.
+
+## Why this matters for your stack
+
+Every AI application that runs local inference — for cost, privacy, offline capability, or regulatory reasons — starts with this choice. Pick Q2 and you'll save RAM but degrade reasoning noticeably. Pick Q8 without enough RAM and the model spills to CPU, killing inference speed. Q4_K_M is the rational default because most hardware can run it fully on GPU, at a quality level where the degradation is invisible for real tasks.
+
+**Sources:** [GGUF Format: A Complete Guide — DataCamp](https://www.datacamp.com/tutorial/gguf-format-a-complete-guide) · [Using Quantized Models with Ollama — Machine Learning Mastery](https://machinelearningmastery.com/using-quantized-models-with-ollama-for-application-development/) · [Ollama GGUF Quantization Guide — eastondev.com](https://eastondev.com/blog/en/posts/ai/20260422-ollama-gguf-quantization/) · [llama.cpp quantization types — GitHub](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-08-10-01-gguf-quantization-ollama-levels","title":"Run Any Open-Weight Model Locally: What GGUF Quantization Tags Actually Mean","excerpt":"Q4_K_M is Ollama's default and the right pick for 99% of setups: 4.5GB for a 7B model, ~96% of full-precision quality. Here's what every GGUF tag means and how to choose.","author":"Chris Harper","date":"08-10-2026","publishedAt":"2026-08-10T04:15:00.000Z","tags":["AI","Tutorial","Self-Hosting","LLM"],"readTime":4,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-10-01-gguf-quantization-ollama-levels.jpg","imageCredit":"panumas nikhomkhai","imageCreditUrl":"https://www.pexels.com/photo/close-up-of-a-blue-server-rack-in-datacenter-37730211/","imageSource":"https://www.datacamp.com/tutorial/gguf-format-a-complete-guide","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Run Any Open-Weight Model Locally: What GGUF Quantization Tags Actually Mean | AI News"}],["$","meta","1",{"name":"description","content":"Q4_K_M is Ollama's default and the right pick for 99% of setups: 4.5GB for a 7B model, ~96% of full-precision quality. Here's what every GGUF tag means and how to choose."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-08-10-01-gguf-quantization-ollama-levels/"}],["$","meta","3",{"property":"og:title","content":"Run Any Open-Weight Model Locally: What GGUF Quantization Tags Actually Mean"}],["$","meta","4",{"property":"og:description","content":"Q4_K_M is Ollama's default and the right pick for 99% of setups: 4.5GB for a 7B model, ~96% of full-precision quality. Here's what every GGUF tag means and how to choose."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-08-10-01-gguf-quantization-ollama-levels/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-10-01-gguf-quantization-ollama-levels.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Run Any Open-Weight Model Locally: What GGUF Quantization Tags Actually Mean"}],["$","meta","13",{"name":"twitter:description","content":"Q4_K_M is Ollama's default and the right pick for 99% of setups: 4.5GB for a 7B model, ~96% of full-precision quality. Here's what every GGUF tag means and how to choose."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-10-01-gguf-quantization-ollama-levels.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

@@ -1,0 +1,85 @@
+1:"$Sreact.fragment"
+2:I[68977,["5914","static/chunks/5914-78fa75be6ca6de8c.js","1860","static/chunks/1860-1e5afbc2d94aafa0.js","7177","static/chunks/app/layout-226110c5f1d969af.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/26dc4a78f0c7af7f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e0f4b1ebfdbd83f9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e4af272ccee01ff0-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/c9bb9c4333985833.css","style"]
+0:{"P":null,"b":"53AIPiIevtRY1gttiYj8I","p":"https://cloudcodetree.com","c":["","ai-news","2026-08-10-04-hybrid-bm25-vector-search-rrf",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-08-10-04-hybrid-bm25-vector-search-rrf","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/c9bb9c4333985833.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_f5e841 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_c9a639","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-08-10-04-hybrid-bm25-vector-search-rrf","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[17655,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+11:I[82566,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+12:Td63,**Vector search excels at meaning; BM25 excels at exact terms. Combining them with Reciprocal Rank Fusion lifts RAG recall from ~78% to ~91% — and takes about 10 lines of LlamaIndex code.**
+
+**What you'll be able to do after this:**
+- Understand why exact-term failures happen in vector-only RAG and when hybrid search fixes them
+- Implement a BM25 + dense vector retriever with RRF fusion using LlamaIndex in one runnable block
+- Know when hybrid search is worth the added complexity (and when it isn't)
+
+## The problem with vector-only retrieval
+
+Dense embeddings encode *meaning* well — "GPT-4o" and "the latest OpenAI model" land close in embedding space. But that's also the problem: "GPT-4o" and "GPT-4.1" land close too, so version-number queries, product codes, API names, and identifiers confuse vector retrievers. A user searching "React 18.3 concurrent features" may miss the document that says exactly that, because the embedding for "React 18.3" overlaps with every React document.
+
+**BM25 solves this.** BM25 is a keyword retrieval algorithm that scores documents by term frequency (TF) and inverse document frequency (IDF). A document containing "React 18.3" literally outscores a document that only discusses React in general — exact-term precision that embeddings trade away for semantic breadth.
+
+## How Reciprocal Rank Fusion combines them
+
+Run both retrievers in parallel, then merge their ranked lists with **RRF**:
+
+```
+score(doc) = Σ 1 / (k + rank_i(doc))
+```
+
+RRF works on *ranks*, not raw scores — which sidesteps the incompatibility between BM25's TF-IDF scores and cosine similarity values. No calibration needed. Benchmarks: hybrid + RRF reaches ~91% recall@10 vs ~78% for vector-only and ~65% for BM25-only.
+
+## 10-line LlamaIndex implementation
+
+```bash
+pip install llama-index-core llama-index-retrievers-bm25
+```
+
+```python
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+from llama_index.core.retrievers import QueryFusionRetriever
+from llama_index.retrievers.bm25 import BM25Retriever
+
+docs = SimpleDirectoryReader("./data").load_data()
+index = VectorStoreIndex.from_documents(docs)
+
+vector_retriever = index.as_retriever(similarity_top_k=10)
+bm25_retriever   = BM25Retriever.from_defaults(
+    docstore=index.docstore, similarity_top_k=10
+)
+
+retriever = QueryFusionRetriever(
+    [vector_retriever, bm25_retriever],
+    similarity_top_k=5,
+    mode="reciprocal_rerank",   # RRF
+    num_queries=1,
+    use_async=True,
+)
+
+nodes = retriever.retrieve("React 18.3 concurrent features")
+```
+
+For LangChain users: `EnsembleRetriever([bm25_retriever, vector_retriever], weights=[0.4, 0.6])` does the same thing with automatic RRF via its built-in `weighted_reciprocal_rank` implementation.
+
+## When to add it
+
+Add hybrid search when users query with specific names, codes, version numbers, or identifiers. Skip it if your corpus is purely conceptual (e.g., abstract policy FAQs) — pure vector search handles those fine, and the added complexity isn't worth it.
+
+**Sources:** [BM25 Retriever — LlamaIndex official docs](https://developers.llamaindex.ai/python/examples/retrievers/bm25_retriever/) · [Hybrid Search in RAG Explained: BM25 + Semantic Search + RRF — YouTube](https://www.youtube.com/watch?v=D8LmsEOJvPI) · [Hybrid Search with Reranking — Qdrant official docs](https://qdrant.tech/documentation/tutorials-search-engineering/reranking-hybrid-search/)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-08-10-04-hybrid-bm25-vector-search-rrf","title":"Why Pure Vector Search Fails on \"React 18.3\" and \"GPT-4o\" — and How BM25 + RRF Hybrid Search Fixes It","excerpt":"Vector search excels at meaning; BM25 excels at exact terms. Combining them with Reciprocal Rank Fusion lifts RAG recall from ~78% to ~91% and takes about 10 lines of LlamaIndex code.","author":"Chris Harper","date":"08-10-2026","publishedAt":"2026-08-10T12:13:00.000Z","tags":["AI","Tutorial","RAG","Embeddings"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-10-04-hybrid-bm25-vector-search-rrf.jpg","imageSource":"https://www.youtube.com/watch?v=D8LmsEOJvPI","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Why Pure Vector Search Fails on \"React 18.3\" and \"GPT-4o\" — and How BM25 + RRF Hybrid Search Fixes It | AI News"}],["$","meta","1",{"name":"description","content":"Vector search excels at meaning; BM25 excels at exact terms. Combining them with Reciprocal Rank Fusion lifts RAG recall from ~78% to ~91% and takes about 10 lines of LlamaIndex code."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-08-10-04-hybrid-bm25-vector-search-rrf/"}],["$","meta","3",{"property":"og:title","content":"Why Pure Vector Search Fails on \"React 18.3\" and \"GPT-4o\" — and How BM25 + RRF Hybrid Search Fixes It"}],["$","meta","4",{"property":"og:description","content":"Vector search excels at meaning; BM25 excels at exact terms. Combining them with Reciprocal Rank Fusion lifts RAG recall from ~78% to ~91% and takes about 10 lines of LlamaIndex code."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-08-10-04-hybrid-bm25-vector-search-rrf/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-10-04-hybrid-bm25-vector-search-rrf.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Why Pure Vector Search Fails on \"React 18.3\" and \"GPT-4o\" — and How BM25 + RRF Hybrid Search Fixes It"}],["$","meta","13",{"name":"twitter:description","content":"Vector search excels at meaning; BM25 excels at exact terms. Combining them with Reciprocal Rank Fusion lifts RAG recall from ~78% to ~91% and takes about 10 lines of LlamaIndex code."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-10-04-hybrid-bm25-vector-search-rrf.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

@@ -1,0 +1,90 @@
+1:"$Sreact.fragment"
+2:I[68977,["5914","static/chunks/5914-78fa75be6ca6de8c.js","1860","static/chunks/1860-1e5afbc2d94aafa0.js","7177","static/chunks/app/layout-226110c5f1d969af.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/26dc4a78f0c7af7f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e0f4b1ebfdbd83f9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e4af272ccee01ff0-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/c9bb9c4333985833.css","style"]
+0:{"P":null,"b":"53AIPiIevtRY1gttiYj8I","p":"https://cloudcodetree.com","c":["","ai-news","2026-08-01-07-cloudflare-workers-ai-edge-inference-quickstart",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-08-01-07-cloudflare-workers-ai-edge-inference-quickstart","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/c9bb9c4333985833.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_f5e841 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_c9a639","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-08-01-07-cloudflare-workers-ai-edge-inference-quickstart","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[17655,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+11:I[82566,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+12:Tcb6,**Cloudflare Workers AI runs Llama, Mistral, Qwen, and 80+ open models at 300+ edge locations worldwide — one `env.AI.run()` call, no GPU to provision, 10,000 Neurons/day free.**
+
+**What you'll be able to do after this:**
+- Add AI inference to any Cloudflare Worker in two lines of code and have it run near your users worldwide — no separate GPU cluster, no infrastructure to manage
+- Swap between 80+ open-source models (Llama 3.x/4, Mistral, Qwen, DeepSeek-R1, Whisper, FLUX) by changing one string, with the same Worker code unchanged
+- Serve AI features on the free tier — 10,000 Neurons/day, no credit card required — and only pay when you scale past that
+
+## Walk-through
+
+**Five commands to a running AI Worker:**
+
+```bash
+npm create cloudflare@latest -- hello-ai
+cd hello-ai
+npx wrangler dev      # local test (charges your Cloudflare account)
+npx wrangler login
+npx wrangler deploy
+```
+
+**Wire the AI binding** — add to `wrangler.jsonc`:
+
+```jsonc
+{
+  "ai": { "binding": "AI" }
+}
+```
+
+**Minimal completion** — replace the Worker body in `src/index.ts`:
+
+```typescript
+export default {
+  async fetch(request, env): Promise<Response> {
+    const response = await env.AI.run(
+      "@cf/meta/llama-3.1-8b-instruct",
+      { prompt: "What is the origin of the phrase Hello, World?" }
+    );
+    return new Response(JSON.stringify(response));
+  },
+} satisfies ExportedHandler<Env>;
+```
+
+**Chat/messages format** (for conversation context):
+
+```typescript
+const response = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+  messages: [
+    { role: "system", content: "You are a helpful assistant." },
+    { role: "user", content: userQuestion }
+  ]
+});
+```
+
+**Swap models** by changing the first string: `@cf/mistral/mistral-7b-instruct-v0.2`, `@cf/qwen/qwen3-30b-a3b`, `@cf/deepseek-ai/deepseek-r1-distill-qwen-32b`. No other code changes.
+
+## What "Neurons" means
+
+The free tier gives you 10,000 Neurons/day — Cloudflare's unit for inference compute. One day's free allowance translates to roughly 1,300 LLM responses, 12,500 embeddings, or 2,000 small image generations. The pool is shared across all models you call. Beyond the free tier, pricing starts around $0.00015 per 1K tokens for Llama-scale models.
+
+**Important:** Workers AI always hits your Cloudflare account even in local dev (`wrangler dev`) — it draws from your free daily Neurons even for testing.
+
+## Why edge inference instead of a centralized API
+
+Standard AI APIs send every request to a single data center. Workers AI distributes inference to the Cloudflare PoP nearest to your user — typical response time under 100ms at global scale. For low-latency use cases (real-time suggestions, in-browser AI, edge classification), this is a meaningful architectural difference. For batch workloads where latency doesn't matter, a centralized API is simpler.
+
+**Sources:** [Workers AI Quickstart — Cloudflare Docs](https://developers.cloudflare.com/workers-ai/get-started/workers-wrangler/) · [Workers AI Models Catalog](https://developers.cloudflare.com/workers-ai/models/) · [Workers AI Pricing and Free Tier](https://deploybase.ai/articles/cloudflare-ai-pricing) · [Workers AI Product Page — Cloudflare](https://www.cloudflare.com/products/workers-ai/)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-08-01-07-cloudflare-workers-ai-edge-inference-quickstart","title":"Run Open-Source LLMs at the Edge in 5 Commands: Cloudflare Workers AI Quickstart","excerpt":"Cloudflare Workers AI runs Llama, Mistral, Qwen, and 80+ open models on 300+ edge locations -- one env.AI.run() call, 10K Neurons/day free, no GPU to manage. Five commands from zero to deployed.","author":"Chris Harper","date":"08-01-2026","publishedAt":"2026-08-01T20:03:00.000Z","tags":["AI","Tutorial","Self-Hosting","LLM","Cloud"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-01-07-cloudflare-workers-ai-edge-inference-quickstart.jpg","imageSource":"https://developers.cloudflare.com/workers-ai/get-started/workers-wrangler/","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Run Open-Source LLMs at the Edge in 5 Commands: Cloudflare Workers AI Quickstart | AI News"}],["$","meta","1",{"name":"description","content":"Cloudflare Workers AI runs Llama, Mistral, Qwen, and 80+ open models on 300+ edge locations -- one env.AI.run() call, 10K Neurons/day free, no GPU to manage. Five commands from zero to deployed."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-08-01-07-cloudflare-workers-ai-edge-inference-quickstart/"}],["$","meta","3",{"property":"og:title","content":"Run Open-Source LLMs at the Edge in 5 Commands: Cloudflare Workers AI Quickstart"}],["$","meta","4",{"property":"og:description","content":"Cloudflare Workers AI runs Llama, Mistral, Qwen, and 80+ open models on 300+ edge locations -- one env.AI.run() call, 10K Neurons/day free, no GPU to manage. Five commands from zero to deployed."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-08-01-07-cloudflare-workers-ai-edge-inference-quickstart/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-01-07-cloudflare-workers-ai-edge-inference-quickstart.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Run Open-Source LLMs at the Edge in 5 Commands: Cloudflare Workers AI Quickstart"}],["$","meta","13",{"name":"twitter:description","content":"Cloudflare Workers AI runs Llama, Mistral, Qwen, and 80+ open models on 300+ edge locations -- one env.AI.run() call, 10K Neurons/day free, no GPU to manage. Five commands from zero to deployed."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-01-07-cloudflare-workers-ai-edge-inference-quickstart.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

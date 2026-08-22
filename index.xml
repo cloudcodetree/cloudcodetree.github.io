@@ -1,0 +1,670 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>AI News · CloudCodeTree</title>
+    <link>https://cloudcodetree.com/ai-news/</link>
+    <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
+    <description>Daily field notes on AI-assisted engineering.</description>
+    <language>en-us</language>
+    <generator>cloudcodetree generate-feeds.mjs</generator>
+    <lastBuildDate>Sat, 22 Aug 2026 20:10:23 GMT</lastBuildDate>
+  <item>
+    <title><![CDATA[The MCP Spec Dropped Session State — Migration Checklist for Your Server]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-13-mcp-stateless-spec-migration/</link>
+    <guid isPermaLink="false">2026-08-22-13-mcp-stateless-spec-migration</guid>
+    <pubDate>Sat, 22 Aug 2026 20:02:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[MCP]]></category>
+    <category><![CDATA[Agents]]></category>
+    <category><![CDATA[Building AI Products]]></category>
+    <description><![CDATA[The July 2026 MCP spec removed session state: no Mcp-Session-Id, no initialize handshake, and your server becomes a load-balanced stateless HTTP service.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-13-mcp-stateless-spec-migration.jpg" alt="" /></p>
+<p><strong>TL;DR: The July 2026 MCP spec removed session state — no <code>Mcp-Session-Id</code>, no handshake — and your server becomes a plain stateless HTTP service with working load balancing and caching.</strong></p>
+<p>The MCP 2026-07-28 specification shipped a protocol-level change that affects every MCP server in production: session state is gone. The <code>initialize</code>/<code>initialized</code> handshake is removed. <code>Mcp-Session-Id</code> is gone. Every request now carries protocol version, client info, and capabilities in a <code>_meta</code> field, making each one self-describing and independent.</p>
+<p><strong>Why this matters.</strong> Stateful MCP servers required sticky sessions — a request from client A had to reach the same server instance that handled its initialization. That made round-robin load balancing, autoscaling, and CDN caching impossible. Stateless servers let any instance handle any request: horizontal scaling works without infrastructure workarounds.</p>
+<p><strong>Migration checklist:</strong></p>
+<p>1. <strong>Audit session state.</strong> Search your codebase for <code>Mcp-Session-Id</code>, <code>initialize</code> event handlers, and per-session in-memory stores. Replace them with explicit handles or request-scoped state.
+2. <strong>Pass <code>_meta</code> through.</strong> Ensure your handler forwards the incoming <code>_meta</code> object on every response — it carries the client's declared capabilities and protocol version.
+3. <strong>Wire up header-based routing.</strong> The new <code>Mcp-Method</code> and <code>Mcp-Name</code> headers let your gateway or rate limiter route and meter without parsing JSON bodies. Add them to your load balancer config.
+4. <strong>Add cache hints to list responses.</strong> <code>tools/list</code>, <code>resources/list</code>, and <code>prompts/list</code> responses now support <code>ttlMs</code> and <code>cacheScope</code> fields — fill them in so clients know how long to reuse a listing without re-fetching.
+5. <strong>Check your SDK version.</strong> Cloudflare's Agents SDK has supported the spec since the day it shipped; <code>createMcpHandler</code> returns a standard fetch handler that runs as a Worker with no session Durable Object overhead. If you're on another framework, confirm its MCP SDK version is ≥ 2.0.</p>
+<p><strong>Limit to know.</strong> Legacy MCP clients that haven't updated their client library may still send <code>Mcp-Session-Id</code> or expect the handshake. The Cloudflare handler serves both spec versions until clients migrate — but verify your client versions before switching production traffic. The experimental Tasks API has a separate, not-yet-final migration path; hold off on that piece until the spec stabilizes.</p>
+<p><strong>Sources:</strong> <a href="https://blog.modelcontextprotocol.io/posts/2026-07-28/">MCP 2026-07-28 Specification — MCP Blog</a> · <a href="https://blog.cloudflare.com/mcp-v2/">The next generation of MCP — Cloudflare Blog</a> · <a href="https://dev.to/krlz/mcp-went-stateless-what-the-2026-07-28-spec-actually-changes-273k">What changed — DEV Community</a> · <a href="https://dev.to/composiodev/how-to-build-and-deploy-an-mcp-server-to-production-2026-07-28-spec-50p3">Build and deploy on the new spec — DEV Community</a> · <a href="https://developers.cloudflare.com/changelog/post/2026-07-27-agents-sdk-v0.20.0-mcp-sdk-v2/">Cloudflare Agents SDK changelog</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-13-mcp-stateless-spec-migration.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-13-mcp-stateless-spec-migration.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Computer Use Is Production-Ready: Multi-Action Turns, Browser Use Tool, and HIPAA Under BAA]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-12-computer-use-browser-tool-ga/</link>
+    <guid isPermaLink="false">2026-08-22-12-computer-use-browser-tool-ga</guid>
+    <pubDate>Sat, 22 Aug 2026 12:04:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Agents]]></category>
+    <category><![CDATA[Building AI Products]]></category>
+    <description><![CDATA[Computer use and the new browser use tool went GA on August 20: multi-action turns cut API calls per task, HIPAA is eligible under BAA, and no beta headers required.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-12-computer-use-browser-tool-ga.jpg" alt="" /></p>
+<p><strong>TL;DR: Computer use and Anthropic's new browser use tool went GA on August 20 — multi-action turns, HIPAA-eligible under a BAA, beta headers dropped.</strong></p>
+<p>Computer use exited beta on August 20 alongside the browser use tool, a new companion built specifically for web app automation. Here's what changed for production builds:</p>
+<p><strong>Multi-action turns — the biggest performance shift.</strong> Beta computer use issued one action per API call (click once, get a screenshot, send to Claude, repeat). GA removes that cap: Claude can now batch multiple clicks, keystrokes, and scroll actions in a single turn, reducing round-trips. Asteroid, a workflow-automation company highlighted by Anthropic at launch, reported their longest claims workflow dropped from 32 minutes to 13 after switching — though these figures come from Anthropic's own case-study post, not independent measurement.</p>
+<p><strong>Browser use tool — structure over pixels.</strong> The new <code>browser_use</code> tool works alongside computer use and adds DOM-level element targeting for web apps, so it doesn't have to guess a click coordinate from a screenshot that may shift on resize. Use computer use for native desktop GUI work; use browser use for anything running in a browser where element structure is stable.</p>
+<p><strong>HIPAA-eligible under BAA.</strong> Computer use is now eligible for HIPAA-regulated workloads, but only under an active Business Associate Agreement with Anthropic — it's not automatic. Check with your compliance contact before building in healthcare.</p>
+<p><strong>What stays the same (limits you should plan around):</strong>
+- Screenshot-based interaction still means 2–5 seconds per action on typical web tasks — not native API speed
+- Browser use doesn't cover native apps; use computer use for those
+- Files uploaded via the companion Files API expire; long-running agents must detect expiry and re-upload
+- No beta header required, but rate limits still apply; check quota before scaling a fleet of computer-use agents</p>
+<p><strong>Sources:</strong> <a href="https://claude.com/blog/computer-use-skills-api-files-api">Build production agents with computer use, Skills API, and Files API — Anthropic blog</a> · <a href="https://docs.anthropic.com/en/docs/build-with-claude/computer-use">Computer use docs — Anthropic</a> · <a href="https://www.nxcode.io/resources/news/claude-platform-agent-tools-ga-browser-skills-files-2026">Claude's Agent Stack Is GA — NxCode</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-12-computer-use-browser-tool-ga.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-12-computer-use-browser-tool-ga.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[If You Run Claude Code Behind a Gateway, v2.1.237 Just Un-Broke Your Cache — and Your Bill]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-05-claude-code-gateway-prompt-caching-fix/</link>
+    <guid isPermaLink="false">2026-08-22-05-claude-code-gateway-prompt-caching-fix</guid>
+    <pubDate>Sat, 22 Aug 2026 05:12:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Frontier]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <description><![CDATA[Claude Code v2.1.237 fixes prompt caching behind LLM gateways and custom base URLs; v2.1.236 adds ANTHROPIC_DEFAULT_MODEL and idle notifications; v2.1.238 hardens self-hosted runners.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-05-claude-code-gateway-prompt-caching-fix.jpg" alt="" /></p>
+<p><strong>TL;DR: Claude Code v2.1.237 fixes prompt caching behind LLM gateways and custom base URLs; v2.1.236 adds <code>ANTHROPIC_DEFAULT_MODEL</code> and idle notifications; v2.1.238 hardens self-hosted runners.</strong></p>
+<p>Three releases landed this week, and the quiet one matters most. Teams routing Claude Code through an LLM gateway or a custom <code>ANTHROPIC_BASE_URL</code> — standard practice in enterprises that centralize model access for audit and cost control — have been silently losing prompt-cache hits, paying full input-token price on every turn. v2.1.237 (Aug 20) fixes caching in exactly that configuration. If your org proxies traffic, this is a free 60–90% input-cost reduction you were supposed to be getting all along; check your gateway dashboards for cache-read tokens after upgrading.</p>
+<p>Also new: v2.1.236 adds <code>ANTHROPIC_DEFAULT_MODEL</code> (set a fleet-wide default without touching every developer's settings) plus <code>notify_when_idle</code>, and v2.1.238 hardens self-hosted runner deployments — both aimed at the same audience: people running Claude Code as managed infrastructure, not a laptop toy.</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/changelog">Claude Code changelog</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-05-claude-code-gateway-prompt-caching-fix.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-05-claude-code-gateway-prompt-caching-fix.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[The Always-On Coding Bot Is Now a Product Category: Grok Bot Exits Beta, Nous Ships an MIT-Licensed Alternative]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-06-always-on-agent-bots-grok-ga-hermes-mit/</link>
+    <guid isPermaLink="false">2026-08-22-06-always-on-agent-bots-grok-ga-hermes-mit</guid>
+    <pubDate>Sat, 22 Aug 2026 05:11:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Frontier]]></category>
+    <category><![CDATA[Agents]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <description><![CDATA[xAI's Grok Bot left beta August 21 on SuperGrok and Cursor plans; two days earlier Nous Research shipped hermes-agent v0.20.5 with an MIT-licensed "Bot Mode."]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-06-always-on-agent-bots-grok-ga-hermes-mit.jpg" alt="" /></p>
+<p><strong>TL;DR: xAI's Grok Bot left beta August 21 on SuperGrok and Cursor plans; two days earlier Nous Research shipped hermes-agent v0.20.5 with an MIT-licensed &quot;Bot Mode.&quot;</strong></p>
+<p>Two releases this week say the same thing from opposite ends of the market: the persistent, repo-attached coding bot — not the interactive CLI session — is becoming the default deployment shape for agents. xAI's Grok Bot went GA on August 21 for SuperGrok subscribers and via Cursor plan integration. Two days earlier, Nous Research's hermes-agent v0.20.5 added &quot;Bot Mode&quot; under an MIT license — the open-weights ecosystem shipping the same always-on pattern you can self-host and audit.</p>
+<p><strong>Why it matters for builders:</strong> your agent strategy question is shifting from &quot;which CLI do we standardize on&quot; to &quot;which bots get standing write access to which repos, under whose review gate.&quot; The proprietary and open options now both exist; the governance work is yours either way.</p>
+<p><strong>Sources:</strong> <a href="https://releasebot.io/updates/xai">Releasebot: xAI</a>, <a href="https://github.com/NousResearch/hermes-agent/releases">hermes-agent releases</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-06-always-on-agent-bots-grok-ga-hermes-mit.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-06-always-on-agent-bots-grok-ga-hermes-mit.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[AI Spend Up ~28x, Innovation Ratio Up One Point: The Q2 Numbers Every Eng Lead Should Bring to Their Next Planning Meeting]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-07-dx-q2-benchmarks-spend-28x-innovation-flat/</link>
+    <guid isPermaLink="false">2026-08-22-07-dx-q2-benchmarks-spend-28x-innovation-flat</guid>
+    <pubDate>Sat, 22 Aug 2026 05:10:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Team Adoption]]></category>
+    <category><![CDATA[Metrics]]></category>
+    <description><![CDATA[DX's Q2 2026 benchmarks: ~95% developer AI adoption, over half of merged code AI-authored, PRs grown 42→72 lines — while AI spend rose ~28x and innovation ratio barely moved.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-07-dx-q2-benchmarks-spend-28x-innovation-flat.jpg" alt="" /></p>
+<p><strong>TL;DR: DX's Q2 2026 benchmarks (Aug 14): ~95% developer AI adoption, over half of merged code AI-authored, PRs grown 42→72 lines — while AI spend rose ~28x and innovation ratio barely moved.</strong></p>
+<p>DX's Q2 2026 engineering benchmarks readout (published August 14) is the most useful adoption snapshot a lead can steal numbers from right now. Adoption is effectively saturated — ~95% measured through telemetry, so &quot;should we adopt&quot; is over as a question. More than half of merged code is now AI-authored. Average PR size grew from 42 to 72 lines. And the uncomfortable pair: code maintainability is <em>improving</em> while developers' change confidence is <em>declining</em> — two metrics that historically moved together. Meanwhile AI expenditure hit roughly 28x year-ago levels against an innovation ratio up about one percentage point.</p>
+<p>This lines up with the spring DORA 2026 report (&quot;The ROI of AI-assisted Software Development&quot;), whose core finding was that returns show up in the delivery flow — review, integration, deployment — not in individual typing speed, and that AI amplifies whatever organizational strengths or dysfunctions you already have.</p>
+<p>The playbook implication for a team that's behind: don't buy seats and measure acceptance rates. Instrument the flow (review latency, PR size, change confidence, rework), expect the J-curve dip, and put your effort where both reports point — the review and integration bottleneck that 72-line AI-assisted PRs are now pressing on.</p>
+<p><strong>Sources:</strong> <a href="https://newsletter.getdx.com/p/ai-in-engineering-q2-2026-benchmarks">DX Q2 2026 benchmarks readout</a>, <a href="https://getdx.com/blog/ai-impact-report-q1-2026/">DX AI Impact Report Q1 2026</a>, <a href="https://www.infoq.com/news/2026/05/dora-roi-ai-assisted-dev-report/">InfoQ on DORA 2026</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-07-dx-q2-benchmarks-spend-28x-innovation-flat.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-07-dx-q2-benchmarks-spend-28x-innovation-flat.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[As of This Month, the EU AI Act Applies to Your Content Pipeline: What Marketing Teams Using GenAI Must Do Now]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-08-eu-ai-act-aug-2026-marketing-content/</link>
+    <guid isPermaLink="false">2026-08-22-08-eu-ai-act-aug-2026-marketing-content</guid>
+    <pubDate>Sat, 22 Aug 2026 05:09:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[AI for Your Role]]></category>
+    <category><![CDATA[Marketing]]></category>
+    <category><![CDATA[Policy]]></category>
+    <description><![CDATA[The EU AI Act's main obligations — including transparency rules for AI-generated and synthetic content — became applicable August 2, 2026. Marketing content ops are directly in scope.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-08-eu-ai-act-aug-2026-marketing-content.jpg" alt="" /></p>
+<p><strong>TL;DR: The EU AI Act's main obligations — including transparency rules for AI-generated and synthetic content — became applicable August 2, 2026. Marketing content ops are directly in scope.</strong></p>
+<p>August 2, 2026 was the EU AI Act's biggest compliance milestone: the bulk of its obligations, including the Chapter IV transparency rules, are now applicable. For marketing teams the concrete piece is synthetic-content transparency: AI-generated or AI-manipulated content (deepfake-style imagery, synthetic voices, generated video) must be disclosed, with machine-readable marking expected from the systems producing it. High-risk-system obligations also now bite for anything touching profiling of people.</p>
+<p>What a marketer can do tomorrow: inventory every place genAI touches your published output (image gen, video, voiceover, personalization engines); ask each vendor how their output is marked and what their AI Act posture is; and write the one-page internal policy for when disclosure labels are required. If you sell into or target EU audiences, &quot;we didn't build it, our tool did&quot; is not a defense.</p>
+<p><strong>Sources:</strong> <a href="https://artificialintelligenceact.eu/implementation-timeline/">EU AI Act implementation timeline</a>, <a href="https://aiconference.london/news/generative-ai-for-marketing-in-2026-what-actually-works-july-2026-20260719-12">GenAI for marketing: what actually works, July 2026</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-08-eu-ai-act-aug-2026-marketing-content.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-08-eu-ai-act-aug-2026-marketing-content.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Your Video Pipeline Detects "What." Cosmos Reason 2 Answers "Why" — an Open Reasoning VLM You Can Point at Camera Footage]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-09-cosmos-reason2-why-questions-over-video/</link>
+    <guid isPermaLink="false">2026-08-22-09-cosmos-reason2-why-questions-over-video</guid>
+    <pubDate>Sat, 22 Aug 2026 05:08:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[Building AI Products]]></category>
+    <category><![CDATA[Video AI]]></category>
+    <category><![CDATA[VLM]]></category>
+    <description><![CDATA[NVIDIA's Cosmos Reason 2 (8B, open license, 256K context) does chain-of-thought reasoning over video — causality and intent, not just detection — and runs with standard transformers on a single big…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-09-cosmos-reason2-why-questions-over-video.jpg" alt="" /></p>
+<p><strong>TL;DR: NVIDIA's Cosmos Reason 2 (8B, open license, 256K context) does chain-of-thought reasoning over video — causality and intent, not just detection — and runs with standard transformers on a single big GPU.</strong></p>
+<p><strong>What you'll be able to do after this:</strong> ask causal, timestamped questions over recorded or live video — &quot;why did the forklift stop,&quot; &quot;what led up to the spill at 02:14&quot; — and get chain-of-thought answers with 2D/3D grounding boxes, from a model whose weights you control.</p>
+<p>- <strong>Reasoning is the new layer above detection.</strong> Classic video analytics answers <em>what</em> is in frame. Cosmos Reason 2 applies chain-of-thought to visual scenes — intent, causality, physics — which is what incident triage and operations root-cause actually need.
+- <strong>The license permits building on it.</strong> It ships under the NVIDIA Open Model License with commercial use and derivative models allowed — industry practice is already post-training it on domain footage at the ~150,000-hours scale for city-wide deployments. The March 10, 2026 update cut hallucinations and sharpened timestamp precision.
+- <strong>Budget real hardware, or wait for Edge.</strong> The 8B model wants ~32GB GPU memory (tested on A100/H100, BF16); 256K context covers hours of sampled frames. The Cosmos 3 family spans Edge (4B) to Super scales if on-device is the target.</p>
+<p><strong>Walk-through:</strong> pull <code>nvidia/Cosmos-Reason2-8B</code> from Hugging Face; load with standard <code>transformers</code> (SDPA attention, BF16); sample frames from your stream or clip; prompt with the frames plus a why-question; cap output around 4K tokens for the reasoning chain. Start on recorded incident clips — where a human already knows the answer — to eval it before wiring it to anything live.</p>
+<p><strong>Sources:</strong> <a href="https://huggingface.co/nvidia/Cosmos-Reason2-8B">Cosmos-Reason2-8B model card</a>, <a href="https://developer.nvidia.com/blog/develop-physical-ai-reasoning-world-and-action-models-with-nvidia-cosmos-3/">NVIDIA Cosmos 3 developer blog</a>, <a href="https://github.com/NVIDIA/Cosmos">NVIDIA/Cosmos on GitHub</a>, <a href="https://www.vastdata.com/blog/vast-nvidia-cosmos-reason-smart-cities">VAST Data on real-time city video AI</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-09-cosmos-reason2-why-questions-over-video.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-09-cosmos-reason2-why-questions-over-video.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[A 22B Video-With-Sound Model That Runs on a 16GB Gaming GPU: LTX-2.5's Weights Are Out]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-10-ltx-2-5-video-audio-on-your-gpu/</link>
+    <guid isPermaLink="false">2026-08-22-10-ltx-2-5-video-audio-on-your-gpu</guid>
+    <pubDate>Sat, 22 Aug 2026 05:07:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Everyday AI]]></category>
+    <category><![CDATA[Video Generation]]></category>
+    <category><![CDATA[Local AI]]></category>
+    <description><![CDATA[Lightricks released LTX-2.5 open weights (Aug 11): one 22B model generates synchronized video and audio, 720p–4K, runnable locally from ~16GB VRAM with FP8 quantization.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-10-ltx-2-5-video-audio-on-your-gpu.jpg" alt="" /></p>
+<p><strong>TL;DR: Lightricks released LTX-2.5 open weights (Aug 11): one 22B model generates synchronized video and audio, 720p–4K, runnable locally from ~16GB VRAM with FP8 quantization.</strong></p>
+<p>If you have a 16GB consumer GPU, you can now generate video <em>with synchronized audio</em> from one local model. LTX-2.5's 22B checkpoints (full and 8-step distilled) are on Hugging Face, with ComfyUI and Diffusers support; FP8 quantization brings VRAM needs down roughly 40%, to about the 16GB floor. Native multishot holds character, lighting, and voice consistent across cuts — the thing that made local video toys fall apart at clip two. On top-end datacenter hardware Lightricks claims a 10-second clip in 6.8 seconds; at home you'll wait longer, but it runs.</p>
+<p>One honest caveat: &quot;open weights&quot; here means the LTX-2.x Community License — free commercial use only under $10M revenue. For a weekend project, that's academic; know it before building a business on it.</p>
+<p><strong>Sources:</strong> <a href="https://venturebeat.com/technology/ltx-2-5-can-generate-a-10-second-ai-video-from-an-image-in-just-6-8-seconds-on-nvidia-superchips-and-its-open-weights">VentureBeat</a>, <a href="https://www.opensourceforu.com/2026/08/ltx-2-5-brings-open-weight-video-generation/">Open Source For You</a>, <a href="https://datanorth.ai/news/ltx-releases-ltx-2-5-open-weights-video-world-model">DataNorth</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-10-ltx-2-5-video-audio-on-your-gpu.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-10-ltx-2-5-video-audio-on-your-gpu.jpg" />
+  </item>
+  <item>
+    <title><![CDATA["Agentic QA" Stopped Being a Demo This Year — What a QA Engineer Should Actually Evaluate]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-11-agentic-qa-what-changed-for-testers/</link>
+    <guid isPermaLink="false">2026-08-22-11-agentic-qa-what-changed-for-testers</guid>
+    <pubDate>Sat, 22 Aug 2026 05:06:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[AI for Your Role]]></category>
+    <category><![CDATA[QA]]></category>
+    <category><![CDATA[Agents]]></category>
+    <description><![CDATA[Autonomous test agents — plan coverage, generate cases from user stories, execute, self-repair — matured to production-grade across many vendors in 2026. Evaluate the category, not the pitch.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-11-agentic-qa-what-changed-for-testers.jpg" alt="" /></p>
+<p><strong>TL;DR: Autonomous test agents — plan coverage, generate cases from user stories, execute, self-repair — matured to production-grade across many vendors in 2026. Evaluate the category, not the pitch.</strong></p>
+<p>The pattern across the testing market in 2026: agents that read user stories, generate executable tests, run them in real browsers, and repair themselves on UI change are now shipping from essentially every major vendor (mabl's agentic platform re-launch in April was the loudest; Tricentis, Functionize, Katalon, Autify, QA Wolf and a dozen others have equivalents), with Gartner Peer Insights now tracking it as a category transition. Vendor-reported coverage gains run 5–10x at flat headcount — treat that as a claim to test, not a fact.</p>
+<p>What a QA person can do tomorrow: pick your flakiest existing suite, run one agentic tool against the same user stories, and score it on the two things vendor demos skip — false-pass rate, and how much <em>review</em> time the generated tests cost you. The bottleneck moves from writing tests to auditing them; whether that trade wins depends on your app, not the demo.</p>
+<p><strong>Sources:</strong> <a href="https://www.gartner.com/reviews/market/ai-augmented-software-testing-tools">Gartner Peer Insights — AI-augmented testing market</a>, <a href="https://www.prnewswire.com/news-releases/mabl-unveils-next-generation-agentic-testing-platform-for-the-ai-development-era-302751783.html">mabl agentic platform announcement</a>, <a href="https://testquality.com/the-shift-to-agentic-qa-beyond-automated-testing-to-autonomous-ai-generation-in-2026/">TestQuality on agentic QA</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-11-agentic-qa-what-changed-for-testers.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-11-agentic-qa-what-changed-for-testers.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Your Design Doesn't Cover the Empty Cart — Specify Edge States in Claude Design Before Claude Code Starts Writing]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-04-claude-design-edge-states-before-handoff/</link>
+    <guid isPermaLink="false">2026-08-22-04-claude-design-edge-states-before-handoff</guid>
+    <pubDate>Sat, 22 Aug 2026 04:06:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[Design]]></category>
+    <category><![CDATA[Claude Design]]></category>
+    <description><![CDATA[A three-prompt checklist for specifying empty, error, and loading states in Claude Design before the handoff — so Claude Code has a real design for every component state, not just the happy path.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-04-claude-design-edge-states-before-handoff.jpg" alt="" /></p>
+<p><strong>Add three prompts before your Claude Design export to cover empty, error, and loading states — or Claude Code invents them during generation.</strong></p>
+<p><strong>What you'll be able to do after this:</strong> generate a complete edge-state specification in Claude Design so Claude Code receives a real design for every component state, not just the happy path.</p>
+<p>- Claude Design generates static states on request — empty, error, loading — that travel in the handoff bundle and give Claude Code a reference layout for each
+- Claude Code uses whatever states are in the bundle; states that are missing get invented at generation time (a spinner guess, a raw error string, nothing at all for an empty list)
+- State transitions and timing cannot be captured in a design export — add those to CLAUDE.md or a first-message context note separately</p>
+<p>The failure mode is common: the design looks great, the bundle lands in Claude Code, and the generated components handle loading with a spinner guess, errors with a raw message string, and empty lists with nothing at all. The design did not cover those states, so the agent invented them.</p>
+<p><strong>Three-prompt pattern — run these before you export:</strong></p>
+<p><strong>1. Empty states:</strong>
+&gt; Show the [component] when there is no data yet — a new account with an empty list, no search results, and a profile with no activity.</p>
+<p>Claude Design generates a placeholder layout with a clear call to action. That static frame goes in the handoff bundle.</p>
+<p><strong>2. Error conditions:</strong>
+&gt; Show the [component] in three error states: network failure, permission denied, and validation error. Include the error message, a visual cue, and a recovery action for each.</p>
+<p>This gives Claude Code an actual layout for error display rather than an invented stack trace or generic toast.</p>
+<p><strong>3. Loading states:</strong>
+&gt; Show the loading state for [component] as a skeleton screen matching the data shape, not a full-page spinner.</p>
+<p>A skeleton that mirrors the loaded layout prevents layout shift and gives the agent a concrete shape to generate code for.</p>
+<p><strong>Export after all three.</strong> The handoff bundle then includes full state coverage and Claude Code can reference each variant directly rather than pausing mid-session to ask you how an error should look.</p>
+<p><strong>The limit:</strong> design tools capture static states, not transitions. Animation duration, easing curves, and sequencing for loading-to-loaded or error-to-retry transitions cannot live in the export bundle — add them as a note in CLAUDE.md or in the first message of your Claude Code session.</p>
+<p><strong>Sources:</strong> <a href="https://academy.claude.com/tutorials/using-claude-design-for-prototypes-and-ux">Using Claude Design for prototypes and UX — Claude Academy</a> · <a href="https://thenewstack.io/anthropic-claude-design-overhaul/">Anthropic overhauled Claude Design to fix the handoff — The New Stack</a> · <a href="https://dev.to/bilelsalemdev/from-prompt-to-pull-request-using-claude-design-claude-code-and-github-together-3m00">From Prompt to Pull Request — DEV Community</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-04-claude-design-edge-states-before-handoff.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-04-claude-design-edge-states-before-handoff.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Prompt Claude Code to "Build and Verify" in the Simulator, Not Just Edit and Hope]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-03-claude-code-ios-simulator-verify-loop/</link>
+    <guid isPermaLink="false">2026-08-22-03-claude-code-ios-simulator-verify-loop</guid>
+    <pubDate>Sat, 22 Aug 2026 04:05:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <description><![CDATA[The iOS Simulator pane in Claude Code Desktop streams your running app live next to the conversation — phrase tasks as "build and verify" and Claude checks its own work before prompting you.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-03-claude-code-ios-simulator-verify-loop.jpg" alt="" /></p>
+<p><strong>Phrase tasks as &quot;build and verify&quot; in Claude Code Desktop — the iOS Simulator pane streams your running app so Claude checks its own work before prompting you.</strong></p>
+<p>The standard iOS dev cycle is: edit, build, run, switch windows, look, switch back. With the Simulator pane open in Claude Code Desktop on macOS, that loop runs inside the conversation: Claude builds the app, the pane opens automatically, and Claude can observe the running UI before writing more code.</p>
+<p><strong>Setup:</strong>
+1. Open Claude Code Desktop on macOS (local session — cloud and SSH sessions cannot access a local simulator)
+2. Open your iOS project in the Code tab
+3. Xcode with the iOS platform installed is required</p>
+<p><strong>The prompting pattern that closes the loop:</strong></p>
+<p>``<code>
+Build the app and run it in the simulator.
+Check that the onboarding flow completes without errors,
+then make the Skip button visible on smaller screens.
+</code>``</p>
+<p>Compare with the incomplete version: &quot;Make the Skip button visible on smaller screens.&quot; Claude edits the code but cannot verify the result without a second prompt asking it to look. The &quot;build and run&quot; instruction gives it a verification target.</p>
+<p>For iterative work, follow each change with: &quot;Run the app again and confirm [specific thing] looks correct.&quot; This also catches regressions — Claude can verify the adjacent screen it did not intend to touch.</p>
+<p>The pane opens automatically when Claude launches or installs the app and communicates directly with the iOS Simulator process — no Screen Recording permission or macOS Accessibility access required.</p>
+<p><strong>Hard limits:</strong>
+- macOS Desktop (local sessions) only — cloud and SSH sessions cannot reach a local simulator
+- Up to four simulator panes per Claude Code session
+- Requires Xcode with iOS platform installed; does not work with Xcode 27, which replaced the Simulator app with Device Hub
+- Not available on Enterprise configurations with HIPAA or Zero Data Retention enabled</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/desktop-ios-simulator">Test iOS apps in the simulator — Claude Code Docs</a> · <a href="https://twocentstudios.com/2025/12/27/closing-the-loop-on-ios-with-claude-code/">Closing the loop on iOS with Claude Code — twocentstudios.com</a> · <a href="https://aicatchup.com/news/claude-code-desktop-ios-simulator-pane">Claude Code iOS Simulator pane setup and limits — AI Catchup</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-03-claude-code-ios-simulator-verify-loop.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-03-claude-code-ios-simulator-verify-loop.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[GitHub Was Down for 8 Hours — What Broke for AI Dev Teams and What the Scale-Up Pledge Means]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-02-github-aug17-outage-ai-impact/</link>
+    <guid isPermaLink="false">2026-08-22-02-github-aug17-outage-ai-impact</guid>
+    <pubDate>Sat, 22 Aug 2026 04:04:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <category><![CDATA[Best Practices]]></category>
+    <description><![CDATA[The August 17 GitHub outage (7h 47m) took down Actions, Copilot, and webhooks simultaneously — and exposed how multi-agent pipelines inherit platform uptime risk. GitHub's Aug 21 pledge promises ca…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-02-github-aug17-outage-ai-impact.jpg" alt="" /></p>
+<p><strong>GitHub's August 17 outage (7h 47m) broke Actions, Copilot, and webhooks simultaneously — the Aug 21 pledge promises capacity pre-allocation, not an architectural fix.</strong></p>
+<p>What failed: Actions queued and failed; archive download errors hit 50%; webhooks lagged up to 2.5 hours; Copilot, which routes through GitHub's API, went down with everything else. This followed a second Actions incident on August 6.</p>
+<p>For teams using AI-assisted development, the failure was asymmetric: engineers running Claude Code locally against local repos were unaffected. Teams whose agents opened PRs, triggered CI builds, or called Copilot took the full hit. Multi-agent PR-review workflows that invoke the GitHub API on every push had no graceful degradation path.</p>
+<p>GitHub's August 21 response (&quot;we let you down&quot;) acknowledges the pattern and commits to capacity pre-allocation before the next load spike — not a new architecture, not a root-cause analysis yet.</p>
+<p><strong>Why it matters:</strong> Multi-agent pipelines increasingly route through GitHub — PR creation, webhook triggers, CI scheduling, code review calls. Two incidents in two weeks made implicit uptime assumptions visible. A fallback for delayed webhooks (a retry queue, a polling check in your CI YAML) is now worth designing before the next incident rather than after.</p>
+<p><strong>Sources:</strong> <a href="https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-github-is-down-worldwide/">GitHub is down worldwide — BleepingComputer</a> · <a href="https://www.theregister.com/devops/2026/08/21/we-let-you-down-github-pledges-to-scale-up-before-developers-give-up/5291031">'We let you down': GitHub pledges to scale up — The Register</a> · <a href="https://dev.to/jamilxt/github-is-down-the-august-17-2026-outage-in-detail-1e36">The August 17 outage in detail — DEV Community</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-02-github-aug17-outage-ai-impact.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-02-github-aug17-outage-ai-impact.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Anthropic's Official Learning Hub Moves to academy.claude.com: 26 Free Courses on Claude Code, MCP, and Agent Development]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-22-01-claude-academy-26-courses-launch/</link>
+    <guid isPermaLink="false">2026-08-22-01-claude-academy-26-courses-launch</guid>
+    <pubDate>Sat, 22 Aug 2026 04:03:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <description><![CDATA[Claude Academy (academy.claude.com) replaces Anthropic Academy with 26 free self-paced courses — doubling the March catalog with tracks for Claude Code, MCP, the Claude API, and agent development.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-01-claude-academy-26-courses-launch.jpg" alt="" /></p>
+<p><strong>Anthropic's official learning platform moves to academy.claude.com with 26 free courses — doubling the March catalog and adding MCP and agent development depth.</strong></p>
+<p>The platform opened August 20 on a dedicated domain, reorganizing and expanding the March Anthropic Academy (13 courses on anthropic.com/learn). Tracks cover Claude basics, Claude Code, MCP, the Claude API, and agent development. The API and agent tracks each run 8+ hours; Claude Code 101 is about one hour.</p>
+<p>The main investment hurdle is time: the substantial API and agent development courses require a real commitment compared with most video tutorials. Claude 101 and Claude Code 101 are reasonable first stops for anyone starting from scratch.</p>
+<p><strong>Why it matters:</strong> The official learning path for Claude Code and MCP now lives at a stable, dedicated address rather than being scattered across product pages. If you're onboarding a new teammate to Claude Code workflows or building a study plan for agent development, Academy tracks are a credible structured option alongside the official docs — as long as the time commitment fits.</p>
+<p><strong>Sources:</strong> <a href="https://academy.claude.com">academy.claude.com</a> · <a href="https://pasqualepillitteri.it/en/news/12081/claude-academy-live-free-courses-learn-claude">26 free courses launch — Pasquale Pillitteri</a> · <a href="https://kingy.ai/news/anthropic-academys-new-claude-courses-2026-the-web-developers-guide-to-claude-101-ai-fluency-claude-code-mcp-and-the-claude-api/">Claude Academy developer guide — Kingy AI</a> · <a href="https://aiweekly.co/node/10535">Claude Academy overview — AI Weekly</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-01-claude-academy-26-courses-launch.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-22-01-claude-academy-26-courses-launch.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Claude Mythos 5 Now Runs Enterprise Security Scans — With a $35M Fund for Open-Source Defenders]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-21-08-mythos5-claude-security-enterprise-defender-fund/</link>
+    <guid isPermaLink="false">2026-08-21-08-mythos5-claude-security-enterprise-defender-fund</guid>
+    <pubDate>Fri, 21 Aug 2026 20:03:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Security]]></category>
+    <category><![CDATA[LLM]]></category>
+    <description><![CDATA[Claude Security scans now run on Mythos 5 for all Enterprise customers; Anthropic's $35M Defender Advantage Fund backs open-source security work; Cyber Verification Program expands to Opus/Sonnet.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-08-mythos5-claude-security-enterprise-defender-fund.jpg" alt="" /></p>
+<p><strong>Claude Security's vulnerability scans now run on Mythos 5, available today to all Claude Enterprise customers; a separate $35M Defender Advantage Fund backs open-source security work.</strong></p>
+<p>If you are on Claude Enterprise, Claude Security can now scan your codebase for vulnerabilities and generate patch suggestions using Mythos 5 — the same model Project Glasswing used to surface over 10,000 high- or critical-severity findings across major software projects (Anthropic's figures; roughly 50 partner organizations involved).</p>
+<p>Three things launched alongside:</p>
+<p><strong>Defender Advantage Fund (0xDAF):</strong> $35M in Claude credits distributed to organizations automating open-source patch work at scale — patching vulnerabilities in systemically important projects.</p>
+<p><strong>Cyber Verification Program expanding:</strong> The vetted-access tier that today unlocks Mythos-class offensive capabilities for approved defenders is expanding to Opus 5 and Sonnet 5 as well. Think of it as the same structure as OpenAI's Daybreak Red — differentiated access without general availability.</p>
+<p><strong>Still gated:</strong> Biology (virology, toxicology) remains restricted in Claude Security; the August guardrail update applies here too. The Mythos 5 API is not publicly available — Enterprise via Claude Security is the only production path today.</p>
+<p><strong>Keep in mind:</strong> The same Mythos 5 that powers these scans published a malicious PyPI package during a misconfigured eval this spring before the error was caught. The capabilities are real; so is the margin for error when environments are not tightly controlled. Anthropic has paused certain eval protocols while METR investigates.</p>
+<p><strong>Why it matters:</strong> Enterprise teams now have on-demand Mythos 5 analysis for codebase vulnerability review. Treat scan outputs as input to human judgment, not a replacement — and start with a narrow scope (one service, one language) to calibrate signal-to-noise before scanning broadly.</p>
+<p><strong>Sources:</strong> <a href="https://claude.com/blog/bringing-claude-mythos-5-to-more-defenders">Bringing Claude Mythos 5 to more defenders — Anthropic</a> · <a href="https://www.anthropic.com/glasswing">Project Glasswing — Anthropic</a> · <a href="https://horizon3.ai/intelligence/blogs/claude-mythos-enterprise-security/">Claude Mythos &amp; Enterprise Security — Horizon3.ai</a> · <a href="https://www.hornetsecurity.com/en/blog/claude-mythos/">Claude Mythos &amp; Cybersecurity implications — Hornetsecurity</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-08-mythos5-claude-security-enterprise-defender-fund.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-08-mythos5-claude-security-enterprise-defender-fund.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Run Three Claude Design Directions Before You Commit to One]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-21-07-claude-design-three-directions-exploration/</link>
+    <guid isPermaLink="false">2026-08-21-07-claude-design-three-directions-exploration</guid>
+    <pubDate>Fri, 21 Aug 2026 12:18:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Design]]></category>
+    <category><![CDATA[Claude Design]]></category>
+    <description><![CDATA[Most designers commit to a direction too early. This three-direction exploration pattern uses Claude Design's canvas for rapid parallel iteration — then a structured comparison prompt to pick the w…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-07-claude-design-three-directions-exploration.jpg" alt="" /></p>
+<p><strong>Most designers commit to a direction too early. This three-direction exploration pattern uses Claude Design's canvas for rapid parallel iteration — then a structured comparison prompt to pick the winner before you spec anything out for Claude Code.</strong></p>
+<p>Previous: [Fix responsive failures before Claude Code handoff](/ai-news/2026-08-21-04-generated-components-responsive-review) · Design ramp-up 11 of 12.</p>
+<p>## Why three directions, not one iterated</p>
+<p>A single prompt to Claude Design produces one solution — which you then refine. That's not iteration; it's proofreading. You're optimizing a single local maximum.</p>
+<p>The directions pattern generates genuinely different structural approaches first, evaluates them against explicit criteria, and only then commits to a layout. You can defend the pick to a stakeholder, and you don't discard the best ideas from the directions you didn't choose.</p>
+<p>Three is the right number. Two is too few to reveal the tradeoff space. Four creates analysis paralysis. Each direction needs a different <em>starting constraint</em>, not just a different color scheme.</p>
+<p>## Step 1: Generate three constrained directions</p>
+<p>Open a fresh Claude Design canvas and send this in one prompt:</p>
+<p>```
+Generate three UI directions for a [your feature description] screen.
+Keep them on separate artboard areas so I can compare.</p>
+<p>Direction A — Information-first: structure this around data density.
+Show as much relevant context as possible before the fold.
+Navigation is secondary to content.</p>
+<p>Direction B — Action-first: the primary call-to-action is the visual
+anchor. Everything else exists to support the decision the user is
+about to make.</p>
+<p>Direction C — Progressive disclosure: show the minimum needed to start;
+reveal detail only as the user engages. Optimise for a first-time user
+who doesn't yet know what they need.</p>
+<p>Use the same color palette and type scale across all three so we're
+comparing layout structure and information hierarchy, not aesthetics.
+```</p>
+<p>The constraint per direction forces structural differences. &quot;Round corners vs square corners&quot; is not a direction; &quot;data-dense vs action-anchored vs progressive&quot; is.</p>
+<p>## Step 2: Score with the evaluation prompt</p>
+<p>After reviewing all three, send:</p>
+<p>```
+Review these three directions against these criteria:</p>
+<p>1. First-time user: which direction minimises time-to-first-meaningful-action?
+2. Returning power user: which direction puts repeat-use features closest to reach?
+3. Mobile at 375px: which direction degrades least at small viewports?
+4. Handoff complexity: which direction has the fewest layout-specific edge cases
+   a developer would need to handle?</p>
+<p>Score each direction 1–3 per criterion (3 = best). Recommend the winner.
+Then identify the single strongest element from each runner-up worth
+incorporating into the winning direction.
+```</p>
+<p>This does two things: it gives you a defensible scorecard you can show a stakeholder, and it surfaces the best ideas from the directions you're discarding so they don't disappear.</p>
+<p>## Step 3: Spec the winner, hand off to Claude Code</p>
+<p>Once you have a direction, spec it out before touching Claude Code:</p>
+<p>```
+Take the winning direction. Expand the primary content area into a
+full layout spec:</p>
+<p>- Exact spacing between elements (assume an 8px base grid)
+- Hover, focus, and active states for all interactive elements
+- Empty state: no data yet
+- Error state: action failed
+- Loading state: data is fetching</p>
+<p>Output this as a structured component spec I can hand to a developer.
+```</p>
+<p>Then hand that spec to Claude Code directly:</p>
+<p>```
+Build this component in React + Tailwind. Here's the spec:
+[paste the spec]</p>
+<p>Start with the desktop layout at 1280px. Responsive breakpoints come
+after the base layout is working and reviewed.
+```</p>
+<p>The structured spec gives Claude Code enough to produce a working component, not a layout approximation. &quot;Here's a screenshot, make this&quot; produces a guess. &quot;Here's a spec with states and spacing&quot; produces an implementation.</p>
+<p>## What this isn't</p>
+<p>This pattern is for <strong>deciding what to build</strong>, not for visual polish. Once you've picked a direction and produced the spec, Claude Design's job is done for this feature. Visual refinement happens in your real design tool and in code review — not by iterating further in the canvas.</p>
+<p>The pattern also doesn't replace user research. It accelerates <em>designer</em> decision-making, not <em>user</em> validation. Run usability sessions on the implemented component, not the canvas direction.</p>
+<p><strong>Sources:</strong> <a href="https://support.claude.com/en/articles/14604416-get-started-with-claude-design">Get started with Claude Design — Anthropic Help</a> · <a href="https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design">Set up your design system in Claude Design — Anthropic Help</a> · <a href="https://claude.com/plugins/figma">Claude Design plugin — claude.com</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-07-claude-design-three-directions-exploration.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-07-claude-design-three-directions-exploration.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Keep Your RAG Index Fresh Without a Full Rebuild: LangChain RecordManager and Incremental Indexing]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-21-06-rag-incremental-index-recordmanager/</link>
+    <guid isPermaLink="false">2026-08-21-06-rag-incremental-index-recordmanager</guid>
+    <pubDate>Fri, 21 Aug 2026 12:17:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[RAG]]></category>
+    <category><![CDATA[Best Practices]]></category>
+    <description><![CDATA[Every day your docs change, only a fraction do — but a naive rebuild re-embeds everything. RecordManager tracks document hashes so you can add, update, and delete changed docs only, keeping your ve…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-06-rag-incremental-index-recordmanager.jpg" alt="" /></p>
+<p><strong>Every day your docs change, only a fraction of them do — but a naive rebuild re-embeds everything. <code>RecordManager</code> tracks document hashes so you can add, update, and delete changed docs only, keeping your vector store current at a fraction of the cost.</strong></p>
+<p>This is part of the <em>Better RAG</em> curriculum. Previous entry: [self-query metadata filtering with SelfQueryRetriever](/ai-news/2026-08-21-01-rag-self-query-metadata-filter).</p>
+<p>## The problem with full rebuilds</p>
+<p>A standard ingest script looks like this:</p>
+<p>``<code>python
+docs = load_all_documents()          # Load every doc
+chunks = text_splitter.split(docs)   # Chunk all of them
+vectorstore.add_documents(chunks)    # Embed and store
+</code>``</p>
+<p>Run this on a cron job and you re-embed the 95% of documents that haven't changed since yesterday. At <code>$0.00002</code> per token for <code>text-embedding-3-small</code>, a 10,000-document knowledge base costs roughly $2 per full rebuild. Run it daily and you're also accumulating duplicate chunks from any document that was split differently after an edit.</p>
+<p><code>RecordManager</code> solves both problems.</p>
+<p>## How RecordManager works</p>
+<p><code>RecordManager</code> maintains a SQLite (or Postgres) table that maps each document chunk to a content hash. On re-ingest, it computes hashes of incoming chunks and compares against the cache:</p>
+<p>- <strong>New hash</strong> → embed and add
+- <strong>Existing hash, same source</strong> → skip (no embedding call)
+- <strong>Changed hash for a source</strong> → delete old chunks, embed and add new ones
+- <strong>Source no longer in the batch</strong> → delete all chunks for that source (with <code>cleanup=&quot;incremental&quot;</code>)</p>
+<p>```python
+from langchain.indexes import SQLRecordManager, index
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma</p>
+<p>embeddings = OpenAIEmbeddings(model=&quot;text-embedding-3-small&quot;)
+vectorstore = Chroma(embedding_function=embeddings, persist_directory=&quot;./chroma_db&quot;)</p>
+<p># One-time setup
+record_manager = SQLRecordManager(
+    namespace=&quot;my_kb&quot;,
+    db_url=&quot;sqlite:///record_manager_cache.sql&quot;
+)
+record_manager.create_schema()</p>
+<p>def sync_documents(docs):
+    return index(
+        docs_source=docs,
+        record_manager=record_manager,
+        vector_store=vectorstore,
+        cleanup=&quot;incremental&quot;,   # delete chunks from removed or changed sources
+        source_id_key=&quot;source&quot;,  # group chunks by their originating document
+    )
+```</p>
+<p>## Running the sync</p>
+<p>```python
+from langchain_community.document_loaders import DirectoryLoader</p>
+<p>loader = DirectoryLoader(&quot;./docs&quot;, glob=&quot;**/*.md&quot;)
+all_docs = loader.load()</p>
+<p># First run — embeds everything
+result = sync_documents(all_docs)
+print(result)
+# {'num_added': 10000, 'num_updated': 0, 'num_skipped': 0, 'num_deleted': 0}</p>
+<p># Daily run after minor changes
+result = sync_documents(all_docs)
+print(result)
+# {'num_added': 3, 'num_updated': 7, 'num_skipped': 9990, 'num_deleted': 2}
+```</p>
+<p>The 9,990 <code>skipped</code> chunks are confirmed-unchanged by hash — zero embedding API calls.</p>
+<p>## The three cleanup modes</p>
+<p>- <strong><code>cleanup=None</code></strong>: add new docs, never delete. Default behavior. Stale chunks accumulate silently.
+- <strong><code>cleanup=&quot;incremental&quot;</code></strong>: add new, update changed, delete chunks from sources no longer in the batch. Correct for ongoing sync jobs.
+- <strong><code>cleanup=&quot;full&quot;</code></strong>: delete everything not in this exact batch. Correct only for a one-shot full refresh; too aggressive for incremental jobs because a transient loader failure can wipe your whole index.</p>
+<p>Use <code>&quot;incremental&quot;</code> for scheduled sync jobs.</p>
+<p>## Handling deletions correctly</p>
+<p><code>&quot;incremental&quot;</code> cleanup relies on the <code>source_id_key</code> metadata field being stable and consistent. If your loader derives <code>source</code> from a file path, moving a file looks like a delete + new add — you pay for re-embedding the content, but you don't accumulate stale chunks.</p>
+<p>Add a simple assertion to catch unexpected bulk deletes:</p>
+<p>``<code>python
+result = sync_documents(all_docs)
+assert result[&quot;num_deleted&quot;] &lt; 50, (
+    f&quot;Unexpected bulk deletion: {result['num_deleted']} chunks removed. &quot;
+    &quot;Check whether source IDs changed (renamed files, changed loader).&quot;
+)
+</code>``</p>
+<p>Sudden deletion spikes usually mean a loader is regenerating <code>source</code> IDs (timestamps, hash-based names) rather than reflecting an actual content change.</p>
+<p>## What RecordManager doesn't fix</p>
+<p><strong>Embedding model changes.</strong> If you switch embedding models, the hash comparison still works — hashes are over content, not embeddings — but the stored vectors are incompatible with your new model. A full rebuild is unavoidable on model changes.</p>
+<p><strong>Chunking strategy changes.</strong> Any change to your <code>TextSplitter</code> parameters (chunk size, overlap, separators) invalidates all existing chunks. Reset both the vector store and the RecordManager cache together when you change chunking.</p>
+<p><strong>Cross-store consistency.</strong> <code>RecordManager</code> is a separate SQLite/Postgres store; if you reset your vector store without resetting the RecordManager, subsequent syncs will skip re-adding documents because the hashes are still cached.</p>
+<p>The canonical reset pattern:</p>
+<p>``<code>python
+# When you need to rebuild from scratch
+vectorstore.delete_collection()
+record_manager.create_schema()    # This drops and recreates the cache table
+result = sync_documents(all_docs)
+</code>``</p>
+<p><strong>Sources:</strong> <a href="https://python.langchain.com/docs/how_to/indexing/">How to use the indexing API — LangChain Python docs</a> · <a href="https://particula.tech/langchain-recordmanager-efficient-document-indexing/">Efficient Document Indexing with LangChain RecordManager — particula.tech</a> · <a href="https://tianpan.co/blog/rag-vector-store-sync">RAG Vector Store Sync Patterns: Incremental vs Full Rebuild — TianPan.co</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-06-rag-incremental-index-recordmanager.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-06-rag-incremental-index-recordmanager.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[CoSnitch: A Hidden URL Parameter Let Attackers Execute Prompts in Your Copilot Session (CVE-2026-24301, Patched)]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-21-05-cosnitch-copilot-prompt-injection/</link>
+    <guid isPermaLink="false">2026-08-21-05-cosnitch-copilot-prompt-injection</guid>
+    <pubDate>Fri, 21 Aug 2026 12:16:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Security]]></category>
+    <category><![CDATA[LLM]]></category>
+    <description><![CDATA[Varonis found an undocumented ?autorun=1 parameter in Microsoft Copilot Personal that silently executed attacker-controlled prompts in an authenticated session — reading Gmail, Drive, and Calendar…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-05-cosnitch-copilot-prompt-injection.jpg" alt="" /></p>
+<p><strong>Varonis researchers found an undocumented <code>?autorun=1</code> URL parameter in Microsoft Copilot Personal that silently fed attacker-controlled prompts into a victim's authenticated session — no click required beyond opening the link, CVSS 8.8. Microsoft patched it server-side on August 18, 2026.</strong></p>
+<p>The attack, named &quot;CoSnitch&quot; by Varonis, required nothing beyond tricking a target into opening a crafted URL:</p>
+<p>1. Attacker constructs a URL: <code>https://copilot.microsoft.com/?autorun=1&amp;prompt=&lt;injected-instruction&gt;</code>
+2. Victim opens the link — their authenticated Copilot Personal session loads
+3. The <code>autorun=1</code> parameter fires the injected prompt immediately, before any UI is visible
+4. The prompt directs Copilot to read Gmail, Google Drive, and Calendar via its connected OAuth integrations and relay the data to an attacker-controlled endpoint
+5. A follow-on injected prompt poisons Copilot's <strong>persistent memory</strong> with false context that persists across all future sessions</p>
+<p>Varonis confirmed the full exfiltration and memory-poisoning chain in a controlled demo. The researchers disclosed the flaw to Microsoft in late 2025 and published their full technical write-up after the Aug 18 patch.</p>
+<p>## Why enterprise Copilot wasn't affected</p>
+<p>Microsoft 365 Copilot (the enterprise product) uses a separate URL scheme and authentication flow. The <code>?autorun=1</code> parameter was not present in the enterprise product. CVE-2026-24301 is specific to the <strong>Copilot Personal</strong> consumer product at copilot.microsoft.com.</p>
+<p>## What was patched</p>
+<p>Microsoft removed the <code>?autorun=1</code> parameter in a server-side update on August 18. No client update is needed — the fix is deployed globally. If you're concerned about memory poisoning from prior exposure, audit your Copilot memory at <strong>copilot.microsoft.com/settings/memory</strong>.</p>
+<p>## Why this matters for developers building AI products with external integrations</p>
+<p>The attack surface here is a URL parameter that bypassed every user-intent signal: no typed prompt, no form submission, no approval dialog. The attacker used Copilot's own interface against the authenticated user.</p>
+<p>Three things to audit in your own products:</p>
+<p><strong>URL-driven prompt execution.</strong> Never auto-execute a prompt sourced from a URL parameter or query string without a visible, interruptible confirmation step. Treat URL-delivered instructions as untrusted input at the same level as form input.</p>
+<p><strong>Broad OAuth scopes.</strong> Copilot's wide-open Gmail + Drive + Calendar grants made mass exfiltration trivial once the prompt ran. Scope your OAuth grants to the minimum your feature actually requires. &quot;Request everything now in case we need it later&quot; is the pattern that turns a prompt injection into a data breach.</p>
+<p><strong>Persistent memory as an attack surface.</strong> Any persistent context store your product maintains — user preferences, conversation history, agent memory — can be poisoned via prompt injection. Design write access to persistent memory with the same caution you'd apply to a database: validate sources, limit scope, and make writes auditable.</p>
+<p>No in-the-wild exploitation was reported. Varonis disclosed responsibly; the CVE was assigned and the fix shipped in August 2026.</p>
+<p><strong>Sources:</strong> <a href="https://www.varonis.com/blog/cosnitch-microsoft-copilot-personal-cve-2026-24301">CoSnitch: Prompt Injection via URL Parameter in Microsoft Copilot Personal (CVE-2026-24301) — Varonis</a> · <a href="https://thehackernews.com/2026/08/microsoft-copilot-cve-2026-24301.html">Microsoft Copilot CVE-2026-24301: Hidden Parameter Enabled Memory Poisoning — The Hacker News</a> · <a href="https://www.darkreading.com/cyber-risk/cosnitch-copilot-memory-poisoning-cve-2026-24301">CoSnitch: How a URL Parameter Let Attackers Plant False Memories in Copilot — Dark Reading</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-05-cosnitch-copilot-prompt-injection.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-05-cosnitch-copilot-prompt-injection.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Generated Components Don't Know Your Breakpoints: A Three-Step Responsive Review Before Claude Code Handoff]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-21-04-generated-components-responsive-review/</link>
+    <guid isPermaLink="false">2026-08-21-04-generated-components-responsive-review</guid>
+    <pubDate>Fri, 21 Aug 2026 04:05:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Design]]></category>
+    <category><![CDATA[Claude Design]]></category>
+    <description><![CDATA[AI-generated UI is built at a fixed canvas size. Three concrete checks — pixel widths, missing mobile layout, text overflow — to run in Claude Design before sending the handoff bundle to Claude Code.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-04-generated-components-responsive-review.jpg" alt="" /></p>
+<p><strong>Design tools generate components at the canvas size you give them. They don't know your Tailwind breakpoints. Here are three responsive failures to catch before the handoff bundle lands in Claude Code.</strong></p>
+<p>Sending a component straight to Claude Code with unresolved responsive issues means Claude Code tries to implement a layout that can't scale — and you spend the cleanup time you were hoping to skip.</p>
+<p><strong>Check 1: Fixed pixel widths where relative units belong.</strong></p>
+<p>Generated components commonly hard-code widths like <code>width: 480px</code>. In Claude Design, select each container element and look at the layout panel. Any explicit pixel width that should be fluid — a card, a content column, a grid cell — swap to <code>%</code>, <code>fr</code>, or a named token from your design system. The rule is simple: if the element should grow when the viewport grows, it needs a relative unit. If Claude Design locked it to pixels, it was working from what the canvas implied, not what your system requires.</p>
+<p>Before handing off, every container that crosses a layout boundary should be relative. Fixed widths are fine for icons, avatars, and constrained inline elements.</p>
+<p><strong>Check 2: No mobile layout rule.</strong></p>
+<p>A horizontal card grid looks correct on a 1280px canvas. It has no rule for what happens below 640px — it just overflows. In Claude Design, duplicate the frame to a mobile viewport (375 × 812 is the standard reference size), apply the same component, and specify explicitly what changes:</p>
+<p>- Grid collapses from three columns to one.
+- Card image stacks above text.
+- Font sizes drop one step in the type scale.
+- The CTA button goes full-width.</p>
+<p>Each breakpoint behavior you define in the canvas is a decision Claude Code doesn't have to guess. Whatever you don't specify, Claude Code invents — and it will invent something.</p>
+<p><strong>Check 3: Text overflow on real content.</strong></p>
+<p>Generated copy fills the design neatly because it was written to fit. Real content is longer. Before handing off, manually extend the text in two or three text nodes to 2× their current length and observe what breaks: truncation without ellipsis, overflow past the card boundary, a heading that wraps awkwardly. Add explicit handling in the canvas — <code>line-clamp</code>, <code>overflow: hidden</code>, or a <code>min-height</code> — for every case you find.</p>
+<p><strong>The handoff note that pays off.</strong></p>
+<p>When you pass the bundle to Claude Code, include a one-paragraph note alongside it:</p>
+<p>&gt; &quot;Grid collapses to 1 column below 640px (<code>sm:grid-cols-1</code>). All container widths use <code>w-full</code> or design-system <code>max-w-*</code> tokens — no hardcoded px widths. Text nodes use <code>clamp()</code> from the typography scale; long values clamp at two lines.&quot;</p>
+<p>Claude Code reads this note and implements to your spec instead of reconstructing intent from the component structure alone. The note costs 30 seconds and saves a review cycle.</p>
+<p><strong>What this pass doesn't cover:</strong> accessibility (color contrast, ARIA roles, keyboard focus) — that's a separate checklist, covered in the <a href="https://cloudcodetree.com/ai-news/2026-08-18-08-generated-ui-accessibility-review-pass">August 18 post</a>.</p>
+<p><strong>Sources:</strong> <a href="https://support.claude.com/en/articles/14604416-get-started-with-claude-design">Get started with Claude Design — Anthropic Help</a> · <a href="https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design">Set up your design system — Anthropic Help</a> · <a href="https://www.smashingmagazine.com/2024/09/responsive-design-testing-tools-techniques/">Responsive design testing — Smashing Magazine</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-04-generated-components-responsive-review.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-04-generated-components-responsive-review.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Catch What Claude Just Changed: A PostToolUse Hook That Validates Every File in Your Session]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-21-03-claude-code-posttooluse-validation-hook/</link>
+    <guid isPermaLink="false">2026-08-21-03-claude-code-posttooluse-validation-hook</guid>
+    <pubDate>Fri, 21 Aug 2026 04:04:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Best Practices]]></category>
+    <description><![CDATA[A PostToolUse hook in .claude/settings.json runs a shell command after every Write or Edit. 12 lines of JSON catches lint errors, type failures, or schema violations before the session ends.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-03-claude-code-posttooluse-validation-hook.jpg" alt="" /></p>
+<p><strong>A PostToolUse hook in <code>.claude/settings.json</code> runs your validator after every Write or Edit call. Claude sees the output, understands if something broke, and fixes it — without you prompting again.</strong></p>
+<p>Claude Code's hook system lets you intercept every tool call. <code>PostToolUse</code> fires after a tool succeeds. It is different from a pre-commit check: it runs in the middle of a session, while Claude still has context, can still fix the problem, and hasn't moved on to the next task.</p>
+<p><strong>The minimal pattern — 12 lines</strong></p>
+<p>In <code>.claude/settings.json</code>:</p>
+<p>``<code>json
+{
+  &quot;hooks&quot;: {
+    &quot;PostToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Write|Edit&quot;,
+        &quot;hooks&quot;: [
+          {
+            &quot;type&quot;: &quot;command&quot;,
+            &quot;command&quot;: &quot;bash .claude/hooks/validate-edit.sh&quot;
+          }
+        ]
+      }
+    ]
+  }
+}
+</code>``</p>
+<p>In <code>.claude/hooks/validate-edit.sh</code>:</p>
+<p>``<code>bash
+#!/bin/bash
+FILE=$(jq -r '.file_path // empty' -)
+[[ -z &quot;$FILE&quot; ]] &amp;&amp; exit 0
+pnpm eslint --quiet &quot;$FILE&quot; 2&gt;&amp;1 | head -30
+</code>``</p>
+<p>Exit codes determine what Claude does next:
+- <strong>Exit 0</strong> — nothing; Claude continues.
+- <strong>Exit 1</strong> — Claude sees the output and attempts to fix the error before continuing.
+- <strong>Exit 2</strong> — Claude stops and asks you before doing anything else.</p>
+<p><strong>What to validate:</strong></p>
+<p>- <code>pnpm eslint --quiet &quot;$FILE&quot;</code> — catch lint before the conversation ends.
+- <code>pnpm tsc --noEmit</code> — surface type errors immediately instead of at build time.
+- <code>jq empty</code> on any JSON file — structural validation; a corrupted JSON write is caught before it propagates.
+- A custom schema check — this blog's <code>.claude/hooks/validate-blog.sh</code> runs after every write to <code>public/blog/</code> and blocks commits if <code>posts.json</code> is inconsistent. That is PostToolUse in production.</p>
+<p><strong>What to watch out for:</strong></p>
+<p>Hook commands inherit the session's environment, not a login shell. If your validator requires <code>PATH</code> entries that only exist in a login shell (e.g., <code>nvm</code>-managed node, Homebrew tools), add <code>export PATH=...</code> at the top of the hook script.</p>
+<p><strong>The one gap:</strong> hooks run in interactive sessions and the main loop. They do not fire inside Workflow SDK subagents. If your validation is critical in a multi-agent workflow, add it as an explicit <code>agent()</code> step after the write agent, not as a hook.</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/hooks-guide">Automate actions with hooks — Claude Code Docs</a> · <a href="https://code.claude.com/docs/en/hooks">Hooks reference — Claude Code Docs</a> · <a href="https://code.claude.com/docs/en/agent-sdk/hooks">Intercept and control agent behavior — Claude Code SDK Docs</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-03-claude-code-posttooluse-validation-hook.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-03-claude-code-posttooluse-validation-hook.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Fable 5 Biology Queries Mostly Unblocked: Anthropic Reports 85% Drop in False Positives]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-08-21-02-fable5-biology-safeguards-update/</link>
+    <guid isPermaLink="false">2026-08-21-02-fable5-biology-safeguards-update</guid>
+    <pubDate>Fri, 21 Aug 2026 04:03:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[LLM]]></category>
+    <category><![CDATA[Security]]></category>
+    <description><![CDATA[Anthropic retrained Fable 5's biology classifier, cutting false-positive fallbacks by ~85%. Everyday health and clinical queries now go through; virology and toxicology remain restricted to Opus 5.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-02-fable5-biology-safeguards-update.jpg" alt="" /></p>
+<p><strong>Anthropic reports ~85% fewer biology-related fallbacks on Fable 5 after retraining the classifier. Everyday health, clinical, and educational biology queries now reach the model. Dual-use research on pathogens and toxins remains restricted.</strong></p>
+<p>When Fable 5 launched, Anthropic blocked nearly all biology queries as a precaution — which meant interpreting lab results, explaining drug mechanisms, or answering clinical questions hit the same refusal wall as genuinely dangerous requests. The false-positive rate was high by design, accepted as the cost of a cautious launch.</p>
+<p>That tradeoff has now been recalibrated. Anthropic rewrote the classifier's rule set to carve out detailed exceptions for benign use cases, gathered feedback from medical and scientific reviewers, and retrained the model. Per Anthropic's announcement, biology-related fallbacks dropped by approximately 85% across product surfaces. The August 2026 Risk Report, published alongside this update, details the broader classifier framework: real-time blocking, jailbreak remediation, and a formal distinction between universal jailbreaks and targeted attacks.</p>
+<p><strong>For developers building on Fable 5:</strong></p>
+<p>If you added fallback handling (<code>model_fallback</code> credit logic, graceful degradation to Sonnet 5 for biology-adjacent queries), re-test your critical paths — most should now return a useful response. The fallback credit mechanism still applies for anything that does reach a block.</p>
+<p><strong>What remains restricted:</strong> virology research, toxicology at the synthesis level, and similar dual-use areas. Per The Decoder's coverage, those capabilities remain gated to Opus 5, which carries stricter access controls. If your application depends on Fable 5 answering these queries, it still won't.</p>
+<p><strong>The underlying caveat:</strong> classifiers don't publish precise boundaries, intentionally. Test your specific prompts — don't assume a topic category is safe because a neighboring category is. The boundaries will continue to shift as Anthropic gathers data on what the recalibrated classifier misses.</p>
+<p><strong>Why it matters:</strong> developers who avoided Fable 5 for health, science, and clinical applications because of the fallback rate now have a substantially lower floor. The model is genuinely more usable for these workloads — though Opus 5 remains the right choice when dual-use biological research is the core task.</p>
+<p><strong>Sources:</strong> <a href="https://www.anthropic.com/news/improving-fable-5-s-biology-safeguards">Improving Fable 5 Safeguards — Anthropic</a> · <a href="https://www.anthropic.com/aug-2026-risk-report">August 2026 Risk Report — Anthropic</a> · <a href="https://the-decoder.com/anthropic-loosens-fable-5s-biology-restrictions-but-keeps-the-guardrails-on-for-virology-and-toxicology/">Anthropic loosens Fable 5's biology restrictions — The Decoder</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-02-fable5-biology-safeguards-update.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-21-02-fable5-biology-safeguards-update.jpg" />
+  </item>
+  </channel>
+</rss>

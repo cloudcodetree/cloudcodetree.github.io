@@ -1,0 +1,108 @@
+1:"$Sreact.fragment"
+2:I[68977,["5914","static/chunks/5914-78fa75be6ca6de8c.js","1860","static/chunks/1860-1e5afbc2d94aafa0.js","7177","static/chunks/app/layout-226110c5f1d969af.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/26dc4a78f0c7af7f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e0f4b1ebfdbd83f9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/e4af272ccee01ff0-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/c9bb9c4333985833.css","style"]
+0:{"P":null,"b":"53AIPiIevtRY1gttiYj8I","p":"https://cloudcodetree.com","c":["","ai-news","2026-08-05-01-qdrant-payload-filtering-metadata-rag",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-08-05-01-qdrant-payload-filtering-metadata-rag","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/c9bb9c4333985833.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_f5e841 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_c9a639","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-08-05-01-qdrant-payload-filtering-metadata-rag","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[17655,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+11:I[82566,["5914","static/chunks/5914-78fa75be6ca6de8c.js","5746","static/chunks/5746-a94c360a7c397be5.js","8639","static/chunks/8639-127bf518472d3613.js","4267","static/chunks/4267-02d4ee2b5d356f6a.js","7689","static/chunks/7689-9d935a92c9cb0a2e.js","749","static/chunks/749-32c3fc56c90a7b96.js","4047","static/chunks/4047-d75a28835929eb5f.js","410","static/chunks/410-911ac102ceb3bca6.js","647","static/chunks/app/ai-news/%5Bid%5D/page-81aede752a0445eb.js"],"default"]
+12:Tfee,**Most RAG pipelines over-fetch and post-filter. Qdrant pushes filter conditions into the HNSW graph itself — retrieve only matching docs at the same latency as unfiltered search.**
+
+**What you'll be able to do after this:**
+- Store structured metadata (source, date, category) alongside every vector and query it efficiently
+- Write `must`/`should`/`must_not` filter clauses that run inside the HNSW traversal, not after it
+- Scope your RAG pipeline's context window to only docs that pass both semantic relevance and business rules
+
+Without metadata filtering, your LLM's context fills with the most semantically similar chunks regardless of whether they're from the right source, the right time period, or the right document category. Filtering fixes that — but post-filtering (retrieve 50, then discard 45) bloats latency and hurts recall at scale. Qdrant's payload filtering runs inside the graph traversal itself.
+
+## Step-by-step
+
+**1. Create a collection and index your filter fields first**
+
+Create payload indexes *before* ingesting data. Without an index Qdrant falls back to a full scan; with one, filtered queries approach unfiltered latency.
+
+```python
+from qdrant_client import QdrantClient
+from qdrant_client.models import Distance, VectorParams
+
+client = QdrantClient("localhost", port=6333)
+
+client.create_collection(
+    collection_name="docs",
+    vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
+)
+
+# Index filter fields BEFORE inserting data
+client.create_payload_index("docs", field_name="category", field_schema="keyword")
+client.create_payload_index("docs", field_name="published_ts", field_schema="integer")
+client.create_payload_index("docs", field_name="source", field_schema="keyword")
+```
+
+**2. Upsert vectors with metadata payloads**
+
+```python
+from qdrant_client.models import PointStruct
+
+client.upsert(
+    collection_name="docs",
+    points=[
+        PointStruct(
+            id=1,
+            vector=embed("Firewall configuration best practices"),
+            payload={
+                "category": "security",
+                "source": "internal_wiki",
+                "published_ts": 20260601,   # YYYYMMDD int for range queries
+                "title": "Firewall Config Guide",
+            },
+        ),
+    ],
+)
+```
+
+**3. Search with a filter**
+
+```python
+from qdrant_client.models import Filter, FieldCondition, MatchValue, Range
+
+hits = client.search(
+    collection_name="docs",
+    query_vector=embed(user_query),
+    query_filter=Filter(
+        must=[
+            FieldCondition(key="category", match=MatchValue(value="security")),
+            FieldCondition(key="published_ts", range=Range(gte=20260101)),
+        ]
+    ),
+    limit=5,
+)
+```
+
+`must` = AND. `should` = OR. `must_not` = exclusion. Nest them arbitrarily: "from source A or B, published after date X, not tagged draft."
+
+**Two gotchas:**
+
+1. If you use LangChain's Qdrant integration, it wraps your payload inside a `metadata` key automatically. Use `key="metadata.category"` in your filter, not `key="category"` — the mismatch causes silent zero-result queries.
+
+2. Range filters over `integer` fields need your date stored as an integer (e.g., `20260601`). Store timestamps as Unix epoch integers if you need finer granularity.
+
+**Next step:** Once you have payload filtering working, check out Qdrant's [LLM-powered filter automation](https://qdrant.tech/documentation/search-precision/automate-filtering-with-llms/) — let the model extract filter conditions from natural language queries instead of hard-coding them.
+
+**Sources:** [A Complete Guide to Filtering in Vector Search — Qdrant](https://qdrant.tech/articles/vector-search-filtering/) · [Qdrant Payload Filtering in Python — YouTube](https://www.youtube.com/watch?v=_FHJZqt_xJA) · [LLM-Powered Filter Automation — Qdrant Docs](https://qdrant.tech/documentation/search-precision/automate-filtering-with-llms/) · [Qdrant Python Tutorial — Medium](https://medium.com/@hasibahmed1729/the-complete-qdrant-python-tutorial-store-search-scroll-filter-delete-points-ccc22b1b9691)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-08-05-01-qdrant-payload-filtering-metadata-rag","title":"Narrow Your Vector Search to the Right Docs: Qdrant Payload Filtering for RAG","excerpt":"Qdrant runs filter conditions inside the HNSW graph, not after. Add source, date, and category metadata to every vector and retrieve only matching docs at full search speed.","author":"Chris Harper","date":"08-05-2026","publishedAt":"2026-08-05T04:05:00.000Z","tags":["AI","Tutorial","RAG","Vectors","Best Practices"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-05-01-qdrant-payload-filtering-metadata-rag.jpg","imageSource":"https://qdrant.tech/articles/vector-search-filtering/","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Narrow Your Vector Search to the Right Docs: Qdrant Payload Filtering for RAG | AI News"}],["$","meta","1",{"name":"description","content":"Qdrant runs filter conditions inside the HNSW graph, not after. Add source, date, and category metadata to every vector and retrieve only matching docs at full search speed."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-08-05-01-qdrant-payload-filtering-metadata-rag/"}],["$","meta","3",{"property":"og:title","content":"Narrow Your Vector Search to the Right Docs: Qdrant Payload Filtering for RAG"}],["$","meta","4",{"property":"og:description","content":"Qdrant runs filter conditions inside the HNSW graph, not after. Add source, date, and category metadata to every vector and retrieve only matching docs at full search speed."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-08-05-01-qdrant-payload-filtering-metadata-rag/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-05-01-qdrant-payload-filtering-metadata-rag.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Narrow Your Vector Search to the Right Docs: Qdrant Payload Filtering for RAG"}],["$","meta","13",{"name":"twitter:description","content":"Qdrant runs filter conditions inside the HNSW graph, not after. Add source, date, and category metadata to every vector and retrieve only matching docs at full search speed."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-05-01-qdrant-payload-filtering-metadata-rag.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"
