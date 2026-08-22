@@ -1,5 +1,24 @@
 [
   {
+    "id": "2026-08-22-13-mcp-stateless-spec-migration",
+    "title": "The MCP Spec Dropped Session State — Migration Checklist for Your Server",
+    "excerpt": "The July 2026 MCP spec removed session state: no Mcp-Session-Id, no initialize handshake, and your server becomes a load-balanced stateless HTTP service.",
+    "author": "Chris Harper",
+    "date": "08-22-2026",
+    "publishedAt": "2026-08-22T20:02:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "MCP",
+      "Agents",
+      "Building AI Products"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://blog.modelcontextprotocol.io/posts/2026-07-28/",
+    "content": "**TL;DR: The July 2026 MCP spec removed session state — no `Mcp-Session-Id`, no handshake — and your server becomes a plain stateless HTTP service with working load balancing and caching.**\n\nThe MCP 2026-07-28 specification shipped a protocol-level change that affects every MCP server in production: session state is gone. The `initialize`/`initialized` handshake is removed. `Mcp-Session-Id` is gone. Every request now carries protocol version, client info, and capabilities in a `_meta` field, making each one self-describing and independent.\n\n**Why this matters.** Stateful MCP servers required sticky sessions — a request from client A had to reach the same server instance that handled its initialization. That made round-robin load balancing, autoscaling, and CDN caching impossible. Stateless servers let any instance handle any request: horizontal scaling works without infrastructure workarounds.\n\n**Migration checklist:**\n\n1. **Audit session state.** Search your codebase for `Mcp-Session-Id`, `initialize` event handlers, and per-session in-memory stores. Replace them with explicit handles or request-scoped state.\n2. **Pass `_meta` through.** Ensure your handler forwards the incoming `_meta` object on every response — it carries the client's declared capabilities and protocol version.\n3. **Wire up header-based routing.** The new `Mcp-Method` and `Mcp-Name` headers let your gateway or rate limiter route and meter without parsing JSON bodies. Add them to your load balancer config.\n4. **Add cache hints to list responses.** `tools/list`, `resources/list`, and `prompts/list` responses now support `ttlMs` and `cacheScope` fields — fill them in so clients know how long to reuse a listing without re-fetching.\n5. **Check your SDK version.** Cloudflare's Agents SDK has supported the spec since the day it shipped; `createMcpHandler` returns a standard fetch handler that runs as a Worker with no session Durable Object overhead. If you're on another framework, confirm its MCP SDK version is ≥ 2.0.\n\n**Limit to know.** Legacy MCP clients that haven't updated their client library may still send `Mcp-Session-Id` or expect the handshake. The Cloudflare handler serves both spec versions until clients migrate — but verify your client versions before switching production traffic. The experimental Tasks API has a separate, not-yet-final migration path; hold off on that piece until the spec stabilizes.\n\n**Sources:** [MCP 2026-07-28 Specification — MCP Blog](https://blog.modelcontextprotocol.io/posts/2026-07-28/) · [The next generation of MCP — Cloudflare Blog](https://blog.cloudflare.com/mcp-v2/) · [What changed — DEV Community](https://dev.to/krlz/mcp-went-stateless-what-the-2026-07-28-spec-actually-changes-273k) · [Build and deploy on the new spec — DEV Community](https://dev.to/composiodev/how-to-build-and-deploy-an-mcp-server-to-production-2026-07-28-spec-50p3) · [Cloudflare Agents SDK changelog](https://developers.cloudflare.com/changelog/post/2026-07-27-agents-sdk-v0.20.0-mcp-sdk-v2/)"
+  },
+  {
     "id": "2026-08-22-12-computer-use-browser-tool-ga",
     "title": "Computer Use Is Production-Ready: Multi-Action Turns, Browser Use Tool, and HIPAA Under BAA",
     "excerpt": "Computer use and the new browser use tool went GA on August 20: multi-action turns cut API calls per task, HIPAA is eligible under BAA, and no beta headers required.",
