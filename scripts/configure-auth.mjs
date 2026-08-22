@@ -38,6 +38,7 @@ const before = await (await fetch(API, { headers })).json();
 if (before.message) { console.error(`✗ management API: ${before.message}`); process.exit(1); }
 console.log('before:', {
   google_enabled: before.external_google_enabled,
+  github_enabled: before.external_github_enabled,
   site_url: before.site_url,
   uri_allow_list: before.uri_allow_list || '(empty)',
 });
@@ -57,6 +58,13 @@ const res = await fetch(API, {
     external_google_enabled: true,
     external_google_client_id: clientId,
     external_google_secret: clientSecret,
+    ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
+      ? {
+          external_github_enabled: true,
+          external_github_client_id: env.GITHUB_CLIENT_ID,
+          external_github_secret: env.GITHUB_CLIENT_SECRET,
+        }
+      : {}),
   }),
 });
 if (!res.ok) { console.error(`✗ PATCH failed: ${res.status} ${await res.text()}`); process.exit(1); }
@@ -64,6 +72,7 @@ if (!res.ok) { console.error(`✗ PATCH failed: ${res.status} ${await res.text()
 const after = await (await fetch(API, { headers })).json();
 console.log('after:', {
   google_enabled: after.external_google_enabled,
+  github_enabled: after.external_github_enabled,
   site_url: after.site_url,
   uri_allow_list: after.uri_allow_list,
 });
