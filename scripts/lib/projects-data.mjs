@@ -43,7 +43,8 @@ export function readProjects() {
       summary: str(c, 'summary'),
       repoUrl: str(c, 'repoUrl'),
       externalUrl: str(c, 'externalUrl'),
-      demoStatus: str(c, 'demoStatus'),
+      demoStatus: str(c, 'status'), // from the nested demo: { status: '…' }
+      artifact: str(c, 'artifact'),
       cover: str(c, 'cover'),
       order: num(c, 'order'),
     }))

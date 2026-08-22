@@ -21,16 +21,16 @@
     "PRODUCTION_HOSTNAME": "cloudcodetree.com",
     // Filled when the cct-demos Supabase project exists (Phase 2 Task 0).
     // Empty means the gate fails CLOSED (503) — never open.
-    "SUPABASE_URL": "",
-    "SUPABASE_ANON_KEY": ""
+    "SUPABASE_URL": "https://tgcysgioncdmtzcfknix.supabase.co",
+    "SUPABASE_ANON_KEY": "sb_publishable_xElUD5_ZTjOVM8ZHSZ1lQw_Zq5gto2o"
   },
   "env": {
     "staging": {
       "name": "cct-site-staging",
       "vars": {
         "PRODUCTION_HOSTNAME": "cloudcodetree.com",
-        "SUPABASE_URL": "",
-        "SUPABASE_ANON_KEY": ""
+        "SUPABASE_URL": "https://tgcysgioncdmtzcfknix.supabase.co",
+        "SUPABASE_ANON_KEY": "sb_publishable_xElUD5_ZTjOVM8ZHSZ1lQw_Zq5gto2o"
       },
       "assets": {
         "directory": "./out",

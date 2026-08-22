@@ -124,3 +124,6 @@ Thumbs.db
 /infra/backend.hcl
 /infra/*.tfvars
 crash.log
+
+# Vendored demo build workspace
+/.demo-build-cache/

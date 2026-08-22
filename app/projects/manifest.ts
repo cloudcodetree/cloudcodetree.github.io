@@ -16,7 +16,9 @@ export interface Project {
   tech: string[]; // chips
   repoUrl?: string; // omitted for private repos
   externalUrl?: string; // live public deployment, while one exists
-  demoStatus?: 'coming-soon'; // Phase 2 replaces this with the gated demo entry
+  /** Present = the project has a gated demo. `artifact` pins the release tag
+   * the deploy vendors into /projects/<slug>/demo/. */
+  demo?: { status: 'live' | 'coming-soon'; artifact?: string /* pinned commit SHA or release tag */ };
   cover: string; // committed generated asset under public/projects/covers/
   featured?: boolean;
   order: number;
@@ -75,7 +77,7 @@ export const projects: Project[] = [
     tech: ['JavaScript', 'Structural Engineering'],
     repoUrl: 'https://github.com/cloudcodetree/span-calculator',
     externalUrl: 'https://cloudcodetree.com/span-calculator/',
-    demoStatus: 'coming-soon',
+    demo: { status: 'live', artifact: '4a1ea8612becaa23a3eb1ac27671ef898650f9ba' },
     cover: '/projects/covers/span-calculator.png',
     order: 5,
   },

@@ -17,6 +17,7 @@ export const REQUIRED = [
   { origin: 'https://api.web3forms.com', directive: 'connect-src' },  // form POST
   { origin: 'https://assets.calendly.com', directive: 'script-src' }, // scheduling widget
   { origin: 'https://calendly.com', directive: 'frame-src' },         // scheduling iframe
+  { origin: 'https://tgcysgioncdmtzcfknix.supabase.co', directive: 'connect-src' }, // supabase auth + PostgREST (sign-in, profiles)
 ];
 
 export function parseCsp(headersText) {

@@ -2,7 +2,10 @@
 
 import { Container, Box, Button } from '@mui/material';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { SERIF, LINK } from '../../components/blogShared';
+import LaunchDemoButton from '../../components/demo/LaunchDemoButton';
+import { projects } from '../manifest';
 
 // Styles raw MDX elements for project write-ups. Mirrors the tutorials
 // (article) layout; the author writes the H1 in the MDX.
@@ -27,9 +30,18 @@ const projectSx = {
 } as const;
 
 export default function ProjectDetailLayout({ children }: { children: React.ReactNode }) {
+  // /projects/<slug>/ — the launch button (and the ?signin=1&next= handler it
+  // carries) mounts on every detail page whose manifest entry has a demo.
+  const pathname = usePathname();
+  const slug = pathname.split('/').filter(Boolean)[1];
+  const project = projects.find((p) => p.slug === slug);
+
   return (
     <Container maxWidth="md" sx={{ py: { xs: 2, md: 4 } }}>
-      <Button component={Link} href="/projects/" sx={{ mb: 3 }}>← Back to Projects</Button>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
+        <Button component={Link} href="/projects/" sx={{ m: 0 }}>← Back to Projects</Button>
+        {project?.demo?.status === 'live' && <LaunchDemoButton slug={project.slug} title={project.title} />}
+      </Box>
       <Box sx={projectSx}>{children}</Box>
     </Container>
   );

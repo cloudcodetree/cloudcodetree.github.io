@@ -30,8 +30,9 @@ describe('readProjects', () => {
     expect(bySlug['homestead-finder'].repoUrl).toBeUndefined();
   });
 
-  it('span-calculator is the coming-soon demo pilot', () => {
-    expect(bySlug['span-calculator'].demoStatus).toBe('coming-soon');
+  it('span-calculator is the live demo pilot with a pinned artifact', () => {
+    expect(bySlug['span-calculator'].demoStatus).toBe('live');
+    expect(bySlug['span-calculator'].artifact).toMatch(/^[0-9a-f]{40}$|^demo-v/);
   });
 
   it('slugs are url-safe', () => {

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Container, Typography, Box, Grid, Chip, Button } from '@mui/material';
 import { GitHub, Launch, LockClock } from '@mui/icons-material';
+import LaunchDemoButton from './demo/LaunchDemoButton';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { SERIF, MONO, ACCENT, LINK } from './blogShared';
@@ -82,7 +83,8 @@ export default function ProjectsList({ projects }: { projects: Project[] }) {
                         <Launch sx={{ fontSize: 15 }} /> Live
                       </Typography>
                     )}
-                    {p.demoStatus === 'coming-soon' && (
+                    {p.demo?.status === 'live' && <LaunchDemoButton slug={p.slug} title={p.title} size="small" />}
+                    {p.demo?.status === 'coming-soon' && (
                       <Typography sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, fontFamily: MONO, fontSize: 11, color: 'text.secondary', border: '1px dashed rgba(148,163,184,0.35)', borderRadius: 1, px: 1, py: 0.25 }}>
                         <LockClock sx={{ fontSize: 14 }} /> Gated demo soon
                       </Typography>
