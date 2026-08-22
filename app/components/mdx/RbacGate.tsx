@@ -19,9 +19,9 @@ import { MONO, ACCENT } from '../blogShared';
  * Static-export-safe: all text in the DOM; Framer Motion only.
  */
 
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const RED = '#f85149';
-const BLUE = '#2f81f7';
+const BLUE = '#94bce3';
 const ORANGE = '#d29922';
 const GREY = '#8b98a8';
 

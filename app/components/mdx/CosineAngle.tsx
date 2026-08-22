@@ -10,7 +10,7 @@ import { MONO, ACCENT } from '../blogShared';
  * similarity) vs a wide angle (low). Hydration-safe (static geometry + framer opacity).
  */
 
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const MUT = '#8b98a8';
 const O = { x: 18, y: 78 }; // origin in a 100x92 svg
 

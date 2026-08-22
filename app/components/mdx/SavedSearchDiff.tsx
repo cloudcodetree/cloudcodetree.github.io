@@ -56,7 +56,7 @@ const DEALS: DealRow[] = [
 ];
 
 const VERDICT_COLOR: Record<string, string> = {
-  deal: '#3fb950',
+  deal: '#94bce3',
   fair: '#58a6ff',
   suspicious: '#d29922',
   overpriced: '#8b98a8',
@@ -104,8 +104,8 @@ function DealCard({
             position: 'absolute',
             top: -7,
             right: -7,
-            background: '#3fb950',
-            color: '#0d1117',
+            background: '#94bce3',
+            color: '#1d1f20',
             borderRadius: 20,
             fontSize: 8,
             fontWeight: 800,
@@ -239,7 +239,7 @@ export default function SavedSearchDiff({ accent = ACCENT }: { accent?: string }
       </div>
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#596070', marginTop: 16 }}>
-        <span style={{ color: '#3fb950' }}>Anker Q20i $44.99</span> score +0.7239 ≥ 0.30 → DEAL ·
+        <span style={{ color: '#94bce3' }}>Anker Q20i $44.99</span> score +0.7239 ≥ 0.30 → DEAL ·
         {' '}<span style={{ color: '#d29922' }}>Bose QC45</span> median signal +0.718 but blended −0.282 (SUSPICIOUS, residual guard) ·
         {' '}Sony XM5 score 0.000 &lt; threshold
       </div>

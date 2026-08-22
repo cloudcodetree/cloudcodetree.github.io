@@ -80,7 +80,7 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
   const Pills = ({ t }: { t: Tutorial }) => (
     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
       {topicTags(t).slice(0, 3).map((tag) => (
-        <Chip key={tag} label={tag} size="small" sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(63,185,80,0.1)', color: ACCENT, border: '1px solid rgba(63,185,80,0.25)' }} />
+        <Chip key={tag} label={tag} size="small" sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(148,188,227,0.1)', color: ACCENT, border: '1px solid rgba(148,188,227,0.25)' }} />
       ))}
     </Box>
   );
@@ -117,7 +117,7 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
       {shown.map((t, i) => (
         <Grid size={{ xs: 12, sm: 6 }} key={t.slug}>
           <Box component={motion.div} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.4) }}
-            sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, border, overflow: 'hidden', background: 'rgba(148,163,184,0.03)', transition: 'border-color .2s, transform .2s', '&:hover': { borderColor: 'rgba(63,185,80,0.4)', transform: 'translateY(-2px)' } }}>
+            sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, border, overflow: 'hidden', background: 'rgba(148,163,184,0.03)', transition: 'border-color .2s, transform .2s', '&:hover': { borderColor: 'rgba(148,188,227,0.4)', transform: 'translateY(-2px)' } }}>
             {t.image && (
               <Box component={Link} href={`/tutorials/${t.slug}/`} sx={{ display: 'block' }}>
                 <Box component="img" src={t.image} alt={t.title} loading="lazy" sx={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
@@ -175,7 +175,7 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: { xs: 2, md: 3 }, flexWrap: 'wrap' }}>
         {isSeries ? (
-          <Typography component={Link} href="/tutorials/all/" sx={{ fontFamily: MONO, fontSize: 13, color: ACCENT, textDecoration: 'none', border: '1px solid rgba(63,185,80,0.3)', borderRadius: 1, px: 1.5, py: 0.75, '&:hover': { background: 'rgba(63,185,80,0.1)', color: LINK } }}>
+          <Typography component={Link} href="/tutorials/all/" sx={{ fontFamily: MONO, fontSize: 13, color: ACCENT, textDecoration: 'none', border: '1px solid rgba(148,188,227,0.3)', borderRadius: 1, px: 1.5, py: 0.75, '&:hover': { background: 'rgba(148,188,227,0.1)', color: LINK } }}>
             {`See all ${tutorials.length} tutorials →`}
           </Typography>
         ) : (
@@ -187,7 +187,7 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
           </Box>
         )}
         {!isSeries && (
-          <ToggleButtonGroup value={view} exclusive size="small" onChange={(_, v) => chooseView(v)} aria-label="Choose layout" sx={{ '& .MuiToggleButton-root': { color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)', px: 1.25 }, '& .Mui-selected': { color: `${ACCENT} !important`, background: 'rgba(63,185,80,0.12) !important' } }}>
+          <ToggleButtonGroup value={view} exclusive size="small" onChange={(_, v) => chooseView(v)} aria-label="Choose layout" sx={{ '& .MuiToggleButton-root': { color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)', px: 1.25 }, '& .Mui-selected': { color: `${ACCENT} !important`, background: 'rgba(148,188,227,0.12) !important' } }}>
             <ToggleButton value="cards" aria-label="Cards"><GridView fontSize="small" /></ToggleButton>
             <ToggleButton value="list" aria-label="Compact list"><ViewList fontSize="small" /></ToggleButton>
           </ToggleButtonGroup>
@@ -199,7 +199,7 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
           <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', mr: 0.5 }}>Topics</Typography>
           {topics.map(({ tag, count }) => {
             const on = selected.includes(tag);
-            return <Chip key={tag} label={`${tag} ${count}`} size="small" onClick={() => toggle(tag)} sx={{ fontFamily: MONO, fontSize: 11, cursor: 'pointer', color: on ? '#0d1117' : 'text.secondary', background: on ? ACCENT : 'transparent', border: '1px solid', borderColor: on ? ACCENT : 'rgba(148,163,184,0.25)', '& .MuiChip-label': { px: 1 }, '&:hover': { background: on ? ACCENT : 'rgba(63,185,80,0.12)' } }} />;
+            return <Chip key={tag} label={`${tag} ${count}`} size="small" onClick={() => toggle(tag)} sx={{ fontFamily: MONO, fontSize: 11, cursor: 'pointer', color: on ? '#1d1f20' : 'text.secondary', background: on ? ACCENT : 'transparent', border: '1px solid', borderColor: on ? ACCENT : 'rgba(148,163,184,0.25)', '& .MuiChip-label': { px: 1 }, '&:hover': { background: on ? ACCENT : 'rgba(148,188,227,0.12)' } }} />;
           })}
           {selected.length > 0 && <Chip label="Clear" size="small" onClick={() => { setSelected([]); setPage(1); }} sx={{ fontFamily: MONO, fontSize: 11, cursor: 'pointer', color: ACCENT, background: 'transparent', border: '1px solid', borderColor: ACCENT, '& .MuiChip-label': { px: 1 } }} />}
         </Box>
@@ -217,7 +217,7 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
           {view === 'cards' ? cards : list}
           {pageCount > 1 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
-              <Pagination count={pageCount} page={safePage} onChange={(_, v) => { setPage(v); window.scrollTo({ top: 0, behavior: 'smooth' }); }} shape="rounded" sx={{ '& .MuiPaginationItem-root': { fontFamily: MONO, color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)' }, '& .Mui-selected': { background: `${ACCENT} !important`, color: '#0d1117', borderColor: ACCENT } }} />
+              <Pagination count={pageCount} page={safePage} onChange={(_, v) => { setPage(v); window.scrollTo({ top: 0, behavior: 'smooth' }); }} shape="rounded" sx={{ '& .MuiPaginationItem-root': { fontFamily: MONO, color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)' }, '& .Mui-selected': { background: `${ACCENT} !important`, color: '#1d1f20', borderColor: ACCENT } }} />
             </Box>
           )}
         </>

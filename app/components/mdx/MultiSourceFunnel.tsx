@@ -21,8 +21,8 @@ import { MONO, ACCENT } from '../blogShared';
  * Static-export-safe: all text is in the DOM; no runtime fetch.
  */
 
-const BLUE = '#2f81f7';
-const GREEN = '#3fb950';
+const BLUE = '#94bce3';
+const GREEN = '#94bce3';
 const ORANGE = '#d29922';
 const PURPLE = '#a371f7';
 

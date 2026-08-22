@@ -42,7 +42,7 @@ export default function SkillsMap({ accent = ACCENT }: { accent?: string }) {
             initial={{ opacity: 0, scale: 0.85 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ amount: 0.2 }} transition={{ delay: i * 0.07, type: 'spring', stiffness: 280, damping: 20 }}
           >
             <motion.span
-              style={{ color: '#3fb950', fontWeight: 700, fontSize: 12 }}
+              style={{ color: '#94bce3', fontWeight: 700, fontSize: 12 }}
               animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.1 }}
             >✓</motion.span>
             <span style={{ fontFamily: MONO, fontSize: 11, color: '#fff' }}>{skill}</span>

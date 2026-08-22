@@ -26,7 +26,7 @@ export default function CDPipeline({ accent = ACCENT }: { accent?: string }) {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 560 }}>
         {STAGES.map((s, i) => {
-          const col = s.good ? '#3fb950' : accent;
+          const col = s.good ? '#94bce3' : accent;
           return (
             <div key={s.label} style={{ display: 'contents' }}>
               <motion.div

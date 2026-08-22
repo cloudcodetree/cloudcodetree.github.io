@@ -15,8 +15,8 @@ import { MONO, ACCENT } from '../blogShared';
  */
 
 const SRC = [
-  { key: 'rapidapi', label: 'RapidAPI', color: '#3fb950' },
-  { key: 'apify', label: 'Apify', color: '#2f81f7' },
+  { key: 'rapidapi', label: 'RapidAPI', color: '#94bce3' },
+  { key: 'apify', label: 'Apify', color: '#94bce3' },
   { key: 'bestbuy', label: 'Best Buy', color: '#d29922' },
 ];
 

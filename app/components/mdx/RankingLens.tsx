@@ -60,7 +60,7 @@ const CARDS: Card[] = [
 ];
 
 const BADGE_COLOR: Record<string, string> = {
-  DEAL: '#3fb950',
+  DEAL: '#94bce3',
   FAIR: '#60a5fa',
   SUSPICIOUS: '#f0a30a',
   OVERPRICED: '#8b98a8',

@@ -15,17 +15,17 @@ import { MONO, ACCENT } from '../blogShared';
 // Title: "Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Overhead Headphones"
 // raw brand field in snapshot: "Costco" (retailer — hence the strike-through label)
 const SEGMENTS: { t: string; field?: string; color?: string }[] = [
-  { t: 'Sony', field: 'brand', color: '#2f81f7' },
+  { t: 'Sony', field: 'brand', color: '#94bce3' },
   { t: ' ' },
   { t: 'WH-1000XM5', field: 'model', color: '#a371f7' },
   { t: ' Wireless Industry Leading Noise Canceling Overhead ' },
-  { t: 'Headphones', field: 'category', color: '#3fb950' },
+  { t: 'Headphones', field: 'category', color: '#94bce3' },
 ];
 
 const FIELDS = [
-  { k: 'brand', v: '"Sony"', color: '#2f81f7' },
+  { k: 'brand', v: '"Sony"', color: '#94bce3' },
   { k: 'model', v: '"WH-1000XM5"', color: '#a371f7' },
-  { k: 'category', v: '"audio"', color: '#3fb950' },
+  { k: 'category', v: '"audio"', color: '#94bce3' },
   { k: 'condition', v: '"new"', color: '#d29922' },
 ];
 
@@ -38,7 +38,7 @@ export default function ExtractFlow({ accent = ACCENT }: { accent?: string }) {
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginBottom: 16 }}>
         raw brand in snapshot: <span style={{ color: '#f85149', textDecoration: 'line-through' }}>&quot;Costco&quot;</span>
         <span style={{ color: '#8b98a8' }}> → extracted: </span>
-        <span style={{ color: '#2f81f7' }}>&quot;Sony&quot;</span>
+        <span style={{ color: '#94bce3' }}>&quot;Sony&quot;</span>
       </div>
 
       <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>

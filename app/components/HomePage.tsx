@@ -74,7 +74,7 @@ export default function HomePage() {
               height: 150,
               mx: 'auto',
               mb: 4,
-              background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+              background: 'linear-gradient(135deg, #749dc4, #94bce3)',
               fontSize: '4rem',
             }}
           >
@@ -86,7 +86,7 @@ export default function HomePage() {
             component="h1"
             sx={{
               mb: 2,
-              background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+              background: 'linear-gradient(135deg, #749dc4, #94bce3)',
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -118,7 +118,7 @@ export default function HomePage() {
             }}
           >
             I build with AI — agentic coding tools, custom models, and automation — and write about
-            the craft on the <Box component={Link} href="/" sx={{ color: '#3b82f6', textDecoration: 'none' }}>AI News</Box> blog.
+            the craft on the <Box component={Link} href="/" sx={{ color: '#749dc4', textDecoration: 'none' }}>AI News</Box> blog.
             Day to day I lead engineering work across cloud and full-stack, with a deep interest in how AI is changing how we ship software.
           </Typography>
 
@@ -131,7 +131,7 @@ export default function HomePage() {
               sx={{
                 px: 4,
                 py: 1.5,
-                background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+                background: 'linear-gradient(135deg, #749dc4, #94bce3)',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #2563eb, #0891b2)',
                 },
@@ -187,11 +187,11 @@ export default function HomePage() {
                     px: 2,
                     py: 1,
                     fontSize: '1rem',
-                    background: 'rgba(59, 130, 246, 0.1)',
-                    color: '#3b82f6',
-                    border: '1px solid rgba(59, 130, 246, 0.3)',
+                    background: 'rgba(116,157,196, 0.1)',
+                    color: '#749dc4',
+                    border: '1px solid rgba(116,157,196, 0.3)',
                     '&:hover': {
-                      background: 'rgba(59, 130, 246, 0.2)',
+                      background: 'rgba(116,157,196, 0.2)',
                     },
                   }}
                 />
@@ -237,7 +237,7 @@ export default function HomePage() {
                         <Icon
                           sx={{
                             fontSize: '3rem',
-                            color: '#3b82f6',
+                            color: '#749dc4',
                             mb: 2,
                           }}
                         />
@@ -292,7 +292,7 @@ export default function HomePage() {
               sx={{
                 px: 4,
                 py: 1.5,
-                background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+                background: 'linear-gradient(135deg, #749dc4, #94bce3)',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #2563eb, #0891b2)',
                 },

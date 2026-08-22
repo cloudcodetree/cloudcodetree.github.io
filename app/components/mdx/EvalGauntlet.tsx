@@ -34,7 +34,7 @@ export default function EvalGauntlet({ accent = ACCENT }: { accent?: string }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
         {TOP5.map((c, i) => {
-          const col = '#3fb950';
+          const col = '#94bce3';
           return (
             <motion.div
               key={c.title}

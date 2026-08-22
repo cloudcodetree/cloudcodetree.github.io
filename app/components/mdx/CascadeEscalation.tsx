@@ -30,7 +30,7 @@ const SCENARIOS: Scenario[] = [
       { tier: 'cheap (deepseek-chat)', result: 'hit', note: 'answers → serve' },
     ],
     outcome: 'served · escalated=False',
-    outcomeColor: '#3fb950',
+    outcomeColor: '#94bce3',
   },
   {
     label: '429 / failure',
@@ -53,9 +53,9 @@ const SCENARIOS: Scenario[] = [
 ];
 
 const RESULT_COLORS = {
-  hit:      '#3fb950',
+  hit:      '#94bce3',
   fail:     '#d29922',
-  escalate: '#2f81f7',
+  escalate: '#94bce3',
   error:    '#f85149',
 };
 
@@ -130,7 +130,7 @@ export default function CascadeEscalation({ accent = ACCENT }: { accent?: string
                   {/* escalation arrow between steps */}
                   {idx < scenario.steps.length - 1 && (
                     <motion.div
-                      style={{ marginLeft: 10, marginTop: 4, marginBottom: 2, fontFamily: MONO, fontSize: 10, color: '#2f81f7' }}
+                      style={{ marginLeft: 10, marginTop: 4, marginBottom: 2, fontFamily: MONO, fontSize: 10, color: '#94bce3' }}
                       initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ amount: 0.4 }}
                       transition={{ delay: 0.4 + si * 0.15 + idx * 0.12 }}
                     >

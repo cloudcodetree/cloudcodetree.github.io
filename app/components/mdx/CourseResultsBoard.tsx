@@ -60,7 +60,7 @@ const ROWS: Row[] = [
 ];
 
 const STATUS_COLOR: Record<string, string> = {
-  pass:     '#3fb950',
+  pass:     '#94bce3',
   promote:  ACCENT,
   anchored: '#d29922',
   info:     '#8b98a8',

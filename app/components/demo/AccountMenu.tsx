@@ -57,7 +57,7 @@ export default function AccountMenu() {
   return (
     <>
       <IconButton onClick={(e) => setAnchor(e.currentTarget)} size="small" aria-label={`Account: ${user.email}`} sx={{ p: 0.25 }}>
-        <Avatar src={user.avatarUrl} alt="" sx={{ width: 30, height: 30, fontSize: 14, bgcolor: 'rgba(63,185,80,0.25)', border: '1px solid rgba(63,185,80,0.5)' }}>
+        <Avatar src={user.avatarUrl} alt="" sx={{ width: 30, height: 30, fontSize: 14, bgcolor: 'rgba(148,188,227,0.25)', border: '1px solid rgba(148,188,227,0.5)' }}>
           {initial}
         </Avatar>
       </IconButton>
@@ -65,7 +65,7 @@ export default function AccountMenu() {
         anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        slotProps={{ paper: { sx: { background: '#161b22', border: '1px solid rgba(148,163,184,0.15)', minWidth: 220 } } }}
+        slotProps={{ paper: { sx: { background: '#2b2b2d', border: '1px solid rgba(148,163,184,0.15)', minWidth: 220 } } }}
       >
         <Box sx={{ px: 2, py: 1 }}>
           {user.name && <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{user.name}</Typography>}

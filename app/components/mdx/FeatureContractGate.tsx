@@ -51,7 +51,7 @@ function RunCard({ lane, i, isWinner }: { lane: Lane; i: number; isWinner?: bool
         borderRadius: 6,
         border: `1px solid ${isWinner ? `${ACCENT}66` : lane.selectable ? 'rgba(47,129,247,0.25)' : 'rgba(210,153,34,0.20)'}`,
         background: isWinner
-          ? 'rgba(63,185,80,0.10)'
+          ? 'rgba(148,188,227,0.10)'
           : lane.selectable
           ? 'rgba(47,129,247,0.06)'
           : 'rgba(210,153,34,0.06)',
@@ -92,7 +92,7 @@ export default function FeatureContractGate() {
 
         {/* --- selectable lane --- */}
         <div style={{ flex: '1 1 200px', minWidth: 180 }}>
-          <div style={{ fontFamily: MONO, fontSize: 10, color: '#2f81f7', letterSpacing: '0.07em', marginBottom: 8 }}>
+          <div style={{ fontFamily: MONO, fontSize: 10, color: '#94bce3', letterSpacing: '0.07em', marginBottom: 8 }}>
             fair-price contract · selectable=True
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -125,7 +125,7 @@ export default function FeatureContractGate() {
               padding: '8px 12px',
               borderRadius: 8,
               border: `1px solid ${ACCENT}77`,
-              background: 'rgba(63,185,80,0.12)',
+              background: 'rgba(148,188,227,0.12)',
               color: ACCENT,
               textAlign: 'center' as const,
             }}

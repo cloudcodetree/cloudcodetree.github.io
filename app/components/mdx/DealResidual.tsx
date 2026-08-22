@@ -38,13 +38,13 @@ const MAX = 430; // axis max ($) — just above XM6 actual
 const pct = (v: number) => `${Math.max(0, Math.min(100, (v / MAX) * 100))}%`;
 
 const VERDICT_GAP_COLOR: Record<string, string> = {
-  deal:       '#3fb950',   // green
+  deal:       '#94bce3',   // green
   suspicious: '#d29922',   // amber
   fair:       '#58a6ff',   // accent blue
   overpriced: 'rgba(148,163,184,0.35)',
 };
 const VERDICT_LABEL_COLOR: Record<string, string> = {
-  deal:       '#3fb950',
+  deal:       '#94bce3',
   suspicious: '#d29922',
   fair:       '#8b98a8',
   overpriced: '#8b98a8',
@@ -98,7 +98,7 @@ export default function DealResidual({ accent = ACCENT }: { accent?: string }) {
                     style={{ position: 'absolute', top: 4, left: pct(d.actual), transform: 'translateX(-50%)' }}
                     initial={{ opacity: 0, x: -8 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ amount: 0.4 }} transition={{ delay: 0.2 + i * 0.12 }}
                   >
-                    <span style={{ display: 'block', width: 11, height: 11, borderRadius: '50%', background: '#3fb950', border: '2px solid #0d1117' }} />
+                    <span style={{ display: 'block', width: 11, height: 11, borderRadius: '50%', background: '#94bce3', border: '2px solid #1d1f20' }} />
                   </motion.div>
                   {/* fair price marker (hollow accent) */}
                   <motion.div
@@ -109,7 +109,7 @@ export default function DealResidual({ accent = ACCENT }: { accent?: string }) {
                   </motion.div>
                 </div>
                 <span style={{ fontFamily: MONO, fontSize: 11, color: '#cdd7e2', width: 152, flex: '0 0 auto', textAlign: 'right' }}>
-                  <span style={{ color: '#3fb950' }}>${d.actual}</span>
+                  <span style={{ color: '#94bce3' }}>${d.actual}</span>
                   {' vs '}
                   <span style={{ color: accent }}>${d.fair}</span>
                   {' · '}
@@ -122,9 +122,9 @@ export default function DealResidual({ accent = ACCENT }: { accent?: string }) {
       </div>
 
       <div style={{ display: 'flex', gap: 18, marginTop: 18, flexWrap: 'wrap', fontFamily: MONO, fontSize: 11, color: '#8b98a8' }}>
-        <span><span style={{ color: '#3fb950' }}>●</span> actual price</span>
+        <span><span style={{ color: '#94bce3' }}>●</span> actual price</span>
         <span><span style={{ color: accent }}>○</span> model fair price</span>
-        <span><span style={{ color: '#3fb950' }}>▬</span> deal gap</span>
+        <span><span style={{ color: '#94bce3' }}>▬</span> deal gap</span>
         <span><span style={{ color: '#d29922' }}>▬</span> suspicious gap (pulses)</span>
         <span style={{ color: '#cdd7e2' }}>rf = residual_frac = (fair − actual) / fair</span>
       </div>

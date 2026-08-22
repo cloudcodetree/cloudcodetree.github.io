@@ -13,8 +13,8 @@ import { MONO, ACCENT } from '../blogShared';
  */
 
 const BADGE_COL: Record<string, string> = {
-  DEAL:       '#3fb950',
-  FAIR:       '#2f81f7',
+  DEAL:       '#94bce3',
+  FAIR:       '#94bce3',
   SUSPICIOUS: '#d29922',
   OVERPRICED: '#8b98a8',
 };
@@ -77,7 +77,7 @@ export default function E2ETestLattice({ accent = ACCENT }: { accent?: string })
         Playwright e2e — frontend/e2e/
       </div>
       <div style={{ display: 'flex', gap: 16, marginBottom: 16, fontFamily: MONO, fontSize: 11, color: '#8b98a8' }}>
-        <span><span style={{ color: '#3fb950', fontWeight: 700 }}>{passed} passed</span></span>
+        <span><span style={{ color: '#94bce3', fontWeight: 700 }}>{passed} passed</span></span>
         <span><span style={{ color: '#d29922', fontWeight: 700 }}>{skipped} skipped</span> (E2E_LIVE=1 gate)</span>
         <span style={{ marginLeft: 'auto', color: '#4a5568' }}>chromium · :5173</span>
       </div>
@@ -86,8 +86,8 @@ export default function E2ETestLattice({ accent = ACCENT }: { accent?: string })
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
         {TESTS.map((t, i) => {
           const isSkip  = t.status === 'skip';
-          const dotCol  = isSkip ? '#d29922' : '#3fb950';
-          const fileCol = t.file === 'live.spec.ts' ? '#d29922' : '#2f81f7';
+          const dotCol  = isSkip ? '#d29922' : '#94bce3';
+          const fileCol = t.file === 'live.spec.ts' ? '#d29922' : '#94bce3';
           return (
             <motion.div
               key={t.name}
@@ -99,8 +99,8 @@ export default function E2ETestLattice({ accent = ACCENT }: { accent?: string })
                 display: 'flex', alignItems: 'flex-start', gap: 9,
                 padding: '8px 10px',
                 borderRadius: 8,
-                background: isSkip ? 'rgba(210,153,34,0.04)' : 'rgba(63,185,80,0.04)',
-                border: `1px solid ${isSkip ? '#d2992218' : '#3fb95018'}`,
+                background: isSkip ? 'rgba(210,153,34,0.04)' : 'rgba(148,188,227,0.04)',
+                border: `1px solid ${isSkip ? '#d2992218' : '#94bce318'}`,
               }}
             >
               {/* Status dot */}

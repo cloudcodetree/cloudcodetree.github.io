@@ -20,10 +20,10 @@ const tutorialSx = {
   '& img': { maxWidth: '100%', height: 'auto', borderRadius: 1 },
   '& ul, & ol': { mb: 2, pl: 3 },
   '& li': { mb: 1, lineHeight: 1.8 },
-  '& blockquote': { m: '28px 0', p: '16px 20px', backgroundColor: '#161b22', border: '1px solid #222a35', borderLeft: `3px solid ${LINK}`, borderRadius: 2, color: 'text.secondary', '& p': { m: 0 } },
+  '& blockquote': { m: '28px 0', p: '16px 20px', backgroundColor: '#2b2b2d', border: '1px solid #222a35', borderLeft: `3px solid ${LINK}`, borderRadius: 2, color: 'text.secondary', '& p': { m: 0 } },
   '& hr': { border: 0, borderTop: '1px solid #222a35', my: 4 },
-  '& pre': { backgroundColor: 'rgba(30,41,59,0.8)', borderRadius: 1, p: 2, maxWidth: '100%', overflowX: 'auto', mb: 2, fontSize: { xs: '0.78rem', md: '0.875rem' }, '& code': { whiteSpace: 'pre', overflowWrap: 'normal', wordBreak: 'normal', background: 'none', p: 0 } },
-  '& code': { backgroundColor: 'rgba(30,41,59,0.6)', px: 0.75, py: 0.25, borderRadius: 0.5, fontFamily: 'monospace', fontSize: '0.9em' },
+  '& pre': { backgroundColor: 'rgba(43,43,45,0.8)', borderRadius: 1, p: 2, maxWidth: '100%', overflowX: 'auto', mb: 2, fontSize: { xs: '0.78rem', md: '0.875rem' }, '& code': { whiteSpace: 'pre', overflowWrap: 'normal', wordBreak: 'normal', background: 'none', p: 0 } },
+  '& code': { backgroundColor: 'rgba(43,43,45,0.6)', px: 0.75, py: 0.25, borderRadius: 0.5, fontFamily: 'monospace', fontSize: '0.9em' },
   '& table': { display: 'block', maxWidth: '100%', overflowX: 'auto', borderCollapse: 'collapse', mb: 2, '& th, & td': { border: '1px solid #222a35', p: 1, textAlign: 'left' } },
 } as const;
 

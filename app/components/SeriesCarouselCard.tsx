@@ -46,7 +46,7 @@ export default function SeriesCarouselCard({ series, parts, featured = false }: 
       sx={{
         height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, border, overflow: 'hidden',
         background: 'rgba(148,163,184,0.03)', outline: 'none', transition: 'border-color .2s, transform .2s',
-        '&:hover': { borderColor: 'rgba(63,185,80,0.4)' }, '&:focus-visible': { borderColor: ACCENT },
+        '&:hover': { borderColor: 'rgba(148,188,227,0.4)' }, '&:focus-visible': { borderColor: ACCENT },
       }}
     >
       {/* Cover viewport */}
@@ -110,7 +110,7 @@ export default function SeriesCarouselCard({ series, parts, featured = false }: 
 
         <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 0.25 }}>
           {topicTags(t).slice(0, 3).map((tag) => (
-            <Chip key={tag} label={tag} size="small" sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(63,185,80,0.1)', color: ACCENT, border: '1px solid rgba(63,185,80,0.25)' }} />
+            <Chip key={tag} label={tag} size="small" sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(148,188,227,0.1)', color: ACCENT, border: '1px solid rgba(148,188,227,0.25)' }} />
           ))}
         </Box>
 

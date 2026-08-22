@@ -59,7 +59,7 @@ export default function SignInDialog({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth
-      PaperProps={{ sx: { background: '#161b22', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 2 } }}>
+      PaperProps={{ sx: { background: '#2b2b2d', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 2 } }}>
       <DialogContent sx={{ p: 4 }}>
         <Typography sx={{ fontFamily: MONO, fontSize: 11, color: ACCENT, letterSpacing: '0.15em', textTransform: 'uppercase', mb: 1 }}>
           Live demo
@@ -72,7 +72,7 @@ export default function SignInDialog({
         </Typography>
 
         {state === 'sent' ? (
-          <Alert severity="success" sx={{ background: 'rgba(63,185,80,0.1)', color: 'text.primary' }}>
+          <Alert severity="success" sx={{ background: 'rgba(148,188,227,0.1)', color: 'text.primary' }}>
             Check your inbox — the sign-in link continues straight to the demo.
           </Alert>
         ) : (

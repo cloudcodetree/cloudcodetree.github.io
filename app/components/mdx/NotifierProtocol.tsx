@@ -23,7 +23,7 @@ const BRANCHES = [
     label: 'ConsoleNotifier',
     sublabel: 'default · tests · inspection',
     active: true,
-    color: '#3fb950',
+    color: '#94bce3',
   },
   {
     id: 'email',
@@ -176,7 +176,7 @@ export default function NotifierProtocol({ accent = ACCENT }: { accent?: string 
             borderRadius: 9,
             padding: '7px 16px',
             color: '#8b98a8',
-            background: 'rgba(63,185,80,0.06)',
+            background: 'rgba(148,188,227,0.06)',
             marginBottom: 0,
           }}
         >
@@ -193,7 +193,7 @@ export default function NotifierProtocol({ accent = ACCENT }: { accent?: string 
           style={{
             width: '78%',
             height: 2,
-            background: `linear-gradient(90deg, #3fb950 0%, ${accent}55 50%, #58a6ff 100%)`,
+            background: `linear-gradient(90deg, #94bce3 0%, ${accent}55 50%, #58a6ff 100%)`,
             borderRadius: 1,
             marginTop: 0,
             transformOrigin: 'center',
@@ -209,7 +209,7 @@ export default function NotifierProtocol({ accent = ACCENT }: { accent?: string 
       </div>
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#596070', marginTop: 18 }}>
-        <span style={{ color: '#3fb950' }}>ConsoleNotifier</span> is the default — .sent keeps the payload list for tests.
+        <span style={{ color: '#94bce3' }}>ConsoleNotifier</span> is the default — .sent keeps the payload list for tests.
         {' '}Email/push slots in without touching run_suggestions().
       </div>
     </div>

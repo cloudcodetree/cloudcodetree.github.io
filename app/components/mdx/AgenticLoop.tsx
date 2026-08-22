@@ -11,7 +11,7 @@ import { MONO, ACCENT } from '../blogShared';
  * opacity/transform on <div>s only.
  */
 
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const RED = '#f85149';
 const OVER = '#8b98a8';
 const AMBER = '#f0a30a';
@@ -50,7 +50,7 @@ export default function AgenticLoop({ accent = ACCENT }: { accent?: string }) {
               style={{
                 padding: '10px 12px', borderRadius: 9,
                 border: `1px solid ${h.ok ? GREEN : 'rgba(148,163,184,0.2)'}55`,
-                background: h.ok ? 'rgba(63,185,80,0.06)' : 'rgba(148,163,184,0.04)',
+                background: h.ok ? 'rgba(148,188,227,0.06)' : 'rgba(148,163,184,0.04)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -77,7 +77,7 @@ export default function AgenticLoop({ accent = ACCENT }: { accent?: string }) {
 
         <motion.div
           initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ amount: 0.4 }} transition={{ delay: 0.5 }}
-          style={{ marginTop: 4, padding: '10px 12px', borderRadius: 9, border: `1px solid ${GREEN}66`, background: 'rgba(63,185,80,0.08)' }}
+          style={{ marginTop: 4, padding: '10px 12px', borderRadius: 9, border: `1px solid ${GREEN}66`, background: 'rgba(148,188,227,0.08)' }}
         >
           <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: GREEN, marginBottom: 3 }}>grounded answer</div>
           <div style={{ fontFamily: MONO, fontSize: 11.5, color: '#cdd7e2', lineHeight: 1.6 }}>

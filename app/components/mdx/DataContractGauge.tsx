@@ -60,7 +60,7 @@ const SCENARIOS: Scenario[] = [
 ];
 
 const OUTCOME_COLORS = {
-  pass: { bar: ACCENT, border: 'rgba(63,185,80,0.35)', bg: 'rgba(63,185,80,0.08)', label: '#3fb950' },
+  pass: { bar: ACCENT, border: 'rgba(148,188,227,0.35)', bg: 'rgba(148,188,227,0.08)', label: '#94bce3' },
   error: { bar: '#d29922', border: 'rgba(210,153,34,0.35)', bg: 'rgba(210,153,34,0.08)', label: '#d29922' },
   fail: { bar: '#f85149', border: 'rgba(248,81,73,0.35)', bg: 'rgba(248,81,73,0.08)', label: '#f85149' },
 };
@@ -113,7 +113,7 @@ function ScenarioCard({ sc, i }: { sc: Scenario; i: number }) {
               fontFamily: MONO,
               fontSize: 8,
               color: ACCENT,
-              border: `1px solid rgba(63,185,80,0.25)`,
+              border: `1px solid rgba(148,188,227,0.25)`,
               borderRadius: 3,
               padding: '1px 4px',
               whiteSpace: 'nowrap' as const,

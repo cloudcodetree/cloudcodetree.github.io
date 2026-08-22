@@ -21,8 +21,8 @@ import { MONO, ACCENT } from '../blogShared';
  */
 
 const ORANGE = '#d29922';
-const GREEN = '#3fb950';
-const BLUE = '#2f81f7';
+const GREEN = '#94bce3';
+const BLUE = '#94bce3';
 const PURPLE = '#a371f7';
 
 function Hexagon({ size = 80, color = ACCENT }: { size?: number; color?: string }) {
@@ -260,7 +260,7 @@ export default function OAuthFlow({ accent = ACCENT }: { accent?: string }) {
             padding: '10px 14px',
             fontFamily: MONO,
             fontSize: 11,
-            background: 'rgba(63,185,80,0.05)',
+            background: 'rgba(148,188,227,0.05)',
           }}
         >
           <div style={{ color: GREEN, marginBottom: 6, fontWeight: 700 }}>

@@ -24,7 +24,7 @@ export default function InjectionShield({ accent = ACCENT }: { accent?: string }
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {LANES.map((l, i) => {
-          const col = l.ok ? '#3fb950' : '#f85149';
+          const col = l.ok ? '#94bce3' : '#f85149';
           return (
             <motion.div
               key={i}

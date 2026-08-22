@@ -11,7 +11,7 @@ import { MONO, ACCENT } from '../blogShared';
  * token's K/V. Div grid + framer opacity = hydration-safe.
  */
 
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const AMBER = '#f0a30a';
 const MUT = '#8b98a8';
 
@@ -24,7 +24,7 @@ function Cell({ kind }: { kind: 'fresh' | 'cached' | 'empty' }) {
   };
   if (kind === 'empty') return <div style={{ ...style, visibility: 'hidden' }} />;
   if (kind === 'fresh') return <div style={{ ...style, background: 'rgba(240,163,10,0.18)', border: `1px solid ${AMBER}`, color: AMBER }}>KV</div>;
-  return <div style={{ ...style, background: 'rgba(63,185,80,0.12)', border: `1px solid ${GREEN}66`, color: GREEN }}>KV</div>;
+  return <div style={{ ...style, background: 'rgba(148,188,227,0.12)', border: `1px solid ${GREEN}66`, color: GREEN }}>KV</div>;
 }
 
 function Panel({ title, cached, cost, costColor }: { title: string; cached: boolean; cost: string; costColor: string }) {

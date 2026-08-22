@@ -19,7 +19,7 @@ const THRESHOLD = 0.2;
 const MAX_PSI = 0.5; // display ceiling (both real values sit comfortably below)
 
 const READINGS = [
-  { label: 'frac=0.1 (mild shift)', psi: 0.043, action: 'hold',    actionColor: '#3fb950' },
+  { label: 'frac=0.1 (mild shift)', psi: 0.043, action: 'hold',    actionColor: '#94bce3' },
   { label: 'frac=0.3 (strong shift)', psi: 0.318, action: 'retrain', actionColor: '#f85149' },
 ];
 

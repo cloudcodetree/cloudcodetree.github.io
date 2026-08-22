@@ -10,7 +10,7 @@ import { MONO, ACCENT } from '../blogShared';
  * is illustrative, not a benchmark. Static SVG + framer opacity = hydration-safe.
  */
 
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const AMBER = '#f0a30a';
 const MUT = '#8b98a8';
 

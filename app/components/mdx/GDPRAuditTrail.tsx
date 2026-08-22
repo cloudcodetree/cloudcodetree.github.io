@@ -232,7 +232,7 @@ export default function GDPRAuditTrail({ accent = ACCENT }: { accent?: string })
             transition={{ delay: 1.3 }}
           >
             isinstance(store.audit, AuditLog){' '}
-            <span style={{ color: '#3fb950' }}>True</span>
+            <span style={{ color: '#94bce3' }}>True</span>
           </motion.div>
         </div>
       </div>

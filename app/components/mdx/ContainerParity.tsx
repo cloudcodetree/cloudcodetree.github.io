@@ -41,7 +41,7 @@ export default function ContainerParity({ accent = ACCENT }: { accent?: string }
             >
               <div style={{ fontFamily: MONO, fontSize: 11, color: '#cdd7e2' }}>{e}</div>
               <motion.div
-                style={{ marginTop: 6, fontFamily: MONO, fontSize: 10, color: '#3fb950' }}
+                style={{ marginTop: 6, fontFamily: MONO, fontSize: 10, color: '#94bce3' }}
                 animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
               >✓ same bits</motion.div>
             </motion.div>

@@ -24,7 +24,7 @@ const HITL = { x: 360, y: 185 };
 const ANSWER = { x: 430, y: 290 };
 
 // Badge colours
-const DEAL_CLR       = '#3fb950';  // green
+const DEAL_CLR       = '#94bce3';  // green
 const SUSPICIOUS_CLR = '#d29922';  // amber
 
 function Hex({ cx, cy, r, stroke, fill }: { cx: number; cy: number; r: number; stroke: string; fill: string }) {

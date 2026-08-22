@@ -144,7 +144,7 @@ export default function PriceDropForecast() {
             x1={historyPoints[historyPoints.length - 1].x}
             y1={historyPoints[historyPoints.length - 1].y}
             x2={forecastX} y2={forecastY}
-            stroke="#3fb950"
+            stroke="#94bce3"
             strokeWidth={1.5}
             strokeDasharray="3 3"
             initial={{ opacity: 0 }}
@@ -170,7 +170,7 @@ export default function PriceDropForecast() {
           {/* forecast dot — green, pulsing */}
           <motion.circle
             cx={forecastX} cy={forecastY} r={5}
-            fill="#3fb950"
+            fill="#94bce3"
             initial={{ opacity: 0, scale: 0 }}
             whileInView={{ opacity: [0, 1, 0.7, 1], scale: 1 }}
             viewport={{ amount: 0.4 }}
@@ -185,7 +185,7 @@ export default function PriceDropForecast() {
           </text>
 
           {/* forecast label */}
-          <text x={forecastX + 4} y={forecastY - 8} textAnchor="start" fill="#3fb950" fontSize={9} fontFamily="monospace">
+          <text x={forecastX + 4} y={forecastY - 8} textAnchor="start" fill="#94bce3" fontSize={9} fontFamily="monospace">
             ${FORECAST} →
           </text>
 
@@ -195,7 +195,7 @@ export default function PriceDropForecast() {
               w{i + 1}
             </text>
           ))}
-          <text x={forecastX} y={H - 6} textAnchor="middle" fill="#3fb950" fontSize={9} fontFamily="monospace">
+          <text x={forecastX} y={H - 6} textAnchor="middle" fill="#94bce3" fontSize={9} fontFamily="monospace">
             w13
           </text>
         </svg>
@@ -213,9 +213,9 @@ export default function PriceDropForecast() {
         }}
       >
         <span>last_price <strong>${LAST_ACTUAL}</strong></span>
-        <span>forecast_next <strong style={{ color: '#3fb950' }}>${FORECAST}</strong></span>
+        <span>forecast_next <strong style={{ color: '#94bce3' }}>${FORECAST}</strong></span>
         <span>slope <strong>−0.816/wk</strong></span>
-        <span>will_drop <strong style={{ color: '#3fb950' }}>True</strong></span>
+        <span>will_drop <strong style={{ color: '#94bce3' }}>True</strong></span>
         <span style={{ color: '#8b98a8' }}>drop_pct 1.16%</span>
       </div>
     </div>

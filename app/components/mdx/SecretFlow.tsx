@@ -25,7 +25,7 @@ const KEYS = [
 
 // ── colour tokens ────────────────────────────────────────────────────────────
 const RED = '#f85149';
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const BLUE = '#58a6ff';
 
 export default function SecretFlow({ accent = ACCENT }: { accent?: string }) {

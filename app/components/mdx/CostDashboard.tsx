@@ -17,8 +17,8 @@ import { MONO, ACCENT } from '../blogShared';
 
 const SPEND = [
   { model: 'gpt-4o', cost: 62, color: '#f0883e', note: 'extraction' },
-  { model: 'gpt-4o-mini', cost: 21, color: '#3fb950', note: 'deal scoring' },
-  { model: 'fastembed', cost: 5, color: '#2f81f7', note: 'title embeddings' },
+  { model: 'gpt-4o-mini', cost: 21, color: '#94bce3', note: 'deal scoring' },
+  { model: 'fastembed', cost: 5, color: '#94bce3', note: 'title embeddings' },
 ];
 const TOTAL = SPEND.reduce((s, x) => s + x.cost, 0); // 88
 const BUDGET = 100;
@@ -53,7 +53,7 @@ export default function CostDashboard({ accent = ACCENT }: { accent?: string }) 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginBottom: 5 }}>today vs ${BUDGET} daily budget</div>
       <div style={{ position: 'relative', height: 20, background: 'rgba(148,163,184,0.07)', borderRadius: 5, overflow: 'hidden' }}>
         <motion.div
-          style={{ height: '100%', borderRadius: 5, background: warn ? '#d29922' : '#3fb950' }}
+          style={{ height: '100%', borderRadius: 5, background: warn ? '#d29922' : '#94bce3' }}
           initial={{ width: 0 }} whileInView={{ width: `${frac * 100}%` }} viewport={{ amount: 0.4 }} transition={{ delay: 0.5, duration: 0.8 }}
         />
         <div style={{ position: 'absolute', top: 0, bottom: 0, left: '80%', width: 2, background: '#f85149' }} />

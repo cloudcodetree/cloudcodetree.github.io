@@ -30,7 +30,7 @@ type LabelRow = {
 const N = 270;
 
 const ROWS: LabelRow[] = [
-  { name: 'deal',       count:  71, weight: 0.9507, color: '#3fb950' },
+  { name: 'deal',       count:  71, weight: 0.9507, color: '#94bce3' },
   { name: 'fair',       count:  40, weight: 1.6875, color: '#58a6ff' },
   { name: 'suspicious', count:  32, weight: 2.1094, color: '#d29922' },
   { name: 'overpriced', count: 127, weight: 0.5315, color: '#8b98a8' },

@@ -79,14 +79,14 @@ export default function CacheThresholdKnob({ accent = ACCENT }: { accent?: strin
 
           {/* threshold at 0.90 — drops in after */}
           <motion.div
-            style={{ position: 'absolute', top: -22, left: threshold090Px - 1, width: 2, height: 22, background: '#3fb950', borderRadius: 2 }}
+            style={{ position: 'absolute', top: -22, left: threshold090Px - 1, width: 2, height: 22, background: '#94bce3', borderRadius: 2 }}
             initial={{ scaleY: 0, transformOrigin: 'top' }}
             whileInView={{ scaleY: 1 }}
             viewport={{ amount: 0.4 }}
             transition={{ delay: 0.6, duration: 0.4 }}
           />
           <motion.div
-            style={{ position: 'absolute', top: -30, left: threshold090Px - 16, fontFamily: MONO, fontSize: 9, color: '#3fb950', whiteSpace: 'nowrap' }}
+            style={{ position: 'absolute', top: -30, left: threshold090Px - 16, fontFamily: MONO, fontSize: 9, color: '#94bce3', whiteSpace: 'nowrap' }}
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ amount: 0.4 }} transition={{ delay: 0.8 }}
           >
             0.90
@@ -127,14 +127,14 @@ export default function CacheThresholdKnob({ accent = ACCENT }: { accent?: strin
 
         {/* at 0.90 */}
         <motion.div
-          style={{ flex: '1 1 180px', minWidth: 160, padding: '10px 14px', background: 'rgba(63,185,80,0.08)', border: '1px solid rgba(63,185,80,0.3)', borderRadius: 8 }}
+          style={{ flex: '1 1 180px', minWidth: 160, padding: '10px 14px', background: 'rgba(148,188,227,0.08)', border: '1px solid rgba(148,188,227,0.3)', borderRadius: 8 }}
           initial={{ opacity: 0, y: 6 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ amount: 0.4 }} transition={{ delay: 0.6 }}
         >
-          <div style={{ fontFamily: MONO, fontSize: 10, color: '#3fb950', marginBottom: 6 }}>threshold = 0.90</div>
+          <div style={{ fontFamily: MONO, fontSize: 10, color: '#94bce3', marginBottom: 6 }}>threshold = 0.90</div>
           <div style={{ fontFamily: MONO, fontSize: 14, color: '#cdd7e2', marginBottom: 2 }}>
             {AT_090.hits}/{AT_090.total} hits
           </div>
-          <div style={{ fontFamily: MONO, fontSize: 12, color: '#3fb950', marginBottom: 4 }}>
+          <div style={{ fontFamily: MONO, fontSize: 12, color: '#94bce3', marginBottom: 4 }}>
             hit rate {AT_090.hitRate}
           </div>
           <div style={{ fontFamily: MONO, fontSize: 9, color: '#8b98a8' }}>

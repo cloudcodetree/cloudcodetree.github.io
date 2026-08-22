@@ -38,7 +38,7 @@ const TOKENS_PER_ROW = 5;
 const TOKEN_STEP = TOKEN_R * 2 + GAP;
 
 function Token({ call, index }: { call: (typeof CALLS)[number]; index: number }) {
-  const col = call.allowed ? '#3fb950' : '#f85149';
+  const col = call.allowed ? '#94bce3' : '#f85149';
   const label = call.allowed ? 'allow' : 'block';
   return (
     <motion.div
@@ -188,7 +188,7 @@ export default function SlidingWindowClock({ accent = ACCENT }: { accent?: strin
       >
         <span>
           allowed:{' '}
-          <span style={{ color: '#3fb950', fontWeight: 700 }}>{allowed}</span>
+          <span style={{ color: '#94bce3', fontWeight: 700 }}>{allowed}</span>
         </span>
         <span>
           blocked:{' '}

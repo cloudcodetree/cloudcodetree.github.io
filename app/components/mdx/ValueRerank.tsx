@@ -30,20 +30,20 @@ const AFTER = [
 ];
 
 function badgeColor(note: string, deal: boolean): string {
-  if (deal) return '#3fb950';
+  if (deal) return '#94bce3';
   if (note === 'SUSPICIOUS') return '#f0a30a';
   if (note === 'OVERPRICED') return '#8b98a8';
   return '#8b98a8';
 }
 
 function rowBorder(note: string, deal: boolean): string {
-  if (deal) return '#3fb95073';
+  if (deal) return '#94bce373';
   if (note === 'SUSPICIOUS') return '#f0a30a55';
   return 'rgba(148,163,184,0.18)';
 }
 
 function rowBg(note: string, deal: boolean): string {
-  if (deal) return 'rgba(63,185,80,0.12)';
+  if (deal) return 'rgba(148,188,227,0.12)';
   if (note === 'SUSPICIOUS') return 'rgba(240,163,10,0.08)';
   return 'rgba(148,163,184,0.04)';
 }
@@ -93,7 +93,7 @@ export default function ValueRerank({ accent = ACCENT }: { accent?: string }) {
       </div>
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 14 }}>
-        <span style={{ color: '#3fb950' }}>Anker Q20i</span> (DEAL) rises — the residual guard demotes <span style={{ color: '#f0a30a' }}>Bose QC45</span> (SUSPICIOUS) despite similar price.
+        <span style={{ color: '#94bce3' }}>Anker Q20i</span> (DEAL) rises — the residual guard demotes <span style={{ color: '#f0a30a' }}>Bose QC45</span> (SUSPICIOUS) despite similar price.
       </div>
     </div>
   );

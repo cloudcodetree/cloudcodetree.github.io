@@ -23,7 +23,7 @@ export default function SemanticCacheViz({ accent = ACCENT }: { accent?: string 
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {ROWS.map((r, i) => {
-          const col = r.hit ? '#3fb950' : '#8b98a8';
+          const col = r.hit ? '#94bce3' : '#8b98a8';
           return (
             <motion.div
               key={i}
@@ -47,7 +47,7 @@ export default function SemanticCacheViz({ accent = ACCENT }: { accent?: string 
       </div>
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', marginTop: 16 }}>
-        On repetitive traffic this is the cheapest win there is — <span style={{ color: '#3fb950' }}>~0ms, $0</span> for a paraphrase.
+        On repetitive traffic this is the cheapest win there is — <span style={{ color: '#94bce3' }}>~0ms, $0</span> for a paraphrase.
       </div>
     </div>
   );

@@ -42,7 +42,7 @@ export default function RankingMetric({ accent = ACCENT }: { accent?: string }) 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5, position: 'relative' }}>
         {LIST.map((item, i) => {
           const rank = i + 1;
-          const col = item.hit ? '#3fb950' : '#8b98a8';
+          const col = item.hit ? '#94bce3' : '#8b98a8';
           return (
             <div key={item.id}>
               {rank === K + 1 && (

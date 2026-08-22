@@ -19,7 +19,7 @@ import { MONO, ACCENT } from '../blogShared';
  */
 
 const ROUTES = [
-  { path: '/search/stream?q=…', note: 'SSE — EventSource, text/event-stream', color: '#3fb950' },
+  { path: '/search/stream?q=…', note: 'SSE — EventSource, text/event-stream', color: '#94bce3' },
   { path: '/search?q=…',        note: 'fallback JSON fetch',                    color: '#58a6ff' },
   { path: '/me',                 note: 'bearer-gated identity (Part 28)',        color: '#d29922' },
   { path: '/healthz',            note: 'readiness probe',                        color: '#8b98a8' },

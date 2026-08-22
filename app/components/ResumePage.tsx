@@ -240,7 +240,7 @@ export default function ResumePage() {
               sx={{
                 px: 4,
                 py: 1.5,
-                background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+                background: 'linear-gradient(135deg, #749dc4, #94bce3)',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #2563eb, #0891b2)',
                 },
@@ -266,7 +266,7 @@ export default function ResumePage() {
             PaperProps={{
               sx: {
                 minWidth: 280,
-                background: 'rgba(30, 41, 59, 0.95)',
+                background: 'rgba(43,43,45, 0.95)',
                 backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(148, 163, 184, 0.1)',
               }
@@ -281,7 +281,7 @@ export default function ResumePage() {
                   disabled={downloading === format.extension}
                 >
                   <ListItemIcon>
-                    <Icon sx={{ color: '#3b82f6' }} />
+                    <Icon sx={{ color: '#749dc4' }} />
                   </ListItemIcon>
                   <ListItemText 
                     primary={format.label}
@@ -292,9 +292,9 @@ export default function ResumePage() {
                     size="small" 
                     sx={{ 
                       ml: 1,
-                      background: 'rgba(59, 130, 246, 0.1)',
-                      color: '#3b82f6',
-                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      background: 'rgba(116,157,196, 0.1)',
+                      color: '#749dc4',
+                      border: '1px solid rgba(116,157,196, 0.3)',
                     }} 
                   />
                 </MenuItem>
@@ -303,7 +303,7 @@ export default function ResumePage() {
             <Divider sx={{ my: 1, backgroundColor: 'rgba(148, 163, 184, 0.2)' }} />
             <MenuItem onClick={handleDownloadAll} disabled={downloading === 'zip'}>
               <ListItemIcon>
-                <FolderZipIcon sx={{ color: '#06b6d4' }} />
+                <FolderZipIcon sx={{ color: '#94bce3' }} />
               </ListItemIcon>
               <ListItemText 
                 primary="Download All Formats"
@@ -314,9 +314,9 @@ export default function ResumePage() {
                 size="small" 
                 sx={{ 
                   ml: 1,
-                  background: 'rgba(6, 182, 212, 0.1)',
-                  color: '#06b6d4',
-                  border: '1px solid rgba(6, 182, 212, 0.3)',
+                  background: 'rgba(148,188,227, 0.1)',
+                  color: '#94bce3',
+                  border: '1px solid rgba(148,188,227, 0.3)',
                 }} 
               />
             </MenuItem>
@@ -334,9 +334,9 @@ export default function ResumePage() {
                   label={format.extension.toUpperCase()}
                   size="small"
                   sx={{
-                    background: 'rgba(59, 130, 246, 0.1)',
-                    color: '#3b82f6',
-                    border: '1px solid rgba(59, 130, 246, 0.3)',
+                    background: 'rgba(116,157,196, 0.1)',
+                    color: '#749dc4',
+                    border: '1px solid rgba(116,157,196, 0.3)',
                   }}
                 />
               ))}
@@ -344,9 +344,9 @@ export default function ResumePage() {
                 label="ZIP"
                 size="small"
                 sx={{
-                  background: 'rgba(6, 182, 212, 0.1)',
-                  color: '#06b6d4',
-                  border: '1px solid rgba(6, 182, 212, 0.3)',
+                  background: 'rgba(148,188,227, 0.1)',
+                  color: '#94bce3',
+                  border: '1px solid rgba(148,188,227, 0.3)',
                 }}
               />
             </Box>

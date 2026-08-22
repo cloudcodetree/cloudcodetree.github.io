@@ -10,7 +10,7 @@ import { MONO, ACCENT } from '../blogShared';
  * Div grid + framer opacity = hydration-safe.
  */
 
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const MUT = '#8b98a8';
 
 const ITEMS = ['XM5', 'XM6', 'Beats', 'CH720', 'Cable'];
@@ -51,7 +51,7 @@ export default function ItemItemCF({ accent = ACCENT }: { accent?: string }) {
                 style={{
                   height: 20, borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontFamily: MONO, fontSize: 10,
-                  background: c === 0 ? `${accent}1f` : likesXm5 && v ? 'rgba(63,185,80,0.14)' : 'rgba(148,163,184,0.06)',
+                  background: c === 0 ? `${accent}1f` : likesXm5 && v ? 'rgba(148,188,227,0.14)' : 'rgba(148,163,184,0.06)',
                   border: c === 0 ? `1px solid ${accent}55` : likesXm5 && v ? `1px solid ${GREEN}55` : '1px solid rgba(148,163,184,0.12)',
                   color: v ? (c === 0 ? accent : likesXm5 ? GREEN : MUT) : 'rgba(148,163,184,0.35)',
                   opacity: likesXm5 || c === 0 ? 1 : 0.55,

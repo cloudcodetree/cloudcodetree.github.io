@@ -11,9 +11,9 @@ import { MONO, ACCENT } from '../blogShared';
  * the strongest picks move to the edges. Static/hydration-safe (transform/opacity).
  */
 
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const OVER = '#8b98a8';
-const ACCENT2 = '#06b6d4';
+const ACCENT2 = '#94bce3';
 
 // 20 retrieved items; first 4 fit the 256-token budget, the rest are evicted.
 const ITEMS = Array.from({ length: 20 }, (_, i) => i < 4);
@@ -42,7 +42,7 @@ export default function ContextBudget({ accent = ACCENT }: { accent?: string }) 
               width: 30, height: 22, borderRadius: 4,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontFamily: MONO, fontSize: 9, fontWeight: 700,
-              color: kept ? '#0d1117' : OVER,
+              color: kept ? '#1d1f20' : OVER,
               background: kept ? GREEN : 'rgba(148,163,184,0.10)',
               border: `1px solid ${kept ? GREEN : 'rgba(148,163,184,0.18)'}`,
             }}
@@ -77,7 +77,7 @@ export default function ContextBudget({ accent = ACCENT }: { accent?: string }) 
             style={{
               flex: 1, padding: '8px 4px', borderRadius: 6, textAlign: 'center',
               fontFamily: MONO, fontSize: 10, fontWeight: 700,
-              color: c.edge ? '#0d1117' : '#cdd7e2',
+              color: c.edge ? '#1d1f20' : '#cdd7e2',
               background: c.edge ? ACCENT2 : 'rgba(148,163,184,0.08)',
               border: `1px solid ${c.edge ? ACCENT2 : 'rgba(148,163,184,0.18)'}`,
             }}

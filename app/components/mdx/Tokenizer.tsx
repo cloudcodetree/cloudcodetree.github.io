@@ -26,8 +26,8 @@ const TOKENS: { t: string; id: number }[] = [
   { t: 'phones', id: 17144 },
 ];
 
-const PALETTE = ['#3fb95033', '#2f81f733', '#d2992233', '#a371f733', '#f0598333'];
-const BORDER = ['#3fb95088', '#2f81f788', '#d2992288', '#a371f788', '#f0598388'];
+const PALETTE = ['#94bce333', '#94bce333', '#d2992233', '#a371f733', '#f0598333'];
+const BORDER = ['#94bce388', '#94bce388', '#d2992288', '#a371f788', '#f0598388'];
 
 export default function Tokenizer({ accent = ACCENT }: { accent?: string }) {
   return (

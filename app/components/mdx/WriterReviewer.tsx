@@ -11,7 +11,7 @@ import { MONO, ACCENT } from '../blogShared';
  * Static/hydration-safe (transform/opacity on <div>s).
  */
 
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const RED = '#f85149';
 const OVER = '#8b98a8';
 
@@ -25,7 +25,7 @@ function Check({ label, ok }: { label: string; ok: boolean }) {
 
 function Panel({ children, tone }: { children: React.ReactNode; tone: 'writer' | 'pass' | 'fail' }) {
   const border = tone === 'fail' ? `${RED}55` : tone === 'pass' ? `${GREEN}55` : 'rgba(148,163,184,0.2)';
-  const bg = tone === 'fail' ? 'rgba(248,81,73,0.06)' : tone === 'pass' ? 'rgba(63,185,80,0.07)' : 'rgba(148,163,184,0.04)';
+  const bg = tone === 'fail' ? 'rgba(248,81,73,0.06)' : tone === 'pass' ? 'rgba(148,188,227,0.07)' : 'rgba(148,163,184,0.04)';
   return (
     <div style={{ flex: '1 1 210px', minWidth: 205, padding: '11px 12px', borderRadius: 9, border: `1px solid ${border}`, background: bg }}>
       {children}

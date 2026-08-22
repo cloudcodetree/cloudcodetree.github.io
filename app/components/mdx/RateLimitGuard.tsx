@@ -42,7 +42,7 @@ function RequestDot({
   burstMode: boolean;
 }) {
   const ok = result === 'ok';
-  const finalColor = ok ? '#3fb950' : '#f85149';
+  const finalColor = ok ? '#94bce3' : '#f85149';
   const note = ok ? '200 OK' : burstMode ? '429 throttled' : '—';
 
   return (
@@ -126,7 +126,7 @@ function Lane({
   burstMode: boolean;
   accent: string;
 }) {
-  const labelColor = burstMode ? '#f85149' : '#3fb950';
+  const labelColor = burstMode ? '#f85149' : '#94bce3';
   return (
     <div style={{ flex: '1 1 220px', minWidth: 200 }}>
       <div style={{ fontFamily: MONO, fontSize: 11, color: labelColor, fontWeight: 700, marginBottom: 2 }}>

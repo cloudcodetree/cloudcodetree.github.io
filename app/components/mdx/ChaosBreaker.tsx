@@ -23,10 +23,10 @@ const SOURCES: { id: string; name: string; tier: number }[] = [
 ];
 
 const COL: Record<SourceState, string> = {
-  healthy:    '#3fb950',
+  healthy:    '#94bce3',
   failing:    '#f85149',
   benched:    '#d29922',
-  recovering: '#2f81f7',
+  recovering: '#94bce3',
 };
 
 const LABEL: Record<SourceState, string> = {

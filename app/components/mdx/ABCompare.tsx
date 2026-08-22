@@ -59,7 +59,7 @@ export default function ABCompare({ accent = ACCENT }: { accent?: string }) {
         <span style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8' }}>CI: python -m dealfinder.run_evals</span>
         <span style={{ color: accent }}>→</span>
         <motion.span
-          style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: '#3fb950', border: '1px solid #3fb95073', background: 'rgba(63,185,80,0.12)', borderRadius: 7, padding: '5px 12px' }}
+          style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: '#94bce3', border: '1px solid #94bce373', background: 'rgba(148,188,227,0.12)', borderRadius: 7, padding: '5px 12px' }}
           animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity }}
         >✓ gate PASS — merge allowed</motion.span>
       </div>

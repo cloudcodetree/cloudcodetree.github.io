@@ -39,7 +39,7 @@ function Pills({ post, max = 3 }: { post: BlogPost; max?: number }) {
     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
       {tags.map((t) => (
         <Chip key={t} label={t} size="small"
-          sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(63,185,80,0.1)', color: ACCENT, border: '1px solid rgba(63,185,80,0.25)' }} />
+          sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(148,188,227,0.1)', color: ACCENT, border: '1px solid rgba(148,188,227,0.25)' }} />
       ))}
     </Box>
   );
@@ -189,7 +189,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
             sx={{
               height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, border, overflow: 'hidden',
               background: 'rgba(148,163,184,0.03)', transition: 'border-color .2s ease, transform .2s ease',
-              '&:hover': { borderColor: 'rgba(63,185,80,0.4)', transform: 'translateY(-2px)' },
+              '&:hover': { borderColor: 'rgba(148,188,227,0.4)', transform: 'translateY(-2px)' },
             }}
           >
             {post.image && (
@@ -288,7 +288,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
           </Select>
         </Box>
         <ToggleButtonGroup value={view} exclusive size="small" onChange={(_, v) => chooseView(v)} aria-label="Choose layout"
-          sx={{ '& .MuiToggleButton-root': { color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)', px: 1.25 }, '& .Mui-selected': { color: `${ACCENT} !important`, background: 'rgba(63,185,80,0.12) !important' } }}>
+          sx={{ '& .MuiToggleButton-root': { color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)', px: 1.25 }, '& .Mui-selected': { color: `${ACCENT} !important`, background: 'rgba(148,188,227,0.12) !important' } }}>
           <ToggleButton value="list" aria-label="Compact list"><ViewList fontSize="small" /></ToggleButton>
           <ToggleButton value="cards" aria-label="Cards"><GridView fontSize="small" /></ToggleButton>
           <ToggleButton value="feed" aria-label="Full feed"><ViewStream fontSize="small" /></ToggleButton>
@@ -309,11 +309,11 @@ export default function BlogPage({ posts }: BlogPageProps) {
                 onClick={() => toggleTag(tag)}
                 sx={{
                   fontFamily: MONO, fontSize: 11, cursor: 'pointer',
-                  color: on ? '#0d1117' : 'text.secondary',
+                  color: on ? '#1d1f20' : 'text.secondary',
                   background: on ? ACCENT : 'transparent',
                   border: '1px solid', borderColor: on ? ACCENT : 'rgba(148,163,184,0.25)',
                   '& .MuiChip-label': { px: 1 },
-                  '&:hover': { background: on ? ACCENT : 'rgba(63,185,80,0.12)' },
+                  '&:hover': { background: on ? ACCENT : 'rgba(148,188,227,0.12)' },
                 }}
               />
             );
@@ -342,7 +342,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
           {pageCount > 1 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
               <Pagination count={pageCount} page={safePage} onChange={(_, v) => goToPage(v)} shape="rounded"
-                sx={{ '& .MuiPaginationItem-root': { fontFamily: MONO, color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)' }, '& .Mui-selected': { background: `${ACCENT} !important`, color: '#0d1117', borderColor: ACCENT } }} />
+                sx={{ '& .MuiPaginationItem-root': { fontFamily: MONO, color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)' }, '& .Mui-selected': { background: `${ACCENT} !important`, color: '#1d1f20', borderColor: ACCENT } }} />
             </Box>
           )}
         </>

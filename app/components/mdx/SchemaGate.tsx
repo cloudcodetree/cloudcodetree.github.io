@@ -28,7 +28,7 @@ export default function SchemaGate({ accent = ACCENT }: { accent?: string }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {CANDIDATES.map((c, i) => {
-          const col = c.ok ? '#3fb950' : '#f85149';
+          const col = c.ok ? '#94bce3' : '#f85149';
           return (
             <motion.div
               key={i}

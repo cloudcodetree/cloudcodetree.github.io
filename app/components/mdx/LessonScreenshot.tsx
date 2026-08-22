@@ -25,12 +25,12 @@ export default function LessonScreenshot({
 }) {
   return (
     <figure style={{ margin: '24px 0' }}>
-      <div style={{ border: '1px solid rgba(148,163,184,0.22)', borderRadius: 12, overflow: 'hidden', background: '#0d1117' }}>
+      <div style={{ border: '1px solid rgba(148,163,184,0.22)', borderRadius: 12, overflow: 'hidden', background: '#1d1f20' }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- static export; real capture at native size */}
         <img src={src} alt={alt} style={{ display: 'block', width: '100%', height: 'auto' }} loading="lazy" />
       </div>
       {lookFor && (
-        <div style={{ fontFamily: MONO, fontSize: 12, lineHeight: 1.6, marginTop: 8, padding: '8px 12px', borderLeft: `3px solid ${accent}`, background: 'rgba(59,130,246,0.06)', borderRadius: '0 8px 8px 0', color: '#cdd7e2' }}>
+        <div style={{ fontFamily: MONO, fontSize: 12, lineHeight: 1.6, marginTop: 8, padding: '8px 12px', borderLeft: `3px solid ${accent}`, background: 'rgba(116,157,196,0.06)', borderRadius: '0 8px 8px 0', color: '#cdd7e2' }}>
         <b style={{ color: accent }}>Look for:</b> {lookFor}
         </div>
       )}

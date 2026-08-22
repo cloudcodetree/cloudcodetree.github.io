@@ -51,7 +51,7 @@ export default function ProjectsList({ projects }: { projects: Project[] }) {
           <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', mr: 0.5 }}>Tech</Typography>
           {techs.map(({ tag, count }) => {
             const on = selected.includes(tag);
-            return <Chip key={tag} label={`${tag} ${count}`} size="small" onClick={() => toggle(tag)} sx={{ fontFamily: MONO, fontSize: 11, cursor: 'pointer', color: on ? '#0d1117' : 'text.secondary', background: on ? ACCENT : 'transparent', border: '1px solid', borderColor: on ? ACCENT : 'rgba(148,163,184,0.25)', '& .MuiChip-label': { px: 1 }, '&:hover': { background: on ? ACCENT : 'rgba(63,185,80,0.12)' } }} />;
+            return <Chip key={tag} label={`${tag} ${count}`} size="small" onClick={() => toggle(tag)} sx={{ fontFamily: MONO, fontSize: 11, cursor: 'pointer', color: on ? '#1d1f20' : 'text.secondary', background: on ? ACCENT : 'transparent', border: '1px solid', borderColor: on ? ACCENT : 'rgba(148,163,184,0.25)', '& .MuiChip-label': { px: 1 }, '&:hover': { background: on ? ACCENT : 'rgba(148,188,227,0.12)' } }} />;
           })}
           {selected.length > 0 && <Chip label="Clear" size="small" onClick={() => setSelected([])} sx={{ fontFamily: MONO, fontSize: 11, cursor: 'pointer', color: ACCENT, background: 'transparent', border: '1px solid', borderColor: ACCENT, '& .MuiChip-label': { px: 1 } }} />}
         </Box>
@@ -63,7 +63,7 @@ export default function ProjectsList({ projects }: { projects: Project[] }) {
           return (
             <Grid size={{ xs: 12, sm: wide ? 12 : 6 }} key={p.slug}>
               <Box component={motion.div} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: Math.min(i * 0.05, 0.4) }}
-                sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, border, overflow: 'hidden', background: 'rgba(148,163,184,0.03)', transition: 'border-color .2s, transform .2s', '&:hover': { borderColor: 'rgba(63,185,80,0.4)', transform: 'translateY(-2px)' } }}>
+                sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, border, overflow: 'hidden', background: 'rgba(148,163,184,0.03)', transition: 'border-color .2s, transform .2s', '&:hover': { borderColor: 'rgba(148,188,227,0.4)', transform: 'translateY(-2px)' } }}>
                 <Box component={Link} href={`/projects/${p.slug}/`} sx={{ display: 'block' }}>
                   <Box component="img" src={p.cover} alt={p.title} loading="lazy" sx={{ width: '100%', aspectRatio: wide ? '32 / 9' : '16 / 9', objectFit: 'cover', display: 'block' }} />
                 </Box>
@@ -72,7 +72,7 @@ export default function ProjectsList({ projects }: { projects: Project[] }) {
                   <Typography sx={{ color: 'text.secondary', fontSize: '0.92rem', lineHeight: 1.5, ...clamp(3) }}>{p.summary}</Typography>
                   <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
                     {p.tech.slice(0, 4).map((t) => (
-                      <Chip key={t} label={t} size="small" sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(63,185,80,0.1)', color: ACCENT, border: '1px solid rgba(63,185,80,0.25)' }} />
+                      <Chip key={t} label={t} size="small" sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(148,188,227,0.1)', color: ACCENT, border: '1px solid rgba(148,188,227,0.25)' }} />
                     ))}
                   </Box>
                   <Box sx={{ mt: 'auto', pt: 1, display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -102,7 +102,7 @@ export default function ProjectsList({ projects }: { projects: Project[] }) {
       </Grid>
 
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 7 }}>
-        <Button href="https://github.com/cloudcodetree" target="_blank" rel="noopener noreferrer" variant="outlined" startIcon={<GitHub />} sx={{ fontFamily: MONO, textTransform: 'none', color: ACCENT, borderColor: 'rgba(63,185,80,0.4)', '&:hover': { borderColor: ACCENT, background: 'rgba(63,185,80,0.08)' } }}>
+        <Button href="https://github.com/cloudcodetree" target="_blank" rel="noopener noreferrer" variant="outlined" startIcon={<GitHub />} sx={{ fontFamily: MONO, textTransform: 'none', color: ACCENT, borderColor: 'rgba(148,188,227,0.4)', '&:hover': { borderColor: ACCENT, background: 'rgba(148,188,227,0.08)' } }}>
           More on GitHub
         </Button>
       </Box>

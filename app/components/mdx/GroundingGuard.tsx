@@ -20,7 +20,7 @@ import { MONO, ACCENT } from '../blogShared';
 // Real retrieved prices from rag.retrieve() — the allowed evidence set.
 const RETRIEVED = ['44.99', '129.99', '89.95', '359.99', '46.00'];
 
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const RED = '#f85149';
 const AMBER = '#f0a30a';
 
@@ -79,7 +79,7 @@ export default function GroundingGuard({ accent = ACCENT }: { accent?: string })
           initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ amount: 0.3 }} transition={{ delay: 0.2 }}
           style={{
             flex: '1 1 240px', minWidth: 230, padding: '12px 13px', borderRadius: 9,
-            border: `1px solid ${GREEN}55`, background: 'rgba(63,185,80,0.07)',
+            border: `1px solid ${GREEN}55`, background: 'rgba(148,188,227,0.07)',
           }}
         >
           <div style={{ fontFamily: MONO, fontSize: 12, lineHeight: 1.7, color: '#cdd7e2' }}>

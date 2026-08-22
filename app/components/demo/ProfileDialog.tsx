@@ -40,7 +40,7 @@ export default function ProfileDialog({
 
   return (
     <Dialog open={open} maxWidth="xs" fullWidth
-      PaperProps={{ sx: { background: '#161b22', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 2 } }}>
+      PaperProps={{ sx: { background: '#2b2b2d', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 2 } }}>
       <DialogContent sx={{ p: 4 }}>
         <Typography sx={{ fontFamily: MONO, fontSize: 11, color: ACCENT, letterSpacing: '0.15em', textTransform: 'uppercase', mb: 1 }}>
           Optional

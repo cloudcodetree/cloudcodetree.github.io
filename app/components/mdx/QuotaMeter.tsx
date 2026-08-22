@@ -20,9 +20,9 @@ import { MONO, ACCENT } from '../blogShared';
  * Static-export-safe: all text is real DOM text. No runtime data fetch.
  */
 
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const RED = '#f85149';
-const BLUE = '#2f81f7';
+const BLUE = '#94bce3';
 const ORANGE = '#d29922';
 
 interface GaugeProps {

@@ -41,7 +41,7 @@ const TIERS: Tier[] = [
     label: 'Official API',
     examples: 'RapidAPI · BestBuy · eBay Browse',
     permission: 'ToS explicitly permits programmatic access — first-party endpoint',
-    color: '#3fb950',
+    color: '#94bce3',
     badge: 'ALLOWED',
   },
   {

@@ -40,8 +40,8 @@ export default function ToolBelt({ accent = ACCENT }: { accent?: string }) {
           {READ_TOOLS.map((t, i) => (
             <motion.div
               key={t.name}
-              style={{ border: '1px solid rgba(63,185,80,0.4)', background: 'rgba(63,185,80,0.07)', borderRadius: 8, padding: '7px 10px' }}
-              animate={{ borderColor: ['rgba(63,185,80,0.25)', 'rgba(63,185,80,0.7)', 'rgba(63,185,80,0.25)'] }}
+              style={{ border: '1px solid rgba(148,188,227,0.4)', background: 'rgba(148,188,227,0.07)', borderRadius: 8, padding: '7px 10px' }}
+              animate={{ borderColor: ['rgba(148,188,227,0.25)', 'rgba(148,188,227,0.7)', 'rgba(148,188,227,0.25)'] }}
               transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
             >
               <div style={{ fontFamily: MONO, fontSize: 11, color: '#fff' }}>{t.name}</div>

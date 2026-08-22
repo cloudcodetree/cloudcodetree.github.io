@@ -76,7 +76,7 @@ export default function BlogPost({ post }: { post: Post }) {
               key={tag}
               label={tag}
               size="small"
-              sx={{ mr: 1, mb: 1, background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.3)' }}
+              sx={{ mr: 1, mb: 1, background: 'rgba(116,157,196, 0.1)', color: '#749dc4', border: '1px solid rgba(116,157,196, 0.3)' }}
             />
           ))}
         </Box>

@@ -1,64 +1,68 @@
 import { createTheme } from '@mui/material/styles';
+import { industry } from './industryTokens';
 
+// Industry direction on its dark ground — tokens from design/claude-design.
+// Square corners, hairline borders, no glass blur; Barlow Condensed display
+// over Barlow body (loaded via next/font in app/layout.tsx).
 export const darkTheme = createTheme({
   palette: {
     mode: 'dark',
-    primary: {
-      main: '#3b82f6',
-    },
-    secondary: {
-      main: '#06b6d4',
-    },
+    primary: { main: industry.accent[500] },
+    secondary: { main: industry.accent[400] },
     background: {
-      default: '#0f172a',
-      paper: '#1e293b',
+      default: industry.ground,
+      paper: industry.surface,
     },
     text: {
-      primary: '#f1f5f9',
-      secondary: '#94a3b8',
+      primary: industry.ink,
+      secondary: industry.inkSecondary,
     },
+    divider: industry.divider,
+  },
+  shape: {
+    // sx borderRadius values multiply this: keeps every rounded corner ≤ a few px.
+    borderRadius: 1,
   },
   typography: {
-    fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+    fontFamily: 'var(--font-body), system-ui, -apple-system, sans-serif',
     h1: {
-      fontWeight: 700,
+      fontFamily: 'var(--font-display), system-ui, sans-serif',
+      fontWeight: 600,
       fontSize: '3.5rem',
-      '@media (max-width:600px)': {
-        fontSize: '2.5rem',
-      },
+      letterSpacing: '-0.01em',
+      '@media (max-width:600px)': { fontSize: '2.5rem' },
     },
     h2: {
+      fontFamily: 'var(--font-display), system-ui, sans-serif',
       fontWeight: 600,
       fontSize: '2.5rem',
-      '@media (max-width:600px)': {
-        fontSize: '2rem',
-      },
+      '@media (max-width:600px)': { fontSize: '2rem' },
     },
     h3: {
+      fontFamily: 'var(--font-display), system-ui, sans-serif',
       fontWeight: 600,
       fontSize: '2rem',
-      '@media (max-width:600px)': {
-        fontSize: '1.5rem',
-      },
+      '@media (max-width:600px)': { fontSize: '1.5rem' },
     },
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '8px',
+          borderRadius: 0,
           textTransform: 'none',
-          fontWeight: 500,
+          fontWeight: 600,
+          fontFamily: 'var(--font-display), system-ui, sans-serif',
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: '12px',
-          background: 'rgba(30, 41, 59, 0.7)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(148, 163, 184, 0.1)',
+          // Blueprint object: flat, square, hairline-bordered — never glass.
+          borderRadius: 0,
+          background: 'transparent',
+          border: `1px solid ${industry.divider}`,
         },
       },
     },

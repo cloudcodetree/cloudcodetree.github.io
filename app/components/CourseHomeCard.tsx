@@ -67,10 +67,10 @@ export default function CourseHomeCard({ parts, allHref = '/tutorials/all/' }: {
       </Typography>
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 3 }}>
-        <Box component={Link} href={`/tutorials/${first.slug}/`} sx={{ ...cta, color: '#0d1117', background: ACCENT, fontWeight: 600, '&:hover': { background: '#4ade80' } }}>
+        <Box component={Link} href={`/tutorials/${first.slug}/`} sx={{ ...cta, color: '#1d1f20', background: ACCENT, fontWeight: 600, '&:hover': { background: '#4ade80' } }}>
           Start with Part 1 <ArrowForward sx={{ fontSize: 16 }} />
         </Box>
-        <Box component={Link} href={allHref} sx={{ ...cta, color: ACCENT, border: '1px solid rgba(63,185,80,0.35)', '&:hover': { background: 'rgba(63,185,80,0.1)', color: LINK } }}>
+        <Box component={Link} href={allHref} sx={{ ...cta, color: ACCENT, border: '1px solid rgba(148,188,227,0.35)', '&:hover': { background: 'rgba(148,188,227,0.1)', color: LINK } }}>
           {`Browse all ${total} parts`} <ArrowForward sx={{ fontSize: 16 }} />
         </Box>
       </Box>

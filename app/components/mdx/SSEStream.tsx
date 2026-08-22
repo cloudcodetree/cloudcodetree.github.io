@@ -20,13 +20,13 @@ import { MONO, ACCENT } from '../blogShared';
  */
 
 const CHUNKS = [
-  { label: 'google_shopping', count: 12, ms: 340, color: '#3fb950' },
+  { label: 'google_shopping', count: 12, ms: 340, color: '#94bce3' },
   { label: 'bestbuy_scraper', count: 8,  ms: 890, color: '#58a6ff' },
   { label: 'done',            count: 20, ms: 920, color: '#8b98a8', done: true },
 ];
 
 const CARD_LABELS = [
-  { text: 'Anker Q20i  $44.99', badge: 'DEAL',       badgeColor: '#3fb950' },
+  { text: 'Anker Q20i  $44.99', badge: 'DEAL',       badgeColor: '#94bce3' },
   { text: 'Sony XM5  $162.97',  badge: 'FAIR',       badgeColor: '#58a6ff' },
   { text: 'Bose QC45  $46.00',  badge: 'SUSPICIOUS', badgeColor: '#d29922' },
   { text: '+ 14 more…',         badge: '',            badgeColor: 'transparent' },
@@ -212,7 +212,7 @@ export default function SSEStream({ accent = ACCENT }: { accent?: string }) {
             ))}
           </div>
           <div
-            style={{ fontFamily: MONO, fontSize: 10, color: '#3fb950', marginTop: 6 }}
+            style={{ fontFamily: MONO, fontSize: 10, color: '#94bce3', marginTop: 6 }}
           >
             first card at ~340 ms
           </div>

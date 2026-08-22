@@ -75,7 +75,7 @@ const TRAVERSED = new Set(['xm5', 'q20i', 'qc45', 'xm6', 'b2', 'b1']);
 
 const BADGE_COLOR: Record<string, string> = {
   FAIR: '#8b98a8',
-  DEAL: '#3fb950',
+  DEAL: '#94bce3',
   SUSPICIOUS: '#e3b341',
   OVERPRICED: '#6e7681',
 };
@@ -239,7 +239,7 @@ export default function VectorIndex({ accent = ACCENT }: { accent?: string }) {
                       : isTraversed
                       ? '#e3b341'
                       : n.group === 'hero'
-                      ? '#3b82f6'
+                      ? '#749dc4'
                       : 'rgba(148,163,184,0.4)',
                     border: isSettled ? `2px solid ${accent}` : 'none',
                     transition: 'background 0.3s',
@@ -346,7 +346,7 @@ export default function VectorIndex({ accent = ACCENT }: { accent?: string }) {
           color: '#8b98a8',
         }}
       >
-        <span><span style={{ color: '#3b82f6' }}>●</span> headphones (hero cast)</span>
+        <span><span style={{ color: '#749dc4' }}>●</span> headphones (hero cast)</span>
         <span><span style={{ color: '#e3b341' }}>●</span> traversed by HNSW</span>
         <span><span style={{ color: accent }}>●</span> top-5 results (settled)</span>
         <span><span style={{ color: 'rgba(148,163,184,0.4)' }}>●</span> pruned (never visited)</span>

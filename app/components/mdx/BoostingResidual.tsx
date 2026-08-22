@@ -14,7 +14,7 @@ import { MONO, ACCENT } from '../blogShared';
  */
 
 const RED = '#f85149';
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 
 // 6 points (svg coords in a 120x90 plot). y grows DOWN in svg.
 const PTS = [

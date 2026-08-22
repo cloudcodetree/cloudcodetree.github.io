@@ -1,8 +1,8 @@
 import { Box } from '@mui/material';
 
 const TONES = {
-  tip:     { border: '#3fb950', bg: 'rgba(63,185,80,0.08)',   label: 'TIP'      },
-  note:    { border: '#2f81f7', bg: 'rgba(47,129,247,0.08)',  label: 'NOTE'     },
+  tip:     { border: '#94bce3', bg: 'rgba(148,188,227,0.08)',   label: 'TIP'      },
+  note:    { border: '#94bce3', bg: 'rgba(47,129,247,0.08)',  label: 'NOTE'     },
   warn:    { border: '#d29922', bg: 'rgba(210,153,34,0.08)',  label: 'HEADS UP' },
   warning: { border: '#d29922', bg: 'rgba(210,153,34,0.08)',  label: 'HEADS UP' },
 } as const;

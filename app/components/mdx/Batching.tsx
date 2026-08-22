@@ -67,7 +67,7 @@ export default function Batching({ accent = ACCENT }: { accent?: string }) {
               animate={{ x: [0, 8, 0], opacity: [0.4, 1, 0.4] }}
               transition={{ duration: 2, repeat: Infinity, delay: 1 + i * 0.06 }}
             >
-              <span style={{ color: '#3fb950', fontSize: 11 }}>✓</span>
+              <span style={{ color: '#94bce3', fontSize: 11 }}>✓</span>
               <span style={{ fontFamily: MONO, fontSize: 10, color: '#8b98a8' }}>score {i + 1}</span>
             </motion.div>
           ))}

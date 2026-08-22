@@ -34,10 +34,12 @@ export interface BlogPageChunk {
   posts: BlogPost[];
 }
 
-export const SERIF = 'var(--font-fraunces), Georgia, serif';
+// Industry display face (Barlow Condensed) — the name SERIF is kept so 40+
+// call sites stay untouched; it now means "display type".
+export const SERIF = 'var(--font-display), system-ui, sans-serif';
 export const MONO = 'var(--font-plex-mono), ui-monospace, monospace';
-export const ACCENT = '#3fb950';
-export const LINK = '#2f81f7';
+export const ACCENT = '#94bce3'; // industry accent-400 on dark
+export const LINK = '#94bce3'; // hover: #b5d9fd
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -93,15 +95,15 @@ export const markdownSx = {
   '& a': { color: LINK, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } },
   '& img': { maxWidth: '100%', height: 'auto', borderRadius: 1 },
   '& blockquote': {
-    m: '28px 0', p: '16px 20px', backgroundColor: '#161b22', border: '1px solid #222a35',
+    m: '28px 0', p: '16px 20px', backgroundColor: '#2b2b2d', border: '1px solid #222a35',
     borderLeft: `3px solid ${LINK}`, borderRadius: 2, color: 'text.secondary', fontSize: '0.97rem',
     '& p': { m: 0 }, '& strong': { color: 'text.primary' },
   },
   '& hr': { border: 0, borderTop: '1px solid #222a35', my: 3 },
   '& hr + p': { color: 'text.secondary', fontSize: 13 },
   // Code blocks scroll horizontally instead of widening the page.
-  '& pre': { backgroundColor: 'rgba(30, 41, 59, 0.8)', borderRadius: 1, p: 2, maxWidth: '100%', overflowX: 'auto', mb: 2, fontSize: { xs: '0.78rem', md: '0.875rem' }, '& code': { whiteSpace: 'pre', overflowWrap: 'normal', wordBreak: 'normal' } },
-  '& code': { backgroundColor: 'rgba(30, 41, 59, 0.6)', px: 1, py: 0.5, borderRadius: 0.5, fontFamily: 'monospace' },
+  '& pre': { backgroundColor: 'rgba(43,43,45, 0.8)', borderRadius: 1, p: 2, maxWidth: '100%', overflowX: 'auto', mb: 2, fontSize: { xs: '0.78rem', md: '0.875rem' }, '& code': { whiteSpace: 'pre', overflowWrap: 'normal', wordBreak: 'normal' } },
+  '& code': { backgroundColor: 'rgba(43,43,45, 0.6)', px: 1, py: 0.5, borderRadius: 0.5, fontFamily: 'monospace' },
   '& ul, & ol': { mb: 2, pl: 3 },
   '& li': { mb: 1, lineHeight: 1.8 },
   // Wide tables scroll within their own box.

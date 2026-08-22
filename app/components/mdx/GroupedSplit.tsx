@@ -54,7 +54,7 @@ const TEST_QUERIES = new Set([
 const TRAIN = ALL_QUERIES.filter((q) => !TEST_QUERIES.has(q));
 const TEST  = ALL_QUERIES.filter((q) =>  TEST_QUERIES.has(q));
 
-const TRAIN_COLOR = '#3fb950';
+const TRAIN_COLOR = '#94bce3';
 const TEST_COLOR  = '#58a6ff';
 const BLOCK_COLOR = '#f85149';
 
@@ -112,7 +112,7 @@ export default function GroupedSplit() {
           fontSize: 11,
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          color: '#3fb950',
+          color: '#94bce3',
           marginBottom: 4,
         }}
       >

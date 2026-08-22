@@ -10,7 +10,7 @@ import { MONO, ACCENT } from '../blogShared';
  * produces a different fingerprint → reject. Static/hydration-safe.
  */
 
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const RED = '#f85149';
 const MUT = '#8b98a8';
 const MONOF = MONO;
@@ -30,7 +30,7 @@ function Scenario({
   const ok = tone === 'pass';
   const c = ok ? GREEN : RED;
   return (
-    <div style={{ flex: '1 1 250px', minWidth: 240, padding: '12px 13px', borderRadius: 9, border: `1px solid ${c}55`, background: ok ? 'rgba(63,185,80,0.06)' : 'rgba(248,81,73,0.06)' }}>
+    <div style={{ flex: '1 1 250px', minWidth: 240, padding: '12px 13px', borderRadius: 9, border: `1px solid ${c}55`, background: ok ? 'rgba(148,188,227,0.06)' : 'rgba(248,81,73,0.06)' }}>
       <div style={{ fontFamily: MONOF, fontSize: 10, color: MUT, marginBottom: 6 }}>{heading}</div>
       <Row label="payload" value={payload} color={ok ? '#cdd7e2' : RED} />
       <div style={{ margin: '6px 0', paddingLeft: 8, borderLeft: `2px solid ${accent}55` }}>

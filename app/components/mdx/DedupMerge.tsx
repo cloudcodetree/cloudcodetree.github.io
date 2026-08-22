@@ -28,7 +28,7 @@ export default function DedupMerge({
   title = 'Sony WH-1000XM5',
   candidates = [
     { source: "Macy's", color: '#8b98a8', price: '$248.00' },
-    { source: 'Costco', color: '#3fb950', price: '$162.97', best: true },
+    { source: 'Costco', color: '#94bce3', price: '$162.97', best: true },
   ],
   accent = ACCENT,
 }: {
@@ -50,7 +50,7 @@ export default function DedupMerge({
           {candidates.map((c, i) => (
             <motion.div
               key={c.source}
-              style={{ ...card, borderColor: c.best ? '#3fb95066' : 'rgba(148,163,184,0.18)', background: c.best ? 'rgba(63,185,80,0.08)' : 'rgba(148,163,184,0.05)' }}
+              style={{ ...card, borderColor: c.best ? '#94bce366' : 'rgba(148,163,184,0.18)', background: c.best ? 'rgba(148,188,227,0.08)' : 'rgba(148,163,184,0.05)' }}
               initial={{ opacity: 0, x: -16 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ amount: 0.5 }}
@@ -59,7 +59,7 @@ export default function DedupMerge({
               <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: c.color }} />
                 <span style={{ fontWeight: 700, fontSize: 13, color: '#fff' }}>{title}</span>
-                <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 13, color: c.best ? '#3fb950' : '#cdd7e2', fontWeight: 700 }}>
+                <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 13, color: c.best ? '#94bce3' : '#cdd7e2', fontWeight: 700 }}>
                   {c.price}
                 </span>
               </div>
@@ -88,12 +88,12 @@ export default function DedupMerge({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
             <motion.span
-              style={{ color: '#3fb950', fontWeight: 700 }}
+              style={{ color: '#94bce3', fontWeight: 700 }}
               animate={{ opacity: [1, 0.4, 1] }}
               transition={{ duration: 2.2, repeat: Infinity }}
             >★</motion.span>
             <span style={{ fontWeight: 700, fontSize: 13, color: '#fff' }}>buy box</span>
-            <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 14, color: '#3fb950', fontWeight: 700 }}>{best.price}</span>
+            <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 14, color: '#94bce3', fontWeight: 700 }}>{best.price}</span>
           </div>
           <div style={{ fontFamily: MONO, fontSize: 10, color: '#8b98a8', marginTop: 3 }}>
             {best.source} · cheapest · both offers kept

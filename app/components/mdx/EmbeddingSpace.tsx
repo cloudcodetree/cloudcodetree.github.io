@@ -35,7 +35,7 @@ const POINTS: Pt[] = [
 
 const QUERY: Pt = { label: '"noise cancelling headphones"', x: 30, y: 42, group: 'query' };
 
-const COLOR = { audio: '#3fb950', other: '#8b98a8', query: ACCENT } as const;
+const COLOR = { audio: '#94bce3', other: '#8b98a8', query: ACCENT } as const;
 
 export default function EmbeddingSpace({ accent = ACCENT }: { accent?: string }) {
   return (
@@ -103,7 +103,7 @@ export default function EmbeddingSpace({ accent = ACCENT }: { accent?: string })
       </div>
 
       <div style={{ display: 'flex', gap: 18, marginTop: 14, flexWrap: 'wrap', fontFamily: MONO, fontSize: 11, color: '#8b98a8' }}>
-        <span><span style={{ color: '#3fb950' }}>●</span> headphones (clustered — same semantics)</span>
+        <span><span style={{ color: '#94bce3' }}>●</span> headphones (clustered — same semantics)</span>
         <span><span style={{ color: '#8b98a8' }}>●</span> other categories (far)</span>
         <span><span style={{ color: accent }}>●</span> query — lands near the right cluster by <em>meaning</em></span>
       </div>

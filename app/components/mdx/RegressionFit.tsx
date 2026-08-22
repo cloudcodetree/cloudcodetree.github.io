@@ -133,15 +133,15 @@ export default function RegressionFit({ accent = ACCENT }: { accent?: string }) 
           <line x1="16" y1="8" x2="16" y2="80" stroke="rgba(148,163,184,0.3)" />
           {/* J(slope): smooth bowl, vertex at (103, 66) */}
           <path d="M 26,14 Q 103,118 180,14" fill="none" stroke={ACCENT} strokeWidth="2" />
-          <motion.circle cx="103" cy="66" r="4" fill="#3fb950" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ amount: 0.5 }} transition={{ delay: 0.4 }} />
-          <text x="103" y="58" textAnchor="middle" fontFamily="Menlo, monospace" fontSize="8" fill="#3fb950">min — θ from the normal equation</text>
+          <motion.circle cx="103" cy="66" r="4" fill="#94bce3" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ amount: 0.5 }} transition={{ delay: 0.4 }} />
+          <text x="103" y="58" textAnchor="middle" fontFamily="Menlo, monospace" fontSize="8" fill="#94bce3">min — θ from the normal equation</text>
           <text x="40" y="24" fontFamily="Menlo, monospace" fontSize="8" fill="#8b98a8">too flat</text>
           <text x="140" y="24" fontFamily="Menlo, monospace" fontSize="8" fill="#8b98a8">too steep</text>
           <text x="103" y="90" textAnchor="middle" fontFamily="Menlo, monospace" fontSize="8" fill="#8b98a8">line slope</text>
           <text x="8" y="44" textAnchor="middle" fontFamily="Menlo, monospace" fontSize="8" fill="#8b98a8" transform="rotate(-90 8 44)">Σ residual²</text>
         </svg>
         <div style={{ fontFamily: MONO, fontSize: 11, color: '#8b98a8', flex: '1 1 200px', minWidth: 190, lineHeight: 1.6 }}>
-          Why a closed form exists: the total squared error is a <span style={{ color: ACCENT }}>smooth bowl</span> as you vary the line. The normal equation doesn&apos;t <i>search</i> for the bottom — it solves &quot;where is the gradient zero?&quot; directly and lands on the <span style={{ color: '#3fb950' }}>minimum</span> in one step.
+          Why a closed form exists: the total squared error is a <span style={{ color: ACCENT }}>smooth bowl</span> as you vary the line. The normal equation doesn&apos;t <i>search</i> for the bottom — it solves &quot;where is the gradient zero?&quot; directly and lands on the <span style={{ color: '#94bce3' }}>minimum</span> in one step.
         </div>
       </div>
     </div>

@@ -74,7 +74,7 @@ function StepNode({
           padding: '12px 14px',
           borderRadius: 10,
           border: '1px solid rgba(148,163,184,0.14)',
-          background: 'rgba(30,41,59,0.5)',
+          background: 'rgba(43,43,45,0.5)',
         }}
         initial={{ opacity: 0, x: -16 }}
         whileInView={{ opacity: 1, x: 0 }}

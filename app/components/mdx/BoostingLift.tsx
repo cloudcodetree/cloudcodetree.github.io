@@ -41,7 +41,7 @@ const BARS: Bar[] = [
     label: 'GBDT',
     sublabel: '+ embeddings',
     mae: 138.11,
-    color: '#3fb950',
+    color: '#94bce3',
     highlight: true,
   },
 ];
@@ -72,7 +72,7 @@ export default function BoostingLift() {
       }}
     >
       {/* caption */}
-      <div style={{ ...MONO_STYLE, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#3fb950', marginBottom: 4 }}>
+      <div style={{ ...MONO_STYLE, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#94bce3', marginBottom: 4 }}>
         MAE improvement · full corpus, 270 items, 68-item hold-out
       </div>
       <div style={{ ...MONO_STYLE, color: '#8b98a8', marginBottom: 20 }}>
@@ -101,7 +101,7 @@ export default function BoostingLift() {
                 whileInView={{ opacity: 1 }}
                 viewport={{ amount: 0.4 }}
                 transition={{ delay: 0.4 + i * 0.2 }}
-                style={{ ...MONO_STYLE, color: b.highlight ? '#3fb950' : '#cdd7e2', marginBottom: 6, fontWeight: b.highlight ? 700 : 400 }}
+                style={{ ...MONO_STYLE, color: b.highlight ? '#94bce3' : '#cdd7e2', marginBottom: 6, fontWeight: b.highlight ? 700 : 400 }}
               >
                 ${b.mae}
               </motion.div>
@@ -113,7 +113,7 @@ export default function BoostingLift() {
                   height: h,
                   background: b.color,
                   borderRadius: '4px 4px 0 0',
-                  boxShadow: b.highlight ? `0 0 12px rgba(63,185,80,0.35)` : 'none',
+                  boxShadow: b.highlight ? `0 0 12px rgba(148,188,227,0.35)` : 'none',
                 }}
                 initial={{ scaleY: 0, transformOrigin: 'bottom' }}
                 whileInView={{ scaleY: 1 }}
@@ -145,13 +145,13 @@ export default function BoostingLift() {
               bottom: winnerH,
               width: 2,
               height: baseH - winnerH,
-              background: 'rgba(63,185,80,0.6)',
+              background: 'rgba(148,188,227,0.6)',
             }}
           />
           {/* top tick */}
-          <div style={{ position: 'absolute', right: 2, bottom: baseH - 1, width: 6, height: 2, background: 'rgba(63,185,80,0.6)' }} />
+          <div style={{ position: 'absolute', right: 2, bottom: baseH - 1, width: 6, height: 2, background: 'rgba(148,188,227,0.6)' }} />
           {/* bottom tick */}
-          <div style={{ position: 'absolute', right: 2, bottom: winnerH, width: 6, height: 2, background: 'rgba(63,185,80,0.6)' }} />
+          <div style={{ position: 'absolute', right: 2, bottom: winnerH, width: 6, height: 2, background: 'rgba(148,188,227,0.6)' }} />
         </motion.div>
       </div>
 
@@ -159,7 +159,7 @@ export default function BoostingLift() {
       <div style={{ display: 'flex', gap: 24, marginTop: 8 }}>
         {BARS.map((b, i) => (
           <div key={i} style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ ...MONO_STYLE, color: b.highlight ? '#3fb950' : '#cdd7e2', fontWeight: b.highlight ? 700 : 400 }}>
+            <div style={{ ...MONO_STYLE, color: b.highlight ? '#94bce3' : '#cdd7e2', fontWeight: b.highlight ? 700 : 400 }}>
               {b.label}
             </div>
             <div style={{ ...MONO_STYLE, color: '#8b98a8' }}>{b.sublabel}</div>
@@ -169,13 +169,13 @@ export default function BoostingLift() {
 
       {/* key takeaway row */}
       <motion.div
-        style={{ ...MONO_STYLE, color: '#cdd7e2', marginTop: 16, padding: '8px 12px', background: 'rgba(63,185,80,0.08)', borderRadius: 8, borderLeft: '3px solid #3fb950' }}
+        style={{ ...MONO_STYLE, color: '#cdd7e2', marginTop: 16, padding: '8px 12px', background: 'rgba(148,188,227,0.08)', borderRadius: 8, borderLeft: '3px solid #94bce3' }}
         initial={{ opacity: 0, x: -8 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ amount: 0.4 }}
         transition={{ delay: 1.0 }}
       >
-        <strong style={{ color: '#3fb950' }}>−39.4% MAE</strong>
+        <strong style={{ color: '#94bce3' }}>−39.4% MAE</strong>
         {' '}($227.89 → $138.11) · embeddings are the hero — GBDT without them loses to linear ($257.99)
       </motion.div>
 
@@ -183,7 +183,7 @@ export default function BoostingLift() {
       <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap', ...MONO_STYLE, color: '#8b98a8' }}>
         <span><span style={{ color: 'rgba(148,163,184,0.7)' }}>■</span> linear baseline</span>
         <span><span style={{ color: 'rgba(201,140,70,0.8)' }}>■</span> GBDT hand-only</span>
-        <span><span style={{ color: '#3fb950' }}>■</span> GBDT + embeddings (winner)</span>
+        <span><span style={{ color: '#94bce3' }}>■</span> GBDT + embeddings (winner)</span>
         <span>lower bar = lower MAE = better</span>
       </div>
     </div>

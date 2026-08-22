@@ -61,7 +61,7 @@ const BANDS: Band[] = [
   },
   {
     tag: 'mlops',
-    color: '#3fb950',
+    color: '#94bce3',
     label: 'MLOps loop',
     parts: '18–20',
     chips: ['PSI drift 0.043→0.318', 'MLflow registry', 'Eval gate p@5≥0.80', 'Canary promote'],

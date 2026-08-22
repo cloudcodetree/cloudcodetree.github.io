@@ -95,12 +95,12 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
                 selected={isActive(item.path)}
                 sx={{
                   '&.Mui-selected': {
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderRight: '3px solid #3b82f6',
+                    backgroundColor: 'rgba(116,157,196, 0.1)',
+                    borderRight: '3px solid #749dc4',
                   },
                 }}
               >
-                <Icon sx={{ mr: 2, color: isActive(item.path) ? '#3b82f6' : 'inherit' }} />
+                <Icon sx={{ mr: 2, color: isActive(item.path) ? '#749dc4' : 'inherit' }} />
                 <ListItemText primary={item.name} />
               </ListItemButton>
             </ListItem>
@@ -116,7 +116,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
         position="fixed"
         sx={{
           zIndex: theme.zIndex.drawer + 1,
-          background: 'rgba(15, 23, 42, 0.9)',
+          background: 'rgba(29,31,32, 0.9)',
           backdropFilter: 'blur(10px)',
           borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
         }}
@@ -167,9 +167,9 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
                   color="inherit"
                   startIcon={<item.icon />}
                   sx={{
-                    color: isActive(item.path) ? '#3b82f6' : 'inherit',
+                    color: isActive(item.path) ? '#749dc4' : 'inherit',
                     '&:hover': {
-                      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                      backgroundColor: 'rgba(116,157,196, 0.1)',
                     },
                   }}
                 >
@@ -191,7 +191,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
           '& .MuiDrawer-paper': {
             boxSizing: 'border-box',
             width: 250,
-            backgroundColor: 'rgba(30, 41, 59, 0.95)',
+            backgroundColor: 'rgba(43,43,45, 0.95)',
             backdropFilter: 'blur(10px)',
             borderRight: '1px solid rgba(148, 163, 184, 0.1)',
           },
@@ -210,7 +210,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
           minWidth: 0,
           pt: { xs: 8, md: 9 },
           minHeight: '100vh',
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+          background: 'linear-gradient(135deg, #1d1f20 0%, #2b2b2d 100%)',
         }}
       >
         <AnimatePresence mode="wait">
@@ -232,7 +232,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
 
       <style jsx global>{`
         .gradient-text {
-          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          background: linear-gradient(135deg, #749dc4, #94bce3);
           background-clip: text;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;

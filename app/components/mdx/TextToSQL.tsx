@@ -14,7 +14,7 @@ import { MONO, ACCENT } from '../blogShared';
  */
 
 const SUSPICIOUS_CLR = '#d29922'; // amber
-const DEAL_CLR       = '#3fb950'; // green
+const DEAL_CLR       = '#94bce3'; // green
 
 const ROWS = [
   { title: 'Anker Soundcore Q20i', price: '$44.99', badge: 'DEAL',       fair: '$108.33', badgeColor: DEAL_CLR },

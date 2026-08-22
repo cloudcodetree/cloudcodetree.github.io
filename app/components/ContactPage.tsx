@@ -280,12 +280,12 @@ export default function ContactPage() {
                     startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
                     sx={{
                       py: 1.5,
-                      background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+                      background: 'linear-gradient(135deg, #749dc4, #94bce3)',
                       '&:hover': {
                         background: 'linear-gradient(135deg, #2563eb, #0891b2)',
                       },
                       '&:disabled': {
-                        background: 'rgba(59, 130, 246, 0.3)',
+                        background: 'rgba(116,157,196, 0.3)',
                       },
                     }}
                   >
@@ -378,7 +378,7 @@ export default function ContactPage() {
                           color: 'inherit',
                           ...(info.link && {
                             cursor: 'pointer',
-                            '&:hover': { color: '#3b82f6' }
+                            '&:hover': { color: '#749dc4' }
                           })
                         }}
                         component={info.link ? 'a' : 'div'}
@@ -386,7 +386,7 @@ export default function ContactPage() {
                         target={info.link ? '_blank' : undefined}
                         rel={info.link ? 'noopener noreferrer' : undefined}
                       >
-                        <Icon sx={{ color: '#3b82f6' }} />
+                        <Icon sx={{ color: '#749dc4' }} />
                         <Box>
                           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                             {info.label}
@@ -418,11 +418,11 @@ export default function ContactPage() {
                         label={service}
                         sx={{
                           justifyContent: 'flex-start',
-                          background: 'rgba(59, 130, 246, 0.1)',
-                          color: '#3b82f6',
-                          border: '1px solid rgba(59, 130, 246, 0.3)',
+                          background: 'rgba(116,157,196, 0.1)',
+                          color: '#749dc4',
+                          border: '1px solid rgba(116,157,196, 0.3)',
                           '&:hover': {
-                            background: 'rgba(59, 130, 246, 0.2)',
+                            background: 'rgba(116,157,196, 0.2)',
                           },
                         }}
                       />

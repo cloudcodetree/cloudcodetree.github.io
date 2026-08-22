@@ -32,7 +32,7 @@ const STAGES: Stage[] = [
     label: 'ingest',
     sublabel: 'load snapshot',
     meta: 'retries=2',
-    color: '#2f81f7',
+    color: '#94bce3',
     bgColor: 'rgba(47,129,247,0.08)',
     borderColor: 'rgba(47,129,247,0.30)',
   },
@@ -59,9 +59,9 @@ const STAGES: Stage[] = [
     label: 'label',
     sublabel: 'two-signal verdict',
     meta: 'NO_CACHE',
-    color: '#3fb950',
-    bgColor: 'rgba(63,185,80,0.08)',
-    borderColor: 'rgba(63,185,80,0.30)',
+    color: '#94bce3',
+    bgColor: 'rgba(148,188,227,0.08)',
+    borderColor: 'rgba(148,188,227,0.30)',
   },
   {
     id: 'model',
@@ -69,8 +69,8 @@ const STAGES: Stage[] = [
     sublabel: 'dbt-style SQL',
     meta: 'cached',
     color: ACCENT,
-    bgColor: 'rgba(63,185,80,0.10)',
-    borderColor: `rgba(63,185,80,0.45)`,
+    bgColor: 'rgba(148,188,227,0.10)',
+    borderColor: `rgba(148,188,227,0.45)`,
   },
 ];
 

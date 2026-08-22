@@ -47,9 +47,9 @@ function HeaderCell({ w, children }: { w: number; children: string }) {
 
 function Row({ run, i }: { run: Run; i: number }) {
   const baseColor = run.selectable ? '#cdd7e2' : 'rgba(148,163,184,0.45)';
-  const winnerGlow = run.winner ? { boxShadow: `0 0 0 1px ${ACCENT}55, 0 2px 12px rgba(63,185,80,0.15)` } : {};
+  const winnerGlow = run.winner ? { boxShadow: `0 0 0 1px ${ACCENT}55, 0 2px 12px rgba(148,188,227,0.15)` } : {};
   const bg = run.winner
-    ? 'rgba(63,185,80,0.07)'
+    ? 'rgba(148,188,227,0.07)'
     : run.selectable
     ? 'rgba(148,163,184,0.03)'
     : 'transparent';
@@ -94,7 +94,7 @@ function Row({ run, i }: { run: Run; i: number }) {
             fontSize: 10,
             padding: '2px 7px',
             borderRadius: 5,
-            color: run.selectable ? '#2f81f7' : '#d29922',
+            color: run.selectable ? '#94bce3' : '#d29922',
             background: run.selectable ? 'rgba(47,129,247,0.10)' : 'rgba(210,153,34,0.10)',
             border: `1px solid ${run.selectable ? 'rgba(47,129,247,0.30)' : 'rgba(210,153,34,0.30)'}`,
             whiteSpace: 'nowrap' as const,
@@ -117,7 +117,7 @@ function Row({ run, i }: { run: Run; i: number }) {
             fontWeight: 700,
             color: ACCENT,
             border: `1px solid ${ACCENT}88`,
-            background: 'rgba(63,185,80,0.12)',
+            background: 'rgba(148,188,227,0.12)',
             borderRadius: 6,
             padding: '3px 9px',
             whiteSpace: 'nowrap' as const,

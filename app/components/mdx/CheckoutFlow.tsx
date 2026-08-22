@@ -21,10 +21,10 @@ import { MONO, ACCENT } from '../blogShared';
  * Framer Motion animates the payload packet and badge reveal.
  */
 
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const PURPLE = '#a371f7';
 const ORANGE = '#d29922';
-const BLUE = '#2f81f7';
+const BLUE = '#94bce3';
 
 function Diamond({ size = 72, color = ACCENT }: { size?: number; color?: string }) {
   const half = size / 2;

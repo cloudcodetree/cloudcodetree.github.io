@@ -10,8 +10,8 @@ import { MONO, ACCENT } from '../blogShared';
  */
 
 const PRIMS = [
-  { name: 'Tools', who: 'model-controlled', desc: 'actions the model can call', ex: 'score_deal(product_id)', color: '#3fb950' },
-  { name: 'Resources', who: 'app-controlled', desc: 'data the app can read', ex: 'dealfinder://catalog/stats', color: '#2f81f7' },
+  { name: 'Tools', who: 'model-controlled', desc: 'actions the model can call', ex: 'score_deal(product_id)', color: '#94bce3' },
+  { name: 'Resources', who: 'app-controlled', desc: 'data the app can read', ex: 'dealfinder://catalog/stats', color: '#94bce3' },
   { name: 'Prompts', who: 'user-controlled', desc: 'reusable templates', ex: 'find_a_deal("headphones")', color: '#d29922' },
 ];
 

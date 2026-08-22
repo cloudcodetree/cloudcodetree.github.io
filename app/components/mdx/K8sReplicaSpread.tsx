@@ -33,7 +33,7 @@ const PHASES: Phase[] = [
 ];
 
 function CpuBar({ pct }: { pct: number }) {
-  const color = pct >= 70 ? '#f85149' : pct >= 50 ? '#f0883e' : '#3fb950';
+  const color = pct >= 70 ? '#f85149' : pct >= 50 ? '#f0883e' : '#94bce3';
   return (
     <div
       style={{
@@ -114,7 +114,7 @@ export default function K8sReplicaSpread({ accent = ACCENT }: { accent?: string 
               <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, color: '#e6edf3' }}>
                 pod-{String(i + 1).padStart(2, '0')}
               </div>
-              <div style={{ fontFamily: MONO, fontSize: 9, color: '#3fb950' }}>/healthz ✓</div>
+              <div style={{ fontFamily: MONO, fontSize: 9, color: '#94bce3' }}>/healthz ✓</div>
               <CpuBar pct={phase.cpu} />
               <div style={{ fontFamily: MONO, fontSize: 9, color: '#8b98a8', marginTop: 3 }}>
                 CPU {phase.cpu}%
@@ -137,7 +137,7 @@ export default function K8sReplicaSpread({ accent = ACCENT }: { accent?: string 
         replicas:{' '}
         <span style={{ color: accent }}>{phase.count}</span>
         &nbsp;·&nbsp;avg CPU:{' '}
-        <span style={{ color: phase.cpu >= 70 ? '#f85149' : '#3fb950' }}>{phase.cpu}%</span>
+        <span style={{ color: phase.cpu >= 70 ? '#f85149' : '#94bce3' }}>{phase.cpu}%</span>
         &nbsp;·&nbsp;threshold: 70%
         &nbsp;·&nbsp;scaleDown stabilisation: 120 s
       </div>

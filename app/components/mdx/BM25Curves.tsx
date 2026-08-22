@@ -11,7 +11,7 @@ import { MONO, ACCENT } from '../blogShared';
  */
 
 const ACCENT2 = '#d29922';
-const GREEN = '#3fb950';
+const GREEN = '#94bce3';
 const MUT = '#8b98a8';
 
 // IDF curve: high for rare terms (low df), low for common (high df). Points on a 0..100 x, 0..70 y svg.

@@ -97,7 +97,7 @@ export default function SearchStateMachine({ accent = ACCENT }: { accent?: strin
                 background: isDone
                   ? `${accent}14`
                   : isStreaming
-                  ? 'rgba(63,185,80,0.07)'
+                  ? 'rgba(148,188,227,0.07)'
                   : 'rgba(148,163,184,0.06)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -115,7 +115,7 @@ export default function SearchStateMachine({ accent = ACCENT }: { accent?: strin
                   fontFamily: MONO,
                   fontSize: 11,
                   fontWeight: 700,
-                  color: isDone ? accent : isStreaming ? '#3fb950' : '#cdd7e2',
+                  color: isDone ? accent : isStreaming ? '#94bce3' : '#cdd7e2',
                 }}
               >
                 {s.label}
@@ -194,7 +194,7 @@ export default function SearchStateMachine({ accent = ACCENT }: { accent?: strin
           style={{
             fontFamily: MONO,
             fontSize: 10,
-            color: '#3fb950',
+            color: '#94bce3',
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
             marginBottom: 8,
