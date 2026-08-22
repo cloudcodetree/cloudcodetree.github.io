@@ -1,5 +1,77 @@
 [
   {
+    "id": "2026-08-22-04-claude-design-edge-states-before-handoff",
+    "title": "Your Design Doesn't Cover the Empty Cart — Specify Edge States in Claude Design Before Claude Code Starts Writing",
+    "excerpt": "A three-prompt checklist for specifying empty, error, and loading states in Claude Design before the handoff — so Claude Code has a real design for every component state, not just the happy path.",
+    "author": "Chris Harper",
+    "date": "08-22-2026",
+    "publishedAt": "2026-08-22T04:06:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Design",
+      "Claude Design"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://academy.claude.com/tutorials/using-claude-design-for-prototypes-and-ux",
+    "content": "**Add three prompts before your Claude Design export to cover empty, error, and loading states — or Claude Code invents them during generation.**\n\n**What you'll be able to do after this:** generate a complete edge-state specification in Claude Design so Claude Code receives a real design for every component state, not just the happy path.\n\n- Claude Design generates static states on request — empty, error, loading — that travel in the handoff bundle and give Claude Code a reference layout for each\n- Claude Code uses whatever states are in the bundle; states that are missing get invented at generation time (a spinner guess, a raw error string, nothing at all for an empty list)\n- State transitions and timing cannot be captured in a design export — add those to CLAUDE.md or a first-message context note separately\n\nThe failure mode is common: the design looks great, the bundle lands in Claude Code, and the generated components handle loading with a spinner guess, errors with a raw message string, and empty lists with nothing at all. The design did not cover those states, so the agent invented them.\n\n**Three-prompt pattern — run these before you export:**\n\n**1. Empty states:**\n> Show the [component] when there is no data yet — a new account with an empty list, no search results, and a profile with no activity.\n\nClaude Design generates a placeholder layout with a clear call to action. That static frame goes in the handoff bundle.\n\n**2. Error conditions:**\n> Show the [component] in three error states: network failure, permission denied, and validation error. Include the error message, a visual cue, and a recovery action for each.\n\nThis gives Claude Code an actual layout for error display rather than an invented stack trace or generic toast.\n\n**3. Loading states:**\n> Show the loading state for [component] as a skeleton screen matching the data shape, not a full-page spinner.\n\nA skeleton that mirrors the loaded layout prevents layout shift and gives the agent a concrete shape to generate code for.\n\n**Export after all three.** The handoff bundle then includes full state coverage and Claude Code can reference each variant directly rather than pausing mid-session to ask you how an error should look.\n\n**The limit:** design tools capture static states, not transitions. Animation duration, easing curves, and sequencing for loading-to-loaded or error-to-retry transitions cannot live in the export bundle — add them as a note in CLAUDE.md or in the first message of your Claude Code session.\n\n**Sources:** [Using Claude Design for prototypes and UX — Claude Academy](https://academy.claude.com/tutorials/using-claude-design-for-prototypes-and-ux) · [Anthropic overhauled Claude Design to fix the handoff — The New Stack](https://thenewstack.io/anthropic-claude-design-overhaul/) · [From Prompt to Pull Request — DEV Community](https://dev.to/bilelsalemdev/from-prompt-to-pull-request-using-claude-design-claude-code-and-github-together-3m00)"
+  },
+  {
+    "id": "2026-08-22-03-claude-code-ios-simulator-verify-loop",
+    "title": "Prompt Claude Code to \"Build and Verify\" in the Simulator, Not Just Edit and Hope",
+    "excerpt": "The iOS Simulator pane in Claude Code Desktop streams your running app live next to the conversation — phrase tasks as \"build and verify\" and Claude checks its own work before prompting you.",
+    "author": "Chris Harper",
+    "date": "08-22-2026",
+    "publishedAt": "2026-08-22T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/desktop-ios-simulator",
+    "content": "**Phrase tasks as \"build and verify\" in Claude Code Desktop — the iOS Simulator pane streams your running app so Claude checks its own work before prompting you.**\n\nThe standard iOS dev cycle is: edit, build, run, switch windows, look, switch back. With the Simulator pane open in Claude Code Desktop on macOS, that loop runs inside the conversation: Claude builds the app, the pane opens automatically, and Claude can observe the running UI before writing more code.\n\n**Setup:**\n1. Open Claude Code Desktop on macOS (local session — cloud and SSH sessions cannot access a local simulator)\n2. Open your iOS project in the Code tab\n3. Xcode with the iOS platform installed is required\n\n**The prompting pattern that closes the loop:**\n\n```\nBuild the app and run it in the simulator.\nCheck that the onboarding flow completes without errors,\nthen make the Skip button visible on smaller screens.\n```\n\nCompare with the incomplete version: \"Make the Skip button visible on smaller screens.\" Claude edits the code but cannot verify the result without a second prompt asking it to look. The \"build and run\" instruction gives it a verification target.\n\nFor iterative work, follow each change with: \"Run the app again and confirm [specific thing] looks correct.\" This also catches regressions — Claude can verify the adjacent screen it did not intend to touch.\n\nThe pane opens automatically when Claude launches or installs the app and communicates directly with the iOS Simulator process — no Screen Recording permission or macOS Accessibility access required.\n\n**Hard limits:**\n- macOS Desktop (local sessions) only — cloud and SSH sessions cannot reach a local simulator\n- Up to four simulator panes per Claude Code session\n- Requires Xcode with iOS platform installed; does not work with Xcode 27, which replaced the Simulator app with Device Hub\n- Not available on Enterprise configurations with HIPAA or Zero Data Retention enabled\n\n**Sources:** [Test iOS apps in the simulator — Claude Code Docs](https://code.claude.com/docs/en/desktop-ios-simulator) · [Closing the loop on iOS with Claude Code — twocentstudios.com](https://twocentstudios.com/2025/12/27/closing-the-loop-on-ios-with-claude-code/) · [Claude Code iOS Simulator pane setup and limits — AI Catchup](https://aicatchup.com/news/claude-code-desktop-ios-simulator-pane)"
+  },
+  {
+    "id": "2026-08-22-02-github-aug17-outage-ai-impact",
+    "title": "GitHub Was Down for 8 Hours — What Broke for AI Dev Teams and What the Scale-Up Pledge Means",
+    "excerpt": "The August 17 GitHub outage (7h 47m) took down Actions, Copilot, and webhooks simultaneously — and exposed how multi-agent pipelines inherit platform uptime risk. GitHub's Aug 21 pledge promises ca…",
+    "author": "Chris Harper",
+    "date": "08-22-2026",
+    "publishedAt": "2026-08-22T04:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.theregister.com/devops/2026/08/21/we-let-you-down-github-pledges-to-scale-up-before-developers-give-up/5291031",
+    "content": "**GitHub's August 17 outage (7h 47m) broke Actions, Copilot, and webhooks simultaneously — the Aug 21 pledge promises capacity pre-allocation, not an architectural fix.**\n\nWhat failed: Actions queued and failed; archive download errors hit 50%; webhooks lagged up to 2.5 hours; Copilot, which routes through GitHub's API, went down with everything else. This followed a second Actions incident on August 6.\n\nFor teams using AI-assisted development, the failure was asymmetric: engineers running Claude Code locally against local repos were unaffected. Teams whose agents opened PRs, triggered CI builds, or called Copilot took the full hit. Multi-agent PR-review workflows that invoke the GitHub API on every push had no graceful degradation path.\n\nGitHub's August 21 response (\"we let you down\") acknowledges the pattern and commits to capacity pre-allocation before the next load spike — not a new architecture, not a root-cause analysis yet.\n\n**Why it matters:** Multi-agent pipelines increasingly route through GitHub — PR creation, webhook triggers, CI scheduling, code review calls. Two incidents in two weeks made implicit uptime assumptions visible. A fallback for delayed webhooks (a retry queue, a polling check in your CI YAML) is now worth designing before the next incident rather than after.\n\n**Sources:** [GitHub is down worldwide — BleepingComputer](https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-github-is-down-worldwide/) · ['We let you down': GitHub pledges to scale up — The Register](https://www.theregister.com/devops/2026/08/21/we-let-you-down-github-pledges-to-scale-up-before-developers-give-up/5291031) · [The August 17 outage in detail — DEV Community](https://dev.to/jamilxt/github-is-down-the-august-17-2026-outage-in-detail-1e36)"
+  },
+  {
+    "id": "2026-08-22-01-claude-academy-26-courses-launch",
+    "title": "Anthropic's Official Learning Hub Moves to academy.claude.com: 26 Free Courses on Claude Code, MCP, and Agent Development",
+    "excerpt": "Claude Academy (academy.claude.com) replaces Anthropic Academy with 26 free self-paced courses — doubling the March catalog with tracks for Claude Code, MCP, the Claude API, and agent development.",
+    "author": "Chris Harper",
+    "date": "08-22-2026",
+    "publishedAt": "2026-08-22T04:03:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Claude Code",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://academy.claude.com",
+    "content": "**Anthropic's official learning platform moves to academy.claude.com with 26 free courses — doubling the March catalog and adding MCP and agent development depth.**\n\nThe platform opened August 20 on a dedicated domain, reorganizing and expanding the March Anthropic Academy (13 courses on anthropic.com/learn). Tracks cover Claude basics, Claude Code, MCP, the Claude API, and agent development. The API and agent tracks each run 8+ hours; Claude Code 101 is about one hour.\n\nThe main investment hurdle is time: the substantial API and agent development courses require a real commitment compared with most video tutorials. Claude 101 and Claude Code 101 are reasonable first stops for anyone starting from scratch.\n\n**Why it matters:** The official learning path for Claude Code and MCP now lives at a stable, dedicated address rather than being scattered across product pages. If you're onboarding a new teammate to Claude Code workflows or building a study plan for agent development, Academy tracks are a credible structured option alongside the official docs — as long as the time commitment fits.\n\n**Sources:** [academy.claude.com](https://academy.claude.com) · [26 free courses launch — Pasquale Pillitteri](https://pasqualepillitteri.it/en/news/12081/claude-academy-live-free-courses-learn-claude) · [Claude Academy developer guide — Kingy AI](https://kingy.ai/news/anthropic-academys-new-claude-courses-2026-the-web-developers-guide-to-claude-101-ai-fluency-claude-code-mcp-and-the-claude-api/) · [Claude Academy overview — AI Weekly](https://aiweekly.co/node/10535)"
+  },
+  {
     "id": "2026-08-21-08-mythos5-claude-security-enterprise-defender-fund",
     "title": "Claude Mythos 5 Now Runs Enterprise Security Scans — With a $35M Fund for Open-Source Defenders",
     "excerpt": "Claude Security scans now run on Mythos 5 for all Enterprise customers; Anthropic's $35M Defender Advantage Fund backs open-source security work; Cyber Verification Program expands to Opus/Sonnet.",

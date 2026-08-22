@@ -10,7 +10,141 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 21 Aug 2026 20:03:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 22 Aug 2026 04:06:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Your Design Doesn't Cover the Empty Cart — Specify Edge States in Claude Design Before Claude Code Starts Writing</title>
+      <link>https://academy.claude.com/tutorials/using-claude-design-for-prototypes-and-ux</link>
+      <guid isPermaLink="false">2026-08-22-04-claude-design-edge-states-before-handoff</guid>
+      <pubDate>Sat, 22 Aug 2026 04:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>A three-prompt checklist for specifying empty, error, and loading states in Claude Design before the handoff — so Claude Code has a real design for every component state, not just the happy path.</description>
+      <content:encoded><![CDATA[**Add three prompts before your Claude Design export to cover empty, error, and loading states — or Claude Code invents them during generation.**
+
+**What you'll be able to do after this:** generate a complete edge-state specification in Claude Design so Claude Code receives a real design for every component state, not just the happy path.
+
+- Claude Design generates static states on request — empty, error, loading — that travel in the handoff bundle and give Claude Code a reference layout for each
+- Claude Code uses whatever states are in the bundle; states that are missing get invented at generation time (a spinner guess, a raw error string, nothing at all for an empty list)
+- State transitions and timing cannot be captured in a design export — add those to CLAUDE.md or a first-message context note separately
+
+The failure mode is common: the design looks great, the bundle lands in Claude Code, and the generated components handle loading with a spinner guess, errors with a raw message string, and empty lists with nothing at all. The design did not cover those states, so the agent invented them.
+
+**Three-prompt pattern — run these before you export:**
+
+**1. Empty states:**
+> Show the [component] when there is no data yet — a new account with an empty list, no search results, and a profile with no activity.
+
+Claude Design generates a placeholder layout with a clear call to action. That static frame goes in the handoff bundle.
+
+**2. Error conditions:**
+> Show the [component] in three error states: network failure, permission denied, and validation error. Include the error message, a visual cue, and a recovery action for each.
+
+This gives Claude Code an actual layout for error display rather than an invented stack trace or generic toast.
+
+**3. Loading states:**
+> Show the loading state for [component] as a skeleton screen matching the data shape, not a full-page spinner.
+
+A skeleton that mirrors the loaded layout prevents layout shift and gives the agent a concrete shape to generate code for.
+
+**Export after all three.** The handoff bundle then includes full state coverage and Claude Code can reference each variant directly rather than pausing mid-session to ask you how an error should look.
+
+**The limit:** design tools capture static states, not transitions. Animation duration, easing curves, and sequencing for loading-to-loaded or error-to-retry transitions cannot live in the export bundle — add them as a note in CLAUDE.md or in the first message of your Claude Code session.
+
+**Sources:** [Using Claude Design for prototypes and UX — Claude Academy](https://academy.claude.com/tutorials/using-claude-design-for-prototypes-and-ux) · [Anthropic overhauled Claude Design to fix the handoff — The New Stack](https://thenewstack.io/anthropic-claude-design-overhaul/) · [From Prompt to Pull Request — DEV Community](https://dev.to/bilelsalemdev/from-prompt-to-pull-request-using-claude-design-claude-code-and-github-together-3m00)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Prompt Claude Code to "Build and Verify" in the Simulator, Not Just Edit and Hope</title>
+      <link>https://code.claude.com/docs/en/desktop-ios-simulator</link>
+      <guid isPermaLink="false">2026-08-22-03-claude-code-ios-simulator-verify-loop</guid>
+      <pubDate>Sat, 22 Aug 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>The iOS Simulator pane in Claude Code Desktop streams your running app live next to the conversation — phrase tasks as "build and verify" and Claude checks its own work before prompting you.</description>
+      <content:encoded><![CDATA[**Phrase tasks as "build and verify" in Claude Code Desktop — the iOS Simulator pane streams your running app so Claude checks its own work before prompting you.**
+
+The standard iOS dev cycle is: edit, build, run, switch windows, look, switch back. With the Simulator pane open in Claude Code Desktop on macOS, that loop runs inside the conversation: Claude builds the app, the pane opens automatically, and Claude can observe the running UI before writing more code.
+
+**Setup:**
+1. Open Claude Code Desktop on macOS (local session — cloud and SSH sessions cannot access a local simulator)
+2. Open your iOS project in the Code tab
+3. Xcode with the iOS platform installed is required
+
+**The prompting pattern that closes the loop:**
+
+```
+Build the app and run it in the simulator.
+Check that the onboarding flow completes without errors,
+then make the Skip button visible on smaller screens.
+```
+
+Compare with the incomplete version: "Make the Skip button visible on smaller screens." Claude edits the code but cannot verify the result without a second prompt asking it to look. The "build and run" instruction gives it a verification target.
+
+For iterative work, follow each change with: "Run the app again and confirm [specific thing] looks correct." This also catches regressions — Claude can verify the adjacent screen it did not intend to touch.
+
+The pane opens automatically when Claude launches or installs the app and communicates directly with the iOS Simulator process — no Screen Recording permission or macOS Accessibility access required.
+
+**Hard limits:**
+- macOS Desktop (local sessions) only — cloud and SSH sessions cannot reach a local simulator
+- Up to four simulator panes per Claude Code session
+- Requires Xcode with iOS platform installed; does not work with Xcode 27, which replaced the Simulator app with Device Hub
+- Not available on Enterprise configurations with HIPAA or Zero Data Retention enabled
+
+**Sources:** [Test iOS apps in the simulator — Claude Code Docs](https://code.claude.com/docs/en/desktop-ios-simulator) · [Closing the loop on iOS with Claude Code — twocentstudios.com](https://twocentstudios.com/2025/12/27/closing-the-loop-on-ios-with-claude-code/) · [Claude Code iOS Simulator pane setup and limits — AI Catchup](https://aicatchup.com/news/claude-code-desktop-ios-simulator-pane)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>GitHub Was Down for 8 Hours — What Broke for AI Dev Teams and What the Scale-Up Pledge Means</title>
+      <link>https://www.theregister.com/devops/2026/08/21/we-let-you-down-github-pledges-to-scale-up-before-developers-give-up/5291031</link>
+      <guid isPermaLink="false">2026-08-22-02-github-aug17-outage-ai-impact</guid>
+      <pubDate>Sat, 22 Aug 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Best Practices</category>
+      <description>The August 17 GitHub outage (7h 47m) took down Actions, Copilot, and webhooks simultaneously — and exposed how multi-agent pipelines inherit platform uptime risk. GitHub's Aug 21 pledge promises capacity pre-allocation.</description>
+      <content:encoded><![CDATA[**GitHub's August 17 outage (7h 47m) broke Actions, Copilot, and webhooks simultaneously — the Aug 21 pledge promises capacity pre-allocation, not an architectural fix.**
+
+What failed: Actions queued and failed; archive download errors hit 50%; webhooks lagged up to 2.5 hours; Copilot, which routes through GitHub's API, went down with everything else. This followed a second Actions incident on August 6.
+
+For teams using AI-assisted development, the failure was asymmetric: engineers running Claude Code locally against local repos were unaffected. Teams whose agents opened PRs, triggered CI builds, or called Copilot took the full hit. Multi-agent PR-review workflows that invoke the GitHub API on every push had no graceful degradation path.
+
+GitHub's August 21 response ("we let you down") acknowledges the pattern and commits to capacity pre-allocation before the next load spike — not a new architecture, not a root-cause analysis yet.
+
+**Why it matters:** Multi-agent pipelines increasingly route through GitHub — PR creation, webhook triggers, CI scheduling, code review calls. Two incidents in two weeks made implicit uptime assumptions visible. A fallback for delayed webhooks (a retry queue, a polling check in your CI YAML) is now worth designing before the next incident rather than after.
+
+**Sources:** [GitHub is down worldwide — BleepingComputer](https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-github-is-down-worldwide/) · ['We let you down': GitHub pledges to scale up — The Register](https://www.theregister.com/devops/2026/08/21/we-let-you-down-github-pledges-to-scale-up-before-developers-give-up/5291031) · [The August 17 outage in detail — DEV Community](https://dev.to/jamilxt/github-is-down-the-august-17-2026-outage-in-detail-1e36)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Anthropic's Official Learning Hub Moves to academy.claude.com: 26 Free Courses on Claude Code, MCP, and Agent Development</title>
+      <link>https://academy.claude.com</link>
+      <guid isPermaLink="false">2026-08-22-01-claude-academy-26-courses-launch</guid>
+      <pubDate>Sat, 22 Aug 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>Claude Academy (academy.claude.com) replaces Anthropic Academy with 26 free self-paced courses — doubling the March catalog with tracks for Claude Code, MCP, the Claude API, and agent development.</description>
+      <content:encoded><![CDATA[**Anthropic's official learning platform moves to academy.claude.com with 26 free courses — doubling the March catalog and adding MCP and agent development depth.**
+
+The platform opened August 20 on a dedicated domain, reorganizing and expanding the March Anthropic Academy (13 courses on anthropic.com/learn). Tracks cover Claude basics, Claude Code, MCP, the Claude API, and agent development. The API and agent tracks each run 8+ hours; Claude Code 101 is about one hour.
+
+The main investment hurdle is time: the substantial API and agent development courses require a real commitment compared with most video tutorials. Claude 101 and Claude Code 101 are reasonable first stops for anyone starting from scratch.
+
+**Why it matters:** The official learning path for Claude Code and MCP now lives at a stable, dedicated address rather than being scattered across product pages. If you're onboarding a new teammate to Claude Code workflows or building a study plan for agent development, Academy tracks are a credible structured option alongside the official docs — as long as the time commitment fits.
+
+**Sources:** [academy.claude.com](https://academy.claude.com) · [26 free courses launch — Pasquale Pillitteri](https://pasqualepillitteri.it/en/news/12081/claude-academy-live-free-courses-learn-claude) · [Claude Academy developer guide — Kingy AI](https://kingy.ai/news/anthropic-academys-new-claude-courses-2026-the-web-developers-guide-to-claude-101-ai-fluency-claude-code-mcp-and-the-claude-api/) · [Claude Academy overview — AI Weekly](https://aiweekly.co/node/10535)]]></content:encoded>
+    </item>
 
     <item>
       <title>Claude Mythos 5 Now Runs Enterprise Security Scans — With a $35M Fund for Open-Source Defenders</title>
@@ -7074,299 +7208,10 @@ The [FastMCP quickstart](https://gofastmcp.com/getting-started/quickstart) build
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Give Claude Code the Entire HuggingFace Ecosystem: Three Commands to Unlock Model Search, Training Jobs, and Hub Pushes</title>
-      <link>https://huggingface.co/docs/hub/en/agents-skills</link>
-      <guid isPermaLink="false">2026-08-07-03-huggingface-skills-claude-code-plugin</guid>
-      <pubDate>Fri, 07 Aug 2026 04:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>HuggingFace</category>
-      <description>Three Claude Code commands wire in the entire HuggingFace Hub — search models, launch GPU fine-tuning jobs, push checkpoints, and manage datasets from a single plugin marketplace install.</description>
-      <content:encoded><![CDATA[
-**Three Claude Code commands wire in the entire HuggingFace Hub — search models, launch GPU fine-tuning jobs, push checkpoints, and manage datasets from a single plugin marketplace install.**
-
-Claude Code is great at writing code. HuggingFace Skills makes it great at *running ML workloads* — searching the Hub, submitting training jobs to cloud GPUs, evaluating models, and pushing finished checkpoints, all without leaving your Claude Code session.
-
-## Installing the HuggingFace Skills plugin
-
-HuggingFace publishes a plugin marketplace at `huggingface/skills`. Add it to Claude Code and install the HuggingFace CLI skill:
-
-```bash
-# 1. Register the marketplace (one-time)
-/plugin marketplace add huggingface/skills
-
-# 2. Install the hf-cli skill (teaches Claude every hf command)
-/plugin install hf-cli@huggingface/skills
-
-# 3. (Optional) Install the fine-tuning skill
-/plugin install hf-llm-trainer@huggingface/skills
-```
-
-The `hf-cli` skill is generated from your locally installed HuggingFace CLI, so it's always current. Once installed, Claude Code understands every `hf` subcommand — search, datasets, models, Spaces, jobs, and buckets.
-
-## What Claude Code can now do
-
-```
-You: Search for Llama-3.2 fine-tunes that support 128K context and are < 8B params
-
-Claude: [searches Hub] Found 14 models matching those criteria:
-        - meta-llama/Llama-3.2-8B-Instruct (8B, 128K) ✓
-        - unsloth/Llama-3.2-8B-Instruct-bnb-4bit (4-bit quant) ✓
-        ...
-
-You: Fine-tune the 8B Instruct model on datasets/my-org/support-tickets
-     with LoRA on a single H100, push to my-org/support-llama
-
-Claude: [launches job on HuggingFace Jobs, monitors progress, pushes on completion]
-```
-
-With the `hf-llm-trainer` skill, Claude understands the full training decision space: which GPU tier to pick for a given model size, LoRA vs full fine-tuning, SFT vs DPO vs GRPO, how to configure Hub auth, and how to structure multi-stage pipelines.
-
-## Available skills
-
-| Skill | What it teaches Claude |
-|---|---|
-| `hf-cli` | All `hf` CLI commands: Hub search, datasets, models, Spaces, jobs |
-| `hf-llm-trainer` | Fine-tuning from 0.5B to 70B params; SFT, DPO, RLVR; GGUF conversion |
-| `hf-datasets` | Dataset loading, filtering, format conversion, push to Hub |
-
-Install on demand with `/plugin install <skill>@huggingface/skills`. Each skill is a `SKILL.md` file with YAML frontmatter — you can read and customize them.
-
-## Why this matters for your workflow
-
-The HuggingFace ecosystem is where open-model AI engineering happens: model discovery, dataset curation, training, evaluation, and serving. Skills make all of that available inside the same Claude Code session where you're writing application code — no context switch to a notebook, no separate CLI window, no copy-paste of model IDs.
-
-HuggingFace published a worked example of using this to have Claude fine-tune an open-source LLM end-to-end — from dataset prep to Hub push — without the developer writing a single training script: [We Got Claude to Fine-Tune an Open Source LLM](https://huggingface.co/blog/hf-skills-training).
-
-**Sources:** [HuggingFace Skills docs — huggingface.co/docs/hub/en/agents-skills](https://huggingface.co/docs/hub/en/agents-skills) · [huggingface/skills — GitHub](https://github.com/huggingface/skills) · [We Got Claude to Fine-Tune an Open Source LLM — HuggingFace Blog](https://huggingface.co/blog/hf-skills-training) · [Claude Code Integration — DeepWiki](https://deepwiki.com/huggingface/skills/3.1-claude-code-integration)
-]]></content:encoded>
-      <media:content url="https://opengraph.githubassets.com/1/huggingface/skills" medium="image" />
-      <media:thumbnail url="https://opengraph.githubassets.com/1/huggingface/skills" />
-    </item>
-
-    <item>
-      <title>Meta Enters the AI Coding Race With Muse Code: Parallel Worktree Subagents Built on Muse Spark 1.2</title>
-      <link>https://www.cnbc.com/2026/08/05/meta-debuts-muse-code-to-take-on-anthropic-and-openai-.html</link>
-      <guid isPermaLink="false">2026-08-07-02-meta-muse-code-ai-coding-agent</guid>
-      <pubDate>Fri, 07 Aug 2026 04:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Developer Tools</category>
-      <category>LLM</category>
-      <description>Meta launched Muse Code on August 5 for macOS and Linux — an AI coding agent powered by Muse Spark 1.2 that fans out parallel subagents in isolated worktrees. Claude Code now has a fourth major rival.</description>
-      <content:encoded><![CDATA[
-**Meta's Muse Code, launched August 5 for macOS and Linux on Muse Spark 1.2, is Meta's first dedicated coding agent — parallel isolated-worktree subagents, one-command install, pay-as-you-go or contributor-tier pricing.**
-
-Meta rolled out Muse Code beta on August 5, entering a space already occupied by Claude Code, OpenAI's Codex, and Cursor. The agent installs with a single command on macOS and Linux, connects to any git repo, and runs on Muse Spark 1.2 — a coding-optimized model variant trained specifically for the agent workload.
-
-For large tasks, Muse Code fans out to parallel subagents working in isolated worktrees, so the main checkout is never touched mid-run. The pattern is structurally similar to Claude Code's workflow orchestration and Codex's parallel agent mode — all three converged on isolated-worktree subagents independently.
-
-Pricing: pay-as-you-go at API rates, or a discounted contributor tier where developers consent to training data use.
-
-**Why it matters:** The coding-agent market now has four serious contenders competing on the same architecture — parallel subagents, worktree isolation, agentic workflows. Your CLAUDE.md conventions, context-engineering patterns, and custom slash commands are increasingly portable skills. A competitive field accelerates feature shipping and applies downward pressure on pricing.
-
-**Sources:** [Meta debuts Muse Code to rival Claude Code — CNBC](https://www.cnbc.com/2026/08/05/meta-debuts-muse-code-to-take-on-anthropic-and-openai-.html) · [Meta enters AI coding race — The Next Web](https://thenextweb.com/news/meta-muse-code-ai-coding-agent-launch) · [Meta Muse Code beta — Dataconomy](https://dataconomy.com/2026/08/06/meta-muse-code-launch-ai-coding-agent/) · [Meta Muse Code for macOS/Linux — 9to5Mac](https://9to5mac.com/2026/08/05/meta-launches-muse-code-ai-coding-agent-for-macos-and-linux/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Teach Any Model to Reason Step-by-Step: GRPO, the RL Algorithm Behind DeepSeek-R1, on a Free Colab T4</title>
-      <link>https://unsloth.ai/docs/get-started/reinforcement-learning-rl-guide/tutorial-train-your-own-reasoning-model-with-grpo</link>
-      <guid isPermaLink="false">2026-08-07-01-grpo-reasoning-model-fine-tuning-unsloth</guid>
-      <pubDate>Fri, 07 Aug 2026 04:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Fine-Tuning</category>
-      <category>HuggingFace</category>
-      <description>GRPO trains reasoning by scoring groups of sampled responses and rewarding the above-average ones — no value model, no preference pairs. Unsloth's free Colab notebook runs it on a T4 in under 2 hours.</description>
-      <content:encoded><![CDATA[
-**GRPO is the RL algorithm behind DeepSeek-R1: score groups of responses, reward the better-than-average ones — no value model, no preference pairs. Unsloth's free Colab notebook trains a reasoning model on a T4 in under 2 hours.**
-
-**What you'll be able to do after this:**
-- Explain why GRPO is cheaper and simpler than PPO for training reasoning models — and when it beats supervised fine-tuning
-- Write a verifiable reward function for your domain (math, code, SQL, structured extraction) and plug it into Unsloth's GRPO trainer
-- Run a full GRPO training run on a free Colab T4 to build a model that generates `<think>…</think>` traces before answering
-
-## What GRPO is
-
-When you do supervised fine-tuning (SFT) on a reasoning dataset, the model learns to imitate the reasoning traces in your training data. GRPO (Group Relative Policy Optimization) does something fundamentally different: it **explores** by sampling multiple responses, **evaluates** each one against a reward function, and **reinforces** the above-average ones.
-
-The key insight: instead of needing a value model to estimate expected reward (like PPO does), GRPO uses the **group mean reward as the baseline**. Sample G=8 completions for one prompt, score each, subtract the mean — the ones that did better than average get positive gradients, the rest get negative.
-
-```
-Prompt: "Solve for x: 3x + 7 = 22"
-
-G=8 sampled completions:
-  C1: "x = 5"          reward=1.0  (correct)
-  C2: "x = 5"          reward=1.0  (correct)
-  C3: "x = 5"          reward=1.0  (correct)
-  C4: "x = 4"          reward=0.0  (wrong)
-  C5: "x = 5"          reward=1.0  (correct)
-  C6: "x = 6"          reward=0.0  (wrong)
-  C7: "x = 5"          reward=1.0  (correct)
-  C8: "x = 4"          reward=0.0  (wrong)
-
-Group mean = 0.625
-Advantages:
-  C1: 0.375  (above mean → reinforce)
-  C4: -0.625 (below mean → discourage)
-```
-
-No reference model scoring. No separate value head. No paired preference data. Just: sample, score, update.
-
-## Running GRPO with Unsloth on a free Colab T4
-
-Open Unsloth's [GRPO notebook on Colab](https://unsloth.ai/docs/get-started/reinforcement-learning-rl-guide/tutorial-train-your-own-reasoning-model-with-grpo). The key moving parts:
-
-```python
-from unsloth import FastLanguageModel
-from trl import GRPOConfig, GRPOTrainer
-
-# Load a 1.5B model in 4-bit — fits in 16GB VRAM with GRPO overhead
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name="unsloth/Qwen2.5-1.5B-Instruct",
-    max_seq_length=2048,
-    load_in_4bit=True,
-)
-model = FastLanguageModel.get_peft_model(model, r=16, lora_alpha=16)
-
-# Your reward function: the only thing GRPO needs you to write
-def reward_correct_answer(completions, ground_truth, **kwargs):
-    """Return 1.0 if the completion contains the correct answer, else 0.0."""
-    return [
-        1.0 if str(gt).strip() in c else 0.0
-        for c, gt in zip(completions, ground_truth)
-    ]
-
-trainer = GRPOTrainer(
-    model=model,
-    reward_funcs=reward_correct_answer,  # plug in your domain's verifier
-    args=GRPOConfig(
-        num_generations=8,       # G — completions per prompt
-        max_new_tokens=512,
-        max_steps=500,
-        learning_rate=5e-6,
-        per_device_train_batch_size=1,
-        gradient_accumulation_steps=4,
-        output_dir="grpo-reasoning-model",
-    ),
-    train_dataset=dataset,       # needs a "prompt" column
-)
-trainer.train()
-```
-
-Unsloth patches the attention kernels to cut VRAM by ~2×, which is what makes GRPO feasible on a free T4.
-
-## When to use GRPO instead of SFT
-
-| Situation | Better choice |
-|---|---|
-| You have correct reasoning traces (CoT) | SFT on those traces |
-| You can verify correctness automatically (math, code, SQL) | **GRPO** |
-| You want the model to discover better reasoning strategies | **GRPO** |
-| You're adapting writing style or domain vocabulary | SFT |
-| Your task doesn't have a clear correct/incorrect signal | SFT or DPO |
-
-GRPO excels at tasks with **verifiable outcomes**: the reward function is just a unit test. Code that passes tests, math answers that match, SQL that returns the right rows, structured output that satisfies a regex — all clean GRPO targets.
-
-**Sources:** [Train Your Own Reasoning Model with GRPO — Unsloth Docs](https://unsloth.ai/docs/get-started/reinforcement-learning-rl-guide/tutorial-train-your-own-reasoning-model-with-grpo) · [Train your own R1 reasoning model locally — Unsloth Blog](https://unsloth.ai/blog/r1-reasoning) · [GRPOTrainer — TRL / Hugging Face](https://huggingface.co/docs/trl/grpo_trainer) · [DeepSeek-R1 Technical Report — arXiv](https://arxiv.org/abs/2501.12948)
-]]></content:encoded>
-      <media:content url="https://unsloth.ai/images/unsloth_logo.png" medium="image" />
-      <media:thumbnail url="https://unsloth.ai/images/unsloth_logo.png" />
-    </item>
-
-    <item>
-      <title>What Did Claude Actually Do? Auditing Unattended Runs With JSONL Session Logs</title>
-      <link>https://dev.to/boucle2026/how-to-see-everything-claude-code-does-audit-trail-hook-1g9j</link>
-      <guid isPermaLink="false">2026-08-06-09-claude-code-jsonl-session-audit-trail</guid>
-      <pubDate>Thu, 06 Aug 2026 20:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Claude Code writes every tool call to JSONL logs in ~/.claude/projects/. One PostToolUse hook or three open-source tools turn those logs into a full audit trail for any background run.</description>
-      <content:encoded><![CDATA[
-**Claude Code writes every tool call to JSONL logs in ~/.claude/projects/. One PostToolUse hook or three open-source tools turn those logs into a full audit trail for any background run.**
-
-When Claude Code finishes a background task — a cron-triggered publish run, a CI pipeline, an overnight refactor — you want to know: which files did it touch? Which commands did it run? The answer lives in ~/.claude/.
-
-## Where the logs are
-
-Claude Code writes session transcripts to:
-
-```
-~/.claude/projects/<url-encoded-project-path>/<session-id>.jsonl
-```
-
-Each `.jsonl` file is one session, one JSON object per line, appended as the session runs. Crash-safe: a mid-session abort leaves a valid truncated file.
-
-Each line is one event. Tool events look like:
-
-```json
-{"type":"tool_use","id":"toolu_01XYZ","name":"Write","input":{"file_path":"/project/src/foo.ts","content":"..."}}
-{"type":"tool_result","tool_use_id":"toolu_01XYZ","content":[{"type":"text","text":"File written"}]}
-```
-
-## Quick audit with jq
-
-```bash
-# All files written in the last session
-cd ~/.claude/projects
-LATEST=$(ls -t */*.jsonl | head -1)
-jq -r 'select(.type == "tool_use" and .name == "Write") | .input.file_path' "$LATEST"
-
-# All bash commands run
-jq -r 'select(.type == "tool_use" and .name == "Bash") | .input.command' "$LATEST"
-
-# Token spend per turn
-jq 'select(.usage != null) | .usage' "$LATEST"
-```
-
-## Real-time audit hook (PostToolUse)
-
-Add this to `.claude/settings.json` to log every tool call as it happens — no after-the-fact parsing:
-
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": ".*",
-        "hooks": [{
-          "type": "command",
-          "command": "jq -c '{ts: now|todate, tool: .tool_name, input: .tool_input}' >> ~/.claude/session-logs/$(date +%Y-%m-%d).jsonl"
-        }]
-      }
-    ]
-  }
-}
-```
-
-This produces one JSON line per tool call in `~/.claude/session-logs/YYYY-MM-DD.jsonl`:
-
-```json
-{"ts":"2026-08-06T20:00:00Z","tool":"Write","input":{"file_path":"/project/content/feed.xml"}}
-{"ts":"2026-08-06T20:00:01Z","tool":"Bash","input":{"command":"node scripts/ingest-feed.mjs"}}
-```
-
-## Graphical viewers
-
-- **[claude-code-trace](https://github.com/delexw/claude-code-trace)** — TUI/web/desktop viewer. Browse sessions, inspect tool call trees, live-tail an active session. `npx @delexw/claude-code-trace`
-- **[cc-audit-log](https://github.com/yurukusa/cc-audit-log)** — scans all sessions under ~/.claude/projects/, classifies actions (file writes, edits, git, bash), outputs a human-readable timeline. `npx cc-audit-log`
-- **[claude-code-log](https://github.com/daaain/claude-code-log)** — converts a JSONL transcript to readable HTML or Markdown for sharing a session trace with your team.
-
-For teams running Claude Code in CI or as a scheduled background agent, the PostToolUse hook is a five-minute change that pays off the first time something unexpected happens.
-
-**Sources:** [How to See Everything Claude Code Does — DEV Community](https://dev.to/boucle2026/how-to-see-everything-claude-code-does-audit-trail-hook-1g9j) · [claude-code-trace — GitHub](https://github.com/delexw/claude-code-trace) · [cc-audit-log — GitHub](https://github.com/yurukusa/cc-audit-log) · [Claude Code JSONL format — claude-dev.tools](https://claude-dev.tools/docs/jsonl-format)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
+    
     
     
 
