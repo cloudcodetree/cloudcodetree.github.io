@@ -1,0 +1,805 @@
+<!-- SYNCED COPY — canvas board "Redesign Directions v2.dc.html" from the
+     Claude Design project "Personal website redesign", pulled 2026-08-22.
+     https://claude.ai/design/p/09671870-de87-467e-99b9-cd7a516e6fb6
+     The canvas is the editing surface; refresh this mirror via DesignSync.
+     Relative refs (_ds/industry-*/styles.css, support.js, image-slot.js)
+     resolve on the canvas, not here — ../industry/styles.css is the mirrored
+     equivalent of the stylesheet it links. -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/industry-b2d8b5d6-6ef5-4598-a7d8-d80ddcea122d/styles.css">
+<script src="_ds/industry-b2d8b5d6-6ef5-4598-a7d8-d80ddcea122d/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+  body { margin: 0; background: #101112; }
+  a { color: var(--color-accent-400); text-decoration: none; }
+  a:hover { color: var(--color-accent-300); }
+  /* Dark scope: the Industry tokens inverted onto their own dark ground. */
+  .t-dark {
+    --label: var(--color-accent-400);
+    --color-bg: #1d1f20;
+    --color-surface: #2b2b2d;
+    --color-text: #f2f2f3;
+    --color-divider: color-mix(in srgb, #f2f2f3 20%, transparent);
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+  .t-light {
+    --label: var(--color-accent-700);
+    --color-bg: #f2f2f3;
+    --color-surface: #e9e9ea;
+    --color-text: #1d1f20;
+    --color-divider: color-mix(in srgb, #1d1f20 16%, transparent);
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 40px; padding: 48px; font-family: var(--font-body); color: #f2f2f3; background: #101112;">
+
+  <!-- ═══════════════ TURN 3 — MOBILE ═══════════════ -->
+  <div style="display: flex; flex-direction: column; gap: 10px; max-width: 820px;">
+    <div style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent-400);">Turn 3 · Mobile · 390pt</div>
+    <h2 style="font-family: var(--font-heading); font-size: 44px; margin: 0; letter-spacing: -0.01em;">How it holds at phone width</h2>
+    <p style="margin: 0; font-size: 16px; color: #b7b7ba;">The grid collapses to one column, the spec plate to a 2×2, and the data sheet's table becomes stacked rows with the thumbnail on the left. Registration marks and hairlines stay; type steps down one notch. <a href="#3a">3a</a> front page, <a href="#3b">3b</a> data sheet, <a href="#3c">3c</a> article, <a href="#3d">3d</a> about.</p>
+  </div>
+
+  <div style="display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start;">
+
+    <!-- ── 3a — CONSOLE, MOBILE ── -->
+    <div id="3a" style="display: flex; flex-direction: column; gap: 12px; width: 390px; flex: none;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.1em; background: var(--color-accent); color: #1d1f20; padding: 2px 10px;">3A</span>
+        <span style="font-family: var(--font-heading); font-size: 19px;">CONSOLE</span>
+      </div>
+      <div class="t-dark" data-screen-label="3a Console — mobile" style="width: 390px; padding-bottom: 28px;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 13px 20px; border-bottom: 1px solid var(--color-divider);">
+          <img src="assets/Fav_Icon.svg" alt="" style="width: 20px; height: 20px;">
+          <span style="font-family: var(--font-heading); font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; margin-right: auto;">CloudCodeTree</span>
+          <span style="display: inline-flex; border: 1px solid var(--color-divider); font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.08em;">
+            <span style="padding: 3px 8px; background: var(--color-accent); color: var(--color-bg);">D</span>
+            <span style="padding: 3px 8px; border-left: 1px solid var(--color-divider);">L</span>
+          </span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M3 12h18M3 18h18"></path></svg>
+        </div>
+
+        <div class="blueprint" style="margin: 22px 20px 0; display: grid; grid-template-columns: 1fr 1fr;">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <sc-for list="{{ plate }}" as="c" hint-placeholder-count="4">
+            <div style="padding: 11px 14px; border-left: 1px solid var(--color-divider); border-top: 1px solid var(--color-divider);">
+              <div style="font-family: var(--font-heading); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-accent-400); margin-bottom: 4px;">{{ c.k }}</div>
+              <div style="font-size: 13px; line-height: 1.35;">{{ c.v }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="padding: 26px 20px 20px;">
+          <h1 style="font-family: var(--font-heading); font-size: 68px; line-height: 0.82; letter-spacing: -0.02em; margin: 0 0 14px; text-transform: uppercase;">AI News</h1>
+          <p style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--color-accent-200);">Daily field notes on AI-assisted engineering.</p>
+        </div>
+
+        <div class="blueprint" style="margin: 0 20px;">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="duotone" style="border-bottom: 1px solid var(--color-divider);">
+            <image-slot id="m-lead" style="width: 100%; height: 180px;" shape="rect" placeholder="Lead image"></image-slot>
+          </div>
+          <div style="padding: 18px;">
+            <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.16em; color: var(--color-accent-400);">
+              <span>001 / LEAD</span>
+              <span style="height: 1px; background: var(--color-divider); flex: 1;"></span>
+              <span style="color: var(--color-neutral-400); letter-spacing: 0.04em;">12:07 UTC</span>
+            </div>
+            <h2 style="font-family: var(--font-heading); font-size: 31px; line-height: 1.02; letter-spacing: -0.015em; margin: 0 0 12px;">PostToolUse Fires Even When the Model Won’t</h2>
+            <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.55; color: var(--color-neutral-300);">Claude Code’s PostToolUse hook runs after every tool call regardless of model intent.</p>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <span class="tag tag-outline" style="font-family: var(--font-heading); letter-spacing: 0.08em; color: var(--color-accent-400); border-color: var(--color-accent-700);">CLAUDE CODE</span>
+              <span style="font-size: 12px; color: var(--color-neutral-400); margin-left: auto;">2 MIN READ</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding: 30px 20px 0;">
+          <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px;">
+            <span style="font-family: var(--font-heading); font-size: 12.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent-400);">Also filed today</span>
+            <span style="height: 1px; background: var(--color-divider); flex: 1;"></span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 18px;">
+            <sc-for list="{{ mNotes }}" as="p" hint-placeholder-count="4">
+              <div class="blueprint" style="display: flex; flex-direction: column;">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <div class="duotone" style="border-bottom: 1px solid var(--color-divider);">
+                  <image-slot id="{{ p.slot }}" style="width: 100%; height: 140px;" shape="rect" placeholder="Thumbnail"></image-slot>
+                </div>
+                <div style="padding: 16px; display: flex; flex-direction: column; gap: 9px;">
+                  <div style="display: flex; justify-content: space-between; font-family: var(--font-heading); font-size: 10.5px; letter-spacing: 0.16em; color: var(--color-accent-400);">
+                    <span>{{ p.n }}</span>
+                    <span>{{ p.time }}</span>
+                  </div>
+                  <div style="font-family: var(--font-heading); font-size: 21px; line-height: 1.08;">{{ p.title }}</div>
+                  <div style="font-size: 13.5px; line-height: 1.5; color: var(--color-neutral-400);">{{ p.excerpt }}</div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--color-neutral-400);">
+                    <span class="tag tag-outline" style="font-family: var(--font-heading); letter-spacing: 0.08em; color: var(--color-accent-400); border-color: var(--color-accent-700);">{{ p.tag }}</span>
+                    <span>{{ p.read }}</span>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div class="blueprint" style="margin: 30px 20px 0; padding: 18px;">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent-400); margin-bottom: 12px;">Index · 412 notes</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr;">
+            <sc-for list="{{ railTopics }}" as="t" hint-placeholder-count="10">
+              <div style="display: flex; justify-content: space-between; padding: 7px 12px 7px 0; border-top: 1px solid var(--color-divider); font-size: 13px;">
+                <span>{{ t.name }}</span>
+                <span style="color: var(--color-neutral-500); font-variant-numeric: tabular-nums;">{{ t.n }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3b — DATA SHEET, MOBILE ── -->
+    <div id="3b" style="display: flex; flex-direction: column; gap: 12px; width: 390px; flex: none;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.1em; background: var(--color-accent); color: #1d1f20; padding: 2px 10px;">3B</span>
+        <span style="font-family: var(--font-heading); font-size: 19px;">DATA SHEET</span>
+      </div>
+      <div class="t-dark" data-screen-label="3b Data Sheet — mobile" style="width: 390px; padding-bottom: 28px;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 13px 20px; border-bottom: 1px solid var(--color-divider);">
+          <img src="assets/Fav_Icon.svg" alt="" style="width: 20px; height: 20px;">
+          <span style="font-family: var(--font-heading); font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; margin-right: auto;">CloudCodeTree</span>
+          <span style="display: inline-flex; border: 1px solid var(--color-divider); font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.08em;">
+            <span style="padding: 3px 8px; background: var(--color-accent); color: var(--color-bg);">D</span>
+            <span style="padding: 3px 8px; border-left: 1px solid var(--color-divider);">L</span>
+          </span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M3 12h18M3 18h18"></path></svg>
+        </div>
+
+        <div style="padding: 24px 20px 16px;">
+          <div style="font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent-400); margin-bottom: 10px;">Written daily by Chris Harper</div>
+          <h1 style="font-family: var(--font-heading); font-size: 66px; line-height: 0.82; letter-spacing: -0.02em; margin: 0 0 14px; text-transform: uppercase;">AI News</h1>
+          <p style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--color-neutral-300);">Every note on AI-assisted engineering, newest first.</p>
+        </div>
+
+        <div class="blueprint" style="margin: 0 20px 20px; display: grid; grid-template-columns: 1fr 1fr;">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+            <div style="padding: 12px 16px; border-left: 1px solid var(--color-divider); border-top: 1px solid var(--color-divider);">
+              <div style="font-family: var(--font-heading); font-size: 30px; line-height: 1; color: var(--color-accent-400);">{{ s.n }}</div>
+              <div style="font-family: var(--font-heading); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-neutral-400); margin-top: 6px;">{{ s.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display: flex; border: 1px solid var(--color-divider); margin: 0 20px; font-family: var(--font-heading); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; overflow-x: auto;">
+          <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+            <span style="padding: 7px 11px; border-left: 1px solid var(--color-divider); white-space: nowrap;">{{ f }}</span>
+          </sc-for>
+        </div>
+
+        <div style="padding: 18px 20px 0;">
+          <div style="display: flex; justify-content: space-between; font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent-400); padding-bottom: 9px; border-bottom: 1px solid var(--color-divider);">
+            <span>Entries 412–407</span>
+            <span>Newest first</span>
+          </div>
+          <sc-for list="{{ mRows }}" as="r" hint-placeholder-count="6">
+            <div style="display: grid; grid-template-columns: 128px 1fr; gap: 14px; padding: 14px 0; border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);">
+              <div class="duotone" style="border: 1px solid var(--color-divider);">
+                <image-slot id="{{ r.slot }}" style="width: 128px; height: 74px;" shape="rect" placeholder="Thumbnail"></image-slot>
+              </div>
+              <div style="min-width: 0;">
+                <div style="display: flex; gap: 8px; font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.14em; color: var(--color-accent-400); margin-bottom: 5px;">
+                  <span>{{ r.n }}</span>
+                  <span style="color: var(--color-neutral-500); letter-spacing: 0.04em;">{{ r.date }}</span>
+                </div>
+                <div style="font-family: var(--font-heading); font-size: 18px; line-height: 1.12; margin-bottom: 5px;">{{ r.title }}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--color-neutral-400);">
+                  <span class="tag tag-outline" style="font-family: var(--font-heading); letter-spacing: 0.08em; color: var(--color-accent-400); border-color: var(--color-accent-700);">{{ r.tag }}</span>
+                  <span>{{ r.read }}</span>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+          <div style="display: flex; align-items: center; gap: 12px; padding-top: 18px;">
+            <span class="btn btn-primary" style="font-family: var(--font-heading); font-size: 12.5px; letter-spacing: 0.12em;">OLDER NOTES</span>
+            <span style="font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-neutral-400);">01 / 21</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3c — ARTICLE, MOBILE ── -->
+    <div id="3c" style="display: flex; flex-direction: column; gap: 12px; width: 390px; flex: none;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.1em; background: var(--color-accent); color: #1d1f20; padding: 2px 10px;">3C</span>
+        <span style="font-family: var(--font-heading); font-size: 19px;">ARTICLE</span>
+      </div>
+      <div class="t-dark" data-screen-label="3c Article — mobile" style="width: 390px; padding-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 13px 20px; border-bottom: 1px solid var(--color-divider);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 18l-6-6 6-6"></path></svg>
+          <span style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; margin-right: auto; color: var(--color-accent-400);">AI News</span>
+          <span style="display: inline-flex; border: 1px solid var(--color-divider); font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.08em;">
+            <span style="padding: 3px 8px; background: var(--color-accent); color: var(--color-bg);">D</span>
+            <span style="padding: 3px 8px; border-left: 1px solid var(--color-divider);">L</span>
+          </span>
+        </div>
+
+        <div style="padding: 24px 20px 0;">
+          <div style="font-family: var(--font-heading); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--label); margin-bottom: 12px;">Entry 412 · 2 min read</div>
+          <h1 style="font-family: var(--font-heading); font-size: 36px; line-height: 1.02; letter-spacing: -0.02em; margin: 0 0 14px;">PostToolUse Fires Even When the Model Won’t</h1>
+          <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.55; color: var(--color-neutral-300);">Add deterministic side-effects to every Claude Code session — formatting, checkpoint commits, and test runs that happen outside model control.</p>
+
+          <div style="border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); margin-bottom: 22px;">
+            <div style="display: grid; grid-template-columns: 90px 1fr; padding: 9px 0; border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);">
+              <span style="font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--label);">Author</span>
+              <span style="font-size: 13.5px;">Chris Harper</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 90px 1fr; padding: 9px 0;">
+              <span style="font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--label);">Published</span>
+              <span style="font-size: 13.5px; font-variant-numeric: tabular-nums;">2026-08-03 12:07 UTC</span>
+            </div>
+          </div>
+
+          <div class="blueprint duotone" style="margin-bottom: 22px;">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <image-slot id="m-art" style="width: 100%; height: 190px;" shape="rect" placeholder="Article image"></image-slot>
+          </div>
+
+          <p style="margin: 0 0 16px; font-size: 16.5px; line-height: 1.68;">The critical property of Claude Code hooks is that they run <strong>outside</strong> the model’s decision loop. When PostToolUse fires after a Write call, the model can’t skip it, defer it, or decide it’s unnecessary.</p>
+          <h2 style="font-family: var(--font-heading); font-size: 24px; margin: 26px 0 10px;">How the hook receives its input</h2>
+          <p style="margin: 0 0 16px; font-size: 16.5px; line-height: 1.68;">Every hook gets a JSON payload on stdin. For PostToolUse after a Write, the relevant fields are the file just written and the tool’s result.</p>
+          <div class="blueprint" style="padding: 14px; margin-bottom: 18px; background: color-mix(in srgb, var(--color-text) 5%, transparent); overflow-x: auto;">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="font-family: ui-monospace, monospace; font-size: 12.5px; line-height: 1.7; white-space: pre;">#!/usr/bin/env bash
+set -euo pipefail
+npx prettier --write "$fp"</div>
+          </div>
+          <p style="margin: 0; font-size: 16.5px; line-height: 1.68; color: var(--color-neutral-300);">That gap between “the model might do X” and “X will always happen” is the key to reliable workflows.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3d — ABOUT, MOBILE ── -->
+    <div id="3d" style="display: flex; flex-direction: column; gap: 12px; width: 390px; flex: none;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.1em; background: var(--color-accent); color: #1d1f20; padding: 2px 10px;">3D</span>
+        <span style="font-family: var(--font-heading); font-size: 19px;">ABOUT</span>
+      </div>
+      <div class="t-dark" data-screen-label="3d About — mobile" style="width: 390px; padding-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 13px 20px; border-bottom: 1px solid var(--color-divider);">
+          <img src="assets/Fav_Icon.svg" alt="" style="width: 20px; height: 20px;">
+          <span style="font-family: var(--font-heading); font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; margin-right: auto;">CloudCodeTree</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M3 12h18M3 18h18"></path></svg>
+        </div>
+
+        <div style="padding: 26px 20px 22px;">
+          <div style="font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent-400); margin-bottom: 14px;">Chris Harper · Engineering team leader</div>
+          <h1 style="font-family: var(--font-heading); font-size: 44px; line-height: 0.95; letter-spacing: -0.02em; margin: 0 0 16px;">I build software with agents, and write down what I learn.</h1>
+          <p style="margin: 0 0 20px; font-size: 15.5px; line-height: 1.55; color: var(--color-neutral-300);">Day to day I lead engineering work across cloud and full-stack. The rest of the time I’m deep in agentic coding tools, custom models and automation.</p>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <span class="btn btn-primary btn-block" style="font-family: var(--font-heading); font-size: 14px; letter-spacing: 0.1em; padding: 12px; margin-top: 0;">BOOK A CHAT</span>
+            <span class="btn btn-secondary btn-block" style="font-family: var(--font-heading); font-size: 14px; letter-spacing: 0.1em; padding: 12px; margin-top: 0;">RÉSUMÉ</span>
+          </div>
+        </div>
+
+        <div class="blueprint duotone" style="margin: 0 20px 24px;">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <image-slot id="m-portrait" style="width: 100%; height: 280px;" shape="rect" placeholder="Portrait photo"></image-slot>
+        </div>
+
+        <div class="blueprint" style="margin: 0 20px 24px;">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <sc-for list="{{ mFacts }}" as="f" hint-placeholder-count="4">
+            <div style="padding: 12px 16px; border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);">
+              <div style="font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent-400); margin-bottom: 4px;">{{ f.k }}</div>
+              <div style="font-size: 14.5px; line-height: 1.4;">{{ f.v }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="padding: 0 20px;">
+          <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px;">
+            <span style="font-family: var(--font-heading); font-size: 12.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent-400);">What I do</span>
+            <span style="height: 1px; background: var(--color-divider); flex: 1;"></span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <sc-for list="{{ mServices }}" as="s" hint-placeholder-count="3">
+              <div class="blueprint" style="padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <div style="font-family: var(--font-heading); font-size: 10.5px; letter-spacing: 0.2em; color: var(--color-accent-400);">{{ s.n }}</div>
+                <div style="font-family: var(--font-heading); font-size: 19px; line-height: 1.1;">{{ s.title }}</div>
+                <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--color-neutral-400);">{{ s.body }}</p>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 10px; max-width: 820px;">
+    <div style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent-400);">Turn 2 · Industry · dark ground</div>
+    <h2 style="font-family: var(--font-heading); font-size: 44px; margin: 0; letter-spacing: -0.01em;">A technical publication, drawn as a blueprint</h2>
+    <p style="margin: 0; font-size: 16px; color: #b7b7ba;">Steel on graphite, Barlow Condensed over Barlow, square corners and registration marks. Two front-page directions — <a href="#2a">2a</a> and <a href="#2b">2b</a> — plus the article page in dark and light reading mode (<a href="#2c">2c</a>) and a rebuilt About (<a href="#2d">2d</a>).</p>
+  </div>
+
+  <!-- ═══════════════ 2a — CONSOLE ═══════════════ -->
+  <div id="2a" style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: baseline; gap: 14px;">
+      <span style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.1em; background: var(--color-accent); color: #1d1f20; padding: 3px 12px;">2A</span>
+      <span style="font-family: var(--font-heading); font-size: 24px; letter-spacing: 0.01em;">CONSOLE</span>
+      <span style="font-size: 14px; color: #98989b;">A spec plate, one lead entry, then the day's notes in a visible grid.</span>
+    </div>
+
+    <div class="t-dark" data-screen-label="2a Console — front page" style="width: 1280px; padding-bottom: 44px;">
+
+      <!-- top bar -->
+      <div style="display: flex; align-items: center; gap: 28px; padding: 16px 40px; border-bottom: 1px solid var(--color-divider);">
+        <img src="assets/Fav_Icon.svg" alt="" style="width: 22px; height: 22px;">
+        <span style="font-family: var(--font-heading); font-size: 17px; letter-spacing: 0.14em; text-transform: uppercase; margin-right: auto;">CloudCodeTree</span>
+        <span style="font-family: var(--font-heading); font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent-400);">AI News</span>
+        <span style="font-family: var(--font-heading); font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase;">Tutorials</span>
+        <span style="font-family: var(--font-heading); font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase;">Projects</span>
+        <span style="font-family: var(--font-heading); font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase;">About</span>
+        <span style="display: inline-flex; border: 1px solid var(--color-divider); font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.1em;">
+          <span style="padding: 5px 11px; background: var(--color-accent); color: var(--color-bg);">DARK</span>
+          <span style="padding: 5px 11px; border-left: 1px solid var(--color-divider);">LIGHT</span>
+        </span>
+        <span class="btn btn-primary" style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.1em;">SUBSCRIBE</span>
+      </div>
+
+      <!-- spec plate -->
+      <div class="blueprint" style="margin: 34px 40px 0; display: grid; grid-template-columns: repeat(4, 1fr);">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <sc-for list="{{ plate }}" as="c" hint-placeholder-count="4">
+          <div style="padding: 14px 18px; border-left: 1px solid var(--color-divider);">
+            <div style="font-family: var(--font-heading); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent-400); margin-bottom: 6px;">{{ c.k }}</div>
+            <div style="font-size: 14.5px;">{{ c.v }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- masthead -->
+      <div style="padding: 40px 40px 30px; display: grid; grid-template-columns: auto 1fr; gap: 40px; align-items: end;">
+        <h1 style="font-family: var(--font-heading); font-size: 148px; line-height: 0.78; letter-spacing: -0.02em; margin: 0; text-transform: uppercase;">AI News</h1>
+        <p style="margin: 0 0 10px; font-size: 17px; line-height: 1.55; color: var(--color-accent-200); max-width: 380px;">Daily field notes on AI-assisted engineering — model releases, agent tooling, and the custom-model stack.</p>
+      </div>
+
+      <!-- lead entry -->
+      <div class="blueprint" style="margin: 0 40px; display: grid; grid-template-columns: 1.1fr 1fr;">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div class="duotone" style="border-right: 1px solid var(--color-divider);">
+          <image-slot id="ind-lead" style="width: 100%; height: 330px;" shape="rect" placeholder="Lead image"></image-slot>
+        </div>
+        <div style="padding: 28px 30px; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+            <span style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.18em; color: var(--color-accent-400);">001 / LEAD</span>
+            <span style="height: 1px; background: var(--color-divider); flex: 1;"></span>
+            <span style="font-size: 12.5px; color: var(--color-neutral-400);">2026-08-03 12:07 UTC</span>
+          </div>
+          <h2 style="font-family: var(--font-heading); font-size: 44px; line-height: 1.02; letter-spacing: -0.015em; margin: 0 0 16px;">PostToolUse Fires Even When the Model Won’t</h2>
+          <p style="margin: 0 0 20px; font-size: 16.5px; line-height: 1.6; color: var(--color-neutral-300);">Claude Code’s PostToolUse hook runs after every tool call regardless of model intent — the right place to auto-format, commit checkpoints, and run tests deterministically.</p>
+          <div style="margin-top: auto; display: flex; gap: 7px; align-items: center;">
+            <span class="tag tag-outline" style="font-family: var(--font-heading); letter-spacing: 0.08em; color: var(--color-accent-400); border-color: var(--color-accent-600);">CLAUDE CODE</span>
+            <span class="tag tag-outline" style="font-family: var(--font-heading); letter-spacing: 0.08em; color: var(--color-accent-400); border-color: var(--color-accent-600);">WORKFLOW</span>
+            <span style="font-size: 12.5px; color: var(--color-neutral-400); margin-left: auto;">2 MIN READ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- grid of notes -->
+      <div style="padding: 40px 40px 0;">
+        <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 26px;">
+          <span style="font-family: var(--font-heading); font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-accent-400);">Also filed today</span>
+          <span style="height: 1px; background: var(--color-divider); flex: 1;"></span>
+          <span style="font-size: 12.5px; color: var(--color-neutral-400);">005 ENTRIES</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px;">
+          <sc-for list="{{ notes }}" as="p" hint-placeholder-count="6">
+            <div class="blueprint" style="display: flex; flex-direction: column; min-height: 210px;">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div class="duotone" style="border-bottom: 1px solid var(--color-divider);">
+                <image-slot id="{{ p.slot }}" style="width: 100%; height: 148px;" shape="rect" placeholder="Thumbnail"></image-slot>
+              </div>
+              <div style="padding: 20px; display: flex; flex-direction: column; gap: 11px; flex: 1;">
+              <div style="display: flex; justify-content: space-between; font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.16em; color: var(--color-accent-400);">
+                <span>{{ p.n }}</span>
+                <span>{{ p.time }}</span>
+              </div>
+              <div style="font-family: var(--font-heading); font-size: 22px; line-height: 1.1;">{{ p.title }}</div>
+              <div style="font-size: 14px; line-height: 1.55; color: var(--color-neutral-400);">{{ p.excerpt }}</div>
+              <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--color-neutral-400);">
+                <span class="tag tag-outline" style="font-family: var(--font-heading); letter-spacing: 0.08em; color: var(--color-accent-400); border-color: var(--color-accent-700);">{{ p.tag }}</span>
+                <span>{{ p.read }}</span>
+              </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- topic index -->
+      <div class="blueprint" style="margin: 44px 40px 0; padding: 24px;">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-accent-400); margin-bottom: 16px;">Index · 412 notes</div>
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr);">
+          <sc-for list="{{ railTopics }}" as="t" hint-placeholder-count="10">
+            <div style="display: flex; justify-content: space-between; padding: 8px 14px 8px 0; border-top: 1px solid var(--color-divider); font-size: 14px;">
+              <span>{{ t.name }}</span>
+              <span style="color: var(--color-neutral-500); font-variant-numeric: tabular-nums;">{{ t.n }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 2b — DATA SHEET ═══════════════ -->
+  <div id="2b" style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: baseline; gap: 14px;">
+      <span style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.1em; background: var(--color-accent); color: #1d1f20; padding: 3px 12px;">2B</span>
+      <span style="font-family: var(--font-heading); font-size: 24px; letter-spacing: 0.01em;">DATA SHEET</span>
+      <span style="font-size: 14px; color: #98989b;">The archive as a specification table. No images, maximum scan rate.</span>
+    </div>
+
+    <div class="t-dark" data-screen-label="2b Data Sheet — front page" style="width: 1280px; padding-bottom: 44px;">
+
+      <div style="display: flex; align-items: center; gap: 28px; padding: 16px 40px; border-bottom: 1px solid var(--color-divider);">
+        <img src="assets/Fav_Icon.svg" alt="" style="width: 22px; height: 22px;">
+        <span style="font-family: var(--font-heading); font-size: 17px; letter-spacing: 0.14em; text-transform: uppercase; margin-right: auto;">CloudCodeTree</span>
+        <span style="font-family: var(--font-heading); font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent-400);">AI News</span>
+        <span style="font-family: var(--font-heading); font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase;">Tutorials</span>
+        <span style="font-family: var(--font-heading); font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase;">Projects</span>
+        <span style="font-family: var(--font-heading); font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase;">About</span>
+        <span style="display: inline-flex; border: 1px solid var(--color-divider); font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.1em;">
+          <span style="padding: 5px 11px; background: var(--color-accent); color: var(--color-bg);">DARK</span>
+          <span style="padding: 5px 11px; border-left: 1px solid var(--color-divider);">LIGHT</span>
+        </span>
+        <span class="btn btn-primary" style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.1em;">SUBSCRIBE</span>
+      </div>
+
+      <!-- header + numbers -->
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 48px; padding: 40px 40px 30px; align-items: end;">
+        <div>
+          <div style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-accent-400); margin-bottom: 14px;">Written daily by Chris Harper</div>
+          <h1 style="font-family: var(--font-heading); font-size: 116px; line-height: 0.8; letter-spacing: -0.02em; margin: 0 0 18px; text-transform: uppercase;">AI News</h1>
+          <p style="margin: 0; font-size: 17px; line-height: 1.55; color: var(--color-neutral-300); max-width: 540px;">Every note on AI-assisted engineering, newest first — model releases, agent tooling, and the custom-model stack.</p>
+        </div>
+        <div class="blueprint" style="display: grid; grid-template-columns: 1fr 1fr;">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+            <div style="padding: 16px 22px; border-left: 1px solid var(--color-divider); border-top: 1px solid var(--color-divider); min-width: 150px;">
+              <div style="font-family: var(--font-heading); font-size: 38px; line-height: 1; color: var(--color-accent-400);">{{ s.n }}</div>
+              <div style="font-family: var(--font-heading); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-neutral-400); margin-top: 8px;">{{ s.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- controls -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 10px 40px 20px;">
+        <div style="display: inline-flex; border: 1px solid var(--color-divider); font-family: var(--font-heading); font-size: 12.5px; letter-spacing: 0.12em; text-transform: uppercase;">
+          <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+            <span style="padding: 7px 15px; border-left: 1px solid var(--color-divider);">{{ f }}</span>
+          </sc-for>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-neutral-400);">
+          <span>Rows</span>
+          <span style="border: 1px solid var(--color-divider); padding: 6px 13px; color: var(--color-text);">40</span>
+        </div>
+      </div>
+
+      <!-- table -->
+      <div class="blueprint" style="margin: 0 40px;">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display: grid; grid-template-columns: 50px 106px 156px 1fr 150px 70px; font-family: var(--font-heading); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent-400); border-bottom: 1px solid var(--color-divider);">
+          <div style="padding: 11px 14px;">No.</div>
+          <div style="padding: 11px 14px;">Published</div>
+          <div style="padding: 11px 14px;">Fig.</div>
+          <div style="padding: 11px 14px;">Entry</div>
+          <div style="padding: 11px 14px;">Topic</div>
+          <div style="padding: 11px 14px; text-align: right;">Read</div>
+        </div>
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="10">
+          <div style="display: grid; grid-template-columns: 50px 106px 156px 1fr 150px 70px; border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent); align-items: baseline;">
+            <div style="padding: 15px 14px; font-family: var(--font-heading); font-size: 13px; color: var(--color-neutral-500); font-variant-numeric: tabular-nums;">{{ r.n }}</div>
+            <div style="padding: 15px 14px; font-size: 13px; color: var(--color-neutral-400); font-variant-numeric: tabular-nums;">{{ r.date }}</div>
+            <div style="padding: 13px 14px;">
+              <div class="duotone" style="border: 1px solid var(--color-divider);">
+                <image-slot id="{{ r.slot }}" style="width: 128px; height: 74px;" shape="rect" placeholder="Thumbnail"></image-slot>
+              </div>
+            </div>
+            <div style="padding: 15px 14px;">
+              <div style="font-family: var(--font-heading); font-size: 20px; line-height: 1.15; margin-bottom: 3px;">{{ r.title }}</div>
+              <div style="font-size: 13.5px; line-height: 1.5; color: var(--color-neutral-400);">{{ r.excerpt }}</div>
+            </div>
+            <div style="padding: 15px 14px;">
+              <span class="tag tag-outline" style="font-family: var(--font-heading); letter-spacing: 0.08em; color: var(--color-accent-400); border-color: var(--color-accent-700);">{{ r.tag }}</span>
+            </div>
+            <div style="padding: 15px 14px; text-align: right; font-size: 13px; color: var(--color-neutral-400);">{{ r.read }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px; padding: 22px 40px 0;">
+        <span class="btn btn-primary" style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.12em;">OLDER NOTES</span>
+        <span style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-neutral-400);">Page 01 / 21</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 2c — ARTICLE, DARK + LIGHT ═══════════════ -->
+  <div id="2c" style="display: flex; flex-direction: column; gap: 14px; width: max-content; max-width: 100%;">
+    <div style="display: flex; align-items: baseline; gap: 14px;">
+      <span style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.1em; background: var(--color-accent); color: #1d1f20; padding: 3px 12px;">2C</span>
+      <span style="font-family: var(--font-heading); font-size: 24px; letter-spacing: 0.01em;">ARTICLE · DARK + LIGHT READING MODE</span>
+      <span style="font-size: 14px; color: #98989b;">Same page, both grounds. The toggle lives in the top bar.</span>
+    </div>
+
+    <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+        <div class="t-dark" data-screen-label="2c Article dark" style="width: 700px; flex: none; padding-bottom: 40px;">
+          <div style="display: flex; align-items: center; gap: 18px; padding: 14px 32px; border-bottom: 1px solid var(--color-divider);">
+            <img src="assets/Fav_Icon.svg" alt="" style="width: 20px; height: 20px;">
+            <span style="font-family: var(--font-heading); font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; margin-right: auto;">CloudCodeTree</span>
+            <span style="display: inline-flex; border: 1px solid var(--color-divider); font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.1em;">
+              <span style="padding: 4px 10px; background: var(--color-accent); color: var(--color-bg);">DARK</span>
+              <span style="padding: 4px 10px; border-left: 1px solid var(--color-divider); ">LIGHT</span>
+            </span>
+          </div>
+
+          <div style="padding: 34px 32px 0;">
+            <div style="display: flex; align-items: baseline; gap: 12px; font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--label); margin-bottom: 18px;">
+              <span>AI News</span>
+              <span style="height: 1px; background: var(--color-divider); flex: 1;"></span>
+              <span>Entry 412</span>
+            </div>
+            <h1 style="font-family: var(--font-heading); font-size: 48px; line-height: 1.0; letter-spacing: -0.02em; margin: 0 0 18px;">PostToolUse Fires Even When the Model Won’t</h1>
+            <p style="margin: 0 0 22px; font-size: 18px; line-height: 1.6; color: color-mix(in srgb, var(--color-text) 72%, transparent);">Add deterministic side-effects to every Claude Code session — formatting, checkpoint commits, and test runs that happen outside model control.</p>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); margin-bottom: 26px;">
+              <div style="padding: 11px 0;">
+                <div style="font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--label);">Author</div>
+                <div style="font-size: 14px; margin-top: 3px;">Chris Harper</div>
+              </div>
+              <div style="padding: 11px 0;">
+                <div style="font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--label);">Published</div>
+                <div style="font-size: 14px; margin-top: 3px; font-variant-numeric: tabular-nums;">2026-08-03 12:07 UTC</div>
+              </div>
+              <div style="padding: 11px 0;">
+                <div style="font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--label);">Read</div>
+                <div style="font-size: 14px; margin-top: 3px;">2 min</div>
+              </div>
+            </div>
+
+            <div class="blueprint duotone" style="margin-bottom: 28px;">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <image-slot id="ind-art-dark" style="width: 100%; height: 250px;" shape="rect" placeholder="Article image"></image-slot>
+            </div>
+
+            <p style="margin: 0 0 18px; font-size: 17px; line-height: 1.7;">The critical property of Claude Code hooks is that they run <strong>outside</strong> the model’s decision loop. When PostToolUse fires after a <code style="font-family: ui-monospace, monospace; font-size: 15px; padding: 1px 5px; border: 1px solid var(--color-divider);">Write</code> call, the model can’t skip it, defer it, or decide it’s unnecessary.</p>
+            <h2 style="font-family: var(--font-heading); font-size: 28px; margin: 30px 0 12px;">How the hook receives its input</h2>
+            <p style="margin: 0 0 18px; font-size: 17px; line-height: 1.7;">Every hook gets a JSON payload on stdin. For PostToolUse after a Write, the relevant fields are the file just written and the tool’s result. Use that path to trigger follow-on work.</p>
+            <div class="blueprint" style="padding: 16px 18px; margin-bottom: 22px; background: color-mix(in srgb, var(--color-text) 5%, transparent);">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div style="font-family: ui-monospace, monospace; font-size: 13.5px; line-height: 1.7; white-space: pre;">#!/usr/bin/env bash
+set -euo pipefail
+npx prettier --write "$fp" 2>&1 || true</div>
+            </div>
+            <p style="margin: 0; font-size: 17px; line-height: 1.7; color: color-mix(in srgb, var(--color-text) 78%, transparent);">That gap between “the model might do X” and “X will always happen” is the key to building reliable Claude Code workflows in production.</p>
+          </div>
+        </div>
+        <div class="t-light" data-screen-label="2c Article light" style="width: 700px; flex: none; padding-bottom: 40px;">
+          <div style="display: flex; align-items: center; gap: 18px; padding: 14px 32px; border-bottom: 1px solid var(--color-divider);">
+            <img src="assets/Fav_Icon.svg" alt="" style="width: 20px; height: 20px;">
+            <span style="font-family: var(--font-heading); font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; margin-right: auto;">CloudCodeTree</span>
+            <span style="display: inline-flex; border: 1px solid var(--color-divider); font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.1em;">
+              <span style="padding: 4px 10px; ">DARK</span>
+              <span style="padding: 4px 10px; border-left: 1px solid var(--color-divider); background: var(--color-accent); color: var(--color-bg);">LIGHT</span>
+            </span>
+          </div>
+
+          <div style="padding: 34px 32px 0;">
+            <div style="display: flex; align-items: baseline; gap: 12px; font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--label); margin-bottom: 18px;">
+              <span>AI News</span>
+              <span style="height: 1px; background: var(--color-divider); flex: 1;"></span>
+              <span>Entry 412</span>
+            </div>
+            <h1 style="font-family: var(--font-heading); font-size: 48px; line-height: 1.0; letter-spacing: -0.02em; margin: 0 0 18px;">PostToolUse Fires Even When the Model Won’t</h1>
+            <p style="margin: 0 0 22px; font-size: 18px; line-height: 1.6; color: color-mix(in srgb, var(--color-text) 72%, transparent);">Add deterministic side-effects to every Claude Code session — formatting, checkpoint commits, and test runs that happen outside model control.</p>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); margin-bottom: 26px;">
+              <div style="padding: 11px 0;">
+                <div style="font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--label);">Author</div>
+                <div style="font-size: 14px; margin-top: 3px;">Chris Harper</div>
+              </div>
+              <div style="padding: 11px 0;">
+                <div style="font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--label);">Published</div>
+                <div style="font-size: 14px; margin-top: 3px; font-variant-numeric: tabular-nums;">2026-08-03 12:07 UTC</div>
+              </div>
+              <div style="padding: 11px 0;">
+                <div style="font-family: var(--font-heading); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--label);">Read</div>
+                <div style="font-size: 14px; margin-top: 3px;">2 min</div>
+              </div>
+            </div>
+
+            <div class="blueprint duotone" style="margin-bottom: 28px;">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <image-slot id="ind-art-light" style="width: 100%; height: 250px;" shape="rect" placeholder="Article image"></image-slot>
+            </div>
+
+            <p style="margin: 0 0 18px; font-size: 17px; line-height: 1.7;">The critical property of Claude Code hooks is that they run <strong>outside</strong> the model’s decision loop. When PostToolUse fires after a <code style="font-family: ui-monospace, monospace; font-size: 15px; padding: 1px 5px; border: 1px solid var(--color-divider);">Write</code> call, the model can’t skip it, defer it, or decide it’s unnecessary.</p>
+            <h2 style="font-family: var(--font-heading); font-size: 28px; margin: 30px 0 12px;">How the hook receives its input</h2>
+            <p style="margin: 0 0 18px; font-size: 17px; line-height: 1.7;">Every hook gets a JSON payload on stdin. For PostToolUse after a Write, the relevant fields are the file just written and the tool’s result. Use that path to trigger follow-on work.</p>
+            <div class="blueprint" style="padding: 16px 18px; margin-bottom: 22px; background: color-mix(in srgb, var(--color-text) 5%, transparent);">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div style="font-family: ui-monospace, monospace; font-size: 13.5px; line-height: 1.7; white-space: pre;">#!/usr/bin/env bash
+set -euo pipefail
+npx prettier --write "$fp" 2>&1 || true</div>
+            </div>
+            <p style="margin: 0; font-size: 17px; line-height: 1.7; color: color-mix(in srgb, var(--color-text) 78%, transparent);">That gap between “the model might do X” and “X will always happen” is the key to building reliable Claude Code workflows in production.</p>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 2d — ABOUT ═══════════════ -->
+  <div id="2d" style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: baseline; gap: 14px;">
+      <span style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.1em; background: var(--color-accent); color: #1d1f20; padding: 3px 12px;">2D</span>
+      <span style="font-family: var(--font-heading); font-size: 24px; letter-spacing: 0.01em;">ABOUT · SPEC SHEET</span>
+      <span style="font-size: 14px; color: #98989b;">A claim, a duotoned portrait, and the facts a hiring manager scans for.</span>
+    </div>
+
+    <div class="t-dark" data-screen-label="2d About" style="width: 1280px; padding-bottom: 48px;">
+
+      <div style="display: flex; align-items: center; gap: 28px; padding: 16px 40px; border-bottom: 1px solid var(--color-divider);">
+        <img src="assets/Fav_Icon.svg" alt="" style="width: 22px; height: 22px;">
+        <span style="font-family: var(--font-heading); font-size: 17px; letter-spacing: 0.14em; text-transform: uppercase; margin-right: auto;">CloudCodeTree</span>
+        <span style="font-family: var(--font-heading); font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase;">AI News</span>
+        <span style="font-family: var(--font-heading); font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase;">Tutorials</span>
+        <span style="font-family: var(--font-heading); font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase;">Projects</span>
+        <span style="font-family: var(--font-heading); font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent-400);">About</span>
+        <span class="btn btn-primary" style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.1em;">BOOK A CHAT</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 360px; gap: 56px; padding: 48px 40px 44px; align-items: start;">
+        <div>
+          <div style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-accent-400); margin-bottom: 20px;">Chris Harper · Engineering team leader</div>
+          <h1 style="font-family: var(--font-heading); font-size: 82px; line-height: 0.92; letter-spacing: -0.02em; margin: 0 0 24px;">I build software with agents, and write down what I learn.</h1>
+          <p style="margin: 0 0 18px; font-size: 18.5px; line-height: 1.6; color: var(--color-neutral-300); max-width: 620px;">Day to day I lead engineering work across cloud and full-stack. The rest of the time I’m deep in agentic coding tools, custom models and automation — and publishing the results daily on <span style="color: var(--color-accent-400);">AI News</span>, which runs on a research-and-publish pipeline I built.</p>
+          <div style="display: flex; gap: 12px; align-items: center; margin-top: 28px;">
+            <span class="btn btn-primary" style="font-family: var(--font-heading); font-size: 14px; letter-spacing: 0.1em; padding: 11px 22px;">BOOK A CHAT</span>
+            <span class="btn btn-secondary" style="font-family: var(--font-heading); font-size: 14px; letter-spacing: 0.1em; padding: 11px 22px;">RÉSUMÉ</span>
+            <span style="font-size: 15px; color: var(--color-accent-400); margin-left: 6px;">chris@cloudcodetree.com</span>
+          </div>
+        </div>
+        <div class="blueprint duotone">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <image-slot id="ind-portrait" style="width: 100%; height: 380px;" shape="rect" placeholder="Portrait photo"></image-slot>
+        </div>
+      </div>
+
+      <!-- facts -->
+      <div class="blueprint" style="margin: 0 40px 44px;">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <sc-for list="{{ facts }}" as="f" hint-placeholder-count="5">
+          <div style="display: grid; grid-template-columns: 180px 1fr; border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);">
+            <div style="padding: 13px 20px; font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent-400); border-right: 1px solid var(--color-divider);">{{ f.k }}</div>
+            <div style="padding: 13px 20px; font-size: 15.5px;">{{ f.v }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- capabilities -->
+      <div style="padding: 0 40px;">
+        <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 26px;">
+          <span style="font-family: var(--font-heading); font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-accent-400);">What I do</span>
+          <span style="height: 1px; background: var(--color-divider); flex: 1;"></span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+          <sc-for list="{{ services }}" as="s" hint-placeholder-count="4">
+            <div class="blueprint" style="padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div style="font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.2em; color: var(--color-accent-400);">{{ s.n }}</div>
+              <div style="font-family: var(--font-heading); font-size: 21px; line-height: 1.1;">{{ s.title }}</div>
+              <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-400);">{{ s.body }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- stack -->
+      <div style="padding: 44px 40px 0;">
+        <div style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-accent-400); margin-bottom: 16px;">Stack</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <sc-for list="{{ skills }}" as="s" hint-placeholder-count="17">
+            <span class="tag tag-outline" style="font-family: var(--font-heading); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 13px; color: var(--color-accent-300); border-color: var(--color-accent-700);">{{ s }}</span>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 1000}}">
+class Component extends DCLogic {
+  renderVals() {
+    const v = {
+      plate: [
+        { k: "Publication", v: "AI News — daily field notes" },
+        { k: "Issue", v: "412" },
+        { k: "Updated", v: "2026-08-03 12:07 UTC" },
+        { k: "Author", v: "C. Harper" },
+      ],
+      notes: [
+        { slot: "ind-note-2", n: "002", time: "12:05", title: "Claude Opus 4.1 API retires this Tuesday", excerpt: "Hard end-of-life on August 5. Change one string to claude-opus-4-8 before requests start failing.", tag: "NEWS", read: "2 MIN" },
+        { slot: "ind-note-3", n: "003", time: "12:03", title: "Instrument every LLM call once, route traces anywhere", excerpt: "OTel’s 2026 GenAI conventions add standard gen_ai.* span attributes — swap backends freely.", tag: "DEVOPS", read: "2 MIN" },
+        { slot: "ind-note-4", n: "004", time: "12:01", title: "Run multiple tool calls in parallel with asyncio.gather", excerpt: "Cuts your agent’s wall time to the slowest single call instead of the sum of all of them.", tag: "AGENTS", read: "2 MIN" },
+        { slot: "ind-note-5", n: "005", time: "11:58", title: "Fine-tune any LLM on your Mac in 30 minutes", excerpt: "MLX-LM runs a full LoRA fine-tune on Mistral 7B on any M-series Mac, for free.", tag: "FINE-TUNING", read: "3 MIN" },
+        { slot: "ind-note-6", n: "006", time: "11:44", title: "Delimit your Claude system prompts with XML tags", excerpt: "Semantic structure reduces instruction drift across long agentic sessions.", tag: "PROMPTING", read: "3 MIN" },
+        { slot: "ind-note-7", n: "007", time: "11:20", title: "A sandbox escape, and the EU AI Act going live", excerpt: "Anthropic disclosed three incidents on July 30; Article 50 transparency rules are now enforceable.", tag: "SAFETY", read: "2 MIN" },
+      ],
+      railTopics: [
+        { name: "Claude Code", n: 87 }, { name: "LLM", n: 74 }, { name: "Agents", n: 66 },
+        { name: "Developer Tools", n: 52 }, { name: "News", n: 48 }, { name: "Tutorial", n: 41 },
+        { name: "RAG", n: 33 }, { name: "Best Practices", n: 31 }, { name: "Workflow", n: 28 }, { name: "Security", n: 14 },
+      ],
+      stats: [
+        { n: "412", label: "Notes" }, { n: "14", label: "Topics" },
+        { n: "Daily", label: "Cadence" }, { n: "2025-03", label: "Since" },
+      ],
+      filters: ["All", "Claude Code", "Agents", "RAG", "News"],
+      rows: [
+        { slot: "ind-row-412", n: "412", date: "2026-08-03", title: "PostToolUse fires even when the model won’t", excerpt: "Deterministic side-effects for every Claude Code session — formatting, checkpoints, tests.", tag: "CLAUDE CODE", read: "2 min" },
+        { slot: "ind-row-411", n: "411", date: "2026-08-03", title: "Claude Opus 4.1 API retires this Tuesday", excerpt: "One-line fix before your calls error out on August 5.", tag: "NEWS", read: "2 min" },
+        { slot: "ind-row-410", n: "410", date: "2026-08-03", title: "Instrument every LLM call once, route traces anywhere", excerpt: "OpenTelemetry’s GenAI semantic conventions in three setup lines.", tag: "DEVOPS", read: "2 min" },
+        { slot: "ind-row-409", n: "409", date: "2026-08-03", title: "Process parallel tool calls with asyncio.gather", excerpt: "Wall time drops to the slowest single call.", tag: "AGENTS", read: "2 min" },
+        { slot: "ind-row-408", n: "408", date: "2026-08-03", title: "Fine-tune any LLM on your Mac in 30 minutes", excerpt: "LoRA with MLX-LM on Apple Silicon, start to finish.", tag: "FINE-TUNING", read: "3 min" },
+        { slot: "ind-row-407", n: "407", date: "2026-08-02", title: "Delimit your Claude system prompts with XML tags", excerpt: "Reduces instruction drift in long agent sessions.", tag: "PROMPTING", read: "3 min" },
+        { slot: "ind-row-406", n: "406", date: "2026-08-02", title: "Vector search can’t answer “what are the main themes?”", excerpt: "GraphRAG builds a knowledge graph that can.", tag: "RAG", read: "4 min" },
+        { slot: "ind-row-405", n: "405", date: "2026-08-02", title: "Build personal Claude Code slash commands", excerpt: "One Markdown file in ~/.claude/commands/ follows you into every project.", tag: "CLAUDE CODE", read: "3 min" },
+        { slot: "ind-row-404", n: "404", date: "2026-08-02", title: "ChromaDB gives you a vector database in five lines", excerpt: "In-process, zero infrastructure, on-disk persistence.", tag: "RAG", read: "3 min" },
+        { slot: "ind-row-403", n: "403", date: "2026-08-02", title: "LangGraph TimeoutPolicy stops a hung tool call", excerpt: "Two arguments route a stalled node to a recovery path.", tag: "AGENTS", read: "2 min" },
+      ],
+      modes: [
+        { cls: "t-dark", slot: "ind-art-dark", darkOn: "#5980a6", darkFg: "#1d1f20", lightOn: "transparent", lightFg: "inherit" },
+        { cls: "t-light", slot: "ind-art-light", darkOn: "transparent", darkFg: "inherit", lightOn: "#5980a6", lightFg: "#f2f2f3" },
+      ],
+      facts: [
+        { k: "Now", v: "Leading engineering teams; building agent tooling" },
+        { k: "Writing", v: "AI News — 412 notes, published daily since March 2025" },
+        { k: "Focus", v: "Agentic coding, custom models, cloud architecture" },
+        { k: "Open to", v: "Consulting, advisory, and full-time roles" },
+        { k: "Reach me", v: "chris@cloudcodetree.com" },
+      ],
+      services: [
+        { n: "01", title: "AI-assisted development", body: "Agentic coding tools — Claude Code, subagents, MCP, prompt and context engineering — and shipping AI-powered apps." },
+        { n: "02", title: "Custom models & agents", body: "RAG, embeddings, vector search, fine-tuning and self-hosting, wired into real developer workflows." },
+        { n: "03", title: "Cloud & full-stack", body: "Cloud-native delivery across AWS, Azure and GCP — reliable infrastructure and clean app architecture." },
+        { n: "04", title: "Engineering & teams", body: "CI/CD, microservices and automation, plus mentoring and helping engineering teams grow." },
+      ],
+      skills: ["Claude Code", "AI Agents", "MCP", "LLMs", "RAG", "Embeddings", "Python", "TypeScript", "React", "Node.js", "AWS", "Azure", "GCP", "Docker", "PostgreSQL", "DevOps", "Microservices"],
+    };
+    v.mNotes = v.notes.slice(0, 4).map((p, i) => ({ ...p, slot: "m-note-" + i }));
+    v.mRows = v.rows.slice(0, 6).map((r, i) => ({ ...r, slot: "m-row-" + i }));
+    v.mFacts = v.facts.slice(0, 4);
+    v.mServices = v.services.slice(0, 3);
+    return v;
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+/* Industry — DARK GROUND scope, extracted 2026-08-22 from the canvas board
+   "Redesign Directions v2" (Turn 2 · Industry · dark ground). The board keeps
+   the site's dark identity by inverting the Industry tokens onto their own
+   ink: graphite ground, steel accent read from the LIGHT end of the ramp
+   (step 400 for links/labels vs 700 on the light ground). Pair with
+   ./styles.css; scope with .t-dark / .t-light per the board. */
+.t-dark {
+  --label: var(--color-accent-400);
+  --color-bg: #1d1f20;
+  --color-surface: #2b2b2d;
+  --color-text: #f2f2f3;
+  --color-divider: color-mix(in srgb, #f2f2f3 20%, transparent);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.t-light {
+  --label: var(--color-accent-700);
+  --color-bg: #f2f2f3;
+  --color-surface: #e9e9ea;
+  --color-text: #1d1f20;
+  --color-divider: color-mix(in srgb, #1d1f20 16%, transparent);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+/* Canvas page ground behind dark boards: #101112; links use accent-400 on
+   dark, hover accent-300. */
