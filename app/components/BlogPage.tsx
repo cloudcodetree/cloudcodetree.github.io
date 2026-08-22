@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { BlogPost, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx, markdownComponents } from './blogShared';
+import { Corners, duotoneSx } from './Blueprint';
 
 interface BlogPageProps {
   /** Slim (content-free) index of every post, newest-first, embedded at build time. */
@@ -187,13 +188,14 @@ export default function BlogPage({ posts }: BlogPageProps) {
             initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.4) }}
             sx={{
-              height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, border, overflow: 'hidden',
-              background: 'rgba(148,163,184,0.03)', transition: 'border-color .2s ease, transform .2s ease',
-              '&:hover': { borderColor: 'rgba(148,188,227,0.4)', transform: 'translateY(-2px)' },
+              height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 0, border,
+              position: 'relative', background: 'transparent', transition: 'border-color .2s ease, transform .2s ease',
+              '&:hover': { borderColor: 'rgba(148,188,227,0.55)', transform: 'translateY(-2px)' },
             }}
           >
+            <Corners />
             {post.image && (
-              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block' }}>
+              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', ...duotoneSx }}>
                 <Box component="img" src={post.image} alt={post.title} loading="lazy"
                   sx={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>
@@ -230,9 +232,9 @@ export default function BlogPage({ posts }: BlogPageProps) {
             sx={{ py: { xs: 4, md: 6 }, borderTop: border }}
           >
             {post.image && (
-              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5 }}>
+              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5, border, ...duotoneSx }}>
                 <Box component="img" src={post.image} alt={post.title} loading="lazy"
-                  sx={{ width: '100%', maxHeight: 320, aspectRatio: '16 / 9', objectFit: 'cover', display: 'block', borderRadius: 2, border }} />
+                  sx={{ width: '100%', maxHeight: 320, aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>
             )}
             <Typography sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', letterSpacing: '0.04em', mb: 1.5 }}>

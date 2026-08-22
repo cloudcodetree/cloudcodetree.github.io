@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Container, Typography, Box, Grid, Chip, Button } from '@mui/material';
 import { GitHub, Launch, LockClock } from '@mui/icons-material';
 import LaunchDemoButton from './demo/LaunchDemoButton';
+import { Corners, duotoneSx } from './Blueprint';
 import AccountMenu from './demo/AccountMenu';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -63,8 +64,9 @@ export default function ProjectsList({ projects }: { projects: Project[] }) {
           return (
             <Grid size={{ xs: 12, sm: wide ? 12 : 6 }} key={p.slug}>
               <Box component={motion.div} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: Math.min(i * 0.05, 0.4) }}
-                sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, border, overflow: 'hidden', background: 'rgba(148,163,184,0.03)', transition: 'border-color .2s, transform .2s', '&:hover': { borderColor: 'rgba(148,188,227,0.4)', transform: 'translateY(-2px)' } }}>
-                <Box component={Link} href={`/projects/${p.slug}/`} sx={{ display: 'block' }}>
+                sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 0, border, position: 'relative', background: 'transparent', transition: 'border-color .2s, transform .2s', '&:hover': { borderColor: 'rgba(148,188,227,0.55)', transform: 'translateY(-2px)' } }}>
+                <Corners />
+                <Box component={Link} href={`/projects/${p.slug}/`} sx={{ display: 'block', ...duotoneSx }}>
                   <Box component="img" src={p.cover} alt={p.title} loading="lazy" sx={{ width: '100%', aspectRatio: wide ? '32 / 9' : '16 / 9', objectFit: 'cover', display: 'block' }} />
                 </Box>
                 <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1.25, flexGrow: 1 }}>

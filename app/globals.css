@@ -33,3 +33,12 @@ a {
 @keyframes al-pulse { 0%, 100% { opacity: 0.6 } 20% { opacity: 1 } }
 @keyframes al-pulse7 { 0%, 100% { opacity: 0.7 } 20% { opacity: 1 } }
 @keyframes al-orbit { 0%, 100% { transform: translateY(0) } 33% { transform: translateY(100px) } 66% { transform: translateY(200px) } }
+
+/* Industry interaction states — themed, never browser defaults. */
+:focus-visible {
+  outline: 2px solid #94bce3;
+  outline-offset: 2px;
+}
+::selection {
+  background: rgba(148, 188, 227, 0.3);
+}

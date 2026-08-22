@@ -9,6 +9,7 @@ import { SERIF, MONO, ACCENT, LINK, formatLongDate } from './blogShared';
 import type { Tutorial } from '../tutorials/manifest';
 import { seriesTotal } from '../tutorials/manifest';
 import SeriesCarouselCard from './SeriesCarouselCard';
+import { Corners, duotoneSx } from './Blueprint';
 import CourseHomeCard from './CourseHomeCard';
 
 type View = 'cards' | 'list';
@@ -117,9 +118,10 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
       {shown.map((t, i) => (
         <Grid size={{ xs: 12, sm: 6 }} key={t.slug}>
           <Box component={motion.div} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.4) }}
-            sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, border, overflow: 'hidden', background: 'rgba(148,163,184,0.03)', transition: 'border-color .2s, transform .2s', '&:hover': { borderColor: 'rgba(148,188,227,0.4)', transform: 'translateY(-2px)' } }}>
+            sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 0, border, position: 'relative', background: 'transparent', transition: 'border-color .2s, transform .2s', '&:hover': { borderColor: 'rgba(148,188,227,0.55)', transform: 'translateY(-2px)' } }}>
+            <Corners />
             {t.image && (
-              <Box component={Link} href={`/tutorials/${t.slug}/`} sx={{ display: 'block' }}>
+              <Box component={Link} href={`/tutorials/${t.slug}/`} sx={{ display: 'block', ...duotoneSx }}>
                 <Box component="img" src={t.image} alt={t.title} loading="lazy" sx={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>
             )}
