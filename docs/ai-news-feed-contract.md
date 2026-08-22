@@ -583,7 +583,12 @@ what gets written into the feed.
 >   - 1–2 **topic** tags from: `LLM`, `Agents`, `Claude Code`, `MCP`,
 >     `Best Practices`, `Developer Tools`, `RAG`, `Embeddings`, `Fine-Tuning`,
 >     `Vectors`, `Self-Hosting`, `HuggingFace`, `Security`, `AWS`, `Cloud`,
->     `Design`, `Claude Design`, `Design-to-Code`, `UI/UX`.
+>     `Design`, `Claude Design`, `Design-to-Code`, `UI/UX`, `Metrics`,
+>     `Marketing`, `Policy`, `QA`, `Video AI`, `VLM`, `Video Generation`,
+>     `Local AI`.
+>   - Track tags (five-track aggregator pilot, 2026-08-22 — a redesign in
+>     progress may make these first-class): `Frontier`, `Team Adoption`,
+>     `AI for Your Role`, `Everyday AI`, `Building AI Products`.
 >   **Never use `AI News` as a tag** — it is a duplicate of `News` and splits the
 >   site's topic filter into two chips for one topic. Use `News`.
 >   Design-bucket items must carry `Design` (that tag is what the ramp-up counter

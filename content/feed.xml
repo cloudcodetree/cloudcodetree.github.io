@@ -13,6 +13,178 @@
     <lastBuildDate>Sat, 22 Aug 2026 04:06:00 +0000</lastBuildDate>
 
     <item>
+      <title>If You Run Claude Code Behind a Gateway, v2.1.237 Just Un-Broke Your Cache — and Your Bill</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-08-22-05-claude-code-gateway-prompt-caching-fix</guid>
+      <pubDate>Sat, 22 Aug 2026 05:12:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Frontier</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>Claude Code v2.1.237 fixes prompt caching behind LLM gateways and custom base URLs; v2.1.236 adds ANTHROPIC_DEFAULT_MODEL and idle notifications; v2.1.238 hardens self-hosted runners.</description>
+      <content:encoded><![CDATA[**TL;DR: Claude Code v2.1.237 fixes prompt caching behind LLM gateways and custom base URLs; v2.1.236 adds `ANTHROPIC_DEFAULT_MODEL` and idle notifications; v2.1.238 hardens self-hosted runners.**
+
+Three releases landed this week, and the quiet one matters most. Teams routing Claude Code through an LLM gateway or a custom `ANTHROPIC_BASE_URL` — standard practice in enterprises that centralize model access for audit and cost control — have been silently losing prompt-cache hits, paying full input-token price on every turn. v2.1.237 (Aug 20) fixes caching in exactly that configuration. If your org proxies traffic, this is a free 60–90% input-cost reduction you were supposed to be getting all along; check your gateway dashboards for cache-read tokens after upgrading.
+
+Also new: v2.1.236 adds `ANTHROPIC_DEFAULT_MODEL` (set a fleet-wide default without touching every developer's settings) plus `notify_when_idle`, and v2.1.238 hardens self-hosted runner deployments — both aimed at the same audience: people running Claude Code as managed infrastructure, not a laptop toy.
+
+**Sources:** [Claude Code changelog](https://code.claude.com/docs/en/changelog)]]></content:encoded>
+          <media:content url="https://opengraph.githubassets.com/1/anthropics/claude-code" medium="image" />
+      <media:thumbnail url="https://opengraph.githubassets.com/1/anthropics/claude-code" />
+    </item>
+
+
+    <item>
+      <title>The Always-On Coding Bot Is Now a Product Category: Grok Bot Exits Beta, Nous Ships an MIT-Licensed Alternative</title>
+      <link>https://github.com/NousResearch/hermes-agent/releases</link>
+      <guid isPermaLink="false">2026-08-22-06-always-on-agent-bots-grok-ga-hermes-mit</guid>
+      <pubDate>Sat, 22 Aug 2026 05:11:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Frontier</category>
+      <category>Agents</category>
+      <category>Developer Tools</category>
+      <description>xAI's Grok Bot left beta August 21 on SuperGrok and Cursor plans; two days earlier Nous Research shipped hermes-agent v0.20.5 with an MIT-licensed "Bot Mode."</description>
+      <content:encoded><![CDATA[**TL;DR: xAI's Grok Bot left beta August 21 on SuperGrok and Cursor plans; two days earlier Nous Research shipped hermes-agent v0.20.5 with an MIT-licensed "Bot Mode."**
+
+Two releases this week say the same thing from opposite ends of the market: the persistent, repo-attached coding bot — not the interactive CLI session — is becoming the default deployment shape for agents. xAI's Grok Bot went GA on August 21 for SuperGrok subscribers and via Cursor plan integration. Two days earlier, Nous Research's hermes-agent v0.20.5 added "Bot Mode" under an MIT license — the open-weights ecosystem shipping the same always-on pattern you can self-host and audit.
+
+**Why it matters for builders:** your agent strategy question is shifting from "which CLI do we standardize on" to "which bots get standing write access to which repos, under whose review gate." The proprietary and open options now both exist; the governance work is yours either way.
+
+**Sources:** [Releasebot: xAI](https://releasebot.io/updates/xai), [hermes-agent releases](https://github.com/NousResearch/hermes-agent/releases)]]></content:encoded>
+          <media:content url="https://opengraph.githubassets.com/1/NousResearch/hermes-agent" medium="image" />
+      <media:thumbnail url="https://opengraph.githubassets.com/1/NousResearch/hermes-agent" />
+    </item>
+
+
+    <item>
+      <title>AI Spend Up ~28x, Innovation Ratio Up One Point: The Q2 Numbers Every Eng Lead Should Bring to Their Next Planning Meeting</title>
+      <link>https://newsletter.getdx.com/p/ai-in-engineering-q2-2026-benchmarks</link>
+      <guid isPermaLink="false">2026-08-22-07-dx-q2-benchmarks-spend-28x-innovation-flat</guid>
+      <pubDate>Sat, 22 Aug 2026 05:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Team Adoption</category>
+      <category>Metrics</category>
+      <description>DX's Q2 2026 benchmarks: ~95% developer AI adoption, over half of merged code AI-authored, PRs grown 42→72 lines — while AI spend rose ~28x and innovation ratio barely moved.</description>
+      <content:encoded><![CDATA[**TL;DR: DX's Q2 2026 benchmarks (Aug 14): ~95% developer AI adoption, over half of merged code AI-authored, PRs grown 42→72 lines — while AI spend rose ~28x and innovation ratio barely moved.**
+
+DX's Q2 2026 engineering benchmarks readout (published August 14) is the most useful adoption snapshot a lead can steal numbers from right now. Adoption is effectively saturated — ~95% measured through telemetry, so "should we adopt" is over as a question. More than half of merged code is now AI-authored. Average PR size grew from 42 to 72 lines. And the uncomfortable pair: code maintainability is *improving* while developers' change confidence is *declining* — two metrics that historically moved together. Meanwhile AI expenditure hit roughly 28x year-ago levels against an innovation ratio up about one percentage point.
+
+This lines up with the spring DORA 2026 report ("The ROI of AI-assisted Software Development"), whose core finding was that returns show up in the delivery flow — review, integration, deployment — not in individual typing speed, and that AI amplifies whatever organizational strengths or dysfunctions you already have.
+
+The playbook implication for a team that's behind: don't buy seats and measure acceptance rates. Instrument the flow (review latency, PR size, change confidence, rework), expect the J-curve dip, and put your effort where both reports point — the review and integration bottleneck that 72-line AI-assisted PRs are now pressing on.
+
+**Sources:** [DX Q2 2026 benchmarks readout](https://newsletter.getdx.com/p/ai-in-engineering-q2-2026-benchmarks), [DX AI Impact Report Q1 2026](https://getdx.com/blog/ai-impact-report-q1-2026/), [InfoQ on DORA 2026](https://www.infoq.com/news/2026/05/dora-roi-ai-assisted-dev-report/)]]></content:encoded>
+          <media:content url="https://substackcdn.com/image/youtube/w_728,c_limit/Bf44cPeNPjg" medium="image" />
+      <media:thumbnail url="https://substackcdn.com/image/youtube/w_728,c_limit/Bf44cPeNPjg" />
+    </item>
+
+
+    <item>
+      <title>As of This Month, the EU AI Act Applies to Your Content Pipeline: What Marketing Teams Using GenAI Must Do Now</title>
+      <link>https://artificialintelligenceact.eu/implementation-timeline/</link>
+      <guid isPermaLink="false">2026-08-22-08-eu-ai-act-aug-2026-marketing-content</guid>
+      <pubDate>Sat, 22 Aug 2026 05:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>AI for Your Role</category>
+      <category>Marketing</category>
+      <category>Policy</category>
+      <description>The EU AI Act's main obligations — including transparency rules for AI-generated and synthetic content — became applicable August 2, 2026. Marketing content ops are directly in scope.</description>
+      <content:encoded><![CDATA[**TL;DR: The EU AI Act's main obligations — including transparency rules for AI-generated and synthetic content — became applicable August 2, 2026. Marketing content ops are directly in scope.**
+
+August 2, 2026 was the EU AI Act's biggest compliance milestone: the bulk of its obligations, including the Chapter IV transparency rules, are now applicable. For marketing teams the concrete piece is synthetic-content transparency: AI-generated or AI-manipulated content (deepfake-style imagery, synthetic voices, generated video) must be disclosed, with machine-readable marking expected from the systems producing it. High-risk-system obligations also now bite for anything touching profiling of people.
+
+What a marketer can do tomorrow: inventory every place genAI touches your published output (image gen, video, voiceover, personalization engines); ask each vendor how their output is marked and what their AI Act posture is; and write the one-page internal policy for when disclosure labels are required. If you sell into or target EU audiences, "we didn't build it, our tool did" is not a defense.
+
+**Sources:** [EU AI Act implementation timeline](https://artificialintelligenceact.eu/implementation-timeline/), [GenAI for marketing: what actually works, July 2026](https://aiconference.london/news/generative-ai-for-marketing-in-2026-what-actually-works-july-2026-20260719-12)]]></content:encoded>
+          <media:content url="https://wfuvfnmjtnejnmhbdpqr.supabase.co/storage/v1/object/public/news-images/generative-ai-for-marketing-in-2026-what-actually-works-july-2026-20260719-12.png" medium="image" />
+      <media:thumbnail url="https://wfuvfnmjtnejnmhbdpqr.supabase.co/storage/v1/object/public/news-images/generative-ai-for-marketing-in-2026-what-actually-works-july-2026-20260719-12.png" />
+    </item>
+
+
+    <item>
+      <title>Your Video Pipeline Detects "What." Cosmos Reason 2 Answers "Why" — an Open Reasoning VLM You Can Point at Camera Footage</title>
+      <link>https://huggingface.co/nvidia/Cosmos-Reason2-8B</link>
+      <guid isPermaLink="false">2026-08-22-09-cosmos-reason2-why-questions-over-video</guid>
+      <pubDate>Sat, 22 Aug 2026 05:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Building AI Products</category>
+      <category>Video AI</category>
+      <category>VLM</category>
+      <description>NVIDIA's Cosmos Reason 2 (8B, open license, 256K context) does chain-of-thought reasoning over video — causality and intent, not just detection — and runs with standard transformers on a single big GPU.</description>
+      <content:encoded><![CDATA[**TL;DR: NVIDIA's Cosmos Reason 2 (8B, open license, 256K context) does chain-of-thought reasoning over video — causality and intent, not just detection — and runs with standard transformers on a single big GPU.**
+
+**What you'll be able to do after this:** ask causal, timestamped questions over recorded or live video — "why did the forklift stop," "what led up to the spill at 02:14" — and get chain-of-thought answers with 2D/3D grounding boxes, from a model whose weights you control.
+
+- **Reasoning is the new layer above detection.** Classic video analytics answers *what* is in frame. Cosmos Reason 2 applies chain-of-thought to visual scenes — intent, causality, physics — which is what incident triage and operations root-cause actually need.
+- **The license permits building on it.** It ships under the NVIDIA Open Model License with commercial use and derivative models allowed — industry practice is already post-training it on domain footage at the ~150,000-hours scale for city-wide deployments. The March 10, 2026 update cut hallucinations and sharpened timestamp precision.
+- **Budget real hardware, or wait for Edge.** The 8B model wants ~32GB GPU memory (tested on A100/H100, BF16); 256K context covers hours of sampled frames. The Cosmos 3 family spans Edge (4B) to Super scales if on-device is the target.
+
+**Walk-through:** pull `nvidia/Cosmos-Reason2-8B` from Hugging Face; load with standard `transformers` (SDPA attention, BF16); sample frames from your stream or clip; prompt with the frames plus a why-question; cap output around 4K tokens for the reasoning chain. Start on recorded incident clips — where a human already knows the answer — to eval it before wiring it to anything live.
+
+**Sources:** [Cosmos-Reason2-8B model card](https://huggingface.co/nvidia/Cosmos-Reason2-8B), [NVIDIA Cosmos 3 developer blog](https://developer.nvidia.com/blog/develop-physical-ai-reasoning-world-and-action-models-with-nvidia-cosmos-3/), [NVIDIA/Cosmos on GitHub](https://github.com/NVIDIA/Cosmos), [VAST Data on real-time city video AI](https://www.vastdata.com/blog/vast-nvidia-cosmos-reason-smart-cities)]]></content:encoded>
+          <media:content url="https://cdn-thumbnails.huggingface.co/social-thumbnails/models/nvidia/Cosmos-Reason2-8B.png" medium="image" />
+      <media:thumbnail url="https://cdn-thumbnails.huggingface.co/social-thumbnails/models/nvidia/Cosmos-Reason2-8B.png" />
+    </item>
+
+
+    <item>
+      <title>A 22B Video-With-Sound Model That Runs on a 16GB Gaming GPU: LTX-2.5's Weights Are Out</title>
+      <link>https://www.opensourceforu.com/2026/08/ltx-2-5-brings-open-weight-video-generation/</link>
+      <guid isPermaLink="false">2026-08-22-10-ltx-2-5-video-audio-on-your-gpu</guid>
+      <pubDate>Sat, 22 Aug 2026 05:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Everyday AI</category>
+      <category>Video Generation</category>
+      <category>Local AI</category>
+      <description>Lightricks released LTX-2.5 open weights (Aug 11): one 22B model generates synchronized video and audio, 720p–4K, runnable locally from ~16GB VRAM with FP8 quantization.</description>
+      <content:encoded><![CDATA[**TL;DR: Lightricks released LTX-2.5 open weights (Aug 11): one 22B model generates synchronized video and audio, 720p–4K, runnable locally from ~16GB VRAM with FP8 quantization.**
+
+If you have a 16GB consumer GPU, you can now generate video *with synchronized audio* from one local model. LTX-2.5's 22B checkpoints (full and 8-step distilled) are on Hugging Face, with ComfyUI and Diffusers support; FP8 quantization brings VRAM needs down roughly 40%, to about the 16GB floor. Native multishot holds character, lighting, and voice consistent across cuts — the thing that made local video toys fall apart at clip two. On top-end datacenter hardware Lightricks claims a 10-second clip in 6.8 seconds; at home you'll wait longer, but it runs.
+
+One honest caveat: "open weights" here means the LTX-2.x Community License — free commercial use only under $10M revenue. For a weekend project, that's academic; know it before building a business on it.
+
+**Sources:** [VentureBeat](https://venturebeat.com/technology/ltx-2-5-can-generate-a-10-second-ai-video-from-an-image-in-just-6-8-seconds-on-nvidia-superchips-and-its-open-weights), [Open Source For You](https://www.opensourceforu.com/2026/08/ltx-2-5-brings-open-weight-video-generation/), [DataNorth](https://datanorth.ai/news/ltx-releases-ltx-2-5-open-weights-video-world-model)]]></content:encoded>
+          <media:content url="https://www.opensourceforu.com/wp-content/uploads/2026/08/images-11.jpg" medium="image" />
+      <media:thumbnail url="https://www.opensourceforu.com/wp-content/uploads/2026/08/images-11.jpg" />
+    </item>
+
+
+    <item>
+      <title>"Agentic QA" Stopped Being a Demo This Year — What a QA Engineer Should Actually Evaluate</title>
+      <link>https://www.gartner.com/reviews/market/ai-augmented-software-testing-tools</link>
+      <guid isPermaLink="false">2026-08-22-11-agentic-qa-what-changed-for-testers</guid>
+      <pubDate>Sat, 22 Aug 2026 05:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>AI for Your Role</category>
+      <category>QA</category>
+      <category>Agents</category>
+      <description>Autonomous test agents — plan coverage, generate cases from user stories, execute, self-repair — matured to production-grade across many vendors in 2026. Evaluate the category, not the pitch.</description>
+      <content:encoded><![CDATA[**TL;DR: Autonomous test agents — plan coverage, generate cases from user stories, execute, self-repair — matured to production-grade across many vendors in 2026. Evaluate the category, not the pitch.**
+
+The pattern across the testing market in 2026: agents that read user stories, generate executable tests, run them in real browsers, and repair themselves on UI change are now shipping from essentially every major vendor (mabl's agentic platform re-launch in April was the loudest; Tricentis, Functionize, Katalon, Autify, QA Wolf and a dozen others have equivalents), with Gartner Peer Insights now tracking it as a category transition. Vendor-reported coverage gains run 5–10x at flat headcount — treat that as a claim to test, not a fact.
+
+What a QA person can do tomorrow: pick your flakiest existing suite, run one agentic tool against the same user stories, and score it on the two things vendor demos skip — false-pass rate, and how much *review* time the generated tests cost you. The bottleneck moves from writing tests to auditing them; whether that trade wins depends on your app, not the demo.
+
+**Sources:** [Gartner Peer Insights — AI-augmented testing market](https://www.gartner.com/reviews/market/ai-augmented-software-testing-tools), [mabl agentic platform announcement](https://www.prnewswire.com/news-releases/mabl-unveils-next-generation-agentic-testing-platform-for-the-ai-development-era-302751783.html), [TestQuality on agentic QA](https://testquality.com/the-shift-to-agentic-qa-beyond-automated-testing-to-autonomous-ai-generation-in-2026/)]]></content:encoded>
+          <media:content url="https://testquality.com/wp-content/uploads/2026/03/Agentic-QA-AI-Powered-QA-Agent-Test-Creation-Autonomous-AI-Test-Generation-TestStory-TestQuality-1920x1280px--1024x609.jpg" medium="image" />
+      <media:thumbnail url="https://testquality.com/wp-content/uploads/2026/03/Agentic-QA-AI-Powered-QA-Agent-Test-Creation-Autonomous-AI-Test-Generation-TestStory-TestQuality-1920x1280px--1024x609.jpg" />
+    </item>
+
+    <item>
       <title>Your Design Doesn't Cover the Empty Cart — Specify Edge States in Claude Design Before Claude Code Starts Writing</title>
       <link>https://academy.claude.com/tutorials/using-claude-design-for-prototypes-and-ux</link>
       <guid isPermaLink="false">2026-08-22-04-claude-design-edge-states-before-handoff</guid>

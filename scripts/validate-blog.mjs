@@ -28,6 +28,10 @@ const TOPIC_TAGS = [
   'LLM', 'Agents', 'Claude Code', 'MCP', 'Best Practices', 'Developer Tools',
   'RAG', 'Embeddings', 'Fine-Tuning', 'Vectors', 'Self-Hosting', 'HuggingFace',
   'Security', 'AWS', 'Cloud', 'Design', 'Claude Design', 'Design-to-Code', 'UI/UX',
+  // Track tags (five-track aggregator pilot, 2026-08-22)
+  'Frontier', 'Team Adoption', 'AI for Your Role', 'Everyday AI', 'Building AI Products',
+  // Topic tags introduced by the pilot run
+  'Metrics', 'Marketing', 'Policy', 'QA', 'Video AI', 'VLM', 'Video Generation', 'Local AI',
 ];
 const KNOWN_TAGS = new Set(['AI', ...CONTENT_TYPES, ...TOPIC_TAGS]);
 /** Retired tags that must never come back (duplicates that fragment the filter). */
