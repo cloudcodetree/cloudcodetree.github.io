@@ -22,6 +22,11 @@ function defaultJwks(supabaseUrl: string) {
   return remoteJwks;
 }
 
+/** Test seam: install a local JWKS so gate tests exercise real signatures. */
+export function setJwksForTesting(jwks: JWTVerifyGetKey): void {
+  remoteJwks = jwks;
+}
+
 const VALIDATION_ERRORS = [
   joseErrors.JWTExpired,
   joseErrors.JWTClaimValidationFailed,
