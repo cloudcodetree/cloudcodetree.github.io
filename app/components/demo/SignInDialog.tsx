@@ -2,10 +2,16 @@
 
 import { useState } from 'react';
 import { Dialog, DialogContent, Typography, TextField, Button, Box, Divider, Alert } from '@mui/material';
-import { Google, MailOutline } from '@mui/icons-material';
+import { GitHub, Google, LinkedIn, MailOutline } from '@mui/icons-material';
 import { MONO, SERIF, ACCENT } from '../blogShared';
-import { GOOGLE_ENABLED } from '../../lib/authConfig';
+import { OAUTH_PROVIDERS, type OAuthProvider } from '../../lib/authConfig';
 import { supabase } from '../../lib/supabaseClient';
+
+const PROVIDER_UI: Record<OAuthProvider, { label: string; icon: React.ReactNode }> = {
+  github: { label: 'Continue with GitHub', icon: <GitHub /> },
+  google: { label: 'Continue with Google', icon: <Google /> },
+  linkedin_oidc: { label: 'Continue with LinkedIn', icon: <LinkedIn /> },
+};
 
 export default function SignInDialog({
   open,
@@ -42,10 +48,10 @@ export default function SignInDialog({
     }
   };
 
-  const google = async () => {
+  const oauth = async (provider: OAuthProvider) => {
     setError(null);
     const { error: err } = await supabase().auth.signInWithOAuth({
-      provider: 'google',
+      provider,
       options: { redirectTo: redirectTo() },
     });
     if (err) setError(err.message);
@@ -71,12 +77,19 @@ export default function SignInDialog({
           </Alert>
         ) : (
           <>
-            {GOOGLE_ENABLED && (
+            {OAUTH_PROVIDERS.length > 0 && (
               <>
-                <Button fullWidth variant="outlined" startIcon={<Google />} onClick={google}
-                  sx={{ fontFamily: MONO, textTransform: 'none', color: 'text.primary', borderColor: 'rgba(148,163,184,0.3)', py: 1.2, '&:hover': { borderColor: ACCENT } }}>
-                  Continue with Google
-                </Button>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+                  {OAUTH_PROVIDERS.map((provider) => {
+                    const { label, icon } = PROVIDER_UI[provider];
+                    return (
+                      <Button key={provider} fullWidth variant="outlined" startIcon={icon} onClick={() => void oauth(provider)}
+                        sx={{ fontFamily: MONO, textTransform: 'none', color: 'text.primary', borderColor: 'rgba(148,163,184,0.3)', py: 1.2, '&:hover': { borderColor: ACCENT } }}>
+                        {label}
+                      </Button>
+                    );
+                  })}
+                </Box>
                 <Divider sx={{ my: 2.5, fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>or</Divider>
               </>
             )}
