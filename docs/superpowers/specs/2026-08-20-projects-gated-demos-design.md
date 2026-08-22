@@ -534,6 +534,14 @@ Beyond the vitest suite, observed on the staging origin in a real browser:
    All four are codified in `infra/` and imported, not left as dashboard state.
 4. Add the custom domain to the Worker; switch nameservers at the registrar.
    Route53 TTLs are already 300s, so rollback propagates in minutes.
+   **`www` must be handled explicitly:** its CNAME points at
+   `cloudcodetree.github.io`, which stops answering the moment the Pages
+   custom domain is removed — every www visitor would 404. Attach `www` as a
+   second custom domain on the Worker, or add a redirect rule www → apex,
+   BEFORE removing the Pages domain claim. (Feeds, article URLs, GUIDs, MX,
+   and all inbound apex links survive cutover unchanged — verified via the
+   parity contract and the zone inventory; `cloudcodetree.github.io` itself
+   goes away with Pages, an accepted near-zero-traffic loss.)
 8. Smoke-check the parity script against the real hostname.
 8. Remove the GitHub Pages custom domain and the `CNAME` file so GitHub holds no
    dangling claim on the hostname.
