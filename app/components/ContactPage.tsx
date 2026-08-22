@@ -220,6 +220,9 @@ export default function ContactPage() {
                   <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3 }}>
                     <TextField
                       fullWidth
+                      id="contact-name"
+                      name="name"
+                      autoComplete="name"
                       label="Your Name *"
                       value={formData.name}
                       onChange={handleInputChange('name')}
@@ -228,6 +231,9 @@ export default function ContactPage() {
                     />
                     <TextField
                       fullWidth
+                      id="contact-email"
+                      name="email"
+                      autoComplete="email"
                       label="Email Address *"
                       type="email"
                       value={formData.email}
@@ -240,6 +246,8 @@ export default function ContactPage() {
                   {/* Second row: Subject full width */}
                   <TextField
                     fullWidth
+                    id="contact-subject"
+                    name="subject"
                     label="Subject *"
                     value={formData.subject}
                     onChange={handleInputChange('subject')}
@@ -250,6 +258,8 @@ export default function ContactPage() {
                   {/* Third row: Message full width */}
                   <TextField
                     fullWidth
+                    id="contact-message"
+                    name="message"
                     label="Message *"
                     multiline
                     rows={6}

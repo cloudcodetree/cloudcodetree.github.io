@@ -141,7 +141,7 @@ export default function HomePage() {
             </Button>
             <Button
               component={Link}
-              href="/about/resume"
+              href="/about/resume/"
               variant="outlined"
               size="large"
               sx={{ px: 4, py: 1.5 }}
@@ -150,7 +150,7 @@ export default function HomePage() {
             </Button>
             <Button
               component={Link}
-              href="/about/contact"
+              href="/about/contact/"
               variant="outlined"
               size="large"
               sx={{ px: 4, py: 1.5 }}
@@ -286,7 +286,7 @@ export default function HomePage() {
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button
               component={Link}
-              href="/about/schedule"
+              href="/about/schedule/"
               variant="contained"
               size="large"
               sx={{

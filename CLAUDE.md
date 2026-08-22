@@ -247,18 +247,49 @@ See the **Blog ("AI News")** section below — posts live inline in
 
 ## Navigation Structure
 
-Nav (`app/components/ClientLayout.tsx`) is **AI News · Tutorials · About**.
+Nav (`app/components/ClientLayout.tsx`) is **AI News · Tutorials · Projects · About**.
+Nav hrefs carry **trailing slashes** deliberately (`/tutorials/`, not `/tutorials`) —
+`trailingSlash: true` means the real page is `/x/`, and a bare href costs a
+redirect hop (301 on Pages, 307 on Workers) on every click.
 
 **Current Active Routes**:
 - `/` - **AI News blog** (the home/front door; `BlogPage`)
 - `/ai-news/` - preserved legacy list (canonical → `/`); articles live at `/ai-news/<id>`
 - `/tutorials` (+ `/tutorials/<slug>`) - hand-authored **MDX** tutorials (see Tutorials below)
+- `/projects` (+ `/projects/<slug>`) - the **Projects gallery** (see Projects below)
 - `/about` - the former home page, toned down (`HomePage`); the personal/portfolio hub
 - `/about/resume`, `/about/contact`, `/about/schedule` - personal sub-routes
 - `/resume`, `/contact`, `/schedule` - redirect stubs → the `/about/*` versions
 
-**Available but not in nav**: `/projects` - ProjectsPage (implemented; enable by
-adding it to the nav arrays in `app/components/ClientLayout.tsx`).
+**Site chrome is opt-in per section**: `app/layout.tsx` renders bare children;
+each top-level section adds the AppBar/nav via its own tiny `layout.tsx`
+wrapping `ClientLayout` (see `app/tutorials/layout.tsx`, `app/projects/layout.tsx`).
+A new section without one ships headerless.
+
+## Projects
+
+`/projects` is a hand-curated gallery of real repos; `/projects/<slug>` are MDX
+write-ups. It mirrors the tutorials subsystem:
+
+- **`app/projects/manifest.ts`** is the single source of truth (slug, title,
+  summary, tech chips, `repoUrl` — omitted for private repos, `externalUrl`,
+  cover, featured/order). Scripts read it via `scripts/lib/projects-data.mjs`;
+  keep entries as flat single-quoted object literals. Copy is grounded in each
+  repo's README — don't invent capabilities.
+- Detail pages live at `app/projects/(detail)/<slug>/page.mdx` with per-page
+  `metadata` (canonical + OG cover), styled by `(detail)/layout.tsx`.
+- Hero covers are **committed generated assets**
+  (`node scripts/generate-project-covers.mjs` → `public/projects/covers/`),
+  same precedent as tutorial covers.
+- `scripts/generate-feeds.mjs` includes `/projects/` + every slug in the sitemap.
+- **Planned (Phase 2 of the design spec):** auth-gated live demos under
+  `/projects/<slug>/demo/` enforced by the Cloudflare Worker, Supabase identity,
+  and append-only analytics. Spec:
+  `docs/superpowers/specs/2026-08-20-projects-gated-demos-design.md` (which also
+  covers the GitHub Pages → Cloudflare Workers migration; staging Worker
+  `cct-site-staging` deploys via `pnpm run build:staging` +
+  `wrangler deploy --env staging`, verified by `scripts/check-parity.mjs`).
+  Production remains on GitHub Pages until the Phase 3 DNS cutover.
 
 ## Blog ("AI News")
 
@@ -379,7 +410,9 @@ Project-scoped Claude Code config lives in `.claude/`:
 - **Skills** (`.claude/skills/`): `publish-post` (the blog publishing workflow),
   `create-tutorial` (authoring a tutorial: scaffolder + verified/anchored rules).
 - **Agents** (`.claude/agents/`): `blog-editor` (style/excerpt/tags/fact-flag pass on a
-  draft), `frontend-reviewer` (Next.js/MUI/static-export/a11y review of UI changes).
+  draft), `frontend-reviewer` (Next.js/MUI/static-export/a11y review of UI changes),
+  `learning-experience-reviewer` (instructional-design/e-learning evaluation of tutorials —
+  cognitive load, clarity, visuals, learning-science best practices).
 - **Slash commands** (`.claude/commands/`): `/publish-post`, `/blog-status`, `/new-tutorial`.
 - **Hooks** (`.claude/hooks/`, wired in `settings.json`):
   - `validate-blog.sh` — PostToolUse on Write/Edit; blocks if a `public/blog/` change
