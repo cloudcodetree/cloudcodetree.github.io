@@ -46,7 +46,11 @@ if (env.SUPABASE_DB_PASSWORD) {
 const dir = path.resolve('supabase/migrations');
 const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
 
-const client = new pg.Client({ connectionString: conn, ssl: { rejectUnauthorized: false } });
+// Strict TLS, pinned to Supabase's published CA (supabase/prod-ca-2021.crt —
+// their clusters chain to it, not to the system store). Never disable
+// verification for a remote DB: the password rides this connection.
+const ca = readFileSync(path.resolve('supabase/prod-ca-2021.crt'), 'utf8');
+const client = new pg.Client({ connectionString: conn, ssl: { rejectUnauthorized: true, ca } });
 await client.connect();
 try {
   await client.query(
