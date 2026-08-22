@@ -9,4 +9,4 @@ export const SUPABASE_ANON_KEY =
 // provider errors at click time. Magic link is always on. Supabase links
 // accounts by verified email, so one person across methods stays one user.
 export type OAuthProvider = 'github' | 'google' | 'linkedin_oidc';
-export const OAUTH_PROVIDERS: OAuthProvider[] = ['github', 'google'];
+export const OAUTH_PROVIDERS: OAuthProvider[] = ['github', 'google', 'linkedin_oidc'];
