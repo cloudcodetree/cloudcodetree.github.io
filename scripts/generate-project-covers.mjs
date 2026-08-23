@@ -15,16 +15,16 @@ const OUT = path.resolve('public/projects/covers');
 // Per-project identity: accent color + a domain glyph (large faint line art on
 // the right, clear of the title block).
 const STYLE = {
-  'nam-app': { accent: '#d29922', glyph: 'wave' },
-  'motion-expression': { accent: '#bc8cff', glyph: 'pulse' },
-  'backlot': { accent: '#2f81f7', glyph: 'chat' },
-  'homestead-finder': { accent: '#3fb950', glyph: 'house' },
-  'span-calculator': { accent: '#0ea5e9', glyph: 'beam' },
-  'mac-desktop-navigator': { accent: '#2f81f7', glyph: 'spaces' },
-  'midea-mini-split-tools': { accent: '#39c5cf', glyph: 'flake' },
-  'code-compare': { accent: '#d29922', glyph: 'brackets' },
+  'nam-app': { accent: '#b5d9fd', glyph: 'wave' },
+  'motion-expression': { accent: '#94bce3', glyph: 'pulse' },
+  'backlot': { accent: '#749dc4', glyph: 'chat' },
+  'homestead-finder': { accent: '#94bce3', glyph: 'house' },
+  'span-calculator': { accent: '#b5d9fd', glyph: 'beam' },
+  'mac-desktop-navigator': { accent: '#749dc4', glyph: 'spaces' },
+  'midea-mini-split-tools': { accent: '#94bce3', glyph: 'flake' },
+  'code-compare': { accent: '#749dc4', glyph: 'brackets' },
 };
-const DEFAULT_STYLE = { accent: '#3fb950', glyph: null };
+const DEFAULT_STYLE = { accent: '#94bce3', glyph: null };
 
 const GLYPHS = {
   wave: (a) => `<g transform="translate(870,340)" stroke="${a}" stroke-width="6" fill="none" opacity="0.45">
@@ -96,7 +96,7 @@ function svg({ slug, title }) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0d1117"/><stop offset="1" stop-color="#161b22"/>
+      <stop offset="0" stop-color="#1d1f20"/><stop offset="1" stop-color="#26282a"/>
     </linearGradient>
     <radialGradient id="glow" cx="0.82" cy="0.2" r="0.7">
       <stop offset="0" stop-color="${accent}" stop-opacity="0.16"/>
@@ -108,7 +108,7 @@ function svg({ slug, title }) {
   ${glyph}
   <rect x="${pad}" y="150" width="56" height="4" fill="${accent}"/>
   <text x="${pad}" y="200" font-family="Menlo, monospace" font-size="22" letter-spacing="5" fill="${accent}">PROJECT</text>
-  <text y="${titleY}" font-family="Georgia, serif" font-weight="bold" font-size="${fontPx}" fill="#ffffff">${tspans}</text>
+  <text y="${titleY}" font-family="Barlow Condensed, Arial Narrow, Helvetica Neue, sans-serif" font-weight="600" font-size="${fontPx}" fill="#ffffff">${tspans}</text>
   <text x="${pad}" y="601" font-family="Menlo, monospace" font-size="20" fill="#8b98a8">cloudcodetree.com/projects</text>
 </svg>`;
 }
