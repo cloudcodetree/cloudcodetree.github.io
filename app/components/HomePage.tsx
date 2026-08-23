@@ -84,15 +84,9 @@ export default function HomePage() {
           <Typography
             variant="h1"
             component="h1"
-            sx={{
-              mb: 2,
-              background: 'linear-gradient(135deg, #749dc4, #94bce3)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
+            sx={{ mb: 2 }}
           >
-            Chris Harper
+            I build software with agents, and write down what I learn.
           </Typography>
           
           <Typography
@@ -104,7 +98,7 @@ export default function HomePage() {
               fontWeight: 400,
             }}
           >
-            Engineering Team Leader · AI-Assisted Development, Cloud &amp; Full-Stack
+            Chris Harper · Engineering team leader
           </Typography>
 
           <Typography
@@ -117,9 +111,9 @@ export default function HomePage() {
               color: theme.palette.text.secondary,
             }}
           >
-            I build with AI — agentic coding tools, custom models, and automation — and write about
-            the craft on the <Box component={Link} href="/" sx={{ color: '#749dc4', textDecoration: 'none' }}>AI News</Box> blog.
-            Day to day I lead engineering work across cloud and full-stack, with a deep interest in how AI is changing how we ship software.
+            Day to day I lead engineering work across cloud and full-stack. The rest of the
+            time I&apos;m deep in agentic coding tools, custom models and automation — publishing
+            the results daily on <Box component={Link} href="/" sx={{ color: '#94bce3', textDecoration: 'none' }}>AI News</Box>.
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>

@@ -1,5 +1,6 @@
 'use client';
 
+import { Corners, duotoneSx } from './Blueprint';
 import { Container, Typography, Box, Card, CardContent, Chip, Button } from '@mui/material';
 import { AccessTime as TimeIcon, Person as PersonIcon } from '@mui/icons-material';
 import Link from 'next/link';
@@ -24,15 +25,16 @@ export default function BlogPost({ post }: { post: Post }) {
 
         {post.image && (
           <Box sx={{ mb: 3 }}>
-            <Box
-              component="img"
-              src={post.image}
-              alt={post.title}
-              sx={{
-                width: '100%', aspectRatio: '1200 / 630', objectFit: 'cover', display: 'block',
-                borderRadius: 2, border: '1px solid #222a35',
-              }}
-            />
+            {/* frame must win: .blueprint.duotone overrides the duotone's overflow so the corner marks aren't clipped */}
+            <Box sx={{ position: 'relative', border: '1px solid rgba(242,242,243,0.2)', ...duotoneSx, overflow: 'visible' }}>
+              <Corners />
+              <Box
+                component="img"
+                src={post.image}
+                alt={post.title}
+                sx={{ width: '100%', aspectRatio: '1200 / 630', objectFit: 'cover', display: 'block' }}
+              />
+            </Box>
             {post.imageCredit && (
               <Typography sx={{ mt: 0.75, fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>
                 Photo:{' '}

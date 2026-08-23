@@ -57,3 +57,19 @@ export function Corners() {
     </>
   );
 }
+
+/** react-markdown `pre` renderer: the board draws code blocks as blueprint
+ * objects — hairline frame, corner marks, faint ink-tint fill. */
+export function BlueprintPre(props: React.HTMLAttributes<HTMLPreElement>) {
+  return (
+    <Box sx={{ ...blueprintSx, background: 'rgba(242,242,243,0.05)', p: 2, mb: 2, overflowX: 'auto' }}>
+      <Corners />
+      <Box
+        component="pre"
+        {...props}
+        sx={{ m: 0, p: 0, background: 'none', fontSize: { xs: '0.78rem', md: '0.875rem' }, lineHeight: 1.7,
+          '& code': { whiteSpace: 'pre', overflowWrap: 'normal', wordBreak: 'normal', background: 'none', p: 0 } }}
+      />
+    </Box>
+  );
+}
