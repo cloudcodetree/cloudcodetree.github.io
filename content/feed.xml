@@ -10,7 +10,124 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 23 Aug 2026 04:09:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 23 Aug 2026 12:16:00 +0000</lastBuildDate>
+
+    <item>
+      <title>OpenAI Previews Safety Monitoring That Doesn&#39;t Give Staff Access to Your Prompts</title>
+      <link>https://openai.com/index/offering-zero-data-retention-for-frontier-models/</link>
+      <guid isPermaLink="false">2026-08-23-04-openai-private-safety-zero-data-retention</guid>
+      <pubDate>Sun, 23 Aug 2026 12:14:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Security</category>
+      <category>Developer Tools</category>
+      <description>OpenAI&#39;s Private Safety Processing, previewed August 19, runs behavioral misuse-pattern checks across API sessions without routing prompt content to staff — designed for enterprise ZDR customers.</description>
+      <content:encoded><![CDATA[**TL;DR: OpenAI&#39;s Private Safety Processing (preview, Aug 19) identifies misuse patterns across API interactions without giving staff access to your prompts — designed for enterprise customers using Zero Data Retention.**
+
+OpenAI previewed Private Safety Processing on August 19 for API customers with Zero Data Retention active. The system detects behavioral patterns across multiple interactions — sequences of requests that collectively signal misuse — without routing the actual content to human reviewers or OpenAI&#39;s training pipeline. When it flags activity, OpenAI receives a category-level signal, not the underlying prompts. Content stays encrypted with customer-controlled keys.
+
+**The limits:** it is live with a "small set" of early testers (Microsoft and Databricks named); broader rollout and an accompanying technical white paper are both planned for September 2026. Until the white paper ships, false-positive rates and the technical threat model are vendor assertions, not independently verified numbers.
+
+**Why it matters:** ZDR customers previously had to choose between data privacy and any safety oversight at all. If the implementation holds — which the white paper should clarify — this closes that tradeoff for API teams with strict data-handling requirements.
+
+**Sources:** [OpenAI announcement](https://openai.com/index/offering-zero-data-retention-for-frontier-models/) · [The Next Web](https://thenextweb.com/news/openai-zero-data-retention-private-safety-processing) · [Security Boulevard](https://securityboulevard.com/2026/08/openai-unveils-private-safety-processing-to-detect-ai-misuse-without-storing-enterprise-data/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Turn Any Text Into Numbers Your Code Can Search: Sentence Transformers in 10 Lines of Python</title>
+      <link>https://sbert.net/docs/quickstart.html</link>
+      <guid isPermaLink="false">2026-08-23-05-sentence-transformers-text-embeddings-basics</guid>
+      <pubDate>Sun, 23 Aug 2026 12:15:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Embeddings</category>
+      <category>HuggingFace</category>
+      <description>Sentence Transformers converts text into dense vectors that encode meaning. Three lines of Python: load a model, call .encode(), compare with .similarity(). No API key needed.</description>
+      <content:encoded><![CDATA[**TL;DR: The sentence-transformers library converts text into dense vectors that encode meaning — load a model, call `.encode()`, compare with `.similarity()`. No API key, no cloud call, runs on a laptop CPU.**
+
+**What you&#39;ll be able to do after this:**
+- Convert sentences into 384-dimensional float arrays where similar text ends up close together in vector space
+- Find the semantically closest match to a query in a list of documents without writing a single rule
+- Understand what every RAG pipeline&#39;s embedding step is actually doing under the hood
+
+The model has one job: given a sentence, return a fixed-length vector where meaning is encoded in direction and magnitude. Sentences about similar topics cluster together; unrelated sentences don&#39;t. That geometry is what makes semantic search, clustering, and retrieval work.
+
+```bash
+pip install sentence-transformers
+```
+
+```python
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("all-MiniLM-L6-v2")  # 384-dim, ~80MB, CPU-friendly
+
+corpus = [
+    "Claude Code can spin up subagents for parallel work",
+    "Autonomous agents complete tasks without step-by-step supervision",
+    "The weather in San Francisco is mild year-round",
+]
+corpus_embeddings = model.encode(corpus)
+
+query_embedding = model.encode(["agents that work unattended"])
+scores = model.similarity(query_embedding, corpus_embeddings)
+print(scores)  # tensor([[0.88, 0.83, 0.10]])
+```
+
+The first two sentences are semantically close to the query; the weather one is not. You wrote no rules — the similarity falls out of the geometry of the embedding space.
+
+**Where it breaks:** `all-MiniLM-L6-v2` is fast and small (80 MB) but loses precision on domain-specific jargon and proprietary terms that were not in its training data. For production over technical documentation, compare candidates on the [MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard) before committing. Also: cosine similarity scores are not calibrated — 0.6 does not mean "60% similar." Compare scores against each other, not against an absolute cutoff.
+
+**Sources:** [Sentence Transformers quickstart — sbert.net](https://sbert.net/docs/quickstart.html) · [HuggingFace sentence-transformers collection](https://huggingface.co/sentence-transformers) · [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard)
+]]></content:encoded>
+      <media:content url="https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo-with-title.png" medium="image"/>
+      <media:thumbnail url="https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo-with-title.png"/>
+    </item>
+
+    <item>
+      <title>Lock Your Agent&#39;s Web Searches to a Domain Allowlist — A One-Config Fix for Indirect Prompt Injection</title>
+      <link>https://platform.claude.com/docs/en/managed-agents/tools#restrict-web-search-and-web-fetch-domains</link>
+      <guid isPermaLink="false">2026-08-23-06-managed-agents-web-tool-domain-allowlists</guid>
+      <pubDate>Sun, 23 Aug 2026 12:16:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Security</category>
+      <description>Managed Agents now supports allowed_domains and blocked_domains on web_search and web_fetch — restricts which URLs the agent reads and narrows the indirect prompt injection attack surface.</description>
+      <content:encoded><![CDATA[**TL;DR: Managed Agents&#39; `allowed_domains` and `blocked_domains` config on `web_search` and `web_fetch` restrict which URLs your agent reads — a single config change that removes the long tail of arbitrary web content from the indirect prompt injection attack surface.**
+
+When your agent uses `web_search` or `web_fetch`, it reads content written by people who know (or can guess) that an agent is reading it. Indirect prompt injection is the attack where a page embeds text designed to redirect the agent&#39;s next action. You don&#39;t need to know every attacker&#39;s technique to defend against most of them: just restrict which sites the agent can reach to the ones it actually needs.
+
+**The config (shipped August 19):**
+
+```python
+# On agent creation or update
+tools=[{
+    "type": "agent_toolset_20260401",
+    "configs": [
+        {
+            "name": "web_search",
+            "allowed_domains": ["docs.anthropic.com", "github.com", "pypi.org"]
+        },
+        {
+            "name": "web_fetch",
+            "allowed_domains": ["docs.anthropic.com", "github.com"],
+            "max_content_tokens": 50_000
+        }
+    ]
+}]
+```
+
+A listed domain covers that host and all subdomains. `allowed_domains` and `blocked_domains` cannot both be set on the same entry. A `web_fetch` call for a non-allowed URL returns `is_error: true` to the agent; `web_search` silently omits non-allowed results.
+
+**The limits:** this is a mitigating control, not a complete defense. An adversarial page on an allowed domain — a comment section on GitHub, a user-editable wiki — can still inject. Combine allowlisting with a tightly scoped system prompt, output validation, and human-in-the-loop checks on actions with side effects.
+
+**Sources:** [Restrict web search and web fetch domains — Anthropic Managed Agents docs](https://platform.claude.com/docs/en/managed-agents/tools#restrict-web-search-and-web-fetch-domains) · [Indirect prompt injection attacks — Simon Willison](https://simonwillison.net/2023/Apr/14/prompt-injection-attacks-against-gpt-4/) · [OWASP LLM Top 10: Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Claude Code's /claude-api upgrade Migrates Your Python SDK from 0.x to 1.x — What It Handles Automatically and What Still Needs Eyes</title>
@@ -6639,167 +6756,10 @@ The model sees hook stdout as context — when `block-danger` fires, Claude expl
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Why Your RAG Loses the Best Answer at Rank 30 — and How a Cross-Encoder Fixes It</title>
-      <link>https://sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html</link>
-      <guid isPermaLink="false">2026-08-09-01-cross-encoder-reranking-rag</guid>
-      <pubDate>Sun, 09 Aug 2026 04:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>RAG</category>
-      <category>Embeddings</category>
-      <description>Bi-encoders retrieve fast but rank loosely. A cross-encoder reranker rescores the top 100 by reading query and document together — the single highest-ROI RAG fix most developers skip.</description>
-      <media:content url="https://huggingface.co/front/thumbnails/v2-2.png" medium="image" />
-      <media:thumbnail url="https://huggingface.co/front/thumbnails/v2-2.png" />
-      <content:encoded><![CDATA[
-**Bi-encoders retrieve 100 candidates in milliseconds; cross-encoders score each (query, doc) pair together and rerank precisely — combining both into a pipeline is the single biggest RAG accuracy improvement most developers skip.**
-
-**What you'll be able to do after this:**
-- Understand why fast bi-encoder retrieval misranks candidates and where the precision goes
-- Add a cross-encoder reranker to any existing RAG pipeline without touching your vector database
-- Choose between `cross-encoder/ms-marco-MiniLM-L-6-v2` (fast, English) and `BAAI/bge-reranker-v2-m3` (stronger, multilingual) based on your latency/quality trade-off
-
-## Why bi-encoders misrank
-
-Your vector search encodes the query and each document *independently*, then measures cosine similarity between the resulting vectors. This is fast — millions of comparisons per second — but the two encodings never see each other. The model can't ask "does this passage actually answer this specific question?" It asks "are these vectors similar?" That mismatch is why the correct answer often lands at rank 30 even when it's somewhere in the top 100.
-
-## The two-stage pattern: retrieve wide, rerank precise
-
-1. **Retrieve 100 candidates** with your bi-encoder and vector DB (fast, cheap, unchanged from your current setup)
-2. **Rerank to top 5–10** with a cross-encoder (slower, but sees query and document simultaneously)
-
-A cross-encoder takes `[query] [SEP] [document]` as a single input and outputs one relevance score. Attention crosses the boundary — every query token attends to every document token. That's what makes it accurate, and also why you can't run it over millions of documents at retrieval time.
-
-## Implementation
-
-```python
-from sentence_transformers import SentenceTransformer, CrossEncoder
-
-# Stage 1 — your existing bi-encoder retrieval (unchanged)
-bi_encoder = SentenceTransformer("all-MiniLM-L6-v2")
-query_emb = bi_encoder.encode(query, convert_to_tensor=True)
-top_100 = vector_db.query(query_emb, n=100)  # your vector DB call
-
-# Stage 2 — cross-encoder reranking
-reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
-pairs = [(query, doc["text"]) for doc in top_100]
-scores = reranker.predict(pairs)  # ~50ms for 100 pairs on CPU
-
-ranked = sorted(zip(scores, top_100), reverse=True)
-final_results = [doc for _, doc in ranked[:5]]
-```
-
-`cross-encoder/ms-marco-MiniLM-L-6-v2`: 6-layer MiniLM, trained on MS MARCO passage ranking (a massive human-judged relevance dataset), fast enough to score 100 candidates in well under 100ms on a CPU. Step up to `BAAI/bge-reranker-v2-m3` for multilingual support or stronger long-document precision.
-
-## What to expect
-
-Precision@5 typically improves 20–40% on a domain-specific corpus after adding a reranker. The gain is largest when documents are long and variable — exactly where cosine similarity over compressed embeddings struggles most. The canonical end-to-end notebook (Simple English Wikipedia demo) is at the sbert.net Retrieve & Re-Rank page.
-
-**Sources:** [Retrieve & Re-Rank — Sentence Transformers](https://sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html) · [CrossEncoder Usage — sbert.net](https://sbert.net/docs/cross_encoder/usage/usage.html) · [Pretrained Cross-Encoder Models — sbert.net](https://sbert.net/docs/cross_encoder/pretrained_models.html)
-]]></content:encoded>
-    </item>
-
     
-    <item>
-      <title>GitHub Copilot in VS Code Now Gives Each Agent Session Its Own Git Worktree</title>
-      <link>https://github.blog/changelog/2026-07-30-github-copilot-in-visual-studio-code-july-2026-releases/</link>
-      <guid isPermaLink="false">2026-08-08-08-github-copilot-vscode-july-worktrees-parallel</guid>
-      <pubDate>Sat, 08 Aug 2026 20:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Developer Tools</category>
-      <category>Agents</category>
-      <description>The July 2026 Copilot in VS Code release gives each agent session its own isolated git worktree, adds /side for parallel side chats, and surfaces subagent model and elapsed-time details inline.</description>
-      <content:encoded><![CDATA[
-**The July VS Code update gives every Copilot agent session an isolated git worktree so parallel sessions can't step on each other — and a /side command lets you open a second chat without disrupting your main task.**
-
-The [July 2026 Copilot in VS Code release](https://github.blog/changelog/2026-07-30-github-copilot-in-visual-studio-code-july-2026-releases/) ships four additions worth knowing:
-
-- **Git worktrees per session:** start a Copilot, Claude, or Codex session in its own worktree — each agent works on an isolated copy of the repo, preventing conflicts when two agents run in parallel
-- **Side chats (`/side`):** open a parallel exploration thread that shares the session context but keeps its own history and title, so you can ask a tangential question without losing your main thread
-- **Subagent visibility:** each subagent shows its model name, elapsed time, and active tool call inline in the session panel
-- **Credit usage:** Copilot Business and Enterprise users can see their billing-cycle credit consumption in the VS Code status menu
-
-**Why it matters:** Git worktree isolation for agents solves the same race condition that `isolation: worktree` in Claude Code's SDK addresses — two agents editing the same files simultaneously is a data-loss scenario. Copilot's built-in worktree support makes parallel coding agents production-safe without extra configuration.
-
-**Sources:** [GitHub Copilot in VS Code, July 2026 releases — GitHub Changelog](https://github.blog/changelog/2026-07-30-github-copilot-in-visual-studio-code-july-2026-releases/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Four Memory Layers in Claude Code: Stop Putting Everything in CLAUDE.md</title>
-      <link>https://code.claude.com/docs/en/memory</link>
-      <guid isPermaLink="false">2026-08-08-09-claude-code-memory-layers-claude-md</guid>
-      <pubDate>Sat, 08 Aug 2026 20:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Claude Code has four distinct surfaces for persistent context — CLAUDE.md files (three scopes), hooks, skills, and auto-memory. Most developers only use one. A field guide to what belongs where.</description>
-      <content:encoded><![CDATA[
-**Claude Code has four distinct surfaces for persistent context — CLAUDE.md files, hooks, skills, and auto-memory — and most developers only use one. Knowing which to use triples session effectiveness.**
-
-The common failure mode: a 600-line CLAUDE.md that buries critical rules in the middle, where the "lost in the middle" attention effect means the model reads them but doesn't weight them. The fix is matching each type of persistent information to the surface designed to carry it.
-
-## The four surfaces
-
-### 1. CLAUDE.md files (three scopes, additive)
-
-CLAUDE.md loads into every session's context at startup. Three scope layers stack additively — all contribute simultaneously, with narrower scopes taking precedence on conflicts:
-
-| Scope | Location | Use for |
-|---|---|---|
-| Project | `.claude/CLAUDE.md` | Codebase conventions, architecture notes, run commands — things Claude would get wrong without them |
-| Local | `.claude/CLAUDE.local.md` | Your personal machine overrides, test credentials, local paths — gitignored, never shared |
-| User | `~/.claude/CLAUDE.md` | Cross-project preferences you always want: output style, preferred tools, personal workflow rules |
-
-**Keep each file under ~200–300 lines.** The "lost in the middle" effect means accuracy drops 30%+ for content buried in a long context. Front-load the most critical instructions at the top.
-
-### 2. Hooks — enforced, deterministic side effects
-
-If a rule must be enforced regardless of what Claude decides, put it in a hook. Hooks run shell commands on specific events and block or allow based on exit code. They can't be "ignored" the way a CLAUDE.md instruction can:
-
-```json
-{
-  "hooks": {
-    "PostToolUse": [{
-      "matcher": "Write|Edit",
-      "hooks": [{"type": "command", "command": "node scripts/validate-blog.mjs"}]
-    }]
-  }
-}
-```
-
-Use hooks for: linting on save, secret scanning before push, running tests after edits, blocking banned commands.
-
-### 3. Skills (`.claude/skills/`) — reusable multi-step workflows
-
-A skill is a markdown file with instructions Claude loads on demand. Use skills for complex, repeatable multi-step workflows (publish a post, scaffold a feature, run a review) that shouldn't be in every session's context budget.
-
-Unlike CLAUDE.md, skills only load when invoked with the Skill tool or a slash command — zero context cost at startup.
-
-### 4. Auto-memory
-
-When you correct Claude ("always use single quotes in this project"), Claude writes a note to `.claude/memory/` that persists across sessions without any manual CLAUDE.md editing. This is behavioral learning built into the loop.
-
-## What goes where: the cheat sheet
-
-| Type of information | Right surface |
-|---|---|
-| "How this codebase works" | CLAUDE.md (project scope) |
-| "My local environment quirks" | CLAUDE.md (local scope) |
-| "Preferences across all my projects" | CLAUDE.md (user scope) |
-| "Always lint before commit" | Hooks |
-| "Do this 10-step workflow on request" | Skill |
-| "Remember my style correction" | Auto-memory |
-
-**Sources:** [How Claude remembers your project — code.claude.com](https://code.claude.com/docs/en/memory) · [Explore the .claude directory — code.claude.com](https://code.claude.com/docs/en/claude-directory) · [Claude Code settings — code.claude.com](https://code.claude.com/docs/en/settings)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
     

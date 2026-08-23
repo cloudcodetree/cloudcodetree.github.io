@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-08-23-06-managed-agents-web-tool-domain-allowlists",
+    "title": "Lock Your Agent's Web Searches to a Domain Allowlist — A One-Config Fix for Indirect Prompt Injection",
+    "excerpt": "Managed Agents now supports allowed_domains and blocked_domains on web_search and web_fetch — restricts which URLs the agent reads and narrows the indirect prompt injection attack surface.",
+    "author": "Chris Harper",
+    "date": "08-23-2026",
+    "publishedAt": "2026-08-23T12:16:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Agents",
+      "Security"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/managed-agents/tools#restrict-web-search-and-web-fetch-domains",
+    "content": "**TL;DR: Managed Agents&#39; `allowed_domains` and `blocked_domains` config on `web_search` and `web_fetch` restrict which URLs your agent reads — a single config change that removes the long tail of arbitrary web content from the indirect prompt injection attack surface.**\n\nWhen your agent uses `web_search` or `web_fetch`, it reads content written by people who know (or can guess) that an agent is reading it. Indirect prompt injection is the attack where a page embeds text designed to redirect the agent&#39;s next action. You don&#39;t need to know every attacker&#39;s technique to defend against most of them: just restrict which sites the agent can reach to the ones it actually needs.\n\n**The config (shipped August 19):**\n\n```python\n# On agent creation or update\ntools=[{\n    \"type\": \"agent_toolset_20260401\",\n    \"configs\": [\n        {\n            \"name\": \"web_search\",\n            \"allowed_domains\": [\"docs.anthropic.com\", \"github.com\", \"pypi.org\"]\n        },\n        {\n            \"name\": \"web_fetch\",\n            \"allowed_domains\": [\"docs.anthropic.com\", \"github.com\"],\n            \"max_content_tokens\": 50_000\n        }\n    ]\n}]\n```\n\nA listed domain covers that host and all subdomains. `allowed_domains` and `blocked_domains` cannot both be set on the same entry. A `web_fetch` call for a non-allowed URL returns `is_error: true` to the agent; `web_search` silently omits non-allowed results.\n\n**The limits:** this is a mitigating control, not a complete defense. An adversarial page on an allowed domain — a comment section on GitHub, a user-editable wiki — can still inject. Combine allowlisting with a tightly scoped system prompt, output validation, and human-in-the-loop checks on actions with side effects.\n\n**Sources:** [Restrict web search and web fetch domains — Anthropic Managed Agents docs](https://platform.claude.com/docs/en/managed-agents/tools#restrict-web-search-and-web-fetch-domains) · [Indirect prompt injection attacks — Simon Willison](https://simonwillison.net/2023/Apr/14/prompt-injection-attacks-against-gpt-4/) · [OWASP LLM Top 10: Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)"
+  },
+  {
+    "id": "2026-08-23-05-sentence-transformers-text-embeddings-basics",
+    "title": "Turn Any Text Into Numbers Your Code Can Search: Sentence Transformers in 10 Lines of Python",
+    "excerpt": "Sentence Transformers converts text into dense vectors that encode meaning. Three lines of Python: load a model, call .encode(), compare with .similarity(). No API key needed.",
+    "author": "Chris Harper",
+    "date": "08-23-2026",
+    "publishedAt": "2026-08-23T12:15:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Embeddings",
+      "HuggingFace"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://sbert.net/docs/quickstart.html",
+    "content": "**TL;DR: The sentence-transformers library converts text into dense vectors that encode meaning — load a model, call `.encode()`, compare with `.similarity()`. No API key, no cloud call, runs on a laptop CPU.**\n\n**What you&#39;ll be able to do after this:**\n- Convert sentences into 384-dimensional float arrays where similar text ends up close together in vector space\n- Find the semantically closest match to a query in a list of documents without writing a single rule\n- Understand what every RAG pipeline&#39;s embedding step is actually doing under the hood\n\nThe model has one job: given a sentence, return a fixed-length vector where meaning is encoded in direction and magnitude. Sentences about similar topics cluster together; unrelated sentences don&#39;t. That geometry is what makes semantic search, clustering, and retrieval work.\n\n```bash\npip install sentence-transformers\n```\n\n```python\nfrom sentence_transformers import SentenceTransformer\n\nmodel = SentenceTransformer(\"all-MiniLM-L6-v2\")  # 384-dim, ~80MB, CPU-friendly\n\ncorpus = [\n    \"Claude Code can spin up subagents for parallel work\",\n    \"Autonomous agents complete tasks without step-by-step supervision\",\n    \"The weather in San Francisco is mild year-round\",\n]\ncorpus_embeddings = model.encode(corpus)\n\nquery_embedding = model.encode([\"agents that work unattended\"])\nscores = model.similarity(query_embedding, corpus_embeddings)\nprint(scores)  # tensor([[0.88, 0.83, 0.10]])\n```\n\nThe first two sentences are semantically close to the query; the weather one is not. You wrote no rules — the similarity falls out of the geometry of the embedding space.\n\n**Where it breaks:** `all-MiniLM-L6-v2` is fast and small (80 MB) but loses precision on domain-specific jargon and proprietary terms that were not in its training data. For production over technical documentation, compare candidates on the [MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard) before committing. Also: cosine similarity scores are not calibrated — 0.6 does not mean \"60% similar.\" Compare scores against each other, not against an absolute cutoff.\n\n**Sources:** [Sentence Transformers quickstart — sbert.net](https://sbert.net/docs/quickstart.html) · [HuggingFace sentence-transformers collection](https://huggingface.co/sentence-transformers) · [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard)"
+  },
+  {
+    "id": "2026-08-23-04-openai-private-safety-zero-data-retention",
+    "title": "OpenAI Previews Safety Monitoring That Doesn't Give Staff Access to Your Prompts",
+    "excerpt": "OpenAI's Private Safety Processing, previewed August 19, runs behavioral misuse-pattern checks across API sessions without routing prompt content to staff — designed for enterprise ZDR customers.",
+    "author": "Chris Harper",
+    "date": "08-23-2026",
+    "publishedAt": "2026-08-23T12:14:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Security",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://openai.com/index/offering-zero-data-retention-for-frontier-models/",
+    "content": "**TL;DR: OpenAI&#39;s Private Safety Processing (preview, Aug 19) identifies misuse patterns across API interactions without giving staff access to your prompts — designed for enterprise customers using Zero Data Retention.**\n\nOpenAI previewed Private Safety Processing on August 19 for API customers with Zero Data Retention active. The system detects behavioral patterns across multiple interactions — sequences of requests that collectively signal misuse — without routing the actual content to human reviewers or OpenAI&#39;s training pipeline. When it flags activity, OpenAI receives a category-level signal, not the underlying prompts. Content stays encrypted with customer-controlled keys.\n\n**The limits:** it is live with a \"small set\" of early testers (Microsoft and Databricks named); broader rollout and an accompanying technical white paper are both planned for September 2026. Until the white paper ships, false-positive rates and the technical threat model are vendor assertions, not independently verified numbers.\n\n**Why it matters:** ZDR customers previously had to choose between data privacy and any safety oversight at all. If the implementation holds — which the white paper should clarify — this closes that tradeoff for API teams with strict data-handling requirements.\n\n**Sources:** [OpenAI announcement](https://openai.com/index/offering-zero-data-retention-for-frontier-models/) · [The Next Web](https://thenextweb.com/news/openai-zero-data-retention-private-safety-processing) · [Security Boulevard](https://securityboulevard.com/2026/08/openai-unveils-private-safety-processing-to-detect-ai-misuse-without-storing-enterprise-data/)"
+  },
+  {
     "id": "2026-08-23-03-claude-api-upgrade-python-sdk-1x",
     "title": "Claude Code's /claude-api upgrade Migrates Your Python SDK from 0.x to 1.x — What It Handles Automatically and What Still Needs Eyes",
     "excerpt": "Claude Code v2.1.239 added /claude-api upgrade — a skill that finds 0.x SDK usage in your Python project, creates a migration branch, and applies the 1.x breaking changes, except for custom HTTP tr…",
