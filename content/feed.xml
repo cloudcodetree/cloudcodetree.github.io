@@ -10,7 +10,152 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 22 Aug 2026 20:02:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 23 Aug 2026 04:09:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Claude Code's /claude-api upgrade Migrates Your Python SDK from 0.x to 1.x — What It Handles Automatically and What Still Needs Eyes</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-08-23-03-claude-api-upgrade-python-sdk-1x</guid>
+      <pubDate>Sun, 23 Aug 2026 04:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>Claude Code v2.1.239 added /claude-api upgrade — a skill that finds 0.x SDK usage in your Python project, creates a migration branch, and applies the 1.x breaking changes, except for custom HTTP transport and instrumentation.</description>
+      <content:encoded><![CDATA[**TL;DR: Claude Code v2.1.239 added `/claude-api upgrade` — a skill that finds 0.x SDK usage in your Python project, creates a migration branch, and applies the 1.x breaking changes automatically, except for custom HTTP transport and instrumentation.**
+
+The `anthropic` Python SDK is on 1.x, and if your project is still on 0.x (`pip show anthropic` shows a version starting with `0.`), there are real breaking changes. The two that catch teams by surprise:
+
+- `httpx.Timeout` is replaced by `anthropic.Timeout`. Code that passes `timeout=httpx.Timeout(60.0, connect=2.0)` to the client throws a `TypeError` on 1.x.
+- The internal transport switched from `httpx` to `httpx2`. Anything that patches `httpx` directly — OpenTelemetry's `HTTPXClientInstrumentor`, Sentry's `httpx` integration, `respx`, `pytest-httpx` — no longer sees the SDK's requests. Fix: call `httpx2.alias_httpx()` once at startup, before any `import httpx`.
+
+**Running the migration**
+
+In any Claude Code session with your project open:
+
+```
+/claude-api upgrade
+```
+
+The skill detects your `anthropic` version from `requirements.txt` or `pyproject.toml`, greps the codebase for 0.x patterns, creates a feature branch, applies the mechanical changes, and writes a summary of what it touched. It handles the `httpx.Timeout` → `anthropic.Timeout` swap and the common response-field access pattern changes.
+
+**What still needs a human**
+
+- Custom HTTP client injection (proxies, transports) — update to `httpx2` explicitly
+- Any `httpx`-level instrumentation — add `httpx2.alias_httpx()` at startup
+- Tool-use code: `@beta_tool` decorator and `tool_runner` are new 1.x helpers the skill won't introduce automatically; check the [updated docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)
+
+The skill is good for the mechanical 80%. Test your actual API calls after — it can't know if your production request patterns exercise edge cases.
+
+**Sources:** [Claude Code changelog v2.1.239 — Anthropic](https://code.claude.com/docs/en/changelog) · [Python SDK docs — Anthropic](https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python) · [0.x → 1.x MIGRATION.md — GitHub](https://github.com/anthropics/anthropic-sdk-python/blob/main/MIGRATION.md) · [Real-world upgrade discussion — microsoft/agent-framework #6986](https://github.com/microsoft/agent-framework/issues/6986)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>The File That Makes Claude Code Generate UI Inside Your Design System (Not Generic Tailwind)</title>
+      <link>https://processtopixels.substack.com/p/writing-a-designmd-file-claude-can</link>
+      <guid isPermaLink="false">2026-08-23-02-design-md-claude-code-design-system</guid>
+      <pubDate>Sun, 23 Aug 2026 04:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>DESIGN.md is a plain-English file in your repo root — colors, typography, spacing, component rules, and explicit don'ts — that tells Claude Code what your design system actually means, not just what the tokens are.</description>
+      <content:encoded><![CDATA[**TL;DR: A `DESIGN.md` in your repo root tells Claude Code (and any code agent) your color palette, typography, spacing, and component constraints — with intent and boundaries, not just values — so generated UI stays inside your design system.**
+
+**What you'll be able to do after this:**
+- Make Claude Code generate components that use your actual tokens, not Tailwind defaults
+- Write token constraints that prevent the agent from misusing values (e.g., "primary blue is for CTAs only — never backgrounds, never decorative")
+- Version-control your design system as a first-class repo artifact any compatible agent can load
+
+**The key insight: value + intent + boundary**
+
+The difference between a file Claude can *read* and a file Claude can *follow* is whether each token says what it's for and what it's **not** for.
+
+Instead of:
+```
+primary: #3b82f6
+```
+
+Write:
+```
+primary: #3b82f6 — CTAs and active states only. Never used as a background, never decorative.
+```
+
+**A minimal DESIGN.md that works**
+
+```markdown
+# Design System
+
+## Product
+[2–3 sentences: what the product does, who uses it, its core UI purpose.]
+
+## Colors
+- primary: #3b82f6 — CTAs and active link text. Never as a background.
+- surface: rgba(255,255,255,0.06) — Card backgrounds only. Always paired with backdrop-blur.
+- text-primary: #f1f5f9 — Body copy. Never on anything lighter than surface.
+
+## Typography
+- h1: 2rem, weight 700, leading-tight
+- body: 1rem, weight 400, leading-relaxed
+- caption: 0.75rem — metadata and labels only. Never body text.
+
+## Spacing
+Base unit: 4px. Use only multiples: 8, 16, 24, 32, 48px.
+
+## Components
+- Buttons: rounded-md bg-primary px-4 py-2. Primary action only, one per viewport section.
+- Cards: rounded-xl bg-surface backdrop-blur-sm border-white/10 p-6.
+
+## Don'ts
+- Never use Tailwind's default blue — always #3b82f6.
+- Never hardcode a hex that isn't in this file.
+- Never add margin to a Card — let the layout own spacing.
+```
+
+**Wiring it into Claude Code**
+
+Add one line to your `CLAUDE.md`:
+
+```
+When generating or editing UI components, read DESIGN.md and apply every token, constraint, and Don't rule from it.
+```
+
+Claude Code loads `CLAUDE.md` at session start. When it writes UI, it reads `DESIGN.md` and your tokens flow into every generated component without re-explaining them per prompt.
+
+**Limits to know**
+
+`DESIGN.md` requires maintenance — when your system evolves, update the file, or the agent will confidently apply stale tokens. More importantly: if you ask Claude to generate `DESIGN.md` from a Figma export without guidance, it extracts token values accurately but *fabricates* the intent and boundary constraints. Those require a designer's actual decisions. The model infers plausible-sounding rules; they are not your rules. Write the product brief and the don'ts yourself.
+
+**Sources:** [Writing a DESIGN.md file Claude can actually use — Process to Pixels](https://processtopixels.substack.com/p/writing-a-designmd-file-claude-can) · [The DESIGN.md Workflow — Design Systems Collective](https://www.designsystemscollective.com/the-design-md-workflow-how-google-stitch-claude-code-quietly-changed-the-design-to-code-handoff-c4213f97ed8f) · [Google Stitch open-sources DESIGN.md spec (Apache 2.0) — Pasquale Pillitteri](https://pasqualepillitteri.it/en/news/1251/google-stitch-design-md-open-source-spec-2026)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>An AI Agent Found and Exploited a 5-Day-Old GitHub Actions Flaw That Another AI Co-Authored and Approved</title>
+      <link>https://www.wiz.io/blog/red-agent-snowflake-copilot-cicd-bug</link>
+      <guid isPermaLink="false">2026-08-23-01-wiz-red-agent-ci-security</guid>
+      <pubDate>Sun, 23 Aug 2026 04:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Security</category>
+      <category>Developer Tools</category>
+      <description>Wiz's Red Agent autonomously discovered and exploited a GitHub Actions script injection in Snowflake's public repo — a PR that GitHub Copilot had co-authored and reviewed as clear — five days after it merged.</description>
+      <content:encoded><![CDATA[**TL;DR: Wiz's Red Agent autonomously found and exploited a script injection in Snowflake's CI workflow five days after GitHub Copilot co-authored the vulnerable PR and reviewed it as clear — a useful case study for teams running AI-assisted CI.**
+
+On June 18, 2026, a pull request to `snowflakedb/snowflake-connector-net` replaced a safe pattern (env vars + `jq` parsing) with direct shell interpolation of a GitHub issue title. GitHub Copilot was listed as co-author. The PR merged.
+
+Five days later, Wiz's Red Agent autonomously reviewed the workflow, crafted a payload, got the first attempt wrong, read the Bash error output, revised the payload, and exfiltrated Jira credentials to an attacker-controlled server — no human guidance. Snowflake patched the same day after responsible disclosure.
+
+**What to check in your workflows.** The unsafe pattern is `${{ github.event.issue.title }}` or any user-controlled string interpolated directly into a `run:` shell step. The fix is to route it through an environment variable instead: `env: ISSUE_TITLE: ${{ github.event.issue.title }}` and reference `$ISSUE_TITLE` in the shell. GitHub's own [security hardening guide](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions) documents exactly this pattern.
+
+**A note on the source.** This is primarily Wiz's own disclosure — their Red Agent is a security product, and the blog post serves their interests. Independent coverage from The Hacker News and CyberSecurity News corroborates the technical details and Snowflake's confirmation.
+
+**Why it matters:** AI code review doesn't transfer security responsibility — a model that approved the PR was also a model that could exploit it. For teams using Copilot or Claude Code to review CI changes, own the security check on untrusted-input workflows.
+
+**Sources:** [Red Agent Exploits Snowflake Vuln Missed by GitHub Copilot — Wiz](https://www.wiz.io/blog/red-agent-snowflake-copilot-cicd-bug) · [Snowflake GitHub Actions Flaw — The Hacker News](https://thehackernews.com/2026/08/snowflake-github-actions-flaw-lets_0330881554.html) · [GitHub Actions Security Hardening — GitHub Docs](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions)]]></content:encoded>
+    </item>
 
     <item>
       <title>The MCP Spec Dropped Session State — Migration Checklist for Your Server</title>
@@ -6555,78 +6700,7 @@ Precision@5 typically improves 20–40% on a domain-specific corpus after adding
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Stop Forcing One Tool to Do Both Jobs: A RAG vs Fine-Tuning Decision Framework</title>
-      <link>https://huggingface.co/blog/mlabonne/sft-llama3</link>
-      <guid isPermaLink="false">2026-08-08-07-rag-vs-fine-tuning-decision-framework</guid>
-      <pubDate>Sat, 08 Aug 2026 20:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Fine-Tuning</category>
-      <category>HuggingFace</category>
-      <description>RAG handles what the model knows; fine-tuning handles how it responds. Mixing these up is the most common LLM engineering mistake. A decision framework plus a runnable QLoRA walk-through with Unsloth on a free Colab T4.</description>
-      <media:content url="https://huggingface.co/front/thumbnails/v2-2.png" medium="image" />
-      <media:thumbnail url="https://huggingface.co/front/thumbnails/v2-2.png" />
-      <content:encoded><![CDATA[
-**RAG handles "what the model knows" — fine-tuning handles "how it responds." Mixing up these two jobs is the most common LLM engineering mistake and the easiest to fix.**
-
-**What you'll be able to do after this:**
-- Identify in under five minutes whether your problem needs RAG, fine-tuning, prompt engineering, or none of the above
-- Understand why most production apps use both, and how to divide the work cleanly between them
-- Start a standard supervised QLoRA fine-tune on a free Colab T4 using Unsloth
-
-## The decision frame
-
-RAG and fine-tuning solve different problems. Confusing them burns weeks on the wrong tool.
-
-| Problem | Right tool |
-|---|---|
-| Model doesn't know recent or private information | RAG |
-| Answers need to cite sources or be auditable | RAG |
-| Model consistently uses wrong format or tone | Fine-tuning |
-| Classification labels are inconsistent | Fine-tuning |
-| Policy adherence is unstable | Fine-tuning |
-
-**RAG is the default.** For roughly 80% of production use cases, it's the right starting point:
-- Update source data without retraining
-- Cite which document generated each answer
-- Switch base models freely at any time
-
-**Fine-tune when behavior is the failure mode, not knowledge.** If your pipeline retrieves the right documents but the model formats the answer wrong, that's a behavior problem — and behavior lives in the weights, not in retrieval. Fine-tuning teaches the model *how* to respond; RAG teaches it *what* to say.
-
-**Prompt engineering first.** Before reaching for either tool, try few-shot examples in the system prompt. Many "we need to fine-tune" problems dissolve with 3–5 well-chosen examples. Only move to fine-tuning when the examples need to be so numerous or consistent that they'd overflow every context window.
-
-## The hybrid pattern (most production apps)
-
-Most mature applications use both:
-- **RAG layer:** current documents, product data, user history, tickets — anything that changes
-- **Fine-tuned layer:** consistent output structure, domain vocabulary, classification behavior, stable tone
-
-They compose cleanly: the retrieval system passes relevant chunks into context; the fine-tuned model knows how to turn those chunks into correctly structured responses.
-
-## Start with supervised QLoRA on a free Colab T4
-
-Once fine-tuning is the right tool, the standard path is **supervised fine-tuning (SFT)** with QLoRA. Maxime Labonne's [canonical HuggingFace guide](https://huggingface.co/blog/mlabonne/sft-llama3) walks through the full loop:
-
-```bash
-pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
-pip install --no-deps trl peft accelerate bitsandbytes
-```
-
-Key steps:
-1. **Load with 4-bit quantization** — QLoRA compresses the base model from 32-bit to 4-bit, so an 8B model fits on a free T4 GPU (16 GB VRAM)
-2. **Add LoRA adapters** — only ~1% of parameters are trained; the rest are frozen, preserving the base model's capabilities
-3. **Format in ChatML** — instruction datasets need `<|im_start|>system` / `<|im_start|>user` / `<|im_end|>` wrapping for the model to generalize correctly
-4. **SFTTrainer from TRL** — handles the training loop, prompt-token masking, and packing
-5. **Export** — save to GGUF or push to the Hub for inference in Ollama or vLLM
-
-Result: an 8B model fine-tuned on your task in under 2 hours, at zero GPU cost.
-
-**Sources:** [Fine-tune Llama 3.1 Ultra-Efficiently with Unsloth — Maxime Labonne, HuggingFace](https://huggingface.co/blog/mlabonne/sft-llama3) · [RAG vs Fine-Tuning for LLMs: A Comprehensive Guide — HuggingFace](https://huggingface.co/blog/airabbitX/rag-vs-fine-tuning-for-llms-a-com) · [Fine-Tuning vs RAG in 2026: A Decision Guide — codercops.com](https://blog.codercops.com/blog/fine-tuning-vs-rag-llm-decision-guide-2026)
-]]></content:encoded>
-    </item>
-
+    
     <item>
       <title>GitHub Copilot in VS Code Now Gives Each Agent Session Its Own Git Worktree</title>
       <link>https://github.blog/changelog/2026-07-30-github-copilot-in-visual-studio-code-july-2026-releases/</link>
@@ -6726,93 +6800,8 @@ When you correct Claude ("always use single quotes in this project"), Claude wri
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Automate Your Team's Agentic Workflows with a Comment: GitHub Copilot Cloud Agent Automations</title>
-      <link>https://github.blog/changelog/2026-08-03-trigger-copilot-automations-with-comments/</link>
-      <guid isPermaLink="false">2026-08-08-06-github-copilot-comment-automations-agentic-trigger</guid>
-      <pubDate>Sat, 08 Aug 2026 12:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Developer Tools</category>
-      <description>GitHub Copilot can now run a full cloud agent task whenever someone posts a matching comment on an issue or PR — type /docs on a PR and Copilot writes the documentation and opens a follow-up PR.</description>
-      <content:encoded><![CDATA[
-**Type `/docs` on any PR comment and GitHub's cloud agent writes the documentation, opens a follow-up PR, and closes the loop — no buttons, no dashboard navigation required.**
-
-GitHub shipped comment-triggered Copilot cloud agent automations on Aug 3. Define an automation with a trigger phrase; whenever anyone posts that phrase in an issue or PR comment, Copilot runs the agent task automatically. The result lands as a new PR, a follow-up issue, or a reply comment — depending on what your automation is configured to do.
-
-## Set up a comment trigger
-
-1. Go to your repo → **Agents** → **Automations** → **New automation**
-2. Set the trigger type to "Issue or PR comment" and enter the trigger phrase (e.g. `/docs`)
-3. Write the agent instructions for what it should do when triggered
-4. Save and enable
-
-Now anyone with repo access can fire the automation by commenting the trigger phrase.
-
-## Three workflows worth wiring up now
-
-**Auto-docs on PR merge:**
-```
-Trigger: /docs
-Instructions: Read the diff in this PR. Update or write the relevant
-docstrings, README sections, and inline comments to reflect the changes.
-Open a new PR targeting this branch with the documentation updates only.
-```
-
-**Bug investigation on demand:**
-```
-Trigger: /investigate
-Instructions: Reproduce the reported issue from this issue description.
-Search the codebase for the likely root cause. Post a comment with 3
-likely causes, the relevant files, and suggested first steps.
-```
-
-**Tech-debt tracker:**
-```
-Trigger: /track-debt
-Instructions: Review the changes in this PR. Identify shortcuts, hardcoded
-values, missing tests, and deferred work. Create a GitHub issue for each
-one, labeled tech-debt, with a clear description and suggested fix.
-```
-
-## Also shipping Aug 3: adjustable reasoning level
-
-The same release adds a reasoning level control (low / medium / high) when you start a Copilot cloud agent task. Use `low` for fast, mechanical tasks (renaming, formatting); `high` for open-ended investigation or cross-file refactors that benefit from deeper planning.
-
-Comment automations are available on Copilot Pro, Pro+, Max, Business, and Enterprise. Business/Enterprise requires the Copilot cloud agent policy enabled by an admin.
-
-**Sources:** [Trigger Copilot automations with comments — GitHub Changelog](https://github.blog/changelog/2026-08-03-trigger-copilot-automations-with-comments/) · [Customize reasoning level for Copilot cloud agent — GitHub Changelog](https://github.blog/changelog/2026-08-03-customize-the-reasoning-level-for-copilot-cloud-agent/) · [Copilot cloud agent docs — GitHub Docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Claude Code v2.1.225: Gateway Spend Warnings Now Name the Cap, Agent Trust Prompt Added</title>
-      <link>https://code.claude.com/docs/en/changelog</link>
-      <guid isPermaLink="false">2026-08-08-05-claude-code-v2125-gateway-spend-workspace-trust</guid>
-      <pubDate>Sat, 08 Aug 2026 12:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Claude Code</category>
-      <category>Developer Tools</category>
-      <description>Claude Code v2.1.225 names the specific spend cap and reset time when a gateway limit is hit, and now prompts before claude agents runs in untrusted directories. v2.1.226 is bug-fix only.</description>
-      <content:encoded><![CDATA[
-**Claude Code v2.1.225 makes gateway spend-limit messages actionable — you now see which cap was hit, when it resets, and the operator's note — instead of a generic "limit reached."**
-
-Two additions in v2.1.225 (Aug 7), no feature changes in v2.1.226 (Aug 8):
-
-**Gateway spend-limit messages.** When a Claude Apps Gateway spend cap is reached, the usage warning now displays the cap name, its reset time, and any message the operator configured — so a CI job that stalls on a budget limit tells you exactly what hit and when it clears, rather than sending you to the gateway dashboard to find out. Requires gateway version 2.1.225+.
-
-**Workspace trust prompt for `claude agents`.** The `claude agents` command now asks whether to trust an untrusted directory before running, matching the existing behavior of `claude`. This prevents an agent session from silently operating on code outside its intended scope when launched from an unfamiliar or shared directory.
-
-**Why it matters:** If you're running Claude Code through the Claude Apps Gateway (which adds SSO and per-user spend caps for teams on AWS or Google Cloud), the improved spend message removes the main friction point when a budget cap trips in CI: you no longer need to context-switch to the gateway dashboard to understand what happened and when you can retry.
-
-**Sources:** [Claude Code changelog — code.claude.com](https://code.claude.com/docs/en/changelog) · [Release v2.1.225 — github.com/anthropics/claude-code](https://github.com/anthropics/claude-code/releases/tag/v2.1.225) · [Claude Apps Gateway — byteiota.com](https://byteiota.com/claude-apps-gateway-sso-spend-caps-claude-code/)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
