@@ -284,7 +284,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: { xs: 2, md: 3 }, flexWrap: 'wrap' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
-          <Select value={pageSize} onChange={(e) => choosePageSize(Number(e.target.value))} size="small"
+          <Select value={pageSize} inputProps={{ 'aria-label': 'Posts per page' }} onChange={(e) => choosePageSize(Number(e.target.value))} size="small"
             sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(148,163,184,0.2)' }, '.MuiSvgIcon-root': { color: 'text.secondary' } }}>
             {PAGE_OPTIONS.map((n) => <MenuItem key={n} value={n} sx={{ fontFamily: MONO, fontSize: 12 }}>{n}</MenuItem>)}
           </Select>

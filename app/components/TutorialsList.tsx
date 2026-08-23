@@ -183,7 +183,7 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
         ) : (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
-            <Select value={pageSize} onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }} size="small" sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(148,163,184,0.2)' }, '.MuiSvgIcon-root': { color: 'text.secondary' } }}>
+            <Select value={pageSize} inputProps={{ 'aria-label': 'Posts per page' }} onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }} size="small" sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(148,163,184,0.2)' }, '.MuiSvgIcon-root': { color: 'text.secondary' } }}>
               {PAGE_OPTIONS.map((n) => <MenuItem key={n} value={n} sx={{ fontFamily: MONO, fontSize: 12 }}>{n}</MenuItem>)}
             </Select>
           </Box>
