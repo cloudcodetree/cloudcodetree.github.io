@@ -10,7 +10,67 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 23 Aug 2026 12:16:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 23 Aug 2026 20:04:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Your Agent Gets a Browser at 1/7th the Memory: Kitesurf Drops Into Playwright With One Parameter Change</title>
+      <link>https://blog.cloudflare.com/kitesurf/</link>
+      <guid isPermaLink="false">2026-08-23-08-kitesurf-cloudflare-agent-browser</guid>
+      <pubDate>Sun, 23 Aug 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Developer Tools</category>
+      <category>Building AI Products</category>
+      <description>Kitesurf (Cloudflare, public beta) runs in V8 isolates on Workers — no Chromium, CDP-compatible, 5-7x less memory — and drops into Playwright with one browser=kitesurf parameter change.</description>
+      <content:encoded><![CDATA[**TL;DR: Kitesurf (Cloudflare, public beta) is an agent-first browser running in V8 isolates — no Chromium binary, Chrome DevTools Protocol-compatible, 5-7x less memory — and drops into existing Playwright or Puppeteer code with one parameter change.**
+
+Giving an agent a browser normally means spinning up headless Chromium: several hundred MB per instance, seconds to initialize, and it won't fit in a V8 isolate. For agents doing screenshots, form fills, or reading pages, that's a significant overhead cost at any scale.
+
+Kitesurf runs entirely inside Cloudflare Workers as V8 isolates. It exposes the Chrome DevTools Protocol (CDP), so existing Playwright and Puppeteer code works without modification — swap your Browser Run endpoint URL and add `browser=kitesurf`:
+
+```python
+browser = await p.chromium.connect_over_cdp(
+    f"wss://browser.playwright.cloudflare.com?token={TOKEN}&browser=kitesurf"
+)
+```
+
+**What it handles well:** screenshots, HTML extraction, JSON-structured scraping, form interaction, and API calls wrapped in browser requests. Benchmark numbers from Cloudflare: 3–4x less CPU, 5–7x less memory than Chromium.
+
+**Where you still need full Chromium:** video/audio playback, WebGL rendering, bot-challenge handshakes (including Cloudflare's own bot protection — notable given the source), and multi-step authenticated sessions held open over several minutes. Kitesurf renders 1.7x slower than Chromium on raster-heavy pages — the expected tradeoff for an isolate that isn't doing full pixel rasterization.
+
+Try it without signing up at [kitesurf.cloudflare.app](https://kitesurf.cloudflare.app) — paste any URL to see what Kitesurf returns to an agent.
+
+**Sources:** [Cloudflare blog](https://blog.cloudflare.com/kitesurf/) · [TechCrunch](https://techcrunch.com/2026/08/07/cloudflare-launches-kitesurf-a-browser-built-for-ai-agents/) · [The Next Web](https://thenextweb.com/news/cloudflare-kitesurf-browser-ai-agents-workers)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>MCP Got a Sibling: A2A Joins the Same Governance Body, Completing the Open Agent Protocol Stack</title>
+      <link>https://www.axios.com/2026/08/17/a2a-agentic-ai-foundation-open-ai-standards</link>
+      <guid isPermaLink="false">2026-08-23-07-a2a-aaif-mcp-agent-standards</guid>
+      <pubDate>Sun, 23 Aug 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Agents</category>
+      <category>MCP</category>
+      <category>Building AI Products</category>
+      <description>Google transferred A2A to the AAIF on Aug 20, putting agent-to-agent communication alongside Anthropic's MCP under neutral Linux Foundation governance — 250+ member organizations.</description>
+      <content:encoded><![CDATA[**TL;DR: Google transferred A2A — the protocol for agent-to-agent handoffs — to the Agentic AI Foundation (AAIF) on Aug 20, placing it alongside Anthropic's MCP under neutral Linux Foundation governance.**
+
+For anyone building multi-agent systems: **MCP** connects agents to tools and data; **A2A** is the protocol for agents to delegate work to other agents. Both now live under the Agentic AI Foundation (AAIF), a Linux Foundation project with 250+ member organizations — AWS, Anthropic, Cloudflare, Google, Microsoft, and OpenAI are platinum members.
+
+A2A v1.0 (March 2026) is already in production in supply chain, financial services, and IT operations. The move follows the same path MCP took when it moved to AAIF governance earlier this year.
+
+**The limit:** this is a governance transfer, not a spec update. MCP and A2A still require separate implementations, and neither protocol mandates a specific orchestration approach — "A2A + MCP" is a stack you compose, not a product you install.
+
+**Why it matters:** if you're building agents that delegate work to other agents — not just call tools — A2A + MCP is now the pair of stable, community-governed open specs to build against, with reduced risk that a vendor pivot strands your architecture.
+
+**Sources:** [Axios](https://www.axios.com/2026/08/17/a2a-agentic-ai-foundation-open-ai-standards) · [Linux Foundation](https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year) · [DevOpsDigest](https://www.devopsdigest.com/google-agent2agent-protocol-joins-aaif)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>OpenAI Previews Safety Monitoring That Doesn&#39;t Give Staff Access to Your Prompts</title>
@@ -6650,112 +6710,8 @@ The `<=>` operator is cosine distance; `<->` is L2; `<#>` is negative inner prod
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Your Claude Code Safety Rules Are Suggestions Until You Use Hooks</title>
-      <link>https://code.claude.com/docs/en/advanced-usage/hooks</link>
-      <guid isPermaLink="false">2026-08-09-03-claude-code-hooks-guardrails</guid>
-      <pubDate>Sun, 09 Aug 2026 04:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>CLAUDE.md instructions drift as context grows; hooks fire deterministically every time. PreToolUse blocks before execution; PostToolUse enforces cleanup — three patterns to wire up now.</description>
-      <content:encoded><![CDATA[
-**CLAUDE.md instructions drift when context grows long — hooks are deterministic shell commands the harness runs on every matching event, unconditionally. That's the difference between a suggestion and a rule.**
-
-Your CLAUDE.md can say "never use `rm -rf`" or "always run lint after editing." The model follows those when it's paying attention. A hook fires whether it's paying attention or not. The two surfaces are complementary: CLAUDE.md sets *intent*, hooks enforce the *constraint*.
-
-## The two hook types you'll use most
-
-**PreToolUse** fires before the tool runs. Exit code `2` = block (Claude sees the stderr output and retries without that action). Any other non-zero = warn but proceed. Use for guards.
-
-**PostToolUse** fires after the tool completes — it can't undo what happened, but it runs unconditionally. Use for formatting, test runs, audit logging.
-
-Configure in `.claude/settings.json` committed to the project root so every teammate gets it:
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [{ "type": "command", "command": "~/.claude/hooks/block-danger.sh" }]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [{ "type": "command", "command": "~/.claude/hooks/auto-format.sh" }]
-      }
-    ]
-  }
-}
-```
-
-## Three patterns to wire up now
-
-**1. Block dangerous Bash (PreToolUse, matcher `Bash`)**
-
-```bash
-#!/usr/bin/env bash
-cmd=$(cat | jq -r '.command')
-if echo "$cmd" | grep -qE 'rm -rf|git push --force|DROP TABLE'; then
-  echo "BLOCKED: $cmd" >&2; exit 2
-fi
-```
-
-Exit 2 causes Claude to explain what it tried and propose a safer alternative.
-
-**2. Auto-format on every file write (PostToolUse, matcher `Edit|Write`)**
-
-```bash
-#!/usr/bin/env bash
-file=$(cat | jq -r '.path // empty')
-[[ -z "$file" ]] && exit 0
-[[ "$file" == *.py ]]                     && { black --quiet "$file"; exit 0; }
-[[ "$file" == *.ts || "$file" == *.tsx ]] && npx prettier --write "$file"
-```
-
-**3. Run affected tests after edits (PostToolUse, matcher `Edit|Write`)**
-
-```bash
-#!/usr/bin/env bash
-file=$(cat | jq -r '.path // empty')
-[[ -z "$file" ]] && exit 0
-pnpm test --passWithNoTests --testPathPattern="$(basename "$file")" 2>&1 | tail -5
-```
-
-The model sees hook stdout as context — when `block-danger` fires, Claude explains what it tried and proposes a safer alternative automatically.
-
-**Sources:** [Claude Code Hooks — Anthropic Docs](https://code.claude.com/docs/en/advanced-usage/hooks) · [Claude Code Settings Reference — code.claude.com](https://code.claude.com/docs/en/settings) · [Claude Code Hooks Setup with Examples — kjetilfuras.com](https://kjetilfuras.com/claude-code-hooks/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Kimi K3 Lands in GitHub Copilot and GitHub Spark Retires August 31</title>
-      <link>https://github.blog/changelog/2026-08-06-kimi-k3-is-now-available-in-github-copilot/</link>
-      <guid isPermaLink="false">2026-08-09-02-kimi-k3-copilot-spark-retires</guid>
-      <pubDate>Sun, 09 Aug 2026 04:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Developer Tools</category>
-      <category>LLM</category>
-      <description>Kimi K3, an open-weight frontier model, is now GA in GitHub Copilot at $3/$15/M on Fireworks. GitHub Spark stops accepting new apps Aug 4 and shuts down fully Aug 31.</description>
-      <content:encoded><![CDATA[
-**Two GitHub developer platform changes this week: a strong open-weight model joins Copilot's roster, and GitHub's AI web-app builder reaches end of life August 31.**
-
-**Kimi K3 now GA in GitHub Copilot (Aug 6).** Moonshot AI's Kimi K3 — an open-weight model with frontier-level agentic coding scores — is available for Copilot Pro, Pro+, Max, Business, and Enterprise. Pricing: $3/M input, $15/M output, $0.30/M cached, hosted on Fireworks AI. *Copilot Business and Enterprise have it off by default* — admins must enable Kimi K3 in Copilot settings before anyone on the team can select it. (The rollout briefly paused due to a GitHub Actions incident but resumed the same week.)
-
-**GitHub Spark retires August 31.** The AI-powered web app prototyping tool stopped accepting new users and apps on August 4 and shuts down fully August 31. GitHub's position: agentic development tools have advanced to the point where developers can build the same things in Copilot's native workflow — VS Code, Copilot CLI, or the Copilot desktop app. **Action before deadline:** open your Spark workbench → … → *Create repository* to export your app code. If your app uses `llm()`, swap in your own inference provider before shutdown or the AI features stop working.
-
-**Why it matters:** Kimi K3 gives teams a cost-effective open-weight option for long agentic sessions without leaving their Copilot subscription. Spark's retirement is the clearest signal yet that standalone AI-assisted low-code builders are being absorbed into general-purpose coding agents.
-
-**Sources:** [Kimi K3 is now available in GitHub Copilot — GitHub Changelog](https://github.blog/changelog/2026-08-06-kimi-k3-is-now-available-in-github-copilot/) · [Upcoming deprecation of GitHub Spark — GitHub Changelog](https://github.blog/changelog/2026-08-04-upcoming-deprecation-of-github-spark-on-github-com/)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
