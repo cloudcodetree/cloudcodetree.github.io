@@ -33,6 +33,13 @@ these copies. Canvas boards are mirrored under `boards/` when they carry decisio
 
 Snapshot pulled: 2026-08-22.
 
+## The canonical system
+
+**`design/system/`** (sibling directory) is the site's own design system as
+built — Industry Dark WITH the amendments below baked in. It is pushed to the
+Claude Design design-system project so canvas work consumes the real tokens.
+The mirrors in this directory remain the historical exploration record.
+
 ## Owner amendments (2026-08-24) — diverging from the canvas
 
 Applied in code after living with the conversion; the canvas has not been
