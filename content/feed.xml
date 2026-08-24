@@ -10,7 +10,125 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 24 Aug 2026 04:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 24 Aug 2026 12:10:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Eight Claude API Incidents in Three Weeks — This Morning's Outage and the Pattern Worth Designing For</title>
+      <link>https://status.claude.com</link>
+      <guid isPermaLink="false">2026-08-24-04-claude-api-outage-frontier-pattern</guid>
+      <pubDate>Mon, 24 Aug 2026 12:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Best Practices</category>
+      <description>Elevated errors on Claude Mythos 5, Fable 5, Opus 5, and Opus 4.8 ran 05:06–06:42 UTC today — the eighth Claude API incident since August 5. Frontier models cluster together; Sonnet 5 stayed accessible.</description>
+      <content:encoded><![CDATA[**TL;DR: Elevated errors on Claude's frontier models (Mythos 5, Fable 5, Opus 5, Opus 4.8) ran 05:06–06:42 UTC today — the eighth Claude API incident since August 5.**
+
+This morning's incident followed the same pattern as the seven before it: the frontier tier outaged together while Sonnet 5 remained accessible. Engineers identified the root cause at 05:27 UTC and completed remediation by 06:42. The Claude Code, claude.ai, and API surfaces all showed partial disruption.
+
+The pattern now has enough repetitions to design around: the frontier models (Opus, Fable, Mythos) share a failure blast radius; Sonnet 5 has remained accessible during every frontier outage this month. If your production agent targets Opus 5 or Fable 5 exclusively, this morning's window was a three-hour availability gap.
+
+**Why it matters:** A single-provider, single-model production agent is now a known reliability risk. Routing to Sonnet 5 on 5xx, or adding a second-provider fallback chain, turns today's gap into a degraded-but-alive situation — the next post covers the LiteLLM pattern that sets this up in about 10 lines.
+
+**Sources:** [Claude status page](https://status.claude.com) · [Claude AI Suffers Another Outage — CybersecurityNews](https://cybersecuritynews.com/claude-ai-suffers-outage/) · [Claude faces another outage — Notebookcheck](https://www.notebookcheck.net/Claude-faces-another-outage-as-errors-hit-multiple-models.1376666.0.html) · [Claude outage hits multiple models — The Next Web](https://thenextweb.com/news/claude-outage-multiple-models)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Exit Code 2 Blocks the Tool: PreToolUse Hooks as Deterministic Safety Gates in Claude Code</title>
+      <link>https://code.claude.com/docs/en/hooks</link>
+      <guid isPermaLink="false">2026-08-24-05-claude-code-pretooluse-safety-gate</guid>
+      <pubDate>Mon, 24 Aug 2026 12:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Exit code 2 from a PreToolUse hook blocks any Claude Code tool call before it runs. Block dangerous commands, protect generated files, auto-approve safe ops — deterministically, not prompt-dependently.</description>
+      <content:encoded><![CDATA[**TL;DR: A PreToolUse hook exits with code 2 to block any Claude Code tool call before it runs — making your safety rules deterministic rather than relying on Claude's judgment call.**
+
+The PostToolUse validation hook ([covered August 21](https://cloudcodetree.com/ai-news/2026-08-21-03-claude-code-posttooluse-validation-hook)) reacts after a write succeeds. PreToolUse intercepts before — useful for cases where you cannot let the action happen at all.
+
+**How blocking works**
+
+Exit code 2 from a PreToolUse hook blocks the tool call. Claude sees the hook's stdout and adjusts. Exit code 0 allows it. Any other non-zero exit also blocks, but code 2 gives Claude the clearest signal — use it.
+
+**Three guard patterns worth wiring**
+
+**1. Block destructive shell commands.** Intercept the `Bash` tool and reject commands matching `rm -rf`, `git reset --hard`, or `DROP TABLE`:
+
+```json
+"hooks": {
+  "PreToolUse": [{
+    "matcher": "Bash",
+    "hooks": [{"type": "command",
+      "command": "bash .claude/hooks/danger-guard.sh"}]
+  }]
+}
+```
+
+In `danger-guard.sh`: read `$CLAUDE_TOOL_INPUT` (JSON with the `command` field), grep for dangerous patterns, exit 2 if any match.
+
+**2. Block writes to generated files.** Intercept `Edit` and `Write`, check the path against a deny list (`public/blog/posts.json`, `dist/`, `out/`), and exit 2 if the file is off-limits. This blog uses exactly this pattern — `validate-blog.sh` fires on every write to `public/blog/` and blocks inconsistent writes.
+
+**3. Auto-approve read-only commands.** Exit 0 immediately for `cat`, `ls`, `grep`, `git status`, and `git log` — no permission prompt, no approval fatigue.
+
+**With `--dangerously-skip-permissions`:** PreToolUse hooks still fire in this mode. They become the last remaining guardrail when permission prompts are disabled — add your danger-guard before enabling that flag in CI or in unattended workflows.
+
+**The one gap:** Hooks do not fire inside Workflow SDK subagents. If your workflow calls an `agent()` step that writes files, the PreToolUse hooks in your main session do not cover it. Add validation as an explicit `agent()` step in the script instead.
+
+**Sources:** [Hooks reference — code.claude.com](https://code.claude.com/docs/en/hooks) · [Claude Code Hooks: Security Gates for Agent Workflows — DEV Community](https://dev.to/jangwook_kim_e31e7291ad98/claude-code-hooks-security-gates-for-agent-workflows-5he7) · [PreToolUse hooks with --dangerously-skip-permissions — pasqualepillitteri.it](https://pasqualepillitteri.it/en/news/1832/claude-code-dangerously-skip-permissions-pretooluse-hooks-2026)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Keep Your Agent Running When the Primary Model Is Down: LiteLLM Router Fallback in 10 Lines</title>
+      <link>https://docs.litellm.ai/docs/proxy/reliability</link>
+      <guid isPermaLink="false">2026-08-24-06-litellm-router-provider-fallback</guid>
+      <pubDate>Mon, 24 Aug 2026 12:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Best Practices</category>
+      <category>LLM</category>
+      <description>LiteLLM Router's fallback_models list reroutes failed calls to a second provider on any 5xx, 429, or timeout — the entire failover chain lives in config, not application code.</description>
+      <content:encoded><![CDATA[**TL;DR: LiteLLM Router's `fallback_models` list reroutes failed API calls to a second provider on any 5xx, 429, or timeout — the entire failover chain lives in your router config, not your application code.**
+
+Today's Claude incident (the eighth this month) makes single-provider agent architecture a reliability decision, not a cost-saving default. LiteLLM Router lets you add a fallover chain without touching application logic:
+
+```python
+import os
+from litellm import Router
+
+router = Router(
+    model_list=[
+        {"model_name": "primary", "litellm_params": {
+            "model": "anthropic/claude-opus-5-20260801",
+            "api_key": os.environ["ANTHROPIC_API_KEY"]
+        }},
+        {"model_name": "fallback-1", "litellm_params": {
+            "model": "openai/gpt-5-mini",
+            "api_key": os.environ["OPENAI_API_KEY"]
+        }},
+    ],
+    fallback_models=["fallback-1"],
+    num_retries=2,
+    retry_after=1,   # base delay in seconds (LiteLLM adds jitter)
+    allowed_fails=3,
+)
+
+response = router.completion(model="primary", messages=messages)
+```
+
+**What triggers fallover:** 5xx errors, 429 rate-limits, context-window overflow, content-policy blocks, and timeouts. The router retries the primary `num_retries` times before stepping to the next entry in `fallback_models`.
+
+**Three limits to know before you ship**
+
+1. **Output drift.** Fallback models produce structurally different responses. If your primary returns clean JSON and the fallback is more verbose, your downstream parser breaks silently. Test the fallback path in staging before production fires it.
+2. **Cost spikes.** If your primary is the cheapest option and the fallback is 5× the price, a three-hour outage during peak traffic generates a significant unexpected bill. Set a cost ceiling or alert if the fallback is active for more than a few minutes.
+3. **Jitter is not optional.** Retries without jitter create a thundering herd against an already-stressed provider. LiteLLM adds jitter by default on `retry_after` — confirm you have not overridden it with a fixed delay.
+
+**Sources:** [Fallbacks (Provider Failover) — LiteLLM docs](https://docs.litellm.ai/docs/proxy/reliability) · [LLM API Resilience in Production: Rate Limits, Failover, and Naive Retry Costs — TianPan.co](https://tianpan.co/blog/2026-03-11-llm-api-resilience-production) · [LLM Gateway in Production: Multi-Provider Routing with LiteLLM — DevOpsBoys](https://devopsboys.com/blog/llm-gateway-litellm-multi-provider-routing-production-2026)]]></content:encoded>
+    </item>
 
     <item>
       <title>Write a Specialist Once, Delegate to It Forever: Custom Subagents in .claude/agents/</title>
@@ -6346,227 +6464,9 @@ The key insight: Copilot reviews have cost in two directions — compute and tim
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Run Any Open-Weight Model Locally: What GGUF Quantization Tags Actually Mean</title>
-      <link>https://www.datacamp.com/tutorial/gguf-format-a-complete-guide</link>
-      <guid isPermaLink="false">2026-08-10-01-gguf-quantization-ollama-levels</guid>
-      <pubDate>Mon, 10 Aug 2026 04:15:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Self-Hosting</category>
-      <category>LLM</category>
-      <description>Q4_K_M is Ollama's default and the right pick for 99% of setups: 4.5GB for a 7B model, ~96% of full-precision quality. Here's what every GGUF tag means and how to choose.</description>
-      <content:encoded><![CDATA[
-**Q4_K_M is Ollama's default and covers 99% of local setups: 4.5GB for a 7B model, roughly 96% of full-precision quality. Here's what the letters and numbers in every GGUF model tag actually mean.**
-
-**What you'll be able to do after this:**
-- Read any GGUF model tag (Q4_K_M, Q8_0, IQ4_XS, Q5_K_M) and know what it means for RAM and quality
-- Pull a specific quantized variant from Ollama or HuggingFace to match your hardware budget
-- Make an informed decision about when to trade quality for size — and understand why bigger-at-lower-precision often wins
-
-## What is GGUF?
-
-When you run `ollama pull llama3.1`, Ollama downloads a GGUF file — a single portable bundle containing model weights, the tokenizer, and metadata. GGUF (GGML Unified Format) is the universal format for local LLM inference, used by Ollama, llama.cpp, LM Studio, and GPT4All.
-
-GGUF files come in different quantization levels that compress the weights to reduce RAM and improve inference speed, at some quality cost. Think of it like JPEG compression: a Q4 quantization file is roughly 70% smaller than full-precision (fp16), while retaining ~96% of the original quality.
-
-## Reading the tags
-
-Ollama and HuggingFace model tags encode the quantization level directly. Here's a reference table for 7B-class models:
-
-| Tag | Bits | ~RAM (7B model) | Quality |
-|---|---|---|---|
-| `fp16` | 16 | ~14 GB | Reference (100%) |
-| `Q8_0` | 8 | ~8 GB | ≈99% |
-| `Q5_K_M` | 5 (mixed) | ~5.5 GB | ≈98% |
-| `Q4_K_M` | 4 (mixed) | ~4.5 GB | ≈96% |
-| `IQ4_XS` | 4 (i-quant) | ~4.2 GB | ≈95% |
-| `Q3_K_M` | 3 (mixed) | ~3.5 GB | ≈91% |
-| `Q2_K` | 2 | ~2.8 GB | ≈82% |
-
-**K-quants (Q4_K_M, Q5_K_S, Q3_K_L):** "K" means mixed precision. Attention layers (sensitive to precision loss) get slightly higher bit-width; feed-forward layers (less sensitive) get lower. M/S/L stand for Medium/Small/Large within the k-quant family — K_M is the balanced sweet spot.
-
-**I-quants (IQ4_XS, IQ3_XS):** "I" means importance-based quantization, which allocates bits according to weight importance rather than uniformly across all layers. Slightly smaller files than k-quants at the same nominal bit level, with similar quality.
-
-## How to pull a specific variant
-
-Ollama defaults to Q4_K_M for official models. To override:
-
-```bash
-# Default pull — gets Q4_K_M automatically
-ollama pull llama3.1
-
-# Explicit variant by tag
-ollama pull llama3.1:8b-instruct-q8_0       # higher quality, needs 8GB
-ollama pull llama3.1:70b-instruct-q4_K_M    # 70B at Q4, ~40GB
-
-# Pull GGUF models directly from HuggingFace
-# bartowski maintains regularly updated, high-quality GGUF quants
-ollama run hf.co/bartowski/Qwen3-8B-GGUF:Q4_K_M
-ollama run hf.co/bartowski/Llama-3.2-3B-Instruct-GGUF:Q8_0
-```
-
-## Choosing a quantization level
-
-Match the quantization to your available RAM:
-
-- **≤8 GB RAM (laptop, Pi):** Q4_K_M or IQ4_XS for 7B models
-- **16 GB RAM:** Q5_K_M or Q8_0 for 7B/8B; Q4_K_M for 13B
-- **24 GB GPU (RTX 3090/4090):** Q8_0 for 13B; Q4_K_M for 70B
-- **Apple Silicon (48 GB+):** Q8_0 for 70B models is practical
-
-**Counter-intuitive rule:** A larger model at lower quantization almost always beats a smaller model at higher quantization. A 70B at Q4_K_M (~40 GB) will outperform an 8B at Q8_0 (~8 GB) for most reasoning tasks, if you have the RAM to run it at GPU speed.
-
-The quality degradation below Q4 (Q3, Q2) becomes noticeable on reasoning-heavy tasks — responses get less coherent, facts less reliable. Q4_K_M is the floor for anything you'd put in front of a user.
-
-## Why this matters for your stack
-
-Every AI application that runs local inference — for cost, privacy, offline capability, or regulatory reasons — starts with this choice. Pick Q2 and you'll save RAM but degrade reasoning noticeably. Pick Q8 without enough RAM and the model spills to CPU, killing inference speed. Q4_K_M is the rational default because most hardware can run it fully on GPU, at a quality level where the degradation is invisible for real tasks.
-
-**Sources:** [GGUF Format: A Complete Guide — DataCamp](https://www.datacamp.com/tutorial/gguf-format-a-complete-guide) · [Using Quantized Models with Ollama — Machine Learning Mastery](https://machinelearningmastery.com/using-quantized-models-with-ollama-for-application-development/) · [Ollama GGUF Quantization Guide — eastondev.com](https://eastondev.com/blog/en/posts/ai/20260422-ollama-gguf-quantization/) · [llama.cpp quantization types — GitHub](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>The History Collapse Pattern: Keep Long-Running Claude API Agents Focused and Affordable</title>
-      <link>https://platform.claude.com/docs/en/build-with-claude/compaction</link>
-      <guid isPermaLink="false">2026-08-09-08-claude-api-conversation-compression-pattern</guid>
-      <pubDate>Sun, 09 Aug 2026 20:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>After N turns, inject one structured summary message and discard the raw history above it. Cost stays flat, the agent remembers what matters, and context never hits the wall mid-task.</description>
-      <content:encoded><![CDATA[
-**After N turns, inject one structured summary and truncate the raw message history above it — cost stays flat, the agent stays sharp, and you never hit the token wall mid-task.**
-
-Claude Code has `/compact` to compress an interactive session. If you're building your own multi-turn agent with the Claude API, you need to wire this yourself. Here's the pattern.
-
-## Why message history grows into a problem
-
-Each API call sends the full `messages` array. A 10-turn coding agent with long file reads can easily accumulate 40,000–80,000 input tokens. At Claude Sonnet's current pricing, that's $0.12–$0.24 per turn *just in history* — and the longer the session runs, the worse it gets. Beyond cost, context quality degrades: early context crowds out attention for recent work.
-
-The fix is not to blindly truncate (you lose decisions made 30 turns ago). The fix is to *compress semantically*: extract what matters and discard the rest.
-
-## The compression call
-
-```python
-def compress_history(client, messages: list, model: str) -> list:
-    """Collapses message history into one summary + system context."""
-    if len(messages) < 2:
-        return messages
-
-    compression_prompt = """You are summarizing a coding agent's work session.
-Produce a concise technical summary covering:
-1. The task being worked on and its current state
-2. Files created, modified, or deleted (with paths)
-3. Key decisions made and why
-4. Errors encountered and how they were resolved
-5. Immediate next steps
-
-Be specific and preserve exact file paths, function names, and error messages.
-Format as structured markdown."""
-
-    response = client.messages.create(
-        model=model,
-        max_tokens=2000,
-        system=compression_prompt,
-        messages=messages,
-    )
-
-    summary = response.content[0].text
-    return [
-        {"role": "user",
-         "content": f"[SESSION CONTEXT — compressed from {len(messages)} messages]
-
-{summary}"},
-        {"role": "assistant",
-         "content": "Understood. I'll continue from where we left off."},
-    ]
-```
-
-## When to trigger it
-
-```python
-TOKEN_THRESHOLD = 60_000   # compress before you hit 80k+ expensive territory
-TURN_THRESHOLD  = 20       # or every 20 turns
-
-def should_compress(messages: list) -> bool:
-    # Rough token estimate: ~4 chars per token
-    approx_tokens = sum(len(str(m)) // 4 for m in messages)
-    return approx_tokens > TOKEN_THRESHOLD or len(messages) > TURN_THRESHOLD * 2
-```
-
-## Full agent loop
-
-```python
-from anthropic import Anthropic
-
-client = Anthropic()
-MODEL  = "claude-sonnet-4-6-20261001"
-
-messages = []
-
-while True:
-    user_input = input("You: ")
-    if user_input.lower() == "exit":
-        break
-
-    messages.append({"role": "user", "content": user_input})
-
-    if should_compress(messages[:-1]):          # compress everything except the new turn
-        messages = compress_history(client, messages[:-1], MODEL) + [messages[-1]]
-        print("[context compressed]")
-
-    response = client.messages.create(
-        model=MODEL,
-        max_tokens=8096,
-        messages=messages,
-    )
-
-    reply = response.content[0].text
-    messages.append({"role": "assistant", "content": reply})
-    print(f"Claude: {reply}")
-```
-
-## What to preserve in the summary
-
-The compression prompt matters more than the timing. Include: current task state, file paths and their contents' purpose, key design decisions, open errors. Exclude: full file reads that can be re-read, exploratory dead ends.
-
-For longer sessions, run two levels: compress every 20 turns into a "session chunk," then once per hour compress all chunks into a "project context." The pattern scales to sessions hours or days long.
-
-**Sources:** [Compaction — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/compaction) · [Context Window Management — Claude Code Docs](https://code.claude.com/docs/en/context-management) · [Claude Code /compact Deep-Dive — claudefa.st](https://claudefa.st/blog/guide/mechanics/context-management)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Self-Host Your Content Moderation: Mistral Shieldstral 1.0 Is an Open-Weight 3B Guard Model</title>
-      <link>https://www.marktechpost.com/2026/08/07/mistral-ai-releases-shieldstral-1-0-3b/</link>
-      <guid isPermaLink="false">2026-08-09-07-mistral-shieldstral-safety-classifier</guid>
-      <pubDate>Sun, 09 Aug 2026 20:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Security</category>
-      <category>LLM</category>
-      <description>Mistral released Shieldstral 1.0 (Aug 4, Apache 2.0) — a 3B multimodal safety classifier where you write moderation policies in plain English, run it on a 16GB GPU, and it matches models 7x its size.</description>
-      <content:encoded><![CDATA[
-**Mistral released Shieldstral 1.0 (Aug 4, Apache 2.0) — a 3B open-weight safety classifier where moderation policies are plain-English strings you pass at inference time, not categories baked into the model.**
-
-Most guard models ship with fixed categories. Shieldstral inverts this: you write a natural-language policy ("block content promoting self-harm, harassment, or explicit material targeting minors") and the model scores against it on each call. Change what you're guarding against by changing a string — no retraining, no fine-tuning.
-
-**Key specs:** 3B parameters, runs on a single 16GB GPU (A100, RTX 3090, or similar), covers text and images, 12 languages, Apache 2.0 on HuggingFace. Mistral reports parity with guard models up to 21B on text safety benchmarks and SOTA on multimodal moderation.
-
-**For developers building agentic pipelines:** Shieldstral fits as a post-output filter — call it before any user-facing response leaves your system. Because the model is open-weight and runs locally, there's no outbound API, no data leaving your infrastructure, and updating your policy is a string change in your config.
-
-**Why it matters:** Agentic systems that execute code, browse the web, and take real actions need a last-gate output filter that doesn't add a third-party API dependency. Shieldstral is the first open-weight option compact enough to serve on the same machine as your application server without a dedicated GPU node.
-
-**Sources:** [Mistral AI Releases Shieldstral 1.0 3B — MarkTechPost](https://www.marktechpost.com/2026/08/07/mistral-ai-releases-shieldstral-1-0-3b/) · [Shieldstral 1.0 — Medium](https://medium.com/data-science-in-your-pocket/shieldstral-1-0-mistrals-policy-adaptive-3b-safety-classifier-ba3fe6e2f728) · [Mistral Releases Shieldstral for Multimodal Moderation — TestingCatalog](https://www.testingcatalog.com/mistral-releases-shieldstral-for-multimodal-moderation/)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
 
     
