@@ -40,6 +40,7 @@ export const SERIF = 'var(--font-display), system-ui, sans-serif';
 export const MONO = 'var(--font-plex-mono), ui-monospace, monospace';
 export const ACCENT = '#94bce3'; // industry accent-400 on dark
 export const LINK = '#94bce3'; // hover: #b5d9fd
+export const ACCENT2 = '#ffb24d'; // redline amber — emphasis (owner amendment 2026-08-24)
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -89,7 +90,7 @@ export const markdownSx = {
   // Title is rendered separately; hide a duplicate leading H1 in the body.
   '& h1:first-of-type': { display: 'none' },
   '& h1': { fontSize: { xs: '1.5rem', md: '2rem' }, fontWeight: 600, mb: 2 },
-  '& h2': { fontSize: { xs: '1.15rem', md: '1.3rem' }, fontWeight: 600, mt: 4, mb: 1.5, pl: 1.5, borderLeft: `3px solid ${ACCENT}` },
+  '& h2': { fontSize: { xs: '1.15rem', md: '1.3rem' }, fontWeight: 600, mt: 4, mb: 1.5, pl: 1.5, borderLeft: `3px solid ${ACCENT2}` },
   '& h3': { fontSize: { xs: '1.05rem', md: '1.15rem' }, fontWeight: 600, mt: 3, mb: 1 },
   '& p': { mb: 2, lineHeight: 1.8 },
   '& strong': { color: '#ffffff', fontWeight: 700 },
@@ -106,16 +107,19 @@ export const markdownSx = {
   // `pre` is rendered by BlueprintPre (frame + corner marks); only fallback
   // styling for non-component contexts remains here.
   '& pre': { maxWidth: '100%', overflowX: 'auto' },
-  // Syntax highlighting (rehype-highlight), themed to the Industry system:
-  // no decorative hues — keywords/strings/etc. map onto the steel ramp and
-  // neutral steps so code reads as part of the blueprint, not a rainbow.
-  '& .hljs-comment, & .hljs-quote': { color: '#7a7a7d', fontStyle: 'italic' },
-  '& .hljs-keyword, & .hljs-selector-tag, & .hljs-built_in, & .hljs-tag': { color: '#94bce3' },
-  '& .hljs-string, & .hljs-attr, & .hljs-template-variable, & .hljs-addition': { color: '#b5d9fd' },
-  '& .hljs-number, & .hljs-literal, & .hljs-symbol, & .hljs-bullet': { color: '#d4d4d7' },
-  '& .hljs-title, & .hljs-section, & .hljs-function, & .hljs-name': { color: '#f2f2f3', fontWeight: 600 },
-  '& .hljs-variable, & .hljs-params, & .hljs-attribute': { color: '#b7b7ba' },
-  '& .hljs-meta, & .hljs-doctag, & .hljs-deletion': { color: '#749dc4' },
+  // Syntax highlighting (rehype-highlight). Readability first (owner
+  // amendment 2026-08-24): proven GitHub-Dark-style token hues — maximum
+  // differentiation on the graphite ground, familiar to every developer.
+  '& .hljs-comment, & .hljs-quote': { color: '#8b949e', fontStyle: 'italic' },
+  '& .hljs-keyword, & .hljs-selector-tag, & .hljs-doctag': { color: '#ff7b72' },
+  '& .hljs-string, & .hljs-template-variable, & .hljs-addition': { color: '#a5d6ff' },
+  '& .hljs-attr, & .hljs-attribute, & .hljs-variable': { color: '#79c0ff' },
+  '& .hljs-number, & .hljs-literal, & .hljs-symbol, & .hljs-bullet': { color: '#ffb24d' },
+  '& .hljs-title, & .hljs-section, & .hljs-function': { color: '#d2a8ff' },
+  '& .hljs-name, & .hljs-built_in, & .hljs-type': { color: '#7ee787' },
+  '& .hljs-params': { color: '#c9d1d9' },
+  '& .hljs-meta': { color: '#79c0ff' },
+  '& .hljs-deletion': { color: '#ffa198' },
   '& .hljs-emphasis': { fontStyle: 'italic' },
   '& .hljs-strong': { fontWeight: 700 },
   '& code': { backgroundColor: 'rgba(43,43,45, 0.6)', px: 1, py: 0.5, borderRadius: 0.5, fontFamily: 'monospace' },

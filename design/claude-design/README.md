@@ -32,3 +32,19 @@ these copies. Canvas boards are mirrored under `boards/` when they carry decisio
 (v2 does); they remain editable only on the canvas.
 
 Snapshot pulled: 2026-08-22.
+
+## Owner amendments (2026-08-24) — diverging from the canvas
+
+Applied in code after living with the conversion; the canvas has not been
+updated to match yet:
+
+1. **The mono-color rule is repealed.** "No decorative color beyond the steel
+   accent" read too monochromatic in practice. The system is now two-accent —
+   steel for structure, **redline amber (#ffb24d)** for emphasis (tag pills,
+   article section rules, numeric literals) — with additional hues permitted
+   where they carry information (cover identities, syntax tokens).
+2. **The duotone image treatment is retired.** Washing every photograph into
+   the accent made the whole site read blue. Images render natural; the
+   blueprint frame + corner marks remain the image treatment.
+3. **Code blocks are readability-first**: GitHub-Dark-style token hues rather
+   than a steel-mono scheme. Familiarity beats purity in code.

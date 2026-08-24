@@ -16,10 +16,10 @@ const OUT = path.resolve('public/tutorials/covers');
 // so every part of a series shares one look and different series look distinct.
 const DEFAULT_STYLE = { accent: '#94bce3', glyph: null };
 const SERIES_STYLE = {
-  'RAG from Scratch': { accent: '#94bce3', glyph: 'database' },
-  'Fine-Tuning & Serving': { accent: '#b5d9fd', glyph: 'sliders' },
-  'Claude Code Anywhere': { accent: '#b5d9fd', glyph: 'terminal' },
-  'Become a Full-Stack AI Engineer': { accent: '#749dc4', glyph: 'tag' },
+  'RAG from Scratch': { accent: '#7ee787', glyph: 'database' },
+  'Fine-Tuning & Serving': { accent: '#ffb24d', glyph: 'sliders' },
+  'Claude Code Anywhere': { accent: '#79c0ff', glyph: 'terminal' },
+  'Become a Full-Stack AI Engineer': { accent: '#94bce3', glyph: 'tag' },
 };
 
 // Large faint line-art glyphs on the right, clear of the title and PART x/y row.

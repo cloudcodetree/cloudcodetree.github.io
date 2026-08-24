@@ -15,7 +15,9 @@ export const blueprintSx: SxProps<Theme> = {
   background: 'transparent',
 };
 
-/** Duotone image treatment — the accent washes the photo (screen-print feel). */
+/** Duotone image treatment — RETIRED by owner amendment 2026-08-24 ("images
+ * all blue-hued"). Kept exported for possible selective use; apply nowhere
+ * by default. */
 export const duotoneSx: SxProps<Theme> = {
   position: 'relative',
   overflow: 'hidden',

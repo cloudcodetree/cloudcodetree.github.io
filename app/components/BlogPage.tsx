@@ -13,7 +13,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { BlogPost, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx, markdownComponents } from './blogShared';
-import { Corners, duotoneSx } from './Blueprint';
+import { Corners } from './Blueprint';
 
 interface BlogPageProps {
   /** Slim (content-free) index of every post, newest-first, embedded at build time. */
@@ -41,7 +41,7 @@ function Pills({ post, max = 3 }: { post: BlogPost; max?: number }) {
     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
       {tags.map((t) => (
         <Chip key={t} label={t} size="small"
-          sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(148,188,227,0.1)', color: ACCENT, border: '1px solid rgba(148,188,227,0.25)' }} />
+          sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(255,178,77,0.08)', color: '#ffb24d', border: '1px solid rgba(255,178,77,0.3)' }} />
       ))}
     </Box>
   );
@@ -196,7 +196,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
           >
             <Corners />
             {post.image && (
-              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', ...duotoneSx }}>
+              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block' }}>
                 <Box component="img" src={post.image} alt={post.title} loading="lazy"
                   sx={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>
@@ -233,7 +233,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
             sx={{ py: { xs: 4, md: 6 }, borderTop: border }}
           >
             {post.image && (
-              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5, border, ...duotoneSx }}>
+              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5, border }}>
                 <Box component="img" src={post.image} alt={post.title} loading="lazy"
                   sx={{ width: '100%', maxHeight: 320, aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>

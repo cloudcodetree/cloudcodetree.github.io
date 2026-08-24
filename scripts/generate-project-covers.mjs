@@ -15,14 +15,14 @@ const OUT = path.resolve('public/projects/covers');
 // Per-project identity: accent color + a domain glyph (large faint line art on
 // the right, clear of the title block).
 const STYLE = {
-  'nam-app': { accent: '#b5d9fd', glyph: 'wave' },
-  'motion-expression': { accent: '#94bce3', glyph: 'pulse' },
-  'backlot': { accent: '#749dc4', glyph: 'chat' },
-  'homestead-finder': { accent: '#94bce3', glyph: 'house' },
-  'span-calculator': { accent: '#b5d9fd', glyph: 'beam' },
-  'mac-desktop-navigator': { accent: '#749dc4', glyph: 'spaces' },
-  'midea-mini-split-tools': { accent: '#94bce3', glyph: 'flake' },
-  'code-compare': { accent: '#749dc4', glyph: 'brackets' },
+  'nam-app': { accent: '#ffb24d', glyph: 'wave' },
+  'motion-expression': { accent: '#d2a8ff', glyph: 'pulse' },
+  'backlot': { accent: '#79c0ff', glyph: 'chat' },
+  'homestead-finder': { accent: '#7ee787', glyph: 'house' },
+  'span-calculator': { accent: '#94bce3', glyph: 'beam' },
+  'mac-desktop-navigator': { accent: '#79c0ff', glyph: 'spaces' },
+  'midea-mini-split-tools': { accent: '#7ad7f0', glyph: 'flake' },
+  'code-compare': { accent: '#ffb24d', glyph: 'brackets' },
 };
 const DEFAULT_STYLE = { accent: '#94bce3', glyph: null };
 

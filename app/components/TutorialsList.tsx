@@ -9,7 +9,7 @@ import { SERIF, MONO, ACCENT, LINK, formatLongDate } from './blogShared';
 import type { Tutorial } from '../tutorials/manifest';
 import { seriesTotal } from '../tutorials/manifest';
 import SeriesCarouselCard from './SeriesCarouselCard';
-import { Corners, duotoneSx } from './Blueprint';
+import { Corners } from './Blueprint';
 import CourseHomeCard from './CourseHomeCard';
 
 type View = 'cards' | 'list';
@@ -81,7 +81,7 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
   const Pills = ({ t }: { t: Tutorial }) => (
     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
       {topicTags(t).slice(0, 3).map((tag) => (
-        <Chip key={tag} label={tag} size="small" sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(148,188,227,0.1)', color: ACCENT, border: '1px solid rgba(148,188,227,0.25)' }} />
+        <Chip key={tag} label={tag} size="small" sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(255,178,77,0.08)', color: '#ffb24d', border: '1px solid rgba(255,178,77,0.3)' }} />
       ))}
     </Box>
   );
@@ -121,7 +121,7 @@ export default function TutorialsList({ tutorials, variant = 'series' }: { tutor
             sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 0, border, position: 'relative', background: 'transparent', transition: 'border-color .2s, transform .2s', '&:hover': { borderColor: 'rgba(148,188,227,0.55)', transform: 'translateY(-2px)' } }}>
             <Corners />
             {t.image && (
-              <Box component={Link} href={`/tutorials/${t.slug}/`} sx={{ display: 'block', ...duotoneSx }}>
+              <Box component={Link} href={`/tutorials/${t.slug}/`} sx={{ display: 'block' }}>
                 <Box component="img" src={t.image} alt={t.title} loading="lazy" sx={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>
             )}

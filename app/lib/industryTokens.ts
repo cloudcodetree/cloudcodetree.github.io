@@ -20,5 +20,13 @@ export const industry = {
   label: '#94bce3',
   linkHover: '#b5d9fd',
 
+  // Redline amber — the drawing's markup color. Owner amendment 2026-08-24:
+  // the original "no color beyond the steel accent" rule read too
+  // monochromatic in practice. Amber carries EMPHASIS (tags, section rules,
+  // string literals, badges); steel keeps STRUCTURE (chrome, links, frames).
+  amber: {
+    300: '#ffd9a3', 400: '#ffb24d', 500: '#e89a35', 600: '#c47f24',
+  },
+
   radius: { sm: 2, md: 4, lg: 7 },
 } as const;
