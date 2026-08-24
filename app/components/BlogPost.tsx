@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 import { BlogPost as Post, SERIF, MONO, formatPublished, markdownSx, markdownComponents } from './blogShared';
 
 // The post is loaded at build time by app/ai-news/[id]/page.tsx and baked into
@@ -92,7 +93,7 @@ export default function BlogPost({ post }: { post: Post }) {
         <Card className="glass">
           <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
             <Box sx={markdownSx}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{post.content || ''}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>{post.content || ''}</ReactMarkdown>
             </Box>
           </CardContent>
         </Card>

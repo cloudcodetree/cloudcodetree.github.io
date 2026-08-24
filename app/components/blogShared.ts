@@ -106,6 +106,18 @@ export const markdownSx = {
   // `pre` is rendered by BlueprintPre (frame + corner marks); only fallback
   // styling for non-component contexts remains here.
   '& pre': { maxWidth: '100%', overflowX: 'auto' },
+  // Syntax highlighting (rehype-highlight), themed to the Industry system:
+  // no decorative hues — keywords/strings/etc. map onto the steel ramp and
+  // neutral steps so code reads as part of the blueprint, not a rainbow.
+  '& .hljs-comment, & .hljs-quote': { color: '#7a7a7d', fontStyle: 'italic' },
+  '& .hljs-keyword, & .hljs-selector-tag, & .hljs-built_in, & .hljs-tag': { color: '#94bce3' },
+  '& .hljs-string, & .hljs-attr, & .hljs-template-variable, & .hljs-addition': { color: '#b5d9fd' },
+  '& .hljs-number, & .hljs-literal, & .hljs-symbol, & .hljs-bullet': { color: '#d4d4d7' },
+  '& .hljs-title, & .hljs-section, & .hljs-function, & .hljs-name': { color: '#f2f2f3', fontWeight: 600 },
+  '& .hljs-variable, & .hljs-params, & .hljs-attribute': { color: '#b7b7ba' },
+  '& .hljs-meta, & .hljs-doctag, & .hljs-deletion': { color: '#749dc4' },
+  '& .hljs-emphasis': { fontStyle: 'italic' },
+  '& .hljs-strong': { fontWeight: 700 },
   '& code': { backgroundColor: 'rgba(43,43,45, 0.6)', px: 1, py: 0.5, borderRadius: 0.5, fontFamily: 'monospace' },
   '& ul, & ol': { mb: 2, pl: 3 },
   '& li': { mb: 1, lineHeight: 1.8 },

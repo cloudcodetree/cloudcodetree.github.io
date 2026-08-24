@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 import { BlogPost, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx, markdownComponents } from './blogShared';
 import { Corners, duotoneSx } from './Blueprint';
 
@@ -247,7 +248,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
             <Box sx={{ mb: 2.5 }}><Pills post={post} /></Box>
             {body !== undefined ? (
               <Box sx={markdownSx}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{body}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>{body}</ReactMarkdown>
               </Box>
             ) : (
               <Box>
