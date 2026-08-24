@@ -10,7 +10,74 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 24 Aug 2026 12:10:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 24 Aug 2026 20:13:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Type /design First, Then Code: Claude Code's New Artboard Preview Front-Loads Your UI Decisions</title>
+      <link>https://code.claude.com/docs/en/whats-new/2026-w34</link>
+      <guid isPermaLink="false">2026-08-24-08-claude-code-design-command-artboard-workflow</guid>
+      <pubDate>Mon, 24 Aug 2026 20:13:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Design</category>
+      <description>Claude Code v2.1.234 adds /design (research preview): describe a feature, get editable artboard options, pick direction before coding starts. Token cost unspecified; paid plans only.</description>
+      <content:encoded><![CDATA[**Before opening a component file, type `/design a few options for [feature]` in Claude Code — you get editable artboard choices to settle direction before any code structure is committed.**
+
+Claude Code v2.1.234, shipped in the Week 34 changelog (August 17–21), added `/design` as a research preview on paid plans. The command brings Claude Design's artboard canvas into the CLI and desktop app, so the design decision happens before implementation rather than as a correction afterward.
+
+**How to use it:**
+
+```
+/design a few options for a notifications dropdown with unread badge
+```
+
+Claude produces two or three editable artboard variations. Pick a direction, adjust layout or copy inline on the canvas, then continue the session — Claude Code implements from the approved artboard rather than from your prose description. If you've already run `/design-sync` against your repo, the artboards pull from your actual components rather than generic defaults.
+
+**Where the research preview bites:**
+
+- **Token cost is unspecified.** Anthropic hasn't disclosed usage rates during the preview; [XenoSpectrum flagged undisclosed usage terms at launch](https://xenospectrum.com/en/claude-code-design-command-preview/). Don't assume it's low-overhead until you've tested in your own session.
+- **Design-system matching requires `/design-sync` first.** Without it, artboards use generic defaults, not your components.
+- **Behavior changes without notice** — it's experimental. Availability, token cost, and design-system fidelity are all still being tuned.
+
+**What it replaces:** describing what you want in prose, watching Claude generate something structurally different, and iterating backward. `/design` moves the direction decision to before the first line of code — once you've approved a canvas layout, the implementation phase starts from something you've seen and chosen.
+
+**Sources:** [Week 34 changelog — code.claude.com](https://code.claude.com/docs/en/whats-new/2026-w34) · [Usage terms concern — XenoSpectrum](https://xenospectrum.com/en/claude-code-design-command-preview/) · [/design walkthrough — pasqualepillitteri.it](https://pasqualepillitteri.it/en/news/11689/claude-code-design-skill-artboards)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>The Node.js Sandbox Your AI Agent Uses for Untrusted Code Has a Guest-to-Host Escape — Upgrade isolated-vm Now</title>
+      <link>https://www.endorlabs.com/learn/ghsa-864f-rcv7-6rh4-critical-type-confusion-vulnerability-in-isolated-vm</link>
+      <guid isPermaLink="false">2026-08-24-07-isolated-vm-sandbox-escape-patch</guid>
+      <pubDate>Mon, 24 Aug 2026 20:12:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Security</category>
+      <category>Agents</category>
+      <description>isolated-vm (GHSA-864f) has a type confusion that lets sandboxed JavaScript escape to the host process; upgrade to 6.2.0 or 7.0.1 if your Node.js agent harness runs model-generated code.</description>
+      <content:encoded><![CDATA[**TL;DR: isolated-vm has a type confusion (GHSA-864f-rcv7-6rh4) that lets sandboxed JavaScript reach the host process. If your Node.js agent harness runs model-generated or user-supplied code in isolated-vm, upgrade to 6.2.0 or 7.0.1 now.**
+
+`isolated-vm` is the Node.js library most agent harnesses and workflow automation frameworks use to execute untrusted or model-generated JavaScript in isolation. Endor Labs disclosed GHSA-864f-rcv7-6rh4 on August 19: a type confusion in `ExternalCopy`'s `transferList` handling lets code inside the sandbox corrupt the host process's memory and hijack control flow — starting from nothing more than a standard `ivm.Reference`. Endor Labs demonstrated a full guest-to-host escape from that entry point alone.
+
+Endor Labs reports the library receives more than 1 million weekly npm downloads; agent harnesses and workflow automation tools that execute model-generated code are in the affected set.
+
+**Patch:**
+
+- v6.x → `isolated-vm@6.2.0`
+- v7.x → `isolated-vm@7.0.1`
+
+Both shipped earlier this month. If you can't update immediately, audit what model-generated code reaches isolated-vm sandboxes in your harness and scope the blast radius.
+
+Sandbox boundaries in agentic systems belong in your threat model — the July OpenAI/HuggingFace evaluation breach showed what happens when they aren't. Here the gap is the library itself.
+
+**Why it matters:** your agent's code execution sandbox is only as strong as its version number. Patch before the next deploy.
+
+**Sources:** [Endor Labs disclosure — GHSA-864f-rcv7-6rh4](https://www.endorlabs.com/learn/ghsa-864f-rcv7-6rh4-critical-type-confusion-vulnerability-in-isolated-vm) · [The Hacker News](https://thehackernews.com/2026/08/isolated-vm-flaw-lets-sandboxed.html) · [GitHub advisory](https://github.com/laverdet/isolated-vm/security/advisories/GHSA-864f-rcv7-6rh4)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Eight Claude API Incidents in Three Weeks — This Morning's Outage and the Pattern Worth Designing For</title>
@@ -6383,87 +6450,8 @@ Add hybrid search when users query with specific names, codes, version numbers, 
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Right-Size Your PR Reviews: GitHub Copilot Effort Levels (Lite vs. Balanced) Are Now GA</title>
-      <link>https://github.blog/changelog/2026-08-07-copilot-code-review-effort-levels-are-generally-available/</link>
-      <guid isPermaLink="false">2026-08-10-03-copilot-review-effort-levels-ga</guid>
-      <pubDate>Mon, 10 Aug 2026 04:17:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Developer Tools</category>
-      <category>Best Practices</category>
-      <description>GitHub Copilot code review now offers Lite (fast, routine PRs) and Balanced (higher-reasoning, complex changes) effort levels GA — tune review depth per PR risk rather than one-size-fits-all.</description>
-      <content:encoded><![CDATA[
-**GitHub Copilot's code review now has two depth modes — Lite for straightforward changes and Balanced for complex ones — so review compute matches the actual risk of each pull request, not a fixed ceiling.**
-
-GitHub shipped Lite and Balanced code review effort levels to general availability on August 7. Here's what each does and how to configure them.
-
-## The problem they solve
-
-Before effort levels, every PR triggered the same Copilot review depth — overkill for a documentation fix, and sometimes insufficient for a cross-service auth refactor. The levels let you express "routine vs. complex" intent and get a calibrated response.
-
-## Lite vs. Balanced
-
-**Lite** uses a lighter, faster model. Reach for it on:
-- Documentation or copy fixes
-- Config-only changes
-- Formatting adjustments
-- Narrow, well-isolated bug fixes
-
-**Balanced** uses a higher-reasoning model for deeper analysis. Use it on:
-- Security-sensitive changes (auth, permissions, cryptography)
-- Cross-service or cross-API refactors
-- New external-facing contracts or APIs
-- Changes touching shared infrastructure or data models
-
-Both levels work across Copilot Pro, Pro+, Max, Business, and Enterprise.
-
-## Configuration
-
-**Per-review**: Select the level when requesting a review. This overrides the org default for that one PR only — useful when a routine PR suddenly touches sensitive code.
-
-**Org-wide default**: Go to **Organization Settings → Copilot → Copilot code review** and set the default. All repositories inherit it. Individual repos or reviewers can override it per-review.
-
-**Audit trail**: The effort level now appears in PR timeline events and inline review comments, so you can always see which depth was applied to any historical review.
-
-## Practical setup
-
-A sensible starting configuration:
-- Set org default to **Lite** — keeps baseline cost and latency low
-- For repositories flagged as security-sensitive (auth service, billing, infra), configure **Balanced** as the repo-level default in repository settings
-- Engineers can always request **Balanced** per-review on any PR that warrants it
-
-The key insight: Copilot reviews have cost in two directions — compute and time. Defaulting to maximum depth universally wastes both; defaulting to minimum depth misses real issues. Effort levels give you the control to match depth to risk without per-PR manual triage.
-
-**Sources:** [Copilot code review effort levels GA — GitHub Changelog](https://github.blog/changelog/2026-08-07-copilot-code-review-effort-levels-are-generally-available/) · [Configuring automatic code review — GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-on-github/set-up-copilot/configure-automatic-review)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>vLLM Hits 25K TPS/GPU and Ships 3x Long-Context Throughput with Decode Context Parallelism</title>
-      <link>https://vllm.ai/blog/2026-08-07-decode-context-parallelism</link>
-      <guid isPermaLink="false">2026-08-10-02-vllm-decode-parallelism-25k-tps</guid>
-      <pubDate>Mon, 10 Aug 2026 04:16:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <category>Self-Hosting</category>
-      <description>Two vLLM milestones this week: 25K tokens/sec/GPU on Qwen3.5 with GB200 disaggregated serving; Decode Context Parallelism ships 3x throughput improvement for long-context agentic workloads.</description>
-      <content:encoded><![CDATA[
-**Two vLLM performance milestones this week signal how fast the inference stack is moving for long-context and agentic workloads.**
-
-**25K total TPS/GPU on Qwen3.5 (Aug 6):** vLLM reached 25,000 tokens per second per GPU running Qwen3.5-397B-A17B-NVFP4 on NVIDIA GB200 NVL72 hardware. The result uses disaggregated prefill/decode serving (separate GPU pools for the two phases), Blackwell GDN kernels, HMA cache transfer, and async scheduling improvements. Most teams won't have GB200s yet — but disaggregated serving is available in vLLM today on standard hardware and the architectural pattern applies regardless of GPU generation.
-
-**Decode Context Parallelism for long-context workloads (Aug 7):** For inference on 16k–128k token contexts, vLLM's new Decode Context Parallelism (DCP) shards the KV cache across GPUs by sequence dimension rather than by tensor layer. Result: 3× higher throughput on long-context agentic tasks compared to standard tensor parallelism. This matters directly if you're serving retrieval-augmented or multi-step agentic pipelines that regularly hit large context windows.
-
-**Why it matters:** If you're designing a production vLLM deployment for an agentic system, both of these techniques reduce per-request latency and cost at scale. DCP is the more immediately practical one for teams already running vLLM — it activates for long-context workloads without requiring next-generation hardware.
-
-**Sources:** [vLLM Reaches 25K TPS/GPU on Qwen3.5 — vLLM Blog](https://vllm.ai/blog/2026-08-06-qwen35-25k-tps) · [Efficient Decode Context Parallelism with vLLM — vLLM Blog](https://vllm.ai/blog/2026-08-07-decode-context-parallelism)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
