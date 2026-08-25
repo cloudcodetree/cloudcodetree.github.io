@@ -10,7 +10,112 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 25 Aug 2026 04:08:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 25 Aug 2026 12:08:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Stop Rule-Listing: The Six Context Shifts That Cut Claude Code's Internal Prompt by 80%</title>
+      <link>https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models</link>
+      <guid isPermaLink="false">2026-08-25-05-claude5-context-engineering-six-shifts</guid>
+      <pubDate>Tue, 25 Aug 2026 12:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Anthropic removed 80%+ of Claude Code's system prompt for Claude 5 models with no quality loss. Six shifts — rules to judgment, upfront to progressive disclosure — apply directly to your CLAUDE.md.</description>
+      <content:encoded><![CDATA[**TL;DR: Anthropic deleted over 80% of Claude Code's internal system prompt for Opus 5 and Fable 5 without losing quality on coding benchmarks — six shifts worth applying to your own CLAUDE.md and agent definitions.**
+
+If your CLAUDE.md has grown into a dense rule list, you may have optimized it for an older model that needed guardrails. Claude 5-generation models behave differently: explicit constraints often conflict with each other and waste tokens the model could use for reasoning. Run `/doctor` (or `claude doctor` at the terminal) first — it audits your context setup and flags what to cut.
+
+**The six shifts, from Anthropic's July 24 guide:**
+
+1. **Rules → judgment.** Replace `"default to writing no comments"` with `"match the comment density of the surrounding code."` Claude 5 infers the intent; spelling out the rule adds noise and creates instruction conflicts.
+
+2. **Examples → interface design.** Instead of worked examples in the system prompt, design tool parameters that signal their own expected usage. Richer parameter names replace boilerplate examples.
+
+3. **Upfront context → progressive disclosure.** Move heavyweight skill instructions (code review checklists, verification loops) out of the always-loaded system prompt and into separate skill files that load only when the task needs them.
+
+4. **Repetition → single location.** Each instruction belongs in exactly one place — the system prompt or a tool description, never both. Duplication registers as a conflicting instruction.
+
+5. **Manual memory → auto-memory.** Let the model automatically save relevant context rather than maintaining a `## Facts` section in CLAUDE.md by hand.
+
+6. **Prose specs → rich references.** Instead of a markdown summary of your design system, @-reference the actual component files, a test suite, or a rendered screenshot. Models make better inferences from artifacts than from descriptions of them.
+
+**In practice:** one team applied these to a fleet of specialist agents and shrank definitions from 489 lines each to 37 on average, with measurably better plan-following — per an independent real-world test that also noted where the approach breaks.
+
+**What does not work cleanly:**
+- Auto-memory can pollute across sessions — the model may carry irrelevant context from a prior task into the next one. Experienced developers can catch it; it is a real failure mode.
+- "Give Claude judgment" is harder to audit than an explicit rule when something goes wrong. Practitioners on HN reported Opus 5 making harder-to-spot mistakes under the new framing — mistakes that "sound plausible" rather than obviously wrong.
+- The 80% reduction was measured on Anthropic's own internal coding benchmarks, not on external codebases; results on a custom repo warrant independent re-evaluation.
+
+**Sources:** [The new rules of context engineering for Claude 5 generation models](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models) (Anthropic, July 24 2026), [independent real-world analysis with community feedback](https://www.developersdigest.tech/blog/claude-5-context-engineering-rules-hn-analysis) (Developers Digest)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Q4_K_M or AWQ? The Quantization Decision That Fits a 70B Model Into Your Existing GPU Budget</title>
+      <link>https://www.youtube.com/watch?v=vvrGfqd1oxE</link>
+      <guid isPermaLink="false">2026-08-25-04-llm-quantization-gguf-awq-decision-guide</guid>
+      <pubDate>Tue, 25 Aug 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>Local AI</category>
+      <description>Quantization lets a 70B model at 4-bit outperform a 7B at full precision. Here is the format decision: GGUF Q4_K_M for Ollama and local inference, AWQ for NVIDIA production serving with vLLM.</description>
+      <content:encoded><![CDATA[**TL;DR: A 70B model quantized to Q4_K_M typically outperforms a 7B at full precision — here is the format decision that fits more intelligence into the GPU budget you already have.**
+
+**What you will be able to do after this:** Choose the right quantization format for your hardware, convert any HuggingFace model to GGUF with llama.cpp, and run it locally or serve it at production throughput with AWQ on vLLM.
+
+**Three things to take away:**
+- GGUF Q4_K_M is the universal starting point — runs on CPU, Apple Silicon, NVIDIA, and AMD with ~92% of FP16 quality at 3-4x compression
+- AWQ + vLLM + Marlin kernel is for NVIDIA production: 741 tok/s vs 461 tok/s for FP16 on a 70B Qwen2.5 (per independent benchmark)
+- bitsandbytes is for training only (QLoRA fine-tuning); at 168 tok/s, it is 4x slower than AWQ and the wrong choice for inference
+
+**How to pick:**
+
+| Your setup | Format | Variant |
+|---|---|---|
+| Ollama / LM Studio / CPU | GGUF | Q4_K_M (default) |
+| NVIDIA GPU, production | AWQ | 4-bit via vLLM |
+| Fine-tuning (QLoRA) | bitsandbytes | `load_in_4bit=True` |
+
+**Convert a HuggingFace model to GGUF:**
+
+```bash
+# Build llama.cpp
+git clone https://github.com/ggerganov/llama.cpp && cd llama.cpp
+cmake -B build && cmake --build build --config Release -j
+
+# Step 1: HF model -> F16 GGUF
+python convert_hf_to_gguf.py /path/to/model --outfile model-f16.gguf --outtype f16
+
+# Step 2: quantize to 4-bit
+./build/bin/llama-quantize model-f16.gguf model-q4_k_m.gguf Q4_K_M
+
+# Step 3: run it
+./build/bin/llama-cli -m model-q4_k_m.gguf -p "Explain quantization briefly." -n 80
+```
+
+If the model already has GGUF variants on HuggingFace, skip the build step entirely:
+
+```bash
+ollama run hf.co/bartowski/Qwen2.5-72B-Instruct-GGUF:Q4_K_M
+```
+
+Use Q5_K_M if you have 6-8 GB of headroom and want higher fidelity. Stay at Q4 or above for models 70B and up — Q3 and below produce noticeable reasoning quality loss.
+
+**Where it breaks:**
+- AWQ without the Marlin kernel runs slower than FP16 baseline — verify your vLLM version includes Marlin support before using AWQ in production
+- Quantization formats cannot be losslessly converted between each other; download the format you need from the start
+- Peak memory during GGUF conversion is roughly 1.5x the final model size, not the quantized size — plan disk and RAM accordingly
+- Some reasoning-heavy models are more quantization-sensitive than others; test on your specific task before committing to a format
+
+**Sources:** [GGUF Quantization Tutorial: Run Fine-Tuned LLMs on CPU with llama.cpp](https://www.youtube.com/watch?v=vvrGfqd1oxE) (video walk-through), [LLM Quantization Guide: GGUF vs AWQ vs GPTQ vs bitsandbytes — benchmarks](https://www.premai.io/blog/llm-quantization-guide-gguf-vs-awq-vs-gptq-vs-bitsandbytes-compared-2026/) (PremAI, independent), [llama.cpp quantize README](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md) (official docs)
+]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/vvrGfqd1oxE/maxresdefault.jpg" medium="image"/>
+      <media:thumbnail url="https://img.youtube.com/vi/vvrGfqd1oxE/maxresdefault.jpg"/>
+    </item>
 
     <item>
       <title>Stop Coming Back to a Stalled Background Session: /goal Now Checks In After 30 Minutes</title>
@@ -6314,138 +6419,8 @@ Muse Glimmer (released today, Apache 2.0, 4-bit quantized to 18–20 GB) is the 
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Meta Open-Sources Muse Glimmer: A 30B Agentic Model That Runs on One Consumer GPU</title>
-      <link>https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model</link>
-      <guid isPermaLink="false">2026-08-10-08-meta-muse-glimmer-30b-open-agentic-consumer-gpu</guid>
-      <pubDate>Mon, 10 Aug 2026 20:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <category>Agents</category>
-      <category>Self-Hosting</category>
-      <description>Meta releases Muse Glimmer today: a 30B open-weights agentic model (Apache 2.0) distilled from Muse Spark 1.2 that fits on a single consumer GPU at 18-20 GB with 4-bit quantization.</description>
-      <media:content url="https://research.meta.ai/images/muse-glimmer-blog-header.png" medium="image" />
-      <media:thumbnail url="https://research.meta.ai/images/muse-glimmer-blog-header.png" />
-      <content:encoded><![CDATA[
-**Meta releases Muse Glimmer today: 30B open-weights agentic model (Apache 2.0), distilled for tool use and failure recovery, fits on a single consumer GPU at 18-20 GB with 4-bit quantization.**
-
-Muse Glimmer is a 30-billion-parameter dense multimodal model distilled from Muse Spark 1.2 and specifically trained for agentic workloads: multi-step tool use, function calling, LLM-as-a-judge evaluations, and task failure recovery. Full weights are 55 GB; Unsloth's GGUF 4-bit build (already on HuggingFace as of today) cuts that to 18–20 GB, within reach of a single RTX 4090 or a Mac with 24 GB+ unified memory.
-
-Native integrations are available today for llama.cpp, MLX, ExecuTorch, and Ollama (`ollama pull muse-glimmer`). Text and image input supported.
-
-**Why it matters:** Until today, every open model that could handle real agentic workloads reliably (Kimi K3, DeepSeek V3.2, the Muse Spark series) required multi-GPU infra or cloud APIs. Muse Glimmer is the first credible open agentic model that fits on prosumer hardware — making local agent development and self-hosted production deployments genuinely viable.
-
-**Sources:** [Introducing Muse Glimmer — Meta AI Research](https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model) · [meta-models/Muse-Glimmer-30B — HuggingFace](https://huggingface.co/meta-models/Muse-Glimmer-30B) · [unsloth/Muse-Glimmer-30B-GGUF — HuggingFace](https://huggingface.co/unsloth/Muse-Glimmer-30B-GGUF) · [Muse Glimmer on Phoronix](https://www.phoronix.com/news/Meta-Muse-Glimmer)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Fetch Multiple Data Points in One Claude Response: Parallel Tool Calls With asyncio.gather</title>
-      <link>https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use</link>
-      <guid isPermaLink="false">2026-08-10-07-claude-api-parallel-tool-calls-asyncio</guid>
-      <pubDate>Mon, 10 Aug 2026 20:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>Claude 4 returns multiple independent tool calls in one response — dispatch them with asyncio.gather to cut latency by N times instead of running them sequentially.</description>
-      <content:encoded><![CDATA[
-**Claude 4 and later return multiple independent tool calls in a single response — dispatch them with `asyncio.gather` to cut latency by N× instead of running sequential round trips.**
-
-**What you'll be able to do after this:**
-- Understand how Claude signals parallel tool intent in a single response
-- Dispatch multiple tool calls concurrently with `asyncio.gather` and return all results in one user message
-- Know when to disable parallel tool use for sequential, side-effectful workflows
-
-## The serial trap
-
-Most agents are written as a simple while loop: call the API, get a tool request, execute it, return the result, repeat. If your agent needs to fetch a user profile, look up their orders, AND check their billing status, that is three sequential round trips — the total latency is T₁ + T₂ + T₃. Claude doesn't need them to be sequential; your code forces it.
-
-## How Claude signals parallel intent
-
-Claude 4 and later models return multiple `tool_use` blocks in a single assistant message when the calls are independent:
-
-```python
-# Claude returns ONE assistant message containing N tool_use blocks
-response.content = [
-    ToolUseBlock(id="toolu_01", name="get_user_profile", input={"user_id": "u123"}),
-    ToolUseBlock(id="toolu_02", name="get_orders",       input={"user_id": "u123"}),
-    ToolUseBlock(id="toolu_03", name="get_billing",      input={"user_id": "u123"}),
-]
-```
-
-Your responsibility: run all three, then return ALL results in a single `user` message before calling the API again.
-
-## The parallel dispatch pattern
-
-```python
-import asyncio
-import anthropic
-
-client = anthropic.Anthropic()
-
-async def dispatch_parallel(tool_calls, tool_map):
-    """Run all tool calls concurrently; return tool_result blocks."""
-    tasks = [tool_map[tc.name](**tc.input) for tc in tool_calls]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    return [
-        {
-            "type": "tool_result",
-            "tool_use_id": tc.id,   # match by id, not by position
-            "content": str(r) if not isinstance(r, Exception) else f"Error: {r}",
-            "is_error": isinstance(r, Exception),
-        }
-        for tc, r in zip(tool_calls, results)
-    ]
-
-async def agent_loop(prompt, tools, tool_map):
-    messages = [{"role": "user", "content": prompt}]
-    while True:
-        resp = client.messages.create(
-            model="claude-sonnet-5-20250901",
-            max_tokens=1024,
-            tools=tools,
-            messages=messages,
-        )
-        if resp.stop_reason == "end_turn":
-            return next(b.text for b in resp.content if hasattr(b, "text"))
-
-        tool_calls = [b for b in resp.content if b.type == "tool_use"]
-
-        # 1. Append the full assistant message (keeps tool_use blocks intact)
-        messages.append({"role": "assistant", "content": resp.content})
-
-        # 2. Dispatch all calls in parallel
-        results = await dispatch_parallel(tool_calls, tool_map)
-
-        # 3. Return ALL results in a single user message
-        messages.append({"role": "user", "content": results})
-```
-
-## Two rules that catch most bugs
-
-**Match by `tool_use_id`, not list position.** Claude doesn't guarantee which tool appears first. Always pair calls and results by `id`.
-
-**Append `response.content` in full — never strip `tool_use` blocks.** The next API call expects to see Claude's own requests echoed back. Stripping them causes an API error.
-
-## Disable for sequential workflows
-
-If your tools have side effects or ordering dependencies (e.g., `create_invoice` must succeed before `send_confirmation`):
-
-```python
-client.messages.create(
-    ...,
-    tool_choice={"type": "auto", "disable_parallel_tool_use": True},
-)
-```
-
-**Sources:** [Parallel tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) · [Implement tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/implement-tool-use) · [Build a tool-using agent — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/build-a-tool-using-agent)
-]]></content:encoded>
-    </item>
-
+    
+    
 
     
     
