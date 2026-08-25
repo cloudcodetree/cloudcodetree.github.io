@@ -45,6 +45,8 @@ export function readProjects() {
       externalUrl: str(c, 'externalUrl'),
       demoStatus: str(c, 'status'), // from the nested demo: { status: '…' }
       artifact: str(c, 'artifact'),
+      demoRepo: str(c, 'repo'),
+      strategy: str(c, 'strategy'),
       cover: str(c, 'cover'),
       order: num(c, 'order'),
     }))

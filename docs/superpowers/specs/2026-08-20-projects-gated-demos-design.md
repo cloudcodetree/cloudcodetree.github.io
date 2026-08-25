@@ -572,7 +572,12 @@ Beyond the vitest suite, observed on the staging origin in a real browser:
    over the entire hostname, so **every one of these 404s at Phase 3** unless
    handled. Resolution per path, decided before cutover: vendor it as a gated
    demo (span-calculator pilot), add a `_redirects` rule to its
-   `/projects/<slug>` page, or accept the break. The parity contract cannot
+   `/projects/<slug>` page, or accept the break. **RESOLVED 2026-08-25:**
+   all four app repos are vendored as gated demos at pinned SHAs
+   (span-calculator, motion-expression, code-compare, backlot) and
+   `public/_redirects` 301s every legacy path — bare and splat forms — to
+   the matching `/projects/` page (sheetwise → the gallery). GitHub Pages
+   is abandoned entirely per owner decision. The parity contract cannot
    assert these identical (they are a real, intended difference) — track them
    in the cutover checklist instead.
 4. `public/sw.js` is **registered nowhere** in the app, so there is no stale

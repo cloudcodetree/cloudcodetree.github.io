@@ -18,7 +18,12 @@ export interface Project {
   externalUrl?: string; // live public deployment, while one exists
   /** Present = the project has a gated demo. `artifact` pins the release tag
    * the deploy vendors into /projects/<slug>/demo/. */
-  demo?: { status: 'live' | 'coming-soon'; artifact?: string /* pinned commit SHA or release tag */ };
+  demo?: {
+    status: 'live' | 'coming-soon';
+    artifact?: string; /* pinned commit SHA or release tag */
+    repo?: string; /* repo name when it differs from the slug */
+    strategy?: 'vite' | 'static'; /* default vite */
+  };
   cover: string; // committed generated asset under public/projects/covers/
   featured?: boolean;
   order: number;
@@ -43,7 +48,7 @@ export const projects: Project[] = [
       'Turn interpretive dance into music: body motion becomes sound events, facial emotion colors the timbre. Runs entirely in the browser — no video ever leaves the device.',
     tech: ['TypeScript', 'MediaPipe', 'Tone.js', 'Web Audio'],
     repoUrl: 'https://github.com/cloudcodetree/motion-expression',
-    externalUrl: 'https://cloudcodetree.com/motion-expression/',
+    demo: { status: 'live', artifact: '9ac4afa0fc4fbc5dfe1d27bcb347bae8f1a02f6f' },
     cover: '/projects/covers/motion-expression.png',
     featured: true,
     order: 2,
@@ -55,7 +60,7 @@ export const projects: Project[] = [
       'A Slack-like chat for fictional character workspaces — each “company” is a complete cast from a show or movie, giving Claude-driven characters a rich visual chat surface.',
     tech: ['React', 'TypeScript', 'SQLite', 'Claude'],
     repoUrl: 'https://github.com/cloudcodetree/backlot',
-    externalUrl: 'https://cloudcodetree.com/backlot/',
+    demo: { status: 'live', artifact: 'a0b9c4067e9d15756e827ae0740c6a525772264f' },
     cover: '/projects/covers/backlot.png',
     order: 3,
   },
@@ -108,7 +113,7 @@ export const projects: Project[] = [
       'View different programming languages’ syntax side by side — a quick visual reference for how the same construct reads across languages.',
     tech: ['HTML', 'JavaScript'],
     repoUrl: 'https://github.com/cloudcodetree/code_compare',
-    externalUrl: 'https://cloudcodetree.com/code_compare/',
+    demo: { status: 'live', artifact: '5f6ea42db070c78da58365d146e900b37a83a359', repo: 'code_compare', strategy: 'static' },
     cover: '/projects/covers/code-compare.png',
     order: 8,
   },

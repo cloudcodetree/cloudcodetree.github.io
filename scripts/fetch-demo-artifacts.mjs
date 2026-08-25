@@ -31,24 +31,30 @@ const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, stdio: ['ignore',
 
 for (const p of live) {
   const base = `/projects/${p.slug}/demo/`;
-  const repo = p.demoRepo ?? `https://github.com/cloudcodetree/${p.slug}.git`;
+  const repoName = p.demoRepo ?? p.slug;
+  const repo = `https://github.com/cloudcodetree/${repoName}.git`;
+  const strategy = p.strategy ?? 'vite';
   const work = path.join(CACHE, `${p.slug}-${p.artifact.slice(0, 12)}`);
+  // vite builds land in dist/; static repos ARE the artifact.
+  const built = strategy === 'static' ? work : path.join(work, 'dist');
 
-  if (!existsSync(path.join(work, 'dist'))) {
-    console.log(`▸ ${p.slug}: building ${p.artifact.slice(0, 12)} (base ${base})`);
+  if (!existsSync(built) || (strategy === 'static' && !existsSync(path.join(work, '.git')))) {
+    console.log(`▸ ${p.slug}: ${strategy} ${p.artifact.slice(0, 12)} (base ${base})`);
     rmSync(work, { recursive: true, force: true });
     mkdirSync(work, { recursive: true });
     run('git', ['clone', '--quiet', repo, work]);
     run('git', ['checkout', '--quiet', p.artifact], work);
-    run('npm', ['ci', '--silent', '--no-audit', '--no-fund'], work);
-    // --base on the CLI overrides the repo's hardcoded vite `base`.
-    run('npx', ['vite', 'build', '--base', base], work);
+    if (strategy === 'vite') {
+      run('npm', ['ci', '--silent', '--no-audit', '--no-fund'], work);
+      // --base on the CLI overrides the repo's hardcoded vite `base`.
+      run('npx', ['vite', 'build', '--base', base], work);
+    }
   } else {
-    console.log(`▸ ${p.slug}: cached build ${p.artifact.slice(0, 12)}`);
+    console.log(`▸ ${p.slug}: cached ${p.artifact.slice(0, 12)}`);
   }
 
   const dest = path.join(OUT, 'projects', p.slug, 'demo');
   rmSync(dest, { recursive: true, force: true });
-  cpSync(path.join(work, 'dist'), dest, { recursive: true });
+  cpSync(built, dest, { recursive: true, filter: (src) => !src.includes('/.git') });
   console.log(`✓ ${p.slug} → out/projects/${p.slug}/demo/`);
 }
