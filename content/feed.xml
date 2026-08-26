@@ -10,7 +10,108 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 26 Aug 2026 04:08:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 26 Aug 2026 12:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Your API-Key Claude Code Session Loses Its Cache After Five Minutes — Set This to Survive Long Breaks</title>
+      <link>https://code.claude.com/docs/en/prompt-caching</link>
+      <guid isPermaLink="false">2026-08-26-04-prompt-cache-ttl-api-key-claude-code</guid>
+      <pubDate>Wed, 26 Aug 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>API-key and cloud-provider users get a 5-minute prompt cache by default; one setting in settings.json extends it to one hour and eliminates full-recompute costs when you step away from a long session.</description>
+      <content:encoded><![CDATA[**TL;DR: On an API key or cloud provider, your Claude Code session cache expires after five minutes — set `promptCacheTtl: "1h"` in `settings.json` (v2.1.242+) to keep it warm through longer breaks.**
+
+If you're billing via API key or a cloud provider (Bedrock, Vertex, Foundry), Claude Code gives you a five-minute cache by default. Leave a session for a standup, lunch, or a long build cycle, and every token in your conversation prefix gets reprocessed on return. Anthropic prices cache reads at roughly 10% of the standard input rate; that discount disappears whenever the cache expires.
+
+## The two cache buckets
+
+Claude Code divides its requests into two groups and lets you set a TTL for each independently:
+
+- **Main conversation** (`promptCacheTtl`): your interactive turns, non-interactive `-p` runs, and Agent SDK turns. Defaults to 1 hour on a Claude subscription; **5 minutes on API key or cloud provider**.
+- **Everything else** (`subagentPromptCacheTtl`): subagents, workflows, in-process teammates, compaction, session titles. Always 5 minutes unless you override.
+
+## How to set it
+
+Add to your `settings.json` (or `settings.local.json` for a per-machine override):
+
+```json
+{
+  "promptCacheTtl": "1h",
+  "subagentPromptCacheTtl": "1h"
+}
+```
+
+Or use environment variables for a session-level override:
+
+```bash
+export CLAUDE_CODE_PROMPT_CACHE_TTL=1h
+export CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL=1h
+```
+
+Only `"5m"` and `"1h"` are valid values — anything else is silently ignored. Requires v2.1.242 or later.
+
+## When 1h is worth it and when it is not
+
+The one-hour TTL writes cache at a higher rate than five minutes. The math: if you regularly idle five minutes or more between turns, the reprocessing you avoid costs more than the extra write rate. In short, fast bursts with no breaks, the 5m default is cheaper — you pay the higher write overhead and never use the longer lifetime.
+
+For **subagent-heavy workloads** — workflow fan-outs, multi-agent pipelines — extending `subagentPromptCacheTtl` to 1h keeps each subagent's system prompt warm across its turns rather than starting cold on each one.
+
+## The limits
+
+The one-hour TTL is not available through the Claude apps gateway. On Amazon Bedrock, caching support and the one-hour option vary by model and region — check AWS's supported-models table before relying on it. If cache read token counts stay at zero after enabling, your model or deployment may not support it.
+
+**Sources:** [Claude Code prompt caching docs](https://code.claude.com/docs/en/prompt-caching) · [Settings reference — promptCacheTtl](https://code.claude.com/docs/en/settings-reference#promptcachettl) · [GitHub issue #29966: subagent prompt caching disabled by default](https://github.com/anthropics/claude-code/issues/29966) · [How Claude Code Caching Actually Works — ProsperoInAI](https://prosperinai.substack.com/p/claude-code-prompt-caching-explained)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Instruction-Tune a Llama 8B on Your Own Data for Free: QLoRA and Unsloth on Colab's T4 GPU</title>
+      <link>https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_(8B)-Alpaca.ipynb</link>
+      <guid isPermaLink="false">2026-08-26-05-qlora-unsloth-llama-instruction-finetune-colab</guid>
+      <pubDate>Wed, 26 Aug 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>QLoRA 4-bit quantization cuts Llama 3.1 8B from ~16 GB to ~5 GB VRAM; Unsloth's LoRA adapters then train on Colab's free T4 in about 30 minutes. You get a portable adapter to export as GGUF or push to HuggingFace Hub.</description>
+      <media:content url="https://img.youtube.com/vi/20jnb69IR6U/hqdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/20jnb69IR6U/hqdefault.jpg" />
+      <content:encoded><![CDATA[**TL;DR: QLoRA + Unsloth fit an 8B instruction fine-tune into ~5 GB of VRAM and about 30 minutes on Colab's free T4 — you get a portable LoRA adapter you can export as GGUF or push to HuggingFace Hub.**
+
+**What you'll be able to do after this:** fine-tune an open-weight model on domain-specific data without a paid GPU, then run the adapter locally in Ollama or deploy it on your own server.
+
+**Three things to know before you open the notebook:**
+
+1. **QLoRA quantizes the base model to 4-bit NF4**, cutting Llama 3.1 8B from ~16 GB to ~5 GB VRAM — that's what fits it on a free T4 (16 GB total). The LoRA adapter trains on top; only the adapter weights update during training. Unsloth claims 2× training speed and ~60% less VRAM versus vanilla HuggingFace TRL, measured on Llama/Mistral on NVIDIA GPUs.
+2. **LoRA rank controls the adapter size.** At rank 16 (the default), about 1.5% of the model's parameters train, saving to a 50–100 MB adapter file. Lower rank = faster and smaller; higher rank = more capacity but slower.
+3. **100 training steps ≈ 30 minutes on the free T4.** Enough to verify your data pipeline and see whether the loss is dropping. Not enough for production — plan 500–1,000 steps for real tasks.
+
+**Walk-through (Llama 3.1 8B Alpaca notebook):**
+
+1. Open the [official Unsloth Llama 3.1 8B Alpaca Colab](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_(8B)-Alpaca.ipynb). Runtime → Change runtime type → T4 GPU.
+2. Run the install cell (~2 min). Unsloth handles all dependencies.
+3. The notebook loads `unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit` — a pre-quantized checkpoint, so no on-the-fly quantization overhead.
+4. `max_seq_length = 2048` is the default; drop to 1024 if you hit out-of-memory. `r = 16`, `lora_alpha = 16` for the adapter.
+5. Swap the dataset cell for your own JSONL with `instruction` / `input` / `output` fields, or leave it on the Alpaca dataset for a baseline run.
+6. SFTTrainer uses sequence packing — it fills each batch to the max length instead of padding, roughly doubling effective throughput for short examples.
+7. Run all. Loss should drop by step 20; if it doesn't, check your chat-template formatting.
+8. Export: `model.save_pretrained_gguf("adapter", tokenizer, quantization_method="q4_k_m")` produces a GGUF you can load directly in Ollama.
+
+**The limits that matter:**
+
+- 100 steps is a diagnostic run. Production use typically requires 500–1,000 steps on 1k–10k examples — 3–6 hours on the free T4, or ~30 minutes on a rented A100.
+- The free T4 tops out around 7–8B parameters in 4-bit. A 13B model requires Colab Pro or a rented GPU.
+- Saving the merged model (adapter + base at full precision) requires more RAM than the T4 has. Push only the adapter to HuggingFace Hub and merge locally if you need the full checkpoint.
+- Unsloth's speed and VRAM claims are measured on NVIDIA GPUs; results vary on other hardware.
+
+**Sources:** [Unsloth Llama 3.1 8B Alpaca Colab notebook](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama3.1_(8B)-Alpaca.ipynb) · [Unsloth notebooks overview](https://unsloth.ai/docs/get-started/unsloth-notebooks) · [Teach a 3B Model to Call Functions with QLoRA + Unsloth on Free Colab T4 — datahacker.rs](https://datahacker.rs/llm_log-015-fine-tuning-llms-teach-a-3b-model-to-call-functions-with-qlora-unsloth-on-free-colab-t4/) · [[LoRA] Unsloth Fine-Tuning Guide (Jan 2026, YouTube)](https://www.youtube.com/watch?v=20jnb69IR6U)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Two Managed Settings Keep Your Whole Team on the Approved Model List in Claude Code</title>
@@ -6187,165 +6288,8 @@ response = client.messages.create(
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Catch Prompt Regressions Before Users Do: LLM App Testing with Promptfoo</title>
-      <link>https://www.promptfoo.dev/docs/configuration/guide/</link>
-      <guid isPermaLink="false">2026-08-11-04-promptfoo-llm-eval-testing</guid>
-      <pubDate>Tue, 11 Aug 2026 12:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <category>Developer Tools</category>
-      <description>Promptfoo runs every prompt variant against every model in parallel with YAML assertions — catch regressions and prompt-injection bugs in CI before users hit them.</description>
-      <content:encoded><![CDATA[
-**Promptfoo runs every prompt variant against every model in parallel with YAML-defined assertions — catch regressions and prompt injection in CI before users see them.**
-
-**What you'll be able to do after this:**
-
-- Define prompt variants and test cases in a single YAML file and evaluate all combinations in seconds
-- Write deterministic and LLM-graded assertions that pass/fail like unit tests
-- Run automated red-team scans with 67+ attack plugins to catch jailbreaks and prompt injection before shipping
-
-## Setup
-
-```bash
-npx promptfoo@latest init
-```
-
-This creates `promptfooconfig.yaml`:
-
-```yaml
-prompts:
-  - "Summarize the following text: {{text}}"
-  - "In 3 bullet points, summarize: {{text}}"
-
-providers:
-  - anthropic:claude-haiku-4-5-20251001
-  - openai:gpt-4o-mini
-
-tests:
-  - vars:
-      text: "Anthropic builds AI that is safe and helpful."
-    assert:
-      - type: contains
-        value: "Anthropic"
-      - type: llm-rubric
-        value: "Response is a concise summary, not a direct quote"
-      - type: latency
-        threshold: 5000
-
-  - vars:
-      text: "The meeting is at 3pm on Friday in room 4B."
-    assert:
-      - type: contains
-        value: "meeting"
-      - type: not-contains
-        value: "I cannot"
-```
-
-## Run the eval
-
-```bash
-npx promptfoo eval              # runs every test × provider combo in parallel
-npx promptfoo view              # opens local web UI — a grid of pass/fail results
-npx promptfoo eval --ci         # exits code 1 if any assertion fails
-```
-
-The web UI shows a grid: rows are test cases, columns are prompt-provider combinations, cells show pass/fail with the model's actual output. You see at a glance which prompt wording wins across all your cases and providers.
-
-**Assertion types:**
-- **Deterministic** (`contains`, `not-contains`, `regex`, `latency`, `cost`) — free and instant, no LLM call needed
-- **LLM-graded** (`llm-rubric`) — sends output to a judge model for subjective quality checks like tone or completeness
-- **Custom** — Python or JavaScript functions for domain-specific checks
-
-## Add to CI (GitHub Actions)
-
-```yaml
-- name: LLM regression test
-  run: npx promptfoo eval --ci
-  env:
-    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-```
-
-Fails the build on prompt regressions exactly like a unit test suite — no more "we broke the prompt in last week's deploy."
-
-## Red-teaming (optional, 2 commands)
-
-```bash
-npx promptfoo redteam init   # generates adversarial test cases for your app
-npx promptfoo redteam run    # runs 67+ attack plugins: jailbreaks, injections, policy violations
-```
-
-Promptfoo is Apache 2.0 open source, runs 100% locally, and supports 90+ model providers. The evaluation framework was acquired by OpenAI in March 2026 but remains open source with first-party Anthropic support.
-
-**Sources:** [Promptfoo configuration guide — promptfoo.dev](https://www.promptfoo.dev/docs/configuration/guide/) · [Promptfoo tutorial — DataCamp](https://www.datacamp.com/tutorial/promptfoo-tutorial) · [Red-team guide — promptfoo.dev](https://www.promptfoo.dev/docs/red-team/) · [CI/CD integration — promptfoo.dev](https://www.promptfoo.dev/docs/integrations/ci-cd/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Run Claude Code Sessions on Your Own Machines: v2.1.224 Self-Hosted Runner</title>
-      <link>https://github.com/anthropics/claude-code/releases/tag/v2.1.224</link>
-      <guid isPermaLink="false">2026-08-11-03-claude-code-self-hosted-runner-cross-session</guid>
-      <pubDate>Tue, 11 Aug 2026 04:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Claude Code v2.1.224 (Aug 7) adds self-hosted environments: run your Team/Enterprise cloud sessions on your own machines with one command, keeping code off Anthropic's servers.</description>
-      <content:encoded><![CDATA[
-**Claude Code v2.1.224 (Aug 7) lets Team/Enterprise teams run cloud sessions on their own hardware with a single command — keeping code, secrets, and tool execution on infrastructure you control.**
-
-Before this release, Claude Code cloud sessions (from the web, mobile, or desktop app) ran on Anthropic's compute. Your code was transferred to Anthropic-managed infrastructure for the duration of the session. For many teams in regulated industries or behind network perimeters, that was a blocker.
-
-## What changed
-
-v2.1.224 introduces `claude self-hosted-runner`, which turns your own machine or container into the compute layer for Claude Code cloud sessions.
-
-```bash
-# On the machine you want Claude Code to run on:
-claude self-hosted-runner
-
-# That's it — Claude Code web/mobile/desktop sessions for your org
-# now execute on this machine instead of Anthropic's servers
-```
-
-The command is available on **Team and Enterprise plans**. Sessions launched from any client (web, desktop, mobile) are routed to your self-hosted runner instead of Anthropic's compute.
-
-## Three reasons to use it
-
-**Network access.** Your Claude Code sessions run inside your network. The agent can reach internal APIs, databases, artifact registries, and dev services without exposing them to the internet or adding VPN complexity.
-
-**Toolchain control.** Pre-install your compilers, SDKs, proprietary CLIs, and custom tools on the runner host. The agent finds them just as it would on a developer's local machine.
-
-**Compliance.** Source code, environment variables, and intermediate artifacts never leave infrastructure you control. For teams in HIPAA, FedRAMP, or SOC 2 environments, this closes the biggest gap in cloud-based AI coding workflows.
-
-## Cross-session messaging (same release)
-
-v2.1.224 also ships cross-session messaging: agents in separate sessions can now send messages to each other by name. Combined with self-hosted runners, this enables multi-agent pipelines that run entirely on your own infra — one runner handles orchestration while others handle sub-tasks, all within your network perimeter.
-
-```bash
-# In one session, send a message to another named session:
-# (from Claude Code's perspective, via the ListAgents / SendMessage tools)
-# Sessions on the same runner can coordinate without API round-trips
-```
-
-## When to use self-hosted runners
-
-- Your repo contains secrets that can't leave your network
-- The agent needs to call internal microservices or hit a private artifact registry
-- Your organization's security review prohibits code execution on third-party SaaS compute
-- You need deterministic toolchain versions across all agent sessions
-
-For teams without these constraints, Anthropic-managed compute is simpler and still the right default.
-
-**Sources:** [Claude Code v2.1.224 release notes — GitHub](https://github.com/anthropics/claude-code/releases/tag/v2.1.224) · [Claude Code self-hosted runner overview — clauding.de](https://clauding.de/en/posts/claude-code-2-1-224-self-hosted-runner) · [Claude Code major updates v2.1.224 — dev.classmethod.jp](https://dev.classmethod.jp/en/articles/20260807-cc-updates-v2-1-224/) · [Claude Code changelog — code.claude.com](https://code.claude.com/docs/en/whats-new)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
