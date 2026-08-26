@@ -1,5 +1,41 @@
 [
   {
+    "id": "2026-08-26-06-managed-agents-advisor-model-pattern",
+    "title": "Give Your Managed Agent a Strategist to Consult Mid-Turn: The Advisor Model Pattern",
+    "excerpt": "Managed Agents lets you pair a fast executor model with a more capable advisor it can consult mid-turn — paying Opus-level tokens only for the hard decisions, not the whole run.",
+    "author": "Chris Harper",
+    "date": "08-26-2026",
+    "publishedAt": "2026-08-26T20:04:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/managed-agents/multiagent-orchestration#give-the-session-an-advisor",
+    "content": "**TL;DR: Add one roster entry and your Sonnet 5 agent gets an Opus 5 advisor it consults on hard decisions — paying advisor-model rates only for those calls, not the whole run.**\n\nMost multi-agent work is repetitive execution: tool calls, file reads, code generation. A small fraction of turns need real strategic judgment — architectural choices, getting unstuck on a subtle bug, deciding whether to abort a plan. Running the whole session on your most capable model is the expensive way to handle the hard cases.\n\nThe **advisor pattern** (released August 7) solves this: configure a more capable model as an advisor in your agent's multiagent roster. The agent consults it mid-turn when it decides to, that consultation runs on a dedicated platform-spawned thread, advice arrives back as an event, and the advisor thread terminates. The rest of the session runs on your executor model.\n\n## Configuration\n\n```bash\ncurl -fsS https://api.anthropic.com/v1/agents \\\n  -H \"x-api-key: $ANTHROPIC_API_KEY\" \\\n  -H \"anthropic-version: 2023-06-01\" \\\n  -H \"anthropic-beta: managed-agents-2026-04-01\" \\\n  -H \"content-type: application/json\" \\\n  -d '{\n    \"name\": \"Backend engineer\",\n    \"model\": \"claude-sonnet-5\",\n    \"system\": \"You implement backend features. Consult the advisor before major design decisions.\",\n    \"multiagent\": {\n      \"type\": \"coordinator\",\n      \"agents\": [\n        {\"type\": \"advisor\", \"model\": \"claude-opus-5\"}\n      ]\n    }\n  }'\n```\n\nIn the Python SDK (`client.beta.agents.create`), pass `multiagent={\"type\": \"coordinator\", \"agents\": [{\"type\": \"advisor\", \"model\": \"claude-opus-5\"}]}`.\n\n## What to know before you configure it\n\n- **Model compatibility:** the agent's model must be ≤ the advisor's capability tier. A Sonnet 5 agent can use Opus 5 as advisor. An Opus 5 agent cannot use Sonnet 5 as advisor — the API rejects that configuration.\n- **One advisor per agent.** If the advisor is the only roster entry, you still use `\"type\": \"coordinator\"`.\n- **Opus 5 advice is redacted from your client event stream.** The agent reads the full advice server-side, but `agent.thread_message_received` delivers `[{\"type\": \"redacted\"}]` to your event listener. Use Claude Opus 4.8 as the advisor instead if you need to observe what the advisor said (it delivers readable text on the stream).\n- **Billing:** consultations are billed at the advisor model's rates. Each consult's tokens appear in the advisor thread's usage and in session totals.\n- **Access:** Managed Agents API access is currently gated — request access at the Managed Agents overview page.\n- **Failure handling:** a failed or interrupted consultation never fails the agent's turn — the agent continues with a notice that the consultation failed.\n\nThe advisor is not a subagent: it is invisible to `list_agents`, cannot be messaged directly, and only the session's primary thread can consult it.\n\n**Sources:** [Give the session an advisor — Anthropic Managed Agents docs](https://platform.claude.com/docs/en/managed-agents/multiagent-orchestration#give-the-session-an-advisor) · [Advisor tool (Messages API variant) — platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool) · [The Advisor Strategy: Opus-Level Agents at Sonnet Prices — Medium](https://medium.com/@ai_93276/the-advisor-strategy-how-anthropics-new-pattern-delivers-opus-level-agents-at-sonnet-prices-933510b21200)"
+  },
+  {
+    "id": "2026-08-26-07-admin-api-sdks-organization-management",
+    "title": "Manage Your Claude Organization Without curl: Admin API Ships to Seven SDKs",
+    "excerpt": "Anthropic's Admin API — org members, workspaces, API keys, rate limits, service accounts, CMEK — is now accessible in Python, TypeScript, Go, Java, Ruby, PHP, and C# SDKs under client.beta.organiza…",
+    "author": "Chris Harper",
+    "date": "08-26-2026",
+    "publishedAt": "2026-08-26T20:03:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/release-notes/overview",
+    "content": "**TL;DR: Anthropic's Admin API now ships in seven language SDKs and the `ant` CLI under `client.beta.organization` — org members, workspaces, API keys, and rate limits are no longer curl-only.**\n\nReleased August 26, the Admin API is now available in the Python, TypeScript, C#, Go, Java, PHP, and Ruby SDKs, plus the `ant` CLI, under `client.beta.organization`. Coverage: org info, members, invites, workspaces and workspace members, API keys, rate limits, service accounts, workload identity federation issuers and rules, and customer-managed encryption keys.\n\n```python\nfrom anthropic import Anthropic\n\nclient = Anthropic()  # uses ANTHROPIC_API_KEY (Admin API key) or\n                      # ANTHROPIC_AUTH_TOKEN (org:admin OAuth token)\n\nmembers = client.beta.organization.members.list()\n```\n\n**Why it matters:** Teams automating Claude Enterprise provisioning — rotating API keys, managing workspace membership, applying rate-limit policies — no longer need raw curl scripts. GitOps pipelines and internal tooling can use typed SDK clients instead.\n\n**Limit:** Usage and cost reports, and Claude Enterprise user-management analytics endpoints, remain curl-only for now.\n\n**Sources:** [Claude Platform release notes, August 26 — Anthropic](https://platform.claude.com/docs/en/release-notes/overview) · [Admin API docs — platform.claude.com](https://platform.claude.com/docs/en/api/admin)"
+  },
+  {
     "id": "2026-08-26-04-prompt-cache-ttl-api-key-claude-code",
     "title": "Your API-Key Claude Code Session Loses Its Cache After Five Minutes — Set This to Survive Long Breaks",
     "excerpt": "API-key and cloud-provider users get a 5-minute prompt cache by default; one setting in settings.json extends it to one hour and eliminates full-recompute costs when you step away from a long session.",

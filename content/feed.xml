@@ -10,7 +10,95 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 26 Aug 2026 12:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 26 Aug 2026 20:04:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Give Your Managed Agent a Strategist to Consult Mid-Turn: The Advisor Model Pattern</title>
+      <link>https://platform.claude.com/docs/en/managed-agents/multiagent-orchestration#give-the-session-an-advisor</link>
+      <guid isPermaLink="false">2026-08-26-06-managed-agents-advisor-model-pattern</guid>
+      <pubDate>Wed, 26 Aug 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Managed Agents lets you pair a fast executor model with a more capable advisor it can consult mid-turn — paying Opus-level tokens only for the hard decisions, not the whole run.</description>
+      <content:encoded><![CDATA[**TL;DR: Add one roster entry and your Sonnet 5 agent gets an Opus 5 advisor it consults on hard decisions — paying advisor-model rates only for those calls, not the whole run.**
+
+Most multi-agent work is repetitive execution: tool calls, file reads, code generation. A small fraction of turns need real strategic judgment — architectural choices, getting unstuck on a subtle bug, deciding whether to abort a plan. Running the whole session on your most capable model is the expensive way to handle the hard cases.
+
+The **advisor pattern** (released August 7) solves this: configure a more capable model as an advisor in your agent's multiagent roster. The agent consults it mid-turn when it decides to, that consultation runs on a dedicated platform-spawned thread, advice arrives back as an event, and the advisor thread terminates. The rest of the session runs on your executor model.
+
+## Configuration
+
+```bash
+curl -fsS https://api.anthropic.com/v1/agents \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "anthropic-beta: managed-agents-2026-04-01" \
+  -H "content-type: application/json" \
+  -d '{
+    "name": "Backend engineer",
+    "model": "claude-sonnet-5",
+    "system": "You implement backend features. Consult the advisor before major design decisions.",
+    "multiagent": {
+      "type": "coordinator",
+      "agents": [
+        {"type": "advisor", "model": "claude-opus-5"}
+      ]
+    }
+  }'
+```
+
+In the Python SDK (`client.beta.agents.create`), pass `multiagent={"type": "coordinator", "agents": [{"type": "advisor", "model": "claude-opus-5"}]}`.
+
+## What to know before you configure it
+
+- **Model compatibility:** the agent's model must be ≤ the advisor's capability tier. A Sonnet 5 agent can use Opus 5 as advisor. An Opus 5 agent cannot use Sonnet 5 as advisor — the API rejects that configuration.
+- **One advisor per agent.** If the advisor is the only roster entry, you still use `"type": "coordinator"`.
+- **Opus 5 advice is redacted from your client event stream.** The agent reads the full advice server-side, but `agent.thread_message_received` delivers `[{"type": "redacted"}]` to your event listener. Use Claude Opus 4.8 as the advisor instead if you need to observe what the advisor said (it delivers readable text on the stream).
+- **Billing:** consultations are billed at the advisor model's rates. Each consult's tokens appear in the advisor thread's usage and in session totals.
+- **Access:** Managed Agents API access is currently gated — request access at the Managed Agents overview page.
+- **Failure handling:** a failed or interrupted consultation never fails the agent's turn — the agent continues with a notice that the consultation failed.
+
+The advisor is not a subagent: it is invisible to `list_agents`, cannot be messaged directly, and only the session's primary thread can consult it.
+
+**Sources:** [Give the session an advisor — Anthropic Managed Agents docs](https://platform.claude.com/docs/en/managed-agents/multiagent-orchestration#give-the-session-an-advisor) · [Advisor tool (Messages API variant) — platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool) · [The Advisor Strategy: Opus-Level Agents at Sonnet Prices — Medium](https://medium.com/@ai_93276/the-advisor-strategy-how-anthropics-new-pattern-delivers-opus-level-agents-at-sonnet-prices-933510b21200)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Manage Your Claude Organization Without curl: Admin API Ships to Seven SDKs</title>
+      <link>https://platform.claude.com/docs/en/release-notes/overview</link>
+      <guid isPermaLink="false">2026-08-26-07-admin-api-sdks-organization-management</guid>
+      <pubDate>Wed, 26 Aug 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Best Practices</category>
+      <description>Anthropic's Admin API — org members, workspaces, API keys, rate limits, service accounts, CMEK — is now accessible in Python, TypeScript, Go, Java, Ruby, PHP, and C# SDKs under client.beta.organization.</description>
+      <content:encoded><![CDATA[**TL;DR: Anthropic's Admin API now ships in seven language SDKs and the `ant` CLI under `client.beta.organization` — org members, workspaces, API keys, and rate limits are no longer curl-only.**
+
+Released August 26, the Admin API is now available in the Python, TypeScript, C#, Go, Java, PHP, and Ruby SDKs, plus the `ant` CLI, under `client.beta.organization`. Coverage: org info, members, invites, workspaces and workspace members, API keys, rate limits, service accounts, workload identity federation issuers and rules, and customer-managed encryption keys.
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic()  # uses ANTHROPIC_API_KEY (Admin API key) or
+                      # ANTHROPIC_AUTH_TOKEN (org:admin OAuth token)
+
+members = client.beta.organization.members.list()
+```
+
+**Why it matters:** Teams automating Claude Enterprise provisioning — rotating API keys, managing workspace membership, applying rate-limit policies — no longer need raw curl scripts. GitOps pipelines and internal tooling can use typed SDK clients instead.
+
+**Limit:** Usage and cost reports, and Claude Enterprise user-management analytics endpoints, remain curl-only for now.
+
+**Sources:** [Claude Platform release notes, August 26 — Anthropic](https://platform.claude.com/docs/en/release-notes/overview) · [Admin API docs — platform.claude.com](https://platform.claude.com/docs/en/api/admin)
+]]></content:encoded>
+    </item>
+
 
     <item>
       <title>Your API-Key Claude Code Session Loses Its Cache After Five Minutes — Set This to Survive Long Breaks</title>
@@ -6210,84 +6298,8 @@ Note: FAISS doesn't store your original text — keep a parallel list or databas
       <media:thumbnail url="https://www.pinecone.io/learn/series/faiss/og-image.png" />
     </item>
 
-    <item>
-      <title>Claude API: Swap Tools Mid-Conversation Without Invalidating the Cache</title>
-      <link>https://platform.claude.com/docs/en/release-notes/overview</link>
-      <guid isPermaLink="false">2026-08-11-06-claude-api-mid-conversation-tools-beta</guid>
-      <pubDate>Tue, 11 Aug 2026 12:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>New Claude API beta header lets agentic apps swap the tool list between turns while preserving the prompt cache — no more latency penalty for tool-list changes mid-conversation.</description>
-      <content:encoded><![CDATA[
-**A Claude API beta header lets agents swap tools between turns while preserving the prompt cache — no more latency tax for tool-list changes.**
-
-Multi-step agents often need different tools at different phases. Previously, changing the `tools` array between turns invalidated the entire prompt cache — paying full input cost again on every tool swap, plus re-processing the full conversation history.
-
-The `mid-conversation-tool-changes-2026-07-01` beta header fixes this on Opus 5, Fable 5, Opus 4.8, and Mythos 5:
-
-```python
-import anthropic
-
-client = anthropic.Anthropic()
-BETA = ["mid-conversation-tool-changes-2026-07-01"]
-
-# Phase 1: read-only tools
-response = client.messages.create(
-    model="claude-opus-5-20260724",
-    betas=BETA,
-    system="You are a code analysis agent.",
-    messages=conversation,
-    tools=[search_tool, read_file_tool],   # read-only
-    max_tokens=4096,
-)
-conversation.extend(...)
-
-# Phase 2: write tools — cache stays hot despite different tool list
-response = client.messages.create(
-    model="claude-opus-5-20260724",
-    betas=BETA,
-    system="You are a code analysis agent.",  # still cached
-    messages=conversation,                    # history still cached
-    tools=[write_file_tool, run_cmd_tool],    # different list — no cache bust
-    max_tokens=4096,
-)
-```
-
-**Why this matters for agent design.** You can match tool access to the task's risk level per turn — give the planner phase read-only tools, give the executor write access — without paying cache penalties. Least-privilege tool design is now practical in long conversations.
-
-**Per-turn effort is also cache-friendly.** Opus 5 supports changing `budget_tokens` per turn without busting the cache. Start a planning pass at `effort="low"` and escalate to `effort="xhigh"` for a hard sub-problem, mid-conversation. One constraint: at `xhigh` or `max` effort, setting `thinking: {"type": "disabled"}` returns a 400 error — plan your effort ladder with this in mind.
-
-**Sources:** [Claude Platform release notes — Anthropic](https://platform.claude.com/docs/en/release-notes/overview) · [What's new in Opus 5 — Claude Platform Docs](https://platform.claude.com/docs/en/about-claude/models/whats-new-opus-5) · [Effort parameter — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/effort)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Ollama v0.32.6: MLX Speculative Decoding Auto-Enabled + Streaming Format Corrected</title>
-      <link>https://github.com/ollama/ollama/releases/tag/v0.32.6</link>
-      <guid isPermaLink="false">2026-08-11-05-ollama-v0326-mlx-streaming</guid>
-      <pubDate>Tue, 11 Aug 2026 12:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Self-Hosting</category>
-      <category>LLM</category>
-      <description>Ollama v0.32.6 (Aug 5) auto-enables MLX speculative decoding for Qwen3.5 on Apple Silicon and fixes /v1/chat/completions streaming to match OpenAI's wire format exactly.</description>
-      <content:encoded><![CDATA[
-**Ollama v0.32.6 (Aug 5) automatically enables MLX speculative decoding for Apple Silicon and corrects the `/v1/chat/completions` streaming format to match OpenAI's wire protocol exactly.**
-
-**MLX speculative decoding is now automatic.** The MLX engine uses a model's Multi-Token Prediction (MTP) head for speculative decoding without any configuration. Qwen3.5 and other MTP-capable models run noticeably faster on M-series chips — no flag to set, no separate draft model to manage. If the model doesn't support speculative decoding, Ollama falls back silently to standard inference.
-
-**OpenAI streaming wire format corrected.** The `/v1/chat/completions` SSE stream now behaves like the real OpenAI API: `role` appears only in the first chunk, `finish_reason` arrives on its own trailing chunk, and token usage arrives in a separate chunk when `stream_options.include_usage` is set. If you wrote streaming parsers that worked around Ollama's previous format quirks, test them after upgrading.
-
-**Why it matters:** Speculative decoding is a free latency improvement for local inference with no accuracy tradeoff, and the streaming fix removes the last common friction point when substituting Ollama for the OpenAI SDK in existing code.
-
-**Sources:** [Ollama v0.32.6 release — GitHub](https://github.com/ollama/ollama/releases/tag/v0.32.6) · [Ollama August 2026 updates — Releasebot](https://releasebot.io/updates/ollama)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
