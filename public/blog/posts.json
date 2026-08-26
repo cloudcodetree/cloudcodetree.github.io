@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-08-26-02-claude-code-modelpicker-modelpricing-team",
+    "title": "Two Managed Settings Keep Your Whole Team on the Approved Model List in Claude Code",
+    "excerpt": "Claude Code v2.1.243 adds modelPicker (curate the /model list to approved options) and modelPricing (plug in contracted rates for accurate cost estimates). Solves the \"four developers on four diffe…",
+    "author": "Chris Harper",
+    "date": "08-26-2026",
+    "publishedAt": "2026-08-26T04:08:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**TL;DR: `modelPicker` curates your team's /model picker to only approved models; `modelPricing` plugs in contracted rates so cost estimates match your invoices. Both are managed settings in v2.1.243 (August 25).**\n\nIf you're running Claude Code across a team, you've probably hit this: developers on different models, cost reports that don't match invoices, and config that drifts as people try new releases.\n\nTwo managed settings added in v2.1.243 address this directly.\n\n**`modelPicker`** replaces the default /model picker with your own ordered, labeled list — accepts any model ID including Vertex and Bedrock identifiers. You define what appears; the developer still chooses within that list.\n\n```json\n\"modelPicker\": [\n  { \"id\": \"claude-sonnet-5-20260801\", \"label\": \"Team Standard\" },\n  { \"id\": \"claude-opus-5-20260901\", \"label\": \"Deep Review (expensive)\" }\n]\n```\n\nCombine with `ANTHROPIC_DEFAULT_MODEL` (set in your org's managed settings) to ensure every new session starts on your preferred default without per-developer config.\n\n**`modelPricing`** feeds in your org's contracted per-model rates and discount multiplier, so `/cost`, the status line, and usage telemetry show what you actually pay rather than Anthropic list price. Without it, every cost estimate is wrong for anyone on a negotiated contract — a real problem for teams tracking spend against budget.\n\n**The limit you should know:** `modelPicker` controls the TUI menu, but it does not block someone from setting `ANTHROPIC_MODEL` directly in their shell. If you need model enforcement at the infrastructure level — for compliance or cost control — a gateway proxy that restricts model IDs at the API layer is the right control; this is a convenience setting, not an enforcement mechanism.\n\nAlso shipping in v2.1.243: keyless sign-in via Anthropic Console (`/login`), a `Skipped sources` line in `/status` for managed settings, and model + effort level visible in `/tasks` for subagent runs.\n\n**Sources:** [Claude Code changelog v2.1.243](https://code.claude.com/docs/en/changelog) · [Model configuration docs](https://code.claude.com/docs/en/model-config) · [Enterprise managed settings guide — systemprompt.io](https://systemprompt.io/guides/enterprise-claude-code-managed-settings)"
+  },
+  {
+    "id": "2026-08-26-01-langflow-langraph-agent-framework-cve",
+    "title": "Langflow Has an RCE on CISA's Exploit List; LangGraph Has a CVE Chain — Patch Your Agent Infrastructure",
+    "excerpt": "Langflow has a CISA-listed RCE under active exploitation since before its July 17 patch; LangGraph has a three-CVE chain that exposes your LLM API keys. Both have patches — check your versions.",
+    "author": "Chris Harper",
+    "date": "08-26-2026",
+    "publishedAt": "2026-08-26T04:07:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Security",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://thehackernews.com/2026/08/cisa-flags-langflow-rce-tomcat-and-n.html",
+    "content": "**TL;DR: Langflow's unauthenticated RCE (CVE-2026-9198, CVSS 9.8) is actively exploited and CISA-listed; a LangGraph CVE chain lets crafted input reach your LLM API keys. Both have been patched — but the attacks are ongoing.**\n\nThese CVEs were patched in early August; if your agent infrastructure runs either framework and hasn't been updated, it is being attacked right now.\n\n**Langflow (CVE-2026-9198):** The `/api/v1/auto_login` endpoint mints SUPERUSER tokens for any network caller without requiring authentication. Chained with `/api/v1/validate/code`, which runs user-supplied code via Python's `exec()`, the result is unauthenticated full RCE on default deployments. IBM patched it July 17; CISA added it to the Known Exploited Vulnerabilities catalog August 4. KEVIntel recorded 650 exploitation attempts from 244 unique IPs starting July 6 — eleven days before the patch existed. **Fix: upgrade to Langflow ≥1.10.1.**\n\n**LangGraph (three linked CVEs):** Check Point Research found SQLite injection (CVE-2025-67644), msgpack deserialization RCE (CVE-2026-28277), and Redis injection (CVE-2026-27022) in LangGraph's checkpointer backends, reachable when an app exposes `get_state_history()` with a user-controlled filter. A compromised server exposes LLM API keys, customer data, and internal network access. The same research logged 11 CVEs across LangChain, LangGraph, CrewAI, AutoGen, Microsoft Agent Framework, and Google ADK; the pattern is decade-old injection classes (deserialization, path traversal, SSRF) sitting beneath agentic logic.\n\n**Why it matters:** The attack surface is not prompt injection — your API keys live in the agent's process environment, and a vulnerable framework endpoint takes them without touching the model. Check for Langflow especially: it's common as a no-config flow builder in agent prototypes that graduate to production without a security review.\n\n**Sources:** [Hacker News: CISA flags Langflow RCE](https://thehackernews.com/2026/08/cisa-flags-langflow-rce-tomcat-and-n.html) · [The Register: AI agent framework flaws](https://www.theregister.com/security/2026/08/05/prompt-injection-isnt-the-bug-ai-agent-frameworks-are/5283585) · [KEVIntel: CVE-2026-9198 telemetry](https://kevintel.com/CVE-2026-9198)"
+  },
+  {
+    "id": "2026-08-26-03-hybrid-search-bm25-rrf-rag-retrieval",
+    "title": "Your Retriever Picks the Wrong Chunk Half the Time — Combine BM25 and Dense Vectors with RRF",
+    "excerpt": "Hybrid search combines BM25 keyword retrieval with dense vector search, fused via Reciprocal Rank Fusion — no score normalization needed. Outperforms either alone on most real corpora.",
+    "author": "Chris Harper",
+    "date": "08-26-2026",
+    "publishedAt": "2026-08-26T04:06:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "RAG",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.youtube.com/watch?v=D8LmsEOJvPI",
+    "content": "**TL;DR: Hybrid search combines BM25 (exact-term precision) with dense vectors (semantic recall), fused via Reciprocal Rank Fusion — simpler than score normalization, and reliably better than either retriever alone.**\n\n**What you'll be able to do after this:** Run a retriever that handles both \"what is RAG?\" and \"retrieval-augmented generation latency benchmarks\" well, without building two separate pipelines or normalizing scores.\n\nThe anchor resource: [Hybrid Search in RAG Explained | BM25 + Semantic Search + RRF](https://www.youtube.com/watch?v=D8LmsEOJvPI) (May 2026, ~23 min).\n\n**Three takeaways:**\n\n1. **BM25 for precision, vectors for recall.** BM25 excels on queries that use the exact terms the document uses — product codes, proper names, technical abbreviations. Dense vectors excel when the user phrases things differently from the document. On the WANDS e-commerce benchmark, a tuned hybrid setup reaches 0.75 NDCG — a 7% lift over BM25 (0.70) or pure vector search (0.70) alone.\n\n2. **RRF beats score normalization.** Reciprocal Rank Fusion — `score = 1/(k + rank)`, where k=60 is the standard default — ignores raw BM25 and cosine scores entirely, using only rank position. No need to put two differently-scaled scores onto a common axis. It's the default fusion strategy in Weaviate, Elasticsearch, and LangChain's `EnsembleRetriever`.\n\n3. **`alpha` is your tuning knob.** In Weaviate: `alpha=0.5` weights both result sets equally; push toward 0 for keyword-heavy corpora (legal, technical docs), toward 1 for open-domain semantic queries. In LangChain, `weights=[0.5, 0.5]` on `EnsembleRetriever` does the same.\n\n**Code (Python + Weaviate):**\n```python\nresults = collection.query.hybrid(\n    query=\"transformer attention mechanism\",\n    alpha=0.5,           # 0 = BM25 only, 1 = vector only\n    return_metadata=MetadataQuery(score=True, explain_score=True)\n)\n```\n\n**LangChain equivalent:**\n```python\nfrom langchain.retrievers import EnsembleRetriever\nhybrid = EnsembleRetriever(\n    retrievers=[bm25_retriever, chroma_retriever],\n    weights=[0.5, 0.5]\n)\n```\n\n**Where hybrid search breaks down:**\n- **Latency:** two retrievers run in parallel, adding ~5–10ms at p50 over dense-only — worth profiling before assuming it's free.\n- **Typos and synonyms:** BM25 treats \"RAG\" and \"retrieval-augmented generation\" as different terms. Add query expansion or a stemmer if your users abbreviate.\n- **`alpha` is dataset-specific.** The right weight for financial documents is not the right weight for engineering docs. Tune it on a held-out eval set with actual user queries, not intuition.\n- **BM25 needs a keyword index.** If your vector store doesn't have a built-in sparse index (Chroma, for example, does not), you'll manage a separate BM25 index (rank-bm25, Elasticsearch) — more operational surface.\n\n**Sources:** [YouTube: Hybrid Search in RAG Explained (BM25 + RRF)](https://www.youtube.com/watch?v=D8LmsEOJvPI) · [Weaviate hybrid search docs](https://docs.weaviate.io/weaviate/search/hybrid) · [LangChain EnsembleRetriever](https://python.langchain.com/docs/modules/data_connection/retrievers/ensemble/) · [MachineLearningMastery: implementing hybrid search in RAG](https://machinelearningmastery.com/implementing-hybrid-semantic-lexical-search-in-rag/)"
+  },
+  {
     "id": "2026-08-25-05-claude5-context-engineering-six-shifts",
     "title": "Stop Rule-Listing: The Six Context Shifts That Cut Claude Code's Internal Prompt by 80%",
     "excerpt": "Anthropic removed 80%+ of Claude Code's system prompt for Claude 5 models with no quality loss. Six shifts — rules to judgment, upfront to progressive disclosure — apply directly to your CLAUDE.md.",
