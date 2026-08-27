@@ -10,8 +10,146 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 27 Aug 2026 12:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 27 Aug 2026 20:11:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Your Claude Code Sessions Can Now Coordinate: A Practical Guide to Agent Teams</title>
+      <link>https://code.claude.com/docs/en/agent-teams</link>
+      <guid isPermaLink="false">2026-08-27-06-claude-code-agent-teams-enable-parallel</guid>
+      <pubDate>Thu, 27 Aug 2026 20:11:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <description>Claude Code's experimental agent teams (one flag away) let a lead session spawn independent teammates from a shared task list — parallel implementation, research, or review without manual coordination.</description>
+      <content:encoded><![CDATA[**TL;DR: One `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` flag turns your session into a team lead that spawns independent Claude Code teammates, each with their own context window, working from a shared task list. Still experimental — no resume support, and behavior changes without notice.**
+
+**What you'll be able to do after this:** run parallel implementation, review, or research across multiple Claude Code sessions without managing the coordination by hand.
+
+Claude Code's agent team mode lets one session act as team lead: it spawns teammates (separate Claude Code instances, each with their own context window), assigns tasks from a shared list, and receives idle notifications when they finish. Teammates can message each other directly — they don't route everything through the lead.
+
+**Enabling it:**
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+Then describe what you want in natural language:
+
+```
+Spawn three teammates to review PR #142:
+- One focused on security implications
+- One checking performance impact
+- One validating test coverage
+```
+
+**Three rules that determine whether it works:**
+
+1. **Write spawn prompts as if teammates have never seen your conversation.** They haven't — teammates don't inherit the lead's history. Include the file path, the goal, and the constraints directly in the spawn prompt.
+
+2. **Size tasks so each produces one clear deliverable.** A function, a test file, a review. Too small: coordination overhead exceeds the benefit. Too large: a teammate works 20 minutes in the wrong direction before you notice.
+
+3. **Give each teammate ownership of separate files.** Two teammates editing the same file don't merge — they overwrite. Split work by module or file set before spawning.
+
+**When to prefer subagents instead:** sequential tasks, shared file dependencies, or any job where you need the result back in the lead's context before continuing — subagents return their output directly; teammates send an idle notification without their output.
+
+**Real limits:** experimental — `/resume` doesn't restore in-process teammates after a restart; enabling it can cause Claude to spawn teammates even when you asked for subagents; token cost scales linearly with active teammates; behavior changes without notice.
+
+**Sources:** [Agent teams — code.claude.com](https://code.claude.com/docs/en/agent-teams) · [Cross-session messaging — code.claude.com](https://code.claude.com/docs/en/cross-session-messaging) · [Claude Code Cross-Session Messaging Guide — kylon.io](https://kylon.io/blog/claude-code-cross-session-messaging-2026)
+]]></content:encoded>
+      <media:content url="https://mintcdn.com/claude-code/nsvRFSDNfpSU5nT7/images/subagents-vs-agent-teams-light.png" medium="image"/>
+      <media:thumbnail url="https://mintcdn.com/claude-code/nsvRFSDNfpSU5nT7/images/subagents-vs-agent-teams-light.png"/>
+    </item>
+
+    <item>
+      <title>The Research Bench Is Reshuffling: Google DeepMind's Brain Drain in Numbers</title>
+      <link>https://fortune.com/2026/08/27/google-deepmind-losing-talent-to-rival-ai-labs-startups-new-data-show/</link>
+      <guid isPermaLink="false">2026-08-27-07-deepmind-talent-exodus-anthropic-openai</guid>
+      <pubDate>Thu, 27 Aug 2026 20:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <description>DeepMind's share of top European AI hires fell from 49% to 18.6%. John Jumper (AlphaFold) joined Anthropic, Noam Shazeer (Gemini co-lead) joined OpenAI — data from Fortune, August 27.</description>
+      <content:encoded><![CDATA[**TL;DR: New data shows Google DeepMind's share of top European AI research hires fell from 49% (2022–23) to 18.6% (2025–26). AlphaFold co-creator John Jumper joined Anthropic; Gemini co-lead Noam Shazeer joined OpenAI; AlphaGo researcher David Silver founded Ineffable Intelligence.**
+
+New analysis published today by Fortune quantifies what had been visible as individual departures: DeepMind's grip on European AI research talent has loosened significantly. The exits include Jeff Dean (27-year Google veteran), Sanjay Ghemawat, Oriol Vinyals and Quoc Le (who launched Discovery Loop), AlphaFold co-creator John Jumper (now at Anthropic, along with AlphaFold researchers Jonas Adler and Alexander Pritzel), and Gemini co-lead Noam Shazeer (now at OpenAI). David Silver, the RL researcher behind AlphaGo, founded Ineffable Intelligence, now valued at $5.1 billion.
+
+Researchers who left cite frustration with DeepMind's shift from open-ended science toward Google product delivery and stricter publication restrictions introduced in 2025.
+
+**Why it matters:** Frontier model capability tends to follow research talent. Anthropic is capturing a notable share of DeepMind alumni — Jumper's AlphaFold work is foundational to modern protein-structure and multimodal reasoning research. For engineers deciding where to invest workflow time and which models to build around: the concentration of research expertise is shifting toward Anthropic and OpenAI, and that directionally affects where capability advances are most likely to land first.
+
+**Limits to note:** talent movement doesn't directly predict model quality — many breakthroughs have come from small, focused teams, and Google retains world-class compute infrastructure. Hiring data lags the actual model roadmap by 12–24 months at minimum, so DeepMind's Gemini roadmap is not suddenly derailed.
+
+**Sources:** [Google DeepMind losing talent to rival AI labs — Fortune](https://fortune.com/2026/08/27/google-deepmind-losing-talent-to-rival-ai-labs-startups-new-data-show/) · [Google's new AI boss inherits a race — CNBC](https://www.cnbc.com/2026/08/12/google-deepmind-koray-kavukcuoglu.html)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>You Trained the Adapter — Now Prove It Worked: A Three-Step Eval for Fine-Tuned LLMs</title>
+      <link>https://huggingface.co/learn/llm-course/en/chapter11/5</link>
+      <guid isPermaLink="false">2026-08-27-08-evaluate-finetuned-llm-lighteval-metrics</guid>
+      <pubDate>Thu, 27 Aug 2026 20:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>Training loss dropping isn't proof of improvement. Three checks — held-out perplexity, lighteval benchmark, and a task-specific metric — tell you whether your LoRA adapter actually helped.</description>
+      <content:encoded><![CDATA[**TL;DR: Training loss is not a reliable proxy for whether a fine-tune improved your model. Three checks — held-out perplexity, a standardized benchmark via lighteval, and one task-specific metric — give you numbers worth acting on.**
+
+**What you'll be able to do after this:** run a structured evaluation that catches regressions, confirms real-world improvement, and gives you a defensible number before shipping your LoRA adapter.
+
+Training loss can drop while the model regresses on actual tasks — it measures how well the model predicts the training data, not whether the output is useful. The minimum viable eval stack is three layers:
+
+**1. Perplexity on a held-out test set.** Measure negative log-likelihood on examples the model never saw during training, then convert to perplexity. Lower than the base model on your domain: the fine-tune learned the distribution. Equal or higher: it didn't.
+
+```python
+import torch, math
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+def perplexity(model, tokenizer, texts):
+    nlls = []
+    for text in texts:
+        enc = tokenizer(text, return_tensors="pt")
+        with torch.no_grad():
+            out = model(**enc, labels=enc["input_ids"])
+        nlls.append(out.loss.item())
+    return math.exp(sum(nlls) / len(nlls))
+```
+
+Run this against both the base model and your fine-tuned model on the same test set.
+
+**2. Standardized benchmark via lighteval.** Compare fine-tuned vs. base on a benchmark relevant to your domain. For a medical assistant fine-tune:
+
+```bash
+lighteval accelerate \
+  "pretrained=your-finetuned-model" \
+  "mmlu|anatomy|0|0,mmlu|professional_medicine|0|0" \
+  --max_samples 200 --output_path ./results
+```
+
+Run the same command against the base checkpoint. The delta is your verifiable improvement.
+
+**3. A task-specific metric or LLM-as-judge.** For classification: F1 or accuracy on a held-out labeled set. For generation: sample 50–100 outputs from both models, route them to a stronger model (e.g., Claude Sonnet 5) with a rubric, and have it score them blind. Human eval if the stakes are high.
+
+**Three mistakes to avoid:**
+
+- Reporting only training loss, which the model directly optimized and can't fail to lower
+- Evaluating only the fine-tuned model — without a base-model baseline you can't claim improvement, only measure absolute performance
+- Using examples from the same distribution as training — test on a different source, time window, or rephrasing
+
+**Real limits:** Benchmark scores don't capture edge-case or deployment behavior. LLM-as-judge carries the judge model's biases toward its own output style. Perplexity measures prediction probability, not whether the output is actually useful — a model can be confident and wrong. These evals are a floor, not a ceiling.
+
+**Sources:** [Evaluation — HuggingFace LLM Course, Chapter 11](https://huggingface.co/learn/llm-course/en/chapter11/5) · [LLM evaluation metrics guide — machinelearningmastery.com](https://machinelearningmastery.com/llm-evaluation-metrics-made-easy/) · [Quantitative evaluation: ROUGE, BLEU, Perplexity — apxml.com](https://apxml.com/courses/introduction-to-llm-fine-tuning/chapter-5-evaluation-and-deployment/quantitative-evaluation)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Batch Your Offline Claude Calls and Pay Half: The Message Batches API</title>
@@ -6078,216 +6216,8 @@ Not for: real-time chat, streaming responses, any user-facing flow where waiting
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Claude Code v2.1.229: Agent-to-Agent Messages Now Permission-Screened; Managed Agents Get Budget Caps</title>
-      <link>https://code.claude.com/docs/en/changelog</link>
-      <guid isPermaLink="false">2026-08-12-06-claude-code-v2129-agent-security-managed-budget</guid>
-      <pubDate>Wed, 12 Aug 2026 12:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Claude Code v2.1.229 now runs permission-classifier checks on inter-agent SendMessage calls, closing a prompt-injection vector in multi-agent pipelines. Managed Agents also ships budget caps and geo controls.</description>
-      <content:encoded><![CDATA[
-**Claude Code v2.1.229 screens agent-to-agent messages through the permission classifier before dispatch, closing a prompt-injection vector; Managed Agents adds per-session budget caps and geo controls.**
-
-**Claude Code v2.1.229 (August 12)** adds a meaningful security layer for multi-agent workloads: any message dispatched to another Claude Code session via `SendMessage` now passes through the same permission classifier used for local tool calls before it reaches the target session. A compromised sub-agent can no longer silently instruct a parent session to run arbitrary bash or write to sensitive paths via a crafted message payload. The release also hardens synced skill/plugin directory naming on Windows, patches Remote Control session resume leaks, and restores CCR web-fetch/search proxy functionality after `/clear`.
-
-**Managed Agents** — Anthropic's server-hosted agent sessions accessed via the API — now include per-session budget caps (set a token-spend ceiling in your API call; the agent stops and returns a structured error when reached) and geo controls (pin session processing to a specific AWS region for data residency compliance). GitHub-loaded skills — pointing a Managed Agent at a repo to load its `.claude/skills/` directory on startup — are also now available.
-
-**Why it matters:** The `SendMessage` permission screen is the kind of hardening that separates a toy multi-agent project from a production one. If your pipeline has agents that talk to each other, update to v2.1.229 before shipping to prod.
-
-**Sources:** [Claude Code changelog](https://code.claude.com/docs/en/changelog) · [Anthropic Release Notes — Releasebot](https://releasebot.io/updates/anthropic)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Give Your AI Agent a Memory: Persistent Context Across Sessions With Mem0</title>
-      <link>https://docs.mem0.ai/open-source/python-quickstart</link>
-      <guid isPermaLink="false">2026-08-12-05-mem0-agent-persistent-memory-python</guid>
-      <pubDate>Wed, 12 Aug 2026 12:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>Mem0 is an open-source memory layer that extracts, deduplicates, and retrieves facts from your agent conversations — add persistent cross-session memory to any Claude agent in 15 minutes.</description>
-      <media:content url="https://mem0.ai/og.png" medium="image" />
-      <media:thumbnail url="https://mem0.ai/og.png" />
-      <content:encoded><![CDATA[
-**Mem0 is an open-source memory layer that extracts, deduplicates, and surfaces facts from your agent conversations — add cross-session persistent memory to any Claude agent in 15 minutes.**
-
-**What you'll be able to do after this:**
-- Store and retrieve user-specific facts across any number of agent sessions
-- Integrate Mem0 with a Claude agent using `m.add()` and `m.search()` in under 20 lines
-- Self-host Mem0 with a local Qdrant vector store — no external API key required
-
-Every stateless agent faces the same wall: the context window resets each session. Your user told it their preferred stack, their company's coding conventions, and their deadline — three conversations ago. Mem0 fixes this by sitting between your agent and each conversation, extracting discrete facts, deduplicating them against what's already stored, and surfacing the relevant ones at the start of every new session.
-
-## Install and first memory
-
-```bash
-pip install mem0ai
-```
-
-The open-source version uses a local Qdrant vector store and your LLM of choice. Swap in Claude Haiku 4.5 as the extraction LLM for cost-efficient memory operations:
-
-```python
-from mem0 import Memory
-
-config = {
-    "llm": {
-        "provider": "anthropic",
-        "config": {
-            "model": "claude-haiku-4-5-20251001",
-            "api_key": "your-anthropic-key"
-        }
-    }
-}
-
-m = Memory.from_config(config)
-
-# Add a conversation — Mem0 extracts and stores salient facts
-result = m.add([
-    {"role": "user",      "content": "I work on a Python monorepo with 4 microservices."},
-    {"role": "assistant", "content": "Got it, I'll tailor examples to Python."}
-], user_id="alice")
-
-print(result)
-# [{"event": "ADD", "memory": "Works on a Python monorepo with 4 microservices"}]
-```
-
-## Retrieve relevant memories before each call
-
-```python
-# In a new session — pull what's relevant before calling Claude
-memories = m.search("what tech stack does this user prefer?", user_id="alice")
-context = "\n".join(f"- {r['memory']}" for r in memories[:5])
-print(context)  # - Works on a Python monorepo with 4 microservices
-```
-
-## Wire Mem0 into a Claude agent
-
-```python
-import anthropic
-from mem0 import Memory
-
-mem = Memory.from_config(config)
-claude = anthropic.Anthropic()
-
-def chat(user_message: str, user_id: str) -> str:
-    # 1. Pull relevant memories
-    memories = mem.search(user_message, user_id=user_id)
-    ctx = "\n".join(f"- {r['memory']}" for r in memories[:5])
-
-    # 2. Inject into system prompt
-    system = f"Known context about this user:\n{ctx}" if ctx else "You are a helpful assistant."
-    response = claude.messages.create(
-        model="claude-sonnet-5-20260801",
-        max_tokens=1024,
-        system=system,
-        messages=[{"role": "user", "content": user_message}]
-    )
-    answer = response.content[0].text
-
-    # 3. Store the exchange so memory grows with each conversation
-    mem.add([
-        {"role": "user",      "content": user_message},
-        {"role": "assistant", "content": answer}
-    ], user_id=user_id)
-    return answer
-```
-
-## Self-host with Docker (Qdrant backend)
-
-No external API keys for storage:
-
-```bash
-git clone https://github.com/mem0ai/mem0
-cd mem0
-docker-compose up -d   # Qdrant on :6333, Mem0 REST API on :8000
-```
-
-Then point the SDK at your local server: `Memory(host="http://localhost:8000")`.
-
-## How Mem0 V3 keeps memory coherent
-
-Mem0 V3 (April 2026) uses a single-pass extraction pipeline: each new fact from a conversation is checked against existing memories and emits `ADD`, `UPDATE`, `DELETE`, or `NONE`. After 100 conversations the store stays clean and relevant — not bloated with contradictions or duplicates. Retrieval hits 92.5 on the LoCoMo long-context memory benchmark.
-
-**Sources:** [Mem0 Python Quickstart — docs.mem0.ai](https://docs.mem0.ai/open-source/python-quickstart) · [The Easiest Way to Add Persistent Memory — Mem0 blog](https://mem0.ai/blog/the-easiest-way-to-add-persistent-memory-to-any-ai-agent) · [mem0ai/mem0 — GitHub](https://github.com/mem0ai/mem0)
-]]></content:encoded>
-    </item>
-
-<item>
-      <title>Three Models, One Pipeline: Claude Code's Per-Subagent Model Routing Cuts Costs 60-80%</title>
-      <link>https://code.claude.com/docs/en/model-config</link>
-      <guid isPermaLink="false">2026-08-12-04-claude-code-subagent-model-routing</guid>
-      <pubDate>Wed, 12 Aug 2026 04:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Assigning Haiku 4.5, Sonnet 5, and Fable 5 to the right tasks in a Claude Code Workflow SDK pipeline cuts API costs 60-80% — decision framework and runnable SDK code.</description>
-      <content:encoded><![CDATA[
-**Assigning Haiku 4.5, Sonnet 5, and Fable 5 to the right tasks in a multi-agent workflow cuts API costs 60-80% with no quality loss — here's the decision framework with copy-paste SDK code.**
-
-In Claude Code's Workflow SDK, every `agent()` call defaults to the session model (Sonnet 5). But Haiku 4.5 runs at $1/$5 per million tokens — half the cost of Sonnet 5 — and handles any task where reasoning depth isn't the bottleneck: file reads, searches, grep-equivalent scans, and simple classification. Reserving Fable 5 for decisions where a wrong answer is expensive keeps architectural reviews high-quality without applying that cost across every agent in the fan-out.
-
-**Decision framework:**
-
-| Task | Model | Why |
-|---|---|---|
-| Search, grep, file reads | Haiku 4.5 | Content retrieval — speed over depth |
-| Implement, debug, write | Sonnet 5 (default) | Strong code reasoning at locked-in $2/$10 |
-| Architectural decisions | Fable 5 | Complex judgment worth the extra cost |
-| Binary checks (test pass/fail) | Haiku 4.5 | One-token output; waste to use Sonnet |
-
-**SDK code:**
-
-```javascript
-export const meta = {
-  name: 'routed-workflow',
-  description: 'Model-routed multi-agent example',
-  phases: [{ title: 'Search' }, { title: 'Implement' }, { title: 'Review' }],
-}
-
-// Fan out cheap searches with Haiku
-const findings = await parallel(files.map(f => () =>
-  agent(`List all auth-related functions in ${f}`, {
-    model: 'claude-haiku-4-5-20251001',
-    label: `scan:${f}`,
-    phase: 'Search',
-  })
-))
-
-// Implement on default Sonnet 5
-const impl = await agent(
-  `Implement auth changes based on: ${findings.filter(Boolean).join('\n')}`,
-  { phase: 'Implement' }
-)
-
-// Escalate one architectural review to Fable
-const review = await agent(
-  `Review this auth implementation for security regressions and propose alternatives:\n${impl}`,
-  { model: 'claude-fable-5', phase: 'Review' }
-)
-```
-
-**Cost math example.** 20 files × 3K tokens (Haiku) + 1 implementation at 50K tokens (Sonnet 5) + 1 architectural review at 25K tokens (Fable):
-- Haiku searches: 60K tokens × $1/M = **$0.06**
-- Sonnet implementation: 50K × $2/M = **$0.10**
-- Fable review: 25K × ~$15/M = **$0.38**
-- Total: **$0.54** vs $1.50+ if everything ran on Fable
-
-With Sonnet 5's pricing [now locked in permanently at $2/$10](https://x.com/claudeai/status/2086891169217122586), these economics are stable — build the routing now.
-
-**Sources:** [Claude Code model config — code.claude.com](https://code.claude.com/docs/en/model-config) · [Claude model pricing — anthropic.com](https://www.anthropic.com/pricing) · [Multi-model routing guide — buildthisnow.com](https://www.buildthisnow.com/de/blog/guide/development/claude-code-model-routing-subagents)
-]]></content:encoded>
-      <media:content url="https://opengraph.githubassets.com/1/anthropics/claude-code" medium="image" />
-      <media:thumbnail url="https://opengraph.githubassets.com/1/anthropics/claude-code" />
-    </item>
+    
+    
 
     
     

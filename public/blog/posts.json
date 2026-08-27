@@ -1,5 +1,58 @@
 [
   {
+    "id": "2026-08-27-06-claude-code-agent-teams-enable-parallel",
+    "title": "Your Claude Code Sessions Can Now Coordinate: A Practical Guide to Agent Teams",
+    "excerpt": "Claude Code's experimental agent teams (one flag away) let a lead session spawn independent teammates from a shared task list — parallel implementation, research, or review without manual coordinat…",
+    "author": "Chris Harper",
+    "date": "08-27-2026",
+    "publishedAt": "2026-08-27T20:11:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/agent-teams",
+    "content": "**TL;DR: One `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` flag turns your session into a team lead that spawns independent Claude Code teammates, each with their own context window, working from a shared task list. Still experimental — no resume support, and behavior changes without notice.**\n\n**What you'll be able to do after this:** run parallel implementation, review, or research across multiple Claude Code sessions without managing the coordination by hand.\n\nClaude Code's agent team mode lets one session act as team lead: it spawns teammates (separate Claude Code instances, each with their own context window), assigns tasks from a shared list, and receives idle notifications when they finish. Teammates can message each other directly — they don't route everything through the lead.\n\n**Enabling it:**\n\n```json\n{\n  \"env\": {\n    \"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\": \"1\"\n  }\n}\n```\n\nThen describe what you want in natural language:\n\n```\nSpawn three teammates to review PR #142:\n- One focused on security implications\n- One checking performance impact\n- One validating test coverage\n```\n\n**Three rules that determine whether it works:**\n\n1. **Write spawn prompts as if teammates have never seen your conversation.** They haven't — teammates don't inherit the lead's history. Include the file path, the goal, and the constraints directly in the spawn prompt.\n\n2. **Size tasks so each produces one clear deliverable.** A function, a test file, a review. Too small: coordination overhead exceeds the benefit. Too large: a teammate works 20 minutes in the wrong direction before you notice.\n\n3. **Give each teammate ownership of separate files.** Two teammates editing the same file don't merge — they overwrite. Split work by module or file set before spawning.\n\n**When to prefer subagents instead:** sequential tasks, shared file dependencies, or any job where you need the result back in the lead's context before continuing — subagents return their output directly; teammates send an idle notification without their output.\n\n**Real limits:** experimental — `/resume` doesn't restore in-process teammates after a restart; enabling it can cause Claude to spawn teammates even when you asked for subagents; token cost scales linearly with active teammates; behavior changes without notice.\n\n**Sources:** [Agent teams — code.claude.com](https://code.claude.com/docs/en/agent-teams) · [Cross-session messaging — code.claude.com](https://code.claude.com/docs/en/cross-session-messaging) · [Claude Code Cross-Session Messaging Guide — kylon.io](https://kylon.io/blog/claude-code-cross-session-messaging-2026)"
+  },
+  {
+    "id": "2026-08-27-07-deepmind-talent-exodus-anthropic-openai",
+    "title": "The Research Bench Is Reshuffling: Google DeepMind's Brain Drain in Numbers",
+    "excerpt": "DeepMind's share of top European AI hires fell from 49% to 18.6%. John Jumper (AlphaFold) joined Anthropic, Noam Shazeer (Gemini co-lead) joined OpenAI — data from Fortune, August 27.",
+    "author": "Chris Harper",
+    "date": "08-27-2026",
+    "publishedAt": "2026-08-27T20:10:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://fortune.com/2026/08/27/google-deepmind-losing-talent-to-rival-ai-labs-startups-new-data-show/",
+    "content": "**TL;DR: New data shows Google DeepMind's share of top European AI research hires fell from 49% (2022–23) to 18.6% (2025–26). AlphaFold co-creator John Jumper joined Anthropic; Gemini co-lead Noam Shazeer joined OpenAI; AlphaGo researcher David Silver founded Ineffable Intelligence.**\n\nNew analysis published today by Fortune quantifies what had been visible as individual departures: DeepMind's grip on European AI research talent has loosened significantly. The exits include Jeff Dean (27-year Google veteran), Sanjay Ghemawat, Oriol Vinyals and Quoc Le (who launched Discovery Loop), AlphaFold co-creator John Jumper (now at Anthropic, along with AlphaFold researchers Jonas Adler and Alexander Pritzel), and Gemini co-lead Noam Shazeer (now at OpenAI). David Silver, the RL researcher behind AlphaGo, founded Ineffable Intelligence, now valued at $5.1 billion.\n\nResearchers who left cite frustration with DeepMind's shift from open-ended science toward Google product delivery and stricter publication restrictions introduced in 2025.\n\n**Why it matters:** Frontier model capability tends to follow research talent. Anthropic is capturing a notable share of DeepMind alumni — Jumper's AlphaFold work is foundational to modern protein-structure and multimodal reasoning research. For engineers deciding where to invest workflow time and which models to build around: the concentration of research expertise is shifting toward Anthropic and OpenAI, and that directionally affects where capability advances are most likely to land first.\n\n**Limits to note:** talent movement doesn't directly predict model quality — many breakthroughs have come from small, focused teams, and Google retains world-class compute infrastructure. Hiring data lags the actual model roadmap by 12–24 months at minimum, so DeepMind's Gemini roadmap is not suddenly derailed.\n\n**Sources:** [Google DeepMind losing talent to rival AI labs — Fortune](https://fortune.com/2026/08/27/google-deepmind-losing-talent-to-rival-ai-labs-startups-new-data-show/) · [Google's new AI boss inherits a race — CNBC](https://www.cnbc.com/2026/08/12/google-deepmind-koray-kavukcuoglu.html)"
+  },
+  {
+    "id": "2026-08-27-08-evaluate-finetuned-llm-lighteval-metrics",
+    "title": "You Trained the Adapter — Now Prove It Worked: A Three-Step Eval for Fine-Tuned LLMs",
+    "excerpt": "Training loss dropping isn't proof of improvement. Three checks — held-out perplexity, lighteval benchmark, and a task-specific metric — tell you whether your LoRA adapter actually helped.",
+    "author": "Chris Harper",
+    "date": "08-27-2026",
+    "publishedAt": "2026-08-27T20:09:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Fine-Tuning",
+      "HuggingFace"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/learn/llm-course/en/chapter11/5",
+    "content": "**TL;DR: Training loss is not a reliable proxy for whether a fine-tune improved your model. Three checks — held-out perplexity, a standardized benchmark via lighteval, and one task-specific metric — give you numbers worth acting on.**\n\n**What you'll be able to do after this:** run a structured evaluation that catches regressions, confirms real-world improvement, and gives you a defensible number before shipping your LoRA adapter.\n\nTraining loss can drop while the model regresses on actual tasks — it measures how well the model predicts the training data, not whether the output is useful. The minimum viable eval stack is three layers:\n\n**1. Perplexity on a held-out test set.** Measure negative log-likelihood on examples the model never saw during training, then convert to perplexity. Lower than the base model on your domain: the fine-tune learned the distribution. Equal or higher: it didn't.\n\n```python\nimport torch, math\nfrom transformers import AutoModelForCausalLM, AutoTokenizer\n\ndef perplexity(model, tokenizer, texts):\n    nlls = []\n    for text in texts:\n        enc = tokenizer(text, return_tensors=\"pt\")\n        with torch.no_grad():\n            out = model(**enc, labels=enc[\"input_ids\"])\n        nlls.append(out.loss.item())\n    return math.exp(sum(nlls) / len(nlls))\n```\n\nRun this against both the base model and your fine-tuned model on the same test set.\n\n**2. Standardized benchmark via lighteval.** Compare fine-tuned vs. base on a benchmark relevant to your domain. For a medical assistant fine-tune:\n\n```bash\nlighteval accelerate \\\n  \"pretrained=your-finetuned-model\" \\\n  \"mmlu|anatomy|0|0,mmlu|professional_medicine|0|0\" \\\n  --max_samples 200 --output_path ./results\n```\n\nRun the same command against the base checkpoint. The delta is your verifiable improvement.\n\n**3. A task-specific metric or LLM-as-judge.** For classification: F1 or accuracy on a held-out labeled set. For generation: sample 50–100 outputs from both models, route them to a stronger model (e.g., Claude Sonnet 5) with a rubric, and have it score them blind. Human eval if the stakes are high.\n\n**Three mistakes to avoid:**\n\n- Reporting only training loss, which the model directly optimized and can't fail to lower\n- Evaluating only the fine-tuned model — without a base-model baseline you can't claim improvement, only measure absolute performance\n- Using examples from the same distribution as training — test on a different source, time window, or rephrasing\n\n**Real limits:** Benchmark scores don't capture edge-case or deployment behavior. LLM-as-judge carries the judge model's biases toward its own output style. Perplexity measures prediction probability, not whether the output is actually useful — a model can be confident and wrong. These evals are a floor, not a ceiling.\n\n**Sources:** [Evaluation — HuggingFace LLM Course, Chapter 11](https://huggingface.co/learn/llm-course/en/chapter11/5) · [LLM evaluation metrics guide — machinelearningmastery.com](https://machinelearningmastery.com/llm-evaluation-metrics-made-easy/) · [Quantitative evaluation: ROUGE, BLEU, Perplexity — apxml.com](https://apxml.com/courses/introduction-to-llm-fine-tuning/chapter-5-evaluation-and-deployment/quantitative-evaluation)"
+  },
+  {
     "id": "2026-08-27-05-anthropic-batch-api-async-offline-calls",
     "title": "Batch Your Offline Claude Calls and Pay Half: The Message Batches API",
     "excerpt": "The Anthropic Message Batches API runs up to 100K async requests at 50% of synchronous pricing. Right for eval runs, nightly reports, and bulk tagging; wrong for anything real-time.",
