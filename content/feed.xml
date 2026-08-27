@@ -10,7 +10,158 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 27 Aug 2026 04:03:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 27 Aug 2026 12:06:00 +0000</lastBuildDate>
+
+
+    <item>
+      <title>Batch Your Offline Claude Calls and Pay Half: The Message Batches API</title>
+      <link>https://docs.anthropic.com/en/api/creating-message-batches</link>
+      <guid isPermaLink="false">2026-08-27-05-anthropic-batch-api-async-offline-calls</guid>
+      <pubDate>Thu, 27 Aug 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Best Practices</category>
+      <category>Developer Tools</category>
+      <description>The Anthropic Message Batches API runs up to 100K async requests at 50% of synchronous pricing. Right for eval runs, nightly reports, and bulk tagging; wrong for anything real-time.</description>
+      <content:encoded><![CDATA[**TL;DR: The Anthropic Message Batches API processes up to 100K requests asynchronously at 50% of synchronous pricing, per Anthropic's published rates — the right default for eval runs, nightly reports, and bulk tagging, with a 24-hour maximum wait and no streaming.**
+
+Most Claude API workloads split into two populations: calls that need a real-time response, and calls that don't. The second population — evaluation runs against a test set, nightly document tagging, bulk classification — is running at full synchronous pricing even though nothing is actually waiting on the result. The [Message Batches API](https://docs.anthropic.com/en/api/creating-message-batches) exists for exactly this case.
+
+**Submitting a batch:**
+
+```python
+import anthropic, time
+
+client = anthropic.Anthropic()
+
+# Submit — up to 100K requests per batch; each follows the Messages API schema
+batch = client.messages.batches.create(
+    requests=[
+        {
+            "custom_id": f"doc-{i}",
+            "params": {
+                "model": "claude-sonnet-5",
+                "max_tokens": 200,
+                "messages": [{"role": "user", "content": f"Classify the sentiment of: {text}"}],
+            },
+        }
+        for i, text in enumerate(texts)
+    ]
+)
+print(f"Submitted batch {batch.id}. Status: {batch.processing_status}")
+
+# Poll for completion (most batches finish in minutes; SLA is 24 hours)
+while True:
+    status = client.messages.batches.retrieve(batch.id)
+    if status.processing_status == "ended":
+        break
+    time.sleep(60)
+
+# Retrieve results
+for result in client.messages.batches.results(batch.id):
+    if result.result.type == "succeeded":
+        print(result.custom_id, result.result.message.content[0].text)
+    elif result.result.type == "errored":
+        print(result.custom_id, "ERROR:", result.result.error)
+```
+
+**When to use it:**
+- Eval pipelines over a labeled test set: submit the whole set, retrieve results hours later
+- Nightly ingestion: summarize or tag new documents overnight, read results in the morning
+- Bulk classification at scale: 50K items in one API call, not 50K round trips
+
+**Limits — all real:**
+- Results take up to 24 hours. Most batches finish in minutes to a few hours, but there's no timing SLA, so this isn't for anything time-sensitive.
+- No streaming. Poll or set a webhook; results don't come in incrementally.
+- No per-request adaptation. If Claude's response to request 3 should influence request 4, you can't do that within a single batch.
+- Results are stored for 29 days, then deleted.
+
+**Finding your biggest async opportunity:** the `/claude-api cost-optimize` command added in Claude Code v2.1.247 (August 27, 2026) profiles your project's existing call patterns and flags high-frequency synchronous calls that look like batch candidates — a useful starting point before auditing manually.
+
+**Sources:** [Anthropic Message Batches API docs](https://docs.anthropic.com/en/api/creating-message-batches), [Anthropic pricing — 50% batch discount](https://www.anthropic.com/pricing), [CloudZero: Claude pricing 2026](https://www.cloudzero.com/blog/claude-pricing/), [Claude Code v2.1.247 changelog](https://releasebot.io/updates/anthropic/claude-code)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>From Documents to Answers in 30 Lines: Build a Minimal RAG Pipeline With LangChain</title>
+      <link>https://www.youtube.com/watch?v=sVcwVQRHIc8</link>
+      <guid isPermaLink="false">2026-08-27-04-langchain-minimal-rag-pipeline-foundations</guid>
+      <pubDate>Thu, 27 Aug 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Embeddings</category>
+      <description>Build a working RAG pipeline in 30 lines: load documents, split into chunks, embed with a free local model, store in Chroma, retrieve by similarity, and generate with Claude. Three failure modes explained.</description>
+      <media:content url="https://img.youtube.com/vi/sVcwVQRHIc8/maxresdefault.jpg" medium="image"/>
+      <media:thumbnail url="https://img.youtube.com/vi/sVcwVQRHIc8/maxresdefault.jpg"/>
+      <content:encoded><![CDATA[**What you'll be able to do after this:** wire any document collection to a language model for context-grounded answers, see where the five pipeline steps break, and extend toward evaluation, hybrid search, or metadata filtering.
+
+The blog has covered each RAG component separately: [sentence-transformers for embeddings](https://cloudcodetree.com/ai-news/2026-08-23-05-sentence-transformers-text-embeddings-basics), [Chroma](https://cloudcodetree.com/ai-news/2026-08-13-05-chroma-persistent-vector-store-getting-started) and [LanceDB](https://cloudcodetree.com/ai-news/2026-08-14-01-lancedb-embedded-vector-store) for vector stores, [RecursiveCharacterTextSplitter for chunking](https://cloudcodetree.com/ai-news/2026-08-20-06-langchain-recursive-splitter-chunking-foundations). This tutorial wires them into one working pipeline.
+
+**Anchor resource:** [Learn RAG From Scratch — Python Tutorial from a LangChain Engineer](https://www.youtube.com/watch?v=sVcwVQRHIc8) (~45 minutes, covers every step below with worked examples). The [official LangChain RAG tutorial](https://python.langchain.com/docs/tutorials/rag/) has copy-pasteable code for the same pipeline.
+
+**The five-step pipeline:**
+
+```python
+# pip install langchain-core langchain-anthropic langchain-chroma
+# pip install langchain-text-splitters langchain-community sentence-transformers
+
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
+from langchain_anthropic import ChatAnthropic
+from langchain_core.prompts import ChatPromptTemplate
+
+# 1. Load — wrap your text as Documents (swap for WebBaseLoader, PyPDFLoader, etc.)
+docs = [
+    Document(page_content=open("readme.md").read(), metadata={"source": "readme.md"}),
+]
+
+# 2. Split — 1000 chars, 200-char overlap keeps context across chunk boundaries
+splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+chunks = splitter.split_documents(docs)
+
+# 3. Embed + Store — all-MiniLM-L6-v2 runs locally for free; Chroma persists to disk
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+vector_store = Chroma.from_documents(chunks, embeddings, persist_directory="./chroma_db")
+
+# 4. Retrieve — top-4 chunks by cosine similarity to the query
+retriever = vector_store.as_retriever(search_kwargs={"k": 4})
+retrieved = retriever.invoke("How do I run the tests?")
+
+# 5. Generate — inject retrieved context, send to Claude
+llm = ChatAnthropic(model="claude-sonnet-5")
+prompt = ChatPromptTemplate.from_template(
+    "Answer based only on the context below. "
+    "If the context does not answer the question, say so.
+
+"
+    "Context:
+{context}
+
+Question: {question}"
+)
+context = "
+
+---
+
+".join(c.page_content for c in retrieved)
+answer = llm.invoke(prompt.format_messages(context=context, question="How do I run the tests?"))
+print(answer.content)
+```
+
+**Three failure modes to know before debugging:**
+
+- **Wrong chunk size.** 1000 characters is a starting point, not a rule. Dense technical docs often work better at 300–500 chars; narrative text can go to 1500. Print a few retrieved chunks before blaming the model — if they don't make sense in isolation, tune the splitter first.
+- **Embedding mismatch.** If you indexed with model A and query with model B, similarity scores are meaningless. The embedder at query time must match the one used at index time exactly.
+- **Stale index.** Chroma persists to disk, so adding or changing source files does not rebuild the index automatically. Clear and rebuild (`shutil.rmtree("./chroma_db")`), or use LangChain's [RecordManager for incremental updates](https://python.langchain.com/docs/how_to/indexing/).
+
+**Where to go next:** once the pipeline works, add [metadata filtering](https://python.langchain.com/docs/how_to/self_query/) to restrict retrieval by source or date, or layer in [hybrid BM25 + vector search](https://python.langchain.com/docs/how_to/hybrid/) to catch keyword matches that cosine similarity misses.
+
+**Sources:** [Learn RAG From Scratch — LangChain Engineer (YouTube)](https://www.youtube.com/watch?v=sVcwVQRHIc8), [LangChain RAG Tutorial (official docs)](https://python.langchain.com/docs/tutorials/rag/), [all-MiniLM-L6-v2 model card (HuggingFace)](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2), [LangChain text splitters](https://python.langchain.com/docs/concepts/text_splitters/)]]></content:encoded>
+    </item>
 
     <item>
       <title>Every Claude API Response Now Carries an Invisible Watermark — What to Adjust Before You Ship</title>
@@ -6138,54 +6289,8 @@ With Sonnet 5's pricing [now locked in permanently at $2/$10](https://x.com/clau
       <media:thumbnail url="https://opengraph.githubassets.com/1/anthropics/claude-code" />
     </item>
 
-    <item>
-      <title>Sonnet 5 Stays at $2/$10 Per Million Tokens: Anthropic Cancels the September Price Increase</title>
-      <link>https://x.com/claudeai/status/2086891169217122586</link>
-      <guid isPermaLink="false">2026-08-12-03-sonnet5-pricing-permanent-anthropic</guid>
-      <pubDate>Wed, 12 Aug 2026 04:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Developer Tools</category>
-      <category>LLM</category>
-      <description>Anthropic made Sonnet 5's $2/$10 per million token introductory pricing permanent on August 10 -- the planned 50% September 1 increase is officially canceled.</description>
-      <content:encoded><![CDATA[
-**Anthropic locked Sonnet 5 at $2/$10 per million tokens permanently — the planned 50% September 1 price increase is canceled.**
-
-In [an August 10 announcement](https://x.com/claudeai/status/2086891169217122586), Anthropic made Claude Sonnet 5's introductory pricing permanent. The $2 input / $10 output per million token rate that launched in June will not step up to $3/$15 on September 1 — that planned increase is officially off.
-
-One nuance remains: Sonnet 5's tokenizer produces ~30% more tokens from the same text as Sonnet 4.6, so effective cost comparisons across model generations still require accounting for that. But for anyone already running Sonnet 5 workloads, the rate is now stable indefinitely.
-
-**Why it matters:** Any agent pipeline budgeted around a September 1 50% increase can drop that assumption. Lock in your model-tier routing now — $2/$10 is the permanent Sonnet 5 rate.
-
-**Sources:** [@claudeai announcement](https://x.com/claudeai/status/2086891169217122586) · [Techmeme coverage](https://www.techmeme.com/260810/p42) · [Analysis — explainx.ai](https://explainx.ai/blog/anthropic-sonnet-5-permanent-pricing-august-2026)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>OpenAI Ships GPT-5.6-Cyber: Specialized Security Model Lands Behind Daybreak Red Access Tier</title>
-      <link>https://www.neowin.net/news/openai-launches-gpt-56-cyber-and-expands-daybreak-with-red-and-blue-access-tiers/</link>
-      <guid isPermaLink="false">2026-08-12-02-gpt56cyber-daybreak-red-security</guid>
-      <pubDate>Wed, 12 Aug 2026 04:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Security</category>
-      <category>LLM</category>
-      <description>GPT-5.6-Cyber completes 95% of security prompts that GPT-5.6 Sol refuses -- gated behind OpenAI's new Daybreak Red identity-verified access tier for vetted researchers.</description>
-      <content:encoded><![CDATA[
-**GPT-5.6-Cyber answers 95% of security prompts that GPT-5.6 Sol refuses — a purpose-built offensive research model gated behind OpenAI's new Daybreak Red vetted-access tier.**
-
-OpenAI [launched GPT-5.6-Cyber on August 10](https://www.neowin.net/news/openai-launches-gpt-56-cyber-and-expands-daybreak-with-red-and-blue-access-tiers/), a variant of GPT-5.6 Sol trained for cybersecurity workflows: zero-day vulnerability research, exploit chain development, and red-team automation. It's only available via Daybreak Red, where security vendors (CrowdStrike, Palo Alto Networks, Cisco, Cloudflare, IBM) vouch for applicants' legitimate defensive use.
-
-The companion Daybreak Blue tier gives approved defenders access to GPT-5.6 Sol with adjusted safeguards for vulnerability discovery, malware analysis, and patch validation — a lower access bar than Red.
-
-**Why it matters:** Specialized security model tiers separate from consumer APIs is emerging as the industry pattern for dual-use AI. Most engineers won't qualify for Daybreak Red today, but this signals where agentic offensive security tooling is heading — expect other labs to follow.
-
-**Sources:** [OpenAI Daybreak Red launch — Neowin](https://www.neowin.net/news/openai-launches-gpt-56-cyber-and-expands-daybreak-with-red-and-blue-access-tiers/) · [GPT-5.6-Cyber — The Hacker News](https://thehackernews.com/2026/08/openai-launches-gpt-56-cyber-with.html) · [Axios analysis](https://www.axios.com/2026/08/10/openai-gpt-astra-restrictions-safety-hacking-defenders)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
