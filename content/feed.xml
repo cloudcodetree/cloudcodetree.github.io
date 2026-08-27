@@ -10,7 +10,132 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 26 Aug 2026 20:04:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 27 Aug 2026 04:03:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Every Claude API Response Now Carries an Invisible Watermark — What to Adjust Before You Ship</title>
+      <link>https://the-decoder.com/anthropic-watermarks-all-claude-outputs-globally-with-marks-that-may-persist-through-some-editing/</link>
+      <guid isPermaLink="false">2026-08-27-03-claude-output-watermark-api-developers</guid>
+      <pubDate>Thu, 27 Aug 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Best Practices</category>
+      <category>LLM</category>
+      <description>New Claude models embed an invisible text watermark and C2PA metadata on file outputs, globally since August 2. Presence proves Claude was involved; absence proves nothing. Here is what to adjust.</description>
+      <content:encoded><![CDATA[**TL;DR: Every new Claude model embeds an invisible signal in text and C2PA metadata in file outputs. Presence proves Claude processed the content; absence proves nothing at all.**
+
+Since August 2, all new Claude models apply two types of provenance marks globally — not just for EU users:
+
+- **Text watermark:** an imperceptible signal in generated text. Anthropic says it "may persist through some editing." It is not guaranteed to survive heavy rewriting, format conversion, or extraction pipelines. Detection is probabilistic, not definitive.
+- **C2PA file provenance:** .svg, .png, and .jpg outputs receive signed Coalition for Content Provenance and Authenticity metadata. If your pipeline strips EXIF/metadata on pass-through, the provenance chain breaks silently.
+
+**What the mark says and doesn't say.** A detected mark is evidence that Claude processed this content at some point — it does NOT mean the text is verbatim AI output. A missing mark tells you nothing: the mark may have been lost in editing, format conversion, or the content may predate August 2.
+
+**What to adjust if you build on the API:**
+
+1. **Audit your post-processing steps.** If you reformat, merge, or trim Claude output, test whether your pipeline strips the text watermark. Don't build logic that treats "no mark = human-authored."
+2. **Handle image metadata explicitly.** Decide whether to preserve or strip C2PA metadata before distribution. Stripping is fine; inadvertently stripping it while claiming provenance is not.
+3. **Keep your own audit log.** The watermark is corroboration, not a reliable substitute. Log which API calls produced which outputs at the application layer — the mark is backup evidence, not a complete record.
+4. **There is no opt-out.** The API exposes no flag to disable watermarking. Plan around it, not against it.
+
+Coverage extends across Claude API, Claude.ai, Claude Code, Claude Cowork, Claude Tag, and cloud partner deployments (AWS Bedrock, Google Cloud, Microsoft Foundry). Older models — anything released before August 2 — do not carry the mark.
+
+**Limit:** Anthropic explicitly says detected marks are "not conclusive evidence" that Claude produced the content, and absence "cannot guarantee that AI wasn't involved." Treat the watermark as a transparency signal, not a detection system.
+
+**Sources:** [How Claude's text watermark works — Anthropic newsroom](https://www.anthropic.com/news) · [Watermarks all Claude outputs globally — The Decoder](https://the-decoder.com/anthropic-watermarks-all-claude-outputs-globally-with-marks-that-may-persist-through-some-editing/) · [TechCrunch](https://techcrunch.com/2026/08/11/anthropic-says-it-will-watermark-text-generated-by-its-ai-models/) · [EU AI Act context — The Next Web](https://thenextweb.com/news/anthropic-watermarks-claude-output-eu-ai-act-article-50)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>OpenAI's Custom Inference Chip Outperforms NVIDIA Blackwell on Throughput per Watt — and GPT-5.6 Luna Falls 80%</title>
+      <link>https://openai.com/index/jalapeno-first-results/</link>
+      <guid isPermaLink="false">2026-08-27-02-openai-jalapeno-chip-luna-pricing</guid>
+      <pubDate>Thu, 27 Aug 2026 04:02:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>OpenAI published Jalapeño benchmark results: 1.5–1.9× more throughput per watt vs. current NVIDIA Blackwell. Same week, GPT-5.6 Luna dropped 80% to $0.20/1M input tokens.</description>
+      <content:encoded><![CDATA[**Two developments this week point in the same direction: inference is getting faster and cheaper, and the gap between "powerful" and "affordable" is narrowing.**
+
+**Jalapeño results (Aug 25):** OpenAI published first measured results from its custom inference chip, developed with Broadcom. On SemiAnalysis' InferenceX benchmark: 1.5–1.9× more AI work per watt at peak throughput, 1.7–3.6× lower end-to-end latency, and 2.1–4.1× better performance on interactive workloads — all versus current NVIDIA Blackwell hardware. The architecture keeps KV cache and model state local to cut data-movement overhead, which is the dominant inference bottleneck most hardware doesn't specifically address.
+
+Deployment starts in "very small volumes" at the end of 2026, broader rollout in 2027. No API pricing or response-time changes are announced yet — these are internal infrastructure numbers.
+
+**GPT-5.6 Luna pricing:** OpenAI cut Luna 80% this week to $0.20 input / $1.20 output per million tokens. Terra held at $2.50 / $15.
+
+**Why it matters:** If your agent workflow routes everything through a single model tier, the infrastructure trend supports designing for model routing now — so switching to a cheaper tier for sub-tasks is a config change, not an architecture change. LiteLLM's router is the standard wire for that without coupling to a specific provider.
+
+**Sources:** [Jalapeño first results — OpenAI](https://openai.com/index/jalapeno-first-results/) · [OpenAI + Broadcom chip announcement](https://openai.com/index/openai-broadcom-jalapeno-inference-chip/) · [TechCrunch analysis](https://techcrunch.com/2026/08/25/openais-jalapeno-chip-is-built-for-fast-inference-at-scale-benchmarks-show/) · [GPT pricing updates — llm-stats.com](https://llm-stats.com/llm-updates)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Turn Any Python Function Into a Tool Claude Code Can Call: Your First MCP Server in 15 Lines</title>
+      <link>https://modelcontextprotocol.io/docs/2026-07-28/develop/build-server</link>
+      <guid isPermaLink="false">2026-08-27-01-build-first-mcp-server-python-sdk</guid>
+      <pubDate>Thu, 27 Aug 2026 04:01:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>MCP</category>
+      <category>Agents</category>
+      <media:content url="https://mintcdn.com/mcp/4ZXF1PrDkEaJvXpn/images/current-weather.png" medium="image" />
+      <media:thumbnail url="https://mintcdn.com/mcp/4ZXF1PrDkEaJvXpn/images/current-weather.png" />
+      <description>The MCP Python SDK turns decorated Python functions into tools Claude Code can call. Install mcp[cli], decorate your functions, test with mcp dev, wire to Claude Code in settings.json.</description>
+      <content:encoded><![CDATA[**TL;DR: The MCP Python SDK turns any typed Python function into a Claude-callable tool in 15 lines — decorators handle the JSON schema, the CLI handles the inspector, no protocol code needed.**
+
+**What you'll be able to do after this:** expose your own tools, APIs, or data sources to Claude Code (and any MCP host) so they're available as first-class tools in every session — without touching protocol or serialization code.
+
+- **`@mcp.tool()` is all you write.** Type hints become JSON schema automatically; the SDK handles request parsing, validation, and transport.
+- **`mcp dev server.py`** launches a browser inspector so you can invoke your tools and inspect the protocol messages before connecting anything to Claude.
+- **Use MCP when multiple agents or editors need the same capability.** For a single session's private helper, a shell tool is simpler. MCP pays off when the tool is shared.
+
+**Minimal server (Python, 15 lines):**
+
+```python
+from mcp.server import MCPServer
+
+mcp = MCPServer("my-tools")
+
+@mcp.tool()
+def search_docs(query: str, max_results: int = 10) -> list[dict]:
+    """Search the internal docs API and return matching pages."""
+    return fetch_docs(query, limit=max_results)
+
+if __name__ == "__main__":
+    mcp.run()
+```
+
+**Steps:**
+
+1. Install: `pip install "mcp[cli]"` (Python 3.10+; or `uv add "mcp[cli]"`)
+2. Decorate each capability with `@mcp.tool()`, `@mcp.resource()`, or `@mcp.prompt()`
+3. Test: `mcp dev server.py` — opens MCP Server Inspector in your browser; invoke tools and inspect JSON without connecting Claude
+4. Wire to Claude Code — add to `~/.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "my-tools": { "command": "python", "args": ["path/to/server.py"] }
+  }
+}
+```
+
+Then run `claude mcp login my-tools` if the server requires authentication, and restart Claude Code.
+
+**Three things that don't work automatically:**
+
+- **Authentication:** MCP has no built-in auth for tool calls. Wire a shared secret or OAuth yourself, or use the `claude mcp login` interactive flow.
+- **Error propagation:** unhandled exceptions become opaque errors. Return a structured dict with an `error` key for failures the model can read and act on.
+- **Response size:** the SDK serializes anything you return, but Claude Code enforces a per-tool result-size limit. Keep responses under ~50K characters or paginate.
+
+The SDK is at **v2**, aligning with the 2026-07-28 MCP specification, which changes transports (Streamable HTTP is the new default; SSE still works). If you have a v1 server, check the [migration guide](https://py.sdk.modelcontextprotocol.io/migration) — the API surface changed.
+
+**Start here:** the official MCP quickstart at [modelcontextprotocol.io](https://modelcontextprotocol.io/docs/2026-07-28/develop/build-server) builds a two-tool weather server end-to-end and connects it to Claude Desktop. Anthropic's free course [Introduction to Model Context Protocol](https://anthropic.skilljar.com/introduction-to-model-context-protocol) goes deeper — all three primitives (tools, resources, prompts) and a document management system you build and test with the MCP Server Inspector.
+
+**Sources:** [Build an MCP server — modelcontextprotocol.io](https://modelcontextprotocol.io/docs/2026-07-28/develop/build-server) · [MCP Python SDK — GitHub](https://github.com/modelcontextprotocol/python-sdk) · [Introduction to MCP — Anthropic Skilljar](https://anthropic.skilljar.com/introduction-to-model-context-protocol) · [Step-by-step guide — Composio](https://composio.dev/content/mcp-server-step-by-step-guide-to-building-from-scrtch)]]></content:encoded>
+    </item>
 
     <item>
       <title>Give Your Managed Agent a Strategist to Consult Mid-Turn: The Advisor Model Pattern</title>
@@ -6061,243 +6186,9 @@ The companion Daybreak Blue tier gives approved defenders access to GPT-5.6 Sol 
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Before You Instruction-Tune: Teach Your Model a New Domain With Continued Pre-Training in Unsloth</title>
-      <link>https://unsloth.ai/blog/contpretraining</link>
-      <guid isPermaLink="false">2026-08-12-01-domain-pretrain-unsloth-cpt</guid>
-      <pubDate>Wed, 12 Aug 2026 04:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Fine-Tuning</category>
-      <category>HuggingFace</category>
-      <description>Continued pre-training (CPT) adapts a base model's vocabulary to your domain BEFORE instruction fine-tuning -- closing the context gap that forces SFT to work twice as hard.</description>
-      <content:encoded><![CDATA[
-**Continued pre-training adapts a base model's vocabulary and patterns to your domain BEFORE instruction fine-tuning — Unsloth's free Colab does it in minutes, and the gains compound through every downstream SFT task.**
-
-**What you'll be able to do after this:**
-- Know when CPT is worth doing (niche vocabulary, specialized formats, low-resource languages)
-- Run Unsloth's QLoRA-based continued pre-training pipeline on raw domain text with a free Colab GPU
-- Chain CPT → SFT for a model that understands your domain AND follows instructions
-
----
-
-Every instruction fine-tune (SFT) fights the base model's priors. If your domain — medical notes, legal filings, an internal codebase, a language the model rarely saw at scale — has vocabulary and sentence patterns that are out-of-distribution for the base model, your SFT data has to teach both "what this domain is" AND "how to follow instructions." That's two jobs for one fine-tune.
-
-Continued pre-training solves this with a "step 0": expose the base model to raw domain text as a next-token-prediction task. The model absorbs domain vocabulary and structure *without* changing output format. Then SFT your adapted model — you need fewer instruction pairs to hit the same quality, and domain-specific hallucinations drop significantly.
-
-**Walk-through (Unsloth, free Colab T4):**
-
-```python
-from unsloth import FastLanguageModel, UnslothTrainer, UnslothTrainingArguments
-from datasets import load_dataset
-
-# 1. Load a base (not instruction-tuned) model
-model, tokenizer = FastLanguageModel.from_pretrained(
-    "unsloth/Llama-3.2-3B-bnb-4bit",
-    max_seq_length=2048,
-)
-
-# 2. Prepare your domain corpus as raw text
-dataset = load_dataset("text", data_files={"train": "my_domain_corpus.txt"})
-
-# 3. CPT: raw text as next-token prediction, no instruction template
-trainer = UnslothTrainer(
-    model=model,
-    tokenizer=tokenizer,
-    train_dataset=dataset["train"],
-    dataset_text_field="text",
-    args=UnslothTrainingArguments(
-        per_device_train_batch_size=2,
-        gradient_accumulation_steps=4,
-        warmup_ratio=0.1,
-        num_train_epochs=1,
-        learning_rate=5e-5,            # lower than SFT (2e-4)
-        embedding_learning_rate=5e-6,  # 1/10th LR — keeps vocab stable
-        output_dir="cpt-adapter/",
-    ),
-)
-trainer.train()
-model.save_pretrained("cpt-adapter/")
-```
-
-**Key settings:** The lower learning rate (5e-5 vs SFT's typical 2e-4) prevents catastrophic forgetting of general capabilities. `embedding_learning_rate` at 1/10th of the main LR keeps vocabulary embeddings stable while the transformer layers adapt. After CPT, merge the adapter and use the merged checkpoint as your SFT base — you'll need less instruction data to reach the same output quality.
-
-**When CPT is worth it:** Medical/legal/scientific text, a low-resource language, a proprietary codebase with unique APIs or conventions. For general-purpose assistants built on general-domain data, skip CPT and go straight to SFT.
-
-**Sources:** [Continued LLM Pretraining — Unsloth Blog](https://unsloth.ai/blog/contpretraining) · [Unsloth CPT Documentation](https://unsloth.ai/docs/basics/continued-pretraining) · [Continuing Pre-Training on Raw Text — Chris McCormick](https://mccormickml.com/2025/01/18/continuing-pre-training-on-raw-text/)
-]]></content:encoded>
-      <media:content url="https://opengraph.githubassets.com/1/unslothai/unsloth" medium="image" />
-      <media:thumbnail url="https://opengraph.githubassets.com/1/unslothai/unsloth" />
-    </item>
-
-    <item>
-      <title>Automated PR Review with claude-code-action: 10 Lines of YAML, Zero Manual Review Fatigue</title>
-      <link>https://code.claude.com/docs/en/github-actions</link>
-      <guid isPermaLink="false">2026-08-11-08-claude-code-action-github-pr-automation</guid>
-      <pubDate>Tue, 11 Aug 2026 20:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Developer Tools</category>
-      <category>Best Practices</category>
-      <description>Drop 10 lines of YAML into .github/workflows/ and every PR gets a Claude Code review — reading the diff, understanding your codebase, and posting inline comments automatically.</description>
-      <content:encoded><![CDATA[
-**Drop `anthropics/claude-code-action@v1` into your GitHub Actions workflow and every PR gets a full Claude Code review — diff-aware, codebase-aware, and configurable to auto-fix.**
-
-`claude-code-action` is Anthropic's official GitHub Action. It spins up a Claude Code session for each trigger, reads the PR diff alongside your repository, and posts review comments — or pushes fixes directly — all from a standard Actions YAML file.
-
-**Minimal review setup** — add this to `.github/workflows/claude-review.yml`:
-
-```yaml
-name: Claude PR Review
-on:
-  pull_request:
-    types: [opened, synchronize]
-  issue_comment:
-    types: [created]
-
-jobs:
-  review:
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      contents: read
-    steps:
-      - uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          trigger_phrase: "@claude"
-          mode: review
-```
-
-This fires on every new or updated PR and whenever someone comments `@claude review` — Claude reads the diff, checks against your codebase, and leaves inline review comments.
-
-**Key options:**
-
-| Option | What it does |
-|---|---|
-| `mode: fix` | Claude implements the fix and pushes commits |
-| `allowed_tools: "Read,Bash"` | Least-privilege tool list (default: all tools) |
-| `claude_md_path: ".claude/review.md"` | Custom review instructions per project |
-| `trigger_phrase: "@claude"` | Comment-triggered only (saves cost on draft PRs) |
-
-**Cost and safety notes.** Typical review runs $0.03–0.10 on Sonnet 5 — cheap enough to run on every commit. Pin to an audited SHA (`anthropics/claude-code-action@abc123`) rather than `@v1` for supply-chain safety; the Actions marketplace shows the latest verified SHA. Claude Code v2.1.227 (Aug 10) fixed a bug where all Bash commands would silently fail on GitHub-hosted runners when `allowed_non_write_users` was set — if you hit mysteriously empty tool results, that's the fix to pull.
-
-**What it can't do automatically:** push to protected branches without relaxed ruleset exceptions, or merge PRs — those still require human approval. Use `mode: review` for feedback-only and `mode: fix` for branches where you want Claude to author commits.
-
-**Sources:** [claude-code-action docs — Claude Code](https://code.claude.com/docs/en/github-actions) · [Complete CI/CD Integration Guide — The Prompt Shelf](https://thepromptshelf.dev/blog/claude-code-github-actions-cicd-complete-guide-2026/) · [v2.1.227 Bash fix — Claude Code Changelog](https://code.claude.com/docs/en/changelog)
-]]></content:encoded>
-      <media:content url="https://opengraph.githubassets.com/1/anthropics/claude-code-action" medium="image" />
-      <media:thumbnail url="https://opengraph.githubassets.com/1/anthropics/claude-code-action" />
-    </item>
-
-    <item>
-      <title>FAISS: Build a Lightning-Fast Local Vector Index in 15 Lines of Python</title>
-      <link>https://www.pinecone.io/learn/series/faiss/</link>
-      <guid isPermaLink="false">2026-08-11-07-faiss-local-vector-index-python</guid>
-      <pubDate>Tue, 11 Aug 2026 20:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Vectors</category>
-      <category>Embeddings</category>
-      <category>HuggingFace</category>
-      <description>FAISS is Meta's in-memory vector search library — no server, no SQL, just fast nearest-neighbor lookup over millions of embeddings. Learn IndexFlatL2 and IndexIVFFlat in 15 lines of Python.</description>
-      <content:encoded><![CDATA[
-**FAISS is Meta's open-source library for searching millions of embeddings in milliseconds — pure in-memory, no server required, and the backbone of many production RAG systems.**
-
-**What you'll be able to do after this:**
-- Build an exact-search vector index (`IndexFlatL2`) and query it in two lines of Python
-- Switch to approximate-search (`IndexIVFFlat`) when your dataset grows past ~100K vectors, with configurable speed/recall trade-off
-- Save and reload a FAISS index to disk so your embeddings survive restarts
-
----
-
-**FAISS vs. the alternatives.** pgvector lives inside Postgres; Chroma is a persistent managed store. FAISS is neither — it's a raw, in-memory C++ library with Python bindings. That makes it the fastest option for search-heavy workloads where you control the lifecycle, and the best tool for learning how vector similarity actually works under the hood before adding a database layer.
-
-**Two indexes every ML engineer should know:**
-
-| Index | How it works | Best for |
-|---|---|---|
-| `IndexFlatL2` | Brute-force L2 distance over all vectors | <100K vectors; always exact |
-| `IndexIVFFlat` | Partitions space into `nlist` cells; searches `nprobe` cells per query | 100K–100M vectors; ~1% recall trade-off for 10–100× speed |
-
----
-
-**Walk-through**
-
-Install:
-```bash
-pip install faiss-cpu sentence-transformers numpy
-```
-
-**Step 1: Exact search with `IndexFlatL2`**
-
-```python
-import faiss
-import numpy as np
-from sentence_transformers import SentenceTransformer
-
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
-docs = [
-    "Claude Code runs agentic sessions in your terminal",
-    "FAISS is a C++ library for fast vector similarity search",
-    "Embeddings encode meaning as high-dimensional float arrays",
-]
-doc_vecs = model.encode(docs, normalize_embeddings=True).astype("float32")
-d = doc_vecs.shape[1]          # 384 for MiniLM
-
-index = faiss.IndexFlatL2(d)   # exact L2 distance
-index.add(doc_vecs)            # add all vectors
-print(index.ntotal)            # 3
-
-query = model.encode(["vector similarity library"], normalize_embeddings=True).astype("float32")
-D, I = index.search(query, k=2)        # top-2 results
-print([docs[i] for i in I[0]])         # → ["FAISS is a C++ library…", "Embeddings encode…"]
-```
-
-**Step 2: Approximate search with `IndexIVFFlat` for large datasets**
-
-```python
-nlist = 100                               # cluster count (rule of thumb: sqrt(N))
-quantizer = faiss.IndexFlatL2(d)         # coarse-level quantizer
-index_ivf = faiss.IndexIVFFlat(quantizer, d, nlist)
-
-index_ivf.train(doc_vecs)                # required before adding
-index_ivf.add(doc_vecs)
-index_ivf.nprobe = 10                    # search 10 cells; raise for more recall
-
-D, I = index_ivf.search(query, k=2)
-print([docs[i] for i in I[0]])
-```
-
-Tune `nprobe` up to improve recall at the cost of speed. A value of 10 gives ~99% recall on most datasets; 1 gives maximum speed.
-
-**Step 3: Save and reload**
-
-```python
-faiss.write_index(index_ivf, "my_index.faiss")
-
-# --- later ---
-index_ivf = faiss.read_index("my_index.faiss")
-index_ivf.nprobe = 10                    # nprobe isn't saved — reset it
-```
-
-Note: FAISS doesn't store your original text — keep a parallel list or database to map integer indices back to documents (`docs[I[0][0]]` in the example above).
-
----
-
-**Go deeper.** Pinecone's [FAISS: The Missing Manual](https://www.pinecone.io/learn/series/faiss/) series covers HNSW (graph-based, production-grade), Product Quantization (compress 97% of memory), and the Index Factory — and has runnable Colab notebooks for each.
-
-**Sources:** [FAISS: The Missing Manual — Pinecone](https://www.pinecone.io/learn/series/faiss/) · [Nearest Neighbor Indexes — Pinecone](https://www.pinecone.io/learn/series/faiss/vector-indexes/) · [Official FAISS Python tutorials — GitHub](https://github.com/facebookresearch/faiss/tree/main/tutorial/python) · [FAISS Python API reference — GoLinuxCloud](https://www.golinuxcloud.com/faiss-python-api/)
-]]></content:encoded>
-      <media:content url="https://www.pinecone.io/learn/series/faiss/og-image.png" medium="image" />
-      <media:thumbnail url="https://www.pinecone.io/learn/series/faiss/og-image.png" />
-    </item>
-
+    
+    
+    
     
     
     
