@@ -1,5 +1,23 @@
 [
   {
+    "id": "2026-08-28-07-claude-code-restricted-mode-headless-ci",
+    "title": "Run Claude Code in CI Without Shell Access: --restricted Mode Strips Commands Entirely",
+    "excerpt": "Claude Code v2.1.248 adds --restricted mode: pass this flag in CI or headless automation to strip all command/code tools and WebFetch, leaving only file operations inside your working directory.",
+    "author": "Chris Harper",
+    "date": "08-28-2026",
+    "publishedAt": "2026-08-28T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/permission-modes",
+    "content": "**Claude Code v2.1.248 adds --restricted mode: one flag strips all shell and command tools, leaving only file read/write inside your working directory — safer for unattended CI pipelines.**\n\nIf you run Claude Code headlessly in CI — triggered by a PR, a nightly cron, a GitHub Actions step — the default toolset includes Bash, which can run arbitrary shell commands. That is useful in interactive sessions; in an automated pipeline it is an unnecessary attack surface.\n\n## The flag\n\n```bash\n# as a flag\nclaude --restricted -p \"Review the diff in src/ and suggest improvements\"\n\n# or as an environment variable\nCLAUDE_CODE_RESTRICTED=1 claude -p \"Generate JSDoc for all exported functions\"\n```\n\nRequires v2.1.248 or later. Check with `claude --version`.\n\n## What it removes\n\nIn restricted mode, Claude Code:\n- Strips all built-in tools that run commands or code (Bash, computer use, etc.)\n- Removes WebFetch (the agent cannot make outbound HTTP requests)\n- Keeps file tools (Read, Write, Edit, Glob, Grep) **confined to the working directory**\n- Refuses `bypassPermissions` even if your config tries to set it\n- Ignores user, project, and local settings files — the runtime is fully controlled by the caller\n\nThe result is a file-only agent: it can read your codebase, propose edits, and write results, but it cannot run a shell command or reach the network.\n\n## When to reach for it\n\nGood fits:\n- **Automated code review** — Claude reads changed files and outputs a structured review; no commands needed\n- **Documentation generators** — reads source files, writes JSDoc or markdown in place\n- **Lint suggestion runners** — reads the file, proposes the fix, writes it; no linter invocation required\n- **Any pipeline where you control the tool invocation** and only want file-level access\n\n## When it breaks your pipeline\n\nIf your pipeline needs the agent to run tests, compile, fetch external documentation, or invoke any CLI tool, restricted mode breaks those flows. Use `--allowedTools` instead to allow a specific subset:\n\n```bash\n# Allow only Read, Glob, and Grep — no writes, no commands\nclaude --allowedTools \"Read,Glob,Grep\" -p \"List all TODO comments in src/\"\n```\n\nThe key limit: restricted mode is all-or-nothing on command execution. If you need one command tool but not others, `--allowedTools` gives you the surgical control that `--restricted` does not.\n\n**Sources:** [Release v2.1.248 — GitHub](https://github.com/anthropics/claude-code/releases/tag/v2.1.248) · [Choose a permission mode — Claude Code Docs](https://code.claude.com/docs/en/permission-modes) · [Claude Code in CI/CD and headless automation — hidekazu-konishi.com](https://hidekazu-konishi.com/entry/claude_code_cicd_and_headless_automation.html)"
+  },
+  {
     "id": "2026-08-28-06-loop-cost-usage-subagent-cache-ttl",
     "title": "Debug Your Loop's Token Spend in /usage — and Cap Subagent Cache Separately",
     "excerpt": "Claude Code's /usage now breaks down token spend per named loop; the new subagentPromptCacheTtl setting lets you keep the main session cache hot while short-lived subagents expire quickly.",

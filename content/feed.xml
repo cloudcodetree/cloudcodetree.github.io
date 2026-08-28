@@ -10,8 +10,68 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 28 Aug 2026 12:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 28 Aug 2026 20:05:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Run Claude Code in CI Without Shell Access: --restricted Mode Strips Commands Entirely</title>
+      <link>https://code.claude.com/docs/en/permission-modes</link>
+      <guid isPermaLink="false">2026-08-28-07-claude-code-restricted-mode-headless-ci</guid>
+      <pubDate>Thu, 28 Aug 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.248 adds --restricted mode: pass this flag in CI or headless automation to strip all command/code tools and WebFetch, leaving only file operations inside your working directory.</description>
+      <content:encoded><![CDATA[**Claude Code v2.1.248 adds --restricted mode: one flag strips all shell and command tools, leaving only file read/write inside your working directory — safer for unattended CI pipelines.**
+
+If you run Claude Code headlessly in CI — triggered by a PR, a nightly cron, a GitHub Actions step — the default toolset includes Bash, which can run arbitrary shell commands. That is useful in interactive sessions; in an automated pipeline it is an unnecessary attack surface.
+
+## The flag
+
+```bash
+# as a flag
+claude --restricted -p "Review the diff in src/ and suggest improvements"
+
+# or as an environment variable
+CLAUDE_CODE_RESTRICTED=1 claude -p "Generate JSDoc for all exported functions"
+```
+
+Requires v2.1.248 or later. Check with `claude --version`.
+
+## What it removes
+
+In restricted mode, Claude Code:
+- Strips all built-in tools that run commands or code (Bash, computer use, etc.)
+- Removes WebFetch (the agent cannot make outbound HTTP requests)
+- Keeps file tools (Read, Write, Edit, Glob, Grep) **confined to the working directory**
+- Refuses `bypassPermissions` even if your config tries to set it
+- Ignores user, project, and local settings files — the runtime is fully controlled by the caller
+
+The result is a file-only agent: it can read your codebase, propose edits, and write results, but it cannot run a shell command or reach the network.
+
+## When to reach for it
+
+Good fits:
+- **Automated code review** — Claude reads changed files and outputs a structured review; no commands needed
+- **Documentation generators** — reads source files, writes JSDoc or markdown in place
+- **Lint suggestion runners** — reads the file, proposes the fix, writes it; no linter invocation required
+- **Any pipeline where you control the tool invocation** and only want file-level access
+
+## When it breaks your pipeline
+
+If your pipeline needs the agent to run tests, compile, fetch external documentation, or invoke any CLI tool, restricted mode breaks those flows. Use `--allowedTools` instead to allow a specific subset:
+
+```bash
+# Allow only Read, Glob, and Grep — no writes, no commands
+claude --allowedTools "Read,Glob,Grep" -p "List all TODO comments in src/"
+```
+
+The key limit: restricted mode is all-or-nothing on command execution. If you need one command tool but not others, `--allowedTools` gives you the surgical control that `--restricted` does not.
+
+**Sources:** [Release v2.1.248 — GitHub](https://github.com/anthropics/claude-code/releases/tag/v2.1.248) · [Choose a permission mode — Claude Code Docs](https://code.claude.com/docs/en/permission-modes) · [Claude Code in CI/CD and headless automation — hidekazu-konishi.com](https://hidekazu-konishi.com/entry/claude_code_cicd_and_headless_automation.html)]]></content:encoded>
+    </item>
 
     <item>
       <title>Debug Your Loop's Token Spend in /usage — and Cap Subagent Cache Separately</title>
@@ -6031,59 +6091,7 @@ The same `collection.add()`, `collection.query()`, and `collection.upsert()` cal
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>One Prompt, One Free GPU: Tell Your Agent to Fine-Tune a Model With the Google Colab CLI</title>
-      <link>https://huggingface.co/blog/sergiopaniego/trl-colab-cli</link>
-      <guid isPermaLink="false">2026-08-13-04-colab-cli-agent-gpu-finetuning</guid>
-      <pubDate>Wed, 13 Aug 2026 04:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Developer Tools</category>
-      <description>The Google Colab CLI makes Colab GPUs scriptable from any terminal — hand an agent a dataset prompt and get a fine-tuned adapter pushed to the Hub, free, no notebook UI required.</description>
-      <content:encoded><![CDATA[
-**The Google Colab CLI makes Colab GPUs scriptable from any terminal — hand an agent a dataset prompt and get a fine-tuned adapter pushed to the Hub, free.**
-
-[Google's Colab CLI](https://colab.research.google.com/notebooks/colab-cli.ipynb) (`pip install colab`) removes the notebook UI from the equation. Any process that can run shell commands — Claude Code, a LangChain agent, a Python script — can provision a free T4 GPU, run training code on it, stream live metrics, and push results, all without a browser.
-
-HuggingFace published the proof of concept: an agent was given one instruction and handled every step.
-
-**What the agent did, step by step:**
-
-1. `colab start` — provisioned a free T4 runtime
-2. Installed TRL, trackio, and bitsandbytes on the remote Colab session
-3. Authenticated with HuggingFace Hub inside the runtime
-4. Read TRL's SFTTrainer examples, then wrote a QLoRA training script from them
-5. Ran training; wired `trackio` to stream the loss curve to a HuggingFace Space in real time
-6. `push_to_hub=True` — LoRA adapter uploaded when training finished
-7. `colab stop` — runtime cleaned up
-
-Total cost: $0. Base model: `Qwen2.5-0.5B-Instruct`; the whole run finished in a few minutes on a free T4.
-
-**Try it from a Claude Code session:**
-
-```bash
-pip install colab
-colab login   # authenticates with your Google account
-```
-
-Then give Claude Code this prompt:
-
-```
-Fine-tune Qwen2.5-0.5B-Instruct on ./data/train.jsonl using TRL SFTTrainer
-with QLoRA (r=16, alpha=32). Run on a Colab T4 via the Colab CLI, stream
-metrics with trackio, push the adapter to <your-hf-username>/<repo-name>.
-```
-
-Claude Code reads the TRL docs, writes the script, provisions and runs the runtime, and reports back when the adapter is live on the Hub.
-
-**Why this pattern matters:** agentic ML doesn't require you to own GPUs. The Colab CLI makes free compute programmable — combine it with an agent that knows the training APIs and you get a zero-infrastructure fine-tuning workflow that any developer can run today.
-
-**Sources:** [I fine-tuned a model for free from one prompt, with TRL and the Google Colab CLI — HuggingFace Blog](https://huggingface.co/blog/sergiopaniego/trl-colab-cli) · [TRL SFTTrainer docs — HuggingFace](https://huggingface.co/docs/trl/sft_trainer)
-]]></content:encoded>
-    </item>
-
+    
     
     
     
