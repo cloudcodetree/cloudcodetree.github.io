@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-08-28-06-loop-cost-usage-subagent-cache-ttl",
+    "title": "Debug Your Loop's Token Spend in /usage — and Cap Subagent Cache Separately",
+    "excerpt": "Claude Code's /usage now breaks down token spend per named loop; the new subagentPromptCacheTtl setting lets you keep the main session cache hot while short-lived subagents expire quickly.",
+    "author": "Chris Harper",
+    "date": "08-28-2026",
+    "publishedAt": "2026-08-28T12:06:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**TL;DR: Two new Claude Code additions make loop costs observable: /usage now shows tokens per loop iteration, and `subagentPromptCacheTtl` sets subagent cache lifetime independently from the main session.**\n\n**Why loops go expensive silently.** A `/loop` task runs in a shared session, so each iteration's tool output, file reads, and scratchpad writes accumulate in the context window. Tokens-per-run creeping upward is the tell — and until recently there was no easy way to see it.\n\n**The new /usage Loops breakdown** adds a table for each named loop task: run count, total tokens, tokens per run (the average), and last-run time.\n\n- **Flat tokens-per-run** → each iteration starts clean; no context bleed\n- **Rising tokens-per-run** → context is accumulating; trim the scratchpad or add an explicit reset step at the end of each iteration\n- **Single outlier run with 10× the tokens** → a tool call returned a large payload; consider truncating before it goes back to Claude\n\n**The `subagentPromptCacheTtl` setting** pairs with the `promptCacheTtl` covered [here on Aug 26](https://cloudcodetree.com/ai-news/2026-08-26-04-prompt-cache-ttl-api-key-claude-code). They work independently: keep the main session warm at 1 hour while short-lived subagents expire at 5 minutes — so a dozen quick subagents don't each hold a 1-hour cache slot you're paying for after they're done.\n\n```json\n// .claude/settings.json (API-key or cloud-provider sessions only)\n{\n  \"promptCacheTtl\": \"1h\",\n  \"subagentPromptCacheTtl\": \"5m\"\n}\n```\n\n**Limits:** Both settings apply only to API-key and cloud-provider (Vertex/Bedrock) sessions — regular claude.ai plan users don't control cache TTL. The /usage Loops table covers named loop tasks; anonymous or inline subagent spawns show in the overall session total only, not as labeled rows.\n\n**Sources:** [Claude Code Changelog — code.claude.com](https://code.claude.com/docs/en/changelog) · [Claude Code Changelog August 2026 — Gradually](https://www.gradually.ai/en/changelogs/claude-code/) · [Claude Code Subagents: 2026 Production Playbook — Totalum](https://www.totalum.app/blog/claude-code-subagents-totalum)"
+  },
+  {
+    "id": "2026-08-28-05-mhs-physical-device-mcp-preview",
+    "title": "Anthropic Previews a Physical-Device Protocol Built on MCP: Same Pattern, Different Endpoints",
+    "excerpt": "Anthropic opened a research preview of the Model Hardware Standard (MHS), a spec for AI agents to control physical lab instruments using MCP-compatible tooling. Invite-only with research labs for now.",
+    "author": "Chris Harper",
+    "date": "08-28-2026",
+    "publishedAt": "2026-08-28T12:05:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "MCP",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://www.anthropic.com/news/model-hardware-standard-research-preview",
+    "content": "**TL;DR: Anthropic's Model Hardware Standard, previewed August 27, extends the MCP pattern to physical instruments — same tool-call framing, new endpoint class; invite-only with research labs for now.**\n\nThe [research preview](https://www.anthropic.com/news/model-hardware-standard-research-preview) opens MHS to a first cohort of scientific research labs and advanced manufacturers. Initial launch partner: HHMI Janelia Research Campus. AWS Strands Robots will support MHS for connecting agents to physical devices.\n\n**What it is technically.** MHS is model-agnostic: any device with a programmable interface can expose an MHS endpoint, and any MCP-compatible agent harness can discover and call it. An agent that can already write MCP servers can apply the same patterns to a robotic arm or a liquid handler — the specification handles device discovery and capability advertisement. Anthropic reports integration time dropping from weeks to hours for supported hardware.\n\n**Why it matters:** If your work never involves lab automation, file this as signal that the agent-control protocol is expanding beyond software APIs to physical effectors — the same mental model as MCP, a different endpoint class. If you do build agents for research or manufacturing, the standard is planned to go open-source after the preview period; safety evaluations are actively being built with launch partners.\n\n**Limits to know:** Invite-only preview; no general developer access yet. Safety evaluations for physical operation are still in progress — Anthropic is explicit that these are being built during the preview, not already validated.\n\n**Sources:** [Anthropic MHS research preview](https://www.anthropic.com/news/model-hardware-standard-research-preview) · [CNBC: Anthropic pushes into physical world](https://www.cnbc.com/2026/08/27/anthropic-pushes-into-physical-world-with-new-standard-to-help-ai-agents-operate-machines.html) · [SiliconANGLE: Anthropic previews MHS](https://siliconangle.com/2026/08/27/anthropic-previews-mhs-standard-for-ai-agents-that-operate-machines/)"
+  },
+  {
+    "id": "2026-08-28-04-mem0-persistent-agent-memory",
+    "title": "Your Agent Forgets Everything Between Sessions — mem0 Adds Persistent Memory in 10 Lines",
+    "excerpt": "mem0 adds a persistent memory layer to any LLM agent — store, retrieve, and update facts about users and tasks across sessions without managing a vector store yourself.",
+    "author": "Chris Harper",
+    "date": "08-28-2026",
+    "publishedAt": "2026-08-28T12:04:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://mem0.ai/blog/how-to-create-ai-agents-with-long-term-memory",
+    "content": "**What you'll be able to do after this:** add cross-session memory to any Claude-based agent — the agent remembers user preferences and project facts across sessions without you managing a vector store.\n\nThree things you'll take away:\n- How agents fail silently when context resets between sessions, and why stuffing everything into the system prompt doesn't scale\n- The three mem0 operations (`add`, `search`, `update`) that cover 90% of memory use cases, with copy-pasteable code\n- What to decide before production: cloud API vs. self-hosted, fact extraction quality, and memory poisoning as an attack surface\n\n**The problem.** A fresh agent session has no memory of what the user prefers, what the project requires, or what was tried last time. Putting everything in the system prompt bloats every call and hits context limits fast. Filtering what goes in requires a retrieval layer — which is exactly what a vector store + embedding call gives you, but wiring one up yourself takes hours and maintenance forever after.\n\n**[mem0](https://github.com/mem0ai/mem0)** (Apache-2.0, v2.0 released June 2026) handles the plumbing. Full hands-on walk-through: [DataCamp tutorial](https://www.datacamp.com/tutorial/mem0-tutorial).\n\n```python\npip install mem0ai\n\nfrom mem0 import Memory\nm = Memory()\n\n# End of session: extract and store facts from the conversation\nm.add([\n    {\"role\": \"user\", \"content\": \"I prefer TypeScript and Next.js for all new projects\"},\n    {\"role\": \"assistant\", \"content\": \"Got it, I'll default to TypeScript + Next.js.\"}\n], user_id=\"alice\")\n\n# Start of next session: retrieve relevant context before calling Claude\nresults = m.search(\"tech stack preferences\", user_id=\"alice\")\ncontext = \"\\n\".join(r[\"memory\"] for r in results[\"results\"])\n# Inject context into system prompt before calling the Claude API\n```\n\n**Three production decisions before you ship:**\n\n1. **Cloud or self-hosted?** The default backend sends data to mem0's managed API — user conversation facts included. The self-hosted path (local Qdrant + Ollama embeddings) keeps data on your infrastructure but requires running two more services.\n2. **Extraction quality.** mem0 extracts facts automatically, which works well but imperfectly. For high-stakes preferences or security-relevant constraints, add an explicit verification step before storing.\n3. **Memory poisoning.** Any persistent context store that accepts writes from user input is an injection target. A crafted user message can store false facts that corrupt future sessions. Scope write access narrowly and build an expiry or review window for sensitive entries.\n\n**Sources:** [mem0: create AI agents with long-term memory](https://mem0.ai/blog/how-to-create-ai-agents-with-long-term-memory) · [DataCamp: mem0 hands-on tutorial](https://www.datacamp.com/tutorial/mem0-tutorial) · [mem0 GitHub](https://github.com/mem0ai/mem0) · [DEV Community: 5 Hidden Uses of the mem0 Engine](https://dev.to/_cbd692d476c5faf3b61bcf/mem0-memory-layer-5-hidden-uses-of-the-60k-star-agent-memory-engine-4g9p)"
+  },
+  {
     "id": "2026-08-28-02-claude-code-auto-continue-session-limit",
     "title": "Auto-Continue When Your Claude Code Session Hits the Usage Limit: The Setting That Saves Overnight Runs",
     "excerpt": "Claude Code v2.1.234 auto-continues your session when a claude.ai usage limit resets — unattended sessions no longer stall indefinitely when they hit the cap. On by default in /config.",

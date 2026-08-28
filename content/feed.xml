@@ -10,7 +10,118 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 28 Aug 2026 04:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 28 Aug 2026 12:06:00 +0000</lastBuildDate>
+
+
+    <item>
+      <title>Debug Your Loop's Token Spend in /usage — and Cap Subagent Cache Separately</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-08-28-06-loop-cost-usage-subagent-cache-ttl</guid>
+      <pubDate>Thu, 28 Aug 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code's /usage now breaks down token spend per named loop; the new subagentPromptCacheTtl setting lets you keep the main session cache hot while short-lived subagents expire quickly.</description>
+      <content:encoded><![CDATA[**TL;DR: Two new Claude Code additions make loop costs observable: /usage now shows tokens per loop iteration, and `subagentPromptCacheTtl` sets subagent cache lifetime independently from the main session.**
+
+**Why loops go expensive silently.** A `/loop` task runs in a shared session, so each iteration's tool output, file reads, and scratchpad writes accumulate in the context window. Tokens-per-run creeping upward is the tell — and until recently there was no easy way to see it.
+
+**The new /usage Loops breakdown** adds a table for each named loop task: run count, total tokens, tokens per run (the average), and last-run time.
+
+- **Flat tokens-per-run** → each iteration starts clean; no context bleed
+- **Rising tokens-per-run** → context is accumulating; trim the scratchpad or add an explicit reset step at the end of each iteration
+- **Single outlier run with 10× the tokens** → a tool call returned a large payload; consider truncating before it goes back to Claude
+
+**The `subagentPromptCacheTtl` setting** pairs with the `promptCacheTtl` covered [here on Aug 26](https://cloudcodetree.com/ai-news/2026-08-26-04-prompt-cache-ttl-api-key-claude-code). They work independently: keep the main session warm at 1 hour while short-lived subagents expire at 5 minutes — so a dozen quick subagents don't each hold a 1-hour cache slot you're paying for after they're done.
+
+```json
+// .claude/settings.json (API-key or cloud-provider sessions only)
+{
+  "promptCacheTtl": "1h",
+  "subagentPromptCacheTtl": "5m"
+}
+```
+
+**Limits:** Both settings apply only to API-key and cloud-provider (Vertex/Bedrock) sessions — regular claude.ai plan users don't control cache TTL. The /usage Loops table covers named loop tasks; anonymous or inline subagent spawns show in the overall session total only, not as labeled rows.
+
+**Sources:** [Claude Code Changelog — code.claude.com](https://code.claude.com/docs/en/changelog) · [Claude Code Changelog August 2026 — Gradually](https://www.gradually.ai/en/changelogs/claude-code/) · [Claude Code Subagents: 2026 Production Playbook — Totalum](https://www.totalum.app/blog/claude-code-subagents-totalum)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Anthropic Previews a Physical-Device Protocol Built on MCP: Same Pattern, Different Endpoints</title>
+      <link>https://www.anthropic.com/news/model-hardware-standard-research-preview</link>
+      <guid isPermaLink="false">2026-08-28-05-mhs-physical-device-mcp-preview</guid>
+      <pubDate>Thu, 28 Aug 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>MCP</category>
+      <category>Agents</category>
+      <description>Anthropic opened a research preview of the Model Hardware Standard (MHS), a spec for AI agents to control physical lab instruments using MCP-compatible tooling. Invite-only with research labs for now.</description>
+      <content:encoded><![CDATA[**TL;DR: Anthropic's Model Hardware Standard, previewed August 27, extends the MCP pattern to physical instruments — same tool-call framing, new endpoint class; invite-only with research labs for now.**
+
+The [research preview](https://www.anthropic.com/news/model-hardware-standard-research-preview) opens MHS to a first cohort of scientific research labs and advanced manufacturers. Initial launch partner: HHMI Janelia Research Campus. AWS Strands Robots will support MHS for connecting agents to physical devices.
+
+**What it is technically.** MHS is model-agnostic: any device with a programmable interface can expose an MHS endpoint, and any MCP-compatible agent harness can discover and call it. An agent that can already write MCP servers can apply the same patterns to a robotic arm or a liquid handler — the specification handles device discovery and capability advertisement. Anthropic reports integration time dropping from weeks to hours for supported hardware.
+
+**Why it matters:** If your work never involves lab automation, file this as signal that the agent-control protocol is expanding beyond software APIs to physical effectors — the same mental model as MCP, a different endpoint class. If you do build agents for research or manufacturing, the standard is planned to go open-source after the preview period; safety evaluations are actively being built with launch partners.
+
+**Limits to know:** Invite-only preview; no general developer access yet. Safety evaluations for physical operation are still in progress — Anthropic is explicit that these are being built during the preview, not already validated.
+
+**Sources:** [Anthropic MHS research preview](https://www.anthropic.com/news/model-hardware-standard-research-preview) · [CNBC: Anthropic pushes into physical world](https://www.cnbc.com/2026/08/27/anthropic-pushes-into-physical-world-with-new-standard-to-help-ai-agents-operate-machines.html) · [SiliconANGLE: Anthropic previews MHS](https://siliconangle.com/2026/08/27/anthropic-previews-mhs-standard-for-ai-agents-that-operate-machines/)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Agent Forgets Everything Between Sessions — mem0 Adds Persistent Memory in 10 Lines</title>
+      <link>https://mem0.ai/blog/how-to-create-ai-agents-with-long-term-memory</link>
+      <guid isPermaLink="false">2026-08-28-04-mem0-persistent-agent-memory</guid>
+      <pubDate>Thu, 28 Aug 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>mem0 adds a persistent memory layer to any LLM agent — store, retrieve, and update facts about users and tasks across sessions without managing a vector store yourself.</description>
+      <content:encoded><![CDATA[**What you'll be able to do after this:** add cross-session memory to any Claude-based agent — the agent remembers user preferences and project facts across sessions without you managing a vector store.
+
+Three things you'll take away:
+- How agents fail silently when context resets between sessions, and why stuffing everything into the system prompt doesn't scale
+- The three mem0 operations (`add`, `search`, `update`) that cover 90% of memory use cases, with copy-pasteable code
+- What to decide before production: cloud API vs. self-hosted, fact extraction quality, and memory poisoning as an attack surface
+
+**The problem.** A fresh agent session has no memory of what the user prefers, what the project requires, or what was tried last time. Putting everything in the system prompt bloats every call and hits context limits fast. Filtering what goes in requires a retrieval layer — which is exactly what a vector store + embedding call gives you, but wiring one up yourself takes hours and maintenance forever after.
+
+**[mem0](https://github.com/mem0ai/mem0)** (Apache-2.0, v2.0 released June 2026) handles the plumbing. Full hands-on walk-through: [DataCamp tutorial](https://www.datacamp.com/tutorial/mem0-tutorial).
+
+```python
+pip install mem0ai
+
+from mem0 import Memory
+m = Memory()
+
+# End of session: extract and store facts from the conversation
+m.add([
+    {"role": "user", "content": "I prefer TypeScript and Next.js for all new projects"},
+    {"role": "assistant", "content": "Got it, I'll default to TypeScript + Next.js."}
+], user_id="alice")
+
+# Start of next session: retrieve relevant context before calling Claude
+results = m.search("tech stack preferences", user_id="alice")
+context = "\n".join(r["memory"] for r in results["results"])
+# Inject context into system prompt before calling the Claude API
+```
+
+**Three production decisions before you ship:**
+
+1. **Cloud or self-hosted?** The default backend sends data to mem0's managed API — user conversation facts included. The self-hosted path (local Qdrant + Ollama embeddings) keeps data on your infrastructure but requires running two more services.
+2. **Extraction quality.** mem0 extracts facts automatically, which works well but imperfectly. For high-stakes preferences or security-relevant constraints, add an explicit verification step before storing.
+3. **Memory poisoning.** Any persistent context store that accepts writes from user input is an injection target. A crafted user message can store false facts that corrupt future sessions. Scope write access narrowly and build an expiry or review window for sensitive entries.
+
+**Sources:** [mem0: create AI agents with long-term memory](https://mem0.ai/blog/how-to-create-ai-agents-with-long-term-memory) · [DataCamp: mem0 hands-on tutorial](https://www.datacamp.com/tutorial/mem0-tutorial) · [mem0 GitHub](https://github.com/mem0ai/mem0) · [DEV Community: 5 Hidden Uses of the mem0 Engine](https://dev.to/_cbd692d476c5faf3b61bcf/mem0-memory-layer-5-hidden-uses-of-the-60k-star-agent-memory-engine-4g9p)]]></content:encoded>
+    </item>
+
 
 
     <item>
@@ -5973,130 +6084,9 @@ Claude Code reads the TRL docs, writes the script, provisions and runs the runti
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>TRL's GRPO Trainer Gets Continuous Batching: ~1.25x Throughput for Reasoning RL With No Extra Infrastructure</title>
-      <link>https://huggingface.co/blog/sergiopaniego/cb-trl-grpo</link>
-      <guid isPermaLink="false">2026-08-13-03-trl-grpo-continuous-batching</guid>
-      <pubDate>Wed, 13 Aug 2026 04:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Fine-Tuning</category>
-      <category>HuggingFace</category>
-      <description>TRL's GRPOTrainer now uses continuous batching for rollout generation, recycling GPU slots as sequences finish — ~1.25x throughput on N≥32 reasoning workloads with no vLLM server required.</description>
-      <content:encoded><![CDATA[
-**TRL's GRPOTrainer now supports continuous batching for rollout generation, cutting idle GPU time during reasoning RL training with no server setup.**
-
-GRPO training is generation-heavy: producing the N rollouts (completions the model judges itself on) is typically the bottleneck. Standard batching waits for all N sequences to finish; continuous batching fills idle GPU slots as sequences complete, keeping utilization high. On an A100 80GB with Llama-3.2-1B and GSM8K at N=32: **~1.25x throughput** versus standard batching, with lower peak memory at the same time.
-
-It's a drop-in upgrade — set `use_vllm=False` in `GRPOConfig` (continuous batching is now the in-process default). TRL pre-allocates `max_memory_percent=0.5` of free VRAM for rollouts, leaving headroom for the backward pass. Async continuous batching — overlapping generation with the gradient update — is in progress (PR #5781).
-
-**Why it matters:** Reasoning RL fine-tuning (GRPO, DAPO) is the fastest-growing method for building capable open models. Any free throughput gain in the rollout phase directly reduces GPU-hours per training run.
-
-**Sources:** [Continuous batching for GRPO, now in TRL — HuggingFace Blog](https://huggingface.co/blog/sergiopaniego/cb-trl-grpo) · [GRPOTrainer — HuggingFace](https://huggingface.co/docs/trl/en/grpo_trainer)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Claude's Compliance API Now Covers Claude Code and Cowork Sessions — Full Audit Trail for Agentic Dev Tools</title>
-      <link>https://claude.com/blog/compliance-api-cowork-and-claude-code</link>
-      <guid isPermaLink="false">2026-08-13-02-compliance-api-claude-code-cowork</guid>
-      <pubDate>Wed, 13 Aug 2026 04:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Claude Code</category>
-      <category>Developer Tools</category>
-      <description>Anthropic's Compliance API now covers Claude Code (CLI and desktop) and Cowork sessions in Enterprise beta — prompts, responses, and tool activity in one endpoint, same access key.</description>
-      <content:encoded><![CDATA[
-**Claude's Compliance API now returns full session transcripts for Claude Code (CLI and desktop) and Cowork (web, mobile, desktop) — one endpoint, same access key, no new integration.**
-
-Announced August 11, the extension is in beta for Claude Enterprise customers. Security and compliance teams already using the Compliance API for regular Claude chat get Claude Code and Cowork coverage automatically — no separate access key, no changes to existing integrations.
-
-**What each session record includes:**
-- Full prompt and response text
-- Tool call content: web browsing, MCP connector calls, skill runs, artifacts
-- Metadata: verified user ID, organization ID, session and per-message IDs, timestamps
-
-**Current beta scope:** Claude Code CLI and desktop app; Cowork desktop, web, and mobile. Not yet covered: Claude Code on the web, API-accessed Claude Code, or sessions on Bedrock, Vertex AI, or Foundry.
-
-**Why it matters:** For HIPAA, FedRAMP, and SOC 2 teams, full audit trail coverage of agentic coding sessions closes the last gap between "we use Claude Code" and "we can prove what Claude Code did." This is the feature that unlocks Claude Code for regulated-industry engineering teams without a custom ATO process.
-
-**Sources:** [Compliance API coverage extends to Claude Cowork and Claude Code — Anthropic](https://claude.com/blog/compliance-api-cowork-and-claude-code) · [Compliance API docs — Claude Platform](https://platform.claude.com/docs/en/manage-claude/compliance-api)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Fine-Tune Any LLM Without Writing Training Code: HuggingFace AutoTrain in 5 Minutes</title>
-      <link>https://huggingface.co/docs/autotrain/tasks/llm_finetuning</link>
-      <guid isPermaLink="false">2026-08-13-01-autotrain-no-code-llm-finetuning</guid>
-      <pubDate>Wed, 13 Aug 2026 04:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Fine-Tuning</category>
-      <category>HuggingFace</category>
-      <description>HuggingFace AutoTrain lets you SFT, DPO, or ORPO any open LLM through a web UI or single CLI command — no training code, no server setup, LoRA adapter pushed to Hub automatically.</description>
-      <content:encoded><![CDATA[
-**HuggingFace AutoTrain lets you SFT, DPO, or ORPO any open model in a web UI or single `autotrain` command — no training code, no server, adapter pushed to Hub automatically.**
-
-**What you'll be able to do after this:**
-
-- Launch a supervised fine-tuning (SFT), DPO, or ORPO run on any open LLM without writing training code
-- Prepare your dataset as JSONL and configure LoRA hyperparameters through AutoTrain's UI or a single CLI command
-- Have the fine-tuned LoRA adapter automatically pushed to your HuggingFace Hub repo when training finishes
-
-[AutoTrain Advanced](https://huggingface.co/autotrain) is HuggingFace's hosted fine-tuning platform. Pick a model, upload data, configure a few sliders — and it writes and runs the training loop for you. No `SFTTrainer` boilerplate, no CUDA debugging, no manual Hub upload.
-
-**Step 1: Prepare your dataset**
-
-AutoTrain expects JSONL with one training example per line. For SFT:
-
-```json
-{"prompt": "Classify the sentiment of this review:", "completion": "Positive"}
-{"prompt": "Summarize in one sentence:", "completion": "A bear visited a bakery."}
-```
-
-For DPO, each row needs `prompt`, `chosen`, and `rejected` fields.
-
-**Step 2: Create a project**
-
-Go to [huggingface.co/autotrain](https://huggingface.co/autotrain) → **Create new project** → **LLM** → pick your base model (e.g. `Qwen/Qwen2.5-7B-Instruct` or `meta-llama/Llama-3.2-3B-Instruct`) → upload JSONL → pick hardware (ZeroGPU is free for small runs) → **Start Training**.
-
-AutoTrain provisions compute, installs the right CUDA stack, and streams training logs in the Space UI.
-
-**Or use the CLI (works locally or in CI):**
-
-```bash
-pip install autotrain-advanced
-
-autotrain llm \
-  --train \
-  --model "Qwen/Qwen2.5-3B-Instruct" \
-  --data-path ./data \
-  --trainer sft \
-  --lora-r 16 \
-  --lora-alpha 32 \
-  --lr 2e-4 \
-  --batch-size 2 \
-  --gradient-accumulation 4 \
-  --num-train-epochs 3 \
-  --push-to-hub \
-  --username your-hf-username \
-  --token $HF_TOKEN
-```
-
-When training ends the LoRA adapter lands in your Hub repo — ready to merge with `peft.merge_and_unload()` or serve directly via AutoTrain's inference endpoint.
-
-**Safe starting defaults:**
-- `--lora-r 16`, `--lora-alpha 32`: balanced expressivity vs. adapter size
-- `--lr 2e-4`: standard for QLoRA SFT
-- `--batch-size 2` + `--gradient-accumulation 4`: effective batch size 8, fits on a 16GB GPU
-
-**Sources:** [AutoTrain LLM Fine-tuning — HuggingFace Docs](https://huggingface.co/docs/autotrain/tasks/llm_finetuning) · [Low-Code LLM Alignment with AutoTrain — HuggingFace Blog](https://huggingface.co/blog/burtenshaw/ui-finetune-llm-autotrain)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
     
