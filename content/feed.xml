@@ -10,8 +10,121 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 27 Aug 2026 20:11:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 28 Aug 2026 04:06:00 +0000</lastBuildDate>
 
+
+    <item>
+      <title>Auto-Continue When Your Claude Code Session Hits the Usage Limit: The Setting That Saves Overnight Runs</title>
+      <link>https://code.claude.com/docs/en/whats-new/2026-w33</link>
+      <guid isPermaLink="false">2026-08-28-02-claude-code-auto-continue-session-limit</guid>
+      <pubDate>Thu, 28 Aug 2026 04:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.234 auto-continues your session when a claude.ai usage limit resets — unattended sessions no longer stall indefinitely when they hit the cap. On by default in /config.</description>
+      <content:encoded><![CDATA[**Claude Code v2.1.234 added auto-continue at usage-limit reset — on by default. Background sessions no longer stall when they hit the plan cap; the interrupted turn picks up automatically once the limit resets.**
+
+If you've run a long background task — a multi-file refactor, a large test suite, an overnight codebase migration — and come back to find it frozen at a limit card, this is the fix. The feature shipped in v2.1.234 and is on by default. No config required to get it; one setting to turn it off if you want a hard stop.
+
+**How it works:**
+
+When Claude Code hits a claude.ai plan limit, the desktop app's Code tab shows a limit card with an "Auto-continue when limits reset" checkbox (pre-checked) and an "Auto-resuming at HH:MM" countdown. When the limit resets, the interrupted turn resumes automatically.
+
+**To configure it:**
+
+```
+/config  →  "Continue automatically at usage limit"  →  toggle off
+```
+
+Setting it off gives you the previous behavior: hard stop, you manually resume.
+
+**The limit you need to know:**
+
+Auto-continue resumes the *interrupted turn* — the exact turn that was cut off, using the same context window that was active when the limit hit. If your task requires fresh state after a multi-hour wait (CI results that changed, a file that was edited by another process, a dependency that updated), the resumed turn won't see those changes. Review the resumed output before accepting it; silent wrong-direction completions are the risk, not an error.
+
+**When to leave it on:** overnight or unattended agentic sessions where you want maximum continuity. **When to turn it off:** sessions doing write-sensitive operations where you want a review checkpoint before any further changes run.
+
+**Sources:** [Week 33 · August 10–14, 2026 — Claude Code Docs](https://code.claude.com/docs/en/whats-new/2026-w33) · [Claude Code Auto-Continue at Usage Limits: On by Default in 2.1.234 — AI Catchup](https://aicatchup.com/news/claude-code-desktop-auto-continue) · [Claude Code Auto-Resume at Usage Limit Reset — Get Claude Skills](https://www.getclaudeskills.com/blog/claude-code-auto-resume-usage-limit)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Cowork Gets a Built-In Browser; GPT-5.6 Sol Dropped 20% a Week Ago</title>
+      <link>https://claude.com/blog/cowork-built-in-browser</link>
+      <guid isPermaLink="false">2026-08-28-01-cowork-browser-sol-price-news</guid>
+      <pubDate>Thu, 28 Aug 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>Claude Cowork now opens a side-panel browser for web tasks — no Playwright required. GPT-5.6 Sol API input/output prices dropped over 20% on August 21.</description>
+      <content:encoded><![CDATA[**Two quick updates: Claude's desktop app now handles web tasks without your browser, and GPT-5.6 Sol is 20%+ cheaper on the API.**
+
+**Claude Cowork built-in browser (Aug 26):** The Claude desktop app opens a side-panel browser when a task needs to hit a website. Claude navigates, reads, clicks, and fills forms inside it — no Playwright session, no browser MCP server, no computer-use setup required. Live on Enterprise now; rolling out to Pro, Max, and Team over the coming week on macOS, Windows, and Linux. Hard limits to know: banking, email, and SSO sites are excluded by default; existing-session logins must be imported one at a time from Chrome or Firefox; Claude cannot see your existing tabs, bookmarks, or saved passwords.
+
+**GPT-5.6 Sol price cut (Aug 21):** Input dropped from $5 to $4 per million tokens, output from $30 to $20 — a promotional rate through at least November 21. Luna's 80% cut (to $0.20 input / $1.20 output) was covered here August 27; this is the Sol companion cut.
+
+**Why it matters:** The Cowork browser replaces a meaningful chunk of browser-automation MCP work for researchers and task-automation users. And Sol's API cost now sits closer to Opus 5 on the frontier tier — benchmark both on your real workload before committing; neither lab's numbers are independent measurements.
+
+**Sources:** [Claude Cowork gets a built-in browser — claude.com/blog](https://claude.com/blog/cowork-built-in-browser) · [Claude Cowork Built-In Browser for Enterprise — Enterprise DNA](https://enterprisedna.co/resources/news/claude-cowork-built-in-browser-enterprise-august-2026/) · [OpenAI Cuts GPT-5.6 Sol API Prices Over 20% — Enterprise DNA](https://enterprisedna.co/resources/news/openai-gpt-56-sol-price-cut-20-percent-frontier-model-august-2026/) · [GPT-5.6 Pricing After the Cuts — CellCog](https://cellcog.ai/blog/gpt-5-6-pricing/)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Run Any Open-Weight Model Locally in Two Commands: Ollama and Its OpenAI-Compatible API</title>
+      <link>https://www.youtube.com/watch?v=fU38n-CH7ds</link>
+      <guid isPermaLink="false">2026-08-28-03-ollama-local-models-openai-api</guid>
+      <pubDate>Thu, 28 Aug 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>Local AI</category>
+      <description>Pull and run Qwen, Llama, Gemma, or DeepSeek locally with one command and call it from Python using the exact same OpenAI API code — just change one URL. No cloud cost, no data leaving your machine.</description>
+      <media:content url="https://img.youtube.com/vi/fU38n-CH7ds/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/fU38n-CH7ds/maxresdefault.jpg" />
+      <content:encoded><![CDATA[**What you'll be able to do after this:** pull and run any open-weight model locally (Qwen, Llama, Gemma, DeepSeek, Mistral) and call it from Python using the exact same code you'd use for the OpenAI API — one URL change, no cloud cost, no data leaving your machine.
+
+- **Pull a model in one command.** `ollama pull qwen3:8b` downloads the model, selects the right quantization for your GPU or RAM, and makes it ready to serve.
+- **Drop in as an OpenAI replacement.** Ollama starts a server at `localhost:11434/v1` with an OpenAI-style `/chat/completions` endpoint — your existing `openai.ChatCompletion` code works unchanged.
+- **Function calling and structured JSON output are stable.** Tool-call support arrived in Ollama 0.3; structured `format` output is solid in 0.32.x for models that support it.
+
+**Walk-through:**
+
+```bash
+# Install (macOS, Linux, Windows)
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Pull a model — starts the local server automatically on first run
+ollama pull qwen3:8b        # ~5 GB at Q4_K_M; fits 8 GB VRAM
+ollama pull llama4:8b-q4    # Llama 4 8B quantized
+ollama pull gemma4:4b       # Gemma 4 4B (text + audio)
+```
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="ollama",                     # any non-empty string
+    base_url="http://localhost:11434/v1"
+)
+
+response = client.chat.completions.create(
+    model="qwen3:8b",
+    messages=[{"role": "user", "content": "Explain vector search in two sentences."}]
+)
+print(response.choices[0].message.content)
+```
+
+`ollama list` shows downloaded models. `ollama rm <name>` removes one. `ollama ps` shows what is currently loaded and using GPU memory.
+
+**Where it breaks:** a 4-bit quantized 8B model is meaningfully weaker than a frontier model — use it for classification, format conversion, local RAG, and privacy-sensitive tasks, not for complex reasoning or production code you won't review. Ollama's server processes requests serially; concurrent requests queue, so high-throughput production serving belongs on vLLM or SGLang instead. Also: models with a `:cloud` suffix in the Ollama library run on Ollama's own servers, not yours — check before assuming local.
+
+**Resources:** [Ollama Tutorial for Beginners (2026) — YouTube](https://www.youtube.com/watch?v=fU38n-CH7ds) · [Ollama official site — ollama.com](https://ollama.com) · [Ollama OpenAI-Compatible API: Setup Steps and Limits — TokenMix](https://tokenmix.ai/blog/ollama-openai-compatible-api)
+
+**Sources:** [What is Ollama: Run AI Models Locally — Thunder Compute](https://www.thundercompute.com/blog/what-is-ollama-run-ai-models-locally) · [Local LLM Inference 2026: Ollama, Python, and the Open Model Ecosystem — Programming Helper Tech](https://www.programming-helper.com/tech/local-llm-inference-2026-ollama-python-privacy)]]></content:encoded>
+    </item>
 
     <item>
       <title>Your Claude Code Sessions Can Now Coordinate: A Practical Guide to Agent Teams</title>
@@ -5984,238 +6097,9 @@ When training ends the LoRA adapter lands in your Hub repo — ready to merge wi
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Warp Ships a Standalone Agent CLI: pty-Multiplexed Terminal Agent Runs Alongside Claude Code</title>
-      <link>https://www.warp.dev/blog/introducing-the-warp-agent-cli-coding-agent</link>
-      <guid isPermaLink="false">2026-08-12-10-warp-agent-cli-terminal-native-alongside-claude-code</guid>
-      <pubDate>Wed, 12 Aug 2026 20:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Developer Tools</category>
-      <description>Warp Agent CLI (Aug 4) is a standalone coding agent that installs in any terminal via curl, wraps a pty multiplexer around your shell, and complements Claude Code for interactive terminal tasks.</description>
-      <content:encoded><![CDATA[
-**Warp shipped a standalone Agent CLI (installs in any terminal) on August 4 — pty-native control for interactive-terminal tasks that pure file-editing agents can't handle.**
-
-[Warp Agent CLI](https://www.warp.dev/agent-cli) separates the agent from the Warp Terminal application. Install it in Ghostty, iTerm, VS Code, or any system shell with one line:
-
-```bash
-curl -fsSL https://app.warp.dev/download/agent-cli/install.sh | sh
-# Windows: winget install Warp.WarpAgentCLI
-```
-
-Pricing: included in Warp subscriptions ($18/mo with $20 inference credits), ad-hoc credits from $10, or bring your own API key.
-
-**What's architecturally different from Claude Code**
-
-Claude Code reads files, writes code, and runs shell commands — it treats the terminal as an I/O pipe. Warp Agent CLI runs a pty (pseudoterminal) multiplexer between itself and your shell. That means the agent sees and drives full-screen terminal UIs:
-
-- A `sqlite3` REPL — type SQL, read results interactively, step through a migration
-- `gdb` with breakpoints set and stepped
-- `htop` or a live log tail it monitors over time
-- Any interactive prompt that requires keystrokes, not just piped command output
-
-Claude Code can approximate some of these with enough prompting, but pty-native control is deterministic.
-
-**A pattern that works: both in parallel**
-
-```bash
-# Tab 1 — Warp Agent watching a live test suite
-warp-agent "run pytest in watch mode; alert me when coverage drops below 80%"
-
-# Tab 2 — Claude Code doing a large refactor in the same repo
-claude "rename every AuthService method from camelCase to snake_case and update all callers"
-```
-
-Each sends desktop notifications when it needs input. They don't block each other: Warp holds the interactive terminal loop, Claude Code holds the file-editing loop. Warp's own docs show this as a supported pattern — Claude Code runs as a CLI agent *inside* Warp tabs, with Warp adding native notification and workspace split.
-
-**When to reach for which**
-
-| Task | Reach for |
-|---|---|
-| Read files, write code, manage git | Claude Code |
-| Interactive REPL / debugger / live monitor | Warp Agent CLI |
-| Long-horizon autonomous task (hours) | Claude Code (`/goal` or `--continue`) |
-| Multi-agent orchestration across terminals | Warp Agent CLI (built-in cloud handoff) |
-
-**Why it matters:** The Warp Agent CLI fills the "interactive tool driving" gap in terminal-only setups. If your workflow has tasks that need pty control — database migrations, interactive test runners, debugger sessions — you now have a CLI-native option that works in whatever terminal you already use.
-
-**Sources:** [Warp Agent CLI launch post](https://www.warp.dev/blog/introducing-the-warp-agent-cli-coding-agent) · [Warp Agent CLI docs](https://docs.warp.dev/cli/) · [Warp vs Claude Code — warp.dev](https://docs.warp.dev/guides/agent-workflows/warp-vs-claude-code/)
-]]></content:encoded>
-      <media:content url="https://img.youtube.com/vi/8jDz-1l88K8/maxresdefault.jpg" medium="image"/>
-      <media:thumbnail url="https://img.youtube.com/vi/8jDz-1l88K8/maxresdefault.jpg"/>
-    </item>
-
-    <item>
-      <title>One Command Launches Any Embedding Model as an OpenAI-Compatible API: Getting Started with Infinity</title>
-      <link>https://github.com/michaelfeil/infinity</link>
-      <guid isPermaLink="false">2026-08-12-09-infinity-embedding-server-self-hosted-openai-api</guid>
-      <pubDate>Wed, 12 Aug 2026 20:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Self-Hosting</category>
-      <category>Embeddings</category>
-      <description>Self-host BAAI/bge, nomic-embed-text, or any sentence-transformer as an OpenAI-compatible embedding endpoint using Infinity — three commands, dynamic batching, CPU/CUDA/MPS.</description>
-      <content:encoded><![CDATA[
-**Self-host any sentence-transformer as an OpenAI-compatible embedding API in one command — Infinity adds dynamic batching and flash attention, your app changes nothing.**
-
-If your RAG pipeline calls `openai.embeddings.create()`, swapping to a self-hosted model costs you nothing in application code. [Infinity](https://github.com/michaelfeil/infinity) speaks the OpenAI Embeddings wire format exactly — the only change is `base_url`.
-
-**What you'll be able to do after this:**
-- Replace `text-embedding-ada-002` in any RAG pipeline with a free BAAI/bge or nomic-embed model — no code changes in your app
-- Serve embedding and reranking models together on a single port
-- Run offline on CPU, Apple MPS, or CUDA for near-zero cost per batch
-
-**Three commands to launch**
-
-Pick whichever fits your environment:
-
-```bash
-# Option 1: pip — fastest to try
-pip install "infinity-emb[all]"
-infinity_emb v2 --model-id BAAI/bge-en-icl --port 7997
-
-# Option 2: Docker with a CUDA GPU
-docker run --gpus all -p 7997:7997 \
-  michaelf34/infinity:latest v2 \
-  --model-id BAAI/bge-en-icl --port 7997
-
-# Option 3: CPU / Apple Silicon — drop the --gpus flag
-docker run -p 7997:7997 \
-  michaelf34/infinity:latest v2 \
-  --model-id nomic-ai/nomic-embed-text-v1.5 --port 7997
-```
-
-The model downloads from HuggingFace Hub on first run and caches in `~/.cache/huggingface/`. Subsequent starts are instant.
-
-**Zero code changes in your existing app**
-
-```python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="local",                    # Infinity ignores this; any string works
-    base_url="http://localhost:7997/v1"
-)
-
-response = client.embeddings.create(
-    model="BAAI/bge-en-icl",           # must match --model-id above
-    input=["How does attention work?", "What is a transformer?"]
-)
-print(len(response.data[0].embedding))  # 4096 — same structure as the OpenAI response
-```
-
-LangChain's `OpenAIEmbeddings`, LlamaIndex, and LiteLLM all work with this endpoint unchanged — pass `openai_api_base="http://localhost:7997/v1"` in whichever client you use.
-
-**Serve an embedder and a reranker on the same port**
-
-Add a second `--model-id` to serve both at once:
-
-```bash
-infinity_emb v2 \
-  --model-id BAAI/bge-en-icl \
-  --model-id BAAI/bge-reranker-v2-m3 \
-  --port 7997
-```
-
-Embeddings arrive at `/v1/embeddings`; reranking at `/v1/rerank` — same server, same port, no extra process.
-
-**Why BAAI/bge-en-icl?**
-
-It sits above `text-embedding-3-large` on the [MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard) for most retrieval tasks, and it's free. With Infinity's dynamic batching, a 10k-token batch on a CPU-only `t3.medium` finishes in under two seconds. On a T4 GPU, it's milliseconds. At zero cost per call, the math is obvious once your evaluation dataset grows past a few thousand entries.
-
-Infinity is MIT-licensed and actively maintained; it powers the embedding API behind Gradient.ai and several other hosted providers.
-
-**Sources:** [GitHub — michaelfeil/infinity](https://github.com/michaelfeil/infinity) · [Infinity docs](https://michaelfeil.eu/infinity/0.0.72/) · [MTEB Leaderboard — HuggingFace](https://huggingface.co/spaces/mteb/leaderboard) · [Infinity on AMD — HuggingFace Blog](https://huggingface.co/blog/michaelfeil/infinity-amd)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Cut Claude API Costs 50% on Any Async Workload: The Message Batches API in 20 Lines</title>
-      <link>https://platform.claude.com/docs/en/build-with-claude/batches</link>
-      <guid isPermaLink="false">2026-08-12-07-anthropic-batch-api-50pct-async-workloads</guid>
-      <pubDate>Wed, 12 Aug 2026 12:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Best Practices</category>
-      <category>Developer Tools</category>
-      <description>Any async workload — nightly evals, doc pipelines, bulk code analysis — can run at exactly 50% off standard Claude token prices using the Message Batches API. Submit up to 100K requests, retrieve results within hours.</description>
-      <content:encoded><![CDATA[
-**The Anthropic Message Batches API runs up to 100,000 Claude requests asynchronously at exactly 50% off standard token prices — submit, wait a few hours, retrieve.**
-
-Any workload that doesn't need instant results — nightly evaluations, document pipelines, offline enrichment, bulk code analysis — is paying double. The [Message Batches API](https://platform.claude.com/docs/en/build-with-claude/batches) costs 50% less per token with zero quality difference.
-
-## How it works
-
-You submit a list of `MessageBatchRequest` objects, each with a `custom_id` and the same parameters as a standard `/messages` call. Anthropic processes them asynchronously (typically 1-2 hours, max 24h) and makes results available via the batch id. No streaming, no webhooks — you poll for status or come back later.
-
-```python
-import anthropic
-
-client = anthropic.Anthropic()
-docs = ["Article 1 text...", "Article 2 text...", "Article 3 text..."]
-
-# Submit the batch
-batch = client.messages.batches.create(
-    requests=[
-        {
-            "custom_id": f"doc-{i}",
-            "params": {
-                "model": "claude-sonnet-5-20260801",
-                "max_tokens": 256,
-                "messages": [{"role": "user", "content": f"Summarize in 2 sentences: {docs[i]}"}]
-            }
-        }
-        for i in range(len(docs))
-    ]
-)
-print(f"Batch {batch.id} submitted — status: {batch.processing_status}")
-```
-
-**Poll until complete:**
-
-```python
-import time
-
-while True:
-    status = client.messages.batches.retrieve(batch.id)
-    if status.processing_status == "ended":
-        break
-    print(f"Still processing... ({status.request_counts.processing} remaining)")
-    time.sleep(60)
-
-# Retrieve and print results
-for result in client.messages.batches.results(batch.id):
-    if result.result.type == "succeeded":
-        print(result.custom_id, result.result.message.content[0].text[:120])
-    else:
-        print(result.custom_id, "FAILED:", result.result.error.type)
-```
-
-## Cost math
-
-A nightly pipeline summarizing 1,000 documents (2,000 input + 500 output tokens each) on Sonnet 5:
-
-| Approach | Input | Output | Total/day | Annual |
-|---|---|---|---|---|
-| Synchronous | $4.00 | $5.00 | $9.00 | $3,285 |
-| Batch API | $2.00 | $2.50 | $4.50 | $1,642 |
-
-Add prompt caching on a shared system prompt and the cached tokens cost another 90% less, pushing complex pipelines toward 65-70% total savings.
-
-## Best uses
-
-Batch is ideal when latency doesn't matter: code analysis across a full repo at PR-merge time, generating descriptions for 10K embeddings, running eval suites against 1,000 test cases, nightly newsletter digests, classifying a backlog of support tickets.
-
-Not for: real-time chat, streaming responses, any user-facing flow where waiting hours isn't acceptable.
-
-**Sources:** [Message Batches API — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/batches) · [Anthropic Batch API: process thousands of prompts at 50% cost — CodeWords](https://www.codewords.ai/blog/anthropic-batch-api) · [Claude Batch API Tutorial — AI for Anything](https://aiforanything.io/blog/claude-batch-api-tutorial-high-volume-processing-2026)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
 
