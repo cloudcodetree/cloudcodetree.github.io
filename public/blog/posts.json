@@ -1,5 +1,41 @@
 [
   {
+    "id": "2026-08-29-05-managed-agents-session-budget-spend-cap",
+    "title": "Put a Hard Ceiling on Your Managed Agent Before It Overruns: Session Budgets",
+    "excerpt": "Pass budget.max_list_cost at session creation and a Claude Managed Agents run pauses cleanly — state intact — the moment it crosses your spend cap.",
+    "author": "Chris Harper",
+    "date": "08-29-2026",
+    "publishedAt": "2026-08-29T12:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/managed-agents/budgets",
+    "content": "**TL;DR: Pass `budget={\"type\":\"limit\",\"max_list_cost\":{\"currency\":\"USD\",\"amount\":\"2500\"}}` when you create a Managed Agents session and it pauses — files and tool state intact — the moment it crosses $25.00.**\n\nWithout a spend cap, a Managed Agents session running multiple subagents can bill hundreds of dollars before a job finishes — or before you notice it got stuck. Session budgets set a hard ceiling at creation that pauses the session cleanly when it hits your limit.\n\n**Set it at creation:**\n\n```python\nimport anthropic\n\nclient = anthropic.Anthropic()\nBETAS = [\"managed-agents-2026-04-01\"]\n\nsession = client.beta.sessions.create(\n    agent=my_agent.id,\n    environment_id=env.id,\n    title=\"Weekly competitive analysis\",\n    budget={\n        \"type\": \"limit\",\n        \"max_list_cost\": {\n            \"currency\": \"USD\",\n            \"amount\": \"2500\",   # $25.00 — amount is in whole US cents as a string\n        },\n    },\n    betas=BETAS,\n)\n```\n\n**Detect and handle the pause:**\n\n```python\nwith client.beta.sessions.events.stream(session.id, betas=BETAS) as stream:\n    for ev in stream:\n        if ev.type == \"session.status_idle\":\n            if ev.stop_reason.type == \"budget_reached\":\n                # Files and tool state are preserved — raise the cap to resume\n                client.beta.sessions.update(\n                    session.id,\n                    budget={\"type\": \"limit\", \"max_list_cost\": {\"currency\": \"USD\", \"amount\": \"5000\"}},\n                    betas=BETAS,\n                )\n            break\n```\n\nTrack spend as it accumulates with `session.usage` events, which stream the cumulative `list_cost` against your cap.\n\n**The constraints that catch people:**\n\n- Budget can only be set at session **creation** — you cannot add one to a session already running\n- Amount is in whole US cents as a string: `\"100\"` = $1.00, `\"2500\"` = $25.00\n- You can **raise** the cap but not lower it below already-consumed cost\n- Removing the budget (`budget=None`) is permanent — you cannot re-add it to the same session\n- Enforcement happens **between** model requests, not mid-turn, so actual spend can slightly overshoot your cap\n- Requires `anthropic>=0.121.0`\n\nThe same SDK version also shipped inference geo pinning (`model.inference_geo: \"us\"` or `\"global\"`) and GitHub-hosted skills for Managed Agents. The advisor model pattern ships as a separate roster entry covered in [a previous post](https://cloudcodetree.com/ai-news/2026-08-26-06-managed-agents-advisor-model-pattern).\n\n**Sources:** [Session budgets — Anthropic Managed Agents Docs](https://platform.claude.com/docs/en/managed-agents/budgets) · [Cookbook: cap what a session can spend — platform.claude.com](https://platform.claude.com/cookbook/managed-agents-cma-cap-session-spend) · [AI Agent Cost Control: 2026's Shift to Session Caps — Nerd Level Tech](https://nerdleveltech.com/ai-agent-cost-control-session-spend-caps)"
+  },
+  {
+    "id": "2026-08-29-04-langchain-document-loaders-rag-ingestion",
+    "title": "Before the Splitter and the Vector Store, There's the Loader: LangChain Document Loaders for Any Source",
+    "excerpt": "LangChain's document loaders give you a uniform Document interface for PDFs, web pages, CSV files, and directories — the first step in any RAG pipeline.",
+    "author": "Chris Harper",
+    "date": "08-29-2026",
+    "publishedAt": "2026-08-29T12:04:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "RAG",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://python.langchain.com/docs/how_to/#document-loaders",
+    "content": "**TL;DR: Three LangChain loaders — PDF, web, and directory — cover most RAG ingestion cases in under 15 lines each, and they all hand you the same `Document(page_content, metadata)` interface your chunker already expects.**\n\n**What you'll be able to do after this:** load PDFs, web pages, and entire folders into a LangChain RAG pipeline using the right loader for each source, and know which limits to plan around before they bite you in production.\n\n**Three things to know before you start:**\n- Every loader returns the same `Document(page_content=…, metadata={…})` type — swap loaders without touching your splitter or embedder\n- `.lazy_load()` streams documents one at a time; use it for large corpora where `.load()` would hold everything in memory at once\n- Metadata (`metadata[\"source\"]`, `metadata[\"page\"]`) is added automatically — these fields are what `SelfQueryRetriever` and `RecordManager` use for filtering and deduplication later\n\n**Install:**\n```bash\npip install langchain-community pypdf\n```\n\n**The three loaders you'll use most:**\n\n```python\n# PDF: one Document per page\nfrom langchain_community.document_loaders import PyPDFLoader\ndocs = PyPDFLoader(\"technical-spec.pdf\").load()\n\n# Web page: raw text from a public URL (uses BeautifulSoup under the hood)\nfrom langchain_community.document_loaders import WebBaseLoader\ndocs = WebBaseLoader(\"https://docs.example.com/guide\").load()\n\n# Whole directory of Markdown or text files\nfrom langchain_community.document_loaders import DirectoryLoader, TextLoader\ndocs = DirectoryLoader(\"./knowledge-base\", glob=\"**/*.md\", loader_cls=TextLoader).load()\n```\n\nAll three outputs plug straight into `RecursiveCharacterTextSplitter.split_documents(docs)` — [the chunker from a previous post](https://cloudcodetree.com/ai-news/2026-08-20-06-langchain-recursive-splitter-chunking-foundations).\n\n**The limits that catch people:**\n- `PyPDFLoader` loses table structure. Scanned (image-only) PDFs come back as empty or garbled — use `UnstructuredPDFLoader` for layout-sensitive docs, though it requires extra dependencies and is slower.\n- `WebBaseLoader` runs BeautifulSoup on raw HTML. JavaScript-rendered pages (React/Vue apps, SPAs) return navigation-only content — swap in `AsyncChromiumLoader` when you need JS execution.\n- `DirectoryLoader` processes files sequentially. For corpora with thousands of files, call `.alazy_load()` with `asyncio` to load in parallel without blocking.\n\nFor sources beyond these three — Notion, Google Drive, Slack, GitHub — LangChain ships integrations at [python.langchain.com/docs/integrations/document_loaders](https://python.langchain.com/docs/integrations/document_loaders/).\n\n**Sources:** [Document loaders how-to — LangChain Python docs](https://python.langchain.com/docs/how_to/#document-loaders) · [LangChain Document Loaders: A Practical Guide (2026) — fast.io](https://fast.io/resources/langchain-document-loader/) · [Loading PDFs, web pages, and directories with code examples — Latenode](https://latenode.com/blog/ai-frameworks-technical-infrastructure/langchain-setup-tools-agents-memory/langchain-document-loaders-complete-guide-to-loading-files-code-examples-2025)"
+  },
+  {
     "id": "2026-08-29-03-claude-code-remote-control-device-card-phone",
     "title": "Start a Claude Code Session on Your Dev Box From Your Phone in One Tap",
     "excerpt": "Week 34 (Aug 17–21): any machine running `claude remote-control` shows up as a device card in the Claude app — tap it, pick a directory, start a session there.",
