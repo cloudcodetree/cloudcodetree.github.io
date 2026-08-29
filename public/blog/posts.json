@@ -1,5 +1,40 @@
 [
   {
+    "id": "2026-08-29-07-claude-code-bash-permission-wildcard-warning",
+    "title": "Claude Code Now Warns When Your Bash Rules Are Too Wide — and Shows You the Auto Mode Classifier",
+    "excerpt": "Claude Code v2.1.246 (Aug 25) warns at startup when a Bash allow rule has a wildcard before the subcommand, and adds an Auto mode tab to /permissions so you can see and edit what the classifier app…",
+    "author": "Chris Harper",
+    "date": "08-29-2026",
+    "publishedAt": "2026-08-29T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**Claude Code v2.1.246 (Aug 25): a startup warning fires when any Bash allow rule lets a wildcard precede the subcommand, and a new Auto mode tab in `/permissions` exposes the classifier ruleset you can review and edit in-app.**\n\nThe warning fires for rules like `\"Bash(npm *)\"`, `\"Bash(git *)\"`, or `\"Bash(*:*)\"`. These pass any argument: a prompt injection that adds `--force` to a `git push`, or installs a package you didn't ask for, slips through unchecked.\n\nScope each rule to the exact subcommands you actually need:\n\n```json\n// Warns at startup — too broad\n\"Bash(npm *)\",\n\n// Preferred — explicit subcommands only\n\"Bash(npm install:*)\",\n\"Bash(npm run:*)\",\n\"Bash(npm test:*)\"\n```\n\nThe same principle applies to git rules: `\"Bash(git *)\"` passes `git push --force` and `git reset --hard`; `\"Bash(git status:*)\"` and `\"Bash(git diff:*)\"` don't.\n\n**The Auto mode tab in `/permissions`** is the companion change: it lists every tool-call pattern the auto-mode classifier currently approves without prompting, and lets you add or remove patterns without editing `settings.json` by hand. If you have auto mode enabled and haven't opened this tab, now is the time — the classifier ruleset is not always what you expect.\n\n**Limit:** The startup warning covers Bash allow rules only. Overly broad patterns on other tools — `Read(*)`, custom MCP tools with wildcard params — don't trigger the same warning yet.\n\n**Sources:** [Claude Code changelog — v2.1.246](https://code.claude.com/docs/en/changelog) · [Auto mode docs](https://code.claude.com/docs/en/auto-mode) · [Havoptic release summaries](https://www.havoptic.com/tools/claude-code)"
+  },
+  {
+    "id": "2026-08-29-06-github-copilot-org-agents-thinking-git-review",
+    "title": "Copilot for Teams: Org-Level Custom Agents, Thinking Controls, and Git Pre-PR Review",
+    "excerpt": "GitHub Copilot's August 28 VS update: org owners publish a custom agent once and it auto-populates every repo's picker; thinking effort controls arrive for supported models; Git agent reviews uncom…",
+    "author": "Chris Harper",
+    "date": "08-29-2026",
+    "publishedAt": "2026-08-29T20:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.blog/changelog/2026-08-28-github-copilot-in-visual-studio-august-update-2/",
+    "content": "**GitHub Copilot's August 28 Visual Studio update ships three team-scale features: org-owned custom agents auto-populate every repo's picker, supported models get Low/Medium/High thinking effort controls, and the Git agent can review uncommitted changes before you open a PR.**\n\n**Org-level custom agents**: org and enterprise owners publish a custom agent once — it appears automatically in every repository's agent picker with its description and org label. Any Copilot tier can use an org agent; you need org or enterprise owner permissions to publish one. Per-repo setup is no longer required to distribute team knowledge.\n\n**Thinking effort controls** (Low/Medium/High): available on supported models to trade reasoning depth for token cost per request — the same per-request pattern as Claude Code's `/effort` and Gemini 3.7 Flash's `thinking_level`.\n\n**Git agent pre-PR review**: from the Git Changes panel, trigger the Git agent to review uncommitted changes or specific commits; findings surface inline with a navigable list. Supports both GitHub and Azure DevOps repositories.\n\n**Why it matters:** Org agents solve the distribution problem — the same runbook or review-style agent your team maintains, automatically available in every repo without per-repo configuration.\n\n**Sources:** [GitHub Changelog Aug 28](https://github.blog/changelog/2026-08-28-github-copilot-in-visual-studio-august-update-2/) · [GitHub Copilot What's New](https://github.com/features/copilot/whats-new) · [DevOps.com: Copilot model choice](https://devops.com/github-copilots-latest-update-bets-on-model-choice-not-model-loyalty/)"
+  },
+  {
     "id": "2026-08-29-05-managed-agents-session-budget-spend-cap",
     "title": "Put a Hard Ceiling on Your Managed Agent Before It Overruns: Session Budgets",
     "excerpt": "Pass budget.max_list_cost at session creation and a Claude Managed Agents run pauses cleanly — state intact — the moment it crosses your spend cap.",

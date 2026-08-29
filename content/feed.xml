@@ -10,7 +10,70 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 29 Aug 2026 12:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 29 Aug 2026 20:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Claude Code Now Warns When Your Bash Rules Are Too Wide — and Shows You the Auto Mode Classifier</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-08-29-07-claude-code-bash-permission-wildcard-warning</guid>
+      <pubDate>Sat, 29 Aug 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.246 (Aug 25) warns at startup when a Bash allow rule has a wildcard before the subcommand, and adds an Auto mode tab to /permissions so you can see and edit what the classifier approves.</description>
+      <content:encoded><![CDATA[**Claude Code v2.1.246 (Aug 25): a startup warning fires when any Bash allow rule lets a wildcard precede the subcommand, and a new Auto mode tab in `/permissions` exposes the classifier ruleset you can review and edit in-app.**
+
+The warning fires for rules like `"Bash(npm *)"`, `"Bash(git *)"`, or `"Bash(*:*)"`. These pass any argument: a prompt injection that adds `--force` to a `git push`, or installs a package you didn't ask for, slips through unchecked.
+
+Scope each rule to the exact subcommands you actually need:
+
+```json
+// Warns at startup — too broad
+"Bash(npm *)",
+
+// Preferred — explicit subcommands only
+"Bash(npm install:*)",
+"Bash(npm run:*)",
+"Bash(npm test:*)"
+```
+
+The same principle applies to git rules: `"Bash(git *)"` passes `git push --force` and `git reset --hard`; `"Bash(git status:*)"` and `"Bash(git diff:*)"` don't.
+
+**The Auto mode tab in `/permissions`** is the companion change: it lists every tool-call pattern the auto-mode classifier currently approves without prompting, and lets you add or remove patterns without editing `settings.json` by hand. If you have auto mode enabled and haven't opened this tab, now is the time — the classifier ruleset is not always what you expect.
+
+**Limit:** The startup warning covers Bash allow rules only. Overly broad patterns on other tools — `Read(*)`, custom MCP tools with wildcard params — don't trigger the same warning yet.
+
+**Sources:** [Claude Code changelog — v2.1.246](https://code.claude.com/docs/en/changelog) · [Auto mode docs](https://code.claude.com/docs/en/auto-mode) · [Havoptic release summaries](https://www.havoptic.com/tools/claude-code)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Copilot for Teams: Org-Level Custom Agents, Thinking Controls, and Git Pre-PR Review</title>
+      <link>https://github.blog/changelog/2026-08-28-github-copilot-in-visual-studio-august-update-2/</link>
+      <guid isPermaLink="false">2026-08-29-06-github-copilot-org-agents-thinking-git-review</guid>
+      <pubDate>Sat, 29 Aug 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <description>GitHub Copilot's August 28 VS update: org owners publish a custom agent once and it auto-populates every repo's picker; thinking effort controls arrive for supported models; Git agent reviews uncommitted changes before you open a PR.</description>
+      <content:encoded><![CDATA[**GitHub Copilot's August 28 Visual Studio update ships three team-scale features: org-owned custom agents auto-populate every repo's picker, supported models get Low/Medium/High thinking effort controls, and the Git agent can review uncommitted changes before you open a PR.**
+
+**Org-level custom agents**: org and enterprise owners publish a custom agent once — it appears automatically in every repository's agent picker with its description and org label. Any Copilot tier can use an org agent; you need org or enterprise owner permissions to publish one. Per-repo setup is no longer required to distribute team knowledge.
+
+**Thinking effort controls** (Low/Medium/High): available on supported models to trade reasoning depth for token cost per request — the same per-request pattern as Claude Code's `/effort` and Gemini 3.7 Flash's `thinking_level`.
+
+**Git agent pre-PR review**: from the Git Changes panel, trigger the Git agent to review uncommitted changes or specific commits; findings surface inline with a navigable list. Supports both GitHub and Azure DevOps repositories.
+
+**Why it matters:** Org agents solve the distribution problem — the same runbook or review-style agent your team maintains, automatically available in every repo without per-repo configuration.
+
+**Sources:** [GitHub Changelog Aug 28](https://github.blog/changelog/2026-08-28-github-copilot-in-visual-studio-august-update-2/) · [GitHub Copilot What's New](https://github.com/features/copilot/whats-new) · [DevOps.com: Copilot model choice](https://devops.com/github-copilots-latest-update-bets-on-model-choice-not-model-loyalty/)
+]]></content:encoded>
+      <media:content url="https://github.blog/wp-content/themes/github-2021-child/assets/img/featured-v3-new-releases.svg" medium="image"/>
+      <media:thumbnail url="https://github.blog/wp-content/themes/github-2021-child/assets/img/featured-v3-new-releases.svg"/>
+    </item>
 
     <item>
       <title>Put a Hard Ceiling on Your Managed Agent Before It Overruns: Session Budgets</title>
@@ -5781,211 +5844,8 @@ Available via the DeepSeek API and through OpenRouter.
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>No Server, No Docker: LanceDB Is the Disk-Persisted Vector Store Your RAG Pipeline Has Been Missing</title>
-      <link>https://lancedb.github.io/lancedb/</link>
-      <guid isPermaLink="false">2026-08-14-01-lancedb-embedded-vector-store</guid>
-      <pubDate>Thu, 14 Aug 2026 04:19:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Vectors</category>
-      <category>RAG</category>
-      <category>Tutorial</category>
-      <description>LanceDB is an embedded vector database that persists to disk — no server, no Docker, native hybrid (vector + BM25 keyword) search built in. Build and query a local vector store in under 20 lines of Python.</description>
-      <content:encoded><![CDATA[
-**LanceDB is an embedded vector database that persists to disk like a file — no server, no Docker, and native hybrid (vector + BM25 keyword) search built in.**
-
-You've seen the vector store spectrum already: [FAISS](https://cloudcodetree.com/ai-news/2026-08-11-07-faiss-local-vector-index-python) is blazing fast but resets on restart; [Chroma](https://cloudcodetree.com/ai-news/2026-08-13-01-chroma-local-vector-db-rag) persists to disk and has a great developer API; [pgvector](https://cloudcodetree.com/ai-news/2026-08-09-04-pgvector-supabase-vector-store) integrates with your existing Postgres. LanceDB fills a distinct gap: fully embedded (no server process), automatic disk persistence in the [Apache Lance](https://github.com/lancedb/lance) columnar format, and **hybrid search — vector similarity plus BM25 keyword — built in without extra infrastructure**.
-
-Think of it as the DuckDB of vector stores: embed it in your process, close the connection, reopen it next week, and your indexed embeddings are exactly where you left them.
-
-## Install
-
-```bash
-pip install lancedb sentence-transformers
-```
-
-## Connect and populate
-
-```python
-import lancedb
-from sentence_transformers import SentenceTransformer
-
-model = SentenceTransformer("all-MiniLM-L6-v2")   # 384-dim, no API key needed
-
-# creates ./rag_db/ on first call; subsequent calls reopen the same store
-db = lancedb.connect("./rag_db")
-
-docs = [
-    {"id": "doc-1", "text": "LanceDB stores vectors alongside any metadata column", "source": "docs"},
-    {"id": "doc-2", "text": "Hybrid search blends vector similarity with BM25 keyword ranking", "source": "blog"},
-    {"id": "doc-3", "text": "The Lance columnar format enables fast filtered scans over billions of rows", "source": "blog"},
-]
-
-rows = [{**d, "vector": model.encode(d["text"]).tolist()} for d in docs]
-
-table = db.create_table("knowledge", data=rows, mode="overwrite")
-```
-
-## Vector search
-
-```python
-query = "how does column storage help retrieval?"
-q_vec = model.encode(query).tolist()
-
-results = (
-    table.search(q_vec)
-         .metric("cosine")
-         .limit(3)
-         .select(["id", "text", "_distance"])
-         .to_pandas()
-)
-print(results)
-```
-
-## Hybrid search (vector + BM25)
-
-```python
-from lancedb.rerankers import RRFReranker
-
-# build the BM25 full-text index once; persists to disk with the table
-table.create_fts_index("text")
-
-results = (
-    table.search(
-            "columnar storage retrieval",
-            query_type="hybrid",
-            vector_column_name="vector",
-            fts_columns="text",
-         )
-         .rerank(RRFReranker())   # Reciprocal Rank Fusion blends both lists
-         .limit(3)
-         .to_pandas()
-)
-```
-
-RRF promotes any result that ranks highly in *both* vector and keyword lists — a result that appears in position 3 of the vector results and position 2 of the BM25 results floats to the top.
-
-## Metadata filtering
-
-```python
-# SQL WHERE clause on any column, combined with vector search
-results = (
-    table.search(q_vec)
-         .where("source = 'docs'")   # prune before ranking
-         .limit(5)
-         .to_pandas()
-)
-```
-
-## ANN index for large tables
-
-Once your table exceeds ~100K rows, add an approximate nearest-neighbor index so search stays sub-millisecond:
-
-```python
-table.create_index(metric="cosine", vector_column_name="vector")
-```
-
-## Vector store comparison
-
-| | FAISS | Chroma | LanceDB | pgvector |
-|---|---|---|---|---|
-| Embedded (no server) | Yes | Yes | Yes | No |
-| Auto disk persistence | No (manual save) | Yes | Yes | Yes |
-| Hybrid search built-in | No | No | Yes (BM25 + RRF) | Partial |
-| Metadata filter | No | Yes | Yes (SQL) | Yes (SQL) |
-| Production path | Self-manage | Chroma Cloud | LanceDB Cloud | Managed Postgres |
-
-## From local to cloud
-
-When you're ready to scale beyond a single machine, point at LanceDB Cloud — the same table, index, and search code works unchanged, you just swap the connection URI. No rewrite required.
-
-**Sources:** [LanceDB documentation](https://lancedb.github.io/lancedb/) · [Full-Text Search — LanceDB docs](https://docs.lancedb.com/search/full-text-search) · [Hybrid Search — LanceDB docs](https://lancedb.com/docs/search/hybrid-search/) · [lancedb/lancedb — GitHub](https://github.com/lancedb/lancedb)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Think Less, Pay Less: Routing Agent Subworkloads by Thinking Level in Gemini 3.7 Flash</title>
-      <link>https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash</link>
-      <guid isPermaLink="false">2026-08-13-10-gemini-37-flash-thinking-levels-agent-routing</guid>
-      <pubDate>Wed, 13 Aug 2026 20:09:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>Gemini 3.7 Flash's thinking_level parameter (low/medium/high) lets you match reasoning effort to task complexity per request — same model, same endpoint, lower cost on simple steps.</description>
-      <content:encoded><![CDATA[
-**Gemini 3.7 Flash ships a per-request thinking_level parameter so your agent can dial reasoning up for hard steps and down for cheap lookups — one model, one endpoint, variable cost.**
-
-Most agentic pipelines treat every step identically: every tool call, every lookup, and every complex code analysis goes to the same max-reasoning inference tier. Gemini 3.7 Flash (GA today) breaks that pattern with a `thinking_level` parameter in `generation_config` that lets you tune per call.
-
-**Three levels:**
-
-| Level | Best for | Cost profile |
-|---|---|---|
-| `low` | Quick lookups, file listing, simple tool calls | Lowest |
-| `medium` | Default for most agentic steps, code analysis | ~1.5× low |
-| `high` | Hard debugging, complex code gen, architectural design | Highest |
-
-**Routing pattern:**
-
-```python
-from google import genai
-
-client = genai.Client()
-
-def step(task: str, thinking_level: str) -> str:
-    return client.interactions.create(
-        model="gemini-3.7-flash",
-        input=task,
-        generation_config={"thinking_level": thinking_level},
-    ).output_text
-
-# Cheap: simple context-prep steps
-file_list = step(
-    "List all Python files modified in the last 24h",
-    thinking_level="low",
-)
-
-# Balanced: most analytical steps
-plan = step(
-    f"Given these files: {file_list}\n"
-    "Identify which ones might contain auth logic.",
-    thinking_level="medium",
-)
-
-# Full depth: complex debugging
-fix = step(
-    f"Review this auth module: {plan}\n"
-    "Find any race conditions and rewrite the transaction lock safely.",
-    thinking_level="high",
-)
-```
-
-**Via OpenRouter** (OpenAI-compatible client):
-
-```python
-import openai
-
-client = openai.OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key="<openrouter-key>",
-)
-
-resp = client.chat.completions.create(
-    model="google/gemini-3.7-flash",
-    messages=[{"role": "user", "content": task}],
-    extra_body={"generation_config": {"thinking_level": "high"}},
-)
-```
-
-**Why this matters for Claude Code workflows:** On days when Anthropic quota is under pressure, Gemini 3.7 Flash is a solid background-task model — particularly for the compute-heavy "write a migration plan" or "find the bug" steps where you want real reasoning but don't need Claude's specific strengths. The thinking-level routing keeps those background costs proportional to actual task complexity.
-
-**Sources:** [Gemini 3.7 Flash — ai.google.dev](https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash) · [Gemini thinking guide](https://ai.google.dev/gemini-api/docs/thinking) · [Gemini 3 Developer Guide](https://ai.google.dev/gemini-api/docs/gemini-3)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
