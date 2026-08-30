@@ -10,7 +10,111 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 30 Aug 2026 12:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 30 Aug 2026 20:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Pipe a Build Log, Get a Root Cause: Four `claude -p` Patterns for Shell Scripts and CI</title>
+      <link>https://code.claude.com/docs/en/headless</link>
+      <guid isPermaLink="false">2026-08-30-07-claude-p-print-mode-shell-scripting</guid>
+      <pubDate>Sun, 30 Aug 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>claude -p turns Claude Code into a composable one-shot CLI: pipe in stdin, get output, exit. Four patterns — triage, typed JSON, lint step in package.json, chained sessions — that drop into any shell workflow today.</description>
+      <content:encoded><![CDATA[**TL;DR: `claude -p` makes Claude Code behave like `grep` or `jq` — one prompt in, one result out, then exit. Four shell patterns you can use today.**
+
+The interactive TUI is the right tool for exploratory work. But for a repeated pipeline step — triage a build error, extract function names, review a diff before commit — you want a command that composes with the rest of your shell. `claude -p` is that command.
+
+**Pattern 1: Triage in one pipe**
+
+```bash
+cat build-error.txt | claude -p 'concisely explain the root cause of this build error' > output.txt
+```
+
+Stdin is read as context; output goes to stdout. Pipe in up to 10 MB (use a file path in the prompt for larger inputs). Exit code 0 on success, non-zero on failure — branch on it in scripts.
+
+**Pattern 2: A `lint:claude` step in package.json**
+
+```json
+{
+  "scripts": {
+    "lint:claude": "git diff main | claude -p \"you are a typo linter. for each typo, report filename:line then the issue. return nothing else.\""
+  }
+}
+```
+
+Run with `npm run lint:claude`. Claude sees the diff without Bash permission to read git internals.
+
+**Pattern 3: Typed JSON output**
+
+```bash
+claude -p "Extract the main function names from auth.py" \
+  --output-format json \
+  --json-schema '{"type":"object","properties":{"functions":{"type":"array","items":{"type":"string"}}},"required":["functions"]}' \
+  | jq '.structured_output'
+```
+
+`--output-format json` also includes `total_cost_usd` and a per-model breakdown — useful for tracking spend per invocation in CI without consulting the dashboard.
+
+**Pattern 4: Chained review sessions**
+
+```bash
+session_id=$(claude -p "Review this codebase for performance issues" --output-format json | jq -r '.session_id')
+claude -p "Now focus on the database queries" --resume "$session_id"
+claude -p "Generate a summary of all issues" --resume "$session_id"
+```
+
+Each subsequent call continues the same conversation. `--continue` resumes the most recent session when you don't need to capture the ID.
+
+**Key flags to know**
+
+- `--bare`: skips hooks, plugins, CLAUDE.md, and MCP servers — use in CI for reproducible, machine-agnostic runs. Will become the default for `-p` in a future release.
+- `--allowedTools "Bash,Read,Edit"`: auto-approves tools without prompting.
+- `--permission-mode acceptEdits`: Claude writes files without asking; other shell commands still need an `--allowedTools` entry.
+- `--append-system-prompt "..."`: add a reviewer role without a full session setup (`"You are a security engineer. Review for vulnerabilities."`).
+
+**Real limits**
+
+- `--bare` mode cannot use your Claude subscription OAuth; set `ANTHROPIC_API_KEY` before running.
+- Stdin capped at 10 MB; reference a file path in the prompt for larger inputs.
+- Background Bash tasks started during a `-p` run are terminated about 5 seconds after the final result — don't rely on them for cleanup or post-processing.
+- `--restricted` (strips command tools entirely) and `-p` (single-shot exit) are complementary, not synonyms: use `--restricted` for long-running CI agents that should not touch the network; use `-p` for one-off pipeline steps that exit.
+
+**Sources:** [Run Claude Code programmatically — code.claude.com](https://code.claude.com/docs/en/headless) · [Claude Code in CI/CD and Headless Automation — hidekazu-konishi.com](https://hidekazu-konishi.com/entry/claude_code_cicd_and_headless_automation.html) · [Claude Code Headless Scripting 2026 — StackNotice](https://stacknotice.com/blog/claude-code-headless-scripting-2026)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>OpenAI Is Cutting Off Cursor's GPT Models on November 12 After SpaceX Acquired Anysphere</title>
+      <link>https://the-decoder.com/openai-cuts-off-cursor-after-spacex-acquisition-citing-musks-history-of-breaking-contracts/</link>
+      <guid isPermaLink="false">2026-08-30-06-openai-cursor-spacex-model-cutoff</guid>
+      <pubDate>Sun, 30 Aug 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>LLM</category>
+      <description>OpenAI announced August 28 it is terminating Cursor's direct GPT model access on November 12, invoking a change-of-control clause after SpaceX acquired Anysphere. Claude is expected to become the default path.</description>
+      <content:encoded><![CDATA[**TL;DR: SpaceX acquired Cursor's parent Anysphere in mid-August; OpenAI invoked its change-of-control clause and will cut off direct GPT model access on November 12, 2026.**
+
+SpaceX finalized its acquisition of Anysphere — the company behind Cursor — in mid-August 2026. OpenAI announced on August 28 that it is winding down its contract and will terminate direct GPT model access to Cursor on November 12, the maximum contractual notice period.
+
+OpenAI cited trust concerns. Its statement pointed to Musk's track record with contracts: the data cutoff after X's acquisition in 2022 and sworn testimony involving xAI training data. Cursor's co-founder Michael Truell responded that OpenAI accounts for just 5% of Cursor's AI traffic and that talks with OpenAI's team are ongoing.
+
+**What changes for engineers**
+
+- Direct model access (the embedded GPT models Cursor supplies to users) ends November 12.
+- Your own OpenAI API key still works inside Cursor after that date — bring-your-own-key access is unaffected.
+- OpenAI will continue providing models through its VS Code and IDE extensions.
+- Anthropic's co-founder has signaled expanded Claude model capacity for Cursor, and Claude is the current plurality model across Cursor's traffic.
+
+**Why it matters:** If your Cursor workflow depends on specific GPT-4-series models — o3, GPT-5, or proprietary Cursor-routed variants — test the Claude path now rather than scrambling in October. The November 12 deadline gives you ten weeks; the migration itself is typically a settings change, not a workflow rewrite.
+
+The practical limit: the forced migration timeline assumes ongoing contract talks fail. If OpenAI and SpaceX/xAI reach an agreement, the cutoff date could change. Watch Cursor's changelog for updates.
+
+**Sources:** [OpenAI cuts off Cursor after SpaceX acquisition — The Decoder](https://the-decoder.com/openai-cuts-off-cursor-after-spacex-acquisition-citing-musks-history-of-breaking-contracts/) · [OpenAI terminates contract with Cursor — Neowin](https://www.neowin.net/news/openai-terminates-contract-with-cursor-following-acquisition-by-elon-musks-spacex/) · [OpenAI to end model access to Cursor — CNBC](https://www.cnbc.com/2026/08/29/openai-cursor-spacex-model-access.html) · [OpenAI will pull its models from Cursor — Engadget](https://www.engadget.com/2246969/openai-pull-its-models-from-cursor-due-to-spacexai-acquisition/)]]></content:encoded>
+    </item>
 
     <item>
       <title>Skip the While Loop: The Anthropic SDK's Tool Runner Runs Your Agent For You</title>
@@ -5720,127 +5824,8 @@ client.messages.create(
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Claude Code v2.1.233: Marketplace Skills Are Sandboxed, Opus 4.7 Leaves /fast, Workflows Default to Medium</title>
-      <link>https://code.claude.com/docs/en/changelog</link>
-      <guid isPermaLink="false">2026-08-15-02-claude-code-v2233-hardened-skills-fast-mode</guid>
-      <pubDate>Sat, 15 Aug 2026 04:08:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Claude Code</category>
-      <category>Developer Tools</category>
-      <description>v2.1.233: skills from the claude.ai marketplace are sandboxed on your machine, /fast drops Opus 4.7, and dynamic workflows aim for fewer than 15 agents by default.</description>
-      <content:encoded><![CDATA[
-**Claude Code v2.1.233 (Aug 15) sandboxes marketplace skills so they can't shadow local commands, removes Opus 4.7 from /fast, and sets dynamic workflows to medium (< 15 agents) by default.**
-
-**Marketplace skills are now sandboxed on your machine.** Skills synced from claude.ai no longer shadow local slash commands or MCP prompts. Their descriptions are sanitized and labeled. On your local machine, skill bodies can't run commands or expand `@` files — they're read-only reference material there; full execution only runs inside the managed session they're installed for. If you relied on marketplace skill `@` file expansion locally, rebuild that flow in a project skill instead.
-
-**Opus 4.7 removed from /fast.** The July 24 migration deadline has passed. `/fast` now routes to Opus 5 and Opus 4.8 only. Run `/models` if you're seeing unexpected behavior after the change.
-
-**Dynamic workflows default to medium.** Previously, the size guideline was unset unless you configured it. Now Claude Code aims for fewer than 15 agents per workflow by default — a guardrail against accidental cost spikes. Override with `/config workflow.size=large` (or `workflowSizeGuideline: "large"` in settings.json) when you need a comprehensive sweep.
-
-**Why it matters:** The skill sandboxing closes a supply-chain risk — a poisoned marketplace skill could no longer inject behavior into your local command flow. The workflow default keeps routine runs from ballooning unexpectedly.
-
-**Sources:** [Claude Code changelog — code.claude.com](https://code.claude.com/docs/en/changelog) · [Claude Code August 2026 updates — Releasebot](https://releasebot.io/updates/anthropic/claude-code)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Your Agent's Actions Are Python, Not JSON: Build a Code Agent With HuggingFace smolagents</title>
-      <link>https://huggingface.co/learn/agents-course/en/unit2/smolagents/code_agents</link>
-      <guid isPermaLink="false">2026-08-15-01-smolagents-code-agent-python</guid>
-      <pubDate>Sat, 15 Aug 2026 04:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Agents</category>
-      <category>HuggingFace</category>
-      <description>smolagents gives your LLM a Python interpreter as its action space instead of JSON tool calls — start a code agent in 10 lines, with any HuggingFace or Claude model.</description>
-      <media:content url="https://opengraph.githubassets.com/1/huggingface/smolagents" medium="image" />
-      <media:thumbnail url="https://opengraph.githubassets.com/1/huggingface/smolagents" />
-      <content:encoded><![CDATA[
-**smolagents (HuggingFace) lets your LLM write actual Python to call tools instead of JSON blobs — in benchmarks, code agents complete complex multi-step tasks up to ~20% more often in fewer steps.**
-
-**What you'll be able to do after this:**
-- Understand why code agents outperform JSON tool-calling agents on multi-step tasks
-- Build a working `CodeAgent` with real tools in under 30 lines of Python
-- Know when to pick `CodeAgent` (default) vs `ToolCallingAgent` (structured API calls)
-
-## Why code over JSON?
-
-Most agent frameworks represent tool calls as JSON: `{"tool": "search", "args": {"query": "..."}}`. The model names the tool; the JSON is dispatched; repeat. smolagents instead gives the model a Python interpreter: it writes real code, with your tools available as callables. The model can loop, branch, compose multiple tools in one step, and define helper functions on the fly. Research shows this raises task success rates by up to ~20% on complex benchmarks and often reduces total steps.
-
-smolagents ships two agent types:
-- **`CodeAgent`** (default) — generates Python, executes it in a sandboxed subprocess
-- **`ToolCallingAgent`** — generates JSON tool calls (backward-compatible with traditional tool-calling setups)
-
-For most multi-step work, `CodeAgent` is the right choice.
-
-## Quick start
-
-```bash
-pip install smolagents
-```
-
-```python
-from smolagents import CodeAgent, HfApiModel, DuckDuckGoSearchTool
-
-model = HfApiModel(model_id="Qwen/Qwen2.5-72B-Instruct")
-agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=model)
-
-result = agent.run(
-    "Find the Python package for the largest open-source vector database "
-    "by GitHub stars and show me the install command."
-)
-print(result)
-```
-
-To use **Claude Sonnet 4.6** instead:
-
-```python
-from smolagents import CodeAgent, LiteLLMModel, DuckDuckGoSearchTool
-
-model = LiteLLMModel(model_id="anthropic/claude-sonnet-4-6")
-agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=model)
-```
-
-smolagents uses [LiteLLM](https://docs.litellm.ai/) under the hood for provider routing, so any Anthropic model string works.
-
-## Add a custom tool with a decorator
-
-```python
-from smolagents import tool
-
-@tool
-def count_words(text: str) -> int:
-    """Counts the number of words in the given text."""
-    return len(text.split())
-
-agent = CodeAgent(tools=[count_words], model=model)
-```
-
-The function name becomes the tool name; the docstring becomes the model's description; type hints define the schema. No boilerplate.
-
-## When to choose each agent type
-
-| Scenario | Agent type |
-|---|---|
-| Multi-step research with branching | `CodeAgent` |
-| Loop over a list until condition met | `CodeAgent` |
-| Single structured API call | `ToolCallingAgent` |
-| Can't execute arbitrary Python safely | `ToolCallingAgent` |
-
-`CodeAgent` runs code in a sandboxed local interpreter by default. For production, swap it for the `DockerExecutor` or `E2BExecutor` to confine execution to a container. Tools are allowlisted — the model can only call functions you explicitly passed in.
-
-## Where to go deeper
-
-The **HuggingFace Agents Course Unit 2** ([huggingface.co/learn/agents-course](https://huggingface.co/learn/agents-course/en/unit2/smolagents/code_agents)) is the free, official walkthrough — covers CodeAgent, ToolCallingAgent, multi-agent orchestration, and the secure execution layer. The **DeepLearning.AI short course** (taught by Thomas Wolf and Aymeric Roucher, HuggingFace) goes from scratch to production in about two hours.
-
-**Sources:** [Building Agents That Use Code — HuggingFace Agents Course](https://huggingface.co/learn/agents-course/en/unit2/smolagents/code_agents) · [Building Code Agents with HuggingFace smolagents — DeepLearning.AI](https://www.deeplearning.ai/courses/building-code-agents-with-hugging-face-smolagents) · [smolagents guided tour — HuggingFace Docs](https://huggingface.co/docs/smolagents/en/guided_tour) · [smolagents GitHub — huggingface/smolagents](https://github.com/huggingface/smolagents)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     

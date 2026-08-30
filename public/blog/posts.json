@@ -1,5 +1,41 @@
 [
   {
+    "id": "2026-08-30-07-claude-p-print-mode-shell-scripting",
+    "title": "Pipe a Build Log, Get a Root Cause: Four `claude -p` Patterns for Shell Scripts and CI",
+    "excerpt": "claude -p turns Claude Code into a composable one-shot CLI: pipe in stdin, get output, exit. Four patterns — triage, typed JSON, lint step in package.json, chained sessions — that drop into any she…",
+    "author": "Chris Harper",
+    "date": "08-30-2026",
+    "publishedAt": "2026-08-30T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/headless",
+    "content": "**TL;DR: `claude -p` makes Claude Code behave like `grep` or `jq` — one prompt in, one result out, then exit. Four shell patterns you can use today.**\n\nThe interactive TUI is the right tool for exploratory work. But for a repeated pipeline step — triage a build error, extract function names, review a diff before commit — you want a command that composes with the rest of your shell. `claude -p` is that command.\n\n**Pattern 1: Triage in one pipe**\n\n```bash\ncat build-error.txt | claude -p 'concisely explain the root cause of this build error' > output.txt\n```\n\nStdin is read as context; output goes to stdout. Pipe in up to 10 MB (use a file path in the prompt for larger inputs). Exit code 0 on success, non-zero on failure — branch on it in scripts.\n\n**Pattern 2: A `lint:claude` step in package.json**\n\n```json\n{\n  \"scripts\": {\n    \"lint:claude\": \"git diff main | claude -p \\\"you are a typo linter. for each typo, report filename:line then the issue. return nothing else.\\\"\"\n  }\n}\n```\n\nRun with `npm run lint:claude`. Claude sees the diff without Bash permission to read git internals.\n\n**Pattern 3: Typed JSON output**\n\n```bash\nclaude -p \"Extract the main function names from auth.py\" \\\n  --output-format json \\\n  --json-schema '{\"type\":\"object\",\"properties\":{\"functions\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"functions\"]}' \\\n  | jq '.structured_output'\n```\n\n`--output-format json` also includes `total_cost_usd` and a per-model breakdown — useful for tracking spend per invocation in CI without consulting the dashboard.\n\n**Pattern 4: Chained review sessions**\n\n```bash\nsession_id=$(claude -p \"Review this codebase for performance issues\" --output-format json | jq -r '.session_id')\nclaude -p \"Now focus on the database queries\" --resume \"$session_id\"\nclaude -p \"Generate a summary of all issues\" --resume \"$session_id\"\n```\n\nEach subsequent call continues the same conversation. `--continue` resumes the most recent session when you don't need to capture the ID.\n\n**Key flags to know**\n\n- `--bare`: skips hooks, plugins, CLAUDE.md, and MCP servers — use in CI for reproducible, machine-agnostic runs. Will become the default for `-p` in a future release.\n- `--allowedTools \"Bash,Read,Edit\"`: auto-approves tools without prompting.\n- `--permission-mode acceptEdits`: Claude writes files without asking; other shell commands still need an `--allowedTools` entry.\n- `--append-system-prompt \"...\"`: add a reviewer role without a full session setup (`\"You are a security engineer. Review for vulnerabilities.\"`).\n\n**Real limits**\n\n- `--bare` mode cannot use your Claude subscription OAuth; set `ANTHROPIC_API_KEY` before running.\n- Stdin capped at 10 MB; reference a file path in the prompt for larger inputs.\n- Background Bash tasks started during a `-p` run are terminated about 5 seconds after the final result — don't rely on them for cleanup or post-processing.\n- `--restricted` (strips command tools entirely) and `-p` (single-shot exit) are complementary, not synonyms: use `--restricted` for long-running CI agents that should not touch the network; use `-p` for one-off pipeline steps that exit.\n\n**Sources:** [Run Claude Code programmatically — code.claude.com](https://code.claude.com/docs/en/headless) · [Claude Code in CI/CD and Headless Automation — hidekazu-konishi.com](https://hidekazu-konishi.com/entry/claude_code_cicd_and_headless_automation.html) · [Claude Code Headless Scripting 2026 — StackNotice](https://stacknotice.com/blog/claude-code-headless-scripting-2026)"
+  },
+  {
+    "id": "2026-08-30-06-openai-cursor-spacex-model-cutoff",
+    "title": "OpenAI Is Cutting Off Cursor's GPT Models on November 12 After SpaceX Acquired Anysphere",
+    "excerpt": "OpenAI announced August 28 it is terminating Cursor's direct GPT model access on November 12, invoking a change-of-control clause after SpaceX acquired Anysphere. Claude is expected to become the d…",
+    "author": "Chris Harper",
+    "date": "08-30-2026",
+    "publishedAt": "2026-08-30T20:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Developer Tools",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://the-decoder.com/openai-cuts-off-cursor-after-spacex-acquisition-citing-musks-history-of-breaking-contracts/",
+    "content": "**TL;DR: SpaceX acquired Cursor's parent Anysphere in mid-August; OpenAI invoked its change-of-control clause and will cut off direct GPT model access on November 12, 2026.**\n\nSpaceX finalized its acquisition of Anysphere — the company behind Cursor — in mid-August 2026. OpenAI announced on August 28 that it is winding down its contract and will terminate direct GPT model access to Cursor on November 12, the maximum contractual notice period.\n\nOpenAI cited trust concerns. Its statement pointed to Musk's track record with contracts: the data cutoff after X's acquisition in 2022 and sworn testimony involving xAI training data. Cursor's co-founder Michael Truell responded that OpenAI accounts for just 5% of Cursor's AI traffic and that talks with OpenAI's team are ongoing.\n\n**What changes for engineers**\n\n- Direct model access (the embedded GPT models Cursor supplies to users) ends November 12.\n- Your own OpenAI API key still works inside Cursor after that date — bring-your-own-key access is unaffected.\n- OpenAI will continue providing models through its VS Code and IDE extensions.\n- Anthropic's co-founder has signaled expanded Claude model capacity for Cursor, and Claude is the current plurality model across Cursor's traffic.\n\n**Why it matters:** If your Cursor workflow depends on specific GPT-4-series models — o3, GPT-5, or proprietary Cursor-routed variants — test the Claude path now rather than scrambling in October. The November 12 deadline gives you ten weeks; the migration itself is typically a settings change, not a workflow rewrite.\n\nThe practical limit: the forced migration timeline assumes ongoing contract talks fail. If OpenAI and SpaceX/xAI reach an agreement, the cutoff date could change. Watch Cursor's changelog for updates.\n\n**Sources:** [OpenAI cuts off Cursor after SpaceX acquisition — The Decoder](https://the-decoder.com/openai-cuts-off-cursor-after-spacex-acquisition-citing-musks-history-of-breaking-contracts/) · [OpenAI terminates contract with Cursor — Neowin](https://www.neowin.net/news/openai-terminates-contract-with-cursor-following-acquisition-by-elon-musks-spacex/) · [OpenAI to end model access to Cursor — CNBC](https://www.cnbc.com/2026/08/29/openai-cursor-spacex-model-access.html) · [OpenAI will pull its models from Cursor — Engadget](https://www.engadget.com/2246969/openai-pull-its-models-from-cursor-due-to-spacexai-acquisition/)"
+  },
+  {
     "id": "2026-08-30-05-anthropic-sdk-tool-runner-agent-loop",
     "title": "Skip the While Loop: The Anthropic SDK's Tool Runner Runs Your Agent For You",
     "excerpt": "The Anthropic SDK beta tool runner iterates the tool-call loop for you — decorate your functions with @beta_tool and pass them to client.beta.messages.tool_runner. Use the manual loop when you need…",
