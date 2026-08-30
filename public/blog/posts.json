@@ -1,5 +1,58 @@
 [
   {
+    "id": "2026-08-30-03-tool-choice-sequential-disable-parallel",
+    "title": "Stop Your Claude Agent From Calling Three Tools at Once: Two Settings for Predictable Execution",
+    "excerpt": "disable_parallel_tool_use forces one tool call per turn; tool_choice: required forces a tool call on the first turn. Two settings for more predictable Claude agent execution, with the latency cost…",
+    "author": "Chris Harper",
+    "date": "08-30-2026",
+    "publishedAt": "2026-08-30T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+    "content": "**Two tool_choice settings make Claude agents more predictable: `disable_parallel_tool_use` for sequential one-at-a-time calls, and `{\"type\": \"required\"}` to force retrieval on the first turn instead of answering from training data.**\n\nBy default, Claude may call several independent tools in a single turn. For agents where you need to inspect each result — or where each tool call hits a rate-limited or side-effectful API — two settings give you explicit control.\n\n**Force the first turn to call a tool — not answer from memory:**\n\n```python\nresponse = client.messages.create(\n    model=\"claude-opus-5\",\n    max_tokens=1024,\n    tools=tools,\n    tool_choice={\"type\": \"required\"},   # must call a tool this turn\n    messages=messages,\n)\n```\n\nUse this when your agent should always retrieve before it answers — preventing it from skipping the search step and responding from training data. `\"required\"` forces at least one tool call; Claude chooses which one. Use `{\"type\": \"tool\", \"name\": \"search\"}` to require a specific tool.\n\n**Sequence calls one at a time:**\n\n```python\ntool_choice={\"type\": \"auto\", \"disable_parallel_tool_use\": True}\n```\n\nWith `disable_parallel_tool_use: True`, Claude returns at most one `tool_use` block per turn. You run it, inspect the result, decide whether to continue, then send it back. Useful when each call hits an external API you want to audit or rate-limit.\n\n**The latency cost:** you add one full API round trip per tool call. A task that would have run three parallel calls in one turn now takes three sequential turns — three times the latency plus three times the per-request overhead. Use parallel calls when tools are independent and intermediate results don't need inspection.\n\n**Skip the handling loop with Tool Runner:** The Anthropic SDK includes Tool Runner, which executes the tool-call loop automatically — register your callables by name and run the loop without explicit `tool_result` handling. See [Tool Runner docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner) for the exact SDK API. The trade-off: less visibility into intermediate calls for debugging.\n\n**Sources:** [Define tools — platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools) · [Parallel tool use — platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) · [Claude API Function Calling: Complete Guide — DEV Community](https://dev.to/kalyna_pro/claude-api-function-calling-complete-guide-to-tool-use-2026-1kh3)"
+  },
+  {
+    "id": "2026-08-30-02-glm-flash-transformers-open-weight",
+    "title": "The Model the Internet Fingerprinted as OX Alpha Is Now Officially Open Weight",
+    "excerpt": "GLM-5.3-Flash — the model community analysis linked to OpenRouter's OX Alpha mystery — is now official open-weight in HuggingFace Transformers v5.16.1. Needs server-class hardware unless you quantize.",
+    "author": "Chris Harper",
+    "date": "08-30-2026",
+    "publishedAt": "2026-08-30T04:04:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://huggingface.co/blog/state-of-open-models-summer-2026",
+    "content": "**Zhipu AI's GLM-5.3-Flash landed in HuggingFace Transformers v5.16.1 as official open weights — the same model architecture the developer community fingerprinted to OpenRouter's OX Alpha with high confidence in late August.**\n\nThe design: a mixture-of-experts model with 320B total parameters and 18B active per forward pass. Per Zhipu AI's own release notes (not independently verified), it claims to approach Claude Opus 4.8 on coding and agentic benchmarks. Text, image, and video input; tool-calling supported.\n\n**The hardware reality:** 18B active parameters sounds locally runnable, but loading the full 320B expert pool requires server-class storage and memory — you're looking at quantized GPTQ or GGUF builds before Ollama is realistic. The OX Alpha free-tier window on OpenRouter has closed; if you want to experiment, the open-weight path is now the practical one. Watch the HuggingFace model page for community quantizations.\n\n**Why it matters:** If you need a strong open-weight model with native tool-calling for self-hosted inference, GLM-5.3-Flash is now a testable option — your existing MCP or function-calling wiring shouldn't need changes.\n\n**Sources:** [State of Open Models Summer 2026 — HuggingFace Blog](https://huggingface.co/blog/state-of-open-models-summer-2026) · [HuggingFace Transformers releases](https://github.com/huggingface/transformers/releases) · [OX Alpha mystery model reporting — The Next Web](https://thenextweb.com/news/ox-alpha-stealth-model-openrouter-anonymous-provider)"
+  },
+  {
+    "id": "2026-08-30-01-claude-tool-use-round-trip-agent-loop",
+    "title": "Give Claude a Function to Call: The Tool-Use Round Trip Every Agent Runs",
+    "excerpt": "Tool use is how agents connect to the real world. Define a JSON schema, catch stop_reason: tool_use, execute your function, feed the result back — the four-step loop every Claude agent uses, with c…",
+    "author": "Chris Harper",
+    "date": "08-30-2026",
+    "publishedAt": "2026-08-30T04:03:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+    "content": "**What you will be able to do after this:** wire any Python function — a database lookup, a search API, an internal retrieval call — into Claude as a callable tool, handle the result correctly, and understand the token overhead so costs don't surprise you.\n\n**Three things to take away:**\n- Claude never executes your function — it returns a `tool_use` block with structured arguments; your code runs the function and sends a `tool_result` back so Claude can continue\n- `stop_reason: \"tool_use\"` is the signal to handle a call; `stop_reason: \"end_turn\"` means Claude is done with tools and has its final answer\n- `strict: true` in a tool definition guarantees Claude's output always matches your JSON schema — catch argument type errors before they reach your function\n\n**The loop, step by step:**\n\n```python\nimport anthropic, json\n\nclient = anthropic.Anthropic()\n\n# 1. Define the tool — Claude gets the name, description, and schema\ntools = [{\n    \"name\": \"get_order_status\",\n    \"description\": \"Look up the current status of a customer order by order ID.\",\n    \"input_schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"order_id\": {\"type\": \"string\", \"description\": \"The order ID, e.g. A42\"}\n        },\n        \"required\": [\"order_id\"]\n    },\n    \"strict\": True   # output always matches this schema exactly\n}]\n\nmessages = [{\"role\": \"user\", \"content\": \"What is the status of order A42?\"}]\n\n# 2. First turn: Claude decides to call the tool, returns stop_reason=\"tool_use\"\nresponse = client.messages.create(\n    model=\"claude-opus-5\", max_tokens=1024,\n    tools=tools, messages=messages,\n)\ntool_call = next(b for b in response.content if b.type == \"tool_use\")\n\n# 3. Your code runs the actual function\nresult = lookup_order(tool_call.input[\"order_id\"])  # your DB / API call\n\n# 4. Send the result back — Claude continues and gives the final answer\nmessages += [\n    {\"role\": \"assistant\", \"content\": response.content},\n    {\"role\": \"user\", \"content\": [{\n        \"type\": \"tool_result\",\n        \"tool_use_id\": tool_call.id,\n        \"content\": json.dumps(result)\n    }]}\n]\nfinal = client.messages.create(\n    model=\"claude-opus-5\", max_tokens=1024,\n    tools=tools, messages=messages,\n)\nprint(next(b.text for b in final.content if b.type == \"text\"))\n```\n\n**The cost reality:** Every tool schema adds tokens to every request. On Claude Opus 5, the tool-use system prompt overhead alone is 286 tokens for `tool_choice: auto` and 406 tokens when using `any` or `tool`. Add ~50–150 tokens per tool definition. Ten detailed tool schemas on a short conversation can easily add 2–3k tokens per turn — size your descriptions to what Claude needs to choose correctly, not to what a human reader would want.\n\n**To skip the round-trip loop:** use [Tool Runner](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner) — the Anthropic SDK can execute your tools automatically and send results back without explicit handling code. Useful for simple loops; keep the manual loop when you need to log, gate, or transform results.\n\n**Sources:** [Tool use overview — platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview) · [Build a tool-using agent tutorial — Anthropic](https://platform.claude.com/docs/en/agents-and-tools/tool-use/build-a-tool-using-agent) · [Claude API Function Calling: Complete Guide (2026) — DEV Community](https://dev.to/kalyna_pro/claude-api-function-calling-complete-guide-to-tool-use-2026-1kh3)"
+  },
+  {
     "id": "2026-08-29-07-claude-code-bash-permission-wildcard-warning",
     "title": "Claude Code Now Warns When Your Bash Rules Are Too Wide — and Shows You the Auto Mode Classifier",
     "excerpt": "Claude Code v2.1.246 (Aug 25) warns at startup when a Bash allow rule has a wildcard before the subcommand, and adds an Auto mode tab to /permissions so you can see and edit what the classifier app…",

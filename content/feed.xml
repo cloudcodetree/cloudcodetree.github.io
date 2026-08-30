@@ -10,7 +10,149 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 29 Aug 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 30 Aug 2026 04:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Stop Your Claude Agent From Calling Three Tools at Once: Two Settings for Predictable Execution</title>
+      <link>https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools</link>
+      <guid isPermaLink="false">2026-08-30-03-tool-choice-sequential-disable-parallel</guid>
+      <pubDate>Sun, 30 Aug 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>disable_parallel_tool_use forces one tool call per turn; tool_choice: required forces a tool call on the first turn. Two settings for more predictable Claude agent execution, with the latency cost explained.</description>
+      <content:encoded><![CDATA[**Two tool_choice settings make Claude agents more predictable: `disable_parallel_tool_use` for sequential one-at-a-time calls, and `{"type": "required"}` to force retrieval on the first turn instead of answering from training data.**
+
+By default, Claude may call several independent tools in a single turn. For agents where you need to inspect each result — or where each tool call hits a rate-limited or side-effectful API — two settings give you explicit control.
+
+**Force the first turn to call a tool — not answer from memory:**
+
+```python
+response = client.messages.create(
+    model="claude-opus-5",
+    max_tokens=1024,
+    tools=tools,
+    tool_choice={"type": "required"},   # must call a tool this turn
+    messages=messages,
+)
+```
+
+Use this when your agent should always retrieve before it answers — preventing it from skipping the search step and responding from training data. `"required"` forces at least one tool call; Claude chooses which one. Use `{"type": "tool", "name": "search"}` to require a specific tool.
+
+**Sequence calls one at a time:**
+
+```python
+tool_choice={"type": "auto", "disable_parallel_tool_use": True}
+```
+
+With `disable_parallel_tool_use: True`, Claude returns at most one `tool_use` block per turn. You run it, inspect the result, decide whether to continue, then send it back. Useful when each call hits an external API you want to audit or rate-limit.
+
+**The latency cost:** you add one full API round trip per tool call. A task that would have run three parallel calls in one turn now takes three sequential turns — three times the latency plus three times the per-request overhead. Use parallel calls when tools are independent and intermediate results don't need inspection.
+
+**Skip the handling loop with Tool Runner:** The Anthropic SDK includes Tool Runner, which executes the tool-call loop automatically — register your callables by name and run the loop without explicit `tool_result` handling. See [Tool Runner docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner) for the exact SDK API. The trade-off: less visibility into intermediate calls for debugging.
+
+**Sources:** [Define tools — platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools) · [Parallel tool use — platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) · [Claude API Function Calling: Complete Guide — DEV Community](https://dev.to/kalyna_pro/claude-api-function-calling-complete-guide-to-tool-use-2026-1kh3)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>The Model the Internet Fingerprinted as OX Alpha Is Now Officially Open Weight</title>
+      <link>https://huggingface.co/blog/state-of-open-models-summer-2026</link>
+      <guid isPermaLink="false">2026-08-30-02-glm-flash-transformers-open-weight</guid>
+      <pubDate>Sun, 30 Aug 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <description>GLM-5.3-Flash — the model community analysis linked to OpenRouter's OX Alpha mystery — is now official open-weight in HuggingFace Transformers v5.16.1. Needs server-class hardware unless you quantize.</description>
+      <content:encoded><![CDATA[**Zhipu AI's GLM-5.3-Flash landed in HuggingFace Transformers v5.16.1 as official open weights — the same model architecture the developer community fingerprinted to OpenRouter's OX Alpha with high confidence in late August.**
+
+The design: a mixture-of-experts model with 320B total parameters and 18B active per forward pass. Per Zhipu AI's own release notes (not independently verified), it claims to approach Claude Opus 4.8 on coding and agentic benchmarks. Text, image, and video input; tool-calling supported.
+
+**The hardware reality:** 18B active parameters sounds locally runnable, but loading the full 320B expert pool requires server-class storage and memory — you're looking at quantized GPTQ or GGUF builds before Ollama is realistic. The OX Alpha free-tier window on OpenRouter has closed; if you want to experiment, the open-weight path is now the practical one. Watch the HuggingFace model page for community quantizations.
+
+**Why it matters:** If you need a strong open-weight model with native tool-calling for self-hosted inference, GLM-5.3-Flash is now a testable option — your existing MCP or function-calling wiring shouldn't need changes.
+
+**Sources:** [State of Open Models Summer 2026 — HuggingFace Blog](https://huggingface.co/blog/state-of-open-models-summer-2026) · [HuggingFace Transformers releases](https://github.com/huggingface/transformers/releases) · [OX Alpha mystery model reporting — The Next Web](https://thenextweb.com/news/ox-alpha-stealth-model-openrouter-anonymous-provider)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Give Claude a Function to Call: The Tool-Use Round Trip Every Agent Runs</title>
+      <link>https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview</link>
+      <guid isPermaLink="false">2026-08-30-01-claude-tool-use-round-trip-agent-loop</guid>
+      <pubDate>Sun, 30 Aug 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Tool use is how agents connect to the real world. Define a JSON schema, catch stop_reason: tool_use, execute your function, feed the result back — the four-step loop every Claude agent uses, with cost reality included.</description>
+      <content:encoded><![CDATA[**What you will be able to do after this:** wire any Python function — a database lookup, a search API, an internal retrieval call — into Claude as a callable tool, handle the result correctly, and understand the token overhead so costs don't surprise you.
+
+**Three things to take away:**
+- Claude never executes your function — it returns a `tool_use` block with structured arguments; your code runs the function and sends a `tool_result` back so Claude can continue
+- `stop_reason: "tool_use"` is the signal to handle a call; `stop_reason: "end_turn"` means Claude is done with tools and has its final answer
+- `strict: true` in a tool definition guarantees Claude's output always matches your JSON schema — catch argument type errors before they reach your function
+
+**The loop, step by step:**
+
+```python
+import anthropic, json
+
+client = anthropic.Anthropic()
+
+# 1. Define the tool — Claude gets the name, description, and schema
+tools = [{
+    "name": "get_order_status",
+    "description": "Look up the current status of a customer order by order ID.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "order_id": {"type": "string", "description": "The order ID, e.g. A42"}
+        },
+        "required": ["order_id"]
+    },
+    "strict": True   # output always matches this schema exactly
+}]
+
+messages = [{"role": "user", "content": "What is the status of order A42?"}]
+
+# 2. First turn: Claude decides to call the tool, returns stop_reason="tool_use"
+response = client.messages.create(
+    model="claude-opus-5", max_tokens=1024,
+    tools=tools, messages=messages,
+)
+tool_call = next(b for b in response.content if b.type == "tool_use")
+
+# 3. Your code runs the actual function
+result = lookup_order(tool_call.input["order_id"])  # your DB / API call
+
+# 4. Send the result back — Claude continues and gives the final answer
+messages += [
+    {"role": "assistant", "content": response.content},
+    {"role": "user", "content": [{
+        "type": "tool_result",
+        "tool_use_id": tool_call.id,
+        "content": json.dumps(result)
+    }]}
+]
+final = client.messages.create(
+    model="claude-opus-5", max_tokens=1024,
+    tools=tools, messages=messages,
+)
+print(next(b.text for b in final.content if b.type == "text"))
+```
+
+**The cost reality:** Every tool schema adds tokens to every request. On Claude Opus 5, the tool-use system prompt overhead alone is 286 tokens for `tool_choice: auto` and 406 tokens when using `any` or `tool`. Add ~50–150 tokens per tool definition. Ten detailed tool schemas on a short conversation can easily add 2–3k tokens per turn — size your descriptions to what Claude needs to choose correctly, not to what a human reader would want.
+
+**To skip the round-trip loop:** use [Tool Runner](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner) — the Anthropic SDK can execute your tools automatically and send results back without explicit handling code. Useful for simple loops; keep the manual loop when you need to log, gate, or transform results.
+
+**Sources:** [Tool use overview — platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview) · [Build a tool-using agent tutorial — Anthropic](https://platform.claude.com/docs/en/agents-and-tools/tool-use/build-a-tool-using-agent) · [Claude API Function Calling: Complete Guide (2026) — DEV Community](https://dev.to/kalyna_pro/claude-api-function-calling-complete-guide-to-tool-use-2026-1kh3)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Claude Code Now Warns When Your Bash Rules Are Too Wide — and Shows You the Auto Mode Classifier</title>
@@ -5627,223 +5769,9 @@ Three fixes from the past two days, each addressing a distinct failure mode.
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Zero to Serverless GPU in 30 Lines: Deploy Any HuggingFace Model with Modal + vLLM</title>
-      <link>https://modal.com/blog/how-to-deploy-vllm</link>
-      <guid isPermaLink="false">2026-08-14-04-modal-vllm-serverless-gpu-deploy</guid>
-      <pubDate>Thu, 14 Aug 2026 12:12:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Self-Hosting</category>
-      <category>HuggingFace</category>
-      <description>Modal is Python-native serverless GPU: annotate a function, name a model, and modal deploy gives you an OpenAI-compatible inference endpoint on a real H100 that scales to zero when idle.</description>
-      <content:encoded><![CDATA[
-**Modal is Python-native serverless GPU: annotate a function, name a model, and `modal deploy` gives you an OpenAI-compatible inference endpoint on a real H100 that scales to zero when idle.**
-
-**What you'll be able to do after this:**
-
-- Deploy a vLLM-backed LLM endpoint to a real GPU with ~30 lines of Python and no Dockerfile, Kubernetes, ECR push, or cluster management
-- Get an OpenAI-compatible `/v1/chat/completions` endpoint that scales to zero when idle — you pay only for inference time (Modal bills per second of container uptime)
-- Cache model weights in a Modal Volume so cold starts drop from several minutes to 10–30 seconds for a 7–8B model
-
-Modal fills a gap between "local Ollama" (great for your machine, not shareable) and "Together/OpenRouter" (someone else's model). With Modal you control the model, the GPU tier, and the serving configuration — but you still write plain Python and let Modal handle provisioning.
-
-## Install and authenticate
-
-```bash
-pip install modal
-modal setup   # opens browser to authenticate with your modal.com account
-```
-
-Modal gives you $30/month of free credits — enough for several hours of H100 time per month for experiments.
-
-## Write the inference server (inference.py)
-
-```python
-import modal
-import subprocess
-
-app = modal.App("vllm-server")
-
-MODEL = "mistralai/Mistral-7B-Instruct-v0.3"   # swap any vLLM-supported HF model
-
-vllm_image = (
-    modal.Image.from_registry("nvidia/cuda:12.8.0-devel-ubuntu22.04", add_python="3.12")
-    .uv_pip_install(
-        "vllm==0.10.2",
-        "huggingface_hub[hf_transfer]==0.35.0",
-    )
-    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})   # faster HF downloads
-)
-
-weights = modal.Volume.from_name("llm-weights", create_if_missing=True)  # persists across deploys
-
-@app.cls(
-    image=vllm_image,
-    gpu="H100",                    # or "A10G" for smaller/cheaper experiments
-    volumes={"/models": weights},
-    concurrency_limit=2,           # scale up replicas beyond this threshold
-    timeout=3600,
-)
-@modal.web_server(8000)            # expose vLLM's HTTP server as a Modal web endpoint
-class VLLMServer:
-    @modal.enter()
-    def run_server(self):
-        subprocess.Popen([
-            "vllm", "serve", MODEL,
-            "--download-dir", "/models",
-            "--host", "0.0.0.0",
-            "--port", "8000",
-        ])
-```
-
-## Deploy and call it
-
-```bash
-modal deploy inference.py
-# → Deployed! URL: https://your-workspace--vllm-server.modal.run
-```
-
-```python
-from openai import OpenAI
-
-client = OpenAI(
-    base_url="https://your-workspace--vllm-server.modal.run/v1",
-    api_key="not-needed",
-)
-response = client.chat.completions.create(
-    model=MODEL,
-    messages=[{"role": "user", "content": "What is PagedAttention and why does it matter?"}],
-)
-print(response.choices[0].message.content)
-```
-
-The endpoint is identical to the OpenAI API — any code that calls `openai.chat.completions.create` works without modification, just swap the `base_url`.
-
-## What happens when you hit the endpoint
-
-1. If no container is running, Modal cold-starts one: CUDA image pulls (cached after the first deploy), vLLM process starts, model weights load from the Volume.
-2. vLLM serves the request using PagedAttention for efficient KV-cache management.
-3. After idle timeout, the container shuts down — zero cost while it's not running.
-
-The weight Volume is the key optimization: model files are downloaded once on the first request and stored in Modal's networked storage, so subsequent cold starts skip the HuggingFace download and load directly from the Volume (10–30 seconds for a 7B model vs. 2–10 minutes for a fresh download).
-
-## Swap models with one line change
-
-Change `MODEL` to any model vLLM supports — `meta-llama/Llama-3.1-8B-Instruct`, `Qwen/Qwen2.5-7B-Instruct`, `google/gemma-2-9b-it` — and redeploy. For gated models (Llama), add a HuggingFace token as a Modal Secret and pass it to the container.
-
-**Sources:** [How to deploy vLLM — Modal blog](https://modal.com/blog/how-to-deploy-vllm) · [Modal vLLM examples — modal.com/docs](https://modal.com/docs/examples/ministral3_inference) · [Running LLMs on Modal — Medium](https://pguso.medium.com/running-llms-on-modal-gpu-powered-inference-that-scales-to-zero-635854513557)
-]]></content:encoded>
-      <media:content url="https://modal.com/assets/modal-og.png" medium="image" type="image/png" />
-      <media:thumbnail url="https://modal.com/assets/modal-og.png" />
-    </item>
-
-    <item>
-      <title>Planner, Generator, Evaluator: Anthropic's Three-Agent Harness for Long-Running Agents That Never Forget</title>
-      <link>https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents</link>
-      <guid isPermaLink="false">2026-08-14-03-anthropic-harness-design-long-running-agents</guid>
-      <pubDate>Thu, 14 Aug 2026 04:21:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <category>Workflow</category>
-      <description>When agents run for hours across context resets, Anthropic's three-role harness — Planner, Generator, Evaluator — with structured handoff files prevents context drift and compounding errors across sessions.</description>
-      <content:encoded><![CDATA[
-**When agents run for hours across context resets, Anthropic's three-role harness — Planner, Generator, Evaluator — with structured handoff files prevents context drift and compounding errors across sessions.**
-
-Longer context windows are a footgun. When a long-running agent works in a single expanding window, it accumulates "context anxiety" — the model starts wrapping up prematurely and cutting corners as it senses the session ending. Anthropic's engineering blog addresses this directly with a harness built around *context resets, not compression*.
-
-## The three roles
-
-**Planner** — runs once at the start. Takes the high-level requirement and expands it into a structured product spec: a JSON feature list where every feature has a clear acceptance criterion. JSON over Markdown is intentional — models are less likely to accidentally overwrite or mangle a structured file than a freeform doc.
-
-**Generator** — runs in each fresh session. Reads the feature list and progress file, picks one pending feature, implements it, commits to git, and updates the progress log. One feature per session, never a multi-feature sprint, to avoid the one-shot failure mode where the model tries to do everything and finishes nothing cleanly.
-
-**Evaluator** — also runs each session, *separately from the Generator*. Opens a browser (Playwright or similar), exercises the just-committed feature end-to-end, and writes structured pass/fail feedback to a shared file the next Generator session reads. The separation is load-bearing: when a model self-evaluates its own output, it tends to confidently praise mediocre work. An external evaluator creates actionable feedback loops.
-
-## The handoff artifacts
-
-Three files are the project's memory across context resets:
-
-```
-feature_list.json    # Planner output; marks each feature passing / failing / pending
-progress.md          # Per-session summary: what ran, what the next session picks up
-CLAUDE.md            # Env setup, dev server commands, repo conventions
-```
-
-At the start of every Generator or Evaluator session, the harness prepends instructions to read these three files and check `git log --oneline -20` before writing a single line of code. The agent's memory is the files plus the commit history — not the conversation history.
-
-## The sprint contract
-
-Before each Generator session starts implementing, the harness asks Generator and Evaluator to agree on **testable success criteria for this session's feature**. This "sprint contract" bridges the gap between the Planner's abstract spec and the Evaluator's concrete browser tests. Without it, you get endless disagreement about what "working" means.
-
-## Minimal implementation sketch
-
-```python
-def run_session(role: str, feature_list_path: str, progress_path: str):
-    prompt = f"""
-You are the {role}. Before doing anything else:
-1. Read {feature_list_path} — find the next pending feature
-2. Read {progress_path} — understand what the last session completed
-3. Run `git log --oneline -20` and verify the dev server starts
-
-Then: {'implement exactly one feature and commit' if role == 'Generator' else
-       'test the last committed feature and write pass/fail to progress.md'}
-"""
-    response = client.messages.create(
-        model="claude-opus-5",
-        max_tokens=8096,
-        messages=[{"role": "user", "content": prompt}],
-        tools=[bash_tool, file_read_tool, file_write_tool],
-    )
-    # run agentic tool-use loop until stop_reason == "end_turn"
-```
-
-The critical point is what happens *between* sessions: the harness resets the conversation, re-reads artifacts from disk, and starts completely fresh — not from a compacted summary.
-
-## When to strip components
-
-Every component in a harness encodes an assumption about what the model *cannot* do on its own. As models improve, previously necessary scaffolding becomes overhead. If your model self-evaluates reliably on the task, collapse Generator and Evaluator into one. If the Planner simply restates the prompt, skip it. Audit your harness assumptions after every model upgrade — the right harness for Claude 3 is probably over-engineered for Claude 5.
-
-**Sources:** [Effective Harnesses for Long-Running Agents — Anthropic Engineering](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) · [Harness Design for Long-Running Application Development — Anthropic Engineering](https://www.anthropic.com/engineering/harness-design-long-running-apps)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>DeepSeek V4 Pro 0813 Goes GA: 1M-Context, Agent-Focused, Under a Dollar per Million Tokens</title>
-      <link>https://www.unite.ai/deepseek-ships-v4-pro-as-its-flagship-model-leaves-preview/</link>
-      <guid isPermaLink="false">2026-08-14-02-deepseek-v4-pro-0813-ga</guid>
-      <pubDate>Thu, 14 Aug 2026 04:20:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>LLM</category>
-      <category>News</category>
-      <description>DeepSeek V4 Pro 0813 reached general availability August 13 — 1.6T-parameter MoE with 1M-token context, configurable reasoning levels, and sub-dollar pricing ahead of an announced (but undated) price increase.</description>
-      <content:encoded><![CDATA[
-**DeepSeek V4 Pro 0813 left preview on August 13 — 1.6T-parameter MoE with 1M-token context, agentic tool use, and sub-dollar pricing before a price hike lands.**
-
-DeepSeek's V4 Pro (build 0813) reached general availability on August 13, becoming the lab's new flagship. The architecture is a mixture-of-experts system with **1.6 trillion total parameters** and roughly **49 billion active per forward pass**. The 0813 release adds DSpark speculative decoding for faster output and exposes configurable reasoning-effort levels (low / high / max) per request.
-
-**Key specs:**
-- Context window: **1 million tokens** (384K max output)
-- Pricing: **$0.435/1M input** (cache miss) · **$0.003625/1M cached** · **$0.87/1M output**
-- Native OpenAI Responses API support (one-click Codex-style setup)
-- Reasoning effort: `low`, `high`, or `max` per request — same model, variable cost
-
-The model is positioned around agentic workloads: multi-step tool use, long-horizon reasoning, and code generation. Vendor-reported SWE-bench scores are striking (up to ~91%), but no independent evaluator has replicated them as of publication.
-
-**Why it matters:** At $0.435/1M input (and sub-cent cached), V4 Pro undercuts most closed frontier models for high-context agentic pipelines. The 1M-token window means entire codebases or document collections can fit in a single call.
-
-**Heads up:** DeepSeek has announced a price increase is coming — no timeline, no figure, no affected tiers disclosed. Current pricing likely reflects a promotional discount. Factor in a conservative multiplier before baking these numbers into production cost projections.
-
-Available via the DeepSeek API and through OpenRouter.
-
-**Sources:** [DeepSeek Ships V4 Pro — Unite.AI](https://www.unite.ai/deepseek-ships-v4-pro-as-its-flagship-model-leaves-preview/) · [DeepSeek V4 Pro Review — CoderSera](https://codersera.com/blog/deepseek-v4-pro-review-benchmarks-pricing-2026/)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
     
