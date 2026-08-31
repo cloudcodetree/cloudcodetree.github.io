@@ -10,7 +10,154 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 31 Aug 2026 04:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 31 Aug 2026 12:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Run a Command in Your Claude Code Session and Skip the Copy-Paste Step: The `!` Prefix</title>
+      <link>https://code.claude.com/docs/en/interactive-mode#shell-mode-with-prefix</link>
+      <guid isPermaLink="false">2026-08-31-05-claude-code-shell-mode-bang-prefix</guid>
+      <pubDate>Mon, 31 Aug 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>In a Claude Code interactive session, `! npm test` runs the command and immediately gets an explanation of the output — no second prompt needed. Different from `claude -p` piping: the response knows your full conversation context.</description>
+      <content:encoded><![CDATA[**TL;DR: In an interactive Claude Code session, prefix any command with `!` and Claude automatically explains its output — no second prompt, no copy-pasting. The explanation has full conversation context.**
+
+When you're debugging inside a Claude Code session, the usual loop is: run a command in your terminal, copy the output, paste it back into Claude, ask "what's wrong?" The `!` prefix collapses that into one step.
+
+**How it works**
+
+Type `! npm test` at the Claude Code prompt. The command runs in the session's shell, the output lands in the transcript, and Claude explains it immediately — as if you had pasted the log and asked "diagnose this." No second prompt. The response inherits everything in your current conversation: the file you're working on, the change you just made, the error you mentioned three turns ago.
+
+**Practical patterns**
+
+```
+> ! npm test
+> ! cargo build --release
+> ! git diff --stat
+> ! python -m pytest tests/auth.py -v
+> ! docker logs --tail 50 api-container
+```
+
+Each one runs, and Claude explains the result in context. "Why is this build failing?" becomes implicit — Claude already knows what you were building.
+
+The key difference from `claude -p "explain this" < output.txt`: the `!` variant runs inside a live session, so Claude's answer can reference earlier decisions, the files it has already read, and the specific changes that might have caused the failure. The `-p` pattern is for scripts and pipelines with no conversation history.
+
+**Turn it off if you don't want it**
+
+Set `respondToBashCommands: false` in `settings.json` to restore the old behavior where `!` commands add output to context without triggering a response. Useful in a long diagnostic loop where you want to run several commands before asking Claude to synthesize the results.
+
+**Real limit:** Each `!` response is billed the same as a normal turn — a token cost against your session budget. Running many commands in quick succession (a debug loop of twenty `! pytest` runs) can eat through your context budget faster than typed turns alone. If you're in a tight session, run the commands together and ask once rather than triggering a response on each.
+
+**Sources:** [Shell mode with the ! prefix — Claude Code docs](https://code.claude.com/docs/en/interactive-mode#shell-mode-with-prefix) · [Week 26 What's New — code.claude.com](https://code.claude.com/docs/en/whats-new/2026-w26)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Six Models Leave GitHub Copilot Tomorrow, Including Claude Sonnet 4.6</title>
+      <link>https://github.blog/changelog/2026-07-31-upcoming-august-2026-model-deprecations-in-github-copilot/</link>
+      <guid isPermaLink="false">2026-08-31-04-github-copilot-sept1-model-deprecations</guid>
+      <pubDate>Mon, 31 Aug 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <description>GitHub Copilot retires Claude Opus 4.5/4.6, Sonnet 4.5/4.6, Gemini 3.1 Pro, and Raptor Mini on September 1. If a config or extension pins one of these model IDs, requests will fail silently starting tomorrow.</description>
+      <content:encoded><![CDATA[**TL;DR: GitHub Copilot retires six models on September 1 — including Claude Sonnet 4.6. If any config, extension setting, or CI step pins one of these model IDs, it will fail silently starting tomorrow morning.**
+
+The models going away and their replacements:
+
+| Retired | Replacement |
+|---|---|
+| Claude Opus 4.5 | Opus 4.7, 4.8, or 5 |
+| Claude Opus 4.6 | Opus 4.7, 4.8, or 5 |
+| Claude Sonnet 4.5 | Sonnet 5 |
+| Claude Sonnet 4.6 | Sonnet 5 (annual individual subscribers keep access temporarily) |
+| Gemini 3.1 Pro | Gemini 3.6 Flash |
+| Raptor Mini | MAI-Code-1-Flash |
+
+Most Copilot users are unaffected — when you haven't pinned a model, Copilot selects one for you and will route to a supported model automatically. The risk is in any place that hardcodes a model ID: `.github/copilot.yaml` files, IDE extension settings, GitHub Actions steps that call the Copilot API by model name.
+
+A quick text search for `claude-opus-4.5`, `claude-opus-4.6`, `claude-sonnet-4.5`, `claude-sonnet-4.6` across your repos and CI configs will surface everything that needs updating before tomorrow.
+
+**Why it matters:** Deprecated Copilot models return errors, not fallback responses. Pinned workflows break silently on deprecation day — the error doesn't appear until the next time that path runs in production.
+
+**Sources:** [Upcoming August 2026 model deprecations — GitHub Changelog](https://github.blog/changelog/2026-07-31-upcoming-august-2026-model-deprecations-in-github-copilot/) · [GitHub Copilot in Visual Studio August 2026 update](https://github.blog/changelog/2026-08-28-github-copilot-in-visual-studio-august-update-2/)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your LLM App Is a Black Box Without This: Langfuse Traces Every Call in 5 Lines</title>
+      <link>https://langfuse.com/docs/observability/get-started</link>
+      <guid isPermaLink="false">2026-08-31-06-langfuse-llm-observability-tracing</guid>
+      <pubDate>Mon, 31 Aug 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>Langfuse is open-source LLM observability: one import swap or @observe decorator gives you every prompt, response, token count, and latency in a searchable trace dashboard. Self-hostable; integrates with LangChain, OpenAI SDK, and the Anthropic SDK.</description>
+      <content:encoded><![CDATA[**TL;DR: Add Langfuse to any LLM app with one import swap and get a searchable trace of every prompt, response, token cost, and latency — open-source, self-hostable, works with LangChain and the Anthropic SDK.**
+
+**What you'll be able to do after this:** trace why a specific request returned wrong output; compare latency and token cost across model versions; catch regressions when you update a prompt or switch models.
+
+**Three things to know going in:**
+- Langfuse is open-source (Apache 2), self-hostable with Docker Compose in about 15 minutes, and has a managed cloud option for getting started
+- Traces are async — events queue locally and flush in batches, so adding tracing doesn't add latency to your app's response time
+- Beyond traces, you can attach evaluation scores to any generation and run batch evals across prompt versions — the trace store doubles as your evaluation dataset
+
+**Set it up:**
+```bash
+pip install langfuse
+export LANGFUSE_SECRET_KEY=sk-lf-...
+export LANGFUSE_PUBLIC_KEY=pk-lf-...
+export LANGFUSE_BASE_URL=https://cloud.langfuse.com  # or your self-hosted URL
+```
+
+**For the OpenAI SDK — one import swap, zero other changes:**
+```python
+from langfuse.openai import openai  # replaces: from openai import OpenAI
+
+completion = openai.chat.completions.create(
+    name="classify-support-ticket",   # shows as the trace name in the UI
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a support ticket classifier."},
+        {"role": "user", "content": ticket_body},
+    ],
+)
+```
+
+Every call now appears in the Langfuse dashboard with its latency, token count, cost estimate, and the exact prompt-response pair. "Why did this ticket get classified wrong?" becomes a 10-second search.
+
+**For the Anthropic SDK — use `@observe`:**
+```python
+from langfuse.decorators import observe, langfuse_context
+from anthropic import Anthropic
+
+client = Anthropic()
+
+@observe(as_type="generation")
+def classify(ticket: str) -> str:
+    response = client.messages.create(
+        model="claude-sonnet-5-20260628",
+        max_tokens=256,
+        messages=[{"role": "user", "content": ticket}],
+    )
+    langfuse_context.update_current_observation(
+        usage={"input": response.usage.input_tokens, "output": response.usage.output_tokens}
+    )
+    return response.content[0].text
+```
+
+Call `langfuse.flush()` at the end of any short-lived script — without it, buffered traces may not upload before the process exits.
+
+**Real limits:** The managed cloud tier has trace volume and retention limits; self-hosting removes both but adds infrastructure. The `flush()` call is easy to forget in scripts. And the import-swap approach for OpenAI captures calls automatically but doesn't capture calls made through LangChain, LlamaIndex, or custom wrappers — for those, use the callback integrations or the `@observe` decorator on your pipeline functions.
+
+**Sources:** [Get Started with Tracing — Langfuse docs](https://langfuse.com/docs/observability/get-started) · [Complete Langfuse Observability and Evaluation Pipeline — MarkTechPost](https://www.marktechpost.com/2026/05/24/build-a-complete-langfuse-observability-and-evaluation-pipeline-for-tracing-prompt-management-scoring-and-experiments/) · [Get Started with Langfuse — YouTube](https://www.youtube.com/watch?v=epnPfe5am3I) · [Langfuse 2026 Guide — QASkills](https://qaskills.sh/blog/langfuse-llm-observability-guide-2026)]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/epnPfe5am3I/hqdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/epnPfe5am3I/hqdefault.jpg" />
+    </item>
 
     <item>
       <title>Don&#8217;t /clear a Long Claude Code Session &#8212; /compact It</title>
@@ -5423,255 +5570,9 @@ Paid individual, business, and enterprise customers can select MAI-Code-1.1-Flas
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Fine-Tune Any LLM Without Writing Code: HuggingFace AutoTrain Does the Hard Part</title>
-      <link>https://parlance-labs.com/education/fine_tuning/abhishek.html</link>
-      <guid isPermaLink="false">2026-08-16-01-autotrain-no-code-llm-finetuning</guid>
-      <pubDate>Sun, 16 Aug 2026 04:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Fine-Tuning</category>
-      <category>HuggingFace</category>
-      <description>Upload a JSONL file, pick a model, click train — HuggingFace AutoTrain handles LoRA, quantization, and chat-template formatting without any code. Walkthrough included.</description>
-      <content:encoded><![CDATA[
-**Upload a JSONL file, pick a model, click train — AutoTrain handles LoRA, quantization, and chat-template formatting for you. No Python required to run your first fine-tune.**
-
-**What you'll be able to do after this:**
-- Fine-tune any HuggingFace model (Llama 3.1, Qwen 3, Mistral, Gemma) using only a CSV or JSONL file — no training code
-- Choose SFT, DPO, or ORPO from a dropdown and let AutoTrain configure LoRA hyperparameters
-- Run a complete fine-tune on managed HuggingFace compute for under $1 for a small model
-
-## Why AutoTrain
-
-Every fine-tuning tutorial on this blog so far has used TRL, Unsloth, or Axolotl — all great tools, but all require writing Python. AutoTrain is HuggingFace's no-code path: it wraps those same training libraries in a UI and CLI so you can go from dataset to adapter without a training script. Abhishek Thakur (AutoTrain's creator) built it specifically for people who know what they want to train but don't want to spend hours on training boilerplate.
-
-## Walk-through (UI path)
-
-**1. Prepare your dataset.**
-
-For SFT (most common), create a JSONL file with a single `text` column containing your formatted prompt+response pairs:
-
-```jsonl
-{"text": "<|im_start|>user\nWhat is LoRA?\n<|im_end|>\n<|im_start|>assistant\nLoRA (Low-Rank Adaptation)...<|im_end|>"}
-```
-
-For DPO, use `prompt`, `chosen`, `rejected` columns instead.
-
-**2. Create a project** at [huggingface.co/autotrain](https://huggingface.co/autotrain) → "Create new project." AutoTrain spins up a Space for you.
-
-**3. Upload your dataset** (CSV or JSONL), map columns, pick a base model from the Hub.
-
-**4. Choose task and configuration.** Select "LLM SFT" and accept the LoRA defaults for your first run (rank=16, alpha=32 are sensible starting values).
-
-**5. Click Train.** AutoTrain provisions a GPU, runs the fine-tune, and saves the LoRA adapter to your HuggingFace Hub as a private model.
-
-## CLI path (scriptable, same results)
-
-```bash
-pip install autotrain-advanced
-
-autotrain llm \
-  --train \
-  --model "meta-llama/Llama-3.1-8B" \
-  --data-path ./data.csv \
-  --text-column text \
-  --lora-r 16 \
-  --lora-alpha 32 \
-  --batch-size 2 \
-  --num-train-epochs 3 \
-  --push-to-hub \
-  --username your-hf-username \
-  --token $HF_TOKEN
-```
-
-The CLI generates identical results to the UI and integrates naturally into CI pipelines or scheduled retraining jobs.
-
-**Sources:** [Train (almost) any LLM using AutoTrain — Parlance Labs](https://parlance-labs.com/education/fine_tuning/abhishek.html) · [LLM Finetuning with AutoTrain Advanced — HuggingFace Docs](https://huggingface.co/docs/autotrain/tasks/llm_finetuning) · [Low-Code LLM Alignment — HuggingFace Blog](https://huggingface.co/blog/burtenshaw/ui-finetune-llm-autotrain) · [autotrain-advanced — GitHub](https://github.com/huggingface/autotrain-advanced)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Your Internal Tools, Claude's Reach: Private-Network MCP via Anthropic Tunnels</title>
-      <link>https://platform.claude.com/docs/en/agents-and-tools/mcp-tunnels/overview</link>
-      <guid isPermaLink="false">2026-08-15-06-mcp-tunnels-private-network-claude-agents</guid>
-      <pubDate>Sat, 15 Aug 2026 20:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>MCP</category>
-      <category>Agents</category>
-      <category>Workflow</category>
-      <description>MCP tunnels (research preview) let Claude Agents call tools inside your private network over an outbound-only connection — no open firewall ports, no public endpoints, no VPN required.</description>
-      <content:encoded><![CDATA[
-**MCP tunnels (research preview) give Claude Agents access to MCP servers inside your private network via an outbound-only connection — no public endpoints, no inbound firewall rules, no VPN required.**
-
-If you're building Claude agents that need access to internal tooling — a private GitHub Enterprise instance, an internal Jira, a database behind a VPN, a proprietary REST API — you've had to either expose it publicly or build a custom proxy. MCP tunnels close that gap.
-
-## How it works
-
-Two components run inside your network:
-
-- **cloudflared** (Cloudflare's open-source connector) opens a single outbound connection to the tunnel edge — no inbound ports, no IP allowlisting needed
-- **Anthropic's routing proxy** terminates inner TLS and routes each request to the correct upstream MCP server by hostname
-
-Anthropic's infrastructure only reaches your network through the tunnel your team controls. Three independent TLS layers protect every request; Cloudflare cannot read payload content because your proxy holds the inner certificate.
-
-## Getting started (requires access request)
-
-**Step 1 — Request access:** [claude.com/form/claude-managed-agents](https://claude.com/form/claude-managed-agents)
-
-**Step 2 — Create a tunnel** in the Claude Console (Settings → MCP Tunnels → New Tunnel).
-
-**Step 3 — Deploy the stack** on a VM (Docker Compose) or Kubernetes (Helm):
-
-```bash
-# Docker Compose quickstart — fill in TUNNEL_TOKEN and cert from Console
-docker compose up -d
-```
-
-Each upstream MCP server you expose gets a subdomain under your tunnel domain (e.g. `docs.your-tunnel.anthropic-tunnels.com`).
-
-**Step 4 — Attach to a session:** in the Console (Managed Agents → Sessions → + MCP Server → select your tunnel), or call it from the Messages API:
-
-```python
-response = client.beta.messages.create(
-    model="claude-opus-5",
-    max_tokens=1000,
-    messages=[{"role": "user", "content": "Pull the latest sprint tickets."}],
-    mcp_servers=[{
-        "type": "url",
-        "url": "https://jira.YOUR_TUNNEL_DOMAIN/mcp",
-        "name": "jira",
-    }],
-    tools=[{"type": "mcp_toolset", "mcp_server_name": "jira"}],
-    betas=["mcp-client-2025-11-20"],
-)
-```
-
-The tunnel URL is just your private MCP server's assigned hostname — no changes to the server itself.
-
-## What to watch for
-
-- **Access is gated** — the tunnel won't work until your request is approved; plan for lead time
-- **Research preview terms** — no uptime SLA; Cloudflare is the transport layer
-- **MCP server auth is separate** — the tunnel carries traffic but doesn't authenticate to your server; add `authorization_token` in the `mcp_servers` block for that
-
-**Sources:** [MCP tunnels overview — platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/mcp-tunnels/overview), [Request access form](https://claude.com/form/claude-managed-agents), [The New Stack coverage](https://thenewstack.io/anthropic-mcp-tunnels-sandboxes/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Serve Open-Source Models Faster Than vLLM: SGLang's RadixAttention and Strict JSON Output</title>
-      <link>https://docs.sglang.io/docs/get-started/quickstart</link>
-      <guid isPermaLink="false">2026-08-15-07-sglang-fast-llm-serving-radix-attention</guid>
-      <pubDate>Sat, 15 Aug 2026 20:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Self-Hosting</category>
-      <category>LLM</category>
-      <description>SGLang serves any HuggingFace model with an OpenAI-compatible API, reuses KV cache across requests sharing a prefix (3-5x throughput boost for agent loops), and enforces JSON Schema outputs natively.</description>
-      <content:encoded><![CDATA[
-**SGLang is an OpenAI-compatible LLM inference server that shares KV cache across requests with the same prefix (system prompts, tool lists) — giving 3–5x throughput on agent workloads — and enforces JSON Schema output at the token level.**
-
-**What you'll be able to do after this:**
-- Serve any HuggingFace model locally with a drop-in OpenAI-compatible API in under 5 minutes
-- Get 3–5× higher throughput on agent workloads where multiple requests share a long system prompt or tool definition list
-- Enforce strict JSON Schema output so your pipeline receives valid structured data every time — no retries, no post-processing
-
-## Why SGLang instead of vLLM or Ollama?
-
-Each tool has a lane:
-
-| Tool | Best for |
-|------|----------|
-| **Ollama** | Developer convenience; one command, great for local chat |
-| **vLLM** | Production serving; strong multi-LoRA adapter support |
-| **SGLang** | Agent-first workloads; RadixAttention reuses KV cache across requests sharing a prefix |
-
-The last row matters for agent loops: a 2,000-token system prompt plus tool definitions sent with every tool call is computed once in SGLang and amortized across every request in the batch. In benchmarks, SGLang runs 29% faster than vLLM on H100 GPUs and up to 6× faster in RAG scenarios with long shared context.
-
-> Note: HuggingFace retired TGI (their older inference toolkit) in 2026 and now recommends SGLang alongside vLLM.
-
-## Install and launch a model (5 minutes)
-
-```bash
-# GPU machine with CUDA 12.1 + Python 3.10+
-pip install "sglang[all]" \
-  --find-links https://flashinfer.ai/whl/cu121/torch2.3/flashinfer/
-
-# Start the server
-python -m sglang.launch_server \
-  --model-path meta-llama/Llama-3.1-8B-Instruct \
-  --port 30000 \
-  --tp 1 \
-  --mem-fraction-static 0.88
-```
-
-Or via Docker (no CUDA install needed):
-
-```bash
-docker run --gpus all \
-  -v ~/.cache/huggingface:/root/.cache/huggingface \
-  -p 30000:30000 \
-  lmsysorg/sglang:latest \
-  python -m sglang.launch_server \
-    --model-path meta-llama/Llama-3.1-8B-Instruct \
-    --port 30000 --tp 1
-```
-
-Smoke-test it:
-
-```bash
-curl http://localhost:30000/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{"model": "meta-llama/Llama-3.1-8B-Instruct",
-       "messages": [{"role": "user", "content": "Hello!"}],
-       "max_tokens": 32}'
-```
-
-Point any existing OpenAI client at `http://localhost:30000/v1` — it's a drop-in replacement.
-
-## Enforce strict JSON Schema output
-
-This is where SGLang earns its place in an agent pipeline. Pass `response_format` with `json_schema` and `strict: true`, and the model is constrained at the token level — it physically cannot produce output that violates the schema:
-
-```python
-import requests, json
-
-schema = {
-    "type": "object",
-    "properties": {
-        "intent": {"type": "string", "enum": ["buy", "sell", "hold", "unknown"]},
-        "confidence": {"type": "number", "minimum": 0, "maximum": 1}
-    },
-    "required": ["intent", "confidence"],
-    "additionalProperties": False
-}
-
-resp = requests.post("http://localhost:30000/v1/chat/completions", json={
-    "model": "meta-llama/Llama-3.1-8B-Instruct",
-    "messages": [{"role": "user", "content": "Classify: 'NVIDIA beat earnings estimates by 40%'"}],
-    "max_tokens": 64,
-    "response_format": {
-        "type": "json_schema",
-        "json_schema": {"name": "signal", "schema": schema, "strict": True}
-    }
-})
-
-result = json.loads(resp.json()["choices"][0]["message"]["content"])
-# guaranteed to match schema — no try/except, no retries
-print(result)  # {"intent": "buy", "confidence": 0.87}
-```
-
-## When to choose SGLang
-
-Choose SGLang when your workload has long shared prefixes (agent system prompts, RAG context, few-shot examples) and you need structured output guarantees. Choose vLLM when you need production-grade multi-LoRA adapter hot-swapping. Use Ollama when you just need a fast local chat interface.
-
-**Sources:** [SGLang official docs — docs.sglang.io](https://docs.sglang.io/docs/get-started/quickstart), [SGLang fast inference guide — markaicode.com](https://markaicode.com/sglang-fast-llm-inference-structured-generation/), [SGLang vs vLLM review — chatforest.com](https://chatforest.com/reviews/sglang-structured-generation-llm-serving/)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
     
