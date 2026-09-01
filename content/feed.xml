@@ -10,7 +10,127 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 01 Sep 2026 12:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 01 Sep 2026 20:04:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Fable 5.1 Ships Today: Cache Reads Drop From $1.00 to $0.25 per Million Tokens</title>
+      <link>https://www.anthropic.com/claude-fable-and-mythos-5-1</link>
+      <guid isPermaLink="false">2026-09-01-08-fable-5-1-mythos-5-1-cache-read-price-cut</guid>
+      <pubDate>Tue, 01 Sep 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Agents</category>
+      <description>Anthropic launched Fable 5.1 and Mythos 5.1 today. Cache reads drop to $0.25/M — 75% cheaper, cutting agentic workload costs 25-45%, per Anthropic.</description>
+      <content:encoded><![CDATA[**TL;DR: Anthropic launched Fable 5.1 and Mythos 5.1 today (September 1). Cache reads drop from $1.00 to $0.25 per million tokens — Anthropic reports this cuts effective costs 25% on typical workloads and up to 45% on heavily agentic ones.**
+
+Cache reads are the compounding cost in agentic systems: every time an agent revisits the same system prompt, tool definitions, or accumulated context, it triggers a read. Fable 5's $1.00/M rate made this expensive for long-running Claude Code sessions and multi-step pipelines. At $0.25/M, the same re-use is 75% cheaper. Cache write prices are unchanged ($12.50/M for 5-min, $20/M for 1-hr); the savings are entirely on reads.
+
+Input and output prices are unchanged at $10/$50 per million tokens. The model outperforms Fable 5 on Anthropic's internal evals, with the biggest gains in computer use, long-horizon agentic work, and terminal-based engineering tasks. Knowledge cutoff is June 2026. Fable 5.1's cybersecurity capabilities are strong enough that some queries in that domain are automatically rerouted to Opus models — test any security tooling built on the API before assuming behavior is identical to Fable 5.
+
+**Mythos 5.1** ships alongside with restricted access to vetted US organizations (cyberdefenders and life scientists only, via a separate application process). Not broadly available.
+
+**What to do today**
+
+If you've enabled prompt caching in your pipeline (via the `cache_control` parameter), update your model string to the Fable 5.1 identifier (see the [Anthropic announcement](https://www.anthropic.com/claude-fable-and-mythos-5-1) for the exact string). No other code changes needed — the 75% read savings apply automatically to any already-cached context.
+
+**Limits:**
+- The 25–45% effective cost reduction is Anthropic's own estimate; independent controlled comparisons don't exist yet. Treat it as directionally correct.
+- At $10/$50/M input/output, Fable 5.1 remains the most expensive tier in the Anthropic lineup. Cache savings help pipelines with heavy context re-use; fresh-context requests see no change.
+- Knowledge cutoff June 2026 means it has no awareness of events from the past three months.
+
+**Why it matters:** Agentic pipelines that re-use context pay 75% less per cache read starting today — update the model string and the savings apply automatically.
+
+**Sources:** [Introducing Fable 5.1 and Mythos 5.1 — Anthropic](https://www.anthropic.com/claude-fable-and-mythos-5-1) · [System Card, Sep 1 2026 — Anthropic](https://www-cdn.anthropic.com/0339e6a7c5c7b87f5c07798616dc32c215d14235/Claude%20Fable%205.1%20%26%20Claude%20Mythos%205.1%20System%20Card.pdf) · [Cache reads 75% cheaper — VentureBeat](https://venturebeat.com/technology/anthropics-claude-fable-5-1-and-mythos-5-1-arrive-with-a-75-cost-reduction-for-fable-cache-reads) · [Fable 5.1: cheaper, smarter, refuses less — The New Stack](https://thenewstack.io/anthropic-fable-5-1-launch/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Run Any Open-Source Model With Two Lines of Code: Together AI&#39;s OpenAI-Compatible Inference API</title>
+      <link>https://docs.together.ai/docs/quickstart</link>
+      <guid isPermaLink="false">2026-09-01-07-together-ai-openai-compatible-inference-api</guid>
+      <pubDate>Tue, 01 Sep 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Developer Tools</category>
+      <category>Cloud</category>
+      <description>Together AI wraps 200+ open models behind an OpenAI-compatible endpoint — swap one URL and one model string to run Llama 3.3 70B, DeepSeek R1, or Qwen 2.5 without managing GPU infrastructure.</description>
+      <content:encoded><![CDATA[**TL;DR: Together AI's inference API is an OpenAI-compatible endpoint for 200+ open models — two lines of code to switch from any closed-model API to Llama, DeepSeek, or Qwen without touching the rest of your pipeline.**
+
+**What you'll be able to do after this:**
+- Replace closed-model calls with open-weight inference without rewriting your SDK code
+- Run Llama 3.3 70B, DeepSeek R1, and Qwen 2.5 on managed infrastructure at open-model pricing
+- Deploy fine-tuned LoRA adapters to serverless inference using the same endpoint
+
+[Resource: Together AI inference quickstart](https://docs.together.ai/docs/quickstart) · [Sentdex Together API Basics notebook (GitHub)](https://github.com/Sentdex/Together-API-Basics/blob/main/together-api-examples.ipynb)
+
+**The two-line swap**
+
+If your code uses the OpenAI Python SDK, switching to Together AI is a URL and API key change:
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.together.xyz/v1",
+    api_key=os.environ["TOGETHER_API_KEY"],
+)
+
+response = client.chat.completions.create(
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    messages=[{"role": "user", "content": "Classify this support ticket: ..."}],
+    max_tokens=512,
+)
+print(response.choices[0].message.content)
+```
+
+The same `tools=`, `response_format=`, and streaming patterns work identically — Together's API surface matches OpenAI's completion spec.
+
+**Model naming**
+
+Together uses `<provider>/<model-id>` format. Key models as of September 2026:
+
+- Llama 3.3 70B Instruct: `meta-llama/Llama-3.3-70B-Instruct-Turbo`
+- DeepSeek R1: `deepseek-ai/DeepSeek-R1`
+- Qwen 2.5 72B: `Qwen/Qwen2.5-72B-Instruct-Turbo`
+- Mistral 7B: `mistralai/Mistral-7B-Instruct-v0.3`
+
+Browse the full catalog at [api.together.xyz/models](https://api.together.xyz/models).
+
+**Streaming**
+
+```python
+stream = client.chat.completions.create(
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    messages=[{"role": "user", "content": "Explain reranking in three sentences."}],
+    stream=True,
+)
+for chunk in stream:
+    print(chunk.choices[0].delta.content or "", end="", flush=True)
+```
+
+**Deploying a fine-tuned adapter**
+
+Together's native fine-tuning lets you train a LoRA adapter on the platform and serve it at the same per-token rate as the base model — no additional hosting cost per adapter slot. Once training completes, your custom model ID appears in the catalog and you call it identically to any base model. If you've trained an adapter with Unsloth or HuggingFace TRL, Together is a direct path from adapter weights to a serverless endpoint without managing vLLM infrastructure yourself.
+
+**Together vs OpenRouter: when to use which**
+
+Together AI is a single provider with its own GPU infrastructure. OpenRouter is a routing proxy across 70+ providers. Use OpenRouter to compare models during development (one string change switches the model); migrate to Together when you've committed to a specific open model and want the lowest per-token rate and no routing overhead. Together wins when you also need native fine-tuning — OpenRouter doesn't handle adapters.
+
+**Real limits**
+
+- Together's catalog (200+ models) is smaller than OpenRouter's 400+. Check [api.together.xyz/models](https://api.together.xyz/models) before assuming your model is available.
+- No automatic provider fallback. If Together has an outage, your retry logic is your responsibility — OpenRouter handles this for you.
+- The free tier allows limited daily calls; production traffic requires API credits. Per Together's pricing pages, serverless rates vary by model — verify current prices before building cost estimates.
+- Together claims top time-to-first-token on many open models; independent latency comparisons shift as providers upgrade hardware. Measure in your own region and context window size before depending on published rankings.
+
+**Sources:** [Together AI inference quickstart](https://docs.together.ai/docs/quickstart) · [Sentdex Together API Basics notebook — GitHub](https://github.com/Sentdex/Together-API-Basics/blob/main/together-api-examples.ipynb) · [Top 5 AI Inference Platforms comparison 2026 — Deepak Gupta](https://guptadeepak.com/tools/top-5-ai-inference-model-hosting-platforms-2026/) · [Together AI on HuggingFace inference providers](https://huggingface.co/docs/inference-providers/en/providers/together)
+]]></content:encoded>
+    </item>
+
 
     <item>
       <title>Block or Log a Model Switch Before It Happens: PreModelSwitch and PostModelSwitch Hooks</title>
@@ -5419,194 +5539,8 @@ Caching also works on tool definitions and large user-turn messages — add `cac
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Your RAG Gives Answers. These Lines Make It Cite Its Work.</title>
-      <link>https://www.youtube.com/watch?v=-wGzSnhQKPM</link>
-      <guid isPermaLink="false">2026-08-17-01-rag-citations-source-attribution</guid>
-      <pubDate>Mon, 17 Aug 2026 04:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>RAG</category>
-      <category>Best Practices</category>
-      <description>Tag retrieved chunks with IDs, ask Claude for inline citations, and return a sources list — your RAG answers become verifiable instead of just plausible. Walk-through included.</description>
-      <content:encoded><![CDATA[
-**Tag retrieved chunks with IDs, ask Claude to cite them inline, and return a sources list — your RAG answers become verifiable, not just plausible.**
-
-**What you will be able to do after this:**
-- Return `[1]` / `[2]` inline citations in any RAG response alongside a `sources` list
-- Verify that cited documents actually support each claim using a structured `quote` field
-- Build the citation layer in under 50 lines on top of your existing retriever
-
-A RAG system that returns "Refunds take 5-7 days" is useful. One that returns "Refunds take 5-7 days [1]" with `[1]: Refund Policy, section 3.2` is trustworthy. That is the difference between a demo and a production tool.
-
-**Resource:** [RAG with Verified Citations — Trelis Research (YouTube, 34 min)](https://www.youtube.com/watch?v=-wGzSnhQKPM)
-
-## The pattern
-
-Your retriever returns chunks. Tag each one with a sequential ID and include them in the user turn:
-
-```python
-import anthropic
-
-client = anthropic.Anthropic()
-
-def rag_with_citations(question: str, chunks: list[dict]) -> dict:
-    # chunks = [{"id": 1, "text": "...", "source": "Refund Policy 3.2"}, ...]
-    context = "
-
-".join(f"[{c['id']}] {c['text']}" for c in chunks)
-
-    response = client.messages.create(
-        model="claude-sonnet-5-20260801",
-        max_tokens=1024,
-        system="""You are a helpful assistant. Answer using ONLY the provided context.
-Cite every factual claim with a bracketed ID like [1] inline.
-If the answer is not in the context, say so.""",
-        messages=[{
-            "role": "user",
-            "content": f"Context:
-{context}
-
-Question: {question}"
-        }]
-    )
-    return {
-        "answer": response.content[0].text,
-        "sources": [{"id": c["id"], "source": c["source"]} for c in chunks]
-    }
-```
-
-## Structured output version (more reliable for parsing)
-
-```python
-import json
-
-response = client.messages.create(
-    model="claude-sonnet-5-20260801",
-    max_tokens=1024,
-    tools=[{
-        "name": "answer_with_citations",
-        "description": "Return an answer with inline citations",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "answer": {
-                    "type": "string",
-                    "description": "Answer text with [N] inline citations"
-                },
-                "citations": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "id": {"type": "integer"},
-                            "quote": {
-                                "type": "string",
-                                "description": "Exact text from document [N] that supports the claim"
-                            },
-                            "source": {"type": "string"}
-                        },
-                        "required": ["id", "quote", "source"]
-                    }
-                }
-            },
-            "required": ["answer", "citations"]
-        }
-    }],
-    tool_choice={"type": "tool", "name": "answer_with_citations"},
-    system="Answer using ONLY the provided context. Cite every factual claim inline.",
-    messages=[{"role": "user", "content": f"Context:
-{context}
-
-Question: {question}"}]
-)
-
-result = json.loads(response.content[0].input)
-# result["answer"]    = "Refunds take 5-7 days [1]."
-# result["citations"] = [{"id": 1, "quote": "Refunds are processed in 5-7 business days", "source": "Refund Policy 3.2"}]
-```
-
-The `quote` field in each citation forces Claude to locate the exact supporting text — surfacing any hallucination where no supporting passage exists. If Claude cannot find a quote, it cannot fabricate a citation.
-
-**Sources:** [RAG with Verified Citations — Trelis Research (YouTube)](https://www.youtube.com/watch?v=-wGzSnhQKPM) · [Citation-aware RAG — Tensorlake](https://www.tensorlake.ai/blog/rag-citations) · [Attributing sources in RAG — apxml.com](https://apxml.com/courses/getting-started-rag/chapter-4-rag-generation-augmentation/attributing-sources)
-]]></content:encoded>
-      <media:content url="https://img.youtube.com/vi/-wGzSnhQKPM/maxresdefault.jpg" medium="image" />
-      <media:thumbnail url="https://img.youtube.com/vi/-wGzSnhQKPM/maxresdefault.jpg" />
-    </item>
-
-    <item>
-      <title>Stop Letting Claude Skip the Tool: Four Modes of tool_choice for Reliable Agent Pipelines</title>
-      <link>https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-reference</link>
-      <guid isPermaLink="false">2026-08-16-08-tool-choice-force-specific-tool</guid>
-      <pubDate>Sun, 16 Aug 2026 20:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Developer Tools</category>
-      <category>Best Practices</category>
-      <description>tool_choice: {type: "any"} forces Claude to call a tool; {type: "tool", name: "X"} forces a specific one — eliminating stochastic skips that break agent pipelines.</description>
-      <content:encoded><![CDATA[
-**`tool_choice: {type: "any"}` forces Claude to call a tool; `{type: "tool", name: "X"}` forces a specific one — eliminating the stochastic skips that break agent pipelines.**
-
-By default (`tool_choice: {type: "auto"}`), Claude decides on its own whether to call a tool or answer directly. That's fine for chat — but in an agent pipeline it will occasionally surprise you: a research agent skips `save_findings` because the answer fits in a paragraph; a pricing step answers from training data instead of calling `get_current_price`. The fix is one field.
-
-## The four modes
-
-| Mode | What Claude does | Use when |
-|------|-----------------|----------|
-| `{type: "auto"}` | Decides on its own | Default; fine for open-ended chat |
-| `{type: "any"}` | Must call *any* tool | Force live data retrieval; prevent stale-training answers |
-| `{type: "tool", name: "X"}` | Must call tool X | Structured output, persisting state, required audit logging |
-| `{type: "none"}` | No tool calls | Synthesis turn after data is gathered |
-
-## Walk-through
-
-```python
-import anthropic
-
-client = anthropic.Anthropic()
-
-tools = [
-    {
-        "name": "save_findings",
-        "description": "Persist research findings. Always call this before finishing.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "summary": {"type": "string"},
-                "confidence": {"type": "number"},
-            },
-            "required": ["summary", "confidence"],
-        },
-    }
-]
-
-# Claude MUST call save_findings — no skipping, no text-only responses
-response = client.messages.create(
-    model="claude-sonnet-5-20251001",
-    max_tokens=1024,
-    tools=tools,
-    tool_choice={"type": "tool", "name": "save_findings"},
-    messages=[
-        {"role": "user", "content": "Summarize this week's AI security news."}
-    ],
-)
-
-# stop_reason == "tool_use" — guaranteed
-tool_call = next(b for b in response.content if b.type == "tool_use")
-print(tool_call.input)  # {"summary": "...", "confidence": 0.91}
-```
-
-**Pattern for multi-step loops:** use `{type: "any"}` on collection turns (force at least one lookup), then flip to `{type: "none"}` for the synthesis turn (synthesize what you have; no new fetches). Your agent loop becomes a predictable state machine instead of a probabilistic guess.
-
-**Parallel guard:** add `"disable_parallel_tool_use": true` alongside `tool_choice` when your tools have ordering dependencies — forces one call at a time, deterministic sequence.
-
-**Sources:** [Parallel tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use) · [Tool choice — Claude Cookbook](https://platform.claude.com/cookbook/tool-use-tool-choice) · [Tool reference — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-reference)
-]]></content:encoded>
-    </item>
-
+    
+    
     
 
     
