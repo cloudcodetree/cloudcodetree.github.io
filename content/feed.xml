@@ -10,7 +10,133 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 31 Aug 2026 20:03:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 01 Sep 2026 04:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Your GitLab MR Gets Its Own Claude Code Session: Pass a Merge Request URL to --worktree</title>
+      <link>https://code.claude.com/docs/en/whats-new/2026-w33</link>
+      <guid isPermaLink="false">2026-09-01-02-claude-code-gitlab-mr-worktree</guid>
+      <pubDate>Tue, 01 Sep 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Developer Tools</category>
+      <description>Since v2.1.233, pass a GitLab MR URL to claude --worktree and Claude Code opens a session on that MR branch in its own worktree, with a colored !N badge in the footer when glab is authenticated.</description>
+      <content:encoded><![CDATA[**TL;DR: Since v2.1.233, pass a GitLab MR URL to `--worktree` and Claude Code opens the session on the MR branch in its own worktree; the `claude agents` view labels that session `!N` for quick identification.**
+
+Teams on GitLab have been manually checking out branches and creating directories for each MR review session. Since v2.1.232–v2.1.233, this is a one-command operation.
+
+**Branching from a merge request:**
+
+```bash
+claude --worktree https://gitlab.com/group/project/-/merge_requests/42
+```
+
+Claude Code fetches `merge-requests/42/head`, branches from it, and opens the session in a dedicated worktree. Your main checkout stays untouched. The `claude agents` view labels MR-linked sessions `!N` so you can tell at a glance which session is reviewing which MR.
+
+**The footer MR badge.** Authenticate `glab` once (`glab auth login`), and on any branch with an open GitLab MR, the footer shows a colored badge — green for open, orange for draft, a checkmark when mergeable. It updates without any command.
+
+**Other GitLab additions landing in the same release:**
+- Plugin marketplaces clone bare `gitlab.com` URLs including nested subgroups
+- GitLab token families (`glpat-`, `glrt-`) are now redacted in logs and transcripts
+- `glab` CLI's config store is protected the same way `gh`'s is
+
+**The real limit:** `--worktree` gives you a session on the MR branch — it does not post review comments back to GitLab. For automated MR feedback, you still need `glab` CLI commands or a CI pipeline that calls the GitLab API. The session reads the code; what you do next with Claude's output is up to you.
+
+**Sources:** [Week 33 — Claude Code Docs](https://code.claude.com/docs/en/whats-new/2026-w33) · [How We Automated Our GitLab PR Review Workflow with Claude Code — Medium](https://medium.com/@diptom/how-we-automated-our-gitlab-pr-review-workflow-with-claude-code-17324d1306d5) · [Claude Code and GitLab: Three Workflows That Ship — GitLab Blog](https://about.gitlab.com/blog/claude-code-and-gitlab/) · [Claude Code 2.1.233 GitLab support — AI/TLDR](https://ai-tldr.dev/releases/anthropic-claude-code-gitlab-support/)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Anthropic Discloses a CoT Training Accident and Shows Claude Fixing Its Own Alignment Gaps</title>
+      <link>https://www.anthropic.com/news/improving-alignment-security-efforts</link>
+      <guid isPermaLink="false">2026-09-01-01-anthropic-alignment-cot-accident</guid>
+      <pubDate>Tue, 01 Sep 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Best Practices</category>
+      <description>Anthropic disclosed a spring 2026 CoT training accident and published results showing automated AI researchers fix alignment failures across 10 categories — both released August 31.</description>
+      <content:encoded><![CDATA[**TL;DR: Anthropic disclosed that some spring 2026 training runs accidentally trained on Claude's chain-of-thought, and on the same day published results showing Claude-run alignment research fixed safety failures across 10 categories and transferred to models 5x larger.**
+
+Two August 31 Anthropic publications that every engineer building on AI models should read.
+
+**The disclosure.** "Improving our alignment and security practices" reveals that by spring 2026, RL environment monitoring was under strain — environments were being produced faster than vetting systems could process them. More specifically: a fraction of training runs accidentally trained on Claude's chain-of-thought. Anthropic explicitly avoids this practice "out of concern that it teaches a model to hide its actual reasoning." The leak was traced to production stack misconfigurations. Anthropic reports flagging over 10% of environments during an April production freeze, when all RL environment changes were halted for roughly a month to overhaul the monitoring stack.
+
+**The fix.** A companion paper reports letting Claude run its own alignment research — searching literature, proposing methods, training models, testing across ten failure categories including deception, sycophancy, and privacy violations. The automated approach worked on all ten, transferred to models nearly five times larger, and outperformed a human researcher cohort.
+
+**Why it matters:** If your application depends on Claude's chain-of-thought reflecting actual reasoning, know that this guarantee can break silently if training monitoring degrades. Plan for defense-in-depth beyond the model provider's safety claims: treat CoT as a useful but unverified signal, not a ground truth.
+
+**Sources:** [Improving our alignment and security practices — Anthropic](https://www.anthropic.com/news/improving-alignment-security-efforts) · [Automated researchers can reliably mitigate alignment failures — Anthropic](https://www.anthropic.com/research/automated-researchers-mitigate-alignment-failures) · [Anthropic uses Claude to fix its own alignment failures — ResultSense](https://www.resultsense.com/news/2026-08-31-anthropic-automated-alignment-research/)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your RAG Pipeline Needs a Storage Layer: Add One in 10 Lines With Chroma</title>
+      <link>https://www.youtube.com/watch?v=InlB5-3-nR4</link>
+      <guid isPermaLink="false">2026-09-01-03-chroma-vector-database-rag-foundations</guid>
+      <pubDate>Tue, 01 Sep 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Vectors</category>
+      <description>Chroma is the shortest path from raw text to a queryable local vector store: pip install chromadb, create a collection, add documents, and semantic search works in under 10 lines.</description>
+      <media:content url="https://i.ytimg.com/vi/InlB5-3-nR4/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://i.ytimg.com/vi/InlB5-3-nR4/maxresdefault.jpg" />
+      <content:encoded><![CDATA[**TL;DR: Chroma is the shortest path from raw text to a queryable local vector store — `pip install chromadb`, create a collection, add documents, and semantic search works in under 10 lines.**
+
+**What you'll be able to do after this:**
+- Understand what a vector database does that a regular database cannot
+- Run a working local vector store with persistent storage in minutes
+- Know when Chroma is the right choice versus pgvector or FAISS
+
+**Why your RAG pipeline needs a vector store.** A sentence embedding is a fixed-size array of floats that encodes the meaning of text. A vector database stores those arrays and finds the ones closest to a query embedding — that's what makes semantic search work at scale. Without a vector store, retrieval means re-embedding the entire corpus every query. With one, nearest-neighbor search runs in milliseconds across millions of documents.
+
+**Set up Chroma locally:**
+
+```bash
+pip install chromadb
+```
+
+```python
+import chromadb
+
+# PersistentClient saves to disk; use EphemeralClient() for tests
+client = chromadb.PersistentClient(path="./chroma_db")
+collection = client.get_or_create_collection(name="docs")
+
+# Add documents — Chroma embeds them automatically (all-MiniLM-L6-v2 by default)
+collection.add(
+    documents=[
+        "Claude Code runs agents on your machine",
+        "Ollama serves open-weight models locally via an OpenAI-compatible API",
+    ],
+    ids=["doc-1", "doc-2"],
+    metadatas=[{"source": "docs"}, {"source": "docs"}],
+)
+
+# Query — returns results ranked by semantic similarity
+results = collection.query(
+    query_texts=["run a model on my laptop"],
+    n_results=2,
+)
+print(results["documents"])
+# [['Ollama serves open-weight models locally...', 'Claude Code runs agents...']]
+```
+
+Chroma's built-in embedder handles the embedding step automatically, so you do not need a separate call to an embedding API for prototypes. When accuracy matters, swap in your own `EmbeddingFunction` — the swap changes one constructor argument, not your calling code.
+
+**When NOT to use Chroma:**
+- **You are already on Postgres:** `pgvector` adds vector search to your existing database with no new service to run.
+- **You need production-scale multi-tenancy:** Qdrant, Weaviate, or Pinecone are more battle-tested for high-concurrency SaaS workloads.
+- **Speed is the priority:** FAISS is a pure in-memory C++ library with GPU support; Chroma adds more overhead.
+- **You need an undo on deletes:** collection deletion in Chroma is permanent with no built-in recovery.
+
+Best hands-on resource: [RAG Made Simple: ChromaDB + Python (All Local)](https://www.youtube.com/watch?v=InlB5-3-nR4) walks the entire pipeline end-to-end with no external API — local embeddings and local retrieval.
+
+**Sources:** [Chroma docs — docs.trychroma.com](https://docs.trychroma.com) · [DataCamp: ChromaDB step-by-step tutorial](https://www.datacamp.com/tutorial/chromadb-tutorial-step-by-step-guide) · [RAG Made Simple: ChromaDB + Python (All Local) — YouTube](https://www.youtube.com/watch?v=InlB5-3-nR4) · [FAISS vs Chroma vs Pinecone for RAG — Medium](https://medium.com/@priyaskulkarni/vector-databases-for-rag-faiss-vs-chroma-vs-pinecone-6797bd98277d)]]></content:encoded>
+    </item>
 
     <item>
       <title>Switch Hosted LLM Providers at Runtime With `:floor`: OpenRouter&#8217;s Cost Routing for Production Inference</title>
@@ -5440,171 +5566,9 @@ with client.messages.stream(
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Anthropic's August Risk Report: Safety Benchmarks Saturate as Misalignment Risk Rises to 'Low'</title>
-      <link>https://www.anthropic.com/aug-2026-risk-report</link>
-      <guid isPermaLink="false">2026-08-16-05-anthropic-aug2026-risk-report-saturation</guid>
-      <pubDate>Sun, 16 Aug 2026 12:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <category>Best Practices</category>
-      <description>Anthropic's August 2026 Risk Report (released Aug 14) upgrades misalignment risk from 'very low' to 'low' as its internal capability threshold benchmark saturates — can no longer register incremental gains.</description>
-      <content:encoded><![CDATA[
-**Anthropic's August 2026 Risk Report bumped misalignment risk to "low" and revealed a deeper structural problem: its internal safety benchmark for the most dangerous capability threshold has saturated and can no longer register capability gains.**
-
-Released August 14, the report covers February–July 2026. The risk upgrade was driven by increased uncertainty following recent incident disclosures — Anthropic's underlying assessment still supports the lower "very low" rating, but the label was raised to reflect that confidence. An internal "Model 2" (stronger than Mythos 5) exists but is being withheld pending further safety review.
-
-The more technically significant finding is benchmark saturation. The evaluations designed to detect when models cross the most dangerous capability threshold have stopped registering incremental gains at precisely the moment early signs of acceleration are appearing. The instrument built to sound the alarm can no longer differentiate between capability levels.
-
-**Why it matters:** Benchmark saturation has a direct parallel for engineers building production AI systems — any single evaluation metric will eventually plateau while the underlying behavior keeps shifting. The lesson: run diverse, behavioral test suites alongside capability benchmarks and invest in evals that measure *what the model does*, not only *what score it achieves*. When your benchmark looks flat, that is the moment to add a new one.
-
-**Sources:** [Anthropic August 2026 Risk Report](https://www.anthropic.com/aug-2026-risk-report) · [Benchmark Saturation — TechTimes](https://www.techtimes.com/articles/324573/20260815/anthropic-upgrades-misalignment-risk-key-safety-benchmarks-saturate.htm) · [Anthropic Raises Misalignment Risk — Unite.AI](https://www.unite.ai/anthropic-raises-misalignment-risk-to-low-and-shelves-internal-model-2/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Orchestrate a Team of AI Agents in 25 Lines: The LangGraph Supervisor Pattern</title>
-      <link>https://www.youtube.com/watch?v=BM39OouLNsM</link>
-      <guid isPermaLink="false">2026-08-16-04-langgraph-supervisor-multi-agent-team</guid>
-      <pubDate>Sun, 16 Aug 2026 12:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Agents</category>
-      <category>MCP</category>
-      <description>Use create_supervisor() from langgraph-supervisor and one LLM orchestrator routes tasks to specialist agents — no custom state machines or routing logic, and memory is one extra argument.</description>
-      <content:encoded><![CDATA[
-**`pip install langgraph-supervisor` and `create_supervisor()` gives you a routing orchestrator that delegates to specialist agents — 25 lines of Python, no custom routing logic.**
-
-**What you'll be able to do after this:**
-
-- Build a multi-agent system where a supervisor LLM reads each step and routes to the right specialist
-- Use `create_supervisor()` to skip hand-coded state machines and transition logic
-- Add memory and human-in-the-loop checkpointing to the same graph with two extra lines
-
-**The pattern:** The supervisor is an LLM that reads the current conversation state and calls one of two built-in tools: `transfer_to_<agent_name>()` (delegate to a specialist) or returns a final response. Each specialist runs its own ReAct loop with its own tools. When the specialist finishes, control returns to the supervisor.
-
-## Setup
-
-```bash
-pip install langgraph-supervisor langchain-anthropic
-```
-
-```python
-from langgraph_supervisor import create_supervisor
-from langgraph.prebuilt import create_react_agent
-from langchain_anthropic import ChatAnthropic
-
-model = ChatAnthropic(model="claude-sonnet-5-20260130")
-
-# Specialist 1: web researcher
-researcher = create_react_agent(
-    model,
-    tools=[web_search_tool],
-    name="researcher",
-    prompt="You search the web and return verified facts. Be concise."
-)
-
-# Specialist 2: Python analyst
-analyst = create_react_agent(
-    model,
-    tools=[python_repl_tool],
-    name="analyst",
-    prompt="You run Python code and return computed results with the code used."
-)
-
-# Supervisor routes between them
-app = create_supervisor(
-    model,
-    agents=[researcher, analyst],
-    prompt=(
-        "You manage researcher and analyst. "
-        "Send information-gathering tasks to researcher, "
-        "and computation tasks to analyst. "
-        "When both are done, synthesize a final answer."
-    )
-).compile()
-
-# Run it
-result = app.invoke({
-    "messages": [{"role": "user", "content": "What is the population of Tokyo? Calculate how many people that is per square kilometer (area: 2,194 km2)."}]
-})
-print(result["messages"][-1].content)
-```
-
-## Two things that make this practical
-
-**State is shared.** The researcher's answer goes into the shared `messages` state, so the analyst can read it in the next step — no custom handoff code.
-
-**Memory is one argument.** Pass `checkpointer=MemorySaver()` to `.compile()` and the graph persists state across invocations for the same `thread_id`. Multi-turn conversations and human-in-the-loop interrupts use the same API.
-
-The video below walks through a complete version with MCP tool calls, guardrails, observability, and a Streamlit UI — worth watching once you have the basic pattern running.
-
-**Sources:** [Build a Multi-Agent System with LangGraph, MCP, Supervisor, Guardrails — YouTube](https://www.youtube.com/watch?v=BM39OouLNsM) · [LangGraph Agent Supervisor tutorial — LangChain GitHub](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/agent_supervisor.md) · [langgraph-supervisor — PyPI](https://pypi.org/project/langgraph-supervisor/)
-]]></content:encoded>
-      <media:content url="https://img.youtube.com/vi/BM39OouLNsM/maxresdefault.jpg" medium="image" />
-      <media:thumbnail url="https://img.youtube.com/vi/BM39OouLNsM/maxresdefault.jpg" />
-    </item>
-
-    <item>
-      <title>Handle Claude Refusals in One Line: The API's fallbacks: 'default' Server-Side Fallback</title>
-      <link>https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback</link>
-      <guid isPermaLink="false">2026-08-16-03-claude-api-fallbacks-default-refusal-handling</guid>
-      <pubDate>Sun, 16 Aug 2026 04:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Best Practices</category>
-      <description>Add fallbacks: "default" plus one beta header to your Claude API call and safety-classifier refusals automatically retry on Anthropic's recommended safe model — no try/catch loop required.</description>
-      <content:encoded><![CDATA[
-**Add `fallbacks: "default"` and one beta header to your `/v1/messages` call — when Claude's safety classifier declines, the API retries on Anthropic's recommended safe alternative in the same round trip.**
-
-When a Claude model declines a request for safety reasons, your code normally receives a `stop_reason: "end_turn"` response with no useful content. Detecting that, deciding what to do, and retrying is extra logic in every agent that calls the API. The server-side fallback beta removes that loop for safety-classifier declines.
-
-## The change
-
-Add two things to any `/v1/messages` call:
-
-```python
-response = client.messages.create(
-    model="claude-fable-5-20260201",
-    max_tokens=1024,
-    messages=[{"role": "user", "content": prompt}],
-    fallbacks="default",                                         # <- add this
-    extra_headers={
-        "anthropic-beta": "server-side-fallback-2026-07-01"     # <- and this
-    }
-)
-
-# Check which model actually served the response:
-print(response.model)   # may differ from "claude-fable-5-20260201"
-```
-
-When the primary model's classifier declines, the API immediately retries on Anthropic's recommended alternative for that refusal category. You get one response — already answered — in the same round trip, with no error surfaced to your caller.
-
-## Three things to know
-
-1. **Only safety-classifier declines trigger the fallback.** Overload errors (429/529), token-limit hits, and network errors are not covered — handle those with your existing retry logic or `fallbackModel` in Claude Code config.
-
-2. **Direct API only.** The `fallbacks` parameter is not available on Amazon Bedrock, Google Cloud Vertex, or Microsoft Foundry — only the Anthropic API.
-
-3. **Track per-model usage.** The response's `model` field shows which model served it. Check `usage.iterations` for per-model token accounting when billing back to teams or cost-tracking by model.
-
-You can also pass an explicit list of up to three fallback models instead of `"default"`:
-
-```python
-fallbacks=["claude-opus-5-20260201", "claude-sonnet-5-20260130"]
-```
-
-The `"default"` mode is the easier path for most teams — Anthropic updates the recommended fallback chain as models change, so your code stays current without maintenance.
-
-**Sources:** [Refusals and Fallback — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback) · [Fallback Credit — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/fallback-credit) · [Classifier Fallback and Billing — Claude Cookbook](https://platform.claude.com/cookbook/fable-5-fallback-billing-guide)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
     
