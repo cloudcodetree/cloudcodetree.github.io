@@ -10,7 +10,103 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 01 Sep 2026 20:04:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 02 Sep 2026 04:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Auto Mode Now Blocks the Credential-Exfiltration Path Most Prompt Injections Use: Cloud Metadata Fetches</title>
+      <link>https://code.claude.com/docs/en/changelog#2-1-257</link>
+      <guid isPermaLink="false">2026-09-02-02-claude-code-auto-mode-containment-escape</guid>
+      <pubDate>Wed, 02 Sep 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Security</category>
+      <description>Claude Code v2.1.257 adds a Containment Escape rule: auto mode now blocks tool calls targeting cloud metadata credential endpoints before execution, surfacing them for operator approval.</description>
+      <content:encoded><![CDATA[**TL;DR: v2.1.257 adds a Containment Escape rule — auto mode hard-blocks metadata credential endpoint fetches (AWS 169.254.169.254, GCP IMDS, Azure IMDS) and surfaces them for approval rather than executing silently.**
+
+**What the threat is.** A prompt injection in a document your agent reads can instruct it to `curl http://169.254.169.254/latest/meta-data/iam/security-credentials/role-name` — the AWS metadata endpoint that returns temporary IAM credentials. If auto mode's classifier doesn't catch this as a containment escape, the injected instruction runs and your cloud credentials leak. This is one of the most practical attack paths against agents running on cloud VMs or ECS tasks.
+
+**What changed.** Before v2.1.257, auto mode evaluated metadata endpoint fetches case-by-case through the general safety classifier. Now they trigger a hard block: auto mode surfaces the operation for your approval before running it, even in fully unattended sessions.
+
+**What to check if your agent legitimately fetches instance metadata** — for example, to retrieve its own region or IAM role name at startup — you'll see approval prompts where none appeared before. The fix is a scoped allow rule in your session config for that specific tool call pattern, not disabling auto mode:
+
+```json
+// .claude/settings.json
+{
+  "permissions": {
+    "allow": ["Bash(curl http://169.254.169.254/latest/meta-data/placement/region)"]
+  }
+}
+```
+
+**Real limit:** the Containment Escape rule applies only in auto mode. Standard permission-prompt mode was already surfacing unrecognized Bash commands; `--dangerously-skip-permissions` remains entirely outside this protection. If you're running unattended agents without auto mode, the metadata endpoint is still reachable.
+
+**Sources:** [Claude Code changelog v2.1.257 — code.claude.com](https://code.claude.com/docs/en/changelog#2-1-257) · [Breaking Claude Code Opus 5 Auto Mode with Indirect Prompt Injection — embracethered.com](https://embracethered.com/blog/posts/2026/breaking-claude-code-opus-5-and-automode/) · [Claude Code 2.1.251 security hardening — AI Stack Current](https://aistackcurrent.com/news/claude-code-2-1-251-security-hardening/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Anthropic Adds Customer-Controlled Storage for Frontier Model API Traffic</title>
+      <link>https://www.anthropic.com/news/enterprise-frontier-safeguards</link>
+      <guid isPermaLink="false">2026-09-02-01-anthropic-enterprise-frontier-safeguards</guid>
+      <pubDate>Wed, 02 Sep 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Security</category>
+      <description>Enterprise Frontier Safeguards store Claude Fable 5/5.1 API traffic in your own S3/Azure/GCS bucket — customer encryption keys, no Anthropic human review. Phased rollout this fall.</description>
+      <content:encoded><![CDATA[**TL;DR: Anthropic's Enterprise Frontier Safeguards store Fable 5/5.1 API traffic in your own S3/Azure/GCS bucket — customer encryption keys, automated misuse detection, no Anthropic human review.**
+
+Anthropic introduced a 30-day data retention requirement with Fable 5 in June, citing the need to detect sophisticated misuse patterns that span multiple sessions and accounts. Enterprise customers with data-sovereignty requirements pushed back. EFS is the fix: interaction data stays in infrastructure you control. Anthropic's pattern-detection runs against your storage and returns only category-level signals — not the underlying prompts.
+
+Three practical facts:
+- Anthropic doesn't charge for EFS; your cloud provider bills storage and data operations at standard rates.
+- Works whether you access Claude directly or through AWS Bedrock, Azure AI Foundry, or GCP Vertex.
+- Phased rollout through fall 2026; eligible customers receive zero retention on Fable 5/5.1 as an interim measure now.
+
+**Limit to note:** customer-controlled storage is not the same as zero retention — data still exists, in your cloud account. Fully automated review also means Anthropic cannot assist with incident reconstruction that would require content review.
+
+**Why it matters:** If a data-residency or compliance requirement has been blocking your team from Fable 5 or 5.1, EFS is the unlock — customer-owned storage satisfies most data-sovereignty policies without losing the frontier model tier.
+
+**Sources:** [Developing Enterprise Frontier Safeguards — Anthropic](https://www.anthropic.com/news/enterprise-frontier-safeguards) · [Anthropic changes data retention policy — CNBC](https://www.cnbc.com/2026/09/01/anthropic-data-retention.html) · [Anthropic EFS: customer-controlled AI data, not zero retention — Windows Forum](https://windowsforum.com/windows-news.4/anthropic-efs-customer-controlled-ai-data-not-zero-retention.443948/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Fine-Tune Has No Data Yet. Here's How to Build the Dataset Without Annotators.</title>
+      <link>https://huggingface.co/blog/synthetic-data-generator</link>
+      <guid isPermaLink="false">2026-09-02-03-build-fine-tuning-dataset-synthetic-distilabel</guid>
+      <pubDate>Wed, 02 Sep 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>HuggingFace's Synthetic Data Generator builds chat-format JSONL datasets from a task description and seed examples — LLM generates, LLM judges, push to Hub, load in SFTTrainer.</description>
+      <content:encoded><![CDATA[**TL;DR: Generate a JSONL fine-tuning dataset without annotators — describe your task, seed it with examples, HuggingFace's Synthetic Data Generator drafts and LLM-judges them, then push straight to the Hub.**
+
+**What you'll be able to do after this:** Generate a chat-format fine-tuning dataset from a task description and five seed examples, filter it with an LLM judge, push the result to HuggingFace Hub, and load it into TRL's SFTTrainer in a single `datasets.load_dataset()` call.
+
+**Three key ideas:**
+- **LLM as teacher.** A frontier model (default: Llama 3.3 70B via the free HuggingFace Inference API) generates diverse variations of your seed examples. The seed shapes the style; the LLM fills the volume.
+- **LLM as judge.** A second pass scores each generated example for quality and task alignment. Low-scoring examples are filtered before the dataset is pushed. The 2026 finding from synthetic-data research: an unfiltered dataset is reliably worse than a smaller filtered one.
+- **JSONL chat format.** Each entry is `{"messages": [{"role": "system", ...}, {"role": "user", ...}, {"role": "assistant", ...}]}` — the same format TRL's SFTTrainer and Unsloth's FastLanguageModel both consume directly.
+
+**Walk-through:**
+1. Open the [Synthetic Data Generator Space](https://huggingface.co/spaces/argilla/synthetic-data-generator) — free, no GPU required.
+2. Describe your dataset in plain language: "customer support chat for a Python SDK, questions about rate limits and auth errors."
+3. Add 3–5 seed examples to anchor the style and vocabulary.
+4. Select **Chat Dataset**, set sample count (200 is enough to verify quality), click Generate.
+5. Review a sample in the Argilla panel; re-generate any section that's off.
+6. Push to Hub → `datasets.load_dataset("your-org/dataset-name")` in your training script.
+
+**Limits:** The Spaces version only handles text classification and chat datasets; RAG, preference, and eval tasks require the distilabel Python SDK directly. Generation speed is ~20 samples/minute on the free Inference API — budget an hour for 1,000 examples. Quality is bounded by your seed: vague seeds produce coherent but useless data. Switch to a local or paid inference endpoint for larger volumes.
+
+**Sources:** [Introducing the Synthetic Data Generator — HuggingFace Blog](https://huggingface.co/blog/synthetic-data-generator) · [Synthetic Data for LLM Fine-Tuning in 2026 — Future AGI](https://futureagi.com/blog/synthetic-data-fine-tuning-llms/) · [distilabel docs — Argilla/HuggingFace](https://distilabel.argilla.io)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Fable 5.1 Ships Today: Cache Reads Drop From $1.00 to $0.25 per Million Tokens</title>
@@ -5414,131 +5510,10 @@ Keep `REVIEW.md` focused: a long file dilutes the rules that matter most.
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Stripe Buys OpenRouter for $7B+; Google Imagen 4 API Retires Today</title>
-      <link>https://techcrunch.com/2026/08/16/stripe-will-reportedly-acquire-ai-gateway-startup-openrouter-for-7b/</link>
-      <guid isPermaLink="false">2026-08-17-05-stripe-openrouter-imagen4-ai-infra</guid>
-      <pubDate>Mon, 17 Aug 2026 12:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Developer Tools</category>
-      <category>LLM</category>
-      <description>Stripe finalizes a $7B+ deal for OpenRouter, the 400-model AI gateway; and Google retires three Imagen 4 model IDs today, breaking generate_images() with no grace period.</description>
-      <content:encoded><![CDATA[
-**Stripe buys the AI model routing layer that millions of developers depend on; Google's Imagen 4 `generate_images()` API shuts down today — two AI infra moves with immediate impact.**
+    
 
-## Stripe finalizes OpenRouter acquisition
-
-Stripe has closed a deal to acquire OpenRouter — the AI model gateway that routes requests across 400+ models from 70+ providers — for more than $7 billion. OpenRouter's CEO described the company as "the Stripe for AI": one OpenAI-compatible endpoint, automatic provider failover, cost-based routing, and 8 million users. Service continues unchanged for now; no migration required, no pricing changes announced.
-
-**Why it matters:** OpenRouter is load-bearing infrastructure for many production AI apps. The acquisition puts it inside Stripe's developer platform ecosystem — watch for pricing and API terms as the integration matures. If OpenRouter is in your critical path, now is a good time to review your fallback strategy.
-
-## Google Imagen 4 API retires today
-
-Three Imagen 4 model IDs shut down August 17: `imagen-4.0-generate-001`, `imagen-4.0-ultra-generate-001`, and `imagen-4.0-fast-generate-001`. The `generate_images()` method is removed entirely; migration requires switching to `gemini-3.1-flash-image` and calling `generate_content()` instead. Test your real prompts against the new model first — aspect ratios, safety filters, and output quality may differ.
-
-**Why it matters:** Any application calling the Imagen 4 API without migration will return hard errors starting today.
-
-**Sources:** [Stripe acquires OpenRouter — Bloomberg](https://www.bloomberg.com/news/articles/2026-08-16/stripe-nears-deal-to-buy-ai-firm-openrouter-for-over-7-billion) · [TechCrunch](https://techcrunch.com/2026/08/16/stripe-will-reportedly-acquire-ai-gateway-startup-openrouter-for-7b/) · [Imagen 4 shutdown details — kingy.ai](https://kingy.ai/ai-launch-tracker/google-will-shut-down-three-imagen-4-api-models-august-17/) · [Firebase migration guide](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
-]]></content:encoded>
-    </item>
-
-
-    <item>
-      <title>One Field Cuts Your Claude API Bill 60-90%: Prompt Caching With cache_control</title>
-      <link>https://platform.claude.com/docs/en/build-with-claude/prompt-caching</link>
-      <guid isPermaLink="false">2026-08-17-03-claude-api-prompt-caching-cost</guid>
-      <pubDate>Mon, 17 Aug 2026 04:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Add cache_control to any stable system prompt block and pay 10% of the normal input price on every repeated call — one field, no refactoring.</description>
-      <content:encoded><![CDATA[
-**Add `"cache_control": {"type": "ephemeral"}` to any stable content block and Claude reads it from cache on subsequent calls at roughly 10% of the normal input-token price.**
-
-Any API workflow that sends the same system prompt, long instruction set, or reference document on every call is paying 100% of input cost each time. Prompt caching marks those stable blocks once; Claude caches them for an hour and charges cache-read rates on hits — about $0.30/M for Sonnet 5 instead of $3.00/M.
-
-## How to add it
-
-```python
-import anthropic
-
-client = anthropic.Anthropic()
-
-system_prompt = """[Your stable system prompt — 1,024 tokens minimum to qualify]"""
-
-response = client.messages.create(
-    model="claude-sonnet-5-20260801",
-    max_tokens=1024,
-    system=[
-        {
-            "type": "text",
-            "text": system_prompt,
-            "cache_control": {"type": "ephemeral"}  # one field — this is all it takes
-        }
-    ],
-    messages=[{"role": "user", "content": "What is the refund policy?"}],
-)
-
-# Inspect whether you got a cache hit
-print(response.usage)
-# cache_creation_input_tokens: N  (first call — writes the cache)
-# cache_read_input_tokens: N      (subsequent calls — reads from cache)
-```
-
-The `cache_control` marker goes at the **end of the stable block** — Claude caches everything up to that point. Put volatile content (the user's question, the current date) after it. Never let timestamps or UUIDs drift into the cacheable prefix; that kills your hit rate.
-
-## Where the savings are largest
-
-| Workload | Stable block | Typical hit rate |
-|---|---|---|
-| Support bot | Full product docs + policy | 90-95% |
-| Code review CI | Repo conventions + style guide | 85-90% |
-| Eval suite | All test cases + rubric | ~100% |
-| Multi-turn chat | System prompt + tool list | 60-80% |
-
-## Cost math
-
-A support bot sending a 10,000-token system prompt on 1,000 daily requests:
-
-| Approach | Daily input cost (Sonnet 5) |
-|---|---|
-| No caching | 1,000 × 10K × $3/M = **$30.00** |
-| Prompt caching | $3.00 (cache write) + 999 × 10K × $0.30/M = **$6.00** |
-
-**80% saved, same responses, zero code refactoring beyond adding one field.**
-
-Caching also works on tool definitions and large user-turn messages — add `cache_control` to any block 1,024+ tokens long that appears on multiple requests. The minimum is 1,024 tokens for standard models; 2,048 for extended context.
-
-**Sources:** [Prompt caching — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) · [Prompt caching cookbook — platform.claude.com](https://platform.claude.com/cookbook/prompt-caching) · [How to cut Claude API costs 90% with prompt caching — Iron Mind](https://iron-mind.ai/blog/prompt-caching-claude-production)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Agent Plugins 1.0: One Package Format That Works Across ChatGPT, Copilot, Cursor, VS Code, and Kiro</title>
-      <link>https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app/</link>
-      <guid isPermaLink="false">2026-08-17-02-agent-plugins-1-0-open-standard</guid>
-      <pubDate>Mon, 17 Aug 2026 04:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Developer Tools</category>
-      <category>MCP</category>
-      <description>Agent Plugins 1.0 is an open standard backed by GitHub, OpenAI, AWS, Google, and Microsoft: one plugin.json + skills/ + mcp.json installs into any compatible coding agent.</description>
-      <content:encoded><![CDATA[
-**A single `plugin.json` + `skills/` + `mcp.json` directory now installs into GitHub Copilot, VS Code, ChatGPT, Codex, Cursor, and Kiro — no separate manifest per client.**
-
-[Agent Plugins 1.0](https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app/) is an open standard published August 6 with AWS, Anysphere, Microsoft, OpenAI, Vercel, and Google as co-maintainers. It bundles agent skills and MCP servers into one installable format governed independently of any vendor. Build a deployment runbook skill with its MCP tool integration once; your whole team gets it on all their coding agents without you maintaining a separate manifest for each one.
-
-**Why it matters:** Any team-specific skill or internal MCP integration you build now becomes portable — publish it to a skills registry or a shared repo directory and it works wherever your engineers happen to be.
-
-**Sources:** [Agent Plugins 1.0 GA — GitHub Changelog](https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app/) · [What the standard fixes — digitalapplied.com](https://www.digitalapplied.com/blog/agent-plugins-1-0-open-standard-portable-skills)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
