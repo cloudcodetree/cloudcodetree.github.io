@@ -10,7 +10,113 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 02 Sep 2026 04:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 02 Sep 2026 12:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Put a Cost Ceiling on Every Subagent in Your Workflow: CLAUDE_CODE_SUBAGENT_MODEL_FORCE</title>
+      <link>https://code.claude.com/docs/en/sub-agents</link>
+      <guid isPermaLink="false">2026-09-02-04-claude-code-subagent-model-force-cost-cap</guid>
+      <pubDate>Wed, 02 Sep 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1 pins every subagent, teammate, and workflow agent in your Claude Code session to one model — overriding per-definition settings. Two env vars, one settings.json entry. Requires v2.1.257.</description>
+      <content:encoded><![CDATA[**TL;DR: Set `CLAUDE_CODE_SUBAGENT_MODEL=haiku` and `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` to cap every subagent, teammate, and workflow agent in your session to one model — even if their definitions request Opus. New in v2.1.257.**
+
+When you fan out work across 10 subagents, each one inherits your main session's model by default. If that's Opus 5, a 10-agent workflow burns 10 times the context at Opus rates. Two environment variables give you a ceiling.
+
+**What each variable does:**
+
+- `CLAUDE_CODE_SUBAGENT_MODEL` sets the fallback model for subagents when nothing else specifies one — but it does NOT override agent definition frontmatter or the built-in Explore and Plan agents.
+- `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` overrides everything: per-invocation model parameters, agent definition frontmatter, and the built-in Explore and Plan agents.
+
+**Add both to `.claude/settings.json` for project-wide enforcement:**
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_SUBAGENT_MODEL": "claude-haiku-4-5-20251001",
+    "CLAUDE_CODE_SUBAGENT_MODEL_FORCE": "1"
+  }
+}
+```
+
+Or set per-session in your shell:
+
+```bash
+export CLAUDE_CODE_SUBAGENT_MODEL=sonnet
+export CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1
+claude
+```
+
+**Model resolution order without FORCE:** per-invocation `model` param → agent definition frontmatter → `CLAUDE_CODE_SUBAGENT_MODEL` → main session model.
+
+**With FORCE=1:** `CLAUDE_CODE_SUBAGENT_MODEL` wins for everything above — except forks and skills with `model: inherit`, which still run on the main conversation's model by design (you don't control the skills you didn't write).
+
+**Real limits.** Forcing Explore and Plan to Haiku degrades their quality on complex research tasks — those built-in agents are tuned for thoroughness. If your workflow's search or planning quality drops, set `CLAUDE_CODE_SUBAGENT_MODEL` to Sonnet instead, or remove FORCE and pin specific agent definitions individually via their frontmatter. The env var covers the entire session; there's no per-workflow override within a single session.
+
+**Sources:** [Claude Code v2.1.257 changelog — code.claude.com](https://code.claude.com/docs/en/changelog#2-1-257) · [Sub-agent model configuration — code.claude.com](https://code.claude.com/docs/en/sub-agents) · [Claude Code Subagents: A 2026 Practical Guide — Tembo.io](https://www.tembo.io/blog/claude-code-subagents)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your RAG Pipeline Returns Answers. Here's How to Tell If They're True: Ragas in 10 Lines</title>
+      <link>https://langfuse.com/guides/cookbook/evaluation_of_rag_with_ragas</link>
+      <guid isPermaLink="false">2026-09-02-05-ragas-rag-quality-evaluation-faithfulness</guid>
+      <pubDate>Wed, 02 Sep 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Best Practices</category>
+      <description>Ragas scores any RAG pipeline's hallucination rate, answer relevancy, and retrieval quality using LLM-as-judge — four metrics, one evaluate() call, each localizing a different failure mode.</description>
+      <media:content url="https://img.youtube.com/vi/jZqrprZWfsg/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/jZqrprZWfsg/maxresdefault.jpg" />
+      <content:encoded><![CDATA[**TL;DR: Ragas adds four LLM-as-judge metrics to any RAG pipeline — faithfulness, answer relevancy, context precision, and context recall — so you can measure where it hallucinates and which stage to fix.**
+
+**What you'll be able to do after this:** score a RAG pipeline's accuracy, relevance, and retrieval quality programmatically, so you know whether a change helped or hurt before it reaches users.
+
+**Three things to take away:**
+
+- **Faithfulness catches hallucinations.** Ragas extracts claims from the answer and checks each against the retrieved chunks. If an answer claims something the chunks don't support, faithfulness drops below 1.0.
+- **Context precision catches retrieval ordering failures.** It scores whether the chunks that actually helped generate the answer were ranked near the top of what was retrieved — poor ranking wastes your context window on irrelevant content.
+- **LLM-as-judge costs real tokens.** Each metric makes several LLM calls per sample. Batch your evaluation set and run it on a random sample of production queries, not a hand-picked "good" set, or the scores tell you nothing.
+
+**Install and run a basic evaluation:**
+
+```bash
+pip install ragas openai datasets
+```
+
+```python
+from datasets import Dataset
+from ragas import evaluate
+from ragas.metrics import faithfulness, answer_relevancy, context_precision
+
+data = {
+    "question": ["What is chunking in RAG?"],
+    "answer": ["Chunking splits documents into segments that match the embedding model's token limit."],
+    "contexts": [["Document chunking divides text into segments sized to fit the embedding model."]],
+    # "ground_truth": ["..."]  # only needed for context_recall
+}
+dataset = Dataset.from_dict(data)
+
+result = evaluate(dataset, metrics=[faithfulness, answer_relevancy, context_precision])
+print(result)
+# {'faithfulness': 1.0, 'answer_relevancy': 0.91, 'context_precision': 0.88}
+```
+
+**How to read the scores.** Low faithfulness (< 0.8): your model is adding facts the retrieved chunks don't contain — tighten your prompt or fix chunking. Low context precision: useful chunks are buried in retrieval results — check your embedding model or similarity threshold. Low answer relevancy: the answer is drifting from the question — revisit your generation prompt.
+
+**Best starting video:** [RAG Evaluation Matrix — RAGAS Metrics: Faithfulness, Context Precision, Recall](https://www.youtube.com/watch?v=jZqrprZWfsg) walks through all four metrics with code (April 2026).
+
+**Real limits.** Faithfulness only checks consistency with retrieved context, not world-truth: a pipeline can score 1.0 faithfulness while still being factually wrong if the retrieved chunks themselves contain errors. `context_recall` requires ground-truth reference answers — without labeled data, skip it. LLM-as-judge scores carry the judge model's biases toward longer, more fluent outputs and toward its own family's style. Ragas is a floor, not a ceiling: 1.0 faithfulness means you passed, not that the answers are correct.
+
+**Sources:** [Ragas documentation — docs.ragas.io](https://docs.ragas.io) · [Evaluation of RAG pipelines with Ragas — Langfuse](https://langfuse.com/guides/cookbook/evaluation_of_rag_with_ragas) · [Evaluate RAG with Ragas + watsonx — IBM](https://www.ibm.com/think/tutorials/evaluate-rag-pipeline-using-ragas-in-python-with-watsonx)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Auto Mode Now Blocks the Credential-Exfiltration Path Most Prompt Injections Use: Cloud Metadata Fetches</title>
@@ -5412,104 +5518,8 @@ The practical gain: AI edits are scoped to exactly what you intended. Annotating
 **Sources:** [A Properties Panel and Annotations, Now in Figma Make — Figma Blog](https://www.figma.com/blog/properties-panel-and-annotations-now-in-figma-make/) · [Figma Release Notes — Releasebot](https://releasebot.io/updates/figma)
 ]]></content:encoded>
     </item>
-    <item>
-      <title>Connect v0 to Your Real GitHub Repo: AI-Generated Components That Go Through PRs, Not Around Them</title>
-      <link>https://v0.app/docs/faqs</link>
-      <guid isPermaLink="false">2026-08-17-07-v0-github-existing-repo-workflow</guid>
-      <pubDate>Mon, 17 Aug 2026 12:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Design</category>
-      <category>Design-to-Code</category>
-      <description>v0's GitHub integration creates one branch per chat and never touches main — generated components land as a PR you review like any other code change.</description>
-      <content:encoded><![CDATA[
-**v0's GitHub integration creates one branch per chat and never commits to main — generated UI lands as a PR you review like any other code change, not as a mystery diff in your working tree.**
-
-The common fear with v0: you prototype something useful and then face a pile of generated code with no clear path into an existing Next.js/React codebase. The February 2026 update added native GitHub integration that addresses this with a branch-per-chat workflow.
-
-## Setup
-
-1. In v0's project settings, connect your GitHub account.
-2. Create a new project → + → "Import from GitHub" → select your repo.
-3. For private repos: grant v0 access in your GitHub App settings.
-4. v0 creates one branch per chat session and never commits to `main` by design.
-
-## The workflow
-
-- Every code change in v0 is an automatic commit on that branch.
-- Create a PR directly from v0 — it goes through your normal review process.
-- Pull the branch locally with `git fetch && git checkout <branch>` to inspect the generated code in your editor before merging.
-
-## Before merging, check for
-
-- Does the generated component use your existing design system, or does it shadow it with its own Tailwind/MUI classes?
-- Are prop types and import paths consistent with the rest of the codebase?
-- Are there `useEffect` calls with missing or empty deps arrays where the actual dependencies weren't inferred?
-
-## After merge: hand off to Claude Code
-
-The generated component is now in your repo and tracked by git. Run `/code-review` against the branch for a bug-finding pass, then iterate in your editor. v0 gets you to a workable shape; Claude Code closes the gap on correctness and integration.
-
-**Sources:** [v0 docs: import from GitHub — v0.app](https://v0.app/docs/faqs) · [Integrating v0 with existing GitHub repos — Vercel Community](https://community.vercel.com/t/integrating-v0-with-existing-github-repositories-and-vercel-projects/34005) · [v0 complete guide 2026 — NxCode](https://www.nxcode.io/resources/news/v0-by-vercel-complete-guide-2026)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>What /code-review Does That the GitHub App Doesn't: Effort Levels, --fix, and REVIEW.md</title>
-      <link>https://code.claude.com/docs/en/code-review</link>
-      <guid isPermaLink="false">2026-08-17-06-code-review-slash-command-effort-reviewmd</guid>
-      <pubDate>Mon, 17 Aug 2026 12:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Developer Tools</category>
-      <description>The /code-review slash command runs a bug-hunting subagent in the background without consuming your session context — tune effort, auto-apply fixes, and scope it with REVIEW.md.</description>
-      <content:encoded><![CDATA[
-**`/code-review` runs a background bug-hunting subagent that doesn't consume your session context — tune effort, auto-apply fixes, and give it a project-specific mandate with `REVIEW.md`.**
-
-Claude Code's `/code-review` command is distinct from the GitHub App-based Code Review service. It runs locally as a forked background subagent — the findings arrive in your conversation when the review completes, without filling your context window with intermediate reasoning.
-
-## Effort controls confidence vs. coverage
-
-`low` and `medium` report only high-confidence findings, so you see fewer false positives but narrower coverage. `high` through `max` broaden coverage but include findings the review is less certain about. Claude remembers the last level you typed explicitly, so always pass one in scripts:
-
-```
-/code-review high          # background review, report findings
-/code-review high --fix    # same, plus auto-apply findings to working tree
-```
-
-**Caveat:** `--fix` edits land outside your session checkpoints. `/rewind` won't undo them — use git if you want to inspect before applying.
-
-## REVIEW.md gives the review a project mandate
-
-A `REVIEW.md` file at your repo root is injected at highest priority into every agent in the pipeline — higher than your `CLAUDE.md`. Use it to define what "Important" means in your codebase, which paths to skip, and what checks to always run:
-
-```markdown
-## What Important means here
-Reserve 🔴 for bugs that break behavior or leak data.
-Style and naming are Nit at most.
-
-## Always check
-- New API routes have an integration test
-- Log lines exclude email addresses and user IDs
-
-## Skip
-- Generated code under src/gen/
-- Any *.lock file
-```
-
-Keep `REVIEW.md` focused: a long file dilutes the rules that matter most.
-
-## For cloud-level review
-
-`/code-review ultra` (Team/Enterprise) escalates to a multi-agent swarm on Anthropic infrastructure, with findings posted inline to your PR via `--post`. From CI scripts: `claude -p '/code-review ultra'` launches the review non-interactively.
-
-**Sources:** [Claude Code Review — code.claude.com](https://code.claude.com/docs/en/code-review) · [REVIEW.md reference — code.claude.com](https://code.claude.com/docs/en/code-review#customize-reviews) · [Ultrareview — code.claude.com](https://code.claude.com/docs/en/ultrareview)
-]]></content:encoded>
-    </item>
-
+    
+    
     
 
     
