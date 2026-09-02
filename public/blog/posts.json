@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-09-02-08-claude-code-subagent-streaming-cost-visibility",
+    "title": "See Every Subagent Tool Call From Your Phone — and Know If Your Cache Is Working: Claude Code v2.1.251",
+    "excerpt": "Claude Code v2.1.251 streams foreground subagent tool calls live to Remote Control clients, and /cost now shows per-session cache hit ratio. Two signals for monitoring long agentic runs from anywhere.",
+    "author": "Chris Harper",
+    "date": "09-02-2026",
+    "publishedAt": "2026-09-02T20:08:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.com/anthropics/claude-code/releases/tag/v2.1.251",
+    "content": "**TL;DR: Claude Code v2.1.251 (August 28) streams foreground subagent tool calls live to Remote Control clients, and `/cost` now shows per-session cache hit ratio, misses, and re-cached tokens — the two signals you need to monitor a long agentic run from anywhere.**\n\n**Foreground subagent live streaming.** When a subagent runs in the foreground, its tool calls and results — file reads, bash executions, writes — now stream in real time to connected Remote Control clients (phone or desktop companion). Background subagents (the default) still show status only.\n\nThis gives you per-step visibility on a running multi-agent session without staying at the terminal. It's most useful for tasks where you want to be able to interrupt mid-operation: security-sensitive file changes, anything involving credentials, or workflows where a bad tool call deep in the chain would be expensive to roll back.\n\n**Cache visibility in `/cost`.** A new `prompt_cache` line shows: hit ratio, misses, tokens re-cached from the last run, and whether the cache is warm or cold for this session. If you're relying on prompt caching to keep session costs down and haven't been able to confirm it's working, this is the output that tells you.\n\n```\n/cost now includes:\n  Cache:  82% hit ratio · 4.2K misses · 38K tokens re-cached · warm\n```\n\nAlso new: a spend limit bar in `/usage` and a `rate_limits.spend_limit` field for status line scripts, for environments behind a Claude apps gateway with a monthly spend ceiling.\n\n**When to use foreground vs. background subagents.** Foreground streaming is best when you need per-step accountability — security-sensitive operations, anything involving credentials, or workflows where you want to be able to interrupt cleanly. Background subagents remain the right default for parallelized, fire-and-forget work (batch analysis, test runs, research pipelines).\n\n**Real limit.** Foreground subagent streaming relays through the Remote Control service — each tool call result waits for that relay. On tight agentic loops this adds measurable latency. Don't switch to foreground just for visibility unless you actually need per-step control; the overhead is real, not just theoretical.\n\n**Sources:** [Claude Code v2.1.251 release — github.com/anthropics/claude-code](https://github.com/anthropics/claude-code/releases/tag/v2.1.251) · [Claude Code v2.1.250 to v2.1.251 key updates — dev.classmethod.jp](https://dev.classmethod.jp/en/articles/20260829-cc-updates-v2-1-251/) · [Claude Code sub-agents — code.claude.com](https://code.claude.com/docs/en/sub-agents)"
+  },
+  {
+    "id": "2026-09-02-07-openai-astra-critical-cyber-threshold",
+    "title": "OpenAI's Astra Is the First AI Model Rated \"Critical\" for Cybersecurity — It Found Zero-Days on Its Own",
+    "excerpt": "OpenAI's Astra is the first model rated \"Critical\" under its Preparedness Framework — it autonomously found zero-day vulnerabilities and built working exploit chains. Access will be gated, not bloc…",
+    "author": "Chris Harper",
+    "date": "09-02-2026",
+    "publishedAt": "2026-09-02T20:07:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Security",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://openai.com/index/path-to-astra/",
+    "content": "**TL;DR: OpenAI's Astra is the first model rated \"Critical\" under its Preparedness Framework — it autonomously found zero-day vulnerabilities and built working browser-escape and OS privilege-escalation chains during evaluations.**\n\nIn expert-led assessments, Astra scored 100% on ExploitBench (which measures exploit-chain generation from known CVEs), discovered two previously unknown zero-days during separate evaluations on recently disclosed flaws, built a full browser-compromise chain that escaped a sandbox and executed host OS commands, and chained multiple hardened-OS vulnerabilities into a privilege-escalation path.\n\nOpenAI reports the model declines 91.5% of cyber-related jailbreak attempts — up from 59% for GPT-5.6 Sol. That still means roughly 1 in 11 targeted attempts succeeds, which is a real failure rate for security-sensitive deployments.\n\nThe \"Critical\" designation means Astra will be released, not blocked, but with gated access through OpenAI's Daybreak Blue program for vetted security researchers — the same capability-gated access pattern Anthropic applied last month for Enterprise Frontier Safeguards.\n\n**Why it matters:** Autonomous exploit-chain discovery — no per-step human guidance — changes the threat model for agentic systems with broad tool access to shell, file system, or network. If you're building agents with those permissions, ExploitBench capability rating is now the reference point for what adversarial misuse looks like.\n\n**Sources:** [Path to Astra: critical capabilities and frontier safeguards — OpenAI](https://openai.com/index/path-to-astra/) · [OpenAI's Astra becomes first model to cross \"Critical\" cybersecurity threshold — SecurityWeek](https://www.securityweek.com/openais-astra-becomes-first-model-to-cross-critical-cybersecurity-threshold/) · [OpenAI Astra: First AI Model With \"Critical\" Hacking Abilities — Decrypt](https://decrypt.co/377180/openai-astra-first-ai-model-critical-hacking)"
+  },
+  {
+    "id": "2026-09-02-06-rag-contextual-compression-langchain-retriever",
+    "title": "Your Retriever Returns 10 Chunks. Your LLM Needs One. Contextual Compression Fixes the Gap.",
+    "excerpt": "LangChain's ContextualCompressionRetriever wraps any retriever and strips irrelevant content from retrieved chunks before the LLM call. Two compressor options: EmbeddingsFilter (fast) or LLMChainEx…",
+    "author": "Chris Harper",
+    "date": "09-02-2026",
+    "publishedAt": "2026-09-02T20:06:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "RAG",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://github.com/NirDiamant/RAG_Techniques/blob/main/all_rag_techniques/contextual_compression.ipynb",
+    "content": "**TL;DR: LangChain's `ContextualCompressionRetriever` wraps your existing retriever and strips irrelevant content from retrieved chunks before they reach the LLM — no architecture change, two compressor options.**\n\n**What you'll be able to do after this:** Add a compression layer that either drops low-relevance chunks entirely (EmbeddingsFilter, no extra LLM call) or extracts only the relevant sentences from each chunk (LLMChainExtractor, one cheap LLM call per chunk).\n\n**Three things to know:**\n1. **EmbeddingsFilter** is the fast path: embed the query and each chunk, drop anything below a cosine similarity threshold (`0.76` is a reasonable starting value). No LLM call, sub-millisecond overhead per chunk.\n2. **LLMChainExtractor** is the quality path: send each chunk to the LLM and ask it to extract only what's relevant to the query. Adds one call per chunk but can compress a 2,000-token chunk to 80 tokens when most of it is noise.\n3. **DocumentCompressorPipeline** chains them: filter first (EmbeddingsFilter removes irrelevant chunks cheaply), then extract (LLMChainExtractor compresses the survivors). Best of both at the cost of both.\n\n**Walk-through — EmbeddingsFilter (fast, cheap):**\n\n```python\nfrom langchain.retrievers import ContextualCompressionRetriever\nfrom langchain.retrievers.document_compressors import EmbeddingsFilter\nfrom langchain_openai import OpenAIEmbeddings\n\n# Your existing retriever — Chroma, FAISS, pgvector, etc.\nbase_retriever = vectorstore.as_retriever(search_kwargs={\"k\": 10})\n\nembeddings_filter = EmbeddingsFilter(\n    embeddings=OpenAIEmbeddings(),\n    similarity_threshold=0.76  # tune per corpus: lower = more permissive\n)\ncompression_retriever = ContextualCompressionRetriever(\n    base_compressor=embeddings_filter,\n    base_retriever=base_retriever\n)\n\ndocs = compression_retriever.invoke(\"What are the failure modes of RAG pipelines?\")\n# Typically returns 2-4 chunks instead of 10\n```\n\n**Walk-through — LLMChainExtractor (highest quality):**\n\n```python\nfrom langchain.retrievers.document_compressors import LLMChainExtractor\nfrom langchain_anthropic import ChatAnthropic\n\nextractor = LLMChainExtractor.from_llm(\n    ChatAnthropic(model=\"claude-haiku-4-5-20251001\")  # cheap model works fine here\n)\ncompression_retriever = ContextualCompressionRetriever(\n    base_compressor=extractor,\n    base_retriever=base_retriever\n)\n```\n\nDrop-in replacement: use `compression_retriever` anywhere you'd use `base_retriever`.\n\n**Real limits.** `similarity_threshold` needs per-corpus tuning — a value that works on one dataset may over-filter on another, silently dropping relevant chunks. `LLMChainExtractor` adds one LLM call *per retrieved chunk*: at `k=10`, that's 10 extra calls before the main generation; on high-traffic systems this doubles both latency and cost. Neither technique fixes a bad retriever — if your vector search returns the wrong documents, compression gives you a smaller wrong set.\n\n**Sources:** [LangChain contextual compression how-to](https://python.langchain.com/docs/how_to/contextual_compression/) · [NirDiamant RAG_Techniques: contextual_compression.ipynb](https://github.com/NirDiamant/RAG_Techniques/blob/main/all_rag_techniques/contextual_compression.ipynb) · [LangChain OpenTutorial: ContextualCompressionRetriever](https://langchain-opentutorial.gitbook.io/langchain-opentutorial/10-retriever/02-contextualcompressionretriever)"
+  },
+  {
     "id": "2026-09-02-04-claude-code-subagent-model-force-cost-cap",
     "title": "Put a Cost Ceiling on Every Subagent in Your Workflow: CLAUDE_CODE_SUBAGENT_MODEL_FORCE",
     "excerpt": "CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1 pins every subagent, teammate, and workflow agent in your Claude Code session to one model — overriding per-definition settings. Two env vars, one settings.json e…",
