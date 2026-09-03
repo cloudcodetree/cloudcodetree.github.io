@@ -10,7 +10,31 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 03 Sep 2026 12:12:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 03 Sep 2026 20:03:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Meta Muse Spark 1.3 Opens API Access Today — But the Headline Benchmarks Are for the Preview Tier</title>
+      <link>https://artificialanalysis.ai/articles/muse-spark-1-3</link>
+      <guid isPermaLink="false">2026-09-03-09-meta-muse-spark-1-3-api-launch</guid>
+      <pubDate>Thu, 03 Sep 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>Meta opened paid API access to Muse Spark 1.3 today. The available (xhigh) variant scores 61 on the Artificial Analysis index — the 75.4 DeepSWE figure is for a limited-preview (max) variant.</description>
+      <content:encoded><![CDATA[**Meta opened Muse Spark 1.3 API access today — the (xhigh) variant you can actually call scores 61 on the Artificial Analysis index, competitive with GPT-5.6 Sol and Grok 4.6. The 75.4 DeepSWE figure in Meta's announcement is for (max), still in limited partner preview.**
+
+Released September 2, paid API access opened September 3. The endpoint is OpenAI-SDK-compatible — swap base URL and model string.
+
+What you can call today is **Muse Spark 1.3 (xhigh)**, scoring 61 on the [Artificial Analysis Intelligence Index](https://artificialanalysis.ai/articles/muse-spark-1-3) — behind Claude Fable 5.1 but tying GPT-5.6 Sol (max) and Grok 4.6 (high). Meta's announcement highlights 75.4% on DeepSWE 1.1 and 88.8% on Terminal-Bench 2.1, but [those numbers are from **(max)**](https://the-decoder.com/meta-closes-in-on-the-top-with-muse-spark-1-3-and-undercuts-rivals-on-price/), the variant available only to Meta partners — not the tier you can access now.
+
+Standard pricing at $1.25/$4.25 per MTok ($0.15 cached input). Meta reports Spark 1.3 uses 25% fewer tokens than 1.2 on comparable tasks — their figure, unverified independently. There's also a "contributor tier" at $0.10/$0.20 per MTok; Meta hasn't published what limitations apply to it.
+
+**Why it matters:** Muse Spark 1.3 (xhigh) is a credible additional option for agentic coding pipelines — OpenAI-SDK-compatible, frontier-competitive. Calibrate against the actual available variant, not the benchmarks in the press release.
+
+**Sources:** [Muse Spark 1.3: Meta reaches the frontier — Artificial Analysis](https://artificialanalysis.ai/articles/muse-spark-1-3) · [Meta closes in on the top, undercuts rivals on price — The Decoder](https://the-decoder.com/meta-closes-in-on-the-top-with-muse-spark-1-3-and-undercuts-rivals-on-price/) · [Meta opens paid API access — PrimeXBT](https://primexbt.com/news/meta-releases-muse-spark-1-3-its-most-capable-ai-model-and-opens-paid-api-access/) · [Introducing Muse Spark 1.3 — Meta AI Research](https://research.meta.ai/blog/introducing-muse-spark-1-3)]]></content:encoded>
+    </item>
 
     <item>
       <title>The Gap Between Claude Design and Your Codebase: When to Regenerate and When to Fix in the Editor</title>
@@ -5484,31 +5508,7 @@ Claude Code reads AGENTS.md at session start and applies the instruction consist
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Cursor Launches Origin, a GitHub-Synced Code Host Designed for AI Agents</title>
-      <link>https://cursor.com/changelog/origin-code-hosting</link>
-      <guid isPermaLink="false">2026-08-19-03-cursor-origin-agent-native-git-host</guid>
-      <pubDate>Wed, 19 Aug 2026 12:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Developer Tools</category>
-      <category>Agents</category>
-      <description>Cursor Origin launched for paid plans on Aug 18: a GitHub-synced code host designed for agent-scale workflows, with Vercel, Depot, and Buildkite integrations — agent-native features still coming.</description>
-      <content:encoded><![CDATA[**Cursor launched Origin for paid plans on Aug 18 — a code host built for agent workloads that syncs with GitHub rather than replacing it.**
-
-Origin is in early beta for Pro, Teams, and Enterprise plans. Initial features are basic: repos, pull requests, code browsing, and GitHub sync. Day-one integrations include Vercel (preview deployments per PR), Depot, and Buildkite (for existing GitHub Actions workflows). The "agent-native" features — per-agent identity and permissions, machine-readable PR descriptions, merge queues tuned for high-volume small diffs — are forthcoming.
-
-Two things to know before moving anything:
-- **No data terms published yet.** Cursor is now SpaceX-owned; what they can do with code stored on Origin isn't formally documented.
-- **GitHub sync is one-way.** GitHub stays the source of truth; Origin pulls from it, not the other way around.
-
-**Why it matters:** Version control designed for agent-scale commit rates and automated PRs is an unsolved gap in the toolchain. Origin is the first purpose-built attempt. Worth watching when the agent-native layer ships — per-agent identity in PRs would meaningfully change how you attribute and review Claude Code's work.
-
-**Sources:** [Cursor Origin](https://cursor.com/changelog/origin-code-hosting) · [TechCrunch](https://techcrunch.com/2026/08/18/cursor-capitalizes-on-github-frustration-launches-rival-hosting-platform/) · [data concerns — TechTimes](https://www.techtimes.com/articles/324838/20260818/cursor-origin-ships-no-data-terms-spacex-now-holds-paid-developers-code.htm)
-]]></content:encoded>
-    </item>
-
+    
     
     
     

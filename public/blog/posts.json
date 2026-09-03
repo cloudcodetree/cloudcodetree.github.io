@@ -1,5 +1,23 @@
 [
   {
+    "id": "2026-09-03-09-meta-muse-spark-1-3-api-launch",
+    "title": "Meta Muse Spark 1.3 Opens API Access Today — But the Headline Benchmarks Are for the Preview Tier",
+    "excerpt": "Meta opened paid API access to Muse Spark 1.3 today. The available (xhigh) variant scores 61 on the Artificial Analysis index — the 75.4 DeepSWE figure is for a limited-preview (max) variant.",
+    "author": "Chris Harper",
+    "date": "09-03-2026",
+    "publishedAt": "2026-09-03T20:03:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://artificialanalysis.ai/articles/muse-spark-1-3",
+    "content": "**Meta opened Muse Spark 1.3 API access today — the (xhigh) variant you can actually call scores 61 on the Artificial Analysis index, competitive with GPT-5.6 Sol and Grok 4.6. The 75.4 DeepSWE figure in Meta's announcement is for (max), still in limited partner preview.**\n\nReleased September 2, paid API access opened September 3. The endpoint is OpenAI-SDK-compatible — swap base URL and model string.\n\nWhat you can call today is **Muse Spark 1.3 (xhigh)**, scoring 61 on the [Artificial Analysis Intelligence Index](https://artificialanalysis.ai/articles/muse-spark-1-3) — behind Claude Fable 5.1 but tying GPT-5.6 Sol (max) and Grok 4.6 (high). Meta's announcement highlights 75.4% on DeepSWE 1.1 and 88.8% on Terminal-Bench 2.1, but [those numbers are from **(max)**](https://the-decoder.com/meta-closes-in-on-the-top-with-muse-spark-1-3-and-undercuts-rivals-on-price/), the variant available only to Meta partners — not the tier you can access now.\n\nStandard pricing at $1.25/$4.25 per MTok ($0.15 cached input). Meta reports Spark 1.3 uses 25% fewer tokens than 1.2 on comparable tasks — their figure, unverified independently. There's also a \"contributor tier\" at $0.10/$0.20 per MTok; Meta hasn't published what limitations apply to it.\n\n**Why it matters:** Muse Spark 1.3 (xhigh) is a credible additional option for agentic coding pipelines — OpenAI-SDK-compatible, frontier-competitive. Calibrate against the actual available variant, not the benchmarks in the press release.\n\n**Sources:** [Muse Spark 1.3: Meta reaches the frontier — Artificial Analysis](https://artificialanalysis.ai/articles/muse-spark-1-3) · [Meta closes in on the top, undercuts rivals on price — The Decoder](https://the-decoder.com/meta-closes-in-on-the-top-with-muse-spark-1-3-and-undercuts-rivals-on-price/) · [Meta opens paid API access — PrimeXBT](https://primexbt.com/news/meta-releases-muse-spark-1-3-its-most-capable-ai-model-and-opens-paid-api-access/) · [Introducing Muse Spark 1.3 — Meta AI Research](https://research.meta.ai/blog/introducing-muse-spark-1-3)"
+  },
+  {
     "id": "2026-09-03-08-claude-design-implement-gap-regenerate-vs-edit",
     "title": "The Gap Between Claude Design and Your Codebase: When to Regenerate and When to Fix in the Editor",
     "excerpt": "Structural drift in a Claude Code implementation goes back to Claude Design. Presentational drift gets fixed in the editor. One rule separates them.",
