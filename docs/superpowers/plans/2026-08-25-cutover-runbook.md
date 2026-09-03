@@ -18,47 +18,52 @@ propagation is minutes) and re-enable the gh-pages workflow.
 - deploy.yml has the production Worker job, gated on repo variable
   `ENABLE_WORKER_DEPLOY` — inert until secrets + variable exist.
 
-## Execution order
+## Execution order — staged so the switch is a toggle, not a leap
 
-1. **Merge to main.** The redesign, Projects, gate, and workflows ship to the
-   repo; gh-pages keeps publishing, so cloudcodetree.com serves the NEW
-   design from GitHub Pages… no wait — it serves whatever main builds, which
-   includes the redesign. If the redesign should NOT go live pre-cutover,
-   do steps 2–6 first and merge last. Owner's call; both orders work.
-2. **CI credentials** (once): create a Cloudflare API token (Workers
-   Scripts:Edit + R2:Edit), add repo secrets CLOUDFLARE_API_TOKEN /
-   CLOUDFLARE_ACCOUNT_ID, set repo variable ENABLE_WORKER_DEPLOY=true.
-3. **First production Worker deploy** (via CI on main, or locally:
-   `pnpm run build && node scripts/fetch-demo-artifacts.mjs &&
-   npx wrangler deploy`). Verify at cct-site.chris-247.workers.dev:
-   parity contract + the four demo 302s + legacy-path 301s.
-4. **Attach custom domains to the Worker** (Cloudflare dash → cct-site →
-   Domains & Routes): `cloudcodetree.com` AND `www.cloudcodetree.com`
-   (www's CNAME dies with Pages — attaching it here is the fix).
-   Both show "pending" until nameservers move — that's expected.
-5. **Update Supabase auth config** for production:
-   `node scripts/configure-auth.mjs` after editing its site_url to
-   https://cloudcodetree.com (keep staging + localhost in the allow list),
-   and add `https://cloudcodetree.com` to the Google client's authorized
-   redirect... (not needed: Google's redirect URI is the Supabase callback,
-   unchanged). Flip GOOGLE/GitHub/LinkedIn nothing — provider config is
-   origin-independent.
-6. **Verify Route53 TTLs are still 300** on the four A records + www.
-7. **OWNER: switch nameservers at the registrar** to
-   henrik.ns.cloudflare.com / meg.ns.cloudflare.com.
-8. **Watch it land** (minutes): zone goes active; run
-   `node scripts/check-parity.mjs --origin https://cloudcodetree.com --sweep`;
-   click one gated demo end-to-end; `curl -I http://cloudcodetree.com`
-   (expect 301 https); check www.
-9. **Retire Pages**: remove the custom domain from the repo's Pages settings;
-   delete public/CNAME; set the five project repos' Pages OFF
-   (span-calculator, motion-expression, code_compare, backlot, sheetwise);
-   delete the gh-pages `deploy` job from deploy.yml. Keep the gh-pages
-   branch two weeks as rollback ballast, then delete.
-10. **After-cutover hygiene** (non-blocking): DKIM TXT once generated;
-    OpenTofu import of the zone (needs a token with Zone/DNS edit — the
-    import makes `tofu plan` prove no-changes against live DNS);
-    CLAUDE.md deployment section rewrite; delete `pnpm run deploy` script.
+The nameserver change happens EARLY, while it changes nothing visible; the
+actual move to the Worker happens LAST, as an instantly-reversible route.
+
+1. **Merge to main** (owner's call on timing — merging puts the redesign live
+   on GitHub Pages ahead of the platform switch; merging later keeps the old
+   site untouched until step 6. Both orders work).
+2. **CI credentials** (once): Cloudflare API token (Workers Scripts:Edit +
+   R2:Edit) → repo secrets CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID,
+   repo variable ENABLE_WORKER_DEPLOY=true.
+3. **First production Worker deploy** (CI on main, or locally:
+   `pnpm run build && node scripts/fetch-demo-artifacts.mjs && npx wrangler deploy`).
+   Verify at cct-site.chris-247.workers.dev: parity contract, four demo 302s,
+   legacy-path 301s.
+4. **OWNER: switch nameservers** at the registrar to
+   henrik.ns.cloudflare.com / meg.ns.cloudflare.com — while the Cloudflare
+   zone still points at GitHub Pages (verified replica; ssl=full;
+   always_use_https=on). The site serves byte-identically through the
+   Cloudflare proxy. Verify: zone goes active; site unchanged; mail records
+   answering (`dig MX cloudcodetree.com @henrik.ns.cloudflare.com`).
+   Rollback: NS back to Route53 (TTLs 300s — verify they still are, first).
+5. **Subdomain dress rehearsal**: attach `beta.cloudcodetree.com` as a
+   custom domain on the cct-site Worker (zone is active now, so it works).
+   Add https://beta.cloudcodetree.com/projects/* to the Supabase redirect
+   allowlist (scripts/configure-auth.mjs). Then run the FULL checklist on
+   beta: parity contract + sweep, sign-in E2E on a real-domain origin, gated
+   demo end-to-end, legacy-path 301s, http→https. This is production in
+   everything but name.
+6. **Apex flip — the toggle**: add Worker routes `cloudcodetree.com/*` and
+   `www.cloudcodetree.com/*` → cct-site (routes overlay the proxied A/CNAME
+   records; no DNS edits). Instantly live. Rollback: delete the routes —
+   traffic falls back to the proxied GitHub Pages origin in seconds, DNS
+   untouched. Update Supabase site_url to https://cloudcodetree.com.
+7. **Verify on the real domain**: parity + sweep against
+   https://cloudcodetree.com; one gated demo E2E; www; http→https;
+   feeds byte-identical.
+8. **Retire the old path** (after a comfortable soak): remove the Pages
+   custom domain + public/CNAME; Pages OFF on the five project repos;
+   delete the gh-pages deploy job; keep the gh-pages branch two weeks.
+   Optionally convert the routes to proper Worker custom domains (cosmetic).
+   Remove `beta` or keep it as a persistent pre-prod alias (recommended:
+   keep — future redesigns get a real-domain rehearsal for free).
+9. **After-cutover hygiene** (non-blocking): DKIM TXT once generated;
+   OpenTofu zone import (tofu plan proving no-changes against live DNS);
+   CLAUDE.md deployment rewrite; drop `pnpm run deploy`.
 
 ## What the cutover cannot break (verified)
 
