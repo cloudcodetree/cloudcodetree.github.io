@@ -46,6 +46,7 @@ console.log('before:', {
 
 const ALLOW = [
   'https://cct-site-staging.chris-247.workers.dev/projects/*',
+  'https://beta.cloudcodetree.com/projects/*',
   'https://cloudcodetree.com/projects/*',
   'http://localhost:3000/projects/*',
 ].join(',');

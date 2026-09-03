@@ -27,6 +27,12 @@
   "env": {
     "staging": {
       "name": "cct-site-staging",
+      // beta.cloudcodetree.com = the persistent real-domain rehearsal alias.
+      // Deliberately points at STAGING (noindex build): pre-prod on the real
+      // domain without an indexable duplicate of production.
+      "routes": [
+        { "pattern": "beta.cloudcodetree.com", "custom_domain": true }
+      ],
       "vars": {
         "PRODUCTION_HOSTNAME": "cloudcodetree.com",
         "SUPABASE_URL": "https://tgcysgioncdmtzcfknix.supabase.co",
