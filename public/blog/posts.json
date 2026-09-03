@@ -1,5 +1,77 @@
 [
   {
+    "id": "2026-09-03-08-claude-design-implement-gap-regenerate-vs-edit",
+    "title": "The Gap Between Claude Design and Your Codebase: When to Regenerate and When to Fix in the Editor",
+    "excerpt": "Structural drift in a Claude Code implementation goes back to Claude Design. Presentational drift gets fixed in the editor. One rule separates them.",
+    "author": "Chris Harper",
+    "date": "09-03-2026",
+    "publishedAt": "2026-09-03T12:12:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Claude Design"
+    ],
+    "readTime": 3,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://support.claude.com",
+    "content": "**After Claude Code implements your Claude Design artifact, the result drifts from the spec in two distinct ways. Use one rule to decide: structural problems go back to Claude Design; presentational problems get fixed in the editor.**\n\nClaude Code reads the design artifact — component specs, tokens, layout intent — and generates implementation code. Most of the time it's close. When it isn't, the drift falls into one of two categories.\n\n**Structural drift:** The layout hierarchy is wrong. A sidebar renders inline. A card grid collapses to a single column. A shared sub-component is inlined where it should be extracted. These problems exist because the implementation missed the *structure* of the design intent, not its surface values. **Fix: go back to Claude Design.** Annotate the structural intent more precisely in the artifact (label layout containers, name component boundaries explicitly), then regenerate. Trying to patch structural drift in the editor turns into a long sequence of changes that leaves your code diverged from the design spec — and the next regeneration overwrites them anyway.\n\n**Presentational drift:** The right components are in the right places but values are off. Padding is 16px where the spec says 24px. The primary button renders with the wrong background token. Font weight reads `700` where the design says `600`. **Fix: patch in the editor.** These are implementation errors, not design errors — Claude Code pulled the wrong token or misread a spacing value. Fix them directly and push. Don't round-trip through the design tool for a padding value.\n\n**The practical rule:**\n> If you can describe the problem in one sentence containing *where something is* or *what a component is*, go back to the design. If the sentence contains only *what value something has*, fix it in the editor.\n\n**One limit to be aware of:** Claude Design currently regenerates an entire component — there's no way to regenerate just the layout container while preserving the rest. When you go back to fix structural drift, you'll lose any presentational values you've already tuned in the editor. Note them (screenshot or a quick comment) before regenerating, and apply them after. This is the main reason to do structural and presentational fixes in the right order: structure first, presentation last.\n\n**Sources:** [Claude Design — support.claude.com](https://support.claude.com) · [From Prompt to Pull Request: Claude Design + Claude Code — DEV Community](https://dev.to/bilelsalemdev/from-prompt-to-pull-request-using-claude-design-claude-code-and-github-together-3m00) · [Anthropic overhauled Claude Design to fix the handoff — The New Stack](https://thenewstack.io/anthropic-claude-design-overhaul/)"
+  },
+  {
+    "id": "2026-09-03-05-claude-code-managed-mcp-servers-org-deploy",
+    "title": "One Config File, Every Team Member: Deploy Shared MCP Servers Org-Wide in Claude Code 2.1.259",
+    "excerpt": "Claude Code 2.1.259 adds managedMcpServers — push HTTP/SSE MCP servers to every engineer in your org without per-machine .mcp.json edits.",
+    "author": "Chris Harper",
+    "date": "09-03-2026",
+    "publishedAt": "2026-09-03T12:11:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "MCP"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**Claude Code 2.1.259 adds `managedMcpServers` — a managed setting that pushes HTTP/SSE MCP servers to every user in your org without per-machine `.mcp.json` setup.**\n\nWhen you run Claude Code across a team, each engineer configures their own `.mcp.json`. Add a new internal tool — a knowledge base connector, a database MCP, a CI runner — and every engineer needs to update their config manually. `managedMcpServers` removes that friction.\n\n**How to configure it:**\n\nIn your org's managed settings file (deployed via MDM, a dotfile repo, or the Claude console for Enterprise users), add:\n\n```json\n{\n  \"managedMcpServers\": {\n    \"company-wiki\": {\n      \"url\": \"https://mcp.internal.example.com/wiki/sse\",\n      \"type\": \"sse\"\n    },\n    \"jira-connector\": {\n      \"url\": \"https://mcp.internal.example.com/jira\",\n      \"type\": \"http\"\n    }\n  }\n}\n```\n\nEvery Claude Code session on a managed machine sees these servers immediately — no `.mcp.json` edit, no restart. The entry shape is identical to `.mcp.json`.\n\n**One hard constraint:** `managedMcpServers` accepts HTTP/SSE endpoints only. Entries that name a command to run are silently skipped. If your MCP servers are stdio/command-based, you need an HTTP adapter (a small FastAPI wrapper over the stdio session is the common pattern) or you keep per-user setup for those.\n\n**When to use this vs. `.mcp.json`:** Use managed settings for shared org services (internal knowledge bases, company-specific integrations, compliance tools). Use per-project `.mcp.json` for tools that vary by repo. User-level `~/.mcp.json` still handles personal one-off servers.\n\nAlso new in 2.1.259: `--permission-prompts none` for unattended headless environments — anything that would prompt is auto-denied, useful for CI runs where a hanging prompt would silently block the job.\n\n**Sources:** [Claude Code changelog v2.1.259 — code.claude.com](https://code.claude.com/docs/en/changelog) · [Install and Configure MCP Servers in Claude Code — systemprompt.io](https://systemprompt.io/guides/claude-code-mcp-servers-extensions) · [How to Add an MCP Server to Claude Code — TrueFoundry](https://www.truefoundry.com/blog/how-to-add-an-mcp-server-to-claude-code)"
+  },
+  {
+    "id": "2026-09-03-06-anthropic-music-copyright-lawsuit-sony-warner",
+    "title": "Sony and Warner Sue Anthropic for Training-Data Scraping — What It Means for AI Product Builders",
+    "excerpt": "Sony and Warner filed a multi-billion dollar copyright lawsuit against Anthropic on August 29 over training-data scraping. What it means for engineers building on Claude.",
+    "author": "Chris Harper",
+    "date": "09-03-2026",
+    "publishedAt": "2026-09-03T12:10:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "Policy",
+      "LLM"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://techcrunch.com/2026/08/29/sony-music-warner-sue-anthropic-alleging-a-brazen-campaign-of-intellectual-property-theft/",
+    "content": "**Sony Music Publishing and Warner Chappell filed a multi-billion dollar copyright lawsuit against Anthropic on August 29, alleging Claude was trained on unlicensed song lyrics scraped at scale. Dario Amodei and Benjamin Mann are named personally.**\n\nThe complaint, filed in Northern California federal court, accuses Anthropic of \"torrenting, scraping, and downloading copyrighted works on a massive scale\" — naming tens of thousands of song compositions. The publishers seek up to $150,000 per infringed work plus $25,000 per copyright management information violation, yielding potential multi-billion dollar exposure. Anthropic says it will defend itself.\n\n**Three things this does and doesn't mean for engineers building on Claude:**\n\n1. **Downstream liability doesn't automatically flow to API users.** If Anthropic's training data is found infringing, the exposure is Anthropic's, not the product builder's — you're using a deployed model via API, not replicating the training run. The downstream question for API customers remains unsettled in case law; there's no clear precedent yet.\n\n2. **This is the third major music suit against an AI lab** — following earlier cases against Google and Meta. A win for the publishers would force industry-wide reckoning with training data provenance, affecting every major foundation model.\n\n3. **Claude's API and capabilities are unaffected.** Fable 5.1, Mythos 5.1, and the Claude API remain in production. The suit challenges training methodology, not inference behavior.\n\n**What it doesn't mean:** \"Unsafe to build on.\" IP litigation over training data is structurally separate from model safety or operational risk. Monitor the case alongside the Google and Meta precedents — the outcomes will define what responsible AI training means in law, not just in policy.\n\n**Why it matters:** The legal framework for AI training data is being written in real time. The combined multi-billion dollar exposure, if liability is found, would reshape how every AI lab approaches training data sourcing and licensing.\n\n**Sources:** [Sony, Warner sue Anthropic — TechCrunch](https://techcrunch.com/2026/08/29/sony-music-warner-sue-anthropic-alleging-a-brazen-campaign-of-intellectual-property-theft/) · [Sony, Warner sue Anthropic — Axios](https://www.axios.com/2026/08/29/anthropic-sony-warner-music-copyright) · [Sony Music Publishing and Warner Chappell sue Anthropic — Music Business Worldwide](https://www.musicbusinessworldwide.com/now-sony-music-publishing-and-warner-chappell-sue-anthropic-in-multi-billion-dollar-lawsuit-one-of-the-largest-and-most-blatant-ongoing-thefts-of-intellectual-property-in-history/)"
+  },
+  {
+    "id": "2026-09-03-07-pgvector-postgres-vector-search-rag-foundations",
+    "title": "You're Already on Postgres — Add Vector Search in Five SQL Lines With pgvector",
+    "excerpt": "pgvector adds a vector column type and similarity search operators to PostgreSQL — add vector search to your existing database with one extension, no new infra.",
+    "author": "Chris Harper",
+    "date": "09-03-2026",
+    "publishedAt": "2026-09-03T12:09:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "RAG",
+      "Vectors"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://supabase.com/docs/guides/database/extensions/pgvector",
+    "content": "**pgvector turns your existing PostgreSQL database into a vector store with one extension — no separate service, no new infra. Here's the minimal path from embeddings to similarity search for RAG.**\n\n**What you'll be able to do after this:**\n- Add a `vector` column to any Postgres table and store embeddings alongside relational data\n- Run cosine similarity search in SQL with two lines\n- Add an HNSW index so queries stay fast at 100k+ rows\n\n## Enable the extension\n\n```sql\nCREATE EXTENSION IF NOT EXISTS vector;\n```\n\nOn Supabase: one toggle in Database → Extensions. On AWS RDS (PostgreSQL 15+) or Azure Database for PostgreSQL: enable from the extensions list. For a local Postgres install: `apt install postgresql-16-pgvector`, then run the SQL above.\n\n## Store embeddings\n\n```sql\nCREATE TABLE documents (\n  id        SERIAL PRIMARY KEY,\n  content   TEXT,\n  embedding VECTOR(1536)  -- match your model's output dimension\n);\n```\n\nFrom Python, generate embeddings with `sentence-transformers` or any embedding endpoint and insert with `psycopg2`:\n\n```python\nimport psycopg2\ncur.execute(\n    \"INSERT INTO documents (content, embedding) VALUES (%s, %s)\",\n    (chunk_text, embedding_list)\n)\n```\n\n## Query by similarity\n\n```sql\nSELECT content, 1 - (embedding <=> %s::vector) AS score\nFROM documents\nORDER BY embedding <=> %s::vector\nLIMIT 5;\n```\n\n`<=>` is cosine distance; `<->` is L2 (Euclidean); `<#>` is negative inner product. For normalized embeddings, all three produce the same ranking — cosine (`<=>`) is the safe default.\n\n## Add an index before production\n\n```sql\nCREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops);\n```\n\nWithout an index, pgvector does a full table scan — fine under ~10k rows, noticeable past that. HNSW keeps query time in low milliseconds at 100k+ rows.\n\n## When to use something else\n\npgvector uses Postgres CPU and I/O budget. If you're storing millions of vectors with heavy concurrent load, a dedicated vector database (Qdrant, Chroma, Pinecone) offloads the index pressure and keeps your Postgres instance uncontested. For a typical RAG app under ~500k documents, staying in Postgres means one fewer service to run, one fewer connection to manage, and free joins against your existing tables.\n\n**The best starting resource:** [pgvector: Embeddings and vector similarity — Supabase Docs](https://supabase.com/docs/guides/database/extensions/pgvector) covers setup, LangChain integration, and metadata filtering. For a hands-on video: [PGVector: Turn PostgreSQL into Vector Database (Python Tutorial) — YouTube](https://www.youtube.com/watch?v=erNoI9COOn0).\n\n**Sources:** [pgvector extension — Supabase Docs](https://supabase.com/docs/guides/database/extensions/pgvector) · [pgvector tutorial — DataCamp](https://www.datacamp.com/tutorial/pgvector-tutorial) · [You probably don't need a vector database — Encore](https://encore.dev/blog/you-probably-dont-need-a-vector-database)"
+  },
+  {
     "id": "2026-09-03-04-existing-component-redesign-reverse-loop",
     "title": "Your Component Needs a Bigger Change: Step Back Into Claude Design Before Touching Code",
     "excerpt": "When an existing component needs a layout shift or structural rework, run /design with the current code as context to explore directions before any file changes are committed.",

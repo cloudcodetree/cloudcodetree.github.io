@@ -10,7 +10,185 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 03 Sep 2026 04:12:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 03 Sep 2026 12:12:00 +0000</lastBuildDate>
+
+    <item>
+      <title>The Gap Between Claude Design and Your Codebase: When to Regenerate and When to Fix in the Editor</title>
+      <link>https://support.claude.com</link>
+      <guid isPermaLink="false">2026-09-03-08-claude-design-implement-gap-regenerate-vs-edit</guid>
+      <pubDate>Thu, 03 Sep 2026 12:12:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Structural drift in a Claude Code implementation goes back to Claude Design. Presentational drift gets fixed in the editor. One rule separates them.</description>
+      <content:encoded><![CDATA[**After Claude Code implements your Claude Design artifact, the result drifts from the spec in two distinct ways. Use one rule to decide: structural problems go back to Claude Design; presentational problems get fixed in the editor.**
+
+Claude Code reads the design artifact — component specs, tokens, layout intent — and generates implementation code. Most of the time it's close. When it isn't, the drift falls into one of two categories.
+
+**Structural drift:** The layout hierarchy is wrong. A sidebar renders inline. A card grid collapses to a single column. A shared sub-component is inlined where it should be extracted. These problems exist because the implementation missed the *structure* of the design intent, not its surface values. **Fix: go back to Claude Design.** Annotate the structural intent more precisely in the artifact (label layout containers, name component boundaries explicitly), then regenerate. Trying to patch structural drift in the editor turns into a long sequence of changes that leaves your code diverged from the design spec — and the next regeneration overwrites them anyway.
+
+**Presentational drift:** The right components are in the right places but values are off. Padding is 16px where the spec says 24px. The primary button renders with the wrong background token. Font weight reads `700` where the design says `600`. **Fix: patch in the editor.** These are implementation errors, not design errors — Claude Code pulled the wrong token or misread a spacing value. Fix them directly and push. Don't round-trip through the design tool for a padding value.
+
+**The practical rule:**
+> If you can describe the problem in one sentence containing *where something is* or *what a component is*, go back to the design. If the sentence contains only *what value something has*, fix it in the editor.
+
+**One limit to be aware of:** Claude Design currently regenerates an entire component — there's no way to regenerate just the layout container while preserving the rest. When you go back to fix structural drift, you'll lose any presentational values you've already tuned in the editor. Note them (screenshot or a quick comment) before regenerating, and apply them after. This is the main reason to do structural and presentational fixes in the right order: structure first, presentation last.
+
+**Sources:** [Claude Design — support.claude.com](https://support.claude.com) · [From Prompt to Pull Request: Claude Design + Claude Code — DEV Community](https://dev.to/bilelsalemdev/from-prompt-to-pull-request-using-claude-design-claude-code-and-github-together-3m00) · [Anthropic overhauled Claude Design to fix the handoff — The New Stack](https://thenewstack.io/anthropic-claude-design-overhaul/)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>One Config File, Every Team Member: Deploy Shared MCP Servers Org-Wide in Claude Code 2.1.259</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-09-03-05-claude-code-managed-mcp-servers-org-deploy</guid>
+      <pubDate>Thu, 03 Sep 2026 12:11:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>MCP</category>
+      <description>Claude Code 2.1.259 adds managedMcpServers — push HTTP/SSE MCP servers to every engineer in your org without per-machine .mcp.json edits.</description>
+      <content:encoded><![CDATA[**Claude Code 2.1.259 adds `managedMcpServers` — a managed setting that pushes HTTP/SSE MCP servers to every user in your org without per-machine `.mcp.json` setup.**
+
+When you run Claude Code across a team, each engineer configures their own `.mcp.json`. Add a new internal tool — a knowledge base connector, a database MCP, a CI runner — and every engineer needs to update their config manually. `managedMcpServers` removes that friction.
+
+**How to configure it:**
+
+In your org's managed settings file (deployed via MDM, a dotfile repo, or the Claude console for Enterprise users), add:
+
+```json
+{
+  "managedMcpServers": {
+    "company-wiki": {
+      "url": "https://mcp.internal.example.com/wiki/sse",
+      "type": "sse"
+    },
+    "jira-connector": {
+      "url": "https://mcp.internal.example.com/jira",
+      "type": "http"
+    }
+  }
+}
+```
+
+Every Claude Code session on a managed machine sees these servers immediately — no `.mcp.json` edit, no restart. The entry shape is identical to `.mcp.json`.
+
+**One hard constraint:** `managedMcpServers` accepts HTTP/SSE endpoints only. Entries that name a command to run are silently skipped. If your MCP servers are stdio/command-based, you need an HTTP adapter (a small FastAPI wrapper over the stdio session is the common pattern) or you keep per-user setup for those.
+
+**When to use this vs. `.mcp.json`:** Use managed settings for shared org services (internal knowledge bases, company-specific integrations, compliance tools). Use per-project `.mcp.json` for tools that vary by repo. User-level `~/.mcp.json` still handles personal one-off servers.
+
+Also new in 2.1.259: `--permission-prompts none` for unattended headless environments — anything that would prompt is auto-denied, useful for CI runs where a hanging prompt would silently block the job.
+
+**Sources:** [Claude Code changelog v2.1.259 — code.claude.com](https://code.claude.com/docs/en/changelog) · [Install and Configure MCP Servers in Claude Code — systemprompt.io](https://systemprompt.io/guides/claude-code-mcp-servers-extensions) · [How to Add an MCP Server to Claude Code — TrueFoundry](https://www.truefoundry.com/blog/how-to-add-an-mcp-server-to-claude-code)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Sony and Warner Sue Anthropic for Training-Data Scraping — What It Means for AI Product Builders</title>
+      <link>https://techcrunch.com/2026/08/29/sony-music-warner-sue-anthropic-alleging-a-brazen-campaign-of-intellectual-property-theft/</link>
+      <guid isPermaLink="false">2026-09-03-06-anthropic-music-copyright-lawsuit-sony-warner</guid>
+      <pubDate>Thu, 03 Sep 2026 12:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Policy</category>
+      <category>LLM</category>
+      <description>Sony and Warner filed a multi-billion dollar copyright lawsuit against Anthropic on August 29 over training-data scraping. What it means for engineers building on Claude.</description>
+      <content:encoded><![CDATA[**Sony Music Publishing and Warner Chappell filed a multi-billion dollar copyright lawsuit against Anthropic on August 29, alleging Claude was trained on unlicensed song lyrics scraped at scale. Dario Amodei and Benjamin Mann are named personally.**
+
+The complaint, filed in Northern California federal court, accuses Anthropic of "torrenting, scraping, and downloading copyrighted works on a massive scale" — naming tens of thousands of song compositions. The publishers seek up to $150,000 per infringed work plus $25,000 per copyright management information violation, yielding potential multi-billion dollar exposure. Anthropic says it will defend itself.
+
+**Three things this does and doesn't mean for engineers building on Claude:**
+
+1. **Downstream liability doesn't automatically flow to API users.** If Anthropic's training data is found infringing, the exposure is Anthropic's, not the product builder's — you're using a deployed model via API, not replicating the training run. The downstream question for API customers remains unsettled in case law; there's no clear precedent yet.
+
+2. **This is the third major music suit against an AI lab** — following earlier cases against Google and Meta. A win for the publishers would force industry-wide reckoning with training data provenance, affecting every major foundation model.
+
+3. **Claude's API and capabilities are unaffected.** Fable 5.1, Mythos 5.1, and the Claude API remain in production. The suit challenges training methodology, not inference behavior.
+
+**What it doesn't mean:** "Unsafe to build on." IP litigation over training data is structurally separate from model safety or operational risk. Monitor the case alongside the Google and Meta precedents — the outcomes will define what responsible AI training means in law, not just in policy.
+
+**Why it matters:** The legal framework for AI training data is being written in real time. The combined multi-billion dollar exposure, if liability is found, would reshape how every AI lab approaches training data sourcing and licensing.
+
+**Sources:** [Sony, Warner sue Anthropic — TechCrunch](https://techcrunch.com/2026/08/29/sony-music-warner-sue-anthropic-alleging-a-brazen-campaign-of-intellectual-property-theft/) · [Sony, Warner sue Anthropic — Axios](https://www.axios.com/2026/08/29/anthropic-sony-warner-music-copyright) · [Sony Music Publishing and Warner Chappell sue Anthropic — Music Business Worldwide](https://www.musicbusinessworldwide.com/now-sony-music-publishing-and-warner-chappell-sue-anthropic-in-multi-billion-dollar-lawsuit-one-of-the-largest-and-most-blatant-ongoing-thefts-of-intellectual-property-in-history/)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>You're Already on Postgres — Add Vector Search in Five SQL Lines With pgvector</title>
+      <link>https://supabase.com/docs/guides/database/extensions/pgvector</link>
+      <guid isPermaLink="false">2026-09-03-07-pgvector-postgres-vector-search-rag-foundations</guid>
+      <pubDate>Thu, 03 Sep 2026 12:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Vectors</category>
+      <description>pgvector adds a vector column type and similarity search operators to PostgreSQL — add vector search to your existing database with one extension, no new infra.</description>
+      <media:content url="https://img.youtube.com/vi/erNoI9COOn0/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/erNoI9COOn0/maxresdefault.jpg" />
+      <content:encoded><![CDATA[**pgvector turns your existing PostgreSQL database into a vector store with one extension — no separate service, no new infra. Here's the minimal path from embeddings to similarity search for RAG.**
+
+**What you'll be able to do after this:**
+- Add a `vector` column to any Postgres table and store embeddings alongside relational data
+- Run cosine similarity search in SQL with two lines
+- Add an HNSW index so queries stay fast at 100k+ rows
+
+## Enable the extension
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+On Supabase: one toggle in Database → Extensions. On AWS RDS (PostgreSQL 15+) or Azure Database for PostgreSQL: enable from the extensions list. For a local Postgres install: `apt install postgresql-16-pgvector`, then run the SQL above.
+
+## Store embeddings
+
+```sql
+CREATE TABLE documents (
+  id        SERIAL PRIMARY KEY,
+  content   TEXT,
+  embedding VECTOR(1536)  -- match your model's output dimension
+);
+```
+
+From Python, generate embeddings with `sentence-transformers` or any embedding endpoint and insert with `psycopg2`:
+
+```python
+import psycopg2
+cur.execute(
+    "INSERT INTO documents (content, embedding) VALUES (%s, %s)",
+    (chunk_text, embedding_list)
+)
+```
+
+## Query by similarity
+
+```sql
+SELECT content, 1 - (embedding <=> %s::vector) AS score
+FROM documents
+ORDER BY embedding <=> %s::vector
+LIMIT 5;
+```
+
+`<=>` is cosine distance; `<->` is L2 (Euclidean); `<#>` is negative inner product. For normalized embeddings, all three produce the same ranking — cosine (`<=>`) is the safe default.
+
+## Add an index before production
+
+```sql
+CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops);
+```
+
+Without an index, pgvector does a full table scan — fine under ~10k rows, noticeable past that. HNSW keeps query time in low milliseconds at 100k+ rows.
+
+## When to use something else
+
+pgvector uses Postgres CPU and I/O budget. If you're storing millions of vectors with heavy concurrent load, a dedicated vector database (Qdrant, Chroma, Pinecone) offloads the index pressure and keeps your Postgres instance uncontested. For a typical RAG app under ~500k documents, staying in Postgres means one fewer service to run, one fewer connection to manage, and free joins against your existing tables.
+
+**The best starting resource:** [pgvector: Embeddings and vector similarity — Supabase Docs](https://supabase.com/docs/guides/database/extensions/pgvector) covers setup, LangChain integration, and metadata filtering. For a hands-on video: [PGVector: Turn PostgreSQL into Vector Database (Python Tutorial) — YouTube](https://www.youtube.com/watch?v=erNoI9COOn0).
+
+**Sources:** [pgvector extension — Supabase Docs](https://supabase.com/docs/guides/database/extensions/pgvector) · [pgvector tutorial — DataCamp](https://www.datacamp.com/tutorial/pgvector-tutorial) · [You probably don't need a vector database — Encore](https://encore.dev/blog/you-probably-dont-need-a-vector-database)]]></content:encoded>
+    </item>
 
     <item>
       <title>Your Component Needs a Bigger Change: Step Back Into Claude Design Before Touching Code</title>
@@ -5331,188 +5509,12 @@ Two things to know before moving anything:
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Dial Reasoning Up on Hard Subagents, Down on Cheap Ones: opts.effort in Claude Code Workflows</title>
-      <link>https://code.claude.com/docs/en/workflows</link>
-      <guid isPermaLink="false">2026-08-19-01-workflow-effort-per-agent</guid>
-      <pubDate>Wed, 19 Aug 2026 04:02:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Set effort='low' on file scans and searches, effort='xhigh' on adversarial checks — same Claude Code workflow, 40-60% lower token cost where deep reasoning adds nothing.</description>
-      <content:encoded><![CDATA[**Set `effort='low'` on scans, `effort='xhigh'` on verification — three reasoning tiers in one workflow cuts cost 40–60% without touching quality on hard steps.**
-
-Every `agent()` call in a Claude Code workflow inherits the session's reasoning effort by default. The `opts.effort` parameter overrides it per call: `'low'` | `'medium'` | `'high'` | `'xhigh'` | `'max'`. The right tier depends on what kind of thinking the subagent actually needs.
-
-```js
-export const meta = { name: 'audit-and-fix', description: 'Security audit with tiered effort' }
-
-// Stage 1: read files in parallel — no reasoning needed, just retrieval
-const files = await parallel(paths.map(p => () =>
-  agent(`Read and return the full contents of ${p}`, { effort: 'low' })
-))
-
-// Stage 2: implement fixes — medium effort (default) is fine for local edits
-const fixes = await pipeline(files, f =>
-  agent(`Fix any SQL injection risks in this file:\n\n${f}`)  // inherits session effort
-)
-
-// Stage 3: adversarial verify — xhigh: we want real scrutiny, not pattern-matching
-const verdicts = await parallel(fixes.map(fix => () =>
-  agent(`Try to find a bypass for this SQL injection fix. Default to bypassed=true if uncertain.`,
-    { effort: 'xhigh', schema: VERDICT_SCHEMA })
-))
-```
-
-## Decision table
-
-| Stage type | Recommended effort | Reason |
-|---|---|---|
-| File reads, searches, grep | `low` | Output is deterministic; reasoning adds nothing |
-| Straightforward implementation | `medium` (default) | Balanced cost/quality |
-| Debugging, root-cause analysis | `high` | Benefits from reasoning steps |
-| Adversarial verification, security review | `xhigh` | Needs genuine scrutiny |
-
-## Limits to know
-
-- `max` effort is not available on Haiku 4.5 — use `xhigh` as the ceiling there.
-- Higher effort does not improve purely deterministic tasks (file reads, JSON parsing) — it just costs more tokens.
-- Combine with `opts.model` for maximum control: `effort: 'low', model: 'haiku'` for cheap scans; `effort: 'xhigh', model: 'opus'` for the final judgment stage.
-- Per-agent overrides are sticky within that agent only — the session's default effort is unaffected.
-
-**Sources:** [Workflow SDK reference — code.claude.com](https://code.claude.com/docs/en/workflows) · [Model configuration — code.claude.com](https://code.claude.com/docs/en/model-configuration) · [claudefa.st — community practitioner notes](https://claudefa.st)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Regenerate in the Design Tool or Edit in Your Editor? The Decision Rule That Keeps Both From Fighting</title>
-      <link>https://support.claude.com/en/articles/get-started-with-claude-design</link>
-      <guid isPermaLink="false">2026-08-19-02-design-or-editor-decision-rule</guid>
-      <pubDate>Wed, 19 Aug 2026 04:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Design</category>
-      <category>Claude Design</category>
-      <description>Three questions decide whether to regenerate in Claude Design or iterate in Claude Code — plus what post-handoff changes you'll need to re-apply after each re-export.</description>
-      <content:encoded><![CDATA[**If it's exploratory or spans components, go back to the design tool. If direction is settled and the change is local, stay in the editor.**
-
-The tension is real: Claude Design generates a fresh component tree on every export, so any change you made in code after the last export disappears on the next one. That makes "quick, I'll just tweak it in the tool" expensive — and "I'll just edit the code" increasingly wrong as soon as you need to explore a different layout direction.
-
-## Three questions that decide
-
-1. **Am I exploring directions, or executing one?**
-   Still deciding between layouts, color schemes, or component structures → go back to Design. Direction is settled and you're implementing → stay in code.
-
-2. **Does the change span more than one component?**
-   A nav + hero + card consistency fix has to be done in the design tool — doing it piecemeal in code invites drift. A spacing fix inside one existing component is a one-liner in code.
-
-3. **Will Claude Code know what "better" looks like?**
-   Visual aesthetics and gestalt are things Claude Design reasons about holistically. Functional correctness (prop types, responsive breakpoints, a11y attributes) is what Claude Code is better positioned to verify.
-
-## What's safe to edit directly in code (after handoff)
-
-- Padding/margin/gap values within an existing component
-- Prop types and TypeScript interfaces
-- Responsive breakpoint tweaks (`sm:`, `md:` classes or MUI breakpoint objects)
-- Animation timing and easing
-- Accessibility attributes (`aria-label`, `role`, `tabIndex`)
-- Integration-specific imports and wiring (`useRouter`, `useSession`, data hooks)
-
-## What you'll lose on every re-export (the stateless re-export problem)
-
-Claude Design has no memory of your codebase — it regenerates from its own model of the design. Every re-export is a clean slate from the tool's perspective. That means:
-
-- Post-handoff a11y fixes
-- TypeScript types you added
-- Integration-specific imports
-- Any custom hooks you wired in
-
-**Recommendation:** maintain a `DIFF.md` (or a short comment block at the top of re-exported files) listing the changes you made post-handoff. Before every re-export, check it; after every re-export, re-apply it.
-
-## The workflow that avoids the fight
-
-1. Explore in Claude Design until direction is locked.
-2. Export once. Record post-handoff changes in `DIFF.md`.
-3. Iterate functionally in Claude Code from that point.
-4. If you need to re-explore layout, go back to Design — but bring `DIFF.md` so you know what to re-apply.
-
-**Sources:** [Get started with Claude Design — support.claude.com](https://support.claude.com/en/articles/get-started-with-claude-design) · [Claude Design handoff workflow — DEV Community](https://dev.to/claudeai/claude-design-to-code-handoff-workflow-2026) · [claudefa.st — community practitioner notes](https://claudefa.st)
-]]></content:encoded>
-    </item>
-
     
     
-    <item>
-      <title>Embed Sentences, Answer With Paragraphs: Parent-Document Retrieval Fixes the Chunk-Size Tradeoff</title>
-      <link>https://dev.to/rushanksavant/sentence-window-retrieval-212d</link>
-      <guid isPermaLink="false">2026-08-18-09-parent-document-retrieval-chunk-size</guid>
-      <pubDate>Tue, 18 Aug 2026 16:26:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>RAG</category>
-      <category>Embeddings</category>
-      <description>Small chunks retrieve precisely but lack context; big chunks have context but retrieve poorly. Parent-document retrieval lets you stop choosing: embed the sentence, return the paragraph.</description>
-      <content:encoded><![CDATA[
-**Stop tuning chunk size. Embed small chunks for precise retrieval, then send the LLM the larger passage each chunk came from.**
-
-Every RAG pipeline hits the same wall. Small chunks embed cleanly and match queries precisely, but hand the model a sentence with no surrounding context. Large chunks carry context but dilute the embedding, so retrieval gets vague. Tuning the number trades one failure for the other.
-
-**What you'll be able to do after this:**
-- Retrieve on precise, sentence-sized embeddings without starving the model of context
-- Wire it up in LangChain with two splitters instead of one
-- Know what it costs, so you can decide whether it's worth it
-
-**How it works.** You store two representations. Small *child* chunks go in the vector store and are the only thing you search. Each child keeps the id of the larger *parent* passage it came from, and parents live in a separate docstore. At query time: similarity search hits a child → read its parent id → fetch the parent from the docstore → send the parent to the model. You search the needle and answer with the paragraph.
-
-**In LangChain** this is `ParentDocumentRetriever`, built from a `child_splitter`, a `parent_splitter`, a `vectorstore`, and a `docstore`. [Rushank Savant's walk-through](https://dev.to/rushanksavant/sentence-window-retrieval-212d) uses a 100-character child splitter with no overlap against a 400-character parent splitter with 50-character overlap — a useful starting ratio. LlamaIndex does the same thing differently: `SentenceWindowNodeParser` embeds each sentence but stashes the neighbouring sentences in metadata, then `MetadataReplacementPostProcessor` swaps the window back in before the model sees it.
-
-**What it costs.** That write-up is honest about the tradeoffs, and they're real: you store your corpus twice, the id lookup adds a hop of latency, overlapping parents mean you resend some tokens, and the vector store and docstore now have to stay in sync. A fixed window also can't help when the context you need sits outside it.
-
-**Sources:** [Sentence window retrieval — Rushank Savant](https://dev.to/rushanksavant/sentence-window-retrieval-212d) · [LangChain ParentDocumentRetriever reference](https://reference.langchain.com/python/langchain-classic/retrievers/parent_document_retriever) · [Chunking for RAG — Vectara](https://www.vectara.com/blog/grounded-generation-done-right-chunking)
-]]></content:encoded>
-      <media:content url="https://media2.dev.to/dynamic/image/width=1200,height=627,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fsal6acets6eqjs75qwg5.jpg" medium="image" />
-      <media:thumbnail url="https://media2.dev.to/dynamic/image/width=1200,height=627,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fsal6acets6eqjs75qwg5.jpg" />
-    </item>
-
-    <item>
-      <title>A Better Prompt Won't Fix This: The Accessibility Failures That Survive AI UI Generation</title>
-      <link>https://accessibe.com/accessibility-platform/reports/gen-ai-ecommerce/accessibility-audit</link>
-      <guid isPermaLink="false">2026-08-18-08-generated-ui-accessibility-review-pass</guid>
-      <pubDate>Tue, 18 Aug 2026 16:00:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Design</category>
-      <category>Design-to-Code</category>
-      <description>An audit of two AI-generated storefronts found the same four critical accessibility failures in both — a detailed prompt removed the minor issues and none of the critical ones.</description>
-      <content:encoded><![CDATA[
-**Two AI-built storefronts audited against WCAG 2.2 AA hit the same four critical failures despite very different prompts. Prompt harder isn't the fix — a review pass is.**
-
-accessiBe [audited two Lovable-built storefronts](https://accessibe.com/accessibility-platform/reports/gen-ai-ecommerce/accessibility-audit) on 2026-06-16 against WCAG 2.2 AA, using screen readers and keyboard testing rather than a scanner alone. One was built from a one-line prompt, the other from a detailed, iterated brief. The detailed brief did help — 9 issues versus 15. But accessiBe reports **both sites shared the same four critical failures**. Better prompting moved the minor problems and left the serious ones untouched.
-
-That result makes sense once you notice what the model is optimising for. ARIA roles, focus order, and accessible names are invisible in a rendered screenshot, so a model trained toward visually plausible output has no signal pushing it to get them right.
-
-**The recurring four**, worth checking in any generated UI:
-
-1. **Overlays** — modals, drawers, newsletter popups — with no `role="dialog"`, no accessible label, no focus trap, no Escape handler. Focus stays on the page behind.
-2. **Inputs labelled only by placeholder text**, which disappears on typing and is not an accessible name.
-3. **Contrast failures**, usually on sale badges and secondary text.
-4. **Information carried only visually** — a struck-through price, a colour-coded state — with no text equivalent.
-
-**Where to put the effort.** [master.dev's write-up](https://master.dev/blog/ai-generated-ui-is-inaccessible-by-default/) found ten distinct failures in a single generated sidebar, and puts prevention at 3–8 minutes per component against 45–90 minutes to remediate after launch. The cheap layers, in order: generate onto accessible primitives (Radix, React Aria — this is why v0's shadcn output starts ahead), then `eslint-plugin-jsx-a11y` for static checks, then `jest-axe` or `@axe-core/playwright` in CI.
-
-**The limit worth knowing:** automated tooling catches roughly a third of WCAG criteria. Focus order, screen-reader narrative, and whether a flow makes sense without sight need a human keyboard pass — tab through the thing once before you ship it.
-
-**Sources:** [accessiBe: AI storefront accessibility audit](https://accessibe.com/accessibility-platform/reports/gen-ai-ecommerce/accessibility-audit) · [master.dev: AI-generated UI is inaccessible by default](https://master.dev/blog/ai-generated-ui-is-inaccessible-by-default/) · [W3C WAI evaluation tools](https://www.w3.org/WAI/test-evaluate/tools/list/)
-]]></content:encoded>
-      <media:content url="https://master.dev/blog/wp-json/social-image-generator/v1/image/9221" medium="image" />
-      <media:thumbnail url="https://master.dev/blog/wp-json/social-image-generator/v1/image/9221" />
-    </item>
-
+    
+    
+    
+    
 
 
     
