@@ -31,8 +31,15 @@ export default function SignInDialog({
   // After auth, Supabase returns the visitor here; the page then mints the
   // HttpOnly cookie via /api/session and continues to `next`.
   const next = nextPath ?? '/projects/';
-  const redirectTo = () =>
-    `${window.location.origin}/projects/?signin=1&next=${encodeURIComponent(next)}`;
+  // Gated pages can't host the landing (no cookie yet → 302), so they bounce
+  // via the public gallery; everything else returns to itself.
+  const isGated = /^\/projects\/(?!covers\/)[a-z0-9-]+\//.test(next);
+  const redirectTo = () => {
+    const u = new URL(isGated ? '/projects/' : next, window.location.origin);
+    u.searchParams.set('signin', '1');
+    u.searchParams.set('next', next);
+    return u.toString();
+  };
 
   const sendLink = async () => {
     setError(null);

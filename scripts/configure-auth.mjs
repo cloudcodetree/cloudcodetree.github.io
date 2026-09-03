@@ -44,11 +44,13 @@ console.log('before:', {
   uri_allow_list: before.uri_allow_list || '(empty)',
 });
 
+// Sign-in returns visitors to whatever page they were on, so every path on
+// our origins is a valid return target (** = any depth in Supabase's globs).
 const ALLOW = [
-  'https://cct-site-staging.chris-247.workers.dev/projects/*',
-  'https://beta.cloudcodetree.com/projects/*',
-  'https://cloudcodetree.com/projects/*',
-  'http://localhost:3000/projects/*',
+  'https://cct-site-staging.chris-247.workers.dev/**',
+  'https://beta.cloudcodetree.com/**',
+  'https://cloudcodetree.com/**',
+  'http://localhost:3000/**',
 ].join(',');
 
 const res = await fetch(API, {

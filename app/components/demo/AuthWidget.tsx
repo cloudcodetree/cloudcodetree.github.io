@@ -17,7 +17,17 @@ import AccountMenu from './AccountMenu';
 import SignInDialog from './SignInDialog';
 import ProfileDialog from './ProfileDialog';
 
-const NEXT_RE = /^\/projects\/(?!covers\/)[a-z0-9-]+\/(demo\/.*)?$/;
+// Any same-origin relative path may be a return target (open-redirect guard:
+// must start with a single "/", never "//" or a scheme).
+const NEXT_RE = /^\/(?!\/)[^\s]*$/;
+
+/** The page the visitor is on, minus any sign-in round-trip params. */
+function here(): string {
+  const u = new URL(window.location.href);
+  u.searchParams.delete('signin');
+  u.searchParams.delete('next');
+  return u.pathname + u.search;
+}
 
 async function mintCookie(): Promise<boolean> {
   const { data } = await supabase().auth.getSession();
@@ -35,6 +45,7 @@ export default function AuthWidget({ initialDialogOpen = false }: { initialDialo
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [dialogOpen, setDialogOpen] = useState(initialDialogOpen);
   const [nextPath, setNextPath] = useState<string>('/projects/');
+  useEffect(() => { if (initialDialogOpen) setNextPath(here()); }, [initialDialogOpen]);
   const [profileFor, setProfileFor] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,35 +55,43 @@ export default function AuthWidget({ initialDialogOpen = false }: { initialDialo
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Mint the cookie, then either stay (just tidy the URL) or go to `next`.
+  const finish = useCallback(async (next: string) => {
+    if (!(await mintCookie())) return;
+    if (next === here()) window.history.replaceState(null, '', next);
+    else window.location.assign(next);
+  }, []);
+
   const continueTo = useCallback(async (next: string) => {
     const { data } = await supabase().auth.getSession();
     const session = data.session;
     if (!session) { setNextPath(next); setDialogOpen(true); return; }
     const { data: rows } = await supabase().from('profiles').select('user_id').eq('user_id', session.user.id);
     if (!rows?.length) { setNextPath(next); setProfileFor(session.user.id); return; }
-    if (await mintCookie()) window.location.assign(next);
-  }, []);
+    await finish(next);
+  }, [finish]);
 
-  // The site-wide ?signin=1&next= handler.
+  // The site-wide ?signin=1&next= handler (Worker bounces + Supabase returns).
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('signin') !== '1') return;
-    const next = params.get('next') ?? '';
-    if (!NEXT_RE.test(next)) return;
-    void continueTo(next);
+    const raw = params.get('next') ?? '';
+    void continueTo(NEXT_RE.test(raw) ? raw : here());
   }, [continueTo]);
 
   const onProfileDone = () => {
     setProfileFor(null);
-    void mintCookie().then((ok) => { if (ok) window.location.assign(nextPath); });
+    void finish(nextPath);
   };
+
+  const openSignIn = () => { setNextPath(here()); setDialogOpen(true); };
 
   return (
     <>
       {signedIn ? (
         <AccountMenu />
       ) : (
-        <Button size="small" startIcon={<Login />} onClick={() => setDialogOpen(true)}
+        <Button size="small" startIcon={<Login />} onClick={openSignIn}
           sx={{ fontFamily: MONO, textTransform: 'none', color: 'inherit', '&:hover': { backgroundColor: 'rgba(116,157,196,0.1)' } }}>
           Sign in
         </Button>

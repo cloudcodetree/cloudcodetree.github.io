@@ -81,8 +81,9 @@ ehthumbs.db
 Thumbs.db
 
 # Editor directories and files
-.vscode/
+.vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea/
 *.suo
 *.ntvs*
@@ -93,7 +94,6 @@ Thumbs.db
 
 # IDE
 .fleet
-.vscode/settings.json
 
 # Local Netlify folder
 .netlify
