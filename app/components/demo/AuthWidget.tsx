@@ -17,9 +17,19 @@ import AccountMenu from './AccountMenu';
 import SignInDialog from './SignInDialog';
 import ProfileDialog from './ProfileDialog';
 
-// Any same-origin relative path may be a return target (open-redirect guard:
-// must start with a single "/", never "//" or a scheme).
-const NEXT_RE = /^\/(?!\/)[^\s]*$/;
+/** Open-redirect guard. Regexes are the wrong tool: browsers normalize "\\"
+ * to "/" while parsing, so "/\\evil.com" becomes protocol-relative "//evil.com".
+ * Instead: resolve the candidate against our origin and accept ONLY if the
+ * parsed origin is ours; return the parsed path, never the raw string. */
+function safeNext(raw: string): string | null {
+  try {
+    const u = new URL(raw, window.location.origin);
+    if (u.origin !== window.location.origin) return null;
+    return u.pathname + u.search + u.hash;
+  } catch {
+    return null;
+  }
+}
 
 /** The page the visitor is on, minus any sign-in round-trip params. */
 function here(): string {
@@ -76,7 +86,7 @@ export default function AuthWidget({ initialDialogOpen = false }: { initialDialo
     const params = new URLSearchParams(window.location.search);
     if (params.get('signin') !== '1') return;
     const raw = params.get('next') ?? '';
-    void continueTo(NEXT_RE.test(raw) ? raw : here());
+    void continueTo(safeNext(raw) ?? here());
   }, [continueTo]);
 
   const onProfileDone = () => {
