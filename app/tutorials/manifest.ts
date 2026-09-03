@@ -19,6 +19,9 @@ export interface Tutorial {
   order: number;       // ascending = global learning-path order
   readTime: number;    // minutes
   image?: string;      // cover (site-absolute path or CDN URL)
+  /** Held for review: hidden from lists/feeds/sitemap AND excluded from the
+   *  build (scripts/apply-drafts.mjs renames page.mdx → page.draft.mdx). */
+  draft?: boolean;
 }
 
 export const tutorials: Tutorial[] = [
@@ -156,6 +159,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-01',
     title: 'Data layer, normalization & the snapshot',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 1,
     excerpt:
       'Build the Google Shopping connector, normalize the retailer-polluted brand field, dedup the same headphones listed at two prices, and freeze the 270-item electronics snapshot the whole course runs on.',
@@ -169,6 +173,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-02',
     title: 'How LLMs actually work',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 2,
     excerpt:
       'The LLM literacy you need before wiring a model into DealFinder: tokenization, embeddings, attention, and sampling — shown with real consumer-electronics data, not just described.',
@@ -182,6 +187,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-03',
     title: 'Is it a good deal? — median vs. model',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 3,
     excerpt:
       'Train a price model from scratch (the normal equation, no scikit-learn) on the electronics snapshot, then blend its residual with the naive median signal to separate a genuine budget pick from a too-good-to-be-true trap.',
@@ -195,6 +201,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-04',
     title: 'What you’ll like next — recommenders',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 4,
     excerpt:
       'Content + collaborative recommenders over real title embeddings: "more like the Sony WH-1000XM5" returns the XM6 and other real audio.',
@@ -208,6 +215,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-05',
     title: 'Semantic search that knows a deal',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 5,
     excerpt:
       'Cosine + BM25 + RRF over the snapshot, value-reranked by the two-signal deal score so relevant AND cheap rises: Anker Q20i tops the results.',
@@ -221,6 +229,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-06',
     title: 'Messy listings into clean JSON',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 6,
     excerpt:
       'Turn retailer-polluted titles into schema-validated specs: extract the true manufacturer from the title, with a deterministic rule fallback.',
@@ -234,6 +243,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-07',
     title: 'Live multi-source connectors',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 7,
     excerpt:
       'Wire real marketplace APIs (eBay Browse OAuth, RapidAPI, Best Buy) behind one DealSource interface, with affiliate URLs and graceful auth.',
@@ -247,6 +257,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-08',
     title: 'Scraping responsibly',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 8,
     excerpt:
       'When an API is not enough: Apify actors, Shopify /products.json, and Firecrawl — plus robots.txt/ToS reality and when to scrape vs. call an API.',
@@ -260,6 +271,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-09',
     title: 'Tiered aggregation & resilience',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 9,
     excerpt:
       'Query cheap/reliable sources first, early-stop at enough deduped results, and bench any source that throttles — the anti-throttle aggregator that powers the snapshot.',
@@ -273,6 +285,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-10',
     title: 'Fine-tune the extractor with QLoRA',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 10,
     excerpt:
       'When prompting plateaus: the QLoRA decision framework and recipe to fine-tune the extractor on real electronics listings (anchored; runs in a GPU notebook).',
@@ -286,6 +299,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-11',
     title: 'The agent that ties it together',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 11,
     excerpt:
       'A ReAct loop with text-to-SQL + deal-ranking tools and a human-in-the-loop gate answers a plain-English goal over the real catalog.',
@@ -299,6 +313,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-12',
     title: 'Expose it as an MCP server',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 12,
     excerpt:
       'Wrap the catalog’s tools, a resource, and a prompt as an MCP server so any client (e.g. Claude Code) can search deals and score value.',
@@ -312,6 +327,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-13',
     title: 'pgvector persistence + semantic search',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 13,
     excerpt:
       'Persist real deals to Postgres + pgvector with an HNSW cosine index, and search past listings by meaning — the same fastembed vectors from Part 5, now durable.',
@@ -325,6 +341,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-14',
     title: 'RAG: grounded answers over your deals',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 14,
     excerpt:
       'Turn the pgvector retriever into a question-answering system: retrieve the real deals for a plain-English query, build a numbered context, and generate an answer that can only cite listings it was given — with a faithfulness guard that rejects invented prices.',
@@ -338,6 +355,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-15',
     title: 'Agentic RAG: retrieval as a repeated tool call',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 15,
     excerpt:
       'Single-shot RAG (Part 14) retrieves once. Here the agent judges whether the evidence is good enough and re-queries when it is not — "cheap monitor" iterates three hops to a clean 4K-monitor DEAL, with a corpus-mined reformulator and a sufficiency gate on the deal verdicts.',
@@ -351,6 +369,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-16',
     title: 'Context engineering: the window is RAM',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 16,
     excerpt:
       'Retrieval decides what is relevant; context engineering decides what actually goes in the window. Real token budgets over the deal context: pack to fit, order for "lost in the middle", and compact a growing multi-turn chat — with exact bge token counts.',
@@ -364,6 +383,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-17',
     title: 'Multi-agent: the writer/reviewer pattern',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 17,
     excerpt:
       'One agent cannot reliably check its own work. Split the job: a recommender writes a grounded answer, an isolated reviewer adversarially checks it, and a writer fooled by the $46 Bose trap gets caught and revised — the second opinion that only isolation makes worth having.',
@@ -377,6 +397,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-18',
     title: 'The web app',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 18,
     excerpt:
       'A real search UI over the live aggregator with a live/semantic toggle and DEAL/FAIR/SUSPICIOUS badges — served by FastAPI, XSS-hardened.',
@@ -390,6 +411,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-25',
     title: 'Safety, security & governance',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 25,
     excerpt:
       'Defense in depth for the model surface: prompt-injection detection, PII redaction, output validation on the electronics schema, and a model card.',
@@ -403,6 +425,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-23',
     title: 'Prove it works — evaluation as a discipline',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 23,
     excerpt:
       'Golden sets, ranking metrics, LLM-as-judge and error analysis: the two-signal ranker scores precision@5 = 1.00 where median-only manages 0.40.',
@@ -416,6 +439,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-26',
     title: 'Serve it fast and cheap',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 26,
     excerpt:
       'The FastAPI service behind the aggregator: real routes, a semantic cache, and batching — the levers that cut latency and cost.',
@@ -429,6 +453,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-22',
     title: 'Experiment tracking & model registry',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 22,
     excerpt:
       'Track every price-model run with MLflow (local file store), compare linear vs GBDT vs PyTorch on one feature contract, and register the winner.',
@@ -442,6 +467,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-24',
     title: 'Closing the MLOps loop',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 24,
     excerpt:
       'Drift → retrain → eval-gate → champion/challenger promotion: the closed loop that keeps the deal model honest, built on real PSI and the eval gate.',
@@ -455,6 +481,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-27',
     title: 'Inference optimization, for real',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 27,
     excerpt:
       'What you can measure vs what needs a GPU: real semantic-cache hit rates, a cost-aware model cascade, and honestly-anchored quantization/vLLM references.',
@@ -468,6 +495,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-28',
     title: 'Containerize and ship it',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 28,
     excerpt:
       'A real Docker image, a CI/CD pipeline with the eval gate, and one-command infra via Terraform/OpenTofu (db + app).',
@@ -481,6 +509,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-30',
     title: 'Observability, cost & ops',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 30,
     excerpt:
       'Trace requests, attribute real API/LLM cost (FinOps), and watch for drift with PSI — the ops layer that keeps the deal engine honest.',
@@ -494,6 +523,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-37',
     title: 'Case study + system-design interview',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 37,
     excerpt:
       'Turn the finished, deployed DealFinder into career capital: a portfolio case study with real metrics, resume bullets, and a mock system-design interview on the real architecture.',
@@ -507,6 +537,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-36',
     title: 'Ship & operate the real system',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 36,
     excerpt:
       'e2e tests that actually run, a real load profile, chaos-proven graceful degradation, and a production runbook — operating the deployed DealFinder for real.',
@@ -520,6 +551,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-19',
     title: 'Dataset engineering',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 19,
     excerpt:
       'Turn the frozen snapshot into a labeled, leakage-safe dataset: two-signal labels, grouped splits by query, and honest class-imbalance handling.',
@@ -533,6 +565,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-21',
     title: 'ML & DL breadth',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 21,
     excerpt:
       'Beyond the linear baseline: gradient-boosted fair prices, a price-drop forecaster, and a real PyTorch training loop — with the honest MAE deltas.',
@@ -546,6 +579,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-20',
     title: 'Pipelines & orchestration',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 20,
     excerpt:
       'Turn the snapshot pipeline into a real Prefect flow with retries, caching, a data contract, and a dbt-style good-deals view.',
@@ -559,6 +593,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-33',
     title: 'Saved searches & the suggestions worker',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 33,
     excerpt:
       'A deterministic periodic job that watches saved searches and notifies on genuinely new deals — Part 5 retrieval + the Part 3 deal score, diffed against last-seen.',
@@ -572,6 +607,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-35',
     title: 'Security & compliance at scale',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 35,
     excerpt:
       'Multi-tenant hardening that extends Part 21: a sliding-window rate limiter, GDPR export/delete, and abuse detection — importing the safety modules, not re-implementing them.',
@@ -585,6 +621,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-29',
     title: 'Cloud & Kubernetes',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 29,
     excerpt:
       'Take the container to a cluster: applyable K8s manifests against a managed Postgres, with a Secret template, HPA, TLS ingress (SSE-aware), and secrets management.',
@@ -598,6 +635,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-31',
     title: 'The web front end',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 31,
     excerpt:
       'A real React/Vite SPA that streams results over SSE, renders DEAL/FAIR/SUSPICIOUS badges live, and signs in with Supabase — built clean with tsc + vite.',
@@ -611,6 +649,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-32',
     title: 'Auth & accounts',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 32,
     excerpt:
       'Verify Supabase JWTs in FastAPI, attach the user, and gate features by role — a real auth layer with six offline-tested cases.',
@@ -624,6 +663,7 @@ export const tutorials: Tutorial[] = [
     slug: 'dealfinder-part-34',
     title: 'Payments & SaaS mechanics',
     series: 'Become a Full-Stack AI Engineer',
+    draft: true,
     part: 34,
     excerpt:
       'Stripe Checkout, signature-verified webhooks, and usage metering with plan gating — free 25 vs pro 1000 searches — all offline-tested with real crypto.',
@@ -683,3 +723,6 @@ export function seriesParts(series: string): Tutorial[] {
 export function fullTitle(t: Tutorial): string {
   return `${t.series}: ${t.title} (Part ${t.part} of ${seriesTotal(t.series)})`;
 }
+
+/** What the site actually shows/builds: everything not held as a draft. */
+export const publishedTutorials: Tutorial[] = tutorials.filter((t) => !t.draft);

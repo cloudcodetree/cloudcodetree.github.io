@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import TutorialsList from '../../components/TutorialsList';
-import { tutorials } from '../manifest';
+import { publishedTutorials as tutorials } from '../manifest';
 
 export const metadata: Metadata = {
   title: 'All Tutorials · CloudCodeTree',

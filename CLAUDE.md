@@ -416,6 +416,18 @@ path) is a symlink to `~/Development/tutorial-dealfinder` — it was a git
 submodule until 2026-08-25. Fences: both paths are excluded in tsconfig and
 ignored by the Next dev watcher; never import from them in app code.
 
+## Drafts (the publish gate)
+
+Tutorials and projects carry an optional `draft: true` in their manifest
+(`app/tutorials/manifest.ts`, `app/projects/manifest.ts`). A draft is hidden
+from lists (`publishedTutorials` / `publishedProjects`), feeds, and the
+sitemap — and **excluded from the build**: `scripts/apply-drafts.mjs` (runs
+at prebuild) renames its `page.mdx` → `page.draft.mdx`, which Next does not
+route, so the URL does not exist in the export. Draft projects also skip demo
+vendoring. To publish, flip the flag; prebuild restores `page.mdx`. Held at
+launch (2026-09-03): the 37-part "Become a Full-Stack AI Engineer" course and
+every project except span-calculator.
+
 ## Claude Code Tooling
 
 Project-scoped Claude Code config lives in `.claude/`:

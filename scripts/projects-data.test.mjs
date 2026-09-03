@@ -35,6 +35,10 @@ describe('readProjects', () => {
     expect(bySlug['span-calculator'].artifact).toMatch(/^[0-9a-f]{40}$|^demo-v/);
   });
 
+  it('only span-calculator is published for now', () => {
+    expect(projects.filter((p) => !p.draft).map((p) => p.slug)).toEqual(['span-calculator']);
+  });
+
   it('slugs are url-safe', () => {
     for (const p of projects) expect(p.slug).toMatch(/^[a-z0-9-]+$/);
   });

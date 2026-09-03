@@ -27,11 +27,14 @@ export interface Project {
   cover: string; // committed generated asset under public/projects/covers/
   featured?: boolean;
   order: number;
+  /** Held back from the gallery, sitemap, build, and demo vendoring. */
+  draft?: boolean;
 }
 
 export const projects: Project[] = [
   {
     slug: 'nam-app',
+    draft: true,
     title: 'NAM Player',
     summary:
       'Cross-platform JUCE app to play guitar through Neural Amp Modeler captures — first-class A2 model support and one-click tone downloads from TONE3000, built on a JUCE-free, unit-tested DSP/net core.',
@@ -43,6 +46,7 @@ export const projects: Project[] = [
   },
   {
     slug: 'motion-expression',
+    draft: true,
     title: 'Motion → Music',
     summary:
       'Turn interpretive dance into music: body motion becomes sound events, facial emotion colors the timbre. Runs entirely in the browser — no video ever leaves the device.',
@@ -55,6 +59,7 @@ export const projects: Project[] = [
   },
   {
     slug: 'backlot',
+    draft: true,
     title: 'Backlot',
     summary:
       'A Slack-like chat for fictional character workspaces — each “company” is a complete cast from a show or movie, giving Claude-driven characters a rich visual chat surface.',
@@ -66,6 +71,7 @@ export const projects: Project[] = [
   },
   {
     slug: 'homestead-finder',
+    draft: true,
     title: 'homestead.deals',
     summary:
       'A homestead-buyer’s research desk: scrapes land listings, scores deals, and serves a dashboard with email alerts — Supabase + Cloudflare Pages with a Mac-mini-hosted Claude bridge.',
@@ -88,6 +94,7 @@ export const projects: Project[] = [
   },
   {
     slug: 'mac-desktop-navigator',
+    draft: true,
     title: 'Desktop Navigator',
     summary:
       'Native macOS menu bar utility for switching Mission Control Spaces, launching Mission Control, and capturing screenshots — one unobtrusive row of icons.',
@@ -98,6 +105,7 @@ export const projects: Project[] = [
   },
   {
     slug: 'midea-mini-split-tools',
+    draft: true,
     title: 'Midea Mini-Split Tools',
     summary:
       'Controlling Senville/Midea ceiling-cassette mini-splits from Home Assistant: an ESPHome XYE wired-control bridge plus a working Follow-Me IR fallback, validated on real hardware.',
@@ -108,6 +116,7 @@ export const projects: Project[] = [
   },
   {
     slug: 'code-compare',
+    draft: true,
     title: 'Code Compare',
     summary:
       'View different programming languages’ syntax side by side — a quick visual reference for how the same construct reads across languages.',
@@ -118,3 +127,6 @@ export const projects: Project[] = [
     order: 8,
   },
 ];
+
+/** What the gallery shows/builds: everything not held as a draft. */
+export const publishedProjects: Project[] = projects.filter((p) => !p.draft);

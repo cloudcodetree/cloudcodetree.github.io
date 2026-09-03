@@ -17,7 +17,7 @@ import { readProjects } from './lib/projects-data.mjs';
 const OUT = path.resolve('out');
 const CACHE = path.resolve('.demo-build-cache');
 
-const live = readProjects().filter((p) => p.demoStatus === 'live' && p.artifact);
+const live = readProjects().filter((p) => !p.draft && p.demoStatus === 'live' && p.artifact);
 if (live.length === 0) {
   console.log('no live demos in the manifest — nothing to vendor');
   process.exit(0);

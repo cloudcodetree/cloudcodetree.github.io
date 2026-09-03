@@ -22,7 +22,7 @@
     "dev": "node scripts/generate-feeds.mjs && next dev --turbo",
     "dev:slow": "node scripts/generate-feeds.mjs && next dev",
     "feeds": "node scripts/generate-feeds.mjs",
-    "prebuild": "node scripts/generate-feeds.mjs",
+    "prebuild": "node scripts/apply-drafts.mjs && node scripts/generate-feeds.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
