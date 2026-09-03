@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SignJWT, exportJWK, generateKeyPair, createLocalJWKSet } from 'jose';
 import worker, { type Env } from './index';
 import { setJwksForTesting } from './auth';
@@ -6,11 +6,13 @@ import { setJwksForTesting } from './auth';
 const SUPABASE_URL = 'https://demo-ref.supabase.co';
 let signValid: () => Promise<string>;
 let signExpired: () => Promise<string>;
+let validJwks: ReturnType<typeof createLocalJWKSet>;
 
 beforeAll(async () => {
   const { publicKey, privateKey } = await generateKeyPair('ES256');
   const jwk = { ...(await exportJWK(publicKey)), kid: 'k1', alg: 'ES256' };
-  setJwksForTesting(createLocalJWKSet({ keys: [jwk] }));
+  validJwks = createLocalJWKSet({ keys: [jwk] });
+  setJwksForTesting(validJwks);
   const base = () =>
     new SignJWT({ email: 'v@example.com' })
       .setProtectedHeader({ alg: 'ES256', kid: 'k1' })
@@ -46,13 +48,16 @@ function req(url: string, init: RequestInit & { cookie?: string; navigate?: bool
   return new Request(url, { ...init, headers });
 }
 
+// The JWKS-outage test deliberately poisons the key set; every test starts clean.
+beforeEach(() => setJwksForTesting(validJwks));
+
 describe('demo gate', () => {
-  it('302s a signed-out visitor to the detail page with signin+next', async () => {
+  it('302s a signed-out visitor to the gallery sign-in with next', async () => {
     const { env, ctx, assetFetch } = makeEnv();
     const res = await worker.fetch(req(DEMO), env, ctx);
     expect(res.status).toBe(302);
     const loc = new URL(res.headers.get('location')!, DEMO);
-    expect(loc.pathname).toBe('/projects/span-calculator/');
+    expect(loc.pathname).toBe('/projects/');
     expect(loc.searchParams.get('signin')).toBe('1');
     expect(loc.searchParams.get('next')).toBe('/projects/span-calculator/demo/');
     expect(assetFetch).not.toHaveBeenCalled();
@@ -102,6 +107,37 @@ describe('demo gate', () => {
     const res = await worker.fetch(req(DEMO, { cookie: `cct_session=${await signValid()}` }), env, ctx);
     expect(res.status).toBe(503);
     expect(assetFetch).not.toHaveBeenCalled();
+  });
+});
+
+describe('project landing pages are gated too', () => {
+  it('302s a signed-out visitor from /projects/<slug>/ to the gallery sign-in', async () => {
+    const { env, ctx, assetFetch } = makeEnv();
+    const res = await worker.fetch(req('https://x.dev/projects/span-calculator/'), env, ctx);
+    expect(res.status).toBe(302);
+    const loc = new URL(res.headers.get('location')!, 'https://x.dev');
+    expect(loc.pathname).toBe('/projects/');
+    expect(loc.searchParams.get('signin')).toBe('1');
+    expect(loc.searchParams.get('next')).toBe('/projects/span-calculator/');
+    expect(assetFetch).not.toHaveBeenCalled();
+  });
+
+  it('serves /projects/<slug>/ for a valid token without logging a demo_open', async () => {
+    const { env, ctx, assetFetch, restFetch, waits } = makeEnv();
+    const res = await worker.fetch(req('https://x.dev/projects/span-calculator/', { cookie: `cct_session=${await signValid()}`, navigate: true }), env, ctx);
+    await Promise.all(waits);
+    expect(res.status).toBe(200);
+    expect(assetFetch).toHaveBeenCalledTimes(1);
+    expect(restFetch).not.toHaveBeenCalled();
+  });
+
+  it('leaves the gallery and cover images public', async () => {
+    const { env, ctx, assetFetch } = makeEnv();
+    for (const p of ['/projects/', '/projects/covers/span-calculator.png']) {
+      const res = await worker.fetch(req(`https://x.dev${p}`), env, ctx);
+      expect(res.status, p).toBe(200);
+    }
+    expect(assetFetch).toHaveBeenCalledTimes(2);
   });
 });
 

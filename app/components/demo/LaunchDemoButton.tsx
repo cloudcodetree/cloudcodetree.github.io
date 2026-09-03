@@ -13,8 +13,6 @@ import { supabase } from '../../lib/supabaseClient';
 import SignInDialog from './SignInDialog';
 import ProfileDialog from './ProfileDialog';
 
-const NEXT_RE = /^\/projects\/[a-z0-9-]+\/demo\//;
-
 async function mintCookie(): Promise<boolean> {
   const { data } = await supabase().auth.getSession();
   const token = data.session?.access_token;
@@ -60,17 +58,7 @@ export default function LaunchDemoButton({
     if (await mintCookie()) window.location.assign(next);
   }, []);
 
-  // Handle ?signin=1&next= — from the Worker's 302 or Supabase's return trip.
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('signin') !== '1') return;
-    const next = params.get('next') ?? '';
-    if (!NEXT_RE.test(next)) return;
-    void supabase().auth.getSession().then(({ data }) => {
-      if (data.session) void continueTo(next);
-      else setDialogOpen(true);
-    });
-  }, [continueTo]);
+  // ?signin=1&next= round trips are handled site-wide by AuthWidget.
 
   const onProfileDone = () => {
     setProfileFor(null);

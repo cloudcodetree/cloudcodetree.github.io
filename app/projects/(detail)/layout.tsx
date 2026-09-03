@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SERIF, LINK } from '../../components/blogShared';
 import LaunchDemoButton from '../../components/demo/LaunchDemoButton';
-import AccountMenu from '../../components/demo/AccountMenu';
 import { projects } from '../manifest';
 
 // Styles raw MDX elements for project write-ups. Mirrors the tutorials
@@ -41,10 +40,7 @@ export default function ProjectDetailLayout({ children }: { children: React.Reac
     <Container maxWidth="md" sx={{ py: { xs: 2, md: 4 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
         <Button component={Link} href="/projects/" sx={{ m: 0 }}>← Back to Projects</Button>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          {project?.demo?.status === 'live' && <LaunchDemoButton slug={project.slug} title={project.title} />}
-          <AccountMenu />
-        </Box>
+        {project?.demo?.status === 'live' && <LaunchDemoButton slug={project.slug} title={project.title} />}
       </Box>
       <Box sx={projectSx}>{children}</Box>
     </Container>

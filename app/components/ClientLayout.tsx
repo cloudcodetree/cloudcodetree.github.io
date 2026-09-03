@@ -28,6 +28,7 @@ import {
   Person as PersonIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
+import GlobalAuth from './demo/GlobalAuth';
 
 // Trailing slashes are deliberate: trailingSlash:true means the real pages
 // live at /x/, and a bare /x costs a redirect hop on every click (301 on
@@ -176,6 +177,10 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
                   {item.name}
                 </Button>
               ))}
+            </Box>
+            {/* Global auth: "Sign in" or the avatar menu, top-right on every page. */}
+            <Box sx={{ ml: { xs: 'auto', md: 1.5 }, display: 'flex', alignItems: 'center' }}>
+              <GlobalAuth />
             </Box>
           </Toolbar>
         </Container>

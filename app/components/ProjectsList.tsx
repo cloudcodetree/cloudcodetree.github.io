@@ -5,7 +5,6 @@ import { Container, Typography, Box, Grid, Chip, Button } from '@mui/material';
 import { GitHub, Launch, LockClock } from '@mui/icons-material';
 import LaunchDemoButton from './demo/LaunchDemoButton';
 import { Corners } from './Blueprint';
-import AccountMenu from './demo/AccountMenu';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { SERIF, MONO, ACCENT, LINK } from './blogShared';
@@ -34,10 +33,7 @@ export default function ProjectsList({ projects }: { projects: Project[] }) {
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 9 } }}>
       <Box component={motion.div} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} sx={{ mb: { xs: 4, md: 6 } }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-          <Typography sx={{ fontFamily: MONO, color: ACCENT, fontSize: 12, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase' }}>CloudCodeTree&nbsp;·&nbsp;Build</Typography>
-          <AccountMenu />
-        </Box>
+        <Typography sx={{ fontFamily: MONO, color: ACCENT, fontSize: 12, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', mb: 1.5 }}>CloudCodeTree&nbsp;·&nbsp;Build</Typography>
         <Typography component="h1" sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '3rem', md: '4.75rem' }, lineHeight: 0.95, letterSpacing: '-0.02em', m: 0, background: 'linear-gradient(180deg,#fff 0%,#cbd5e1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Projects</Typography>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mt: 2.5, flexWrap: 'wrap' }}>
           <Box sx={{ height: 2, width: 56, background: ACCENT, alignSelf: 'center' }} />

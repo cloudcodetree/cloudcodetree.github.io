@@ -21,8 +21,8 @@ export default function SignInDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  projectTitle: string;
-  nextPath: string;
+  projectTitle?: string;
+  nextPath?: string;
 }) {
   const [email, setEmail] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle');
@@ -30,8 +30,9 @@ export default function SignInDialog({
 
   // After auth, Supabase returns the visitor here; the page then mints the
   // HttpOnly cookie via /api/session and continues to `next`.
+  const next = nextPath ?? '/projects/';
   const redirectTo = () =>
-    `${window.location.origin}${window.location.pathname}?signin=1&next=${encodeURIComponent(nextPath)}`;
+    `${window.location.origin}/projects/?signin=1&next=${encodeURIComponent(next)}`;
 
   const sendLink = async () => {
     setError(null);
@@ -62,13 +63,15 @@ export default function SignInDialog({
       PaperProps={{ sx: { background: '#2b2b2d', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 2 } }}>
       <DialogContent sx={{ p: 4 }}>
         <Typography sx={{ fontFamily: MONO, fontSize: 11, color: ACCENT, letterSpacing: '0.15em', textTransform: 'uppercase', mb: 1 }}>
-          Live demo
+          {projectTitle ? 'Live demo' : 'Account'}
         </Typography>
         <Typography sx={{ fontFamily: SERIF, fontSize: '1.5rem', fontWeight: 600, mb: 1 }}>
-          Sign in to run {projectTitle}
+          {projectTitle ? `Sign in to run ${projectTitle}` : 'Sign in to CloudCodeTree'}
         </Typography>
         <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem', mb: 3 }}>
-          One click — no password, no spam. Just so I know who&apos;s trying my work.
+          {projectTitle
+            ? "One click — no password, no spam. Just so I know who's trying my work."
+            : 'Unlocks project pages and live demos. One click — no password, no spam.'}
         </Typography>
 
         {state === 'sent' ? (
