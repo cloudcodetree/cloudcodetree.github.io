@@ -403,6 +403,19 @@ use it to add one. In short:
   auto-discovers tutorial slugs for the sitemap.
 - First tutorial: `build-a-rag-over-your-blog` (repo: `tutorial-rag-over-blog`).
 
+## Local multi-repo workspace
+
+`./projects/` (gitignored, never checked in) holds symlinks to every git repo
+under `~/Development` — rebuild with `pnpm run link-projects`. It exists so a
+session rooted here can work across sibling repos (edit a demo app, bump its
+pinned SHA in `app/projects/manifest.ts`, redeploy) while each repo keeps its
+own git. Deploys never read it: demo builds clone pinned SHAs from GitHub
+(`scripts/fetch-demo-artifacts.mjs`), so local state cannot leak into
+production. `companions/dealfinder` (the DealFinder curriculum's documented
+path) is a symlink to `~/Development/tutorial-dealfinder` — it was a git
+submodule until 2026-08-25. Fences: both paths are excluded in tsconfig and
+ignored by the Next dev watcher; never import from them in app code.
+
 ## Claude Code Tooling
 
 Project-scoped Claude Code config lives in `.claude/`:

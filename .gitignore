@@ -127,3 +127,7 @@ crash.log
 
 # Vendored demo build workspace
 /.demo-build-cache/
+
+# Local multi-repo workspace: symlinks into ~/Development (scripts/link-projects.mjs)
+/projects/
+/companions/

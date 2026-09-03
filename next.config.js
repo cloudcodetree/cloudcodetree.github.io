@@ -29,6 +29,14 @@ const nextConfig = {
     optimizePackageImports: ['@mui/material', '@mui/icons-material'],
   },
   webpack: (config, { dev, isServer }) => {
+    if (dev) {
+      // Never watch the symlinked multi-repo workspace (or the ex-submodule
+      // path) — thousands of foreign files would swamp the dev watcher.
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: ['**/node_modules/**', '**/projects/**', '**/companions/**'],
+      };
+    }
     if (dev && !isServer) {
       // Optimize development builds
       config.optimization.splitChunks = false;
