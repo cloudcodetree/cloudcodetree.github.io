@@ -78,7 +78,7 @@ export default function SignInDialog({
         <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem', mb: 3 }}>
           {projectTitle
             ? "One click — no password, no spam. Just so I know who's trying my work."
-            : 'Unlocks project pages and live demos. One click — no password, no spam.'}
+            : 'Unlocks the live demos. One click — no password, no spam.'}
         </Typography>
 
         {state === 'sent' ? (
