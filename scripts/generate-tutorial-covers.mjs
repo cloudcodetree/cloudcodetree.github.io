@@ -14,11 +14,12 @@ const OUT = path.resolve('public/tutorials/covers');
 
 // Per-series visual identity: an accent color + a topic glyph, keyed by SERIES
 // so every part of a series shares one look and different series look distinct.
-const DEFAULT_STYLE = { accent: '#3fb950', glyph: null };
+const DEFAULT_STYLE = { accent: '#94bce3', glyph: null };
 const SERIES_STYLE = {
-  'RAG from Scratch': { accent: '#3fb950', glyph: 'database' },
-  'Fine-Tuning & Serving': { accent: '#d29922', glyph: 'sliders' },
-  'Claude Code Anywhere': { accent: '#2f81f7', glyph: 'terminal' },
+  'RAG from Scratch': { accent: '#7ee787', glyph: 'database' },
+  'Fine-Tuning & Serving': { accent: '#ffb24d', glyph: 'sliders' },
+  'Claude Code Anywhere': { accent: '#79c0ff', glyph: 'terminal' },
+  'Become a Full-Stack AI Engineer': { accent: '#94bce3', glyph: 'tag' },
 };
 
 // Large faint line-art glyphs on the right, clear of the title and PART x/y row.
@@ -34,6 +35,9 @@ const GLYPHS = {
   terminal: (a) => `<g transform="translate(875,285)" fill="none" stroke="${a}" stroke-width="6" opacity="0.45">
     <rect x="0" y="0" width="230" height="160" rx="12"/><line x1="0" y1="42" x2="230" y2="42"/>
     <polyline points="34,86 64,112 34,138"/><line x1="86" y1="138" x2="160" y2="138"/></g>`,
+  tag: (a) => `<g transform="translate(905,300)" fill="none" stroke="${a}" stroke-width="6" opacity="0.45">
+    <path d="M10,15 L120,15 L205,100 a16,16 0 0 1 0,22 L122,205 a16,16 0 0 1 -22,0 L15,120 a16,16 0 0 1 0,-22 Z"/>
+    <circle cx="62" cy="62" r="13" fill="${a}"/></g>`,
 };
 
 // Single source of truth: the tutorials list comes from app/tutorials/manifest.ts.
@@ -90,7 +94,7 @@ function svg({ series, title, part }) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0d1117"/><stop offset="1" stop-color="#161b22"/>
+      <stop offset="0" stop-color="#1d1f20"/><stop offset="1" stop-color="#26282a"/>
     </linearGradient>
     <radialGradient id="glow" cx="0.82" cy="0.2" r="0.7">
       <stop offset="0" stop-color="${accent}" stop-opacity="0.16"/>
@@ -103,7 +107,7 @@ function svg({ series, title, part }) {
   <rect x="${pad}" y="150" width="56" height="4" fill="${accent}"/>
   <text x="${pad}" y="200" font-family="Menlo, monospace" font-size="22" letter-spacing="5" fill="${accent}">${esc(series.toUpperCase())}</text>
   <text x="${W - pad}" y="200" text-anchor="end" font-family="Menlo, monospace" font-size="22" letter-spacing="3" fill="#8b98a8">PART ${part} / ${total}</text>
-  <text y="${titleY}" font-family="Georgia, serif" font-weight="bold" font-size="${fontPx}" fill="#ffffff">${tspans}</text>
+  <text y="${titleY}" font-family="Barlow Condensed, Arial Narrow, Helvetica Neue, sans-serif" font-weight="600" font-size="${fontPx}" fill="#ffffff">${tspans}</text>
   <text x="${pad}" y="601" font-family="Menlo, monospace" font-size="20" fill="#8b98a8">cloudcodetree.com/tutorials</text>
 </svg>`;
 }

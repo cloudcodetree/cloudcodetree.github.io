@@ -74,7 +74,7 @@ export default function HomePage() {
               height: 150,
               mx: 'auto',
               mb: 4,
-              background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+              background: 'linear-gradient(135deg, #749dc4, #94bce3)',
               fontSize: '4rem',
             }}
           >
@@ -84,15 +84,9 @@ export default function HomePage() {
           <Typography
             variant="h1"
             component="h1"
-            sx={{
-              mb: 2,
-              background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
+            sx={{ mb: 2 }}
           >
-            Chris Harper
+            I build software with agents, and write down what I learn.
           </Typography>
           
           <Typography
@@ -104,7 +98,7 @@ export default function HomePage() {
               fontWeight: 400,
             }}
           >
-            Engineering Team Leader · AI-Assisted Development, Cloud &amp; Full-Stack
+            Chris Harper · Engineering team leader
           </Typography>
 
           <Typography
@@ -117,9 +111,9 @@ export default function HomePage() {
               color: theme.palette.text.secondary,
             }}
           >
-            I build with AI — agentic coding tools, custom models, and automation — and write about
-            the craft on the <Box component={Link} href="/" sx={{ color: '#3b82f6', textDecoration: 'none' }}>AI News</Box> blog.
-            Day to day I lead engineering work across cloud and full-stack, with a deep interest in how AI is changing how we ship software.
+            Day to day I lead engineering work across cloud and full-stack. The rest of the
+            time I&apos;m deep in agentic coding tools, custom models and automation — publishing
+            the results daily on <Box component={Link} href="/" sx={{ color: '#94bce3', textDecoration: 'none' }}>AI News</Box>.
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -131,7 +125,7 @@ export default function HomePage() {
               sx={{
                 px: 4,
                 py: 1.5,
-                background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+                background: 'linear-gradient(135deg, #749dc4, #94bce3)',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #2563eb, #0891b2)',
                 },
@@ -141,7 +135,7 @@ export default function HomePage() {
             </Button>
             <Button
               component={Link}
-              href="/about/resume"
+              href="/about/resume/"
               variant="outlined"
               size="large"
               sx={{ px: 4, py: 1.5 }}
@@ -150,7 +144,7 @@ export default function HomePage() {
             </Button>
             <Button
               component={Link}
-              href="/about/contact"
+              href="/about/contact/"
               variant="outlined"
               size="large"
               sx={{ px: 4, py: 1.5 }}
@@ -187,11 +181,11 @@ export default function HomePage() {
                     px: 2,
                     py: 1,
                     fontSize: '1rem',
-                    background: 'rgba(59, 130, 246, 0.1)',
-                    color: '#3b82f6',
-                    border: '1px solid rgba(59, 130, 246, 0.3)',
+                    background: 'rgba(116,157,196, 0.1)',
+                    color: '#749dc4',
+                    border: '1px solid rgba(116,157,196, 0.3)',
                     '&:hover': {
-                      background: 'rgba(59, 130, 246, 0.2)',
+                      background: 'rgba(116,157,196, 0.2)',
                     },
                   }}
                 />
@@ -237,7 +231,7 @@ export default function HomePage() {
                         <Icon
                           sx={{
                             fontSize: '3rem',
-                            color: '#3b82f6',
+                            color: '#749dc4',
                             mb: 2,
                           }}
                         />
@@ -286,13 +280,13 @@ export default function HomePage() {
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button
               component={Link}
-              href="/about/schedule"
+              href="/about/schedule/"
               variant="contained"
               size="large"
               sx={{
                 px: 4,
                 py: 1.5,
-                background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+                background: 'linear-gradient(135deg, #749dc4, #94bce3)',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #2563eb, #0891b2)',
                 },

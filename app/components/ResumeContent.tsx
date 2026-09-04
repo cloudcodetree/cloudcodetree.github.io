@@ -119,17 +119,17 @@ export default function ResumeContent({ showContactInfo = false }: ResumeContent
             fontSize: '2.5rem',
             fontWeight: 700,
             mb: 2,
-            background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+            background: 'linear-gradient(135deg, #749dc4, #94bce3)',
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
           },
           '& h3': { 
-            color: '#3b82f6', 
+            color: '#749dc4', 
             fontWeight: 600, 
             mb: 2, 
             fontSize: '1.5rem',
-            borderBottom: '2px solid rgba(59, 130, 246, 0.3)', 
+            borderBottom: '2px solid rgba(116,157,196, 0.3)', 
             pb: 1,
             mt: 4,
           },
@@ -160,11 +160,11 @@ export default function ResumeContent({ showContactInfo = false }: ResumeContent
             }
           },
           '& strong': {
-            color: '#06b6d4',
+            color: '#94bce3',
             fontWeight: 600,
           },
           '& a': {
-            color: '#3b82f6',
+            color: '#749dc4',
             textDecoration: 'none',
             '&:hover': {
               textDecoration: 'underline',
@@ -198,7 +198,7 @@ export default function ResumeContent({ showContactInfo = false }: ResumeContent
                     textAlign: 'center',
                     fontWeight: 700,
                     mb: 2,
-                    background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+                    background: 'linear-gradient(135deg, #749dc4, #94bce3)',
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
@@ -209,16 +209,16 @@ export default function ResumeContent({ showContactInfo = false }: ResumeContent
               ),
               h3: ({ children }) => (
                 <>
-                  <Divider sx={{ my: 3, background: 'rgba(59, 130, 246, 0.3)' }} />
+                  <Divider sx={{ my: 3, background: 'rgba(116,157,196, 0.3)' }} />
                   <Typography 
                     variant="h4" 
                     component="h3"
                     sx={{ 
-                      color: '#3b82f6', 
+                      color: '#749dc4', 
                       fontWeight: 600, 
                       mb: 2,
                       fontSize: '1.5rem',
-                      borderBottom: '2px solid rgba(59, 130, 246, 0.3)', 
+                      borderBottom: '2px solid rgba(116,157,196, 0.3)', 
                       pb: 1 
                     }}
                   >

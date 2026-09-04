@@ -1,0 +1,289 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Multi-Agent — The Writer/Reviewer Pattern (Part 17 of 37) · Tutorials',
+  description:
+    'One agent cannot reliably check its own work. Split the job: a recommender writes a grounded answer, an isolated reviewer adversarially checks it, and a writer fooled by the $46 Bose trap is caught and revised — the second opinion that only isolation makes worth having.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-17/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Multi-Agent — The Writer/Reviewer Pattern (Part 17 of 37)',
+    description:
+      'A recommender writes, an isolated reviewer adversarially checks. A trap recommendation is caught with specific issues and revised — multi-agent quality control over real deals.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-17/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-17.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-17.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-17" />
+
+# Multi-Agent: The Writer/Reviewer Pattern
+
+**TL;DR: One agent cannot reliably check its own work — the context that produced an answer is biased toward believing it. So split the job across two agents with *isolated* contexts: a recommender writes a grounded answer, and a reviewer independently re-retrieves the evidence and adversarially checks it. When a writer is fooled into recommending the $46 Bose QC45 (a SUSPICIOUS trap) as "best value", the reviewer catches it with two specific issues — "lead pick is SUSPICIOUS, not a DEAL" and "did not warn about the trap" — and the orchestrator revises to the grounded Anker $44.99 answer. The isolation is what makes the second opinion worth anything.**
+
+Every part so far ran a single agent. That is fine until the agent is wrong in a way it can't see. Ask a model to both produce an answer *and* judge it, and you get a rubber stamp — the same reasoning that generated the mistake will happily approve it. The fix that the field converged on in 2026 is structural, not a better prompt: **more than one agent, with isolated contexts**, where a critic sees only the *output* and its own evidence, never the writer's reasoning. For DealFinder, that critic is the last line of defense against recommending a trap.
+
+<Callout tone="tip">
+**Code along, step by step.** Full course repo at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+This part introduces `dealfinder/orchestrate.py`; it is tag **step-17**, building on the RAG generator (Part 14) and the deal verdicts (Part 3). Fully offline — the adversarial writer is an injected stand-in, no API key required.
+</Callout>
+
+## Table of contents
+
+1. [Why a second agent, not a second pass](#why-a-second-agent-not-a-second-pass)
+2. [The writer](#the-writer)
+3. [The reviewer — isolated and adversarial](#the-reviewer--isolated-and-adversarial)
+4. [The orchestrator: write → review → revise](#the-orchestrator-write--review--revise)
+5. [The trap that gets caught](#the-trap-that-gets-caught)
+6. [Seeing it in the product](#seeing-it-in-the-product)
+7. [Check it works](#check-it-works)
+8. [What you can demo now](#what-you-can-demo-now)
+9. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Explain why a single agent checking its own output is unreliable, and why **context isolation** is what makes a second opinion valuable.
+- Build a **writer/reviewer** pair: a recommender that generates a grounded answer and a reviewer that independently re-retrieves and adversarially checks it.
+- Write review checks grounded in the deal verdicts: is the answer grounded, is the lead pick a real DEAL, and is a SUSPICIOUS trap warned about?
+- Orchestrate **write → review → revise**: reject a bad draft and fall back to an answer that passes.
+- Recognize this as the general shape — researcher/verifier, proposer/judge — behind the multi-agent patterns the industry now treats as production baseline.
+
+---
+
+## Why a second agent, not a second pass
+
+You could ask the same model to "double-check your answer." It won't help much: the model's context still contains the reasoning that produced the answer, and that reasoning is the source of the error. The bias travels with the context. The blog framing that stuck is blunt — *one Claude session can't check its own work.*
+
+What actually catches mistakes is a reviewer with a **fresh, isolated context**: it gets the answer text and re-retrieves the evidence *itself*, then checks the answer against reality without ever seeing how it was produced. Two agents, two windows, one adversarial relationship.
+
+<WriterReviewer />
+
+---
+
+## The writer
+
+The writer is nothing new — it is the Part 14 grounded generator. Retrieve, build context, answer:
+
+```python
+def recommend(query: str, k: int = 5, *, llm=None) -> rag.RagAnswer:
+    """Writer: retrieve + generate a grounded recommendation (Part 14 pipeline)."""
+    return rag.answer(query, k=k, llm=llm)
+```
+
+It is injectable, so in production a real LLM writes the recommendation — and, crucially, a real LLM can be *wrong*. That is the whole reason the reviewer exists.
+
+---
+
+## The reviewer — isolated and adversarial
+
+The reviewer re-retrieves the evidence independently and runs three checks, each grounded in the two-signal verdicts DealFinder already computes:
+
+```python
+def review(query: str, answer: rag.RagAnswer, k: int = 5) -> Review:
+    """Reviewer: independently re-retrieve and adversarially check the answer.
+    Isolated context — the reviewer gets the answer text and its OWN retrieval,
+    not the writer's trace."""
+    items = rag.retrieve(query, k=k)
+    by_title = {_norm(it.title): it for it in items}
+    checks, issues = {}, []
+
+    # 1. grounded — every product/price cited is in the retrieved set
+    checks["grounded"] = rag.is_grounded(answer.answer, items)
+    if not checks["grounded"]:
+        issues.append("cites a product or price not in the retrieved evidence")
+
+    # 2. lead pick must be a DEAL, not a trap sold as the best value
+    lead = _norm(_lead_title(answer.answer))
+    lead_item = next((it for t, it in by_title.items() if lead and lead in t), None)
+    checks["lead_is_a_deal"] = lead_item is not None and lead_item.verdict == "deal"
+    if lead_item is not None and lead_item.verdict != "deal":
+        issues.append(f"lead pick is {lead_item.verdict.upper()}, not a DEAL: {lead_item.title}")
+
+    # 3. if a SUSPICIOUS trap was retrieved, the answer must warn about it
+    traps = [it for it in items if it.verdict == "suspicious"]
+    if traps:
+        warned = "suspicious" in answer.answer.lower() or "avoid" in answer.answer.lower()
+        checks["trap_warned"] = warned
+        if not warned:
+            issues.append(f"retrieved a SUSPICIOUS trap ({traps[0].title}) but did not warn about it")
+    else:
+        checks["trap_warned"] = True
+
+    return Review(approved=all(checks.values()), issues=issues, checks=checks)
+```
+
+Three checks, all decidable from the evidence — no LLM judgment, no flakiness. Grounding reuses the Part 14 faithfulness guard; the lead-is-a-DEAL and trap-warned checks reuse the Part 3 verdicts. The reviewer is cheap, deterministic, and merciless.
+
+---
+
+## The orchestrator: write → review → revise
+
+Wire them together. Write, review, and if the review fails, revise by falling back to the always-grounded deterministic answer and re-reviewing:
+
+```python
+def orchestrate(query: str, k: int = 5, *, recommender_llm=None) -> Orchestrated:
+    """Writer → Reviewer → revise-if-rejected."""
+    draft = recommend(query, k=k, llm=recommender_llm)
+    r = review(query, draft, k=k)
+    if r.approved:
+        return Orchestrated(draft.answer, True, r, revised=False, used_llm=draft.used_llm)
+    fixed = rag.deterministic_answer(query, k=k)   # LLM-free ⇒ guaranteed grounded, leads with the top DEAL
+    r2 = review(query, fixed, k=k)
+    return Orchestrated(fixed.answer, r2.approved, r2, revised=True, used_llm=False)
+```
+
+On a good answer, the reviewer approves and nothing changes. The interesting case is when the writer is wrong.
+
+<Callout tone="warning">
+**The revision must be deterministic, not another LLM roll.** A tempting mistake is to write `fixed = rag.answer(query, k=k)` here — but once an OpenRouter key is configured, `answer()` uses the *LLM*, and re-asking the same kind of model that just got fooled can reproduce the same class of mistake. The whole point of the pair is a *reliable* fallback, so the revision calls `rag.deterministic_answer` — the extractive path that is grounded and leads with the top DEAL *by construction*, no matter what key is set. (This is also why the orchestrator's `used_llm` is `False` on a revision.)
+</Callout>
+
+---
+
+## The trap that gets caught
+
+Give the writer a query and a personality that falls for the DealFinder trap — the $46 Bose QC45 that reads 72% under median but is really a refurb/mislisting. This is a real run with an injected trap-writer:
+
+```python
+from dealfinder import orchestrate as orch
+
+class TrapWriter:                      # a writer fooled by the too-good-to-be-true price
+    def available(self): return True
+    def chat(self, messages, temperature=0):
+        return ("Best value: Bose QuietComfort 45 Wireless Noise Cancelling "
+                "Headphones at $46.00 — an incredible deal.")
+
+draft = orch.recommend("noise cancelling headphones under $150", llm=TrapWriter())
+r = orch.review("noise cancelling headphones under $150", draft)
+print("approved:", r.approved)
+print("issues:", r.issues)
+```
+
+```text
+approved: False
+issues: ['lead pick is SUSPICIOUS, not a DEAL: Bose QuietComfort 45 Wireless Noise Cancelling Headphones',
+         'retrieved a SUSPICIOUS trap (Bose QuietComfort 45 Wireless Noise Cancelling Headphones) but did not warn about it']
+```
+
+The writer got fooled; the reviewer did not. It re-retrieved the evidence, saw that the lead pick's verdict is SUSPICIOUS, and rejected the answer with two specific, actionable issues. Now run the full orchestrator — it revises automatically:
+
+```python
+o = orch.orchestrate("noise cancelling headphones under $150", recommender_llm=TrapWriter())
+print("revised:", o.revised, "| approved:", o.approved)
+print(o.answer)
+```
+
+```text
+revised: True | approved: True
+Best value: Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones at
+$44.99 (72% under the same-query median). Also consider: Soundcore Space 2 Active
+Noise Cancelling Headphones at $129.99. Avoid: Bose QuietComfort 45 Wireless Noise
+Cancelling Headphones at $46.00 — flagged SUSPICIOUS: it reads 72% under median
+but sits far below its modeled fair price...
+```
+
+The rejected draft was thrown out and the deterministic path produced a grounded answer that leads with the real Anker DEAL and *warns* about the exact trap the writer tried to recommend. A single agent would have shipped the trap. The pair caught it.
+
+<Callout tone="note">
+**This is the general shape.** Writer/reviewer is one instance of a family — researcher/verifier, proposer/judge, generator/critic. The constants are always the same: isolated contexts, a critic that checks *output* against independent evidence, and an orchestrator that can reject and retry. Scale it to a panel of reviewers voting, and you have the adversarial-verification pattern behind production multi-agent systems.
+</Callout>
+
+---
+
+## Seeing it in the product
+
+The catch is invisible if all you see is the final answer — so the app surfaces the whole trail. A **`/review`** endpoint (`serve.py`) runs writer → reviewer → revise and returns *both* the draft and the final, each with the reviewer's per-check verdict; the static UI adds a **"review (multi-agent)"** mode with a checkbox to inject the trap-writer and watch the catch happen:
+
+```python
+@app.get("/review")
+def review_multiagent(q: str, k: int = 5, trap: bool = False):
+    writer = _TrapWriter() if trap else None        # trap=true → the fooled writer
+    draft = orch.recommend(q, k=k, llm=writer)
+    draft_review = orch.review(q, draft, k=k)        # isolated, adversarial
+    if draft_review.approved:
+        final, revised, final_review = draft.answer, False, draft_review
+    else:
+        fixed = rag.deterministic_answer(q, k=k, use_db=False)   # guaranteed grounded
+        final_review = orch.review(q, fixed, k=k)
+        final, revised = fixed.answer, True
+    return {"draft": ..., "draft_review": ..., "revised": revised,
+            "final": final, "final_review": ...}
+```
+
+Note `use_db=False`: like the context surface in Part 16, the writer/reviewer trail pins the reproducible snapshot so the demo is stable no matter what database is attached — the orchestrator's own contract is that both agents retrieve over the frozen snapshot.
+
+---
+
+## Check it works
+
+1. **The pattern, offline:**
+   ```bash
+   pytest tests/test_orchestrate.py -v      # 4 passed
+   ```
+   **Expect:** the approve path (good answer → no revision), the trap catch (rejected with a SUSPICIOUS issue), the revision (rejected draft → grounded Anker answer), and a hallucinated-price rejection.
+
+2. **The catch, live** (server on `:8000`):
+   ```bash
+   curl -s "http://localhost:8000/review?q=noise+cancelling+headphones+under+%24150&trap=true" \
+     | python -m json.tool | grep -E '"approved"|"revised"|"lead_is_a_deal"'
+   ```
+   **Expect:** the draft's `approved: false` with `lead_is_a_deal: false`, `revised: true`, and the final review's `approved: true` — the trap draft was caught and revised. Flip to `trap=false` and the real (free-LLM) writer's draft is approved on its own, `revised: false`.
+
+The four assertions in `tests/test_orchestrate.py` pin the approve path, the trap catch, and the revision — offline, with the adversarial writer injected:
+
+```python
+# tests/test_orchestrate.py  (step-17 tag)
+from dealfinder import orchestrate as orch
+
+def test_reviewer_approves_a_good_grounded_recommendation():
+    o = orch.orchestrate("noise cancelling headphones under $150")
+    assert o.approved is True and o.revised is False
+    assert o.review.checks == {"grounded": True, "lead_is_a_deal": True, "trap_warned": True}
+
+def test_reviewer_rejects_a_trap_recommendation():
+    draft = orch.recommend("noise cancelling headphones under $150", llm=_TrapWriter())
+    r = orch.review("noise cancelling headphones under $150", draft)
+    assert r.approved is False
+    assert r.checks["lead_is_a_deal"] is False
+    assert any("SUSPICIOUS" in issue for issue in r.issues)
+
+def test_orchestrator_revises_a_rejected_draft_to_a_grounded_answer():
+    o = orch.orchestrate("noise cancelling headphones under $150", recommender_llm=_TrapWriter())
+    assert o.revised is True and o.approved is True
+    assert "Anker Soundcore Q20i" in o.answer and "$44.99" in o.answer
+```
+
+```bash
+pytest tests/test_orchestrate.py -v
+# 4 passed
+```
+
+---
+
+## What you can demo now
+
+Open the app, pick **"review (multi-agent)"**, tick **"inject a writer fooled by the $46 Bose trap"**, and search **"noise cancelling headphones under $150"**. You watch the second opinion do its job:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-17/writer-reviewer-trap.png"
+  alt="The multi-agent trail: an LLM writer recommends the $46 Bose trap, the reviewer rejects it with two issues and failing checks, and the orchestrator revises to the grounded Anker answer"
+  caption="Real capture: a writer fooled into recommending the $46 Bose trap, caught by an isolated reviewer, and revised to the grounded Anker DEAL — the second opinion made visible."
+  lookFor="the two stacked verdicts. The WRITER DRAFT (an LLM) leads with 'Bose QuietComfort 45 at $46.00 — an incredible deal', and the reviewer marks it ✗ REVIEWER REJECTED: grounded ✓, but 'lead is a DEAL' ✗ and 'trap warned' ✗, with two concrete issues. Below the ↻ revision arrow, the REVISED FINAL leads with the real Anker Soundcore Q20i at $44.99 and warns about the exact trap the writer tried to sell — now ✓ REVIEWER APPROVED on all three checks. A single agent ships the top row; the pair ships the bottom."
+/>
+
+The demo line: *"The writer — a real LLM — got fooled by a $46 price that's 72% under median and called it the best deal. A second agent with its own isolated view of the evidence caught it: the lead pick is flagged SUSPICIOUS, not a DEAL, and the answer never warned about the trap. So the orchestrator threw the draft out and fell back to a guaranteed-grounded answer that leads with the real Anker deal and warns about the trap. That's why you run two."*
+
+---
+
+## Where this goes next
+
+- **[Part 18 — The web app](/tutorials/dealfinder-part-18/):** the intelligence core is complete — retrieve, rank, extract, RAG, agentic RAG, context engineering, and now multi-agent review. Part 18 puts a real UI on it: a search app that calls the `/ask` and `/ask_agentic` endpoints and renders the reviewed, grounded answers a user can trust.
+
+This closes the intelligence arc. From here the course turns to shipping it: web app, MLOps, serving, infrastructure, and the SaaS around it.
+
+---
+
+*Sources: [AutoGen (Wu et al., 2023)](https://arxiv.org/abs/2308.08155) · [Reflexion (Shinn et al., 2023)](https://arxiv.org/abs/2303.11366) · [Anthropic — building effective agents](https://www.anthropic.com/engineering/building-effective-agents) · [fastembed bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5)*

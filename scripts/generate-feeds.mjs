@@ -28,6 +28,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readTutorials, seriesTotal } from './lib/tutorials-data.mjs';
+import { readProjects } from './lib/projects-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -154,7 +155,7 @@ ${media}  </item>`;
   await writeAll('ai-news', aiBody, feedPosts.length);
 
   // Tutorials feed — built from the hand-authored manifest (newest-first, capped).
-  const allTuts = readTutorials();
+  const allTuts = readTutorials().filter((t) => !t.draft);
   const tuts = allTuts
     .filter((t) => t.date)
     .map((t) => ({ ...t, d: toDate(t.date), total: seriesTotal(allTuts, t.series) }))
@@ -180,15 +181,15 @@ ${media}  </item>`;
   const iso = (d) => d.toISOString().slice(0, 10);
   const newest = items.length ? iso(items.map((it) => it.date).sort((a, b) => b - a)[0]) : iso(new Date());
   // Hand-authored tutorial slugs, discovered from app/tutorials/(article)/*/.
-  const articleDir = path.join(ROOT, 'app', 'tutorials', '(article)');
-  const tutorialSlugs = existsSync(articleDir)
-    ? readdirSync(articleDir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name)
-    : [];
+  // Manifest-driven (not a directory scan) so drafts never leak into the sitemap.
+  const tutorialSlugs = readTutorials().filter((t) => !t.draft).map((t) => t.slug);
 
   const staticRoutes = [
     { loc: `${SITE}/`, lastmod: newest, priority: '1.0' }, // home = AI News blog
     { loc: `${SITE}/tutorials/`, priority: '0.8' },
     ...tutorialSlugs.map((s) => ({ loc: `${SITE}/tutorials/${s}/`, priority: '0.7' })),
+    { loc: `${SITE}/projects/`, priority: '0.8' },
+    ...readProjects().filter((p) => !p.draft).map((p) => ({ loc: `${SITE}/projects/${p.slug}/`, priority: '0.6' })),
     { loc: `${SITE}/about/`, priority: '0.7' },
     { loc: `${SITE}/about/resume/`, priority: '0.6' },
     { loc: `${SITE}/about/contact/`, priority: '0.4' },

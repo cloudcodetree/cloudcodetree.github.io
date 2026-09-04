@@ -11,7 +11,9 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 import { BlogPost, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx, markdownComponents } from './blogShared';
+import { Corners } from './Blueprint';
 
 interface BlogPageProps {
   /** Slim (content-free) index of every post, newest-first, embedded at build time. */
@@ -39,7 +41,7 @@ function Pills({ post, max = 3 }: { post: BlogPost; max?: number }) {
     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
       {tags.map((t) => (
         <Chip key={t} label={t} size="small"
-          sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(63,185,80,0.1)', color: ACCENT, border: '1px solid rgba(63,185,80,0.25)' }} />
+          sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(255,178,77,0.08)', color: '#ffb24d', border: '1px solid rgba(255,178,77,0.3)' }} />
       ))}
     </Box>
   );
@@ -211,11 +213,12 @@ export default function BlogPage({ posts }: BlogPageProps) {
             initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.4) }}
             sx={{
-              height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, border, overflow: 'hidden',
-              background: 'rgba(148,163,184,0.03)', transition: 'border-color .2s ease, transform .2s ease',
-              '&:hover': { borderColor: 'rgba(63,185,80,0.4)', transform: 'translateY(-2px)' },
+              height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 0, border,
+              position: 'relative', background: 'transparent', transition: 'border-color .2s ease, transform .2s ease',
+              '&:hover': { borderColor: 'rgba(148,188,227,0.55)', transform: 'translateY(-2px)' },
             }}
           >
+            <Corners />
             {post.image && (
               <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block' }}>
                 <Box component="img" src={post.image} alt={post.title} loading="lazy"
@@ -254,9 +257,9 @@ export default function BlogPage({ posts }: BlogPageProps) {
             sx={{ py: { xs: 4, md: 6 }, borderTop: border }}
           >
             {post.image && (
-              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5 }}>
+              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5, border }}>
                 <Box component="img" src={post.image} alt={post.title} loading="lazy"
-                  sx={{ width: '100%', maxHeight: 320, aspectRatio: '16 / 9', objectFit: 'cover', display: 'block', borderRadius: 2, border }} />
+                  sx={{ width: '100%', maxHeight: 320, aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>
             )}
             <Typography sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', letterSpacing: '0.04em', mb: 1.5 }}>
@@ -269,7 +272,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
             <Box sx={{ mb: 2.5 }}><Pills post={post} /></Box>
             {body !== undefined ? (
               <Box sx={markdownSx}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{body}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>{body}</ReactMarkdown>
               </Box>
             ) : (
               <Box>
@@ -333,13 +336,13 @@ export default function BlogPage({ posts }: BlogPageProps) {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: { xs: 2, md: 3 }, flexWrap: 'wrap' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
-          <Select value={pageSize} onChange={(e) => choosePageSize(Number(e.target.value))} size="small"
+          <Select value={pageSize} inputProps={{ 'aria-label': 'Posts per page' }} onChange={(e) => choosePageSize(Number(e.target.value))} size="small"
             sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(148,163,184,0.2)' }, '.MuiSvgIcon-root': { color: 'text.secondary' } }}>
             {PAGE_OPTIONS.map((n) => <MenuItem key={n} value={n} sx={{ fontFamily: MONO, fontSize: 12 }}>{n}</MenuItem>)}
           </Select>
         </Box>
         <ToggleButtonGroup value={view} exclusive size="small" onChange={(_, v) => chooseView(v)} aria-label="Choose layout"
-          sx={{ '& .MuiToggleButton-root': { color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)', px: 1.25 }, '& .Mui-selected': { color: `${ACCENT} !important`, background: 'rgba(63,185,80,0.12) !important' } }}>
+          sx={{ '& .MuiToggleButton-root': { color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)', px: 1.25 }, '& .Mui-selected': { color: `${ACCENT} !important`, background: 'rgba(148,188,227,0.12) !important' } }}>
           <ToggleButton value="list" aria-label="Compact list"><ViewList fontSize="small" /></ToggleButton>
           <ToggleButton value="cards" aria-label="Cards"><GridView fontSize="small" /></ToggleButton>
           <ToggleButton value="feed" aria-label="Full feed"><ViewStream fontSize="small" /></ToggleButton>
@@ -360,11 +363,11 @@ export default function BlogPage({ posts }: BlogPageProps) {
                 onClick={() => toggleTag(tag)}
                 sx={{
                   fontFamily: MONO, fontSize: 11, cursor: 'pointer',
-                  color: on ? '#0d1117' : 'text.secondary',
+                  color: on ? '#1d1f20' : 'text.secondary',
                   background: on ? ACCENT : 'transparent',
                   border: '1px solid', borderColor: on ? ACCENT : 'rgba(148,163,184,0.25)',
                   '& .MuiChip-label': { px: 1 },
-                  '&:hover': { background: on ? ACCENT : 'rgba(63,185,80,0.12)' },
+                  '&:hover': { background: on ? ACCENT : 'rgba(148,188,227,0.12)' },
                 }}
               />
             );
@@ -393,7 +396,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
           {pageCount > 1 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
               <Pagination count={pageCount} page={safePage} onChange={(_, v) => goToPage(v)} shape="rounded"
-                sx={{ '& .MuiPaginationItem-root': { fontFamily: MONO, color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)' }, '& .Mui-selected': { background: `${ACCENT} !important`, color: '#0d1117', borderColor: ACCENT } }} />
+                sx={{ '& .MuiPaginationItem-root': { fontFamily: MONO, color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)' }, '& .Mui-selected': { background: `${ACCENT} !important`, color: '#1d1f20', borderColor: ACCENT } }} />
             </Box>
           )}
         </>

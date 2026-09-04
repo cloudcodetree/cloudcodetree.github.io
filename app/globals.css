@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 .glass {
-  background: rgba(30, 41, 59, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 12px;
+  /* Industry: flat hairline surface (was glass blur). */
+  background: #2b2b2d;
+  border: 1px solid rgba(242, 242, 243, 0.2);
+  border-radius: 0;
 }
 
 * {
@@ -17,7 +17,7 @@ html,
 body {
   padding: 0;
   margin: 0;
-  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
 }
 
 a {
@@ -27,4 +27,18 @@ a {
 
 * {
   box-sizing: border-box;
+}
+/* AgentLoop (Part 11) diagram animations — global so no per-component <style>
+   element is emitted (React hoists <style>, which breaks SVG hydration). */
+@keyframes al-pulse { 0%, 100% { opacity: 0.6 } 20% { opacity: 1 } }
+@keyframes al-pulse7 { 0%, 100% { opacity: 0.7 } 20% { opacity: 1 } }
+@keyframes al-orbit { 0%, 100% { transform: translateY(0) } 33% { transform: translateY(100px) } 66% { transform: translateY(200px) } }
+
+/* Industry interaction states — themed, never browser defaults. */
+:focus-visible {
+  outline: 2px solid #94bce3;
+  outline-offset: 2px;
+}
+::selection {
+  background: rgba(148, 188, 227, 0.3);
 }

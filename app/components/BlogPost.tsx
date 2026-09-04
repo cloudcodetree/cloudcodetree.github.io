@@ -1,11 +1,13 @@
 'use client';
 
+import { Corners } from './Blueprint';
 import { Container, Typography, Box, Card, CardContent, Chip, Button } from '@mui/material';
 import { AccessTime as TimeIcon, Person as PersonIcon } from '@mui/icons-material';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 import { BlogPost as Post, SERIF, MONO, formatPublished, markdownSx, markdownComponents } from './blogShared';
 
 // The post is loaded at build time by app/ai-news/[id]/page.tsx and baked into
@@ -24,15 +26,15 @@ export default function BlogPost({ post }: { post: Post }) {
 
         {post.image && (
           <Box sx={{ mb: 3 }}>
-            <Box
-              component="img"
-              src={post.image}
-              alt={post.title}
-              sx={{
-                width: '100%', aspectRatio: '1200 / 630', objectFit: 'cover', display: 'block',
-                borderRadius: 2, border: '1px solid #222a35',
-              }}
-            />
+            <Box sx={{ position: 'relative', border: '1px solid rgba(242,242,243,0.2)' }}>
+              <Corners />
+              <Box
+                component="img"
+                src={post.image}
+                alt={post.title}
+                sx={{ width: '100%', aspectRatio: '1200 / 630', objectFit: 'cover', display: 'block' }}
+              />
+            </Box>
             {post.imageCredit && (
               <Typography sx={{ mt: 0.75, fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>
                 Photo:{' '}
@@ -76,7 +78,7 @@ export default function BlogPost({ post }: { post: Post }) {
               key={tag}
               label={tag}
               size="small"
-              sx={{ mr: 1, mb: 1, background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.3)' }}
+              sx={{ mr: 1, mb: 1, background: 'rgba(116,157,196, 0.1)', color: '#749dc4', border: '1px solid rgba(116,157,196, 0.3)' }}
             />
           ))}
         </Box>
@@ -90,7 +92,7 @@ export default function BlogPost({ post }: { post: Post }) {
         <Card className="glass">
           <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
             <Box sx={markdownSx}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{post.content || ''}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>{post.content || ''}</ReactMarkdown>
             </Box>
           </CardContent>
         </Card>

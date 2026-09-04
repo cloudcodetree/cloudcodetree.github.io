@@ -1,0 +1,50 @@
+export const metadata = {
+  title: 'Midea Mini-Split Tools · Projects · CloudCodeTree',
+  description:
+    'ESPHome XYE bridge and a reverse-engineered Follow Me IR encoder for controlling Midea-family ceiling cassettes from Home Assistant.',
+  alternates: { canonical: 'https://cloudcodetree.com/projects/midea-mini-split-tools/' },
+  openGraph: {
+    title: 'Midea Mini-Split Tools',
+    description: 'ESPHome XYE bridge and a reverse-engineered Follow Me IR encoder for controlling Midea-family ceiling cassettes from Home Assistant.',
+    url: 'https://cloudcodetree.com/projects/midea-mini-split-tools/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/projects/covers/midea-mini-split-tools.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/projects/covers/midea-mini-split-tools.png'] },
+};
+
+<img src="/projects/covers/midea-mini-split-tools.png" alt="Midea Mini-Split Tools" />
+
+# Midea Mini-Split Tools
+
+A toolkit for controlling **Senville** (and other Midea-OEM) ceiling cassette
+mini-splits from **Home Assistant** — both the preferred wired-control path and
+a working IR-based fallback. Built and validated against real hardware
+(SENA-09IC-Z and SENA-18HF-ICZ cassettes); the protocols apply to most
+Midea-derived brands, which share the same XYE/CCM RS-485 bus and IR remote
+families.
+
+## Two subprojects
+
+**`esp32-controller/` — ESPHome XYE bridge (wired).** ESP32 firmware bridging
+the cassette's RS-485 bus to Home Assistant. Bidirectional: HA gets a real
+`climate.*` entity plus diagnostic sensors (coil temps, error/protect flags,
+defrost). WiFi + native HA API + OTA; works without HA via a built-in web UI.
+Silent — no IR, no beeps.
+
+**`follow-me-ir/` — Follow Me IR encoder.** A from-scratch, reverse-engineered
+Python encoder for Midea's "Follow Me" IR transmissions, output as Broadlink
+Base64 commands. It exists because Senville cassettes ignore the XYE
+`follow_me_sensor` field for control decisions — so this fires real Follow Me
+pulses from HA with room temperature sourced from any real sensor. Result: the
+cassette controls to sitting-height room temperature instead of a ceiling-sensor
+bias that typically runs 3–5 °F off.
+
+- **675 pre-encoded codes** covering every (sensor temp, setpoint) pair
+- **Validated bit-for-bit** against captured remote transmissions
+- Includes a decoder for diffing captures during protocol work
+
+## Source
+
+- [github.com/cloudcodetree/midea-mini-split-tools](https://github.com/cloudcodetree/midea-mini-split-tools)

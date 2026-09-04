@@ -1,0 +1,433 @@
+import ChaosBreaker from '@/app/components/mdx/ChaosBreaker';
+import E2ETestLattice from '@/app/components/mdx/E2ETestLattice';
+
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Ship & Operate the Real System (Part 36 of 37) · Tutorials',
+  description:
+    'Close the loop on DealFinder: Playwright end-to-end tests that guard the §9.7 badge contract, a load/chaos test suite that proves the circuit breaker holds under failure, and an operational runbook for when things go wrong in production.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-36/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Ship & Operate the Real System (Part 36 of 37)',
+    description: 'Playwright e2e, load testing, chaos engineering, and a production runbook — the final verification layer before you ship.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-36/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-36.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-36.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-36" />
+
+# Ship & Operate the Real System
+
+**TL;DR: A system is only as trustworthy as its tests and its runbook. This part adds the final verification layer to DealFinder: Playwright e2e tests that guard the exact badge contract the UI makes, a load/chaos harness that proves the circuit breaker holds under failure, and a structured runbook so on-call doesn't mean "read the code at 2am."**
+
+You have 219 passing unit/integration tests (the chaos suite in this part brings that to 224), a CI eval gate, and a deployed container from Part 28. What you don't yet have is proof that the whole stack holds together under real conditions — browser to backend to live sources — and a written plan for what to do when it doesn't. Those are the two gaps this part closes.
+
+<Callout tone="tip">
+**Code along.** Companion repo: [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder). Step tags for this part: `step-33a` (Playwright setup + `search.spec.ts`) · `step-33b` (`live.spec.ts` + fixtures) · `step-33c` (loadtest.py) · `step-33d` (chaos tests + RUNBOOK.md).
+</Callout>
+
+## Table of contents
+
+1. [What you'll be able to do after this](#what-youll-be-able-to-do-after-this)
+2. [Why e2e, load, and chaos are three different things](#why-e2e-load-and-chaos-are-three-different-things)
+3. [Playwright: guarding the badge contract](#playwright-guarding-the-badge-contract)
+4. [Fixtures: hermetic e2e without a live backend](#fixtures-hermetic-e2e-without-a-live-backend)
+5. [The live spec: opt-in backend smoke test](#the-live-spec-opt-in-backend-smoke-test)
+6. [Load testing: what the numbers actually mean](#load-testing-what-the-numbers-actually-mean)
+7. [Chaos testing: the circuit breaker under fire](#chaos-testing-the-circuit-breaker-under-fire)
+8. [The runbook](#the-runbook)
+9. [The full test count: 224 pytest + 5 + 1 Playwright](#the-full-test-count-224-pytest--5--1-playwright)
+10. [What you can demo now](#what-you-can-demo-now)
+11. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Run the Playwright suite and have it verify the §9.7 badge contract (`DEAL · FAIR · SUSPICIOUS · OVERPRICED`, no synonyms) against the real frontend.
+- Understand how `stubSearch` aborts the SSE stream to force the fetch fallback, giving hermetic e2e tests that do not touch a live backend.
+- Interpret the load test numbers honestly — distinguishing a locally-measured, anchored figure from a production SLA.
+- Read the chaos test suite and explain how COOLDOWN_SECONDS = 90 produces the invariants: one bad source → healthy sources keep serving; all down → well-formed empty envelope, never a 500.
+- Use `RUNBOOK.md` to drive an on-call incident from "alert fired" to "root cause found and mitigated."
+
+---
+
+## Why e2e, load, and chaos are three different things
+
+Unit and integration tests — you have 219 of them entering this part — check that individual components behave correctly in isolation or in controlled combinations. They do not prove that the browser can actually render a deal card, that the system holds up under concurrent load, or that the circuit breaker fires correctly when a source goes dark at runtime.
+
+Each layer tests something the others cannot:
+
+| Layer | What it tests | Runs offline? | Gate in CI? |
+|---|---|---|---|
+| Unit / integration (pytest) | Component contracts, hero-cast invariants | Yes | Yes — blocks merge |
+| Playwright e2e (hermetic) | Browser → UI contract; badge taxonomy | Yes (stubbed) | Yes — blocks merge |
+| Playwright e2e (live) | Full stack: browser → API → live sources | No (`E2E_LIVE=1`) | No — human decision |
+| Load test (loadtest.py) | Throughput, latency distribution | No (needs uvicorn) | No — run before release |
+| Chaos (pytest, offline) | Circuit breaker invariants, empty envelope | Yes | Yes — blocks merge |
+
+The offline layers belong in CI. The live layers are human checkpoints: you run them before a release cut, not on every commit.
+
+---
+
+## Playwright: guarding the badge contract
+
+The most important thing the frontend must not break is the §9.7 badge contract: exactly four tokens, no synonyms, each mapping deterministically to its colour in `DealBadge.ts`. Playwright tests this contract at the browser level, where a typo in a CSS class or a renamed constant would otherwise only surface in production.
+
+`frontend/e2e/search.spec.ts` covers five cases:
+
+```typescript
+// frontend/e2e/search.spec.ts (abridged)
+import { test, expect } from '@playwright/test';
+import { stubSearch, BADGE_TOKENS, SEARCH_RESPONSE, EMPTY_RESPONSE } from './fixtures';
+
+test.describe('search results', () => {
+  test('renders result cards, each carrying a §9 badge', async ({ page }) => {
+    await stubSearch(page, SEARCH_RESPONSE);
+    await page.getByRole('textbox', { name: /search for a product/i }).fill('headphones');
+    await page.getByRole('button',  { name: /search/i }).click();
+
+    const cards = page.getByTestId('result-card');
+    await expect(cards).toHaveCount(SEARCH_RESPONSE.results.length);
+
+    for (const card of await cards.all()) {
+      const badge = await card.getAttribute('data-badge');
+      expect(BADGE_TOKENS).toContain(badge);
+    }
+  });
+
+  test('badge taxonomy is EXACTLY the four §9 tokens — no synonyms', async ({ page }) => {
+    await stubSearch(page, SEARCH_RESPONSE);
+    // … fills + clicks …
+    const badges = await page.locator('[data-badge]').allInnerTexts();
+    for (const b of badges) {
+      expect(['DEAL', 'FAIR', 'SUSPICIOUS', 'OVERPRICED']).toContain(b.trim());
+    }
+  });
+  // … 3 more cases …
+});
+```
+
+<E2ETestLattice />
+
+The test that catches the most regressions in practice is the "badge taxonomy" case — it is a closed-set assertion. If a future commit renames `SUSPICIOUS` to `WARNING` (a common temptation when softening copy), this test fails before the PR merges.
+
+---
+
+## Fixtures: hermetic e2e without a live backend
+
+Running e2e tests against a live backend makes them slow, flaky, and dependent on API quotas. `frontend/e2e/fixtures.ts` solves this by giving each test a controlled, hermetic environment.
+
+```typescript
+// frontend/e2e/fixtures.ts (key excerpts)
+export const BADGE_TOKENS = ["DEAL", "FAIR", "SUSPICIOUS", "OVERPRICED"] as const;
+
+// deal_pct is chosen per row so that badgeFor() lands on each of the four tokens.
+// Note: there is NO baked "verdict" field — the badge is computed in the browser
+// from deal_pct, so the test exercises the real badgeFor thresholds from Part 31.
+export const SEARCH_RESPONSE = {
+  query: "noise cancelling headphones",
+  count: 4,
+  median_price: 100.0,
+  results: [
+    { id: "s1", title: "Too-cheap Headphones", price:  20.0, source: "web:bargainz",   deal_pct:  80.0 },
+    { id: "d1", title: "Sony WH-1000XM5",      price:  75.0, source: "BestBuy:sale",    deal_pct:  25.0 },
+    { id: "f1", title: "Bose QuietComfort",    price: 100.0, source: "eBay:NEW",        deal_pct:   0.0 },
+    { id: "o1", title: "Overpriced Cans",      price: 130.0, source: "RapidAPI:store",  deal_pct: -30.0 },
+  ],
+};
+
+// The well-formed "no offers" shape the backend returns when every source is down.
+export const EMPTY_RESPONSE = { query: "zzznothing", count: 0, median_price: 0.0, results: [] };
+
+/**
+ * Fail the SSE connection so useSearch falls back to fetch(/search), then fulfill
+ * that request with the supplied JSON. Hermetic: no backend, and it exercises the
+ * real SSE-abort → fetch fallback path in api.ts.
+ */
+export async function stubSearch(page: Page, json: unknown): Promise<void> {
+  await page.route("**/search/stream*", (route) => route.abort());
+  await page.route(/\/search(\?|$)/, (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(json) }),
+  );
+}
+```
+
+The `stubSearch` helper does two things at once: it proves the SSE abort fallback works (because the SSE route is explicitly aborted, the frontend *must* fall through to the plain fetch), and it keeps the test fast and repeatable.
+
+<Callout tone="note">
+The fixture picks one `deal_pct` per badge tier so the closed set is fully covered: **80%** under → SUSPICIOUS (too-good-to-be-true), **25%** under → DEAL, **0%** (at median) → FAIR, **30%** over → OVERPRICED. Because the fixture carries only `deal_pct` and no baked verdict, the browser must run the real `badgeFor()` logic to render each token — so the test guards the actual client-side mapping, not a pre-computed string.
+</Callout>
+
+---
+
+## The live spec: opt-in backend smoke test
+
+`frontend/e2e/live.spec.ts` has a single test gated on the `E2E_LIVE` environment variable. It does what the hermetic suite cannot: confirms that a real query through the full stack produces real cards with valid §9 badges.
+
+```typescript
+// frontend/e2e/live.spec.ts
+import { test, expect } from '@playwright/test';
+import { BADGE_TOKENS } from './fixtures';
+
+test.describe('live backend', () => {
+  test.skip(!process.env.E2E_LIVE, 'set E2E_LIVE=1 to run against the live backend');
+
+  test('real search renders cards with valid §9 badges', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('textbox', { name: /search for a product/i }).fill('noise cancelling headphones');
+    await page.getByRole('button',  { name: /search/i }).click();
+
+    await page.waitForSelector('[data-testid="result-card"]', { timeout: 30_000 });
+
+    for (const card of await page.getByTestId('result-card').all()) {
+      const badge = await card.getAttribute('data-badge');
+      expect(BADGE_TOKENS).toContain(badge);
+    }
+  });
+});
+```
+
+Run it before a release:
+
+```bash
+# Start the backend first
+uvicorn dealfinder.serve:app --port 8000
+
+# In a second terminal, run the full suite including live
+E2E_LIVE=1 npm run test:e2e:live
+```
+
+The live test is not gated in CI because it would require live API keys and a running server in every build. It is a human checkpoint. Run it on a staging environment before cutting a release tag.
+
+---
+
+## Load testing: what the numbers actually mean
+
+`scripts/loadtest.py` measures raw throughput and latency against a locally-running server. It is a measurement tool, not a pass/fail gate. The numbers below are **measured locally against `uvicorn` with live sources active, concurrency 6, 60 requests** — they are anchored figures, not production SLAs. Re-measure in your own environment.
+
+```bash
+# Start the backend
+uvicorn dealfinder.serve:app --host 127.0.0.1 --port 8000
+
+# Run the load test (defaults: 60 req, concurrency 8, query "noise cancelling headphones")
+python scripts/loadtest.py --requests 60 --concurrency 6
+```
+
+Anchored results from a local run (measured-locally, live sources active). Read the percentile columns as "N% of requests finished at or under this time": p50 is the median (typical) request, p95 is what 1-in-20 users experience, p99 the 1-in-100 worst case. Latency work always reports percentiles instead of averages because the average hides the tail — one 25-second straggler barely moves the mean but is a real user staring at a spinner:
+
+| Endpoint | p50 | p95 | p99 | Throughput |
+|---|---|---|---|---|
+| `GET /healthz` | 2.4 ms | 136.6 ms | 137.3 ms | 346 req/s |
+| `GET /search`  | 10.1 s | 21.9 s | 25.2 s | 0.2 req/s |
+
+The `/search` latency is dominated by the live retailer fan-out — the system is waiting for real HTTP responses from the upstream sources. 17 of 60 requests timed out under concurrency 6. That is not a bug: the circuit breaker correctly identifies and benches slow sources after COOLDOWN_SECONDS = 90, and the timeout policy is intentionally tight to bound tail latency. The `/healthz` numbers are what a health probe should see: sub-millisecond in steady state, with a long tail only when the process is under concurrent search load.
+
+<Callout tone="warn">
+Do not treat these numbers as a production SLA. They are a single local measurement against a laptop uvicorn instance with live APIs. A production deployment (Kubernetes, connection pooling, a CDN in front of static assets) will read differently. Use the load test to catch regressions in your own environment before a release — not to make capacity commitments.
+</Callout>
+
+---
+
+## Chaos testing: the circuit breaker under fire
+
+The load test shows what the system does under normal-ish concurrency. The chaos tests show what it does when sources fail. First, the pattern being tested — the state machine from Part 9, because the chaos invariants below are assertions about its transitions:
+
+<CircuitStates />
+
+`tests/test_chaos.py` runs entirely offline using mocked sources and exercises the circuit breaker's invariants directly:
+
+```python
+# tests/test_chaos.py (real excerpts). Sources are in-process stubs; the
+# aggregator is exercised through its public aggregate() entry point — the same
+# run()/_bench()/dedup path serve.py's /search calls. No Aggregator class exists;
+# aggregate() is a function that takes the source list.
+import httpx
+from dealfinder import aggregate as agg
+from dealfinder.aggregate import COOLDOWN_SECONDS, aggregate   # COOLDOWN_SECONDS == 90.0
+
+class _Exploding:
+    """A source that always raises — models a 500 / connection reset."""
+    def __init__(self, name, exc, tier=1):
+        self.name, self._exc, self.tier, self.calls = name, exc, tier, 0
+    def available(self): return True
+    def search(self, query, limit=15):
+        self.calls += 1
+        raise self._exc
+
+# _Healthy (a stub returning fixed offers) and _p (a Product factory) are defined
+# alongside _Exploding in the same file; setup_function() clears agg._cooldown
+# between tests so the breaker state does not leak.
+
+def test_one_source_raising_does_not_break_search():
+    bad  = _Exploding("BAD", RuntimeError("boom 500"), tier=1)
+    good = _Healthy("GOOD", [_p("g1", "Widget", 40, "GOOD"),
+                             _p("g2", "Gizmo", 60, "GOOD")], tier=1)
+
+    out = aggregate("widget", sources=[bad, good])
+
+    assert out["count"] == 2                        # healthy source still served
+    assert {r["source"] for r in out["results"]} == {"GOOD"}
+    assert "GOOD" in out["sources_live"]
+    assert "BAD"  in out["throttled"]               # the breaker flagged it
+
+def test_all_sources_down_returns_well_formed_empty_envelope():
+    sources = [_Exploding("A", RuntimeError("500")),
+               _Exploding("B", httpx.ConnectError("refused", request=None)),
+               _Exploding("C", TimeoutError("timeout"), tier=2)]
+    out = aggregate("anything", sources=sources)
+
+    assert out["results"]      == []
+    assert out["count"]        == 0
+    assert out["median_price"] == 0.0
+    assert out["sources_live"] == []
+    assert set(out["throttled"]) == {"A", "B", "C"}
+    # No exception raised — this is the key invariant.
+```
+
+All five tests pass offline in well under a second:
+
+<ChaosBreaker />
+
+The pinned invariants the chaos tests exercise:
+
+- **COOLDOWN_SECONDS = 90.0** — a raising or timing-out source is added to `agg._cooldown` and excluded from the next search within that window. The constant is pinned in `aggregate.py` and asserted by the test that reads it directly from the module.
+- **One bad source → healthy sources serve** — `count` and `results` contain the healthy-source data; the failing source appears in `throttled[]`.
+- **Lower-tier source absorbs a failed same-tier source** — when a tier-1 source fails, a tier-2 source picks up the slot; cheapest-first ordering is preserved.
+- **All sources down → well-formed empty envelope** — `{count: 0, results: [], median_price: 0.0, sources_live: [], throttled: [...all...]}`. No exception, no 500.
+
+<Callout tone="note">
+The "unavailable-only" case (`available() == False` without an error) returns the same empty envelope but with `throttled == []` — the source was never attempted, so it is not logged as throttled. This distinction matters for alerting: throttled sources indicate a runtime failure that triggered the breaker, not a pre-flight check that excluded the source.
+</Callout>
+
+---
+
+## The runbook
+
+`RUNBOOK.md` is the document on-call consults when an alert fires. A runbook that lives only in someone's head is not a runbook. The key sections:
+
+### Health endpoints
+
+Check these first on any incident:
+
+```bash
+curl http://your-host/healthz          # { "status": "ok" }
+curl http://your-host/sources          # per-source live/throttled state
+curl 'http://your-host/search?q=headphones'  # end-to-end smoke test
+curl 'http://your-host/deal/<id>'   # deal-score calculation (path param)
+curl http://your-host/me               # auth context (requires token)
+```
+
+A degraded `/healthz` with `sources` showing one source throttled is normal — the circuit breaker is working. Multiple sources throttled simultaneously, or `/search` returning only empty envelopes, is the escalation signal.
+
+### Alerts and thresholds
+
+| Alert | Condition | First action |
+|---|---|---|
+| High error rate | `error_rate > 1%` over 5 min | Check `/sources` for throttled count; tail app logs for the root exception |
+| `/search` p95 high | p95 > 30 s | Check retailer API status pages; inspect `throttled[]` in `/sources` |
+| Breaker trips | `agg._cooldown` size spikes | Expected under source outage; escalate if all sources throttled simultaneously |
+| Budget alert | `ops.CostTracker / budget_status` approaching limit | Review `GET /me` call volume; apply rate limit adjustments from Part 35 |
+| PSI drift | `PSI ≥ 0.2` (from Part 24) | Trigger retrain pipeline; eval gate (precision@5 ≥ 0.80) must pass before promotion |
+| Billing quota | `billing.QuotaExceeded` in logs | Pause new Stripe subscriptions; check metering lag from Part 34 |
+
+### Rollback
+
+Three rollback paths depending on where the failure is:
+
+```bash
+# Kubernetes: roll back to the previous deployment
+kubectl rollout undo deployment/dealfinder-api
+
+# Terraform: revert infrastructure changes
+terraform plan -target=<resource>   # confirm scope
+terraform apply -target=<resource>  # with previous .tfvars
+
+# Render (if using render.yaml): re-deploy the last known-good commit
+git revert HEAD && git push         # triggers auto-deploy
+```
+
+### Incident template
+
+Each incident gets a brief written record: timestamp, symptom, root cause, mitigation, and a "what to pin in CI" item. The last field is the one most teams skip — and the one that prevents recurrence. If the chaos test suite would have caught this failure, write the test. If the load test would have flagged the regression, add a latency assertion to the pre-release checklist.
+
+---
+
+## The full test count: 224 pytest + 5 + 1 Playwright
+
+After Part 36, the complete test inventory across the companion repo — **224** pytest + **5** hermetic Playwright + **1** opt-in live Playwright:
+
+| Suite | Count | Offline? | CI gate? |
+|---|---|---|---|
+| `pytest` (all modules) | 224 passed, 1 skipped | Yes | Yes |
+| ↳ of which `tests/test_chaos.py` | 5 passed (subset of the 224) | Yes | Yes |
+| `frontend/e2e/search.spec.ts` | 5 passed | Yes (stubbed) | Yes |
+| `frontend/e2e/live.spec.ts` | 1 skipped by default | No | No |
+
+The 5 chaos tests are counted **inside** the 224 — `tests/test_chaos.py` is one of the pytest modules, broken out here because it is the suite this part focuses on. The 1 skipped in pytest is `tests/test_pgstore.py`, which skips unless `DATABASE_URL` points at a reachable Postgres; run it against a live DB with `DATABASE_URL=… pytest tests/test_pgstore.py`. The 1 skipped in Playwright is the live backend test gated on `E2E_LIVE=1`.
+
+Run the full offline suite:
+
+```bash
+# Python
+pytest tests/ -v --tb=short
+# 224 passed, 1 skipped
+
+# Playwright (hermetic)
+npm run test:e2e
+# 5 passed, 1 skipped
+```
+
+```bash
+# Playwright (with live backend, pre-release only)
+uvicorn dealfinder.serve:app --port 8000 &
+E2E_LIVE=1 npm run test:e2e:live
+# 5 passed, 1 passed (was skipped)
+```
+
+---
+
+## What you can demo now
+
+Unlike the earlier parts, this one's deliverable *is* the tests — so the demo is running them. The hermetic Playwright suite needs no backend and no API keys: it stubs the network and drives a real Chromium against the built SPA.
+
+```bash
+cd frontend
+npx playwright install chromium   # one-time, ~90 MB
+npx playwright test search.spec.ts --project=chromium
+# 5 passed (6.2s)
+```
+
+Playwright boots the Vite dev server itself (`webServer` in `playwright.config.ts`), opens each page in a real browser, and checks the §9.7 badge contract at the DOM level. The HTML report shows all five green:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-36/playwright-e2e.png"
+  alt="The Playwright HTML report: All 5 / Passed 5 / Failed 0 / Flaky 0 for search.spec.ts in the chromium project, listing the badge-contract and edge-case tests"
+  caption="Real capture: the Playwright HTML report from a live Chromium run of frontend/e2e/search.spec.ts — 5/5 passing, guarding the four-token badge taxonomy in a real browser."
+  lookFor="the header counts: All 5, Passed 5, Failed 0, Flaky 0, Skipped 0, project chromium, total 2.7s. Then the five tests under search.spec.ts — 'renders result cards, each carrying a §9 badge' (line 10), 'badge taxonomy is EXACTLY the four §9 tokens — no synonyms' (line 34), 'a specific offer maps to the expected badge' (line 54, the 80%-under row → SUSPICIOUS), 'empty query does not fire a search' (line 70), and 'a query with zero offers shows the empty state, not an error' (line 93). The taxonomy test is the load-bearing one: it renders the fixture — whose rows carry only deal_pct, no baked verdict — and asserts the browser computed exactly DEAL/FAIR/SUSPICIOUS/OVERPRICED, so renaming a token in DealBadge.ts fails the build before it ships."
+/>
+
+**Check it works** — the chaos suite proves the circuit breaker offline, in under a second:
+
+```bash
+# From the companion root
+python -m pytest tests/test_chaos.py -q
+# 5 passed in 0.54s
+```
+
+That run exercises the real `aggregate()` path: one source raising still returns the healthy source's offers (and benches the bad one), a timeout is benched so the *next* search skips it, and every-source-down returns the well-formed empty envelope — never a 500.
+
+The demo line: *"Ship-and-operate means you can prove the whole stack, not just the pieces. Five Playwright tests open a real browser and guard the badge contract the UI promises — rename a token and the build goes red. Five chaos tests kill every source and prove the API still answers with a clean empty envelope instead of a 500. Two hundred twenty-four unit tests underneath. None of it needs a cloud account or a live key; it all runs offline, in CI, on every commit. That's the difference between 'it worked on my machine' and 'it's operable.'"*
+
+---
+
+## Where this goes next
+
+- **Part 37 — Case study + system-design interview:** you now have a fully tested, operated system. Part 37 shows how to turn that into a metrics-driven case study and how to walk an interviewer through every tradeoff you made — with a real repo behind every answer.
+
+---
+
+*Sources: [Playwright docs](https://playwright.dev/docs/intro) · [httpx async](https://www.python-httpx.org/async/) · [circuit breaker pattern](https://martinfowler.com/bliki/CircuitBreaker.html) · [Google SRE runbook guidance](https://sre.google/workbook/on-call/)*

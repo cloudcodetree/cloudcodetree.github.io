@@ -116,6 +116,54 @@ jobs:
         name: site
         path: ./out
 
+  # Phase 3: the production Worker deploy. Runs alongside the gh-pages
+  # publish until DNS cuts over (the Worker serves no custom domain until the
+  # runbook attaches one, so this is inert-but-armed). Enable by setting the
+  # repo VARIABLE ENABLE_WORKER_DEPLOY=true once CLOUDFLARE_API_TOKEN /
+  # CLOUDFLARE_ACCOUNT_ID secrets exist. After cutover, delete the gh-pages
+  # `deploy` job below and this comment.
+  deploy-worker:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_WORKER_DEPLOY == 'true'
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: main
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Download built site
+      uses: actions/download-artifact@v4
+      with:
+        name: site
+        path: ./out
+
+    - name: Vendor gated demo builds
+      run: node scripts/fetch-demo-artifacts.mjs
+
+    - name: Deploy production Worker
+      uses: cloudflare/wrangler-action@v3
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        command: deploy
+
   deploy:
     needs: build
     runs-on: ubuntu-latest

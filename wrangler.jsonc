@@ -1,0 +1,50 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cct-site",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-08-20",
+  "assets": {
+    "directory": "./out",
+    "binding": "ASSETS",
+    // Matches GitHub Pages' /about -> /about/ redirect; consistent with
+    // trailingSlash: true in next.config.js.
+    "html_handling": "force-trailing-slash",
+    // Serve public/404.html on a miss, as Pages does. The default ("none")
+    // would return a bare 404 and break parity.
+    "not_found_handling": "404-page",
+    // These paths 404 until Phase 2. Declared now so the array form is proven
+    // to deploy before anything depends on it.
+    "run_worker_first": ["/api/*", "/projects/*/demo/*"]
+  },
+  "observability": { "enabled": true },
+  "vars": {
+    "PRODUCTION_HOSTNAME": "cloudcodetree.com",
+    // Filled when the cct-demos Supabase project exists (Phase 2 Task 0).
+    // Empty means the gate fails CLOSED (503) — never open.
+    "SUPABASE_URL": "https://tgcysgioncdmtzcfknix.supabase.co",
+    "SUPABASE_ANON_KEY": "sb_publishable_xElUD5_ZTjOVM8ZHSZ1lQw_Zq5gto2o"
+  },
+  "env": {
+    "staging": {
+      "name": "cct-site-staging",
+      // beta.cloudcodetree.com = the persistent real-domain rehearsal alias.
+      // Deliberately points at STAGING (noindex build): pre-prod on the real
+      // domain without an indexable duplicate of production.
+      "routes": [
+        { "pattern": "beta.cloudcodetree.com", "custom_domain": true }
+      ],
+      "vars": {
+        "PRODUCTION_HOSTNAME": "cloudcodetree.com",
+        "SUPABASE_URL": "https://tgcysgioncdmtzcfknix.supabase.co",
+        "SUPABASE_ANON_KEY": "sb_publishable_xElUD5_ZTjOVM8ZHSZ1lQw_Zq5gto2o"
+      },
+      "assets": {
+        "directory": "./out",
+        "binding": "ASSETS",
+        "html_handling": "force-trailing-slash",
+        "not_found_handling": "404-page",
+        "run_worker_first": ["/api/*", "/projects/*/demo/*"]
+      }
+    }
+  }
+}

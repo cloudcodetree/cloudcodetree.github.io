@@ -1,0 +1,472 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: The Web App — Search UI, Live/Semantic Toggle & SSE (Part 18 of 37) · Tutorials',
+  description:
+    'Build a browser-accessible search UI over the running DealFinder backend: a Vanilla JS single-page app served from FastAPI, a live/semantic mode toggle backed by pgvector, and Server-Sent Events so deal cards appear as each source responds rather than after they all finish.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-18/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: The Web App (Part 18 of 37)',
+    description:
+      'Build a browser-accessible search UI over the running DealFinder backend: a Vanilla JS single-page app served from FastAPI, a live/semantic mode toggle backed by pgvector, and Server-Sent Events so deal cards appear as each source responds rather than after they all finish.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-18/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-18.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-18.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-18" />
+
+# The Web App — Search UI, Live/Semantic Toggle & SSE
+
+**TL;DR: The agent and MCP server are API surfaces — the web app is the product the end user actually touches. Serve a Vanilla JS search UI straight from FastAPI with one `StaticFiles` mount, add a Server-Sent Events endpoint so deal cards stream in as each source responds, and wire a live/semantic toggle that switches between the live aggregator and the pgvector store built in Part 13.**
+
+This is **Part 18 of DealFinder**. By the end you have a running browser app at `localhost:8000`. It requires no Node, no bundler, and no separate web server — the same FastAPI process that powers the agent and MCP server serves the HTML, streams the results, and handles the badge logic.
+
+<Callout tone="tip">
+**Code along at step-18.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+This part is a single new step — `step-18` — which adds `dealfinder/static/index.html`,
+the SSE endpoint in `dealfinder/serve.py`, and the `render_badge()` function in
+`dealfinder/dealscore.py`. Compare the diff:
+[step-14…step-18](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-14...step-18).
+</Callout>
+
+## Table of contents
+
+1. [Why a UI at this point in the course](#why-a-ui-at-this-point)
+2. [What the server already gives you](#what-the-server-already-gives-you)
+3. [Serving the static front end](#serving-the-static-front-end)
+4. [Request/response vs. SSE](#requestresponse-vs-sse)
+5. [The SSE endpoint: async generator pattern](#the-sse-endpoint-async-generator-pattern)
+6. [The EventSource client](#the-eventsource-client)
+7. [The live/semantic mode toggle](#the-livesemantic-mode-toggle)
+8. [Badge logic: render_badge()](#badge-logic-render_badge)
+9. [Worked example: "noise cancelling headphones"](#worked-example-noise-cancelling-headphones)
+10. [Check it works](#check-it-works)
+11. [What you can demo now](#what-you-can-demo-now)
+12. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Serve `dealfinder/static/index.html` from the running FastAPI app with a single `StaticFiles` mount — no separate web server.
+- Explain why a naive `/search` call blocks until all sources finish and why an SSE endpoint reduces perceived latency even without changing total round-trip time.
+- Write the `async for source, batch in aggregate_stream(q)` generator pattern and wire it to a `text/event-stream` FastAPI endpoint.
+- Write the `new EventSource(url)` listener in Vanilla JS that appends deal cards as each SSE event arrives.
+- Toggle between the live aggregator (keyword mode) and pgvector semantic search (semantic mode) within the same UI by pointing the query at different endpoints.
+- Implement `render_badge(deal_pct, residual_frac)` and verify all four verdicts: Anker Q20i at $44.99 → **DEAL**, Sony XM5 at $162.97 (on its median) → **FAIR**, Bose QC45 at $46 → **SUSPICIOUS**, and Sony XM6 at $399.99 → **OVERPRICED**.
+
+---
+
+## Why a UI at this point
+
+The agent (Part 11) and MCP server (Part 12) let programs call DealFinder. The pgvector store (Part 13) persists everything ever searched so results can be queried by meaning rather than exact keyword. But neither of those surfaces is something you hand to a user and say "run this."
+
+A web UI closes the loop. It also reveals the shape of the backend from the outside: what a 2–4 second multi-source aggregation call feels like to a real user, and whether the two-signal deal score is legible in a card layout. Both observations will feed back into Parts 26–28.
+
+The deliberate constraint — Vanilla JS, no build step, served from the same FastAPI origin — keeps the part focused on the backend SSE pattern. Part 31 (Front end for real) replaces the static HTML with React/Next.js, server components, and proper state management. That context is explicit here so learners know this is a simplification, not the final shape.
+
+---
+
+## What the server already gives you
+
+`dealfinder/serve.py` already exists after Part 13. Reading it from the top:
+
+```python
+# dealfinder/serve.py
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
+
+from . import pgstore
+from .aggregate import aggregate
+from .deal import deal_score
+from .dealmodel import LinearModel
+from .features import feature_matrix
+from .live_sources import LIVE_SOURCES
+from .tools import load_catalog
+
+app = FastAPI(title="DealFinder")
+
+_DB = bool(os.getenv("DATABASE_URL"))
+if _DB:
+    try:
+        pgstore.migrate()
+    except Exception:
+        _DB = False
+```
+
+At module import time the server checks whether `DATABASE_URL` is set. If it is, it calls `pgstore.migrate()` (which creates the `products` table and HNSW index if they don't already exist — see Part 13). If the env var is missing or the connection fails, `_DB` is set to `False` and the server degrades gracefully: live search still works, the `/semantic` endpoint returns a 503.
+
+```python
+_catalog = load_catalog()
+_idx = {p.id: i for i, p in enumerate(_catalog)}
+_X = feature_matrix(_catalog)
+_model = LinearModel().fit(_X, [p.price for p in _catalog])
+_fair = {p.id: float(fp) for p, fp in zip(_catalog, _model.predict(_X))}
+```
+
+The snapshot catalog, feature matrix, and linear model are all loaded once at startup. `_fair` is a dict mapping product id to the model's predicted fair price — used by the `/deal/{product_id}` endpoint and available to the SSE endpoint once you add it.
+
+The existing endpoints are:
+
+```python
+@app.get("/healthz")           # status + item count
+@app.get("/search")            # live aggregate → persist + embed if DB present
+@app.get("/semantic")          # pgvector nearest-neighbour search (503 without DB)
+@app.get("/sources")           # which live sources are currently configured
+@app.get("/", response_class=HTMLResponse)   # serves static/index.html
+@app.get("/deal/{product_id}") # per-item fair price + deal score
+```
+
+This part adds one new endpoint (`/search/stream`) and one `StaticFiles` mount. Everything else is wired already.
+
+---
+
+## Serving the static front end
+
+The `home()` endpoint already reads `static/index.html` from the package directory and returns it as HTML:
+
+```python
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return (Path(__file__).parent / "static" / "index.html").read_text()
+```
+
+That is all this app needs: `index.html` is **self-contained** — its CSS and JavaScript are inlined, so there are no separate asset requests to route. That is the deliberate no-build-step constraint of this part.
+
+The moment you *do* add separate assets (a favicon, a loading-spinner SVG, a split-out stylesheet), the clean way to serve them is a `StaticFiles` mount on a sub-path, added **after** the explicit routes so it can't shadow them:
+
+```python
+from fastapi.staticfiles import StaticFiles
+
+# OPTIONAL — only once you have separate asset files to serve.
+# Mount AFTER all explicit routes so /search, /semantic, /sources are not shadowed.
+app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")), name="static")
+```
+
+With that mount, the browser can fetch `/static/icon.svg` or any file you drop in `dealfinder/static/` without adding a Python route, while `index.html` stays served from `GET /` via `home()`. The shipped app skips the mount because it doesn't need it yet.
+
+Start the server:
+
+```bash
+uvicorn dealfinder.serve:app --reload
+```
+
+Open `http://localhost:8000`. The search form appears. Before wiring the SSE endpoint, every search uses a single `fetch()` call to `/search` — the result arrives all at once after the slowest source finishes.
+
+---
+
+## Request/response vs. SSE
+
+The existing `/search` endpoint calls `aggregate(q)`, which fans out across all live sources, waits for all of them, deduplicates, and returns one JSON payload. If Google Shopping takes 340 ms and the Best Buy scraper takes 890 ms, the browser waits the full 890 ms before rendering anything.
+
+<SSEStream />
+
+Server-Sent Events (SSE) let the server push partial payloads over a single long-lived HTTP connection. The browser opens `EventSource("/search/stream?q=...")` and receives a `data:` event each time a source batch finishes. The first cards appear at ~340 ms — 550 ms before the slow source finishes. Total round-trip is unchanged; perceived latency drops by more than half.
+
+The browser's `EventSource` API is the right tool here because the data flows in one direction (server → browser) and reconnects automatically on failure. WebSockets are bidirectional and heavier; there is no input from the browser during a search stream.
+
+<Callout tone="warning">
+**Safari and EventSource.** Safari 14+ supports `EventSource`, but its close-and-reconnect behaviour differs from Chrome and Firefox when the connection drops mid-stream. This part uses a single SSE connection per query (opened on submit, closed on the `done` event) rather than a persistent connection, which avoids the reconnect edge case. If your users include iOS 13 or earlier, add a polyfill.
+</Callout>
+
+---
+
+## The SSE endpoint: async generator pattern
+
+Add the `/search/stream` endpoint to `serve.py`. It walks the same live sources as `/search`, but instead of collecting everything and returning one payload, it `yield`s an SSE frame as each source responds. SSE frames are just text — a tiny `_sse()` helper formats them with a **named event** and a JSON `data:` line:
+
+```python
+# dealfinder/serve.py  (step-18)
+import json, statistics
+from fastapi.responses import StreamingResponse
+from .ingest import dedup_key
+
+def _sse(event: str | None, data: dict) -> str:
+    """Format one Server-Sent Event frame."""
+    prefix = f"event: {event}\n" if event else ""
+    return f"{prefix}data: {json.dumps(data)}\n\n"
+
+
+def _stream_search(query: str, sources):
+    """Yield one `results` event per source that responds, then a `done` event.
+
+    The browser paints offers as each source lands instead of blocking on the
+    slowest one. Degrades gracefully: a source that is unconfigured or throws is
+    skipped (a `source_error` frame), so it still streams from whatever is live."""
+    seen: dict[str, object] = {}
+    for src in sources:
+        try:
+            if not src.available():
+                continue
+            found = src.search(query) or []
+        except Exception:
+            yield _sse("source_error", {"source": getattr(src, "name", "?")})
+            continue
+        if not found:
+            continue
+        batch = []
+        for p in found:
+            k = dedup_key(p)
+            if k not in seen or p.price < seen[k].price:
+                seen[k] = p
+            batch.append({"id": p.id, "title": p.title, "price": p.price,
+                          "source": p.source, "url": p.url, "image_url": p.image_url})
+        yield _sse("results", {"source": getattr(src, "name", "?"), "results": batch})
+
+    items = list(seen.values())
+    median = round(statistics.median([p.price for p in items]), 2) if items else 0.0
+    yield _sse("done", {"query": query, "count": len(items), "median_price": median})
+
+
+@app.get("/search/stream")
+def search_stream(q: str):
+    return StreamingResponse(
+        _stream_search(q, LIVE_SOURCES),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+```
+
+Key points:
+
+- **Named events.** Each frame is `event: results` (or `source_error`, `done`) plus a `data:` JSON line. Naming the events lets the browser attach a separate listener per type instead of parsing a discriminator field out of a generic message — you'll see the client side of that next.
+- **It's an ordinary generator, not `async def`.** FastAPI's `StreamingResponse` happily consumes a sync generator on a threadpool, and the source calls are synchronous `httpx` — so there's no event loop to block and no need for `run_in_executor`. Keep it simple; reach for async only when a source client is actually async.
+- `X-Accel-Buffering: no` disables nginx response buffering if the app is behind a reverse proxy. Without it, the browser receives all events at once at the end — defeating the purpose.
+- The `done` event is the terminal signal, and it carries the deduped `count` and the result-set `median_price`. The JavaScript client closes the `EventSource` connection when it receives it.
+
+---
+
+## The EventSource client
+
+`dealfinder/static/index.html`'s `run()` function branches on the mode. The `meaning` path is a single `fetch`; the `live` path opens an `EventSource` and, because the server names its events, attaches one listener per event type — `results`, `source_error`, and `done`:
+
+```javascript
+// dealfinder/static/index.html  (live path in run())
+let n = 0; const srcs = [];
+const es = new EventSource("/search/stream?q=" + encodeURIComponent(q));
+
+es.addEventListener("results", (e) => {
+  const d = JSON.parse(e.data);
+  if (d.source && !srcs.includes(d.source)) srcs.push(d.source);
+  (d.results || []).forEach(p => { $("grid").insertAdjacentHTML("beforeend", card(p)); n++; });
+  $("meta").textContent = `streaming… ${n} offers · sources: ${srcs.join(", ")}`;
+});
+
+es.addEventListener("done", (e) => {
+  const d = JSON.parse(e.data);
+  $("meta").textContent = `${n} offers streamed · sources: ${srcs.join(", ") || "none"} · median ${fmt(d.median_price)}`;
+  if (!n) $("grid").innerHTML = `<div class="empty">No results.</div>`;
+  es.close(); $("go").disabled = false;
+});
+
+// EventSource fires 'error' when the server closes the stream after 'done';
+// closing here prevents the browser's automatic reconnect (which would re-search).
+es.addEventListener("error", () => { es.close(); $("go").disabled = false; });
+```
+
+`EventSource` opens a `GET` request with `Accept: text/event-stream`, and because the server tagged each frame with `event: results`/`done`, those fire the matching `addEventListener` handlers (a generic `"message"` listener would *not* fire for named events — a common gotcha). Cards paint as each `results` frame lands; the `close()` on `done` is essential — without it the browser follows its default reconnect behaviour and immediately re-issues the search.
+
+---
+
+## The live/semantic mode toggle
+
+The form has two radio buttons: `live deals` and `by meaning (saved)`.
+
+```html
+<div style="display:flex;gap:16px;...">
+  <label><input type="radio" name="mode" value="live" checked> live deals</label>
+  <label><input type="radio" name="mode" value="meaning"> by meaning (saved)</label>
+</div>
+```
+
+`mode()` reads the checked value. The `run()` function branches:
+
+- `live` → SSE stream from `/search/stream` (tiered aggregator, real-time Google Shopping + Best Buy)
+- `meaning` → single `fetch()` to `/semantic?q=...` (pgvector nearest-neighbour over the 384-dim bge-small-en-v1.5 embeddings stored in Part 13)
+
+<HybridFusion />
+
+The semantic path surface is different from the keyword path in a meaningful way. Type "active noise reduction over-ear" instead of "noise cancelling headphones" — the live aggregator returns nothing (no keyword match) but pgvector finds the Sony XM5 and XM6 because their title embeddings are geometrically close to "active noise reduction over-ear" in the bge-small-en-v1.5 space. That is the semantic advantage the toggle makes tangible.
+
+If `DATABASE_URL` is not set, the `/semantic` endpoint returns a `503`. The JavaScript in `index.html` checks for `r.status === 503` and shows an inline message: "meaning search needs a database (set DATABASE_URL)" — no unhandled error.
+
+---
+
+## Badge logic: render_badge()
+
+The deal cards need a human-readable verdict: **DEAL**, **FAIR**, **SUSPICIOUS**, or **OVERPRICED**. That logic lives in `dealfinder/dealscore.py`, which already has the `verdict()` function from Part 3. The `step-18` addition is a thin `render_badge()` wrapper that converts a `(deal_pct, residual_frac)` pair to the badge string:
+
+```python
+# dealfinder/dealscore.py  (step-18 addition)
+SUSPICIOUS_RESIDUAL_FRAC = 0.70
+DEAL_MEDIAN_FRAC         = 0.15
+
+def render_badge(deal_pct: float, residual_frac: float) -> str:
+    """Map the two-signal score to a single badge label.
+
+    Parameters
+    ----------
+    deal_pct:       fraction below the same-query cross-source median
+                    (positive = cheaper than median; from median_signal())
+    residual_frac:  (fair_price - actual) / fair_price
+                    (positive = actual is below model fair price)
+
+    Returns
+    -------
+    One of: "DEAL" | "FAIR" | "SUSPICIOUS" | "OVERPRICED"
+    """
+    if deal_pct >= DEAL_MEDIAN_FRAC and residual_frac >= SUSPICIOUS_RESIDUAL_FRAC:
+        return "SUSPICIOUS"
+    if deal_pct >= DEAL_MEDIAN_FRAC:
+        return "DEAL"
+    if deal_pct < 0:
+        return "OVERPRICED"
+    return "FAIR"
+```
+
+The guard fires on `residual_frac >= 0.70` regardless of how large `deal_pct` is. The order matters: the suspicious check comes before the deal check because `SUSPICIOUS` is the condition where both signals would separately say "great deal" — it is the overriding guard, not a fallback.
+
+The JavaScript `card()` function calls the equivalent of `render_badge()` on the client side, reading `deal_pct` and `residual_frac` directly from the API response JSON. The API adds them at `/deal/{product_id}`:
+
+```python
+@app.get("/deal/{product_id}")
+def deal(product_id: str):
+    if product_id not in _idx:
+        raise HTTPException(status_code=404, detail="unknown product")
+    p = _catalog[_idx[product_id]]
+    fair = _fair[p.id]
+    from .dealscore import median_signal, residual_fraction, render_badge
+    m = median_signal(p.price, p.median_price_at_capture or 0.0)
+    rf = residual_fraction(p.price, fair)
+    return {
+        "id": p.id, "title": p.title, "price": p.price,
+        "fair": round(fair, 2),
+        "deal_pct": round(m, 3),
+        "residual_frac": round(rf, 3),
+        "badge": render_badge(m, rf),
+    }
+```
+
+The JavaScript `card()` template reads `p.badge` and applies a colour class.
+
+---
+
+## Worked example: "noise cancelling headphones"
+
+Start the server with `DATABASE_URL` pointing at the pgvector instance from Part 13:
+
+```bash
+DATABASE_URL=postgresql://dealfinder:dealfinder@localhost:5434/dealfinder \
+  uvicorn dealfinder.serve:app --reload
+```
+
+Open `http://localhost:8000`, type **noise cancelling headphones**, and click Search (live mode, default). The SSE connection opens and `event: results` frames arrive as each free source responds, then a terminal `event: done` (a real run over the free stack — eBay, RapidAPI, iTunes):
+
+```
+event: results
+data: {"source": "eBay", "results": [{"id": "ebay-v1|...", "title": "Sony WH-1000XM6 …", "price": 269.99, "source": "eBay:Certified - Refurbished", "url": "https://www.ebay.com/itm/…"}, …]}
+
+event: results
+data: {"source": "RapidAPI", "results": [{"title": "Anker Soundcore Q20i …", "price": 39.99, "source": "RapidAPI:Walmart - AnkerDirect", …}, …]}
+
+event: results
+data: {"source": "iTunes", "results": […]}
+
+event: done
+data: {"query": "noise cancelling headphones", "count": 42, "median_price": 59.99}
+```
+
+Cards paint as each frame lands — no waiting for the slowest source. The exact counts, prices, and `median_price` vary run to run because these are live listings; the point is the *streaming*, not fixed numbers.
+
+**Where the badge comes from.** The stream shows raw offers (title, price, source). The two-signal verdict is computed on the frozen snapshot and exposed at `/deal/{id}`, which is where `render_badge` runs. Ask it about the four hero-cast items and the badges are exact and reproducible:
+
+| `/deal/{id}` → | Price | deal_pct | residual_frac | fair | Badge |
+|---|---|---|---|---|---|
+| Anker Soundcore Q20i | $44.99 | +0.724 (72% under the $162.97 capture median) | +0.585 | $108.33 | **DEAL** |
+| Sony WH-1000XM5 (Costco) | $162.97 | 0.000 (at the median) | +0.428 | $285.15 | **FAIR** |
+| Bose QuietComfort 45 | $46.00 | +0.718 (72% under median) | +0.839 | $285.15 | **SUSPICIOUS** |
+| Sony WH-1000XM6 | $399.99 | −1.454 (145% above median) | −0.403 | $285.15 | **OVERPRICED** |
+
+The Anker and Bose sit at nearly the same `deal_pct` — both ~72% below the $162.97 same-query capture median. The `residual_frac` is what separates them: 0.585 for the Anker (fair $108.33, actual $44.99 — a real stretch but plausible) versus 0.839 for the Bose (fair $285.15, actual $46.00 — a tier-4 flagship at 16% of its predicted value). That crossing of *both* thresholds is what flips the badge to SUSPICIOUS. The XM5 at $162.97 sits right on its capture median (`deal_pct = 0`), residual below the suspicious line — the textbook **FAIR** case.
+
+<DealResidual />
+
+The Bose's `verdict().reason` says exactly that: *"72% under median but 84% under model fair price $285 — too far below to be real (likely refurb/mislisted)."* The badge warns; it does not accuse.
+
+**Semantic toggle.** Click "by meaning (saved)" and resubmit. In `meaning` mode the UI drops SSE and does a single `fetch("/semantic?q=…")` — pgvector nearest-neighbour over the 384-dim bge-small-en-v1.5 embeddings when `DATABASE_URL` is set, or the frozen-snapshot fallback offline. Because the embeddings encode meaning, rephrasing to "active noise reduction over-ear" still surfaces the Sony XM5/XM6 that a keyword match would miss — the semantic advantage the toggle makes tangible.
+
+---
+
+## Check it works
+
+Two invariants are testable offline: the badge mapping (a pure function) and the SSE framing (a stub source, no network).
+
+1. **The badge logic:**
+   ```bash
+   pytest tests/test_dealscore.py -v      # includes the four render_badge cases
+   ```
+   **Expect:** all four verdicts green, from the same signals the cards use:
+   ```python
+   # tests/test_dealscore.py
+   @pytest.mark.parametrize("deal_pct,residual_frac,expected", [
+       (0.724, 0.585, "DEAL"),         # Anker Q20i: 72% under median, plausible residual
+       (0.000, 0.428, "FAIR"),         # priced at the same-query median → nothing special
+       (0.718, 0.839, "SUSPICIOUS"),   # Bose QC45 $46: 72% under, but far below model fair
+       (-1.454, -0.403, "OVERPRICED"), # Sony XM6 $399.99: well above the median
+   ])
+   def test_render_badge_maps_the_two_signals(deal_pct, residual_frac, expected):
+       from dealfinder.dealscore import render_badge
+       assert render_badge(deal_pct, residual_frac) == expected
+   ```
+
+2. **The SSE framing** (`tests/test_sse.py`) monkeypatches `LIVE_SOURCES` with a stub, so it exercises the real `_stream_search` without touching the network — asserting the named `results`/`done` frames land in order:
+   ```python
+   def test_stream_emits_data_events_and_done(monkeypatch):
+       monkeypatch.setattr(serve, "LIVE_SOURCES", [_StubSource()])
+       with client.stream("GET", "/search/stream?q=noise+cancelling+headphones") as r:
+           assert r.headers["content-type"].startswith("text/event-stream")
+           body = "".join(r.iter_text())
+       assert "event: results" in body and "event: done" in body
+       assert "Sony WH-1000XM5" in body and "162.97" in body   # the stub's hero item
+   ```
+   ```bash
+   pytest tests/test_sse.py -v      # 2 passed
+   ```
+
+3. **The live stream, for real** (server on `:8000`):
+   ```bash
+   curl -sN "http://localhost:8000/search/stream?q=noise+cancelling+headphones" | head
+   ```
+   **Expect:** `event: results` frames (eBay, RapidAPI, iTunes on the free stack) followed by an `event: done` carrying `count` and `median_price`.
+
+<Callout tone="note">
+**Live vs. snapshot numbers.** The streamed cards are live listings — counts, prices, and the stream's `median_price` shift run to run. The *badges*, by contrast, are computed on the frozen snapshot (`data/snapshots/electronics-2026-07.json`) and are exact: the $162.97 figure in the badge math is the audio category's same-query **capture median**, the stable reference the DEAL/SUSPICIOUS thresholds are measured against — not the live stream's median.
+</Callout>
+
+---
+
+## What you can demo now
+
+Open the app in **live deals** mode and search **"noise cancelling headphones"**. Instead of a spinner and then a dump, cards stream in as each free source lands:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-18/sse-live-stream.png"
+  alt="The DealFinder web app streaming live offers over SSE: 45 offers from eBay, RapidAPI, and iTunes with per-source badges, painted as each source responds"
+  caption="Real capture: live offers streaming into the browser over Server-Sent Events — cards paint per source instead of blocking on the slowest one."
+  lookFor="the status line under the search box — '45 offers streamed · sources: eBay, RapidAPI, iTunes · median $37.99' — and the grid of real listings with thumbnails, prices, and a source badge on each card (eBay:Certified - Refurbished, RapidAPI:Walmart, …). Every card arrived in a separate SSE 'results' frame as that source responded; the median in the status line came from the terminal 'done' frame. This is the same FastAPI process serving the HTML, streaming the events, and (in the other modes) running the agent — no Node, no bundler, no second server."
+/>
+
+The demo line: *"I typed one query and the cards started appearing immediately, source by source, instead of waiting for the slowest one to finish. That's one FastAPI process serving the page and streaming Server-Sent Events — the browser opens a single EventSource connection, paints each `results` frame as it lands, and closes on `done`. Flip to 'by meaning' and the same box searches by embedding instead of keyword."*
+
+---
+
+## Where this goes next
+
+- **Part 19 — Dataset engineering: sampling, labeling, leakage, temporal splits** (next): zooms out from the running product to ask how you would systematically build and audit training data at scale. The web app's query logs — every term a user submits and the results they clicked — become the seed corpus for the labeling pipeline that Part 19 teaches.
+
+---
+
+*Sources: [FastAPI StaticFiles](https://fastapi.tiangolo.com/tutorial/static-files/) · [FastAPI StreamingResponse](https://fastapi.tiangolo.com/advanced/custom-response/#streamingresponse) · [MDN EventSource API](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) · [pgvector](https://github.com/pgvector/pgvector) · [fastembed bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5)*

@@ -1,0 +1,52 @@
+export const metadata = {
+  title: 'Backlot · Projects · CloudCodeTree',
+  description:
+    'A Slack-like chat app where each workspace is a complete fictional cast — a rich visual surface for Claude-driven characters.',
+  alternates: { canonical: 'https://cloudcodetree.com/projects/backlot/' },
+  openGraph: {
+    title: 'Backlot',
+    description: 'A Slack-like chat app where each workspace is a complete fictional cast — a rich visual surface for Claude-driven characters.',
+    url: 'https://cloudcodetree.com/projects/backlot/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/projects/covers/backlot.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/projects/covers/backlot.png'] },
+};
+
+<img src="/projects/covers/backlot.png" alt="Backlot" />
+
+# Backlot
+
+A Slack-like chat for fictional character workspaces. Each "company" is a
+complete cast from a show or movie — a private studio backlot where you wander
+between soundstages and talk to whoever's on set.
+
+Built because the Claude Code chat surface is text-only — markdown images, HTML
+images, and data URIs all render as nothing. Backlot puts the rich visual layer
+where it belongs: a dedicated UI with avatars, channels, and DMs.
+
+## What's in the box
+
+Two companies ship by default; more are added by dropping a directory under `companies/`:
+
+| Company | Cast |
+|---------|------|
+| **Pied Piper** | 12 characters from HBO's *Silicon Valley* — engineers, ops, sales, legal, advisors |
+| **Mutiny** | 5 characters from AMC's *Halt and Catch Fire* — Joe, Cameron, Gordon, Donna, Bos |
+
+Each workspace has its own channel list (group rooms, transcripts, per-character
+DMs), theme color, SQLite-persisted DM history scoped by company, and
+orchestrator agents — type a topic into `#pied-piper` and the room convenes.
+
+## Adding a cast
+
+A company is a directory: a `company.json` (name, tagline, colors, show), one
+markdown file per character (frontmatter + a signature line the agent registry
+parses), and matching avatar images. A file watcher picks up new directories
+live — the workspace tile just appears in the rail.
+
+## Source
+
+- [github.com/cloudcodetree/backlot](https://github.com/cloudcodetree/backlot) —
+  React client + Node server, SQLite persistence, Claude-driven agents.

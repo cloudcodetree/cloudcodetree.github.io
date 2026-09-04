@@ -1,0 +1,523 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Messy Listings Into Clean JSON (Part 6 of 37) · Tutorials',
+  description:
+    'Turn retailer-polluted electronics titles into validated ListingSpecs using a dual-path extractor: LLM primary, deterministic regex fallback, Pydantic as the gate — so the pipeline never fails and every test runs offline.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-06/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Messy Listings Into Clean JSON (Part 6 of 37)',
+    description: 'Turn retailer-polluted electronics titles into validated ListingSpecs using a dual-path extractor: LLM primary, deterministic regex fallback, Pydantic as the gate — so the pipeline never fails and every test runs offline.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-06/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-06.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-06.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-06" />
+
+# Messy Listings Into Clean JSON
+
+**TL;DR: The snapshot's `brand` field holds the retailer in 154 of 270 rows — "costco.com", "Macy's", "Kohl's", "mountainlifestyle.ca" — not the manufacturer. Fix it by extracting the true brand from the title using a dual-path extractor: an LLM as the primary path, a deterministic regex fallback for offline tests. Pydantic validates both paths into the same `ListingSpecs` shape, so a wrong-typed field (a number where a string belongs) is rejected before it poisons the price model.**
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder)
+at step tag **`step-6`**. The tests run entirely offline — no API key needed to follow along.
+</Callout>
+
+## Table of contents
+
+1. [The retailer-pollution problem](#the-retailer-pollution-problem)
+2. [The schema: ListingSpecs](#the-schema-listingspecs)
+3. [rule_extract: the deterministic path](#rule_extract-the-deterministic-path)
+4. [Why regex alone fails](#why-regex-alone-fails)
+5. [build_prompt and parse_llm_json](#build_prompt-and-parse_llm_json)
+6. [llm_extract and the degradation chain](#llm_extract-and-the-degradation-chain)
+7. [Proof: hero-cast brand-tier roundup](#proof-hero-cast-brand-tier-roundup)
+8. [Update BRAND_TIER in features.py](#update-brand_tier-in-featurespy)
+9. [Reproducibility checks](#reproducibility-checks)
+10. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Explain why 154 of 270 snapshot `brand` rows hold a retailer string and why that corrupts the price model's `brand_tier` feature.
+- Write a Pydantic `ListingSpecs` schema with electronics fields (`brand`, `category`, `condition`, `model`) and validate LLM output into it, catching wrong-typed fields before they enter the pipeline.
+- Implement `rule_extract` as a deterministic offline fallback and test it without any API key.
+- Wire `llm_extract` to an OpenAI-compatible client with a graceful degradation chain: explicit client → OpenRouter → `rule_extract`.
+- Confirm that extracted brand improves the `brand_tier` signal for real hero-cast listings.
+
+---
+
+## The retailer-pollution problem
+
+Part 1 froze `electronics-2026-07.json` — 270 real items, 18 queries, 11 categories. One thing Part 1 flagged but didn't fully solve: the `brand` field is unreliable. It holds the **retailer**, not the manufacturer, in 154 of 270 rows.
+
+You can verify this directly against the snapshot (the items live under the `"items"` key):
+
+```python
+import json
+
+with open("data/snapshots/electronics-2026-07.json") as f:
+    items = json.load(f)["items"]
+
+retailers = ["Walmart", "Target", "Costco", "Macy", "Best Buy", "Amazon",
+             "mountainlifestyle", "kohl"]
+polluted = sum(
+    1 for x in items
+    if any(r.lower() in (x.get("brand") or "").lower() for r in retailers)
+)
+print(polluted, "of", len(items))   # → 154 of 270
+```
+
+The Sony WH-1000XM5 at $162.97 — the anchor for the "noise cancelling headphones" query — has `brand="costco.com"`. A second WH-1000XM5 listing at $248.00 has `brand="Macy's"`. The Anker Soundcore Q20i, a genuine budget deal at $44.99, carries `brand="Kohl's"`; the Bose QuietComfort 45 at $46.00 carries `brand="mountainlifestyle.ca"`. Not one of those raw brand fields names the manufacturer.
+
+If Part 3's price model trusts the raw `brand` field to compute `brand_tier`, more than half the feature matrix is wrong. That is the motivation for this part.
+
+<ExtractFlow />
+
+The fix: ignore the raw `brand` field for feature engineering. Pull the true manufacturer from the `title`, where it reliably lives.
+
+---
+
+## The schema: ListingSpecs
+
+Define the contract everything downstream receives. The old tent-era schema (`capacity`, `weight_kg`, `season`) is replaced with electronics-general fields:
+
+```python
+# dealfinder/extract.py
+from pydantic import BaseModel
+
+class ListingSpecs(BaseModel):
+    brand: str | None = None
+    category: str | None = None
+    condition: str = "new"   # new / refurb / used
+    model: str | None = None
+```
+
+Four fields: three nullable strings and `condition`, a plain `str` that defaults to `"new"`. Pydantic validates the *types* on the way in — pass a number where `brand` expects a string and it raises instead of silently entering the catalog. (The condition vocabulary — `new` / `refurb` / `used` — is a convention the parser produces, not a type constraint Pydantic enforces; a stray `"maybe"` would validate as a string. Enforcing that vocabulary would take a `Literal` or validator, which this schema deliberately keeps simple.) The schema is the gate:
+
+<SchemaGate />
+
+Both `rule_extract` and `llm_extract` return a `ListingSpecs`. The caller does not need to know which path ran.
+
+---
+
+## rule_extract: the deterministic path
+
+`rule_extract` in `dealfinder/extract.py` is the offline workhorse. It delegates to three functions that already live in `features.py`:
+
+```python
+# dealfinder/extract.py
+from .features import CATEGORY_CODES, parse_condition, title_brand
+
+def rule_extract(text: str) -> ListingSpecs:
+    """Heuristic extraction — deterministic, offline, no API key required."""
+    return ListingSpecs(
+        brand=title_brand(text),
+        category=guess_category(text),
+        condition=parse_condition(text),
+        model=guess_model(text),
+    )
+```
+
+`title_brand` (from Part 1) is a greedy regex match over 61 known electronics manufacturers (`KNOWN_BRANDS` in `features.py`), longest match first, with a first-token fallback. `parse_condition` scans for condition keywords: `"Refurbished"`/`"Renewed"`/`"Recertified"`/`"Open Box"` → `"refurb"`; `"Used"`/`"Pre-Owned"` → `"used"`; otherwise `"new"` (the default). `guess_category` matches the title against the 11 snapshot category patterns. `guess_model` pulls the alphanumeric model designation — the token that carries both letters and digits (e.g. `"WH-1000XM5"`, `"Q20i"`) — excluding measurement tokens like `"512GB"` or `"13-inch"`.
+
+Verify against the hero cast — these are the exact snapshot titles:
+
+```python
+from dealfinder.extract import rule_extract
+
+cases = [
+    "Sony WH-1000XM5 Wireless Headphones",
+    "SONY WH-1000XM5 Wireless Noise-Canceling Headphones",
+    "Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones",
+    "Bose QuietComfort 45 Wireless Noise Cancelling Headphones",
+]
+
+for title in cases:
+    s = rule_extract(title)
+    print(f"brand={s.brand!r} model={s.model!r} condition={s.condition!r} category={s.category!r}")
+```
+
+```
+brand='Sony' model='WH-1000XM5' condition='new' category='audio'
+brand='Sony' model='WH-1000XM5' condition='new' category='audio'
+brand='Soundcore' model='Q20i' condition='new' category='audio'
+brand='Bose' model=None condition='new' category='audio'
+```
+
+Two details worth reading closely:
+
+The **Anker case** shows a real property of longest-match extraction: the title says "Anker Soundcore Q20i", and `title_brand` matches the longer vocabulary entry (`"Soundcore"`, Anker's audio sub-brand) before the shorter `"Anker"`. Both `Anker` and `Soundcore` map to `brand_tier` 2 in `features.py`, so the price feature is identical either way. The deterministic path reports the literal match; the tier is what the model consumes. (Don't expect `'Anker'` here — the real code returns `'Soundcore'`.)
+
+The **Bose QuietComfort 45** at $46.00 returns `model=None`: its only alphanumeric token is the bare number `"45"`, which `guess_model` skips because it has no letters. And it has no condition token in its title, so `condition` defaults to `"new"`. That is the correct reading of the title text. The listing's implausibility is caught by the **model residual** (Part 3), not by the extractor. Extraction's job is truth-from-text; deal validation is Part 3's job.
+
+<Callout tone="note">
+**Division of responsibility.** `rule_extract` returns what the title says. If the title says nothing about condition, `condition="new"` is correct. The deal-score model (Part 3) flags the Bose QC45 at $46 as SUSPICIOUS because its residual is too far below fair price — not because the extractor found "refurb". These two concerns are separated by design.
+</Callout>
+
+---
+
+## Why regex alone fails
+
+Nine snapshot titles genuinely carry no brand vocabulary match. Run `rule_extract` on two of them:
+
+```python
+for title in ["4K Display USB C Hub", "7 Inch Android 14 Tablet"]:
+    print(title, "->", rule_extract(title))
+```
+
+```
+4K Display USB C Hub -> brand=None category='displays' condition='new' model=None
+7 Inch Android 14 Tablet -> brand=None category='mobile' condition='new' model=None
+```
+
+No manufacturer. `title_brand` finds nothing in `KNOWN_BRANDS`, and the first-token fallback rejects `"4K"` and `"7"` (they don't start with a letter), so `brand` is `None` — an honest reading of a title that names no brand. Category still resolves (`displays`, `mobile`), which is more than the raw `brand` field gave.
+
+Here is the flip side, and why the fallback is imperfect rather than magic:
+
+```python
+title = "Renewed Wireless Headphones Bluetooth 5.0 - Noise Cancelling Over Ear"
+s = rule_extract(title)
+print(s.brand, s.condition)   # → Renewed refurb
+```
+
+There is no manufacturer in that title either, but `title_brand`'s first-token fallback latches onto `"Renewed"` — a capitalized word — and mislabels it as the brand. `condition` is still correctly `"refurb"`. This is exactly the kind of near-miss the LLM path is meant to catch: asked for the *true manufacturer*, a model returns `null` here instead of a condition word. The two paths are complementary — neither is perfect alone.
+
+---
+
+## build_prompt and parse_llm_json
+
+The extraction prompt names every field and its type, instructs the model to use `null` when a value is absent, and ends with "Return ONLY the JSON." Temperature 0 makes it as deterministic as the LLM can be:
+
+```python
+# dealfinder/extract.py
+def build_prompt(text: str) -> str:
+    return (
+        "Extract electronics specs from the listing as JSON with keys "
+        "brand (string|null, the true manufacturer — NOT the retailer), "
+        "category (string|null), condition (\"new\"|\"refurb\"|\"used\"), "
+        "model (string|null). Use null if absent. Return ONLY the JSON.\n\n"
+        f"Listing: {text}"
+    )
+```
+
+For the Sony XM5 listed at costco.com, the prompt receives the title, and the LLM returns:
+
+```json
+{"brand": "Sony", "category": "audio", "condition": "new", "model": "WH-1000XM5"}
+```
+
+`parse_llm_json` extracts the first JSON object from the response (tolerating prose or code fences around it) and validates into `ListingSpecs`:
+
+```python
+def parse_llm_json(raw: str) -> ListingSpecs:
+    """Validate an LLM's JSON text into the schema (raises if it doesn't fit)."""
+    m = re.search(r"\{.*\}", raw.strip(), re.S)
+    return ListingSpecs.model_validate(json.loads(m.group(0) if m else raw))
+```
+
+The `model_validate` call is the type gate:
+
+```python
+parse_llm_json('{"brand": 42, "model": "WH-1000XM5", "condition": "new"}')
+# → pydantic ValidationError: brand must be a string
+```
+
+`{"brand": 42}` raises immediately — a number can't become the `brand` string, so it never reaches the feature matrix. Note the gate is about *types*, not the condition vocabulary: `{"condition": "maybe"}` validates (it's a string), so if you need to reject off-vocabulary conditions you would tighten the field to a `Literal["new","refurb","used"]`. Here the deterministic parser only ever emits the three valid values, so the plain-`str` schema is enough.
+
+---
+
+## llm_extract and the degradation chain
+
+`llm_extract` runs three options in order, returning the same `ListingSpecs` shape from any of them:
+
+```python
+# dealfinder/extract.py
+def llm_extract(text: str, client=None) -> ListingSpecs:
+    """Extract via LLM, degrading gracefully to the deterministic extractor."""
+    if client is not None:
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini", temperature=0,
+            messages=[{"role": "user", "content": build_prompt(text)}],
+        )
+        return parse_llm_json(resp.choices[0].message.content)
+
+    if os.getenv("OPENROUTER_API_KEY"):
+        from .llm import chat
+        try:
+            raw = chat(
+                [{"role": "user", "content": build_prompt(text)}],
+                temperature=0,
+                json_mode=True,
+            )
+            return parse_llm_json(raw)
+        except Exception:
+            pass   # throttled / unavailable → fall through
+
+    return rule_extract(text)
+```
+
+<Callout tone="note">
+**Get your OpenRouter key (free, ~2 minutes).** [OpenRouter](https://openrouter.ai/) is one API in front of many LLM providers — OpenAI, Anthropic, Meta, Mistral and dozens more. You send a normal chat-completions request with a model string like `google/gemma-4-31b-it:free`, and OpenRouter routes it to that provider; swapping models is a string change, not a new SDK. That flexibility is why the course uses it for every LLM call from here on.
+1. Sign in at [openrouter.ai](https://openrouter.ai/) (Google/GitHub).
+2. Go to **Settings → Keys** ([openrouter.ai/settings/keys](https://openrouter.ai/settings/keys)) → **Create Key** → copy the `sk-or-v1-…` value.
+3. Add `OPENROUTER_API_KEY=sk-or-v1-…` to the companion's `.env`.
+
+Models tagged `:free` cost nothing (just rate-limited), and **that's all this course uses** — `llm.models()` defaults to a free-only tier (`google/gemma-4-31b-it:free` → `openai/gpt-oss-20b:free` → `openrouter/free`), so you never spend a cent. Want higher quality? Point `OPENROUTER_MODELS` at a paid model — it bills per token from a prepaid balance (a few dollars covers everything), but it's strictly opt-in. No key at all? Every lesson still runs: `llm_extract` falls through to the deterministic `rule_extract` path below.
+</Callout>
+
+With a key set, the LLM path runs and — asked for the *true manufacturer* — can normalize the sub-brand quirk the deterministic path can't. On the real snapshot titles, a capable model returns:
+
+```
+Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones
+  → brand='Anker'   model='Q20i'        condition='new'  category='audio'
+
+Bose QuietComfort 45 Wireless Noise Cancelling Headphones
+  → brand='Bose'    model='QuietComfort 45'  condition='new'  category='audio'
+```
+
+Without a key, the `rule_extract` fallback fires silently and returns the same `ListingSpecs` *type* — but the values can differ: the deterministic path reports `brand='Soundcore'` for the Anker (longest-match) and `model=None` for the Bose (`"45"` is number-only). The contract is identical; that is what makes the pipeline always return something valid. (The LLM outputs above are illustrative — they depend on the model and can't be reproduced offline. The deterministic outputs are exact and are what the tests pin.)
+
+The companion ships a runnable demo of the deterministic path over five real retailer-polluted titles:
+
+```bash
+python -m dealfinder.run_extract
+```
+
+```
+• Walmart - COWIN SE7 Active Noise Cancelling Headphones Bluetooth
+  → {"brand":"Cowin","category":"audio","condition":"new","model":"SE7"}
+• Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones
+  → {"brand":"Soundcore","category":"audio","condition":"new","model":"Q20i"}
+• Sony WH-1000XM5 Wireless Headphones
+  → {"brand":"Sony","category":"audio","condition":"new","model":"WH-1000XM5"}
+• SAMSUNG 990 PRO 2TB PCIe 4.0 NVMe M.2 Internal SSD
+  → {"brand":"Samsung","category":"storage","condition":"new","model":null}
+• Apple MacBook Air M2 (Refurbished) 13-inch Laptop
+  → {"brand":"Apple","category":"computers","condition":"refurb","model":"M2"}
+```
+
+Every "Walmart - COWIN…" / retailer prefix is discarded; the true manufacturer comes out of the title. (`run_extract` calls `rule_extract` directly — swap in `llm_extract` to route through the LLM when a client is wired in.)
+
+<Callout tone="warn">
+**The fallback swallows the exception on purpose.** A throttled or temporarily unavailable model is not a pipeline failure — the degradation chain handles it. In production (Part 30), you add Langfuse instrumentation so these silent fallbacks are visible in the observability layer. Here, the right behavior is to keep the pipeline running.
+</Callout>
+
+---
+
+## Where this is heading: schema-enforced decoding
+
+The chain you just built enforces the schema *after* generation: the model emits text, `parse_llm_json` finds the JSON, Pydantic validates or raises. The field has been moving that gate *into the decoder*: Claude's structured outputs and vLLM's grammar-constrained decoding (XGrammar) make the model constitutionally unable to emit tokens that violate the schema — invalid JSON simply cannot be sampled. When you have that available, take it; the retry-on-invalid path in this part becomes dead code. Two reasons this lesson still teaches the gate pattern anyway: not every provider or self-hosted stack offers enforcement (the fallback chain must survive all of them), and the Pydantic gate also carries *semantic* checks (Part 20's data contract) that no grammar can express — "condition must be one of new/refurb/used" is a grammar; "price must be plausible for this category" never will be.
+
+---
+
+## Proof: hero-cast brand-tier roundup
+
+Run `rule_extract` across all four hero-cast headphone titles and compare `brand_tier` before and after:
+
+```python
+from dealfinder.extract import rule_extract
+from dealfinder.features import BRAND_TIER
+
+# (title, raw retailer brand from the snapshot, price)
+hero_cast = [
+    ("Sony WH-1000XM5 Wireless Headphones",
+     "costco.com", 162.97),
+    ("SONY WH-1000XM5 Wireless Noise-Canceling Headphones",
+     "Macy's", 248.00),
+    ("Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones",
+     "Kohl's", 44.99),
+    ("Bose QuietComfort 45 Wireless Noise Cancelling Headphones",
+     "mountainlifestyle.ca", 46.00),
+]
+
+print(f"{'Title':<46} {'raw brand':<22} {'tier(raw)':<10} {'extr brand':<12} {'tier(extr)'}")
+print("-" * 100)
+for title, raw_brand, price in hero_cast:
+    tier_raw  = BRAND_TIER.get(raw_brand, 0)      # 0 = not in the map at all
+    specs     = rule_extract(title)
+    tier_extr = BRAND_TIER.get(specs.brand or "", 0)
+    print(f"{title[:45]:<46} {raw_brand:<22} {tier_raw:<10} {specs.brand or 'None':<12} {tier_extr}")
+```
+
+```
+Title                                          raw brand              tier(raw)  extr brand   tier(extr)
+----------------------------------------------------------------------------------------------------
+Sony WH-1000XM5 Wireless Headphones            costco.com             0          Sony         4
+SONY WH-1000XM5 Wireless Noise-Canceling Head  Macy's                 0          Sony         4
+Anker Soundcore Q20i Hybrid Active Noise Canc  Kohl's                 0          Soundcore    2
+Bose QuietComfort 45 Wireless Noise Cancellin  mountainlifestyle.ca   0          Bose         4
+```
+
+Every raw brand is a retailer (`costco.com`, `Macy's`, `Kohl's`, `mountainlifestyle.ca`) — none appears in `BRAND_TIER`, so a raw lookup misses entirely. After extraction, Sony and Bose land at tier 4, Soundcore (Anker's audio line) at tier 2. The model now has real brand signal where before it had none. (Above we default the display to `0` to make "not in the map" obvious; the production `brand_tier()` helper falls back to `DEFAULT_BRAND_TIER = 1` for an unknown brand.)
+
+---
+
+## Update BRAND_TIER in features.py
+
+The tier map in `dealfinder/features.py` ranks the real electronics manufacturers by the price tier they command. The map (abridged from the real file):
+
+```python
+# dealfinder/features.py
+BRAND_TIER: dict[str, int] = {
+    # tier 4 — premium flagships
+    "Apple": 4, "Sony": 4, "Bose": 4, "Sonos": 4, "Sennheiser": 4, "Garmin": 4,
+    # tier 3 — strong majors
+    "Samsung": 3, "LG": 3, "Dell": 3, "Lenovo": 3, "HP": 3, "ASUS": 3, "Acer": 3,
+    "Logitech": 3, "Razer": 3, "Beats": 3, "JBL": 3, "Marshall": 3, "Google": 3,
+    # tier 2 — value / mid brands
+    "Anker": 2, "Soundcore": 2, "JLab": 2, "Skullcandy": 2, "Keychron": 2,
+    "Cowin": 2, "SanDisk": 2, "Seagate": 2, "Amazon Basics": 2,
+    # tier 1 — house brands / no-name
+    "Onn": 1, "LINSAY": 1,
+}
+DEFAULT_BRAND_TIER = 1   # anything not in the map
+```
+
+Note `"Cowin"` is stored title-case — that's the canonical form `title_brand` returns for a "COWIN" title, so the lookup keys line up.
+
+Verify coverage of the hero cast and confirm `featurize` returns non-trivial tiers:
+
+```python
+from dealfinder.features import BRAND_TIER
+
+for name in ["Sony", "Bose", "Anker", "Apple", "Samsung"]:
+    assert name in BRAND_TIER, f"{name} missing from BRAND_TIER"
+    print(f"{name}: tier {BRAND_TIER[name]}")
+```
+
+```
+Sony: tier 4
+Bose: tier 4
+Anker: tier 2
+Apple: tier 4
+Samsung: tier 3
+```
+
+---
+
+## Reproducibility checks
+
+All tests in `tests/test_extract.py` run offline — no API key required. Pin these against the committed companion at `step-6`:
+
+```python
+# tests/test_extract.py
+import pytest
+from pydantic import ValidationError
+
+from dealfinder.extract import ListingSpecs, parse_llm_json, rule_extract
+
+
+def test_rule_extract_pulls_true_brand_from_retailer_polluted_title():
+    # The raw listing carries the retailer ("Walmart - COWIN"); the true brand
+    # must come from the title text.
+    s = rule_extract("Walmart - COWIN SE7 Active Noise Cancelling Headphones Bluetooth")
+    assert s.brand == "Cowin"
+    assert s.category == "audio"
+    assert s.condition == "new"
+
+
+def test_rule_extract_pulls_brand_category_and_model():
+    s = rule_extract("Sony WH-1000XM5 Wireless Headphones")
+    assert s.brand == "Sony"
+    assert s.category == "audio"
+    assert s.model == "WH-1000XM5"
+
+
+def test_rule_extract_parses_condition_from_title():
+    s = rule_extract("Apple MacBook Air M2 (Refurbished) 13-inch Laptop")
+    assert s.brand == "Apple"
+    assert s.category == "computers"
+    assert s.condition == "refurb"
+
+
+def test_parse_llm_json_validates_into_schema():
+    s = parse_llm_json(
+        '{"brand": "Anker", "category": "audio", "condition": "new", "model": "Q20i"}'
+    )
+    assert isinstance(s, ListingSpecs)
+    assert s.brand == "Anker" and s.model == "Q20i"
+
+
+def test_schema_rejects_wrong_types():
+    # structured output's whole point: a malformed field is caught, not ingested
+    with pytest.raises(ValidationError):
+        ListingSpecs(brand=123, category="audio", condition="new")
+```
+
+Run with:
+
+```bash
+pytest tests/test_extract.py -v
+```
+
+```
+tests/test_extract.py::test_rule_extract_pulls_true_brand_from_retailer_polluted_title PASSED
+tests/test_extract.py::test_rule_extract_pulls_brand_category_and_model PASSED
+tests/test_extract.py::test_rule_extract_parses_condition_from_title PASSED
+tests/test_extract.py::test_parse_llm_json_validates_into_schema PASSED
+tests/test_extract.py::test_schema_rejects_wrong_types PASSED
+```
+
+All five tests pass offline. Note `test_schema_rejects_wrong_types` asserts a *type* failure (`brand=123`) — the gate catches wrong types, not off-vocabulary condition strings. The LLM path (`llm_extract`) needs a live provider, so it is exercised manually rather than in the offline suite.
+
+<Callout tone="note">
+**API cost.** Each `llm_extract` call sends one prompt and receives one JSON object. At `gpt-4o-mini` rates, the four hero-cast calls shown above cost less than $0.01 combined. Temperature 0 minimizes variance; `parse_llm_json` defends against format drift across model versions. Structured-output mode (if the provider supports it) is the production hardening step — covered in Part 10 when the extractor is fine-tuned.
+</Callout>
+
+---
+
+## Check it works
+
+**What you should have now:** a dual-path extractor — `llm_extract` (primary) with a deterministic `rule_extract` fallback — that pulls the *true manufacturer* out of a retailer-polluted title and validates it into `ListingSpecs`.
+
+**Test it — reproduce the pollution count and the fix (no API key needed):**
+
+```python
+import json
+items = json.load(open("data/snapshots/electronics-2026-07.json"))["items"]
+retailers = ["Walmart","Target","Costco","Macy","Best Buy","Amazon","mountainlifestyle","kohl"]
+print(sum(1 for x in items if any(r.lower() in (x.get("brand") or "").lower() for r in retailers)), "of", len(items))
+# 154 of 270      ← the problem
+
+from dealfinder.extract import rule_extract
+rule_extract("Walmart - COWIN E7 Active Noise Cancelling Headphones").brand
+# 'Cowin'         ← the fix: retailer stripped, manufacturer recovered
+```
+
+**Test it — the unit tests:**
+
+```bash
+pytest tests/test_extract.py    # 5 passed
+```
+
+**Where it shows up in the product:** extraction has **no endpoint of its own** — its payoff is upstream data quality. The recovered `brand` feeds `brand_tier()` (Part 3), which is why the price model can tell a tier-4 Sony flagship from a budget Anker — and therefore why the search badges you saw in the browser are trustworthy. Clean input is invisible when it works; you notice it only when it's missing.
+
+---
+
+## What you can demo now
+
+Feed the extraction chain its designed-for trap — the retailer-prefixed title — and watch both paths refuse the bait:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-06/rule-vs-llm-extract.png"
+  alt="rule_extract and llm_extract both returning COWIN, not Walmart, for a poisoned title"
+  caption="Real output: the deterministic path and a live OpenRouter call on the same poisoned title."
+  lookFor="both ringed brand values read COWIN — “Walmart”, the first capitalized token and the naive answer, never lands in brand. Same typed ListingSpecs either way: that's the schema gate doing its job, and the graceful-degradation chain means no API key still returns valid data."
+/>
+
+The demo line: *"the title lies about who made the product; both extractors — a regex and a frontier model — are trained/gated not to believe it."*
+
+---
+
+## Where this goes next
+
+- **Part 7 — Live multi-source connectors:** ingests listings in real time from multiple sources. `llm_extract` runs on every new listing as it arrives, so `brand` and `condition` are clean from first ingest — the deal model has correct `brand_tier` signal immediately.
+
+---
+
+*Sources: [Pydantic](https://docs.pydantic.dev/) · [OpenAI structured outputs](https://platform.openai.com/docs/guides/structured-outputs) · [OpenRouter](https://openrouter.ai/)*

@@ -1,0 +1,365 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Observability, Cost & Ops (Part 30 of 37) · Tutorials',
+  description:
+    'Trace every request, attribute spend per model and feature with budgets and alerts (FinOps), and detect input drift with PSI so a scheduled retrain fires before deal scores quietly rot.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-30/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Observability, Cost & Ops (Part 30 of 37)',
+    description: 'Trace every request, attribute spend per model and feature with budgets and alerts (FinOps), and detect input drift with PSI so a scheduled retrain fires before deal scores quietly rot.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-30/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-30.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-30.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-30" />
+
+# Observability, Cost & Ops
+
+**TL;DR: A live AI system you can't see is a liability. Wire `CostTracker` to attribute every dollar per model, set budget thresholds that alert before the invoice surprises you, and run a population-stability index to catch query-mix drift before the Anker Q20i starts misclassifying as overpriced. All three utilities live in `dealfinder/ops.py` and are pinned in `tests/test_ops.py`.**
+
+DealFinder is Kubernetes-deployed (Part 29). This part builds the discipline that keeps it healthy and affordable in production: you'll know what every request costs, which model is burning the budget, and when the input distribution has drifted far enough from the July 2026 training snapshot to need a retrain.
+
+<Callout tone="tip">
+**Code along.** Companion repo [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder),
+step tag **step-30**. Compare against the previous step:
+`step-29...step-30`.
+</Callout>
+
+## Table of contents
+
+1. [Why observability is not optional](#why-observability-is-not-optional)
+2. [See every request: tracing with Langfuse](#see-every-request-tracing-with-langfuse)
+3. [Know what it costs: CostTracker and FinOps](#know-what-it-costs-costtracker-and-finops)
+4. [Budget thresholds and alerts: budget_status](#budget-thresholds-and-alerts-budget_status)
+5. [Catch decay: population stability index](#catch-decay-population-stability-index)
+6. [Closing the loop: drift triggers retrain](#closing-the-loop-drift-triggers-retrain)
+7. [Tests that pin the behavior](#tests-that-pin-the-behavior)
+8. [Seeing it in the product](#seeing-it-in-the-product)
+9. [What you can demo now](#what-you-can-demo-now)
+10. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Instrument DealFinder with Langfuse tracing so every tool call, token count, and latency is a span you can open — not a mystery to debug.
+- Use `CostTracker` from `dealfinder/ops.py` to attribute spend per model (`gpt-4o-mini` vs. `gpt-4o`), total across a session, and break down by model.
+- Apply `budget_status` to set thresholds (`ok` / `warn` / `over`) and wire an alert before the invoice lands.
+- Compute a population stability index (PSI) to detect when live query traffic has drifted from the July 2026 training snapshot.
+- Use `has_drifted` to fire a scheduled retrain job before the Bose QC45 / Anker Q20i separation degrades silently.
+
+---
+
+## Why observability is not optional
+
+DealFinder processes real electronics listings — Sony WH-1000XM5 at $162.97, Anker Q20i at $44.99, Bose QC45 at $46. The two-signal deal score works because the price model learned the July 2026 snapshot. That snapshot has a specific query-mix: 15 noise-cancelling-headphone results, a smattering of laptops, monitors, and peripherals. If live traffic shifts — say, display queries surge because a monitor sale trends — the model's priors go stale and the PSI on the query-category distribution crosses the drift threshold. Without observability, you won't know until users start complaining.
+
+There are three gaps to close:
+
+1. **Visibility** — you can't debug what you can't see. Every LLM call needs a trace.
+2. **Cost** — LLM bills surprise teams. Attribute spend per model before finance asks.
+3. **Drift** — the world moves; the model doesn't. PSI catches the gap before quality rots.
+
+`dealfinder/ops.py` implements utilities 2 and 3. Utility 1 is a thin Langfuse wrapper around your existing calls — the structure is the same.
+
+---
+
+## See every request: tracing with Langfuse
+
+Langfuse (or LangSmith/OpenTelemetry) records a trace per request: each tool call, token count, latency, and cost as a span. Wrap every LLM call and every run is inspectable:
+
+```python
+import langfuse
+from langfuse.decorators import observe
+
+lf = langfuse.Langfuse()
+
+@observe()
+def score_deal(product_id: str) -> dict:
+    # Every nested LLM call inside here becomes a child span.
+    # Token counts, latency, and model appear in the Langfuse UI automatically.
+    ...
+```
+
+The `@observe()` decorator is the entire instrumentation cost. Each slow or wrong answer becomes a span you can open, filtered by `product_id` or `model`. You don't need to change the logic — just wrap it.
+
+<Callout tone="note">
+Langfuse is self-hostable (Docker Compose, no vendor lock-in) or available as a managed cloud. For local dev, `LANGFUSE_SECRET_KEY` and `LANGFUSE_PUBLIC_KEY` in `.env` are the only config required. Traces flow to `http://localhost:3000` when running locally.
+</Callout>
+
+---
+
+## Know what it costs: CostTracker and FinOps
+
+Tracing shows you latency; `CostTracker` shows you spend. Every LLM call has an input token count and an output token count. Multiply by the model rate and accumulate — that's the FinOps view.
+
+`dealfinder/ops.py` defines the prices and the tracker:
+
+```python
+# dealfinder/ops.py
+
+PRICES = {
+    "gpt-4o-mini": (0.15, 0.60),   # ($/1M input, $/1M output)
+    "gpt-4o":      (2.50, 10.0),
+}
+
+class CostTracker:
+    def __init__(self) -> None:
+        self.calls: list[dict] = []
+
+    def record(self, model: str, in_tok: int, out_tok: int) -> float:
+        p_in, p_out = PRICES[model]
+        cost = (in_tok * p_in + out_tok * p_out) / 1e6
+        self.calls.append({"model": model, "cost": cost, "in": in_tok, "out": out_tok})
+        return cost
+
+    def total(self) -> float:
+        return sum(c["cost"] for c in self.calls)
+
+    def by_model(self) -> dict[str, float]:
+        out: dict[str, float] = {}
+        for c in self.calls:
+            out[c["model"]] = out.get(c["model"], 0.0) + c["cost"]
+        return out
+```
+
+Walk through a real session against the hero cast. The extraction step (structured title parsing for the Sony WH-1000XM5 listing) uses `gpt-4o`. Deal scoring uses `gpt-4o-mini`. Run this:
+
+```python
+from dealfinder.ops import CostTracker
+
+tracker = CostTracker()
+
+# Deal scoring: gpt-4o-mini, 1000 input tokens, 500 output tokens
+c1 = tracker.record("gpt-4o-mini", 1000, 500)
+print(f"gpt-4o-mini call: ${c1:.5f}")   # 0.00045
+
+# Extraction: gpt-4o, 1000 input, 0 output (structured parse, cached completion)
+c2 = tracker.record("gpt-4o", 1000, 0)
+print(f"gpt-4o call:      ${c2:.5f}")   # 0.0025
+
+print(f"session total:    ${tracker.total():.5f}")   # 0.00295
+print(f"by model: {tracker.by_model()}")
+```
+
+Real output:
+
+```
+gpt-4o-mini call: $0.00045
+gpt-4o call:      $0.00250
+session total:    $0.00295
+by model: {'gpt-4o-mini': 0.00045, 'gpt-4o': 0.0025}
+```
+
+A single session costs less than half a cent. At scale — say 10,000 listings scored per day — that's $29.50/day. `by_model` tells you immediately that `gpt-4o` (extraction) is driving 85% of the cost, which is the actionable signal: cache extraction results, batch calls, or route simpler extractions to `gpt-4o-mini`.
+
+<CostDashboard />
+
+---
+
+## Budget thresholds and alerts: budget_status
+
+`CostTracker.total()` gives you the running spend. `budget_status` maps it to an alert level:
+
+```python
+# dealfinder/ops.py
+
+def budget_status(spent: float, budget: float) -> str:
+    frac = spent / budget
+    return "ok" if frac < 0.8 else ("warn" if frac < 1.0 else "over")
+```
+
+Three thresholds, three outcomes:
+
+```python
+from dealfinder.ops import budget_status
+
+budget_status(0.50, 1.0)   # → 'ok'    (50% spent)
+budget_status(0.85, 1.0)   # → 'warn'  (85% spent — alert fires)
+budget_status(1.20, 1.0)   # → 'over'  (20% over budget)
+```
+
+Wire this into your monitoring loop — a cron job, a Prefect task, or a Grafana alert rule that calls `/healthz` and checks the cost total — and `warn` pages before the invoice arrives. `over` means you've already overrun; `warn` is the actionable window.
+
+Cost attribution answers "which feature is burning the budget?" Once you know it's `gpt-4o` extraction, you have three levers: cache it (a `SemanticCache` with threshold 0.95 already exists in `dealfinder/cache.py`), shrink the model to `gpt-4o-mini` for low-complexity titles, or batch calls to reduce per-request overhead.
+
+---
+
+## Catch decay: population stability index
+
+A model trained on the July 2026 snapshot learned a specific distribution: 15 noise-cancelling-headphone results dominated the "noise cancelling headphones" query, and audio was the plurality category. If live traffic shifts — say, display and laptop queries surge because a back-to-school sale trends — the price model's assumptions go stale. The Anker Q20i's residual score was computed against audio-category peers; compare it against a display-skewed distribution and the fair-price estimate drifts.
+
+The population stability index (PSI) catches this. It compares two distributions and returns a scalar: 0.0 means identical, above 0.2 is conventionally significant drift.
+
+```python
+# dealfinder/ops.py
+
+import numpy as np
+
+def population_stability_index(ref, cur) -> float:
+    """PSI between two distributions. Rule of thumb: >0.2 = significant drift."""
+    ref = np.asarray(ref, dtype=float)
+    cur = np.asarray(cur, dtype=float)
+    ref = np.clip(ref / ref.sum(), 1e-6, None)
+    cur = np.clip(cur / cur.sum(), 1e-6, None)
+    return float(np.sum((cur - ref) * np.log(cur / ref)))
+
+def has_drifted(ref, cur, threshold: float = 0.2) -> bool:
+    return population_stability_index(ref, cur) >= threshold
+```
+
+Run it against three scenarios drawn from the snapshot query-category distribution:
+
+```python
+from dealfinder.ops import population_stability_index, has_drifted
+
+# Scenario 1: identical distributions — no drift
+psi_identical = population_stability_index([50, 30, 20], [50, 30, 20])
+print(f"identical: PSI = {psi_identical:.1f}")          # 0.0
+
+# Scenario 2: tiny shift — noise, not signal
+psi_tiny = population_stability_index([50, 30, 20], [49, 31, 20])
+print(f"tiny shift: PSI ≈ {psi_tiny:.5f}")              # 0.00053
+print(f"has_drifted: {has_drifted([50,30,20],[49,31,20])}")   # False
+
+# Scenario 3: display queries surge (audio collapses from 50% to 10%)
+psi_big = population_stability_index([50, 30, 20], [10, 30, 60])
+print(f"big shift: PSI ≈ {psi_big:.5f}")                # 1.08322
+print(f"has_drifted: {has_drifted([50,30,20],[10,30,60])}")   # True
+```
+
+Real output:
+
+```
+identical: PSI = 0.0
+tiny shift: PSI ≈ 0.00053
+has_drifted: False
+big shift: PSI ≈ 1.08322
+has_drifted: True
+```
+
+The third scenario — audio queries collapsing from 50% to 10% of traffic — produces PSI ≈ 1.08, eleven times over the 0.2 threshold. That is the signal to retrain.
+
+Worth unpacking that 1.08 by hand once, because the formula is just a per-bin sum of `(cur − ref) · ln(cur / ref)`:
+
+```text
+audio     0.50 → 0.10    (−0.40) · ln(0.10/0.50) = (−0.40)·(−1.609) = +0.644
+periph    0.30 → 0.30    ( 0.00) · ln(1.00)      =                     0
+displays  0.20 → 0.60    (+0.40) · ln(0.60/0.20) = (+0.40)·(+1.099) = +0.439
+                                                              PSI   =  1.083
+```
+
+Notice every term is non-negative: a bin that grew has both factors positive; a bin that shrank has both negative. Movement in *either* direction adds drift, so nothing cancels — PSI reads zero only when the mix genuinely hasn't moved. (The `np.clip(…, 1e-6, …)` guards the `ln` against empty bins.)
+
+<DriftMonitor />
+
+---
+
+## Closing the loop: drift triggers retrain
+
+`has_drifted` returns a boolean. Wiring it to action is the MLOps loop: a scheduled job (Prefect task, cron, or Kubernetes CronJob) computes PSI weekly against the training baseline, and when it trips:
+
+1. Snapshot the current live distribution.
+2. Kick off the retrain pipeline (Part 24's `eval gate → canary` pattern).
+3. Promote the new model only if `precision@5 >= 0.80` on the golden set.
+4. Reset the PSI baseline to the new snapshot.
+
+```python
+# example: ops monitoring task (Prefect/cron)
+from dealfinder.ops import has_drifted
+from dealfinder.evals import evaluate, load_golden
+
+# Collect this week's query-category bucket counts from your metrics store
+live_dist = get_weekly_category_distribution()  # [audio_pct, peripherals_pct, displays_pct, ...]
+
+# Compare to the pinned training baseline
+if has_drifted(TRAINING_BASELINE, live_dist):
+    trigger_retrain()   # kick off your CI/CD retrain job
+```
+
+The gate that protects promotion is the same `precision@5 >= 0.80` eval gate from Part 23: `two_signal` precision@5 = 1.00 on the 20-item golden set; `median_only` = 0.40. A retrained model that can't beat 0.80 doesn't get promoted.
+
+<Callout tone="warn">
+PSI measures query-distribution drift. It does not detect label drift (users changing what counts as a "deal") or concept drift (prices inflating category-wide). Those need a separate evaluation pass — run `evaluate(two_signal_ranker)` against the golden set on a schedule and alert if `precision@5` falls below 0.80 before PSI would have caught it.
+</Callout>
+
+---
+
+## Tests that pin the behavior
+
+`tests/test_ops.py` pins all three utilities against real outputs from `dealfinder/ops.py`:
+
+```python
+# tests/test_ops.py (real file — run with: pytest tests/test_ops.py -v)
+
+def test_cost_tracker_attributes_by_model():
+    tracker = CostTracker()
+    tracker.record("gpt-4o-mini", 1000, 500)
+    tracker.record("gpt-4o", 1000, 0)
+    assert abs(tracker.total() - 0.00295) < 1e-6
+    assert abs(tracker.by_model()["gpt-4o-mini"] - 0.00045) < 1e-6
+    assert abs(tracker.by_model()["gpt-4o"] - 0.0025) < 1e-6
+
+def test_budget_status_thresholds():
+    assert budget_status(0.5, 1.0) == "ok"
+    assert budget_status(0.85, 1.0) == "warn"
+    assert budget_status(1.2, 1.0) == "over"
+
+def test_drift_detection():
+    assert population_stability_index([50, 30, 20], [50, 30, 20]) == 0.0
+    assert not has_drifted([50, 30, 20], [49, 31, 20])  # tiny shift — no drift
+    assert has_drifted([50, 30, 20], [10, 30, 60])      # big shift — drift
+```
+
+Run them:
+
+```bash
+pytest tests/test_ops.py -v
+```
+
+All three pass against the committed `dealfinder/ops.py`. These tests are the contract: if a refactor changes cost accounting or a drift-threshold tweak accidentally breaks PSI normalization, the suite catches it before it ships.
+
+---
+
+## Seeing it in the product
+
+Cost and drift are exactly the things that stay invisible until they hurt — so the app surfaces them. An **`/ops`** endpoint (`serve.py`) runs the canonical FinOps + drift examples through `ops.py` and returns them; the static UI adds an **"ops (cost)"** mode that renders the three utilities on one screen:
+
+```python
+@app.get("/ops")
+def ops_report():
+    t = ops.CostTracker(); t.record("gpt-4o-mini", 1000, 500); t.record("gpt-4o", 1000, 0)
+    return {"cost": {"total": t.total(), "by_model": t.by_model()},
+            "budget": {str(s): ops.budget_status(s, 1.0) for s in (0.5, 0.85, 1.2)},
+            "drift": {name: {"psi": ..., "drifted": ...} for name, cur in scenarios.items()}}
+```
+
+It is query-independent. Each figure is a real `ops.py` output: the per-model spend split, the ok/warn/over thresholds, and the PSI values for identical/tiny/big query-mix shifts. The numbers are the same ones `tests/test_ops.py` pins.
+
+---
+
+## What you can demo now
+
+Open the app, pick **"ops (cost)"**, and hit Search (the box is ignored — the utilities run on fixed examples). The three ops disciplines report at once:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-30/ops-dashboard.png"
+  alt="The DealFinder ops dashboard: per-model cost attribution (gpt-4o 85% of spend), budget thresholds (ok/warn/over), and PSI drift scenarios (identical and tiny hold, big triggers retrain)"
+  caption="Real capture: the three ops.py utilities — FinOps cost attribution, budget alert thresholds, and PSI drift detection — on one screen."
+  lookFor="three sections. FinOps: a $0.00045 gpt-4o-mini call and a $0.00250 gpt-4o call, session total $0.00295 — gpt-4o (extraction) driving 85% of spend, the actionable signal. Budget: the three thresholds against a $1 budget — 50% → ok, 85% → warn (the window that pages before the invoice), 120% → over. And PSI drift: an identical distribution reads 0 (hold), a tiny shift reads 0.00053 (hold), but audio queries collapsing from 50% to 10% of traffic reads 1.08322 — 5× the 0.2 threshold — flagged ✗ DRIFT — retrain. That's the loop that fires a retrain before the Anker Q20i quietly starts misclassifying."
+/>
+
+The demo line: *"A live AI system you can't see is a liability, so this is the three things you have to watch. What every model costs — here gpt-4o extraction is 85% of the bill, which tells me exactly what to cache. Whether I'm about to blow the budget — warn fires at 85%, before the invoice. And whether the world has drifted from what the model learned — a big shift in the query mix reads PSI 1.08, five times the threshold, and trips a retrain before deal scores rot. Cost, budget, drift — all measured, all tested."*
+
+---
+
+## Where this goes next
+
+- **Part 31 — The web front end:** the React/Next.js search UI that surfaces DEAL/FAIR/SUSPICIOUS/OVERPRICED badges to users — the front-end layer where all this infrastructure becomes visible to the people it's for.
+
+---
+
+*Sources: [Langfuse](https://langfuse.com/) · [EvidentlyAI PSI](https://www.evidentlyai.com/) · [FinOps Foundation](https://www.finops.org/) · [Google MLOps](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning)*

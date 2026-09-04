@@ -8,6 +8,9 @@ import { motion } from 'framer-motion';
 import { SERIF, MONO, ACCENT, LINK, formatLongDate } from './blogShared';
 import type { Tutorial } from '../tutorials/manifest';
 import { seriesTotal } from '../tutorials/manifest';
+import SeriesCarouselCard from './SeriesCarouselCard';
+import { Corners } from './Blueprint';
+import CourseHomeCard from './CourseHomeCard';
 
 type View = 'cards' | 'list';
 const VIEWS: View[] = ['cards', 'list'];
@@ -17,27 +20,54 @@ const border = '1px solid rgba(148,163,184,0.12)';
 const clamp = (n: number) => ({ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: n, overflow: 'hidden' } as const);
 const topicTags = (t: Tutorial) => t.tags.filter((x) => x.toLowerCase() !== 'ai' && x.toLowerCase() !== 'tutorial');
 
-export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) {
+export default function TutorialsList({ tutorials, variant = 'series' }: { tutorials: Tutorial[]; variant?: 'series' | 'all' }) {
   const [view, setView] = useState<View>('cards');
   const [size, setSize] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<string[]>([]);
+  const [seriesFilter, setSeriesFilter] = useState<string | null>(null);
 
   useEffect(() => {
     const v = window.localStorage.getItem('tut-view') as View | null;
     if (v && VIEWS.includes(v)) setView(v);
   }, []);
 
+  // On the /all page, ?series= scopes the grid to a single course (client-only
+  // read so it stays static-export-safe without a Suspense boundary).
+  useEffect(() => {
+    if (variant !== 'all') return;
+    const s = new URLSearchParams(window.location.search).get('series');
+    if (s) setSeriesFilter(s);
+  }, [variant]);
+
+  const base = useMemo(
+    () => (seriesFilter ? tutorials.filter((t) => t.series === seriesFilter) : tutorials),
+    [tutorials, seriesFilter],
+  );
+
   const topics = useMemo(() => {
     const c: Record<string, number> = {};
-    for (const t of tutorials) for (const tag of topicTags(t)) c[tag] = (c[tag] || 0) + 1;
+    for (const t of base) for (const tag of topicTags(t)) c[tag] = (c[tag] || 0) + 1;
     return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count }));
-  }, [tutorials]);
+  }, [base]);
 
   const filtered = useMemo(
-    () => (selected.length ? tutorials.filter((t) => t.tags.some((x) => selected.includes(x))) : tutorials),
-    [tutorials, selected],
+    () => (selected.length ? base.filter((t) => t.tags.some((x) => selected.includes(x))) : base),
+    [base, selected],
   );
+
+  // Group the (filtered) tutorials by series, parts ascending, series ordered by
+  // their newest part — for the rolled-up carousel view.
+  const seriesGroups = useMemo(() => {
+    const m = new Map<string, Tutorial[]>();
+    for (const t of filtered) {
+      const arr = m.get(t.series);
+      if (arr) arr.push(t); else m.set(t.series, [t]);
+    }
+    return Array.from(m.entries())
+      .map(([series, parts]) => ({ series, parts: [...parts].sort((a, b) => a.part - b.part) }))
+      .sort((a, b) => Math.max(...b.parts.map((p) => p.order)) - Math.max(...a.parts.map((p) => p.order)));
+  }, [filtered]);
 
   const pageSize = size ?? PAGE_DEFAULT[view];
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -51,9 +81,36 @@ export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) 
   const Pills = ({ t }: { t: Tutorial }) => (
     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
       {topicTags(t).slice(0, 3).map((tag) => (
-        <Chip key={tag} label={tag} size="small" sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(63,185,80,0.1)', color: ACCENT, border: '1px solid rgba(63,185,80,0.25)' }} />
+        <Chip key={tag} label={tag} size="small" sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(255,178,77,0.08)', color: '#ffb24d', border: '1px solid rgba(255,178,77,0.3)' }} />
       ))}
     </Box>
+  );
+
+  // The flagship (largest) course gets the explainer "home" card up top, and is
+  // its ONLY card — no duplicate carousel. When a topic filter hides the home
+  // card, the flagship falls back to a carousel like the rest.
+  const flagship = seriesGroups.find((g) => g.parts.length > 10) ?? null;
+  const showHome = !!flagship && selected.length === 0;
+  const carouselGroups = showHome ? seriesGroups.filter((g) => g.series !== flagship!.series) : seriesGroups;
+
+  // The newest tutorial or course (highest order) is featured full-width; the
+  // rest are 2-up. seriesGroups is sorted newest-first, so [0] is the latest.
+  // Any new tutorial/course you add automatically takes the full-width hero.
+  const newestName = seriesGroups[0]?.series;
+
+  const seriesCards = (
+    <Grid container spacing={3}>
+      {carouselGroups.map(({ series, parts }) => {
+        const feat = series === newestName;
+        return (
+          <Grid size={{ xs: 12, sm: feat ? 12 : 6 }} key={series}>
+            <Box component={motion.div} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} sx={{ height: '100%' }}>
+              <SeriesCarouselCard series={series} parts={parts} featured={feat} />
+            </Box>
+          </Grid>
+        );
+      })}
+    </Grid>
   );
 
   const cards = (
@@ -61,7 +118,8 @@ export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) 
       {shown.map((t, i) => (
         <Grid size={{ xs: 12, sm: 6 }} key={t.slug}>
           <Box component={motion.div} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.4) }}
-            sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, border, overflow: 'hidden', background: 'rgba(148,163,184,0.03)', transition: 'border-color .2s, transform .2s', '&:hover': { borderColor: 'rgba(63,185,80,0.4)', transform: 'translateY(-2px)' } }}>
+            sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 0, border, position: 'relative', background: 'transparent', transition: 'border-color .2s, transform .2s', '&:hover': { borderColor: 'rgba(148,188,227,0.55)', transform: 'translateY(-2px)' } }}>
+            <Corners />
             {t.image && (
               <Box component={Link} href={`/tutorials/${t.slug}/`} sx={{ display: 'block' }}>
                 <Box component="img" src={t.image} alt={t.title} loading="lazy" sx={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
@@ -99,28 +157,43 @@ export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) 
     </Box>
   );
 
+  const isSeries = variant === 'series';
+
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 9 } }}>
       <Box component={motion.div} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} sx={{ mb: { xs: 4, md: 6 } }}>
         <Typography sx={{ fontFamily: MONO, color: ACCENT, fontSize: 12, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', mb: 1.5 }}>CloudCodeTree&nbsp;·&nbsp;Learn</Typography>
-        <Typography component="h1" sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '3rem', md: '4.75rem' }, lineHeight: 0.95, letterSpacing: '-0.02em', m: 0, background: 'linear-gradient(180deg,#fff 0%,#cbd5e1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tutorials</Typography>
+        <Typography component="h1" sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '3rem', md: '4.75rem' }, lineHeight: 0.95, letterSpacing: '-0.02em', m: 0, background: 'linear-gradient(180deg,#fff 0%,#cbd5e1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{isSeries ? 'Tutorials' : (seriesFilter ?? 'All tutorials')}</Typography>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mt: 2.5, flexWrap: 'wrap' }}>
           <Box sx={{ height: 2, width: 56, background: ACCENT, alignSelf: 'center' }} />
-          <Typography sx={{ color: 'text.secondary', fontSize: { xs: '1rem', md: '1.12rem' }, maxWidth: 600 }}>Hands-on, hand-written guides to building and customizing AI — separate from the daily AI News feed.</Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: { xs: '1rem', md: '1.12rem' }, maxWidth: 600 }}>
+            {isSeries
+              ? 'Hands-on, hand-written courses — each series rolled into one card you can flip through, part by part.'
+              : seriesFilter ? `All ${filtered.length} parts of this course, in order. ` : 'Every tutorial as an individual card. '}
+            {!isSeries && <Typography component={Link} href={seriesFilter ? '/tutorials/all/' : '/tutorials/'} sx={{ color: ACCENT, textDecoration: 'none', fontFamily: MONO, fontSize: 14, '&:hover': { color: LINK } }}>{seriesFilter ? '← All tutorials' : '← Back to series'}</Typography>}
+          </Typography>
         </Box>
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: { xs: 2, md: 3 }, flexWrap: 'wrap' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
-          <Select value={pageSize} onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }} size="small" sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(148,163,184,0.2)' }, '.MuiSvgIcon-root': { color: 'text.secondary' } }}>
-            {PAGE_OPTIONS.map((n) => <MenuItem key={n} value={n} sx={{ fontFamily: MONO, fontSize: 12 }}>{n}</MenuItem>)}
-          </Select>
-        </Box>
-        <ToggleButtonGroup value={view} exclusive size="small" onChange={(_, v) => chooseView(v)} aria-label="Choose layout" sx={{ '& .MuiToggleButton-root': { color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)', px: 1.25 }, '& .Mui-selected': { color: `${ACCENT} !important`, background: 'rgba(63,185,80,0.12) !important' } }}>
-          <ToggleButton value="cards" aria-label="Cards"><GridView fontSize="small" /></ToggleButton>
-          <ToggleButton value="list" aria-label="Compact list"><ViewList fontSize="small" /></ToggleButton>
-        </ToggleButtonGroup>
+        {isSeries ? (
+          <Typography component={Link} href="/tutorials/all/" sx={{ fontFamily: MONO, fontSize: 13, color: ACCENT, textDecoration: 'none', border: '1px solid rgba(148,188,227,0.3)', borderRadius: 1, px: 1.5, py: 0.75, '&:hover': { background: 'rgba(148,188,227,0.1)', color: LINK } }}>
+            {`See all ${tutorials.length} tutorials →`}
+          </Typography>
+        ) : (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
+            <Select value={pageSize} inputProps={{ 'aria-label': 'Posts per page' }} onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }} size="small" sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(148,163,184,0.2)' }, '.MuiSvgIcon-root': { color: 'text.secondary' } }}>
+              {PAGE_OPTIONS.map((n) => <MenuItem key={n} value={n} sx={{ fontFamily: MONO, fontSize: 12 }}>{n}</MenuItem>)}
+            </Select>
+          </Box>
+        )}
+        {!isSeries && (
+          <ToggleButtonGroup value={view} exclusive size="small" onChange={(_, v) => chooseView(v)} aria-label="Choose layout" sx={{ '& .MuiToggleButton-root': { color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)', px: 1.25 }, '& .Mui-selected': { color: `${ACCENT} !important`, background: 'rgba(148,188,227,0.12) !important' } }}>
+            <ToggleButton value="cards" aria-label="Cards"><GridView fontSize="small" /></ToggleButton>
+            <ToggleButton value="list" aria-label="Compact list"><ViewList fontSize="small" /></ToggleButton>
+          </ToggleButtonGroup>
+        )}
       </Box>
 
       {topics.length > 0 && (
@@ -128,7 +201,7 @@ export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) 
           <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', mr: 0.5 }}>Topics</Typography>
           {topics.map(({ tag, count }) => {
             const on = selected.includes(tag);
-            return <Chip key={tag} label={`${tag} ${count}`} size="small" onClick={() => toggle(tag)} sx={{ fontFamily: MONO, fontSize: 11, cursor: 'pointer', color: on ? '#0d1117' : 'text.secondary', background: on ? ACCENT : 'transparent', border: '1px solid', borderColor: on ? ACCENT : 'rgba(148,163,184,0.25)', '& .MuiChip-label': { px: 1 }, '&:hover': { background: on ? ACCENT : 'rgba(63,185,80,0.12)' } }} />;
+            return <Chip key={tag} label={`${tag} ${count}`} size="small" onClick={() => toggle(tag)} sx={{ fontFamily: MONO, fontSize: 11, cursor: 'pointer', color: on ? '#1d1f20' : 'text.secondary', background: on ? ACCENT : 'transparent', border: '1px solid', borderColor: on ? ACCENT : 'rgba(148,163,184,0.25)', '& .MuiChip-label': { px: 1 }, '&:hover': { background: on ? ACCENT : 'rgba(148,188,227,0.12)' } }} />;
           })}
           {selected.length > 0 && <Chip label="Clear" size="small" onClick={() => { setSelected([]); setPage(1); }} sx={{ fontFamily: MONO, fontSize: 11, cursor: 'pointer', color: ACCENT, background: 'transparent', border: '1px solid', borderColor: ACCENT, '& .MuiChip-label': { px: 1 } }} />}
         </Box>
@@ -136,12 +209,17 @@ export default function TutorialsList({ tutorials }: { tutorials: Tutorial[] }) 
 
       {filtered.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10 }}><Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>{'// no tutorials yet'}</Typography></Box>
+      ) : isSeries ? (
+        <>
+          {showHome && <CourseHomeCard parts={flagship!.parts} allHref={`/tutorials/all/?series=${encodeURIComponent(flagship!.series)}`} />}
+          {seriesCards}
+        </>
       ) : (
         <>
           {view === 'cards' ? cards : list}
           {pageCount > 1 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
-              <Pagination count={pageCount} page={safePage} onChange={(_, v) => { setPage(v); window.scrollTo({ top: 0, behavior: 'smooth' }); }} shape="rounded" sx={{ '& .MuiPaginationItem-root': { fontFamily: MONO, color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)' }, '& .Mui-selected': { background: `${ACCENT} !important`, color: '#0d1117', borderColor: ACCENT } }} />
+              <Pagination count={pageCount} page={safePage} onChange={(_, v) => { setPage(v); window.scrollTo({ top: 0, behavior: 'smooth' }); }} shape="rounded" sx={{ '& .MuiPaginationItem-root': { fontFamily: MONO, color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)' }, '& .Mui-selected': { background: `${ACCENT} !important`, color: '#1d1f20', borderColor: ACCENT } }} />
             </Box>
           )}
         </>

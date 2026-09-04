@@ -1,0 +1,43 @@
+export const metadata = {
+  title: 'Desktop Navigator · Projects · CloudCodeTree',
+  description:
+    'Native macOS menu bar utility for switching Mission Control Spaces, launching Mission Control, and capturing screenshots.',
+  alternates: { canonical: 'https://cloudcodetree.com/projects/mac-desktop-navigator/' },
+  openGraph: {
+    title: 'Desktop Navigator',
+    description: 'Native macOS menu bar utility for switching Mission Control Spaces, launching Mission Control, and capturing screenshots.',
+    url: 'https://cloudcodetree.com/projects/mac-desktop-navigator/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/projects/covers/mac-desktop-navigator.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/projects/covers/mac-desktop-navigator.png'] },
+};
+
+<img src="/projects/covers/mac-desktop-navigator.png" alt="Desktop Navigator" />
+
+# Desktop Navigator
+
+A native macOS menu bar utility for switching between Mission Control Spaces,
+launching Mission Control, and capturing screenshots — one unobtrusive row of
+icons in the menu bar.
+
+## Features
+
+- **Clickable rectangles** — one per desktop, the current one filled; click to switch
+- **Screenshot button** — starts macOS's selectable-area capture, straight to the clipboard
+- **Mission Control button** — opens the overview
+- **Auto-heal** — add desktops and the rectangles + shortcuts appear automatically
+- **Auto-launch** — runs at login via a `launchd` LaunchAgent
+
+## How it works
+
+Pure Swift against AppKit. Switching synthesizes the `Ctrl+N` keystroke (which
+is why macOS asks for Accessibility permission once). The install script
+builds a release binary, assembles and signs a `.app` bundle — creating a
+self-signed identity if you don't have a Developer ID — and registers the
+LaunchAgent.
+
+## Source
+
+- [github.com/cloudcodetree/mac-desktop-navigator](https://github.com/cloudcodetree/mac-desktop-navigator)

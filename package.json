@@ -21,12 +21,19 @@
   "scripts": {
     "dev": "node scripts/generate-feeds.mjs && next dev",
     "feeds": "node scripts/generate-feeds.mjs",
-    "prebuild": "node scripts/generate-feeds.mjs",
+    "prebuild": "node scripts/apply-drafts.mjs && node scripts/generate-feeds.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "predeploy": "pnpm run build",
     "deploy": "gh-pages -d out --dotfiles",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck:worker": "tsc -p worker/tsconfig.json",
+    "build:staging": "SITE_ORIGIN= pnpm run build && node scripts/fetch-demo-artifacts.mjs && node scripts/mark-staging-build.mjs out",
+    "link-projects": "node scripts/link-projects.mjs",
+    "deploy:staging": "node scripts/assert-variant.mjs staging && wrangler deploy --env staging",
+    "deploy:prod": "node scripts/assert-variant.mjs production && wrangler deploy",
     "dev:turbo": "node scripts/generate-feeds.mjs && next dev --turbo"
   },
   "dependencies": {
@@ -40,21 +47,26 @@
     "@mui/lab": "7.0.0-beta.15",
     "@mui/material": "^7.3.0",
     "@mui/system": "^7.3.0",
-    "@next/mdx": "^16.2.9",
+    "@next/mdx": "^15.5.19",
+    "@supabase/supabase-js": "^2.112.3",
     "@tailwindcss/typography": "^0.5.16",
     "@types/mdx": "^2.0.14",
     "autoprefixer": "^10.5.0",
     "framer-motion": "^12.40.0",
+    "jose": "^6.2.9",
     "jszip": "^3.10.1",
     "next": "^15.5.19",
     "postcss": "^8.5.15",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1",
+    "shiki": "^4.3.1",
     "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260819.1",
     "@types/node": "^20.0.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
@@ -62,13 +74,18 @@
     "eslint-config-next": "^15.1.6",
     "fast-xml-parser": "^5.8.0",
     "gh-pages": "^6.3.0",
+    "pg": "^8.23.0",
     "sharp": "^0.35.0",
-    "typescript": "~5.8.3"
+    "typescript": "~5.8.3",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.124.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "esbuild",
       "sharp",
-      "unrs-resolver"
+      "unrs-resolver",
+      "workerd"
     ]
   }
 }

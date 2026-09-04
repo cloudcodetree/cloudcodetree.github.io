@@ -1,0 +1,479 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Containerize and Ship It (Part 28 of 37) · Tutorials',
+  description:
+    'Package DealFinder in a Docker image that runs identically everywhere, wire GitHub Actions CI to test → eval-gate → build → deploy on every push to main, and define the local two-container stack in Terraform so infra is code too.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-28/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Containerize and Ship It (Part 28 of 37)',
+    description: 'Package DealFinder in a Docker image that runs identically everywhere, wire GitHub Actions CI to test → eval-gate → build → deploy on every push to main, and define the local two-container stack in Terraform so infra is code too.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-28/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-28.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-28.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-28" />
+
+# Containerize and Ship It
+
+**TL;DR: Package DealFinder in a single Docker image so the bytes that pass CI are the exact bytes that run in production. Wire GitHub Actions to enforce the Part 23 eval gate — a precision@5 regression blocks the build before it can ship. Define the full local stack (pgvector + app) in Terraform so your infrastructure is as reviewable and reproducible as your code.**
+
+You have a tested FastAPI service (Part 26) with a benchmarked inference stack (Part 27). Deployment is the layer that closes the loop: push to `main`, code runs in production, automatically, only when both tests and the eval gate pass. That constraint — quality regression = no deploy — is what keeps the Anker Q20i classified as `DEAL` and the Bose QC45 as `SUSPICIOUS` in prod, not just in your local test run.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Step tag for this part: `step-28` (Dockerfile + CI + Terraform local stack).
+Compare to `step-27`:
+`github.com/cloudcodetree/tutorial-dealfinder/compare/step-27...step-28`
+</Callout>
+
+## Table of contents
+
+1. [Build once, run anywhere](#build-once-run-anywhere)
+2. [The Dockerfile](#the-dockerfile)
+3. [The three tests that keep config honest](#the-three-tests-that-keep-config-honest)
+4. [CI: test → eval gate → deploy](#ci-test--eval-gate--deploy)
+5. [The eval gate in CI](#the-eval-gate-in-ci)
+6. [Deploy config: health check and auto-deploy](#deploy-config-health-check-and-auto-deploy)
+7. [Terraform: infrastructure as code for the full local stack](#terraform-infrastructure-as-code-for-the-full-local-stack)
+8. [Run the full stack locally with Terraform](#run-the-full-stack-locally-with-terraform)
+9. [What this part proves](#what-this-part-proves)
+10. [What you can demo now](#what-you-can-demo-now)
+11. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Build and run the DealFinder Docker image, and verify it serves the same `/healthz` response as the test suite expects.
+- Read and explain every line of `ci.yml` — what each step does, why the `deploy` job depends on `test`, and what the eval gate actually runs.
+- Define the two-container local stack (pgvector DB + DealFinder app) in Terraform / OpenTofu and bring it up with `tofu apply`.
+- Explain why the DB port is bound to `127.0.0.1` and how the app reaches it by container name.
+- Pass `tests/test_deploy.py` — the three cheap checks that prevent config drift.
+
+---
+
+## Build once, run anywhere
+
+The structural problem with "works on my machine" is that a developer machine and the production host run different OS versions, Python patch releases, and installed packages. A Docker image fixes all three: it pins the base OS (`python:3.11-slim`), the Python version, and every dependency at the moment the image is built. The bytes that pass CI become the bytes that run in production — same image, different host.
+
+<ContainerParity />
+
+That one-image guarantee is why every later phase (Kubernetes in Part 29, load testing in Part 36) can trust that behavior observed in staging is behavior in prod. Without it, you are testing one thing and running another.
+
+---
+
+## The Dockerfile
+
+```dockerfile
+# DealFinder service image — same artifact in dev, staging, and prod.
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY . .
+RUN pip install --no-cache-dir .
+
+EXPOSE 8000
+# The CMD must match the ASGI app in dealfinder/serve.py (test_deploy guards this).
+CMD ["uvicorn", "dealfinder.serve:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+Seven lines. Walk through each decision:
+
+- `python:3.11-slim` — the same Python version the CI matrix tests against. `slim` omits unnecessary system packages, cutting image size by roughly 60% compared to the full image.
+- `COPY . .` — copies the whole repo into `/app`. In production you would add a `.dockerignore` to exclude test fixtures and the `infra/` directory; the course keeps it simple.
+- `pip install --no-cache-dir .` — installs the package declared in `pyproject.toml`, including all runtime dependencies, from the copied source. `--no-cache-dir` prevents pip from writing a layer cache that inflates the image.
+- `EXPOSE 8000` — documentation only (does not publish the port). The actual port binding happens at `docker run` time.
+- `CMD ["uvicorn", "dealfinder.serve:app", ...]` — Uvicorn is the ASGI server; `dealfinder.serve:app` is the FastAPI application object. The `--host 0.0.0.0` makes the port reachable from outside the container. Without it, Uvicorn listens on localhost and the container is unreachable.
+
+<Callout tone="note">
+The comment on the `CMD` line is load-bearing: it names the test that watches it. `test_dockerfile_cmd_matches_the_app` in `tests/test_deploy.py` reads the Dockerfile as text and asserts that both `dealfinder.serve:app` and `uvicorn` appear. If someone renames the module or switches to a different ASGI server without updating the Dockerfile, that test fails before CI proceeds.
+</Callout>
+
+Build and run it locally:
+
+```bash
+docker build -t dealfinder-app:local .
+docker run -p 8000:8000 dealfinder-app:local
+# In another terminal:
+curl http://localhost:8000/healthz
+# → {"status":"ok","products":270}
+```
+
+The `/healthz` response confirms the app started, loaded the snapshot, and is ready to serve. That route exists because `tests/test_serve.py::test_healthz` pins it, and `tests/test_deploy.py::test_healthcheck_path_exists_in_deploy_config` checks that the deploy config (`render.yaml`) points at it.
+
+---
+
+## The three tests that keep config honest
+
+The biggest source of container-related outages is config drift: the Dockerfile points at an old module name, or the health check path changes without updating the PaaS config. `tests/test_deploy.py` catches all three failure modes with cheap, fast checks that run in milliseconds:
+
+```python
+# tests/test_deploy.py
+"""Deploy config and code must agree — a common source of "works locally, 502 in
+prod". These cheap checks keep the Dockerfile CMD, the health check, and the ASGI
+app in sync."""
+import importlib
+from pathlib import Path
+
+
+def test_asgi_app_is_importable():
+    mod = importlib.import_module("dealfinder.serve")
+    assert hasattr(mod, "app")
+
+
+def test_dockerfile_cmd_matches_the_app():
+    df = Path("Dockerfile").read_text()
+    assert "dealfinder.serve:app" in df    # the CMD targets the real app
+    assert "uvicorn" in df
+
+
+def test_healthcheck_path_exists_in_deploy_config():
+    render = Path("render.yaml").read_text()
+    assert "/healthz" in render             # and /healthz is a real route (test_serve)
+```
+
+Three tests, three failure modes caught:
+
+1. `test_asgi_app_is_importable` — verifies the module exists and exposes the `app` object. If a refactor renames `serve.py` or removes the `app` assignment, this fails immediately at import time rather than after a successful build and a 30-second deploy timeout.
+2. `test_dockerfile_cmd_matches_the_app` — reads the Dockerfile as text. If the CMD drifts away from `dealfinder.serve:app`, this fails in CI before the image is built.
+3. `test_healthcheck_path_exists_in_deploy_config` — reads `render.yaml`. If `/healthz` is renamed in the app without updating the PaaS config, the PaaS health check would fail silently on every deploy. This test makes that a CI failure instead.
+
+Run them:
+
+```bash
+pytest tests/test_deploy.py -v
+```
+
+```
+tests/test_deploy.py::test_asgi_app_is_importable                     PASSED
+tests/test_deploy.py::test_dockerfile_cmd_matches_the_app             PASSED
+tests/test_deploy.py::test_healthcheck_path_exists_in_deploy_config   PASSED
+
+3 passed in 0.12s
+```
+
+---
+
+## CI: test → eval gate → deploy
+
+The CI workflow (`ci.yml`, not `deploy.yml` — there is only one workflow file) runs on every push and pull request. Two jobs: `test` runs unconditionally; `deploy` runs only when `test` passes and the push is to `main`.
+
+```yaml
+# .github/workflows/ci.yml
+name: ci
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: pytest -q
+      - run: python -m dealfinder.run_evals   # quality gate — fails the build on regression
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "build the Docker image and push to your registry / PaaS here"
+```
+
+<CDPipeline />
+
+The `test` job installs the package in editable mode (`-e`) so imports resolve against the repo source, not a stale installed copy. `ruff check .` runs the linter. `pytest -q` runs the full test suite, including `tests/test_deploy.py`. Then `python -m dealfinder.run_evals` runs the eval gate.
+
+The `deploy` job has `needs: test` — GitHub Actions enforces this at the API level. If `test` fails for any reason (a flaky test, a lint error, an eval regression), `deploy` is skipped entirely. A quality or code regression cannot reach production because it literally cannot proceed past the gate.
+
+---
+
+## The eval gate in CI
+
+The eval gate is not a custom script — it is `run_evals.py`, the same module you ran interactively in Part 23. In CI, it exits with a non-zero code if the gate fails, which GitHub Actions treats as a step failure and stops the job.
+
+Here is what it prints on a clean run against the committed snapshot:
+
+```
+golden set: 20 labeled snapshot items
+
+  two_signal   precision@5 = 1.00   gate PASS ✓
+  median_only  precision@5 = 0.40   gate FAIL ✗
+
+A/B: winner = two_signal (+0.60 precision@5)
+CI gate (precision@5 >= 0.80): PASS ✓
+
+two_signal top-5:
+  [deal      ] Armitron Link Smart Watch
+  [deal      ] Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones
+  [deal      ] JBL Tune 770NC Wireless Noise Cancelling Over-Ear Headphones
+  [deal      ] Sony WH-CH720N Noise Canceling Wireless Headphones
+  [deal      ] Sony WH-CH720N/P Wireless Noise Canceling Headphones
+```
+
+The gate parameters are defined as module-level constants in `dealfinder/evals.py`:
+
+- `GATE_K = 5` — evaluate the top 5 results.
+- `GATE_PRECISION = 0.80` — at least 4 of the top 5 must be labeled `deal`.
+- `GOLDEN_LABELS` — 20 hand-labeled snapshot items: 15 from the "noise cancelling headphones" query (audio category) + 5 cross-category items (Kindle Paperwhite, Galaxy Tab A11+, Armitron Link Smart Watch, Arlo Ultra 3, PNY RTX PRO 6000).
+
+The `two_signal` ranker — which uses both the cross-source median and the model residual — scores precision@5 = **1.00** on the golden set. The `median_only` ranker scores **0.40**, because the naive median is fooled by the same listings that motivated the two-signal approach in Part 3: the Bose QC45 at $46 (residual_frac 0.839, labeled `suspicious`) and the Kindle Paperwhite mislisting both rank high on median signal alone, but neither is a genuine deal.
+
+If you introduce a change that breaks the two-signal ranker — say, a bad merge that reverts the residual-frac threshold — the eval gate catches it. The deploy step never runs. The Anker Q20i badge stays `DEAL` in production because the CI gate does not pass unless precision@5 remains at or above 0.80.
+
+<Callout tone="warn">
+The golden set is exactly 20 items. A 54-item headphones golden set is not possible — the snapshot headphones subset contains 15 items. Any change that alters the snapshot item count will be caught by `tests/test_evals.py::test_golden_set_is_20_labeled_snapshot_items`.
+</Callout>
+
+---
+
+## Deploy config: health check and auto-deploy
+
+`render.yaml` is the PaaS deploy config. It tells the platform: use the Docker runtime, build from `./Dockerfile`, and watch `/healthz` to know if the container is healthy:
+
+```yaml
+# render.yaml — example PaaS deploy (Render). The same Docker image runs anywhere
+# a container does — swap this for fly.toml, a Cloud Run service, an ECS task, etc.
+services:
+  - type: web
+    name: dealfinder
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeploy: true
+```
+
+`autoDeploy: true` means the platform redeploys on every push to the connected branch — it polls the repository after CI passes. The platform calls `GET /healthz` on the new container before cutting traffic over; if the container fails to respond with HTTP 200, the deploy is aborted and the previous version keeps serving. That route is real and tested:
+
+```python
+# tests/test_serve.py::test_healthz (abbreviated)
+response = client.get("/healthz")
+assert response.status_code == 200
+assert response.json() == {"status": "ok", "products": 270}
+```
+
+The `products: 270` count confirms the snapshot loaded. A container that starts but fails to load the snapshot would answer `{"status": "ok", "products": 0}`, which is a distinct failure mode — one that `autoDeploy` would not catch without the count check. The full test pins it.
+
+---
+
+## Terraform: infrastructure as code for the full local stack
+
+The `ci.yml` `deploy` job is a stub (`echo "build the Docker image and push to your registry / PaaS here"`) because the target depends on your environment — Render, Fly.io, Cloud Run, ECS. What the companion ships in full is the local development stack: a real pgvector Postgres and the DealFinder app container, connected on a shared Docker network, defined in Terraform / OpenTofu.
+
+```hcl
+# infra/main.tf (abridged)
+terraform {
+  required_version = ">= 1.6"
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "docker" {}
+
+resource "docker_network" "net" {
+  name = "dealfinder-net"
+}
+
+resource "docker_volume" "db" {
+  name = "dealfinder-db-data"
+}
+
+resource "docker_image" "pgvector" {
+  # Pinned by digest (supply-chain): pgvector/pgvector:pg16 at time of writing.
+  name = "pgvector/pgvector@sha256:131dcf7ff6a900545df8e7e092c270aa8c6db2f2c818e408cb45ec21316b74e6"
+}
+
+resource "docker_container" "db" {
+  name    = "dealfinder-db"
+  image   = docker_image.pgvector.image_id
+  restart = "unless-stopped"
+
+  env = [
+    "POSTGRES_USER=${var.db_user}",
+    "POSTGRES_PASSWORD=${var.db_password}",
+    "POSTGRES_DB=${var.db_name}",
+  ]
+
+  ports {
+    internal = 5432
+    external = var.db_port          # default 5433 — avoids clashing with a local 5432
+    ip       = "127.0.0.1"         # loopback only — never exposed on the network
+  }
+
+  volumes {
+    volume_name    = docker_volume.db.name
+    container_path = "/var/lib/postgresql/data"
+  }
+
+  healthcheck {
+    test     = ["CMD-SHELL", "pg_isready -U ${var.db_user} -d ${var.db_name}"]
+    interval = "5s"
+    timeout  = "3s"
+    retries  = 12
+  }
+}
+
+resource "docker_image" "app" {
+  name = "dealfinder-app:local"
+  build {
+    context = abspath("${path.module}/..")
+  }
+  triggers = {
+    dockerfile = filesha1("${path.module}/../Dockerfile")
+  }
+}
+
+resource "docker_container" "app" {
+  name       = "dealfinder-app"
+  image      = docker_image.app.image_id
+  restart    = "unless-stopped"
+  depends_on = [docker_container.db]
+
+  env = [
+    "DATABASE_URL=postgresql://${var.db_user}:${var.db_password}@${docker_container.db.name}:5432/${var.db_name}",
+    # Live-source credentials (empty = that source stays off):
+    "RAPIDAPI_KEY=${var.rapidapi_key}",
+    "APIFY_TOKEN=${var.apify_token}",
+    # … additional vars in variables.tf …
+  ]
+
+  ports {
+    internal = 8000
+    external = var.app_port         # default 8000, loopback only
+    ip       = "127.0.0.1"
+  }
+}
+```
+
+A few decisions worth understanding:
+
+**The DB image is pinned by digest, not tag.** `pgvector/pgvector:pg16` is a mutable tag — its contents can change as the maintainer pushes updates. The `@sha256:131dcf7f…b74e6` digest pins the exact layer set. If the upstream image changes, `tofu apply` keeps using the version that was verified — supply-chain consistency, the same reason you pin Python package versions in `pyproject.toml`.
+
+**DB port is bound to `127.0.0.1`.** The `ip = "127.0.0.1"` constraint means port 5433 is reachable only from your own machine, not from other hosts on the network. The app container does not use the host-published port — it connects to the DB by container name (`dealfinder-db`) over the shared `dealfinder-net` Docker network, which is faster and does not require the loopback binding at all. The loopback binding is for `psql` and local tooling.
+
+**`depends_on = [docker_container.db]`.** Terraform creates resources concurrently by default. The `depends_on` tells it to wait until the DB container is running before starting the app container. The DB container's `healthcheck` (`pg_isready`) adds a second layer: Terraform waits for the container to be created, but the app must tolerate a brief startup window where Postgres is still initializing — the app handles this by retrying the DB connection on startup.
+
+**`triggers` on the app image.** `filesha1("../Dockerfile")` means Terraform rebuilds the app image whenever the Dockerfile changes. Without this, `tofu apply` would reuse the cached image even after a `FROM` version bump.
+
+`variables.tf` defines defaults for all variables: `db_user/password/name = "dealfinder"`, `db_port = 5433` (avoids clashing with a local 5432), `app_port = 8000`. Live-source credentials (RapidAPI key, Apify token, etc.) default to empty strings — an empty value keeps that source disabled without requiring a present credential.
+
+`outputs.tf` exposes three values after `tofu apply`:
+
+```hcl
+output "database_url" {
+  value     = "postgresql://${var.db_user}:${var.db_password}@localhost:${var.db_port}/${var.db_name}"
+  sensitive = true
+}
+
+output "container" {
+  value = docker_container.db.name   # → "dealfinder-db"
+}
+
+output "app_url" {
+  value = "http://localhost:${var.app_port}"   # → "http://localhost:8000"
+}
+```
+
+`database_url` is marked `sensitive` — Terraform will not print it in `tofu plan` output or logs. Retrieve it explicitly with `tofu output -raw database_url` when you need it.
+
+---
+
+## Run the full stack locally with Terraform
+
+```bash
+cd infra/
+
+# One-time: download the Docker provider
+tofu init
+
+# Preview what will be created
+tofu plan
+
+# Bring up the full stack (DB + app)
+tofu apply
+
+# Verify
+curl http://localhost:8000/healthz
+# → {"status":"ok","products":270}
+
+# Tear it all down (volumes are preserved by default — add -target=docker_volume.db to destroy data)
+tofu destroy
+```
+
+The first `tofu apply` builds the app image from source, pulls the pgvector image by digest, creates the network and volume, starts the DB, waits for it to be healthy, then starts the app. Subsequent applies are fast — if nothing has changed, Terraform prints "No changes" and exits immediately.
+
+<Callout tone="tip">
+Override credentials at apply time without editing `variables.tf` or committing secrets. Use `TF_VAR_*` environment variables: `TF_VAR_rapidapi_key=your_key tofu apply`. These are never written to `terraform.tfstate` in plaintext — only the variable *names* appear in state; sensitive values are redacted.
+</Callout>
+
+---
+
+## What this part proves
+
+Three tests, all passing:
+
+```
+$ pytest tests/test_deploy.py -v
+tests/test_deploy.py::test_asgi_app_is_importable                     PASSED
+tests/test_deploy.py::test_dockerfile_cmd_matches_the_app             PASSED
+tests/test_deploy.py::test_healthcheck_path_exists_in_deploy_config   PASSED
+
+3 passed in 0.12s
+```
+
+And the eval gate, which runs the same ranker that CI runs:
+
+```
+$ python -m dealfinder.run_evals
+golden set: 20 labeled snapshot items
+
+  two_signal   precision@5 = 1.00   gate PASS ✓
+  median_only  precision@5 = 0.40   gate FAIL ✗
+
+A/B: winner = two_signal (+0.60 precision@5)
+CI gate (precision@5 >= 0.80): PASS ✓
+```
+
+What these numbers mean in production terms: a push to `main` that regresses the two-signal ranker below precision@5 = 0.80 on the 20-item golden set will fail `python -m dealfinder.run_evals` in CI, the `test` job will exit non-zero, and the `deploy` job will be skipped. The Anker Q20i remains `DEAL` and the Bose QC45 remains `SUSPICIOUS` in the running service because the gate does not let a regression ship.
+
+<Callout tone="note">
+**Companion tests to read alongside this part:** `tests/test_deploy.py` (the three config-parity checks above) and `tests/test_evals.py` (pins the golden set size, the two-signal gate pass, and the median-only gate fail). Both must pass for CI to proceed.
+</Callout>
+
+---
+
+## What you can demo now
+
+The tests and the eval gate prove the *config* is honest. The container proves the *artifact* is. Build it, run it, and hit it — this is a real build of this exact repo:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-28/container-ships.png"
+  alt="A real docker build of DealFinder, the 1.15GB image, docker run, curl /healthz returning products 270 from inside the container, and docker ps showing it up"
+  caption="Real capture: `docker build` → `docker run` → `curl /healthz` — the DealFinder app serving from inside its own container, the same /healthz response the tests pin."
+  lookFor="the flow top to bottom. `docker build` finishes (DONE 20.6s) and names the image dealfinder-app:local. `docker images` shows it at 1.15GB — one self-contained artifact with the pinned Python, deps, and snapshot inside. `docker run -d -p 8010:8000` starts it; uvicorn boots inside the container and loads the snapshot. Then `curl http://localhost:8010/healthz` returns the ringed status-ok / products-270 line — byte-for-byte the response `tests/test_serve.py::test_healthz` pins, now coming from the containerized process, not your dev shell. `docker ps` confirms it's up, mapping host 8010 → container 8000. That is 'build once, run anywhere' made literal."
+/>
+
+The demo line: *"This is the whole point of containerizing. One `docker build` packages the Python version, every dependency, and the frozen snapshot into a single 1.15GB image. `docker run`, and the exact same app that passes CI is serving `/healthz` from inside the container — 270 products loaded, same response, on any machine that runs Docker. Push to main, CI runs the tests and the eval gate, and only if both pass does this image ship. The bytes you tested are the bytes that run."*
+
+---
+
+## Where this goes next
+
+- **Part 29 — Cloud & Kubernetes:** take the same Dockerfile from this part and the same `DATABASE_URL` pattern from the Terraform config, and deploy them to a managed Kubernetes cluster with a managed Postgres (Supabase pooler or AWS RDS). Same image, same health check, bigger target.
+
+---
+
+*Sources: [Docker](https://docs.docker.com/) · [GitHub Actions](https://docs.github.com/actions) · [OpenTofu](https://opentofu.org/) · [kreuzwerker/docker Terraform provider](https://registry.terraform.io/providers/kreuzwerker/docker/latest) · [The Twelve-Factor App](https://12factor.net/)*

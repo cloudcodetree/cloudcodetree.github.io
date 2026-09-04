@@ -38,7 +38,7 @@ export default function PrintableResume() {
             CHRIS HARPER
           </Typography>
           <Typography variant="h6" sx={{ 
-            color: '#06b6d4', 
+            color: '#94bce3', 
             mb: 1, 
             fontWeight: 600,
             '@media print': {
@@ -122,7 +122,7 @@ export default function PrintableResume() {
           <Grid container spacing={1}>
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ 
-                color: '#06b6d4', 
+                color: '#94bce3', 
                 fontWeight: 600, 
                 mb: 0.5,
                 '@media print': {
@@ -147,7 +147,7 @@ export default function PrintableResume() {
 
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ 
-                color: '#06b6d4', 
+                color: '#94bce3', 
                 fontWeight: 600, 
                 mb: 0.5,
                 '@media print': {
@@ -181,7 +181,7 @@ export default function PrintableResume() {
 
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ 
-                color: '#06b6d4', 
+                color: '#94bce3', 
                 fontWeight: 600, 
                 mb: 0.5,
                 '@media print': {
@@ -206,7 +206,7 @@ export default function PrintableResume() {
 
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ 
-                color: '#06b6d4', 
+                color: '#94bce3', 
                 fontWeight: 600, 
                 mb: 0.5,
                 '@media print': {
@@ -240,7 +240,7 @@ export default function PrintableResume() {
 
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ 
-                color: '#06b6d4', 
+                color: '#94bce3', 
                 fontWeight: 600, 
                 mb: 0.5,
                 '@media print': {
@@ -265,7 +265,7 @@ export default function PrintableResume() {
 
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ 
-                color: '#06b6d4', 
+                color: '#94bce3', 
                 fontWeight: 600, 
                 mb: 0.5,
                 '@media print': {
@@ -353,7 +353,7 @@ export default function PrintableResume() {
           {/* ALSAC */}
           <Box sx={{ mb: 1.5 }}>
             <Typography variant="subtitle1" sx={{ 
-              color: '#06b6d4', 
+              color: '#94bce3', 
               fontWeight: 600, 
               mb: 0.5,
               '@media print': {
@@ -405,7 +405,7 @@ export default function PrintableResume() {
           {/* Blue Sky */}
           <Box sx={{ mb: 1.5 }}>
             <Typography variant="subtitle1" sx={{ 
-              color: '#06b6d4', 
+              color: '#94bce3', 
               fontWeight: 600, 
               mb: 0.5,
               '@media print': {
@@ -458,7 +458,7 @@ export default function PrintableResume() {
           {/* Cerity */}
           <Box sx={{ mb: 1.5 }}>
             <Typography variant="subtitle1" sx={{ 
-              color: '#06b6d4', 
+              color: '#94bce3', 
               fontWeight: 600, 
               mb: 0.5,
               '@media print': {
@@ -509,7 +509,7 @@ export default function PrintableResume() {
           {/* ThunderDork */}
           <Box sx={{ mb: 1.5 }}>
             <Typography variant="subtitle1" sx={{ 
-              color: '#06b6d4', 
+              color: '#94bce3', 
               fontWeight: 600, 
               mb: 0.5,
               '@media print': {
@@ -559,7 +559,7 @@ export default function PrintableResume() {
           {/* Netspend */}
           <Box sx={{ mb: 1.5 }}>
             <Typography variant="subtitle1" sx={{ 
-              color: '#06b6d4', 
+              color: '#94bce3', 
               fontWeight: 600, 
               mb: 0.5,
               '@media print': {
@@ -608,7 +608,7 @@ export default function PrintableResume() {
           {/* Cinsay */}
           <Box sx={{ mb: 1.5 }}>
             <Typography variant="subtitle1" sx={{ 
-              color: '#06b6d4', 
+              color: '#94bce3', 
               fontWeight: 600, 
               mb: 0.5,
               '@media print': {
@@ -656,7 +656,7 @@ export default function PrintableResume() {
           {/* Schematic */}
           <Box sx={{ mb: 1.5 }}>
             <Typography variant="subtitle1" sx={{ 
-              color: '#06b6d4', 
+              color: '#94bce3', 
               fontWeight: 600, 
               mb: 0.5,
               '@media print': {
@@ -704,7 +704,7 @@ export default function PrintableResume() {
           {/* Imc2 */}
           <Box sx={{ mb: 1.5 }}>
             <Typography variant="subtitle1" sx={{ 
-              color: '#06b6d4', 
+              color: '#94bce3', 
               fontWeight: 600, 
               mb: 0.5,
               '@media print': {
@@ -752,7 +752,7 @@ export default function PrintableResume() {
           {/* True.com */}
           <Box sx={{ mb: 1.5 }}>
             <Typography variant="subtitle1" sx={{ 
-              color: '#06b6d4', 
+              color: '#94bce3', 
               fontWeight: 600, 
               mb: 0.5,
               '@media print': {
@@ -800,7 +800,7 @@ export default function PrintableResume() {
           {/* Idea Integration */}
           <Box sx={{ mb: 1 }}>
             <Typography variant="subtitle1" sx={{ 
-              color: '#06b6d4', 
+              color: '#94bce3', 
               fontWeight: 600, 
               mb: 0.5,
               '@media print': {

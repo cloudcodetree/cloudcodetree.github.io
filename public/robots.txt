@@ -11,6 +11,7 @@ Disallow: /contact?*
 Allow: /
 Allow: /ai-news
 Allow: /about
+Allow: /projects
 Allow: /about/resume
 Allow: /about/contact
 Allow: /about/schedule

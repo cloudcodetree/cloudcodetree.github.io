@@ -1,0 +1,52 @@
+export const metadata = {
+  title: 'Structural Span Calculator · Projects · CloudCodeTree',
+  description:
+    'Interactive calculator for allowable spans across residential construction materials — lumber, LVL, glulam, I-joists, and steel.',
+  alternates: { canonical: 'https://cloudcodetree.com/projects/span-calculator/' },
+  openGraph: {
+    title: 'Structural Span Calculator',
+    description: 'Interactive calculator for allowable spans across residential construction materials — lumber, LVL, glulam, I-joists, and steel.',
+    url: 'https://cloudcodetree.com/projects/span-calculator/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/projects/covers/span-calculator.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/projects/covers/span-calculator.png'] },
+};
+
+<img src="/projects/covers/span-calculator.png" alt="Structural Span Calculator" />
+
+# Structural Span Calculator
+
+An interactive calculator for estimating allowable spans across common
+residential construction materials — built while planning a real structure,
+because flipping between span tables in five PDFs is a bad way to compare a
+doubled 2×12 against a steel W-shape.
+
+## Materials covered
+
+- **Dimensional lumber** — 2×6 through 2×12, multiple species/grades, 12"/16"/24" OC, single & sistered
+- **LVL** — single and double plies, 7¼" through 18"
+- **Glulam** — 3⅛" and 5⅛" widths
+- **Engineered I-joists** — TJI 210/230/360 series
+- **Steel** — W-shapes, C-channels, and HSS tube
+- **Comparison view** — all options ranked by span, with a visual bar chart
+
+Load cases cover floor joists, sleeping areas, roof rafters, ceiling joists,
+decks, snow loads, and headers/beams with configurable tributary widths.
+
+## Engineering basis
+
+Simplified formulas from **NDS** (wood), **AISC ASD** (steel), and **IRC 2021**
+load assumptions.
+
+> ⚠️ Estimates for planning only — results assume simple span, uniform loading,
+> and standard bearing. Verify with local code and a licensed structural
+> engineer before building anything.
+
+## Try it
+
+- **Live:** [cloudcodetree.com/span-calculator](https://cloudcodetree.com/span-calculator/)
+- **Source:** [github.com/cloudcodetree/span-calculator](https://github.com/cloudcodetree/span-calculator)
+- A **gated live demo** is coming to this page as the pilot of the Projects demo
+  system.

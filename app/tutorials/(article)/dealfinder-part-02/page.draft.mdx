@@ -1,0 +1,175 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: How LLMs Actually Work (Part 2 of 37) · Tutorials',
+  description:
+    'The LLM literacy you need before wiring a model into DealFinder: tokenization, embeddings, attention, and sampling — shown with real consumer-electronics data, not just described.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-02/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: How LLMs Actually Work (Part 2 of 37)',
+    description: 'The LLM literacy you need before wiring a model into DealFinder: tokenization, embeddings, attention, and sampling — shown with real consumer-electronics data, not just described.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-02/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-02.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-02.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-02" />
+
+# How LLMs Actually Work
+
+**TL;DR: The LLM call in Part 6 extracts brand from `"Walmart - COWIN E7 ANC"`. But even perfect extraction cannot distinguish a $46 trap from a genuine $44.99 deal — attention alone cannot do that. Before you write the extractor, understand what the LLM can and cannot do. This part shows four concepts — tokenization, embeddings, attention, and sampling — using real headphones from the DealFinder snapshot.**
+
+In Part 1 you built a clean `Product` table from real Google Shopping data. Soon you will search it semantically, extract specs from messy listings, and let an agent reason over it — all with an LLM. But "the model figures it out" is not an engineering answer. The four ideas below are what separate someone who calls an API from someone who can debug it, control its cost, and make it reliable.
+
+<Callout tone="note">
+**No GPU, no API key required.** This part is conceptual literacy, not a build, so the companion repo does not advance here — stay on `step-01` while reading. The animations are interactive illustrations. To poke the real thing, the official playgrounds are linked in each section.
+</Callout>
+
+## What you'll be able to do after this
+
+- Explain why an LLM sees **tokens, not words** — and why `"WH-1000XM5"` splits into six tokens, driving up cost and creating extraction failure modes.
+- Describe what an **embedding** is and why it makes semantic search possible — and why it cannot tell a $46 trap from a genuine $44.99 deal.
+- Read an **attention** pattern in plain English: what tokens "look at" what, and why that matters for noisy product titles.
+- Choose a **temperature** on purpose: `0` for deterministic extraction, above `0` for generative summaries.
+- Predict roughly how many tokens a product title plus prompt consumes, and why context-length limits matter for batch extraction over the 270-item snapshot.
+
+---
+
+## 1. Tokenization — the model reads tokens, not words
+
+An LLM never sees your text. A tokenizer first chops it into **subword tokens**, each mapped to an integer id. Spaces ride along with the next word, numbers fragment, and model-number identifiers explode — so token count rarely matches word count.
+
+<Tokenizer />
+
+The Sony WH-1000XM5 title is 6 words but 13 tokens (measured with `tiktoken`, GPT's `cl100k_base`). The model-number string `WH-1000XM5` alone splits into 6 tokens (`WH`, `-`, `100`, `0`, `XM`, `5`) — the identifier shatters into structural fragments. Compare that to `"Sony"` which is a single token. This is not a curiosity: it is why structured identifiers are expensive and why a model that has seen `WH-1000XM5` rarely in training may misread it when `100`, `0`, and `XM` land in unfamiliar positions.
+
+**Token-cost math for the headphones snapshot.** The anchor query "noise cancelling headphones" yields 15 items in the snapshot. Their titles average about 12 tokens each — the 15 titles together are **~186 tokens** (measured with `tiktoken`). Wrap them in the system prompt, the schema definition, and a couple of few-shot examples and a single batched extraction pass runs on the order of a few hundred to ~1–2k prompt tokens. At scale (270-item full snapshot, multi-shot prompts, structured output), this becomes a real line-item in your API bill. Part 6 shows how to batch efficiently. The context window is why you retrieve a handful of relevant products in Part 5 rather than stuffing the whole catalog in.
+
+Poke a real tokenizer at [Tiktokenizer](https://tiktokenizer.vercel.app/) — paste a product title and watch model-numbers balloon.
+
+---
+
+## 2. Embeddings — meaning becomes geometry
+
+Whole texts become **vectors** — long lists of numbers — positioned so that similar meaning lands nearby. The four headphones in the snapshot (Sony XM5, Bose QC45, Anker Q20i, Sony XM6) all cluster close together in embedding space because they share category and use-case semantics. A free-text query is embedded into the same space, so you can find products by **meaning, not keywords**.
+
+<EmbeddingSpace />
+
+This is the single most important idea for Part 5: "noise cancelling headphones" finds the Sony XM5 even if the listing title reads "WH-1000XM5 Wireless ANC Headset" — because their vectors are close. DealFinder uses `fastembed` with `BAAI/bge-small-en-v1.5` (384-dim) everywhere embeddings appear in the course. Part 4 introduces and caches them; Part 5 reuses them for retrieval.
+
+**The critical caveat:** all four headphones sit close in embedding space because embeddings capture *what it is*, not *is it priced fairly*. The Bose QC45 at $46 (suspicious trap, `residual_frac = 0.839`) and the Anker Q20i at $44.99 (genuine deal, `residual_frac = 0.585`) are close neighbors here. Semantic similarity cannot separate them. That is exactly why Part 3 introduces a separate deal-scoring signal.
+
+Explore a real embedding space in the [TensorFlow Embedding Projector](https://projector.tensorflow.org/).
+
+---
+
+## 3. Attention — context decides meaning
+
+A token's meaning depends on the tokens around it. **Attention** is the mechanism: while processing one token, the model weighs how much to "look at" every other token in the sequence. The strong links land on the tokens that actually qualify it.
+
+<AttentionView />
+
+When processing `"$46"` in the sequence `["Bose", "QuietComfort", "45", "@", "$46"]`, attention links the price token strongly to `"Bose"` (0.68) and `"45"` (0.72), and nearly ignores the connector `"@"` (0.06). This is why an LLM extractor can pull `price = 46` and `model = QC45` from a messy title — and it is also why it can hallucinate `brand = "Bose"` when the snapshot's `brand` field says `"Target"` (the retailer who listed it). Attention alone cannot tell which of those is the manufacturer.
+
+That is the normalization problem from Part 1 — and attention explains why it is hard. The model sees the brand name most prominently in the title, but the extraction schema asks for the *manufacturer*, not the *retailer*. Part 6 teaches the extractor to distinguish them with a carefully written prompt plus few-shot examples.
+
+**The attention demo also sets up the suspicious-deal finding.** The Bose QC45 at $46 has `residual_frac = 0.839` — the model-fair price is $285.15, so at $46 the item is 83.9% below fair. The Anker Q20i at $44.99 has `residual_frac = 0.585` — genuinely 58.5% below fair for a budget brand. Only the residual signal (Part 3) separates them; attention to the price alone rewards both equally.
+
+See attention in a real model with [BertViz](https://github.com/jessevig/bertviz).
+
+---
+
+## 4. Sampling — temperature is a dial you control
+
+The model does not emit a word; it emits a **probability distribution over every possible next token**. How you sample from that distribution is your engineering decision. **Temperature** reshapes the distribution before sampling: low temperature sharpens it (predictable, near-deterministic), high temperature flattens it (varied, creative).
+
+<TemperatureSampler />
+
+**Two use-cases in DealFinder:**
+
+- **Extraction pipeline (`temperature = 0`):** you want the same input to always produce the same structured JSON. `"Is the Bose QC45 at $46 a genuine deal?"` at `temp = 0` always returns `{"deal": false}` — deterministic, testable, exactly what a CI eval harness needs (Part 11).
+- **User-facing summaries (`temperature ≈ 0.7`):** a "why we think you'll like this" blurb benefits from some variation. At `temp = 0.9`, the model might say "possibly refurbished" or "check the seller rating" — useful prose, but not the kind you want inside a JSON schema.
+
+**Non-determinism: what is and is not guaranteed.** At `temperature = 0` with a fixed model version and provider, output is deterministic — same prompt, same output. Across different model releases or providers, this guarantee does not hold. The course pins a fixed model (`gpt-4o-mini` in the Part 6 examples) plus `temperature = 0` for extraction to reduce drift. Part 11's eval harness pins the model version for exactly this reason.
+
+Play with temperature in the [Transformer Explainer](https://poloclub.github.io/transformer-explainer/).
+
+---
+
+## Cost and latency intuition
+
+Tie it together with the numbers that appear in production:
+
+- **Prefill vs. decode.** The prompt is processed in parallel (fast); output tokens are generated one at a time (the slow part). Fewer output tokens means lower latency *and* cost. JSON extraction with a tight schema is cheaper to decode than open-ended prose.
+- **The KV cache** is why generation is not quadratic per step: the model stores the keys and values of tokens it has already seen, so each new token attends to the cached past instead of recomputing everything. It trades GPU memory for speed — and that memory is a real serving cost at Part 12.
+- **Context window = working memory.** Everything — system prompt, schema definition, retrieved products, conversation history — competes for the same token budget. At ~186 tokens for the 15 headphone titles (plus the prompt scaffolding), a single-query extraction fits comfortably. At 270 items with multi-shot prompts, you will hit limits quickly. This is *why* Part 5 retrieves a handful of relevant products instead of stuffing the whole snapshot in.
+
+<Callout tone="note">
+**Scale in production.** The toy here is one title and a hand-laid 2D map. In DealFinder you will embed the whole snapshot with `fastembed`, store 384-dim vectors in `pgvector` (Part 13), and call `gpt-4o-mini` with `temperature = 0` for extraction — but the four mental models are identical at any scale.
+</Callout>
+
+---
+
+## Companion repo
+
+<Callout tone="tip">
+**No code delta for this part.** This is a pure literacy part — no new modules are introduced in `companions/dealfinder/`. The companion repo does not advance; stay on `step-01` from Part 1 while reading.
+
+The first real LLM API calls appear in **Part 6 (Structured extraction)** — that is where this literacy pays off directly. Part 3's deal-scoring model uses classical gradient boosting (no LLM) and is the immediate next step.
+</Callout>
+
+---
+
+## Check it works
+
+This part is literacy, not a build — so there is nothing to run in the product. But you can **reproduce the one hard number** yourself and confirm the tokenization claim with the real GPT tokenizer:
+
+```bash
+pip install tiktoken
+```
+
+```python
+import tiktoken
+enc = tiktoken.get_encoding("cl100k_base")   # GPT-4 / 3.5 tokenizer
+
+title = "Sony WH-1000XM5 Wireless Noise Cancelling Headphones"
+print(len(title.split()), "words,", len(enc.encode(title)), "tokens")
+# 6 words, 13 tokens
+
+print([enc.decode([t]) for t in enc.encode("WH-1000XM5")])
+# ['WH', '-', '100', '0', 'XM', '5']   ← 6 tokens for one model number
+```
+
+**You should see** `6 words, 13 tokens`, and `WH-1000XM5` shattering into `WH · - · 100 · 0 · XM · 5`. That gap between words and tokens — and the way a model number explodes — is the whole lesson: it drives your API bill, your context budget, and the extraction failure modes you will guard against in Part 6.
+
+**Understanding check:** if you can answer these, you're ready to move on — *(1)* why does `temperature = 0` matter for extraction but not for a "why you'll like this" blurb? *(2)* why can't embeddings alone tell the $46 Bose trap from the $44.99 Anker deal? *(3)* why does retrieving a handful of products (Part 5) beat stuffing all 270 into the prompt?
+
+---
+
+## What you can demo now
+
+Run the three-line tokenizer experiment on a real snapshot title and show someone why LLMs mangle model numbers:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-02/tokenizer-real-title.png"
+  alt="Real tiktoken output splitting a Sony product title into 10 tokens"
+  caption="Real output: cl100k_base tokenizing a snapshot title."
+  lookFor="4 words become 10 tokens (ringed), and the model number WH-1000XM5 shatters into four pieces — 100 · 0 · XM · 5 (amber). The model never sees the model number as one thing, which is why Part 6 validates extracted model strings instead of trusting them."
+/>
+
+The demo line: *"the atom of an LLM is not the word — watch a product SKU get shredded, then remember every downstream lesson has to survive that."*
+
+---
+
+## Where this goes next
+
+**Back:** Part 1 built the data pipeline that pulls real titles like `"Sony WH-1000XM5"` and exposed the `brand`-as-retailer messiness that attention cannot fix alone. This part explains the cognitive model that will later read those titles.
+
+**Forward:** Part 3 ([Is it a good deal? — median vs. model](/tutorials/dealfinder-part-03)) introduces the deal-scoring signal using classical ML on the snapshot — no LLMs yet. The naive median signal rewards the Bose QC45 trap (83.9% below fair) just as generously as the genuine Anker deal (58.5% below fair); Part 3 is where you build the guard.
+
+The first LLM API call in code appears in Part 6. Now you know what it is doing.
+
+---
+
+*Sources: [Tiktokenizer](https://tiktokenizer.vercel.app/) · [TensorFlow Embedding Projector](https://projector.tensorflow.org/) · [BertViz](https://github.com/jessevig/bertviz) · [Transformer Explainer](https://poloclub.github.io/transformer-explainer/) · [The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)*

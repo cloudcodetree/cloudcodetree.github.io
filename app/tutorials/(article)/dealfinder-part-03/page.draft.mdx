@@ -1,0 +1,422 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Is It a Good Deal? (Part 3 of 37) · Tutorials',
+  description:
+    'Train a linear price model from scratch on the electronics snapshot, discover why the naive median signal is fooled by flagship listings at fire-sale prices, and build a two-signal deal score that separates a genuine budget pick from a too-good-to-be-true trap.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-03/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Is It a Good Deal? (Part 3 of 37)',
+    description:
+      'Train a linear price model from scratch on the electronics snapshot, discover why the naive median signal is fooled by flagship listings at fire-sale prices, and build a two-signal deal score that separates a genuine budget pick from a too-good-to-be-true trap.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-03/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-03.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-03.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-03" />
+
+# Is It a Good Deal?
+
+**TL;DR: "72% off" sounds great until it's a $329 flagship listed at $46 with no explanation. A single-signal median score can't tell the Anker Q20i (genuinely cheap) from the Bose QC45 (a trap). Train a price model from scratch — no scikit-learn — that predicts what a product *should* cost from its category, extracted brand, and condition. Blend its residual with the median signal to catch the trap. That's the two-signal deal score.**
+
+---
+
+**In this part:** [Why the naive signal fails](#why-the-naive-signal-fails) · [Features the model sees](#features-the-model-sees) · [Linear regression from scratch](#linear-regression-from-scratch) · [Evaluate honestly](#evaluate-honestly) · [Two-signal deal score](#two-signal-deal-score) · [The proof: hero-cast walk-through](#the-proof-hero-cast-walk-through) · [Tests that pin the numbers](#tests-that-pin-the-numbers)
+
+---
+
+<Callout tone="tip">
+**Code along, version by version.** This part lives in the shared course repo
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder)
+at step tag **`step-3`**.
+`git checkout step-3` — or [view the diff from step-2](https://github.com/cloudcodetree/tutorial-dealfinder/compare/step-2...step-3).
+The `.devcontainer/` gives you Python 3.11 in one click.
+</Callout>
+
+## What you'll be able to do after this
+
+- Explain why a raw `deal_pct` (query-median) is fooled by cross-category bleed and mislisted flagships in a broad electronics corpus.
+- Fit a linear price model **from scratch** using the normal equation — no scikit-learn — and read the coefficients.
+- Evaluate honestly with a **train/test split**, **MAE**, and **R²**, and interpret what each number means for broad heterogeneous data.
+- Compute the **two-signal deal score** (median signal + model residual) and watch it correctly separate the Anker Q20i deal from the Bose QC45 trap.
+- Write pytest assertions that **pin the hero-cast numbers** against the frozen snapshot.
+
+---
+
+## Why the naive signal fails
+
+Part 1 built the snapshot: 270 real electronics listings from 18 queries. Every item already carries `deal_pct` — the percentage below the same-query cross-source median. It's fast and model-free. So why isn't it enough?
+
+Rank the whole corpus by raw `deal_pct` — the same-query cross-source discount — straight from the snapshot:
+
+```python
+import statistics
+from collections import defaultdict
+from dealfinder.snapshot import load_snapshot
+
+rows = load_snapshot()
+med = defaultdict(list)
+for r in rows:
+    med[r["query"]].append(float(r["price"]))
+med = {q: statistics.median(p) for q, p in med.items()}
+
+def deal_pct(r):
+    m = med[r["query"]]
+    return (m - float(r["price"])) / m * 100
+
+for r in sorted(rows, key=deal_pct, reverse=True)[:5]:
+    print(f'{deal_pct(r):+5.1f}%  ${float(r["price"]):>8.2f}  {r["title"][:38]:38}  (query: {r["query"]})')
+```
+
+```
+deal_pct range: -3785.7% to +91.7%
+
+top 5 by deal_pct (naive):
+  +91.7%  $   10.75  Amazon Kindle Paperwhite E-reader       (query: kindle e-reader)
+  +89.3%  $   29.88  Onn. 2.0 LED Soundbar                   (query: soundbar)
+  +88.8%  $   15.00  Samsung Galaxy Tab A11+ 128GB Gray      (query: android tablet)
+  +86.6%  $   47.00  Graphics Cards 30xx Series NVIDIA GeFo  (query: graphics card rtx)
+  +85.4%  $   51.00  Rtx 2070 Nvidia Turing Cards Introduci  (query: graphics card rtx)
+```
+
+Three things jump out:
+
+1. **The top 5 are cross-category noise.** A $10.75 "Kindle Paperwhite" (a real reader is ~$139), a $29.88 soundbar, a $15 tablet, two cut-price graphics cards — each is cheap *relative to its own query's median*, but none is a genuine headline deal; they're mispriced or mislabeled listings dragging their peer-group median around.
+2. **The items we actually care about are buried and indistinguishable.** The Anker Soundcore Q20i ($44.99) lands at rank #23 (+72.4% under the $162.97 headphone median) and the Bose QuietComfort 45 ($46.00) right behind it at #25 (+71.8%). On this signal the honest budget deal and the too-good-to-be-true flagship look identical — the exact problem this part solves.
+3. **The outlier at −3785%.** One mispriced listing — a $13,599 RTX PRO 6000 against a $350 "graphics card rtx" median — pulls the corpus minimum to a number that makes raw comparisons meaningless.
+
+The signal breaks on broad data because it has no opinion about what a product *should* cost — it only knows where it sits relative to a noisy peer group. A $46 Bose QC45 could be:
+- a refurb or mislisted item (the likely truth), or
+- a genuine markdown (possible, but requires confirmation)
+
+The median can't tell. A price model can.
+
+---
+
+## Features the model sees
+
+A model never sees "a Bose QuietComfort 45." It sees numbers. **Feature engineering** is choosing which numbers. For broad electronics, three features generalize across every category in the snapshot:
+
+```python
+# dealfinder/features.py
+FEATURE_NAMES = ["category_code", "brand_tier", "condition_code"]
+
+def featurize(p: Product) -> list[float]:
+    cond = p.condition if p.condition else parse_condition(p.title)
+    return [
+        float(category_code(p.category)),   # audio=3, computers=9, …
+        float(brand_tier(p.title)),          # 1–4; extracted from the title, not p.brand
+        float(condition_code(cond)),         # new=2, refurb=1, used=0
+    ]
+```
+
+Two design decisions worth understanding:
+
+**The `brand` field is useless.** Part 1 discovered this: 154 of 270 snapshot rows have the *retailer* in `brand` — "Walmart - COWIN", "Target", "mountainlifestyle.ca". Trusting `p.brand` would poison the model with retailer names. So `brand_tier()` extracts the actual manufacturer from the *title* using a greedy known-brand vocabulary, then maps it to a tier:
+
+```python
+# tier 4 — premium flagships: Apple, Sony, Bose, Sennheiser, Garmin
+# tier 3 — strong majors: Samsung, LG, Dell, Logitech, JBL, Beats, …
+# tier 2 — value / mid brands: Anker, Soundcore, JLab, Skullcandy, …
+# tier 1 — everything else / unknown
+```
+
+For the Bose QC45, `title_brand("Bose QuietComfort 45 …")` → `"Bose"` → tier 4. For the Anker Q20i, `title_brand("Anker Soundcore Q20i …")` → `"Anker"` → tier 2.
+
+**Condition is parsed from the title, not a field.** The Bose QC45 listing has no condition token — no "refurb", "renewed", "open box". So `parse_condition(title)` returns `"new"` (the default). This is by design: the **model residual** catches the trap, not a condition flag.
+
+<Callout tone="note">
+**Why not use the full title embedding here?** Part 2 introduced embeddings conceptually. The 384-dim `BAAI/bge-small-en-v1.5` title vectors are precomputed and cached in the snapshot — they are the Part 4 upgrade (recommender content similarity) and the Part 21 upgrade (gradient boosting on embeddings). The linear baseline in this part uses the three hand-features above, which are interpretable and enough to demonstrate the two-signal concept. Adding embeddings is what closes the MAE gap from ~\$228 to ~\$138 on the full corpus — that delta is itself a curriculum moment.
+</Callout>
+
+---
+
+## Linear regression from scratch
+
+A linear model predicts price as a weighted sum of features plus an intercept. "Training" means finding the weights `θ` that minimize the total squared error. There is a closed-form solution — the **normal equation**:
+
+```
+θ = (Xᵀ X)⁻¹ Xᵀ y
+```
+
+where `X` is your feature matrix with a leading column of 1s (so `θ₀` is the intercept), and `y` is the vector of actual prices.
+
+That formula is not magic — it falls out of freshman calculus. The total squared error `‖y − Xθ‖²` is a smooth, bowl-shaped function of the weights: make the line too flat or too steep and the squared gaps grow, so somewhere in between they bottom out. At the bottom of a bowl the gradient is zero, and setting the gradient of `‖y − Xθ‖²` to zero gives `Xᵀ(y − Xθ) = 0` — read that as *the residuals end up perpendicular to every feature column*, meaning no feature has any leftover correlation with the errors that another tilt of the line could exploit. Rearranged, that is `XᵀX θ = Xᵀy`; solving for `θ` is the normal equation. Squaring the error (rather than taking absolute values) is exactly what buys this: a smooth bowl with a single closed-form minimum — at the cost of weighting one $200 miss like a hundred $20 misses.
+
+That is the entire algorithm — no gradient descent, no library:
+
+```python
+# dealfinder/dealmodel.py
+class LinearModel:
+    def fit(self, X, y):
+        Xb = _with_bias(X)                                    # prepend a column of 1s
+        self.coef_ = np.linalg.pinv(Xb.T @ Xb) @ Xb.T @ y   # the normal equation
+        return self
+
+    def predict(self, X):
+        return _with_bias(X) @ self.coef_
+```
+
+`np.linalg.pinv` is the pseudo-inverse — mathematically identical to the regular inverse when the matrix is full rank, but numerically stable when columns are collinear (which happens in small, structured datasets). The geometry: you are finding the hyperplane that sits as close as possible to every point. What it minimizes is the sum of squared **residuals** — the vertical gaps between the data and the plane:
+
+<RegressionFit />
+
+The chart shows brand tier vs. price for the headphones subset. The model's fair-price line fits the cloud of points; the residuals (gaps) are what least-squares actually shrinks. The Bose QC45 at $46 sits far below the line for tier-4 flagships — that gap is the signal.
+
+<Callout tone="note">
+**Why this is testable.** Because the normal equation is exact, you can hand the model data generated from *known* weights and assert it recovers them exactly (up to floating-point). That is the strongest kind of correctness check — the first test in the suite.
+</Callout>
+
+---
+
+## Evaluate honestly
+
+Scoring a model on the data it trained on flatters it. The snapshot has 270 items; train on the audio-category subset to get fair-price estimates that reflect what headphones should cost (mixing audio and storage in one fit would dilute the category signal):
+
+```python
+# dealfinder/train_model.py
+audio = [p for p in products if p.category == "audio"]
+audio_model = fit_price_model(audio)   # fit_price_model wraps LinearModel().fit(...)
+```
+
+For the full corpus, the from-scratch linear baseline reports its own honest numbers — and the honest number on broad heterogeneous data is deliberately not impressive:
+
+```
+$ python -m dealfinder.train_model
+trained on 202 listings, tested on 68
+  MAE  = $227.89
+  R^2  = 0.268   (broad data → weak; see §4/Part 21)
+
+learned price drivers (intercept + per-feature $):
+  intercept        +1.4
+  category_code    +83.8
+  brand_tier       -7.6
+  condition_code   +2.8
+```
+
+Two metrics, both worth reading precisely. **MAE** (mean absolute error) is the average size of the miss in dollars: predictions here are off by \$227.89 on average — a number in the *units of the target*, which is why it is the metric you can explain to anyone. **R²** is the fraction of price *variance* the model explains, on a scale where 1.0 is perfect and 0.0 means "no better than always predicting the mean price": 0.268 says these three features explain about a quarter of why prices differ — the other three-quarters is in signals the features don't carry (yet).
+
+The dominant driver is `category_code` at **+\$83.8 per code step** — the model captures that electronics categories span a wide price range (accessories vs. computers vs. audio). `brand_tier` has a negative coefficient (−\$7.6) on the full heterogeneous corpus because tier interacts strongly with category; the audio-only model, fitted on the 60-item audio category, produces a cleaner coefficient. That is not a bug — it is why fitting per-category (see `audio_model` above) is more interpretable for the hero cast.
+
+The R² of 0.268 is low for a real production model. That is the curriculum: three hand-features on a broad, heterogeneous 270-item corpus leave most price variance unexplained. Part 21 replaces `LinearModel` with sklearn `GradientBoostingRegressor` on the same features plus the 384-dim title embedding — the R² jumps from 0.268 to 0.727 and the MAE falls from \$227.89 to \$138.11 on the full corpus. The `featurize → fit → score` shape stays identical; only the model class swaps out.
+
+<Callout tone="note">
+**Temporal split caveat.** The snapshot was captured at a single point in time, so there is no genuine temporal ordering to split on. The training run uses a deterministic 80/20 index split (`seed=0`) and documents this in a code comment. Real temporal split — using older data to train and recent data to test — is the Part 19 topic (dataset engineering and leakage).
+</Callout>
+
+---
+
+## Two-signal deal score
+
+Now the payoff. The model predicts a fair price; a **residual** is the gap between the model's expectation and the actual price:
+
+```python
+# dealfinder/dealscore.py
+def residual(actual: float, fair: float) -> float:
+    """Signed gap: fair − actual. Positive = item is priced BELOW fair = looks cheap."""
+    return fair - actual
+
+def residual_fraction(actual: float, fair: float) -> float:
+    """Residual as a fraction of the fair price."""
+    if fair <= 0:
+        return 0.0
+    return (fair - actual) / fair
+```
+
+The sign convention matters: **large positive residual = the price is suspiciously far below the model's expectation.** A residual_frac of 0.839 means the item is priced at only 16% of what the model says it should cost. For a new listing with no condition token, that is a red flag.
+
+The two-signal verdict blends median and residual:
+
+```python
+SUSPICIOUS_RESIDUAL_FRAC = 0.70   # actual < 30% of fair → too-good-to-be-true
+DEAL_MEDIAN_FRAC = 0.15           # need ≥15% under the market median to be a deal
+
+def verdict(actual, median, fair) -> Verdict:
+    m  = median_signal(actual, median)         # fraction below query median
+    rf = residual_fraction(actual, fair)       # fraction below model fair price
+
+    if m >= DEAL_MEDIAN_FRAC and rf >= SUSPICIOUS_RESIDUAL_FRAC:
+        return Verdict("suspicious", ...)      # median says deal; model says trap
+    if m >= DEAL_MEDIAN_FRAC:
+        return Verdict("deal", ...)            # both signals agree: genuine value
+    if m < 0:
+        return Verdict("overpriced", ...)
+    return Verdict("fair", ...)
+```
+
+The suspicious condition is `median_signal >= 0.15 AND residual_frac >= 0.70` — the same `DEAL_MEDIAN_FRAC` gate a deal must clear, plus the residual guard. Both must fire. The Anker Q20i has `residual_frac = 0.585` — it passes the residual guard. The Bose QC45 has `residual_frac = 0.839` — it does not.
+
+<DealResidual />
+
+The chart shows all four hero-cast items. The Anker gap is green (deal — both signals clear). The Bose gap is amber and pulses (suspicious — model residual fires the guard). Sony XM5 sits near fair. Sony XM6 is overpriced against the model's fair price.
+
+---
+
+## The proof: hero-cast walk-through
+
+Anchor query: **"noise cancelling headphones"**. Snapshot median: **$162.97** (Sony WH-1000XM5 Costco — it sits exactly at the median, so its `median_signal = 0.000`). Headphones subset: **15 items**.
+
+The audio model's fair-price prediction depends on `(category_code=3, brand_tier, condition_code=2)`. Tier-4 flagships (Sony, Bose) map to the same feature vector → same prediction. Tier-2 budget brands (Anker) map to a lower prediction.
+
+| Item | actual | model fair | residual ($) | residual\_frac | median\_signal | verdict |
+|---|---|---|---|---|---|---|
+| Sony WH-1000XM5 (Costco) | $162.97 | $285.15 | +$122.18 | +0.428 | 0.000 | **FAIR** |
+| Anker Soundcore Q20i | $44.99 | $108.33 | +$63.34 | +0.585 | +0.724 | **DEAL** |
+| Bose QuietComfort 45 | $46.00 | $285.15 | +$239.15 | +0.839 | +0.718 | **SUSPICIOUS** |
+| Sony WH-1000XM6 | $399.99 | $285.15 | −$114.84 | −0.403 | −1.454 | **OVERPRICED** |
+
+The teaching crux is in the middle two rows. **Anker and Bose both sit at roughly $45 — 72% under the $162.97 median.** The naive `deal_pct` cannot separate them; they are tied. Only the model residual distinguishes them: Anker's residual_frac (0.585) is below the 0.70 guard threshold — consistent with a genuine budget-tier value pick. Bose's residual_frac (0.839) clears the threshold because the model, seeing "tier-4 flagship audio, condition=new", predicts $285.15 — Bose and XM5 share the *same* fair price because they share the same feature vector. A tier-4 flagship listed at $46 with no condition token is the signature of a mislisting; the residual catches it while the median is fooled.
+
+Run it:
+
+```
+$ python -m dealfinder.train_model
+
+verdicts on "noise cancelling headphones" (median $162.97):
+  [suspicious] $27.99   Cowin SE7 Active Noise Cancelling Headphones B — 83% under median but 74% under model fair price $108 — too far below to be real (likely refurb/mislisted).
+  [deal      ] $44.99   Anker Soundcore Q20i Hybrid Active Noise Cance — 72% under the $162.97 median and consistent with the model's $108 fair price — a genuine value pick.
+  [suspicious] $46.00   Bose QuietComfort 45 Wireless Noise Cancelling — 72% under median but 84% under model fair price $285 — too far below to be real (likely refurb/mislisted).
+```
+
+The rows print in snapshot iteration order, not sorted by signal — a $27.99 Cowin (suspicious) leads, then the Anker (deal) before the Bose (suspicious). The flip you need to see is in the `verdict` field, not the raw `deal_pct`: the Anker and Bose are ~$45 and both ~72% under median, indistinguishable on `deal_pct`, yet one is a deal and one a trap. Only the model residual separates them.
+
+---
+
+## Tests that pin the numbers
+
+All the hero-cast values above are not just examples — they are **test assertions** in `companions/dealfinder/tests/test_dealscore.py`. These run against the frozen snapshot on every CI push:
+
+```python
+# tests/test_dealscore.py — pinned against electronics-2026-07.json
+ANCHOR_MEDIAN = 162.97  # "noise cancelling headphones" median at capture (spec §3)
+
+@pytest.fixture(scope="module")
+def audio_model_and_products():
+    """Fit the linear baseline on the audio category (comparable → brand tier bites)."""
+    products = load_products()
+    audio = [p for p in products if p.category == "audio"]
+    model = LinearModel().fit(feature_matrix(audio), [p.price for p in audio])
+    return model, audio
+
+def test_median_signal_math():
+    assert median_signal(44.99, 162.97) == pytest.approx(0.724, abs=0.01)
+    assert median_signal(200.0, 162.97) < 0                       # above median
+
+def test_anker_q20i_is_an_honest_deal(audio_model_and_products):
+    model, audio = audio_model_and_products
+    anker = _find(audio, "Q20i")                                  # $44.99
+    v = verdict(anker.price, ANCHOR_MEDIAN, fair_price(model, featurize(anker)))
+    assert v.label == "deal"                                      # true positive
+    assert v.median_signal == pytest.approx(0.724, abs=0.01)
+
+def test_bose_qc45_trap_is_suspicious(audio_model_and_products):
+    model, audio = audio_model_and_products
+    bose = _find(audio, "QuietComfort 45")                        # $46.00
+    v = verdict(bose.price, ANCHOR_MEDIAN, fair_price(model, featurize(bose)))
+    assert v.median_signal >= 0.70          # median ALONE says "72%-off steal"
+    assert v.label == "suspicious"          # …but the blend rejects it
+    assert v.residual_frac > 0.70           # way below the flagship fair price
+
+def test_trap_and_honest_deal_are_separated_by_the_residual(audio_model_and_products):
+    """Both are ~72% under median at ~$45; only the residual tells them apart."""
+    model, audio = audio_model_and_products
+    rf_anker = residual_fraction(44.99, fair_price(model, featurize(_find(audio, "Q20i"))))
+    rf_bose  = residual_fraction(46.00, fair_price(model, featurize(_find(audio, "QuietComfort 45"))))
+    assert rf_bose > rf_anker                                     # flagship is further below fair
+
+@pytest.mark.parametrize("deal_pct,residual_frac,expected", [
+    (0.724, 0.585, "DEAL"),          # Anker Q20i: 72% under median, plausible residual
+    (0.000, 0.428, "FAIR"),          # priced at the same-query median
+    (0.718, 0.839, "SUSPICIOUS"),    # Bose QC45 $46: 72% under, but far below model fair
+    (-1.454, -0.403, "OVERPRICED"),  # Sony XM6 $399.99: well above the median
+])
+def test_render_badge_maps_the_two_signals(deal_pct, residual_frac, expected):
+    assert render_badge(deal_pct, residual_frac) == expected
+```
+
+Run them (the file has **9** tests — the four above plus `test_anchor_sits_at_median` and the four parametrized `render_badge` cases):
+
+```
+$ pytest tests/test_dealscore.py -v
+test_median_signal_math                                    PASSED
+test_anchor_sits_at_median                                 PASSED
+test_anker_q20i_is_an_honest_deal                          PASSED
+test_bose_qc45_trap_is_suspicious                          PASSED
+test_trap_and_honest_deal_are_separated_by_the_residual    PASSED
+test_render_badge_maps_the_two_signals[0.724-0.585-DEAL]        PASSED
+test_render_badge_maps_the_two_signals[0.0-0.428-FAIR]         PASSED
+test_render_badge_maps_the_two_signals[0.718-0.839-SUSPICIOUS] PASSED
+test_render_badge_maps_the_two_signals[-1.454--0.403-OVERPRICED] PASSED
+9 passed in 0.21s
+```
+
+Because the normal equation is exact and the split is deterministic (`seed=0`), the model needs no serialized artifact — `python -m dealfinder.train_model` refits the identical weights from the frozen snapshot every run, so the tests pin the numbers directly.
+
+<Callout tone="note">
+**How this scales in production.** The `featurize → fit → score` shape you built here is unchanged in Parts 4 and 21. Part 4's recommender reuses `feature_matrix()` as the content-similarity backbone. Part 21 swaps `LinearModel` for sklearn `GradientBoostingRegressor` — the R² moves from 0.268 to 0.727 and the MAE from \$227.89 to \$138.11 on the full corpus (with embeddings), and the Bose trap stays caught. The two-signal blend and the suspicious threshold stay the same. That is the point: good architecture lets you upgrade the model without rewriting the pipeline.
+</Callout>
+
+**Part 5 eval gate.** Before the recommender deploys in Part 5, the two-signal score must pass `precision@5 >= 0.80` on a **20-item golden set** drawn from the snapshot — all 15 headphones from the anchor query plus 5 cross-category items, each hand-labeled `deal|fair|suspicious|overpriced`. This gate is defined once (Part 5) and reused identically in the eval, MLOps, inference, and security parts later in the course.
+
+---
+
+## Check it works
+
+**What you should have now:** every product carries a two-signal verdict — and the naive median signal, which is fooled by the $46 Bose (72% under median, same as the genuine $44.99 Anker), is now corrected by the model residual that flags the Bose `SUSPICIOUS`.
+
+**Test it — reproduce the model from scratch:**
+
+```bash
+python -m dealfinder.train_model
+```
+
+You should see the honest split numbers and the verdicts:
+
+```
+trained on 202 listings, tested on 68
+  MAE  = $227.89
+  R^2  = 0.268
+...
+  [deal      ] $44.99   Anker Soundcore Q20i …  — consistent with the model's $108 fair price
+  [suspicious] $46.00   Bose QuietComfort 45 …  — 84% under model fair price $285 — too far below to be real
+```
+
+**Test it — the unit tests:**
+
+```bash
+pytest tests/test_dealscore.py tests/test_dealmodel.py
+# 15 passed  (9 in test_dealscore.py + 6 in test_dealmodel.py)
+```
+
+**See it in the running product:**
+
+- Open `http://localhost:8000/deal/<anker-id>` — you should get `"fair": 108.33, "deal_score": 0.585` (the same per-category model the search badges use — not a divergent number).
+- Search *"noise cancelling headphones"* (by-meaning mode). The **$46 Bose QuietComfort 45 shows a `SUSPICIOUS` badge** with *"⚠ looks 72% under — but flagged"*, while the $44.99 Anker shows `DEAL`. That difference is the entire lesson, made visible.
+
+---
+
+## What you can demo now
+
+The app can now *judge* a price, not just show it — hit the deal endpoint for the hero product:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-03/deal-endpoint-anker.png"
+  alt="The /deal endpoint returning fair price and deal score for the Anker Q20i"
+  caption="Real API response: GET /deal/&lt;anker-q20i-id&gt; from the running app."
+  lookFor="the “fair”: 108.33 field (green ring) — the model's opinion of what this Anker should cost — and “deal_score”: 0.585 (amber ring), safely under the 0.70 suspicious line. The $44.99 asking price against a $108.33 fair estimate is why the UI badge says DEAL."
+/>
+
+The demo line: *"$44.99 is the ask; $108.33 is what the model thinks it's worth. The gap — and whether it's plausible — is the whole product."*
+
+---
+
+## Where this goes next
+
+- **Part 4 — Recommender (content + collaborative):** the `feature_matrix()` from this part is the content-similarity backbone. The two-signal score ranks candidate items the recommender surfaces.
+- **Part 5 — Semantic search:** the 384-dim `BAAI/bge-small-en-v1.5` title embeddings (already precomputed and cached in the snapshot) replace the three hand-features for similarity search. The eval gate defined above runs for the first time here.
+
+---
+
+*Sources: [Normal equation (Stanford CS229)](https://cs229.stanford.edu/notes2022fall/main_notes.pdf) · [numpy.linalg.pinv](https://numpy.org/doc/stable/reference/generated/numpy.linalg.pinv.html) · [fastembed BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) · [scikit-learn: model evaluation](https://scikit-learn.org/stable/modules/model_evaluation.html)*

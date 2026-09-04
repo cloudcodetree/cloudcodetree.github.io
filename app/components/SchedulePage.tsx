@@ -157,7 +157,7 @@ export default function SchedulePage() {
                     >
                       <CardContent sx={{ flexGrow: 1, p: 3 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                          <Icon sx={{ color: '#3b82f6', fontSize: '2rem', mr: 2 }} />
+                          <Icon sx={{ color: '#749dc4', fontSize: '2rem', mr: 2 }} />
                           <Box>
                             <Typography variant="h5" component="h3">
                               {meeting.title}
@@ -166,9 +166,9 @@ export default function SchedulePage() {
                               label={meeting.duration}
                               size="small"
                               sx={{
-                                background: 'rgba(6, 182, 212, 0.1)',
-                                color: '#06b6d4',
-                                border: '1px solid rgba(6, 182, 212, 0.3)',
+                                background: 'rgba(148,188,227, 0.1)',
+                                color: '#94bce3',
+                                border: '1px solid rgba(148,188,227, 0.3)',
                               }}
                             />
                           </Box>
@@ -181,7 +181,7 @@ export default function SchedulePage() {
                           {meeting.description}
                         </Typography>
 
-                        <Typography variant="subtitle2" sx={{ mb: 2, color: '#3b82f6' }}>
+                        <Typography variant="subtitle2" sx={{ mb: 2, color: '#749dc4' }}>
                           Ideal for:
                         </Typography>
                         <Box component="ul" sx={{ pl: 2, mb: 3 }}>
@@ -206,12 +206,12 @@ export default function SchedulePage() {
                           sx={{
                             mt: 'auto',
                             background: calendlyLoaded 
-                              ? 'linear-gradient(135deg, #3b82f6, #06b6d4)'
-                              : 'rgba(59, 130, 246, 0.3)',
+                              ? 'linear-gradient(135deg, #749dc4, #94bce3)'
+                              : 'rgba(116,157,196, 0.3)',
                             '&:hover': {
                               background: calendlyLoaded 
                                 ? 'linear-gradient(135deg, #2563eb, #0891b2)'
-                                : 'rgba(59, 130, 246, 0.4)',
+                                : 'rgba(116,157,196, 0.4)',
                             },
                           }}
                         >
@@ -244,7 +244,7 @@ export default function SchedulePage() {
               >
                 <Box sx={{ textAlign: 'center' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
-                    <TimeIcon sx={{ color: '#3b82f6' }} />
+                    <TimeIcon sx={{ color: '#749dc4' }} />
                     <Typography variant="h6">Timezone</Typography>
                   </Box>
                   <Typography variant="body1" sx={{ color: 'text.secondary' }}>
@@ -253,7 +253,7 @@ export default function SchedulePage() {
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
-                    <ScheduleIcon sx={{ color: '#3b82f6' }} />
+                    <ScheduleIcon sx={{ color: '#749dc4' }} />
                     <Typography variant="h6">Regular Hours</Typography>
                   </Box>
                   <Typography variant="body1" sx={{ color: 'text.secondary' }}>
@@ -262,7 +262,7 @@ export default function SchedulePage() {
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
-                    <VideoCallIcon sx={{ color: '#3b82f6' }} />
+                    <VideoCallIcon sx={{ color: '#749dc4' }} />
                     <Typography variant="h6">Meeting Format</Typography>
                   </Box>
                   <Typography variant="body1" sx={{ color: 'text.secondary' }}>
@@ -270,7 +270,7 @@ export default function SchedulePage() {
                   </Typography>
                 </Box>
               </Box>
-              <Box sx={{ mt: 4, p: 3, background: 'rgba(59, 130, 246, 0.05)', borderRadius: 2 }}>
+              <Box sx={{ mt: 4, p: 3, background: 'rgba(116,157,196, 0.05)', borderRadius: 2 }}>
                 <Typography variant="body1" sx={{ textAlign: 'center', color: 'text.secondary' }}>
                   <strong>Note:</strong> {availability.note}
                 </Typography>
@@ -341,7 +341,7 @@ export default function SchedulePage() {
                       variant="contained"
                       onClick={() => window.open(CALENDLY_CONFIG.url, '_blank')}
                       sx={{
-                        background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+                        background: 'linear-gradient(135deg, #749dc4, #94bce3)',
                         '&:hover': {
                           background: 'linear-gradient(135deg, #2563eb, #0891b2)',
                         },
@@ -397,7 +397,7 @@ export default function SchedulePage() {
                   viewport={{ once: true }}
                 >
                   <Box sx={{ p: 3 }}>
-                    <Typography variant="h5" component="h3" sx={{ mb: 2, color: '#3b82f6' }}>
+                    <Typography variant="h5" component="h3" sx={{ mb: 2, color: '#749dc4' }}>
                       {index + 1}. {step.title}
                     </Typography>
                     <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8 }}>

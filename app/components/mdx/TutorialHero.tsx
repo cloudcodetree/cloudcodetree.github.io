@@ -67,14 +67,14 @@ export default function TutorialHero({ slug }: { slug: string }) {
         {blurb && (
           <Typography sx={{ color: 'text.secondary', fontSize: '0.92rem', lineHeight: 1.55, mb: 1.5 }}>{blurb}</Typography>
         )}
-        <Box component="ol" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+        <Box component="ol" sx={{ listStyle: 'none', m: 0, p: 0, columnGap: { xs: 0, sm: 4 }, columnCount: { xs: 1, sm: 2, md: total > 16 ? 3 : 2 } }}>
           {parts.map((p) => {
             const here = p.slug === t.slug;
             return (
               <Box
                 component="li"
                 key={p.slug}
-                sx={{ display: 'flex', alignItems: 'baseline', gap: 1.25, py: 0.5, borderLeft: '2px solid', borderColor: here ? ACCENT : 'transparent', pl: 1.25 }}
+                sx={{ breakInside: 'avoid', display: 'flex', alignItems: 'baseline', gap: 1.25, py: 0.5, borderLeft: '2px solid', borderColor: here ? ACCENT : 'transparent', pl: 1.25 }}
               >
                 <Box component="span" sx={{ fontFamily: MONO, fontSize: 12, color: here ? ACCENT : 'text.secondary', flexShrink: 0, width: 18 }}>
                   {String(p.part).padStart(2, '0')}

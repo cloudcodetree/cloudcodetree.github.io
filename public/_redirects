@@ -1,0 +1,13 @@
+# Legacy GitHub project-Pages paths (retired at cutover) → their new homes.
+# Workers Static Assets serves this natively; Pages ignored it.
+# Both bare and splat forms: /x/* does not match /x.
+/span-calculator       /projects/span-calculator/     301
+/span-calculator/*     /projects/span-calculator/     301
+/motion-expression     /projects/   301
+/motion-expression/*   /projects/   301
+/code_compare          /projects/        301
+/code_compare/*        /projects/        301
+/backlot               /projects/             301
+/backlot/*             /projects/             301
+/sheetwise             /projects/                     301
+/sheetwise/*           /projects/                     301

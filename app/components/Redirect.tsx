@@ -14,7 +14,7 @@ export default function Redirect({ to }: { to: string }) {
 
   return (
     <p style={{ padding: 24, fontFamily: 'system-ui, sans-serif', color: '#cbd5e1' }}>
-      This page has moved to <a href={to} style={{ color: '#2f81f7' }}>{to}</a>…
+      This page has moved to <a href={to} style={{ color: '#94bce3' }}>{to}</a>…
     </p>
   );
 }

@@ -1,0 +1,403 @@
+import LabelImbalance from '@/app/components/mdx/LabelImbalance';
+import GroupedSplit from '@/app/components/mdx/GroupedSplit';
+
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Dataset Engineering (Part 19 of 37) · Tutorials',
+  description:
+    'Label the 270-item electronics snapshot, guard against query-leakage with a grouped split, and confront the real class imbalance — the bridge from raw data to a reproducible ML training set.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-19/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Dataset Engineering (Part 19 of 37)',
+    description: 'Label the 270-item electronics snapshot, guard against query-leakage with a grouped split, and confront the real class imbalance — the bridge from raw data to a reproducible ML training set.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-19/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-19.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-19.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-19" />
+
+# Dataset Engineering
+
+**TL;DR: Turn the frozen 270-item electronics snapshot into a labeled, leakage-safe training set. You will label every listing with the two-signal deal verdict, split by query group to prevent near-duplicate contamination, and report the real class imbalance — then hand back balanced class weights so a classifier can compensate without any resampling magic.**
+
+This is **Part 19 of DealFinder**. You have the web app running (Part 18). Now the ML rigor starts. Before you can train a classifier on the deal-vs-overpriced question, you need a dataset that actually earns the name: clean labels, a split that reflects how the model will generalize, and an honest account of how skewed the classes are. `dealfinder/dataset.py` does all three in under 250 lines — deterministically, offline, against the committed snapshot.
+
+<Callout tone="note">
+**Where do Spark and friends fit?** They don't — at this scale, and that's a lesson. 270 rows is pandas/numpy territory; reaching for Spark here would be résumé-driven engineering. The distributed tools (Spark, Dask, DuckDB-over-parquet, a warehouse) enter when the data outgrows one machine's memory or one process's patience — think millions of listings refreshed daily. What transfers unchanged at that scale is everything this part actually teaches: leakage-safe grouped splits, deterministic seeds, label provenance, class-imbalance accounting. The concepts are the curriculum; the engine is a deployment detail you swap when the row count demands it.
+</Callout>
+
+<Callout tone="tip">
+**Code along.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Step tag for this part: `step-19`. Compare diff: `step-18...step-19`.
+Tests: `tests/test_dataset.py` — all must pass before you move on.
+</Callout>
+
+## Table of contents
+
+1. [Three jobs a real ML dataset has to do](#three-jobs-a-real-ml-dataset-has-to-do)
+2. [Labeling: the two-signal verdict as the supervised target](#labeling-the-two-signal-verdict-as-the-supervised-target)
+3. [Building the labeled dataset](#building-the-labeled-dataset)
+4. [The real label distribution](#the-real-label-distribution)
+5. [Splitting without leakage: the grouped split](#splitting-without-leakage-the-grouped-split)
+6. [Why a random row split is wrong here](#why-a-random-row-split-is-wrong-here)
+7. [Class imbalance: the honest report](#class-imbalance-the-honest-report)
+8. [Balanced class weights: the simple fix](#balanced-class-weights-the-simple-fix)
+9. [Title embeddings as extended features](#title-embeddings-as-extended-features)
+10. [The temporal split hook (and why it is honest, not a trick)](#the-temporal-split-hook-and-why-it-is-honest-not-a-trick)
+11. [Seeing it in the product](#seeing-it-in-the-product)
+12. [Check it works](#check-it-works)
+13. [What you can demo now](#what-you-can-demo-now)
+14. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Call `build_labeled_dataset()` and get back a `LabeledDataset` with 270 aligned rows of features, integer label codes, item ids, and query membership.
+- Explain why the label distribution is deal=71, fair=40, suspicious=32, overpriced=127, and why "overpriced" being the majority class at 47% is a real signal about the electronics market, not a labeling error.
+- Use `grouped_split` to divide 18 queries into 14 train / 4 test so no query straddles the boundary and near-duplicate listings of the same product stay on one side.
+- Compute balanced class weights with `class_weights(y)` — understanding why suspicious (the rarest class) gets the largest weight (2.1094) — without any oversampling or synthetic rows.
+- Describe honestly what `temporal_split` does and does not do on a snapshot with no price history.
+- Run `tests/test_dataset.py` and understand what each assertion pins.
+
+---
+
+## Three jobs a real ML dataset has to do
+
+A raw corpus of product listings is not a dataset. Before you hand it to a classifier, three things have to be true.
+
+**Job 1: labels.** The snapshot comes with `deal_pct` — the percentage below the query median — but you have already seen in Part 3 that the naive median signal is broken. A Sony WH-1000XM5 at $162.97 reads as "at the median" (fair), but the Bose QC45 at $46 reads as 72% below median (a deal) when it is almost certainly a refurb or mislisting of a $329 flagship. The two-signal verdict from `dealscore.py` — median signal guarded by the per-category linear model's residual — is the right label. That is what gets annotated here.
+
+**Job 2: a split without leakage.** Near-duplicate listings of the same product recur across the 18 snapshot queries. The Sony WH-1000XM5 appears at $162.97 (Costco) and $248 (Macy's). If a random row split put the $162.97 listing in train and the $248 listing in test, the model would be graded on something it has effectively already seen. The fix is to split by query group: whole queries go to one side, so all listings for "noise cancelling headphones" land in train or all land in test.
+
+**Job 3: honest imbalance accounting.** The label distribution is skewed. Overpriced is the majority class at 47% of rows. A classifier trained on raw counts could shout "overpriced" on everything and still look 47% accurate. Reporting the real skew and handing back balanced class weights — without resampling or synthetic rows — lets the downstream model compensate transparently.
+
+`dealfinder/dataset.py` does exactly these three jobs and nothing else.
+
+---
+
+## Labeling: the two-signal verdict as the supervised target
+
+The module defines the label vocabulary and the per-row labeling function:
+
+```python
+# dealfinder/dataset.py
+
+LABELS = ("deal", "fair", "suspicious", "overpriced")
+
+def label_for(product: Product, median: float, models: dict[str, LinearModel]) -> str:
+    model = models.get(product.category)
+    fair = fair_price(model, featurize(product)) if model is not None else median
+    return verdict(product.price, median, fair).label
+```
+
+`label_for` calls the same `verdict()` function the live deal scorer uses. The `fair` price comes from the per-category linear model (the same `LinearModel` from Part 3, fitted on the snapshot). If the category has fewer than `_MIN_CATEGORY_ROWS` rows — the internal constant is 3 — no model is fitted and the fair price falls back to the market median, making the residual guard neutral. The label is then the `verdict().label` string: one of `"deal"`, `"fair"`, `"suspicious"`, or `"overpriced"`.
+
+Walk through the hero cast to verify:
+
+| Listing | Price | Query median | Fair price (model) | Label |
+|---|---|---|---|---|
+| Sony WH-1000XM5 (Costco) | $162.97 | $162.97 | $285.15 | **FAIR** |
+| Anker Soundcore Q20i | $44.99 | $162.97 | $108.33 | **DEAL** |
+| Bose QuietComfort 45 | $46.00 | $162.97 | $285.15 | **SUSPICIOUS** (residual 0.839) |
+| Sony WH-1000XM6 | $399.99 | $162.97 | $285.15 | **OVERPRICED** |
+
+The Bose QC45 at $46 is the key case. The naive median signal sees it as 72% below median and would call it a deal. The two-signal guard sees a residual fraction of 0.839 — the model expected $285, actual is $46 — and marks it suspicious instead. That is the label that goes into the training set.
+
+---
+
+## Building the labeled dataset
+
+`build_labeled_dataset()` orchestrates the full annotation pass:
+
+```python
+from dealfinder.dataset import build_labeled_dataset
+
+ds = build_labeled_dataset()
+
+print(ds.X.shape)          # (270, 3)
+print(ds.feature_names)    # ['category_code', 'brand_tier', 'condition_code']
+print(ds.label_distribution())
+# {'deal': 71, 'fair': 40, 'suspicious': 32, 'overpriced': 127}
+```
+
+The function is deterministic and offline: it loads `electronics-2026-07.json`, fits one `LinearModel` per category that has at least 3 rows, and then iterates every item in snapshot order, calling `label_for` for each. The result is a `LabeledDataset` with:
+
+- `X`: shape `(270, 3)` — the three hand features from Part 3: `category_code`, `brand_tier`, `condition_code`.
+- `y`: shape `(270,)` — integer label codes indexing `LABELS`.
+- `ids`: the 270 snapshot item ids, aligned to `X` and `y`.
+- `queries`: the query each row belongs to — used by `grouped_split`.
+- `feature_names`: `["category_code", "brand_tier", "condition_code"]`.
+
+The `LabeledDataset` dataclass also exposes:
+
+```python
+ds.label_names()       # list of 270 strings ("deal", "fair", …)
+ds.label_distribution()  # {'deal': 71, 'fair': 40, 'suspicious': 32, 'overpriced': 127}
+```
+
+These two methods are the ones the tests pin. They are the ground truth for Part 19 and for every later part that trains on this dataset.
+
+---
+
+## The real label distribution
+
+Run `ds.label_distribution()` and you get back the real numbers:
+
+```
+deal        71   (26.3%)
+fair        40   (14.8%)
+suspicious  32   (11.9%)
+overpriced 127   (47.0%)
+```
+
+<LabelImbalance />
+
+That distribution is not a labeling artifact. It reflects what the electronics market actually looks like in the snapshot: nearly half of the 270 listings are priced above the model's fair estimate for their category. The snapshot spans 18 queries and 11 categories, from budget USB hubs to graphics cards. In a competitive market, most items cluster around or above fair price; genuine deals are relatively rare.
+
+The implication for ML: a classifier that always predicts "overpriced" gets 47% accuracy on the test set without learning anything. That is the baseline you have to beat. The class weights in the next section are the lever.
+
+---
+
+## Splitting without leakage: the grouped split
+
+`grouped_split` splits the 18 unique queries into train and test groups so that every row for a given query lands on one side:
+
+```python
+from dealfinder.dataset import build_labeled_dataset, grouped_split
+
+ds = build_labeled_dataset()
+train_idx, test_idx = grouped_split(ds.queries, test_frac=0.25, seed=0)
+
+print(len(train_idx), len(test_idx))   # 210 60
+
+train_queries = set(ds.queries[i] for i in train_idx)
+test_queries  = set(ds.queries[i] for i in test_idx)
+print(train_queries.isdisjoint(test_queries))  # True
+```
+
+With `seed=0`, 18 unique queries split into 14 train / 4 test. Because the split is at the query level — not the row level — the actual row counts are 210 train and 60 test. That is a 22% test fraction rather than the requested 25%, because you cannot split a single query across the boundary: whole query groups go to one side, so the exact fraction is coarse.
+
+<GroupedSplit />
+
+The guarantee the test confirms: `train_queries.isdisjoint(test_queries)` is `True`, and `train_size + test_size == 270`. Every row is assigned to exactly one side.
+
+<Callout tone="note">
+The grouped split (14/4 queries, 210/60 rows) is distinct from the row-level 202/68 split used in Parts 21 and beyond for the gradient-boosting experiments. Do not conflate them. The grouped split is the leakage-safe split for training a classifier on deal labels; the row-level split is used in the price regression benchmarks where query contamination is less severe.
+</Callout>
+
+---
+
+## Why a random row split is wrong here
+
+The Sony WH-1000XM5 appears in the snapshot twice: at $162.97 from Costco and at $248 from Macy's. Both rows belong to the `"noise cancelling headphones"` query. A random row split might put the $162.97 listing in train and the $248 listing in test.
+
+The model would then face a test row whose product it has effectively already seen during training — labeled FAIR in train, labeled OVERPRICED in test. The model does not see the price directly in its feature vector (it sees `category_code`, `brand_tier`, `condition_code`); but because the features are identical for both Sony XM5 rows, a memorization path exists. The test score would be flattering and unreliable.
+
+By putting all "noise cancelling headphones" rows on one side of the split, `grouped_split` closes that path. The model is evaluated only on queries it has never trained on.
+
+---
+
+## Class imbalance: the honest report
+
+`imbalance_summary` packages the full picture in one call:
+
+```python
+from dealfinder.dataset import build_labeled_dataset, imbalance_summary
+
+ds = build_labeled_dataset()
+summary = imbalance_summary(ds)
+
+# summary["counts"]
+# {'deal': 71, 'fair': 40, 'suspicious': 32, 'overpriced': 127}
+
+# summary["majority_class"]     → 'overpriced'
+# summary["majority_fraction"]  → 0.4704
+
+# summary["class_weights"]
+# {'deal': 0.9507, 'fair': 1.6875, 'suspicious': 2.1094, 'overpriced': 0.5315}
+
+# summary["strategy"]
+# 'balanced class weights (n / (n_classes * count)); no resampling — …'
+```
+
+The strategy string says it plainly: no resampling, no synthetic rows. The skew is real and reported, not hidden.
+
+---
+
+## Balanced class weights: the simple fix
+
+`class_weights(y)` implements sklearn's formula directly:
+
+```
+weight[class] = n / (n_classes × count[class])
+```
+
+With n=270 and n_classes=4:
+
+| Label | count | weight |
+|---|---|---|
+| deal | 71 | 270 / (4 × 71) = **0.9507** |
+| fair | 40 | 270 / (4 × 40) = **1.6875** |
+| suspicious | 32 | 270 / (4 × 32) = **2.1094** ← rarest, largest |
+| overpriced | 127 | 270 / (4 × 127) = **0.5315** |
+
+```python
+from dealfinder.dataset import build_labeled_dataset, class_weights
+
+ds = build_labeled_dataset()
+weights = class_weights(ds.y)
+# {0: 0.9507, 1: 1.6875, 2: 2.1094, 3: 0.5315}
+# keys are label codes: 0=deal, 1=fair, 2=suspicious, 3=overpriced
+```
+
+Pass the weight dict to sklearn as `class_weight` in a classifier's constructor. The loss for each suspicious prediction will be multiplied by 2.1094 — four times the weight the overpriced majority gets. The model is forced to care about the rare classes.
+
+<Callout tone="warn">
+The class weight formula only makes sense on the **full dataset** before the split, not on the train fold alone. Compute `class_weights(ds.y)` before calling `grouped_split`, otherwise the weights reflect only the training distribution and drift from the test distribution.
+</Callout>
+
+---
+
+## Title embeddings as extended features
+
+The three hand features (`category_code`, `brand_tier`, `condition_code`) capture the coarse price structure. They miss the information in the title that the Part 4 recommender already knows — a "refurbished" caveat buried mid-title, a "(Gen 2)" marker, a bundle like "with case + cable". Pass `with_embeddings=True` to load the cached 384-dim title embeddings and concatenate them:
+
+```python
+ds_full = build_labeled_dataset(with_embeddings=True)
+print(ds_full.X.shape)   # (270, 387)  — 3 hand + 384 embedding dims
+```
+
+The feature names extend: `["category_code", "brand_tier", "condition_code", "emb_0", "emb_1", …, "emb_383"]`.
+
+In Part 21, `gbdt_vs_linear(with_embeddings=True)` shows what embedding features add to a gradient-boosted price regressor: with hand features only, the GBDT MAE is $257.99 — worse than the linear baseline at $227.89. Add the 384-dim embeddings (compressed to 16 dimensions via PCA — principal component analysis, which keeps the 16 directions of highest variance in the embedding space; Part 21 explains why) and the GBDT MAE drops to $138.11, cutting the linear baseline's error by 39.4%. The embeddings are the hero; the boosting alone loses.
+
+The `with_embeddings=False` default keeps this part offline and fast. Use `True` when you want the full feature vector for the ML parts.
+
+---
+
+## The temporal split hook (and why it is honest, not a trick)
+
+The correct way to train on price data is to respect time: train on the past, test on the future. Never let the model see tomorrow's prices during training.
+
+The snapshot does not support this. Every row was captured in a single pass in July 2026; the `price_history` field is empty for all 270 items. There is no real time axis to split on.
+
+`temporal_split` is provided as the hook for when the pipeline in Part 20 starts recording a capture timestamp per item. The function is honest about the gap:
+
+```python
+from dealfinder.dataset import temporal_split
+
+# With no order_key, this degrades to a plain index split.
+# It does NOT claim to be temporal — it is a placeholder.
+train_idx, test_idx = temporal_split(n=270)
+# train_size=202, test_size=68 (plain index, no time axis)
+```
+
+The docstring says it plainly: "The current snapshot rows carry no `price_history` / capture time (all empty), so there is no real time axis to split on yet." The function does not pretend otherwise. Once Part 20 records a `captured_at` timestamp per item, you pass it as `order_key` and `temporal_split` becomes the real thing.
+
+<Callout tone="note">
+Do not interpret the 202/68 output of `temporal_split(n=270)` as a validated temporal train/test pair. It is a plain index split with no time guarantee. Use `grouped_split` for the leakage-safe split on this snapshot.
+</Callout>
+
+---
+
+## Seeing it in the product
+
+A labeled dataset is easy to describe and easy to fudge — so the app exposes the real one. A **`/dataset`** endpoint (`serve.py`) builds the labeled set from the frozen snapshot and returns its shape; the static UI adds a **"dataset (ML)"** mode that renders it:
+
+```python
+@app.get("/dataset")
+def dataset_report():
+    ds = dataset.build_labeled_dataset()
+    summary = dataset.imbalance_summary(ds)
+    tr, te = dataset.grouped_split(ds.queries, test_frac=0.25, seed=0)
+    return {"n_rows": int(ds.y.shape[0]), "n_queries": len(set(ds.queries)),
+            "counts": summary["counts"], "majority_class": summary["majority_class"],
+            "class_weights": summary["class_weights"],
+            "split": {"train_rows": len(tr), "test_rows": len(te),
+                      "train_queries": sorted({ds.queries[i] for i in tr}),
+                      "test_queries": sorted({ds.queries[i] for i in te}), "disjoint": ...}}
+```
+
+It is query-independent — the training set is fixed, so this mode ignores the search box. It just makes the distribution, the class weights, and the leakage-safe split visible on real data instead of asking you to trust the prose.
+
+---
+
+## Check it works
+
+**The reproducibility contract, offline.** `tests/test_dataset.py` contains seven tests:
+
+```bash
+pytest tests/test_dataset.py -v      # 7 passed
+```
+
+Expected output:
+
+```
+tests/test_dataset.py::test_labeled_dataset_shapes_and_alignment    PASSED
+tests/test_dataset.py::test_real_label_distribution_is_pinned       PASSED
+tests/test_dataset.py::test_imbalance_summary_reports_real_skew_and_weights  PASSED
+tests/test_dataset.py::test_class_weights_formula                   PASSED
+tests/test_dataset.py::test_grouped_split_keeps_each_query_on_one_side       PASSED
+tests/test_dataset.py::test_grouped_split_is_deterministic          PASSED
+tests/test_dataset.py::test_with_embeddings_appends_384_dims        PASSED
+
+7 passed in ...
+```
+
+What each test pins:
+
+**`test_labeled_dataset_shapes_and_alignment`** — `ds.X.shape == (270, 3)`, `ds.y.shape == (270,)`, `len(ds.ids) == 270`, `len(ds.queries) == 270`. Confirms alignment: every row of X has a label, an id, and a query.
+
+**`test_real_label_distribution_is_pinned`** — `ds.label_distribution() == {'deal': 71, 'fair': 40, 'suspicious': 32, 'overpriced': 127}`. This is the reproducibility contract. If you see different numbers, the snapshot has changed or the labeling logic has drifted.
+
+**`test_imbalance_summary_reports_real_skew_and_weights`** — checks `majority_class == 'overpriced'`, `majority_fraction ≈ 0.4704`, and that `strategy` contains "no resampling".
+
+**`test_class_weights_formula`** — verifies the formula `n / (n_classes * count)` exactly. Checks that suspicious (code=2) gets the largest weight.
+
+**`test_grouped_split_keeps_each_query_on_one_side`** — asserts `train_queries.isdisjoint(test_queries)` and `train_size + test_size == 270` with seed=0.
+
+**`test_grouped_split_is_deterministic`** — calls `grouped_split` twice with the same seed; asserts the results are identical.
+
+**`test_with_embeddings_appends_384_dims`** — `build_labeled_dataset(with_embeddings=True)` → `X.shape == (270, 387)`.
+
+All seven must pass against the committed snapshot. If any fail, debug before moving on — a failing test here means the downstream ML parts (Parts 21–24) will be running on a dataset whose properties differ from what the prose describes.
+
+**The same numbers, live** (server on `:8000`):
+
+```bash
+curl -s http://localhost:8000/dataset \
+  | python -m json.tool | grep -E '"n_rows"|"majority_class"|"majority_fraction"|"train_rows"|"test_rows"|"disjoint"'
+```
+
+**Expect:** `n_rows: 270`, `majority_class: "overpriced"`, `majority_fraction: 0.4704`, `train_rows: 210`, `test_rows: 60`, `disjoint: true` — the same dataset the tests pin, served from the running app.
+
+---
+
+## What you can demo now
+
+Open the app, pick **"dataset (ML)"**, and hit Search (the box is ignored — the training set is fixed). The dataset you just built is now something you can *see*:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-19/dataset-inspector.png"
+  alt="The DealFinder dataset inspector: label distribution bars (deal 71, fair 40, suspicious 32, overpriced 127), balanced class weights with suspicious largest, and the leakage-safe 14/4 grouped split"
+  caption="Real capture: the labeled training set's shape — label distribution, balanced class weights, and the leakage-safe grouped split — rendered from the live /dataset endpoint."
+  lookFor="the label-distribution bars: overpriced dominates at 127 rows (47%), while suspicious is the rarest at 32 (11.9%) — and its balanced weight, 2.1094, is the largest, flagged '← largest', so the classifier can't ignore the rare trap class. Below, the leakage-safe grouped split: 14 train queries / 4 test queries (210 / 60 rows), marked '✓ disjoint — no query straddles the split', with the four held-out test queries named (android tablet, bluetooth speaker, soundbar, usb c hub). Every number here matches tests/test_dataset.py exactly."
+/>
+
+The demo line: *"This is the training set the next parts learn from — 270 labeled rows, and it's honestly skewed: nearly half are 'overpriced', so a model that shouts 'overpriced' at everything scores 47% for free. The balanced weights push back — the rarest class, 'suspicious', gets the biggest weight. And the split is by whole query, not by row, so a near-duplicate of a training listing can never leak into the test set."*
+
+---
+
+## Where this goes next
+
+- **Part 20 — Pipelines & orchestration:** the Part 19 dataset is a one-shot build from a committed snapshot. Part 20 operationalizes the pipeline: Prefect orchestrates nightly ingest from the live connector, dbt transforms the raw items, and data contracts gate the quality of what enters the dataset. When Part 20 records a `captured_at` timestamp on each row, `temporal_split` becomes real rather than a placeholder.
+- **Part 21 — ML & DL breadth:** the first consumer of this dataset. `gbdt_vs_linear()` benchmarks a gradient-boosted regressor against the linear baseline (Part 3) on the 202/68 row-level split, first with hand features only — where boosting actually loses — then with the 384-dim embeddings reduced via PCA, where GBDT cuts the linear baseline's MAE by 39.4% (from $227.89 to $138.11).
+
+---
+
+*Part 18: [The web app](/tutorials/dealfinder-part-18) · Part 20: [Pipelines & orchestration](/tutorials/dealfinder-part-20)*

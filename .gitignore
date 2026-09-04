@@ -81,8 +81,9 @@ ehthumbs.db
 Thumbs.db
 
 # Editor directories and files
-.vscode/
+.vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea/
 *.suo
 *.ntvs*
@@ -93,7 +94,6 @@ Thumbs.db
 
 # IDE
 .fleet
-.vscode/settings.json
 
 # Local Netlify folder
 .netlify
@@ -112,6 +112,25 @@ Thumbs.db
 
 # Brainstorm visual-companion artifacts
 /.superpowers/
+
+# Wrangler local state
+/.wrangler/
+
+# OpenTofu
+/infra/.terraform/
+/infra/.terraform.lock.hcl
+/infra/terraform.tfstate
+/infra/terraform.tfstate.backup
+/infra/backend.hcl
+/infra/*.tfvars
+crash.log
+
+# Vendored demo build workspace
+/.demo-build-cache/
+
+# Local multi-repo workspace: symlinks into ~/Development (scripts/link-projects.mjs)
+/projects/
+/companions/
 
 # Claude Code worktrees (isolated checkouts, never part of the repo)
 /.claude/worktrees/

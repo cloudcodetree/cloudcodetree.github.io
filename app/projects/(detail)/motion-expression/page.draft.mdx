@@ -1,0 +1,53 @@
+export const metadata = {
+  title: 'Motion → Music · Projects · CloudCodeTree',
+  description:
+    'Turn interpretive dance into music: body motion becomes sound events, facial emotion colors the timbre. Runs entirely in the browser.',
+  alternates: { canonical: 'https://cloudcodetree.com/projects/motion-expression/' },
+  openGraph: {
+    title: 'Motion → Music',
+    description: 'Turn interpretive dance into music: body motion becomes sound events, facial emotion colors the timbre. Runs entirely in the browser.',
+    url: 'https://cloudcodetree.com/projects/motion-expression/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/projects/covers/motion-expression.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/projects/covers/motion-expression.png'] },
+};
+
+<img src="/projects/covers/motion-expression.png" alt="Motion → Music" />
+
+# Motion → Music
+
+Turn interpretive dance into music. A person performs with their whole body on
+camera; their **movement becomes sound events** (a foot-slam becomes a *boom*,
+harder = bigger) and their **facial emotion colors the sound** (an angry face
+makes it an *angry* boom).
+
+> **North star:** *a child who wishes for the power of a god — to make people
+> feel what they feel.* A feeling-transmitter: the body is the verb, the face
+> is the feeling, the sound is the spell.
+
+It runs entirely in the browser — camera frames never leave the device.
+
+## How it works
+
+A six-module pipeline connected by typed data contracts:
+
+```
+Capture ─▶ Sensing ─▶ Features ─▶ Mapping ─▶ Sound Engine ─▶ Playback
+(webcam)  (MediaPipe) (impacts +  (the soul)  (Tone.js)
+                       emotion)
+```
+
+- **Body → what & how loud:** impact detection from pose-landmark velocity.
+- **Face → what it sounds like:** facial blendshapes collapse into a
+  valence/arousal emotion that shapes timbre — distortion, detune, attack, brightness.
+
+The pure-logic core (`features`, `mapping`) carries no browser, ML, or audio
+dependency, so it unit-tests in milliseconds and could run server-side unchanged.
+
+## Try it
+
+- **Live:** [cloudcodetree.com/motion-expression](https://cloudcodetree.com/motion-expression/)
+  (Chrome recommended; asks for camera access, all processing stays local)
+- **Source:** [github.com/cloudcodetree/motion-expression](https://github.com/cloudcodetree/motion-expression)

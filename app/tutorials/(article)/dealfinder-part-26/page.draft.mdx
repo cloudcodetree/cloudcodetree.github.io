@@ -1,0 +1,432 @@
+export const metadata = {
+  title: 'Become a Full-Stack AI Engineer: Serve It Fast and Cheap (Part 26 of 37) · Tutorials',
+  description:
+    'Wrap DealFinder in a FastAPI service with six real endpoints, add a semantic cache that serves reworded queries for $0, and understand the serving levers — batching, quantization, vLLM, streaming — that cut cost without touching your model.',
+  alternates: { canonical: 'https://cloudcodetree.com/tutorials/dealfinder-part-26/' },
+  openGraph: {
+    title: 'Become a Full-Stack AI Engineer: Serve It Fast and Cheap (Part 26 of 37)',
+    description: 'Wrap DealFinder in a FastAPI service with six real endpoints, add a semantic cache that serves reworded queries for $0, and understand the serving levers — batching, quantization, vLLM, streaming — that cut cost without touching your model.',
+    url: 'https://cloudcodetree.com/tutorials/dealfinder-part-26/',
+    siteName: 'CloudCodeTree',
+    type: 'article',
+    images: [{ url: '/tutorials/covers/dealfinder-part-26.png', width: 1200, height: 675 }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/tutorials/covers/dealfinder-part-26.png'] },
+};
+
+<TutorialHero slug="dealfinder-part-26" />
+
+# Serve It Fast and Cheap
+
+**TL;DR: A working model nobody can call is not a product. Wrap DealFinder in a FastAPI service with real endpoints — health check, live search, semantic search, deal lookup, source status, and a static UI — then add a semantic cache that answers reworded queries for $0. Serving cost is its own hireable skill.**
+
+You have built the safety layer (Part 25). Now make the system reachable and keep it affordable. At production scale, *how* you serve a model often matters more than the model itself: the same quality at one-tenth the cost is a real engineering win. This part wires the full FastAPI app that the Docker container (Part 28) will package and ship.
+
+<Callout tone="tip">
+**Code along, version by version.** Full project at
+[github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
+Step tag: `step-26` — FastAPI app + semantic cache. Compare to `step-25`:
+`github.com/cloudcodetree/tutorial-dealfinder/compare/step-25...step-26`
+</Callout>
+
+## Table of contents
+
+1. [The six endpoints](#the-six-endpoints)
+2. [Module-level startup: loading the catalog and price model](#module-level-startup-loading-the-catalog-and-price-model)
+3. [The /healthz endpoint](#the-healthz-endpoint)
+4. [The /deal endpoint — the hero cast, live](#the-deal-endpoint--the-hero-cast-live)
+5. [The /search and /semantic endpoints](#the-search-and-semantic-endpoints)
+6. [The /sources endpoint](#the-sources-endpoint)
+7. [The semantic cache](#the-semantic-cache)
+8. [The serving levers in one place](#the-serving-levers-in-one-place)
+9. [Tests](#tests)
+10. [What you can demo now](#what-you-can-demo-now)
+11. [Where this goes next](#where-this-goes-next)
+
+---
+
+## What you'll be able to do after this
+
+- Start the DealFinder FastAPI app and hit its six real endpoints.
+- Explain what each of `_DB`, `_catalog`, `_idx`, `_cat_models`, `_fair`, `_medians`, and `_embed_texts` does at module startup.
+- Read the `/deal/{product_id}` response shape (`id`, `title`, `price`, `fair`, `deal_score`, `deal_pct`, `residual_frac`, `badge`) and explain why the Anker Q20i badges DEAL (deal_score 0.585) while the Bose QC45 at $46 gets a high score (0.839) you cannot trust without the residual guard.
+- Use `SemanticCache` from `dealfinder/cache.py` — `put`, `get`, threshold — and explain why it is not wired into `serve.py` by default.
+- Name the four serving levers (batching, quantization, vLLM, streaming) and know when each applies.
+
+---
+
+## The six endpoints
+
+At this step, `dealfinder/serve.py` exposes six core application routes on a single `FastAPI(title="DealFinder")` app — the serving spine everything else hangs off:
+
+| Method | Path | What it does |
+|--------|------|--------------|
+| GET | `/healthz` | Returns `{"status": "ok", "products": <int>}` — the liveness check the Docker health probe calls. |
+| GET | `/search?q=` | Calls `aggregate(q)` across live sources; if a DB is configured, embeds + upserts to pgstore. |
+| GET | `/semantic?q=&k=12` | Search by meaning — pgvector over everything aggregated when a DB is set, else a snapshot-retrieval fallback (never 503). |
+| GET | `/sources` | Returns which live connectors are available right now. |
+| GET | `/` | Serves `static/index.html` — the bare HTML UI. |
+| GET | `/deal/{product_id}` | Returns deal details for one snapshot product, or 404. |
+
+The app also gets FastAPI's built-in `/docs`, `/redoc`, and `/openapi.json` for free.
+
+These six are the spine. Later parts mount more routes on the *same* app object without changing it — the agent (`/ask`, `/ask_agentic`, Part 15), the SSE stream (`/search/stream`, Part 18), auth (`/me`, Part 32), and a family of read-only ML-inspector routes used by this course's live demos (`/dataset`, `/pipeline`, `/models`, `/tracking`, `/evals`, `/mlops`, `/safety`, …). The pattern is what matters: one FastAPI app, endpoints added as capabilities land, each independently testable with the same `TestClient`.
+
+---
+
+## Module-level startup: loading the catalog and price model
+
+When Python imports `dealfinder.serve`, seven things happen before any request arrives:
+
+```python
+# dealfinder/serve.py (startup block)
+_DB = bool(os.getenv("DATABASE_URL"))
+if _DB:
+    try:
+        pgstore.migrate()
+    except Exception:
+        _DB = False
+
+def _embed_texts(texts):
+    from .embed import embed_texts
+    return embed_texts(texts)
+
+_catalog    = load_catalog()                          # 270 Products from snapshot
+_idx        = {p.id: i for i, p in enumerate(_catalog)}  # id → list index
+_cat_models = _category_models(_catalog)              # one price model per category
+_fair       = {p.id: float(fair_price(_cat_models[p.category], featurize(p)))
+               if p.category in _cat_models else float(p.price) for p in _catalog}
+_medians    = _load_medians()                         # per-item capture median (for /deal badges)
+```
+
+In plain English:
+
+- `_DB` — whether a pgvector database is reachable. If not, `/search` skips the persist step and `/semantic` falls back to snapshot retrieval. In the test environment and in this run, `_DB = False`.
+- `_catalog` — the 270 `Product` objects from the snapshot, loaded once at startup.
+- `_idx` — a dict from `product_id` to list position so `/deal/{id}` is an O(1) lookup, not a linear scan.
+- `_cat_models` — one price model **per category** (`_category_models`), the same fit the search and RAG paths use. This is what pins the hero-cast fair prices (audio → Anker `$108.33`); Part 27 discusses upgrading this inference path without touching the endpoints.
+- `_fair` — a dict from `product_id` to predicted fair price, precomputed at startup so `/deal` never calls a model at request time.
+- `_medians` — each item's same-query capture median, used for the median-signal half of the `/deal` badge.
+- `_embed_texts` — lazy import of the embedding function so the embedding library is only loaded when `/search` (with a DB) or `/semantic` actually needs it.
+
+All of this happens at import time. The trade-off is a slightly slower cold start (loading 270 products and fitting the per-category models) in exchange for sub-millisecond `/deal` and `/healthz` responses at runtime.
+
+---
+
+## The /healthz endpoint
+
+```python
+@app.get("/healthz")
+def healthz():
+    return {"status": "ok", "products": len(_catalog)}
+```
+
+Run it with `TestClient`:
+
+```python
+from fastapi.testclient import TestClient
+from dealfinder.serve import app
+
+client = TestClient(app)
+resp = client.get("/healthz")
+print(resp.json())
+```
+
+```
+{'status': 'ok', 'products': 270}
+```
+
+The `products` count is the snapshot size — 270 items. This is the same number that appears in `tests/test_serve.py`'s `test_healthz`. Part 28's `render.yaml` sets `healthCheckPath: /healthz` so the PaaS knows the container is ready.
+
+---
+
+## The /deal endpoint — the hero cast, live
+
+```python
+@app.get("/deal/{product_id}")
+def deal(product_id: str):
+    if product_id not in _idx:
+        raise HTTPException(status_code=404, detail="unknown product")
+    p = _catalog[_idx[product_id]]
+    fair = _fair[p.id]
+    from .dealscore import median_signal, residual_fraction, render_badge
+    m = median_signal(p.price, _medians.get(p.id, 0.0))
+    rf = residual_fraction(p.price, fair)
+    return {
+        "id": p.id, "title": p.title, "price": p.price,
+        "fair": round(fair, 2),
+        "deal_score": round(deal_score(p.price, fair), 3),
+        "deal_pct": round(m, 3),
+        "residual_frac": round(rf, 3),
+        "badge": render_badge(m, rf),   # the two-signal verdict, added in Part 18
+    }
+```
+
+The response shape for every product is `{id, title, price, fair, deal_score, deal_pct, residual_frac, badge}` — `fair` rounded to 2 places, the signals to 3. (Part 18 added the `deal_pct`/`residual_frac`/`badge` fields so the UI can render the verdict directly; the core `fair`/`deal_score` were here from step-26.)
+
+Here is the Anker Soundcore Q20i from the snapshot, called through the TestClient:
+
+```python
+anker_id = "rapidapi-catalogid:4602286582194268609,productid:"
+resp = client.get(f"/deal/{anker_id}")
+print(resp.json())
+```
+
+```json
+{
+  "id": "rapidapi-catalogid:4602286582194268609,productid:",
+  "title": "Anker Soundcore Q20i Hybrid Active Noise Cancelling Headphones",
+  "price": 44.99,
+  "fair": 108.33,
+  "deal_score": 0.585,
+  "deal_pct": 0.724,
+  "residual_frac": 0.585,
+  "badge": "DEAL"
+}
+```
+
+And for an unknown id:
+
+```python
+resp = client.get("/deal/nope")
+print(resp.status_code, resp.json())
+```
+
+```
+404 {'detail': 'unknown product'}
+```
+
+Now compare the hero cast through this endpoint, using the pinned bible facts:
+
+| Product | price | fair | deal_score | badge |
+|---------|-------|------|-----------|---------|
+| Anker Soundcore Q20i | $44.99 | $108.33 | 0.585 | DEAL |
+| Bose QuietComfort 45 | $46.00 | $285.15 | 0.839 | SUSPICIOUS |
+| Sony WH-1000XM5 | $162.97 | $285.15 | 0.428 | FAIR |
+| Sony WH-1000XM6 | $399.99 | $285.15 | −0.403 | OVERPRICED |
+
+The Bose QC45 at $46 — a $329-MSRP flagship — produces a high `deal_score` (0.839) because it genuinely sits far below the fair-price prediction. That is the trap the two-signal system (Part 3) catches: `residual_frac = 0.839` clears the `SUSPICIOUS_RESIDUAL_FRAC = 0.70` guard and flags it SUSPICIOUS regardless of how good the raw score looks. The Anker's 0.585 stays under that line, so it badges DEAL. The `/deal` endpoint returns both the fair price and the badge directly; the `render_badge()`/`verdict()` logic in `dealfinder/dealscore.py` applies the guard.
+
+<Callout tone="note">
+**The `/deal` fair prices agree with the rest of the course.** The endpoint uses the same **per-category** price models the search and RAG paths use (`_cat_models = _category_models(_catalog)`), so the Anker's fair price is `$108.33` — the pinned audio-model baseline from Part 3 — not a divergent global fit. (An earlier version fit one `LinearModel` on all 270 items and reported `$225.34`; Part 18 switched `/deal` to the per-category models so the endpoint, the badges, and the tutorials all quote the same number.) `tests/test_serve.py` still pins `deal_score > 0.15` rather than an exact value, to stay robust to model changes.
+</Callout>
+
+---
+
+## The /search and /semantic endpoints
+
+### /search
+
+```python
+@app.get("/search")
+def search(q: str):
+    result = aggregate(q)
+    if _DB and result["results"]:
+        # embed + upsert to pgstore, add result["persisted"] count
+        ...
+    return result
+```
+
+`/search` delegates to `aggregate(q)` in `dealfinder/aggregate.py`, which fans out to whichever live sources are available, deduplicates, sorts by price, and caps at 24 results. The response shape:
+
+```json
+{
+  "query": "noise cancelling headphones",
+  "sources_live": ["Shopify", "iTunes"],
+  "throttled": ["eBay", "RapidAPI", "BestBuy", "Apify", "Firecrawl"],
+  "median_price": 162.97,
+  "count": 15,
+  "results": [
+    {"id": "...", "title": "...", "brand": "...", "price": 44.99,
+     "source": "...", "url": "...", "image_url": "...", "deal_pct": 72.4},
+    ...
+  ]
+}
+```
+
+When `_DB` is set and results come back, the handler embeds titles using `_embed_texts`, upserts them to pgstore, and adds `result["persisted"]` with the total row count. Without a DB, the route still works — it just doesn't persist.
+
+### /semantic
+
+```python
+@app.get("/semantic")
+def semantic(q: str, k: int = 12):
+    if _DB:
+        rows = pgstore.semantic_search(_embed_texts([q])[0], k=k)   # pgvector: everything ever seen
+        return {"query": q, "count": len(rows), "results": rows, "backend": "pgvector"}
+    # Offline fallback: value-reranked retrieval over the frozen snapshot (Part 5/15).
+    results = [{"id": it.id, "title": it.title, "price": it.price,
+                "verdict": it.verdict, ...} for it in retrieve(q, k=k)]
+    return {"query": q, "count": len(results), "results": results, "backend": "snapshot"}
+```
+
+Without a database it still answers — it falls back to the in-memory snapshot retriever, so meaning-search works fully offline (the `backend` field tells you which path served the request):
+
+```python
+resp = client.get("/semantic?q=noise+cancelling+headphones")
+print(resp.status_code, resp.json()["backend"], resp.json()["count"])
+```
+
+```
+200 snapshot 12
+```
+
+That graceful fallback is the design: with pgvector (Part 13) the endpoint searches everything ever aggregated; without it, the same route returns the 12 nearest snapshot matches instead of erroring. Part 18's web UI routes its "by meaning" toggle through this endpoint either way.
+
+---
+
+## The /sources endpoint
+
+```python
+@app.get("/sources")
+def sources():
+    return {s.name: s.available() for s in LIVE_SOURCES}
+```
+
+Running the TestClient in this environment (no live API keys configured):
+
+```python
+resp = client.get("/sources")
+print(resp.json())
+```
+
+```json
+{
+  "eBay": false,
+  "RapidAPI": false,
+  "BestBuy": false,
+  "Amazon": false,
+  "Apify": false,
+  "Shopify": true,
+  "Firecrawl": false,
+  "iTunes": true
+}
+```
+
+Shopify and iTunes are available because they require no authentication for basic queries. eBay, RapidAPI, and BestBuy need API keys set in the environment. Amazon, Apify, and Firecrawl are *metered* — even with a key they stay off unless you opt in with `DEALFINDER_ENABLE_PAID_SOURCES=1` (the zero-cost default from Part 8). The Terraform variables in `infra/variables.tf` define all of these as optional inputs (Part 28 covers that file in full).
+
+---
+
+## The semantic cache
+
+`SemanticCache` lives in `dealfinder/cache.py`. It is a standalone unit — not wired into `serve.py`. The docstring in `serve.py` lists "caching" as a production concern to add; the cache is the building block you would reach for when you do.
+
+```python
+# dealfinder/cache.py
+class SemanticCache:
+    def __init__(self, threshold: float = 0.95) -> None:
+        self.threshold = threshold
+        self._vecs: list[list[float]] = []
+        self._vals: list = []
+
+    def put(self, vec, value) -> None:
+        self._vecs.append([float(x) for x in vec])
+        self._vals.append(value)
+
+    def get(self, vec):
+        if not self._vecs:
+            return None
+        V = np.array(self._vecs)
+        q = np.asarray(vec, dtype=float)
+        sims = (V @ q) / (np.linalg.norm(V, axis=1) * np.linalg.norm(q) + 1e-9)
+        i = int(np.argmax(sims))
+        return self._vals[i] if sims[i] >= self.threshold else None
+```
+
+The hit/miss logic is cosine similarity with a threshold of 0.95. A plain string cache would miss "wireless noise canceling headphones" when the stored key is "noise cancelling headphones" — the same user intent, a different string. The semantic cache stores the query embedding and returns the cached answer when similarity is at or above the threshold.
+
+<CosineAngle />
+
+<SemanticCacheViz />
+
+The embedding model is `BAAI/bge-small-en-v1.5` (384-dim, via fastembed) — the same model used in Part 4's title embeddings, Part 5's semantic search, and Part 13's pgvector persistence. One model, one set of vectors, consistent across the course.
+
+**How the test pins the threshold behavior** (`tests/test_serve.py`):
+
+```python
+def test_semantic_cache_hit_and_miss():
+    from dealfinder.cache import SemanticCache
+    cache = SemanticCache(threshold=0.95)
+
+    v1 = [1.0, 0.0]
+    v2 = [1.0, 0.02]   # nearly identical — cosine ≈ 0.9998
+    v3 = [0.0, 1.0]    # orthogonal — cosine = 0.0
+
+    cache.put(v1, "noise cancelling headphones results")
+
+    assert cache.get(v2) == "noise cancelling headphones results"  # hit
+    assert cache.get(v3) is None                                    # miss
+```
+
+`v1 → v2` is a hit; `v1 → v3` is a miss. No LLM call, no network — just vector arithmetic. In production you would back the cache with Redis and use the same embedding function as `/search`.
+
+---
+
+## The serving levers in one place
+
+The `serve.py` docstring names four production concerns: streaming, batching, quantized/vLLM serving, and caching. The app in this part is the shape they hang off — the endpoints are stable; the levers are what you tune as traffic grows.
+
+<Batching />
+
+**Batching.** GPUs are wasted serving one request at a time. Continuous batching packs many in-flight requests into each model forward pass — the core trick behind high-throughput servers like vLLM. For the price model in `serve.py` (a `LinearModel`, not an LLM), batching is `feature_matrix` applied to a list of products at once rather than one at a time. The principle is the same: vectors in, scores out, one pass.
+
+**Quantization.** Run the model in 8-bit or 4-bit: less memory, faster, a small quality cost. For the baseline `LinearModel` this is not relevant — it has no weight compression overhead. It becomes the first lever when you swap in a gradient-boosted model (Part 21) or a fine-tuned LLM (Part 11) behind the `/deal` score path.
+
+**vLLM.** Continuous batching plus paged-attention KV cache for LLM inference — many-times the throughput of naive one-at-a-time serving, behind an OpenAI-compatible API. (The KV cache stores each generated token's attention keys and values so earlier tokens are never recomputed; it lives in GPU memory and grows with context length — Part 27 unpacks it visually.) Part 27 benchmarks this against the inference path and shows when the overhead pays off.
+
+**Streaming.** Send tokens as they are generated. Same total time, but perceived latency drops because the user sees output immediately. The `/search` route returns a complete aggregate result; adding SSE streaming is the Part 18 web-UI topic (`/api/stream`). The `SSEStream` component in Part 18 illustrates the client side.
+
+**Pick the smallest model that passes your eval gate.** The cheapest token is the one you do not spend on an oversized model. The eval gate — `precision@5 >= 0.80` on the 20-item golden set (Part 23) — is the objective criterion: if a smaller model passes it, use that model.
+
+<Callout tone="note">
+**How this scales in production.** Put the API behind an autoscaling gateway (a Kubernetes `HorizontalPodAutoscaler` pointing at the Docker image from Part 28). Serve the embedding path on a dedicated pod with the fastembed model pre-warmed. Back the `SemanticCache` with Redis + a vector index. Add the periodic-suggestions worker (Part 33) as a scheduled job that precomputes recommendations off the hot path. Every lever is independent — stack the ones your traffic pattern needs.
+</Callout>
+
+---
+
+## Tests
+
+Three core tests cover the serving spine — all pass against the committed snapshot (`test_serve.py` grows as later parts add routes, but these three pin the fundamentals):
+
+```bash
+pytest tests/test_serve.py -v
+```
+
+```
+tests/test_serve.py::test_healthz                    PASSED
+tests/test_serve.py::test_deal_endpoint              PASSED
+tests/test_serve.py::test_semantic_cache_hit_and_miss PASSED
+```
+
+**`test_healthz`** — `GET /healthz` returns `{"status": "ok", "products": 270}`.
+
+**`test_deal_endpoint`** — `/deal/{anker_id}` returns 200 with `deal_score > 0.15`; `/deal/nope` returns 404 with `{"detail": "unknown product"}`.
+
+**`test_semantic_cache_hit_and_miss`** — `SemanticCache(threshold=0.95)`: vector `[1, 0.02]` hits against stored `[1, 0]`; vector `[0, 1]` misses.
+
+The TestClient means no server process — these run in CI without ports, without Docker, without network. Part 28's `test_deploy.py` adds `test_asgi_app_is_importable` (checks `hasattr(mod, "app")`) and `test_dockerfile_cmd_matches_the_app` (Dockerfile contains `dealfinder.serve:app`) — the contract between this part and the container layer.
+
+---
+
+## What you can demo now
+
+Start the server (`uvicorn dealfinder.serve:app`) and open **`http://localhost:8000/docs`**. FastAPI generates an interactive OpenAPI console from the route signatures — every endpoint, self-documented, callable from the browser:
+
+<LessonScreenshot
+  src="/tutorials/screens/dealfinder-part-26/fastapi-docs.png"
+  alt="The DealFinder FastAPI Swagger UI at /docs, listing the six core routes plus the agent, stream, and ML-inspector endpoints"
+  caption="Real capture: FastAPI's auto-generated /docs for the DealFinder app — the serving spine plus every route later parts mounted on the same app."
+  lookFor="the six core routes from this part — /healthz, /search, /semantic, /sources, / (home), /deal/{product_id} — sitting alongside the routes later parts added on the same FastAPI app: /search/stream (the SSE stream), /ask and /ask_agentic (the agent), /review, /context, and the read-only ML-inspector routes (/safety, /mlops, /evals, /tracking, /models, /pipeline, /dataset). FastAPI built this whole console for free from the function signatures — no OpenAPI spec written by hand. Click any endpoint → 'Try it out' → Execute to call it live from the browser."
+/>
+
+The demo line: *"This is the whole system made reachable. One `uvicorn` command, and every endpoint is live and self-documenting — click 'Try it out' on `/deal/{product_id}`, paste a snapshot id, and you get the fair price and badge back in the browser. The six core routes are the spine; everything the later parts built hangs off the same app. That's what 'serve it' means: a model nobody can call isn't a product."*
+
+---
+
+## Where this goes next
+
+- **Part 27 — Inference optimization, for real:** quantization, vLLM, and routing — benchmarked against a running service, not just described. Picks up where the "serving levers" section above leaves off and shows the numbers: how much faster, how much cheaper, at what quality cost.
+
+---
+
+*Sources: [FastAPI](https://fastapi.tiangolo.com/) · [fastembed BAAI/bge-small-en-v1.5](https://github.com/qdrant/fastembed) · [vLLM continuous batching](https://docs.vllm.ai/en/latest/serving/distributed_serving.html) · [numpy cosine similarity](https://numpy.org/doc/stable/reference/generated/numpy.linalg.norm.html)*

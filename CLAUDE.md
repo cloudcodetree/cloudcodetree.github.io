@@ -249,18 +249,49 @@ See the **Blog ("AI News")** section below — posts live inline in
 
 ## Navigation Structure
 
-Nav (`app/components/ClientLayout.tsx`) is **AI News · Tutorials · About**.
+Nav (`app/components/ClientLayout.tsx`) is **AI News · Tutorials · Projects · About**.
+Nav hrefs carry **trailing slashes** deliberately (`/tutorials/`, not `/tutorials`) —
+`trailingSlash: true` means the real page is `/x/`, and a bare href costs a
+redirect hop (301 on Pages, 307 on Workers) on every click.
 
 **Current Active Routes**:
 - `/` - **AI News blog** (the home/front door; `BlogPage`)
 - `/ai-news/` - preserved legacy list (canonical → `/`); articles live at `/ai-news/<id>`
 - `/tutorials` (+ `/tutorials/<slug>`) - hand-authored **MDX** tutorials (see Tutorials below)
+- `/projects` (+ `/projects/<slug>`) - the **Projects gallery** (see Projects below)
 - `/about` - the former home page, toned down (`HomePage`); the personal/portfolio hub
 - `/about/resume`, `/about/contact`, `/about/schedule` - personal sub-routes
 - `/resume`, `/contact`, `/schedule` - redirect stubs → the `/about/*` versions
 
-**Available but not in nav**: `/projects` - ProjectsPage (implemented; enable by
-adding it to the nav arrays in `app/components/ClientLayout.tsx`).
+**Site chrome is opt-in per section**: `app/layout.tsx` renders bare children;
+each top-level section adds the AppBar/nav via its own tiny `layout.tsx`
+wrapping `ClientLayout` (see `app/tutorials/layout.tsx`, `app/projects/layout.tsx`).
+A new section without one ships headerless.
+
+## Projects
+
+`/projects` is a hand-curated gallery of real repos; `/projects/<slug>` are MDX
+write-ups. It mirrors the tutorials subsystem:
+
+- **`app/projects/manifest.ts`** is the single source of truth (slug, title,
+  summary, tech chips, `repoUrl` — omitted for private repos, `externalUrl`,
+  cover, featured/order). Scripts read it via `scripts/lib/projects-data.mjs`;
+  keep entries as flat single-quoted object literals. Copy is grounded in each
+  repo's README — don't invent capabilities.
+- Detail pages live at `app/projects/(detail)/<slug>/page.mdx` with per-page
+  `metadata` (canonical + OG cover), styled by `(detail)/layout.tsx`.
+- Hero covers are **committed generated assets**
+  (`node scripts/generate-project-covers.mjs` → `public/projects/covers/`),
+  same precedent as tutorial covers.
+- `scripts/generate-feeds.mjs` includes `/projects/` + every slug in the sitemap.
+- **Planned (Phase 2 of the design spec):** auth-gated live demos under
+  `/projects/<slug>/demo/` enforced by the Cloudflare Worker, Supabase identity,
+  and append-only analytics. Spec:
+  `docs/superpowers/specs/2026-08-20-projects-gated-demos-design.md` (which also
+  covers the GitHub Pages → Cloudflare Workers migration; staging Worker
+  `cct-site-staging` deploys via `pnpm run build:staging` +
+  `wrangler deploy --env staging`, verified by `scripts/check-parity.mjs`).
+  Production remains on GitHub Pages until the Phase 3 DNS cutover.
 
 ## Blog ("AI News")
 
@@ -394,6 +425,43 @@ use it to add one. In short:
   auto-discovers tutorial slugs for the sitemap.
 - First tutorial: `build-a-rag-over-your-blog` (repo: `tutorial-rag-over-blog`).
 
+## Local multi-repo workspace
+
+`./projects/` (gitignored, never checked in) holds symlinks to every git repo
+under `~/Development` — rebuild with `pnpm run link-projects`. It exists so a
+session rooted here can work across sibling repos (edit a demo app, bump its
+pinned SHA in `app/projects/manifest.ts`, redeploy) while each repo keeps its
+own git. Deploys never read it: demo builds clone pinned SHAs from GitHub
+(`scripts/fetch-demo-artifacts.mjs`), so local state cannot leak into
+production. `companions/dealfinder` (the DealFinder curriculum's documented
+path) is a symlink to `~/Development/tutorial-dealfinder` — it was a git
+submodule until 2026-08-25. Fences: both paths are excluded in tsconfig and
+ignored by the Next dev watcher; never import from them in app code.
+
+## Drafts (the publish gate)
+
+Tutorials and projects carry an optional `draft: true` in their manifest
+(`app/tutorials/manifest.ts`, `app/projects/manifest.ts`). A draft is hidden
+from lists (`publishedTutorials` / `publishedProjects`), feeds, and the
+sitemap — and **excluded from the build**: `scripts/apply-drafts.mjs` (runs
+at prebuild) renames its `page.mdx` → `page.draft.mdx`, which Next does not
+route, so the URL does not exist in the export. Draft projects also skip demo
+vendoring. To publish, flip the flag; prebuild restores `page.mdx`. Held at
+launch (2026-09-03): the 37-part "Become a Full-Stack AI Engineer" course and
+every project except span-calculator.
+
+## Editor theme (VS Code)
+
+`.vscode/settings.json` is a **committed, generated** workspace theme so anyone opening
+the repo in VS Code gets the same look with nothing to install: Cobalt2 hue-shifted in
+OKLCH onto a dark green/grey ground, with an eye-comfort pass (no pure-white text,
+capped accent chroma, token foregrounds ≥ 4.5:1). Never hand-edit it — tune the knobs at the
+top of `scripts/generate-vscode-theme.mjs` (target background, chroma cap, base theme)
+and re-run `node scripts/generate-vscode-theme.mjs` (`--dry-run` prints the mapping +
+contrast table). Colors that mean something by hue (terminal ANSI, git, diff,
+error/warning) keep their hue. To opt out locally, override the keys in your user
+settings via a VS Code Profile.
+
 ## Claude Code Tooling
 
 Project-scoped Claude Code config lives in `.claude/`:
@@ -401,7 +469,9 @@ Project-scoped Claude Code config lives in `.claude/`:
 - **Skills** (`.claude/skills/`): `publish-post` (the blog publishing workflow),
   `create-tutorial` (authoring a tutorial: scaffolder + verified/anchored rules).
 - **Agents** (`.claude/agents/`): `blog-editor` (style/excerpt/tags/fact-flag pass on a
-  draft), `frontend-reviewer` (Next.js/MUI/static-export/a11y review of UI changes).
+  draft), `frontend-reviewer` (Next.js/MUI/static-export/a11y review of UI changes),
+  `learning-experience-reviewer` (instructional-design/e-learning evaluation of tutorials —
+  cognitive load, clarity, visuals, learning-science best practices).
 - **Slash commands** (`.claude/commands/`): `/publish-post`, `/blog-status`, `/new-tutorial`.
 - **Hooks** (`.claude/hooks/`, wired in `settings.json`):
   - `validate-blog.sh` — PostToolUse on Write/Edit; blocks if a `public/blog/` change
