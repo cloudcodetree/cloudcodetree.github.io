@@ -15,7 +15,7 @@ This is CloudCodeTree's professional portfolio website built with Next.js 15 (Ap
 - **Responsive Design**: Mobile-first design with glass morphism, animations, and modern CSS
 - **Custom Domain**: Configured for cloudcodetree.com with Route53 DNS and GitHub Pages
 - **SEO Optimized**: Next.js Metadata API (per-page titles/descriptions, per-post Open Graph images, canonicals) + build-time sitemap.xml and RSS feed
-- **Performance Optimized**: Static export, build-time blog rendering, paginated blog data chunks
+- **Performance Optimized**: Static export, build-time blog rendering, slim client-paginated list index
 
 ## Development Commands
 
@@ -76,9 +76,11 @@ app/                          # Next.js App Router
 
 scripts/                      # Blog automation (Node; deps: fast-xml-parser, sharp — used by ingest)
 ├── ingest-feed.mjs          # content/feed.xml (RSS 2.0 + Media RSS) → posts.json + CDN images
-├── generate-feeds.mjs       # posts.json → public/feed.xml + sitemap.xml + blog/pages/<n>.json (prebuild + dev)
+├── generate-feeds.mjs       # posts.json → public/feed.xml + sitemap.xml (prebuild + dev)
 ├── publish-post.mjs         # Manual publishing: draft → posts.json entry (content inline)
-└── validate-blog.mjs        # Validate posts.json consistency
+├── normalize-tags.mjs       # One-off: canonicalize tags in feed.xml + posts.json (idempotent)
+├── trim-feed.mjs            # Keep content/feed.xml to a rolling ~120-item window
+└── validate-blog.mjs        # Validate posts.json consistency + tag vocabulary
 
 content/                      # Source feed the Desktop task writes (ingested at publish time)
 └── feed.xml                 # RSS 2.0 + Media RSS — source of truth for 2026-06-09 onward
@@ -114,8 +116,8 @@ public/
 - Call-to-action sections for resume and contact
 
 **BlogPage.tsx / BlogPost.tsx**: the AI News blog (see "Blog" below):
-- List page gets page 1 embedded at build time; later pages fetch
-  `/blog/pages/<n>.json` chunks (10 posts each, generated at prebuild)
+- List page paginates client-side from a slim, content-free index the server route
+  embeds at build time, with a reader-selectable page size (no per-page fetches)
 - Article pages are fully prerendered — the post is passed as a prop by the
   server route (`app/ai-news/[id]/page.tsx`), no client-side fetch
 - Markdown rendered via `react-markdown` + `remark-gfm`
@@ -194,8 +196,8 @@ See the **Blog ("AI News")** section below — posts live inline in
 
 - **Static export**: every route (incl. all blog articles) is prerendered HTML —
   no server, no client data fetch for article content
-- **Paginated blog data**: the list page embeds page 1 and fetches ~28KB
-  `/blog/pages/<n>.json` chunks on pagination instead of the whole posts.json
+- **Slim list index**: the list page embeds a content-free index (no post bodies)
+  and paginates client-side, instead of shipping the whole posts.json
 - **React 19 / Next 15**: build-time type + lint checks are ON
   (`next.config.js` no longer ignores build errors)
 - **Lazy Loading**: Framer Motion animations animate when components enter viewport
@@ -225,7 +227,7 @@ See the **Blog ("AI News")** section below — posts live inline in
 ## Development Workflow
 
 1. **Local Development**: `pnpm run dev` serves at `http://localhost:3000/` with hot
-   reload (it first runs `generate-feeds.mjs` so feed/sitemap/page chunks exist)
+   reload (it first runs `generate-feeds.mjs` so the feed and sitemap exist)
 2. **Code Quality**: `pnpm run lint` for ESLint validation
 3. **Type Checking**: enforced during `pnpm run build` (TS + ESLint failures fail the build)
 4. **Build**: `pnpm run build` generates the static export in `./out`
@@ -301,9 +303,9 @@ post's body **inlined in `posts.json`** (no per-post `.md` files). The only comm
 asset is `public/blog/posts.json`; **images are not in the repo** — they live on the GitHub
 Release `blog-images` (CDN) and `posts.json` stores their URLs.
 
-**Rendering.** The list (`/ai-news`, `app/ai-news/page.tsx` → `BlogPage`) embeds page 1
-at build time (read from `posts.json` server-side) and, when paginating, fetches only
-`/blog/pages/<n>.json` chunks (10 posts each, generated at prebuild, gitignored); the page
+**Rendering.** The list (`/ai-news`, `app/ai-news/page.tsx` → `BlogPage`) embeds a slim,
+content-free index at build time (read from `posts.json` server-side) and paginates
+**client-side** from it, with a reader-selectable page size — no per-page fetches; the page
 is kept in the URL as `?page=N`. Bodies render via `react-markdown` + `remark-gfm`. Each
 post title links to `/ai-news/<id>` (`app/ai-news/[id]/page.tsx` → `BlogPost`); the server
 route reads the post at build time and passes it as a prop — article HTML is fully baked,
@@ -314,9 +316,9 @@ with per-post Open Graph metadata from `generateMetadata`. Shared types/styling 
 **Generated artifacts (emit).** `scripts/generate-feeds.mjs` runs at `prebuild` (and
 before `dev`; also `npm run feeds`) and builds, from `posts.json`:
 `public/feed.xml` (RSS 2.0 + Media RSS + `content:encoded`; item links point to
-`/ai-news/<id>`, images absolute), `public/sitemap.xml` (static routes + every article),
-and `public/blog/pages/<n>.json` (the list's pagination chunks). All three are gitignored
-(regenerated each build). The feed is discoverable via a `<link rel="alternate">` in
+`/ai-news/<id>`, images absolute) and `public/sitemap.xml` (static routes + every article).
+Both are gitignored (regenerated each build). Per-page JSON chunks were retired — the list
+paginates client-side. The feed is discoverable via a `<link rel="alternate">` in
 `app/layout.tsx`, the sitemap via robots.txt. This is separate from the **ingest** feed at
 `content/feed.xml` (task → site).
 
@@ -330,16 +332,31 @@ and `public/blog/pages/<n>.json` (the list's pagination chunks). All three are g
   asset (`https://github.com/<repo>/releases/download/blog-images/<id>.jpg`), falling back to
   `…/blog-images/_default.png`. Images are never committed to the repo.
   Posts are not separated by category (the old `eyebrow` badge was removed).
+- **Tags follow a fixed vocabulary** enforced by `validate-blog.mjs`: `AI` on every post,
+  exactly one content-type (`News` / `Workflow` / `Tutorial`), plus topic tags from the
+  list in `docs/ai-news-feed-contract.md`. A retired tag or a missing content-type is a
+  build error; an unrecognized tag is a warning. Rules apply only to posts present in
+  `content/feed.xml` — the 150-post pre-06-09 back-catalog is frozen and exempt.
 - **Never hand-edit `posts.json`** — go through the scripts below.
 
 **Primary source — an RSS feed (ingestion).** Since the 2026-06-09 cutover, posts come
-from a single **RSS 2.0 + Media RSS** feed that the Claude Desktop "AI Developer News"
-task maintains at `content/feed.xml` (the source of truth, committed; not under `public/`).
-The full feed format + the task prompt live in `docs/ai-news-feed-contract.md`. Ingest it
+from a single **RSS 2.0 + Media RSS** feed that the cloud routine maintains at
+`content/feed.xml` (committed; not under `public/`).
+The full feed format + the routine prompt live in `docs/ai-news-feed-contract.md`. Ingest it
 with:
 ```bash
 node scripts/ingest-feed.mjs [content/feed.xml] [--no-images] [--refresh-images]
 ```
+> **`posts.json` is the archive; `feed.xml` is a rolling ~120-item window.** Because
+> ingest merges rather than rebuilds, trimming the feed never removes a published
+> post. The window exists because each routine run reads the whole feed to dedup, and
+> an unbounded file stops fitting in context — silently weakening that guard. Trim
+> with `node scripts/trim-feed.mjs`, always AFTER ingest (it only drops items already
+> in `posts.json`). Dedup beyond ~2 weeks means searching `posts.json`, not the feed.
+> There is no `--out` flag on ingest — it always writes `public/blog/` in place.
+> The window lives in `scripts/lib/feed-window.mjs` (one definition, shared by the
+> trimmer and the guard). `validate-blog.mjs` **warns** — never fails — once the feed
+> passes 1.5× the window, which is the signal that the routine stopped trimming.
 Each `<item>` UPSERTS a post keyed by `<guid>` (== `id`): `<content:encoded>` CDATA → the
 `content` field (Markdown), `<media:content>`/`<media:thumbnail>` URL → the featured image,
 which ingest **downloads, compresses (`sips`, 1200px / JPEG q78), and uploads to the
@@ -351,8 +368,13 @@ Idempotent; an image already uploaded for an id is reused unless `--refresh-imag
 are the back-catalog from the retired Desktop-briefings importer (removed June 2026);
 they live only in `posts.json` now. `2026-06-09` onward is the feed.
 
-**Auto-publish (cloud).** The daily **"AI News Publisher" Claude Code cloud routine**
-(claude.ai/code/routines, 12:02 UTC) researches the day's stories, updates
+**Auto-publish (cloud).** The **"AI News Publisher" Claude Code cloud routine**
+(claude.ai/code/routines) runs **3×/day (≈04:00, 12:00, 20:00 UTC)**; each run is an
+independent session whose only shared state is the committed feed — which is why the
+contract's volume rules are expressed **per-day** (~8 items is where a run should
+start doubting itself, not a cap) and derived by each run from `content/feed.xml`.
+The budget is a brake on filler, never a cap on signal: a genuinely new and useful
+item is always publishable, and past 8 each one must be justified in the run report. It researches the day's stories, updates
 `content/feed.xml` per `docs/ai-news-feed-contract.md`, runs ingest + `validate-blog`,
 and commits/pushes — no local machine involved. The routine's environment can't
 authenticate `gh`, so its posts land with placeholder images; the **`rehost-images`

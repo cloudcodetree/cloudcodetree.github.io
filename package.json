@@ -19,8 +19,7 @@
     "cloudcodetree"
   ],
   "scripts": {
-    "dev": "node scripts/generate-feeds.mjs && next dev --turbo",
-    "dev:slow": "node scripts/generate-feeds.mjs && next dev",
+    "dev": "node scripts/generate-feeds.mjs && next dev",
     "feeds": "node scripts/generate-feeds.mjs",
     "prebuild": "node scripts/apply-drafts.mjs && node scripts/generate-feeds.mjs",
     "build": "next build",
@@ -34,7 +33,8 @@
     "build:staging": "SITE_ORIGIN= pnpm run build && node scripts/fetch-demo-artifacts.mjs && node scripts/mark-staging-build.mjs out",
     "link-projects": "node scripts/link-projects.mjs",
     "deploy:staging": "node scripts/assert-variant.mjs staging && wrangler deploy --env staging",
-    "deploy:prod": "node scripts/assert-variant.mjs production && wrangler deploy"
+    "deploy:prod": "node scripts/assert-variant.mjs production && wrangler deploy",
+    "dev:turbo": "node scripts/generate-feeds.mjs && next dev --turbo"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -79,5 +79,13 @@
     "typescript": "~5.8.3",
     "vitest": "^4.1.11",
     "wrangler": "^4.124.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "unrs-resolver",
+      "workerd"
+    ]
   }
 }

@@ -6,7 +6,7 @@ import {
   ToggleButtonGroup, ToggleButton, Grid, Chip,
   Select, MenuItem,
 } from '@mui/material';
-import { GridView, ViewList, ViewStream } from '@mui/icons-material';
+import { GridView, ViewList, ViewStream, RssFeed, ContentCopy, Check } from '@mui/icons-material';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -56,6 +56,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
   const [feedContent, setFeedContent] = useState<Map<string, string> | null>(null);
   const [feedLoading, setFeedLoading] = useState(false);
   const feedRef = useRef<Map<string, string> | null>(null);
+  const [feedCopied, setFeedCopied] = useState(false);
 
   // Topic chips: every tag except the ubiquitous "AI", most-used first, with counts.
   const topics = useMemo(() => {
@@ -91,8 +92,16 @@ export default function BlogPage({ posts }: BlogPageProps) {
   }, []);
 
   // Keep the URL (?page, ?topics) in sync, clamped, on the CURRENT path (/ or /ai-news/).
+  //
+  // Skips its OWN first run. On mount `selectedTags`/`page` still hold their SSR
+  // defaults, so writing the URL here would serialize empty state over an incoming
+  // `?topics=…` — erasing the parameter before the effect above can apply it, and
+  // taking the filter with it. That made every shared filter link land unfiltered
+  // (`/?topics=Design` → `/`). Only sync once state can have come from somewhere.
+  const urlSyncArmed = useRef(false);
   useEffect(() => {
     if (page !== safePage) { setPage(safePage); return; }
+    if (!urlSyncArmed.current) { urlSyncArmed.current = true; return; }
     const params = new URLSearchParams();
     if (selectedTags.length) params.set('topics', selectedTags.join(','));
     if (safePage > 1) params.set('page', String(safePage));
@@ -140,6 +149,21 @@ export default function BlogPage({ posts }: BlogPageProps) {
     setPage(1);
   };
   const clearTags = () => { setSelectedTags([]); setPage(1); };
+
+  // Copy the feed URL rather than only linking it: most browsers render feed XML
+  // as a wall of markup, and what a reader actually needs is the URL on their
+  // clipboard to paste into a reader app. The <a> stays a real link so
+  // middle-click / "open in new tab" / a browser extension still work.
+  const copyFeedUrl = async () => {
+    const url = `${window.location.origin}/feed.xml`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setFeedCopied(true);
+      window.setTimeout(() => setFeedCopied(false), 2000);
+    } catch {
+      window.open('/feed.xml', '_blank', 'noopener');   // clipboard blocked → just show it
+    }
+  };
 
   const metaLine = (post: BlogPost) => `${formatPublished(post)} · ${post.readTime} min read`;
 
@@ -277,6 +301,33 @@ export default function BlogPage({ posts }: BlogPageProps) {
           <Box sx={{ height: 2, width: 56, background: ACCENT, alignSelf: 'center' }} />
           <Typography sx={{ color: 'text.secondary', fontSize: { xs: '1rem', md: '1.12rem' }, maxWidth: 560 }}>
             Daily field notes on AI-assisted engineering.
+          </Typography>
+        </Box>
+
+        {/* Subscribe: the feed URL, copyable. Every post ships in full text. */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mt: 3, flexWrap: 'wrap' }}>
+          <Box
+            component="a"
+            href="/feed.xml"
+            onClick={(e: React.MouseEvent) => { e.preventDefault(); copyFeedUrl(); }}
+            aria-label="Copy the RSS feed URL"
+            sx={{
+              display: 'inline-flex', alignItems: 'center', gap: 0.85, cursor: 'pointer',
+              textDecoration: 'none', fontFamily: MONO, fontSize: 12, lineHeight: 1,
+              color: feedCopied ? ACCENT : 'text.secondary',
+              border: `1px solid ${feedCopied ? 'rgba(63,185,80,0.45)' : 'rgba(148,163,184,0.22)'}`,
+              background: feedCopied ? 'rgba(63,185,80,0.1)' : 'transparent',
+              borderRadius: 999, px: 1.5, py: 0.9,
+              transition: 'color .15s, border-color .15s, background .15s',
+              '&:hover': { color: ACCENT, borderColor: 'rgba(63,185,80,0.45)' },
+            }}
+          >
+            {feedCopied ? <Check sx={{ fontSize: 15 }} /> : <RssFeed sx={{ fontSize: 15 }} />}
+            {feedCopied ? 'Feed URL copied' : 'Subscribe via RSS'}
+            {!feedCopied && <ContentCopy sx={{ fontSize: 13, opacity: 0.6 }} />}
+          </Box>
+          <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>
+            cloudcodetree.com/feed.xml&nbsp;·&nbsp;full text, no tracking
           </Typography>
         </Box>
       </Box>

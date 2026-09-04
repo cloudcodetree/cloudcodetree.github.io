@@ -131,3 +131,6 @@ crash.log
 # Local multi-repo workspace: symlinks into ~/Development (scripts/link-projects.mjs)
 /projects/
 /companions/
+
+# Claude Code worktrees (isolated checkouts, never part of the repo)
+/.claude/worktrees/

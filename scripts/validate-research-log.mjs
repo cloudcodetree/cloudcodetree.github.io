@@ -7,7 +7,13 @@
  * its commit drops content/feed.xml / posts.json (a real bug we hit), the log
  * looks healthy while the posts are gone. This guard makes that impossible to
  * ship: every post listed under a '### Published' section in
- * content/research-log/*.md MUST exist in content/feed.xml. Exit 1 otherwise.
+ * content/research-log/*.md MUST exist in public/blog/posts.json. Exit 1 otherwise.
+ *
+ * Checked against posts.json, NOT content/feed.xml. posts.json is what actually
+ * renders on the site, so "did the content ship?" is precisely a posts.json
+ * question. It is also the only source that stays correct now that scripts/
+ * trim-feed.mjs keeps the feed to a rolling window — checking the feed would fail
+ * every log older than that window, for posts that are live and fine.
  *
  * Matching is by the YYYY-MM-DD-NN PREFIX (run-date + item number), not the full
  * guid: the routine sometimes logs a slightly different slug tail than the id
@@ -24,7 +30,11 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const LOG_DIR = path.join(ROOT, 'content', 'research-log');
-const FEED = path.join(ROOT, 'content', 'feed.xml');
+const POSTS_JSON = path.join(ROOT, 'public', 'blog', 'posts.json');
+// Posts unpublished on purpose via scripts/remove-post.mjs. A log entry pointing at
+// one of these is accurate history, not the "log says published, content missing"
+// bug this guard exists to catch — so they count as accounted for.
+const TOMBSTONES = path.join(ROOT, 'content', 'removed-posts.json');
 
 // A blog guid: YYYY-MM-DD-NN-slug
 const GUID = /\b(\d{4}-\d{2}-\d{2}-\d{2}-[a-z0-9-]+)\b/g;
@@ -33,14 +43,21 @@ const PREFIX = /^(\d{4}-\d{2}-\d{2}-\d{2})/;
 
 async function main() {
   if (!existsSync(LOG_DIR)) { console.log('✓ research-log: no log dir, nothing to check'); return; }
-  if (!existsSync(FEED)) { console.error('✗ content/feed.xml missing'); process.exit(1); }
+  if (!existsSync(POSTS_JSON)) { console.error('✗ public/blog/posts.json missing'); process.exit(1); }
 
-  const feed = await readFile(FEED, 'utf8');
-  const feedPrefixes = new Set(
-    [...feed.matchAll(/<guid[^>]*>([^<]+)<\/guid>/g)]
-      .map((m) => (m[1].trim().match(PREFIX) || [])[1])
-      .filter(Boolean),
+  const posts = JSON.parse(await readFile(POSTS_JSON, 'utf8'));
+  const publishedPrefixes = new Set(
+    posts.map((p) => (String(p.id ?? '').match(PREFIX) || [])[1]).filter(Boolean),
   );
+
+  // Deliberate removals are accounted for, not missing.
+  if (existsSync(TOMBSTONES)) {
+    const removed = JSON.parse(await readFile(TOMBSTONES, 'utf8'));
+    for (const t of removed) {
+      const pfx = (String(t?.id ?? '').match(PREFIX) || [])[1];
+      if (pfx) publishedPrefixes.add(pfx);
+    }
+  }
 
   const files = (await readdir(LOG_DIR)).filter((f) => /^\d{4}-\d{2}-\d{2}\.md$/.test(f));
   const missing = [];
@@ -51,18 +68,18 @@ async function main() {
       const section = part.split(/^#{2,3}\s/m)[0];
       for (const m of section.matchAll(GUID)) {
         const pfx = (m[1].match(PREFIX) || [])[1];
-        if (!pfx || !feedPrefixes.has(pfx)) missing.push(`${f}: ${m[1]}`);
+        if (!pfx || !publishedPrefixes.has(pfx)) missing.push(`${f}: ${m[1]}`);
       }
     }
   }
 
   if (missing.length) {
-    console.error(`✗ research-log claims ${missing.length} published post(s) NOT present in content/feed.xml`);
+    console.error(`✗ research-log claims ${missing.length} published post(s) NOT present in public/blog/posts.json`);
     console.error('  (a run committed its log but dropped the feed/posts content, OR the log is inaccurate):');
     for (const x of missing) console.error('   - ' + x);
     process.exit(1);
   }
-  console.log('✓ research-log OK — every published guid exists in the feed');
+  console.log('✓ research-log OK — every published guid exists in posts.json');
 }
 
 main().catch((e) => { console.error('✗ validate-research-log failed:', e.message); process.exit(1); });
