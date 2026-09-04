@@ -35,6 +35,7 @@ const SOURCE_BG = '#193549'; // Cobalt2 editor.background — the anchor for the
 const TARGET_BG = { C: 0.026, h: 155 }; // dark green/grey; L is inherited from SOURCE_BG
 const ACCENT_CHROMA_MAX = 0.13; // Cobalt2 accents are ~0.19; 0.13 = vivid but not neon
 const MAX_L = 0.9; // no pure-white text on a dark ground
+const ACCENT_L_FLOOR = 0.74; // how far an accent may darken to keep its chroma (≈5.4:1 on the bg)
 const NEUTRAL_TINT_C = 0.012; // greys/whites pick up a whisper of the bg hue
 const MIN_TEXT_CONTRAST = 4.5; // WCAG AA for token foregrounds vs editor bg
 const SURFACE_HUE_WINDOW = 35; // deg around the source bg hue that counts as "surface"
@@ -44,7 +45,7 @@ const BASE_THEME = 'Default Dark Modern'; // ships with VS Code; fills any key C
 
 // Keys whose *accent* colors mean something by hue → not rotated.
 const SEMANTIC_KEY =
-  /^terminal\.ansi|gitDecoration|editorGutter\.(added|deleted|modified)|diffEditor|editor(Error|Warning|Info|Hint)\.|problems|minimapGutter|^charts\.|^testing\.|debugIcon|statusBarItem\.(error|warning)|editorOverviewRuler\.(added|deleted|modified|error|warning|info)|inputValidation\.\w+Border|notifications?(Error|Warning|Info)|editorMarkerNavigation(Error|Warning|Info)|list\.(error|warning|invalid)|(error|warning|info)Foreground|debugConsole\.(error|warning|info)|^merge\./i;
+  /^terminal\.ansi|gitDecoration|editorGutter\.(added|deleted|modified)|diffEditor|editor(Error|Warning|Info|Hint)\.|problems|minimapGutter|^charts\.|^testing\.|debugIcon|statusBarItem\.(error|warning)|editorOverviewRuler\.(added|deleted|modified|error|warning|info|\w+Content)|inputValidation\.\w+Border|notifications?(Error|Warning|Info)|editorMarkerNavigation(Error|Warning|Info)|list\.(error|warning|invalid)|(error|warning|info)Foreground|debugConsole\.(error|warning|info)|^merge\./i;
 const SEMANTIC_SCOPE = /\binvalid\b|markup\.(inserted|deleted|changed)|meta\.diff/i;
 
 // ─── Color math (sRGB ⇄ OKLCH, Björn Ottosson's matrices) ──────────────────
@@ -130,8 +131,20 @@ function transform(hex, { semantic = false, text = false } = {}) {
   } else if (!semantic) {
     lch = { ...lch, h: lch.h + HUE_SHIFT };
   }
-  lch = { ...lch, C: Math.min(lch.C, ACCENT_CHROMA_MAX), L: Math.min(lch.L, MAX_L) };
-  lch = toGamut(lch);
+  const wantC = Math.min(lch.C, ACCENT_CHROMA_MAX);
+  lch = { ...lch, C: wantC, L: Math.min(lch.L, MAX_L) };
+  let fitted = toGamut(lch);
+  if (!isNeutral && !isSurface) {
+    // Cobalt2's bright accents live at green/cyan/yellow hues, where sRGB has
+    // plenty of room near L 0.9. Rotated into red/orange there is none — a bright
+    // saturated peach does not exist — so plain clipping washes strings, support
+    // and function names out to near-white. Trade lightness for chroma instead,
+    // which also pulls accents out of the glare band. Contrast is re-checked below.
+    while (fitted.C < wantC * 0.9 && fitted.L > ACCENT_L_FLOOR) {
+      fitted = toGamut({ ...lch, L: fitted.L - 0.01 });
+    }
+  }
+  lch = fitted;
 
   if (text && src.a === null) {
     // Raise lightness until the token reads comfortably against the editor bg.
@@ -167,8 +180,8 @@ const theme = parseJsonc(
     : await (await fetch(COBALT2_URL)).text(),
 );
 
-const report = new Map(); // source hex → { hex, role }
-const note = (from, res) => report.set(from.toLowerCase(), res);
+const report = new Map(); // "source hex|role" → { hex, role, lch } (a hex can be both semantic and accent)
+const note = (from, res) => report.set(`${from.toLowerCase()}|${res.role}`, res);
 
 const colors = {};
 for (const [key, value] of Object.entries(theme.colors)) {
@@ -208,7 +221,7 @@ const fmt = (n) => n.toFixed(2);
 console.log(`Cobalt2 @ ${COBALT2_COMMIT.slice(0, 7)} → workspace theme`);
 console.log(`hue shift ${HUE_SHIFT.toFixed(1)}°   surface chroma ×${fmt(SURFACE_CHROMA_SCALE)}   editor bg ${toHex({ ...editorBgRgb, a: null })}\n`);
 const byRole = {};
-for (const [from, res] of [...report.entries()].sort()) (byRole[res.role] ??= []).push([from, res]);
+for (const [key, res] of [...report.entries()].sort()) (byRole[res.role] ??= []).push([key.split('|')[0], res]);
 for (const role of ['surface', 'neutral', 'accent', 'semantic']) {
   console.log(`— ${role}`);
   for (const [from, { hex, lch }] of byRole[role] ?? []) {

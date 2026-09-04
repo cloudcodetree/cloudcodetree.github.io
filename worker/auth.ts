@@ -77,8 +77,7 @@ export function readCookie(request: Request): string | null {
   return null;
 }
 
-/** Open-redirect guard: only same-origin gated paths survive — a project
- * landing page or its demo. Never the gallery, never assets. */
+/** Open-redirect guard for Worker-issued bounces: only demo paths survive. */
 export function safeNext(raw: string): string | null {
-  return /^\/projects\/(?!covers\/)[a-z0-9-]+\/(demo\/.*)?$/.test(raw) ? raw : null;
+  return /^\/projects\/[a-z0-9-]+\/demo\//.test(raw) ? raw : null;
 }

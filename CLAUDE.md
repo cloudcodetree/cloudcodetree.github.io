@@ -428,6 +428,18 @@ vendoring. To publish, flip the flag; prebuild restores `page.mdx`. Held at
 launch (2026-09-03): the 37-part "Become a Full-Stack AI Engineer" course and
 every project except span-calculator.
 
+## Editor theme (VS Code)
+
+`.vscode/settings.json` is a **committed, generated** workspace theme so anyone opening
+the repo in VS Code gets the same look with nothing to install: Cobalt2 hue-shifted in
+OKLCH onto a dark green/grey ground, with an eye-comfort pass (no pure-white text,
+capped accent chroma, token foregrounds ≥ 4.5:1). Never hand-edit it — tune the knobs at the
+top of `scripts/generate-vscode-theme.mjs` (target background, chroma cap, base theme)
+and re-run `node scripts/generate-vscode-theme.mjs` (`--dry-run` prints the mapping +
+contrast table). Colors that mean something by hue (terminal ANSI, git, diff,
+error/warning) keep their hue. To opt out locally, override the keys in your user
+settings via a VS Code Profile.
+
 ## Claude Code Tooling
 
 Project-scoped Claude Code config lives in `.claude/`:

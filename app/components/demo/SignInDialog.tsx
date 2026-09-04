@@ -31,11 +31,11 @@ export default function SignInDialog({
   // After auth, Supabase returns the visitor here; the page then mints the
   // HttpOnly cookie via /api/session and continues to `next`.
   const next = nextPath ?? '/projects/';
-  // Gated pages can't host the landing (no cookie yet → 302), so they bounce
-  // via the public gallery; everything else returns to itself.
-  const isGated = /^\/projects\/(?!covers\/)[a-z0-9-]+\//.test(next);
+  // A demo can't host the return trip (no cookie yet → 302), so it lands on
+  // its own public landing page first; everything else returns to itself.
+  const demoOf = next.match(/^(\/projects\/[a-z0-9-]+\/)demo\//);
   const redirectTo = () => {
-    const u = new URL(isGated ? '/projects/' : next, window.location.origin);
+    const u = new URL(demoOf ? demoOf[1] : next, window.location.origin);
     u.searchParams.set('signin', '1');
     u.searchParams.set('next', next);
     return u.toString();

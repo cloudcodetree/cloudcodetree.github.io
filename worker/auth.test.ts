@@ -91,15 +91,12 @@ describe('safeNext', () => {
   it('accepts a demo path', () => {
     expect(safeNext('/projects/span-calculator/demo/')).toBe('/projects/span-calculator/demo/');
   });
-  it('accepts a project landing page', () => {
-    expect(safeNext('/projects/span-calculator/')).toBe('/projects/span-calculator/');
-  });
   it.each([
     'https://evil.example/',
     '//evil.example/x',
     '/about/',
     '/projects/',
-    '/projects/covers/x.png',
+    '/projects/span-calculator/',
     '/projects/UPPER/demo/',
     '',
   ])('rejects %s', (raw) => {
