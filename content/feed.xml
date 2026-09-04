@@ -10,8 +10,73 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 04 Sep 2026 12:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 04 Sep 2026 20:04:00 +0000</lastBuildDate>
 
+    <item>
+      <title>Direct Edit, Targeted Regen, Full Restart: Which Claude Design Move to Make</title>
+      <link>https://salesdorado.com/en/ai/review-claude-design/</link>
+      <guid isPermaLink="false">2026-09-04-09-claude-design-regenerate-vs-edit-decision</guid>
+      <pubDate>Fri, 04 Sep 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Claude Design has three iteration modes with different costs and consistency risks — reaching for full regen when a slider works wastes both.</description>
+      <content:encoded><![CDATA[**Claude Design has three iteration modes with different costs and consistency risks — reaching for full regen when a slider works wastes both.**
+
+When something's wrong in a generated screen, the instinct is to re-prompt. That's often the wrong move — not just for tokens, but because each full regeneration means every previous design decision can shift.
+
+**Three modes, ordered from cheapest to most disruptive:**
+
+**1. Direct editing** — inline text editing, property sliders (spacing, color, radius), and element manipulation — costs nothing and consumes no tokens. Use this for cosmetic fixes: wrong label, off-brand color, too much padding. The change applies to the selected element; everything else stays.
+
+**2. Targeted element regeneration** — select a component and prompt Claude Design to rework it alone. Use this when a component's *structure* is wrong but the rest of the screen is right: the nav uses the wrong pattern, the card layout doesn't match your system. Targeted regen keeps the page as the anchor and regenerates only the selected piece.
+
+**3. Full page regeneration** — re-prompting the whole screen. Reserve this for when the page's layout *premise* is wrong: wrong column count, wrong hierarchy, wrong primary action placement. Everything you've already refined goes with it.
+
+**The decision:**
+- Something looks off, structure is right → direct edit (slider or inline)
+- One component is the wrong shape → targeted element regen
+- The page doesn't do what a user needs → full regen
+
+The common failure is using targeted or full regen for problems a slider would fix. Those trigger generation — and generation means your previous decisions can drift. Sliders don't.
+
+**Limit**: direct editing works on what's already generated. For a fundamentally different approach, regeneration is the only path — but arrive there only after ruling out the cheaper modes.
+
+**Sources:** [Claude Design review, iteration modes — Salesdorado](https://salesdorado.com/en/ai/review-claude-design/) · [Claude Design workflow — designproject.io](https://designproject.io/blog/claude-design-workflow/) · [Claude for designers in 2026 — artofstyleframe.com](https://artofstyleframe.com/blog/claude-for-designers-2026/)]]></content:encoded>
+    </item>
+    <item>
+      <title>Fable 5.1 Calls Your Agent's Tools One at a Time — Fix It With One Sentence</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1</link>
+      <guid isPermaLink="false">2026-09-04-08-fable-51-agent-loop-batch-nudge</guid>
+      <pubDate>Fri, 04 Sep 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>In Fable 5.1 coding agents, implied-independent calls may serialize. A one-sentence turn-scoped message appended after each tool batch restores parallel execution.</description>
+      <content:encoded><![CDATA[**In Fable 5.1 coding agents, implied-independent calls may serialize instead of batching. A one-sentence turn-scoped system message appended after each tool batch restores parallel execution.**
+
+Fable 5.1 batches tool calls reliably when your request names what to fetch. The exception is coding agents and bash-and-editor harnesses where the next reads are *implied* by the task — there it may issue them one per turn instead of together. No quality loss, but each extra turn costs tokens, a round trip, and wall-clock time in a loop that can run dozens of turns.
+
+**The fix:** append this sentence after each tool-result batch:
+
+```
+First privately list what you need next; then request every item that doesn't depend on another's result in this one response.
+```
+
+Deliver it as a turn-scoped system message — a `role: "system"` entry with `clear_at: "next_user_message"` (beta header: `mid-conversation-system-clear-at-2026-08-21`). Append a fresh copy after each tool-result batch; leave old copies in the array byte-for-byte. Once cleared, they cost zero input tokens and the model doesn't see them. **Do not edit or delete them**: that restarts the prompt cache from that point and invalidates the thinking blocks that follow.
+
+Without the beta flag, place the sentence in a `text` block inside the user message that carries the `tool_result` blocks — same turn, after the results.
+
+**This is different from `disable_parallel_tool_use`**, which intentionally forces one call per turn for pipelines that need to inspect or rate-limit each result. The nudge is for loops where calls are structurally independent but the model isn't batching them on its own.
+
+**Limit**: the nudge works for implied-independent calls in agentic loops. Calls with genuine ordering dependencies — where each result determines the next call — can't be parallelized regardless of the prompt.
+
+**Sources:** [Batch independent tool calls — Anthropic Fable 5.1 prompting guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1#batch-independent-tool-calls-in-agent-loops) · [Prompting Claude Fable 5.1 (full guide) — Anthropic](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1) · [Three Fable 5.1 patterns that break existing agents — AI Unfiltered](https://www.arturmarkus.com/anthropic-cuts-fable-5-1-cache-reads-75-to-0-25-m-and-breaks-three-prompt-patterns-developers-rely-on/)]]></content:encoded>
+    </item>
     <item>
       <title>Give Claude Design a Brand Brief Before Screen One — Here's What to Include</title>
       <link>https://designproject.io/blog/claude-design-workflow/</link>
@@ -5376,114 +5441,8 @@ The point is not "chat with Hugging Face." It's that when Claude Code is picking
       <media:thumbnail url="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hf-mcp-vscode.png" />
     </item>
 
-    <item>
-      <title>The Chunker Underneath Almost Every RAG Tutorial: LangChain's RecursiveCharacterTextSplitter, With Sizes That Actually Work</title>
-      <link>https://docs.langchain.com/oss/python/integrations/splitters/recursive_text_splitter</link>
-      <guid isPermaLink="false">2026-08-20-06-langchain-recursive-splitter-chunking-foundations</guid>
-      <pubDate>Thu, 20 Aug 2026 20:08:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>RAG</category>
-      <category>Best Practices</category>
-      <description>Chunking is the least-glamorous, highest-leverage decision in a RAG pipeline. RecursiveCharacterTextSplitter is the sensible default; 512 chunks with ~64 overlap is the sensible starting size.</description>
-      <content:encoded><![CDATA[**What you'll be able to do after this:** split any document into chunks that survive the "which paragraph was that in?" question, using LangChain's `RecursiveCharacterTextSplitter` with sizes benchmarks actually justify.
-
-**The three-bullet takeaway:**
-- **Recursive beats fixed-length.** The splitter tries paragraph breaks first, then lines, then spaces, then characters — so a chunk almost always ends at a boundary that makes sense to a reader.
-- **512 characters with 64 overlap is the practical default.** Independent [chunking benchmarks](https://www.firecrawl.dev/blog/best-chunking-strategies-rag) put the sweet spot for general prose at 256–512 tokens with 10–20% overlap; use those knobs to open a bug report against your own retrieval, not to guess forever.
-- **Metadata is the piece most people skip.** Every chunk needs `source`, `page` or heading, and `chunk_index`. Without them, "cite where this came from" is impossible after the fact.
-
-**Walk-through — under 30 lines of Python**
-
-```python
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-with open("handbook.md") as f:
-    doc = f.read()
-
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=512,       # target characters per chunk
-    chunk_overlap=64,     # ~12% overlap keeps context across the seam
-    separators=["\n\n", "\n", ". ", " ", ""],  # tried in order
-    length_function=len,  # swap for a tokenizer for token-accurate sizes
-)
-
-chunks = splitter.create_documents(
-    [doc],
-    metadatas=[{"source": "handbook.md"}],
-)
-
-for i, c in enumerate(chunks):
-    c.metadata["chunk_index"] = i
-
-print(len(chunks), "chunks")
-print(chunks[0].page_content[:200])
-print(chunks[0].metadata)
-```
-
-**Why "recursive"?** The splitter walks the separator list top-down. Paragraph breaks come first because they're the strongest semantic seams; single newlines and sentences are fallbacks. It only reaches for spaces or raw characters when nothing better fits. That's why paragraphs stay whole for short documents and split gracefully when they don't.
-
-**Common gotchas**
-
-- **Character length ≠ token length.** `chunk_size=512` with `length_function=len` is 512 characters, roughly 100–150 tokens. If you want token-accurate sizes, swap in `tiktoken` or your model's tokenizer via `length_function`.
-- **Code and markdown want different splitters.** `RecursiveCharacterTextSplitter.from_language(Language.PYTHON, ...)` uses code-aware separators (`\nclass `, `\ndef `) instead of prose ones. `MarkdownHeaderTextSplitter` splits by heading level first, then hands chunks off — worth it when heading structure matters more than length.
-- **Overlap has diminishing returns.** Below ~10% you lose cross-chunk context; above ~25% you're paying to embed and store the same sentences repeatedly.
-
-**Before you commit to a size, benchmark it.** Assemble 20–30 real questions your users ask, run each through your retriever, and measure recall@3 (does the correct passage appear in the top three?). Change `chunk_size` and re-run; the "correct" default is the one your queries actually recover. Skipping this and picking `chunk_size=1000` because a tutorial did is why so many RAG systems get to production with mysteriously bad recall.
-
-**When to reach for something fancier:** semantic chunking (splitting where embedding similarity drops) is one option — Firecrawl's benchmark reports it lifts recall by roughly 70% over naïve fixed-size baselines while running ~14× slower than recursive. Reach for it after you have a baseline and a benchmark, never before.
-
-**Sources:** [Splitting recursively — LangChain docs](https://docs.langchain.com/oss/python/integrations/splitters/recursive_text_splitter) · [Best chunking strategies for RAG (2026) — Firecrawl](https://www.firecrawl.dev/blog/best-chunking-strategies-rag) · [Chunk-size intuition — LangChain issue #2026](https://github.com/langchain-ai/langchain/issues/2026)
-]]></content:encoded>
-      <media:content url="https://python.langchain.com/img/brand/theme-image.png" medium="image" />
-      <media:thumbnail url="https://python.langchain.com/img/brand/theme-image.png" />
-    </item>
-
-    <item>
-      <title>Running /design-sync in Claude Code: What Your Codebase Feeds Into Claude Design (and Where the Round-Trip Gets Rough)</title>
-      <link>https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design</link>
-      <guid isPermaLink="false">2026-08-20-05-design-sync-codebase-round-trip</guid>
-      <pubDate>Thu, 20 Aug 2026 12:12:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Design</category>
-      <category>Claude Design</category>
-      <description>Run /design-sync in your Claude Code session and Claude Design builds prototypes from your actual components, not generic ones. The code-to-design direction works cleanly; the full project round-trip is still rough.</description>
-      <content:encoded><![CDATA[**Run `/design-sync` in Claude Code and Claude Design builds your next prototype from your actual components instead of defaults. The code→design direction works cleanly; the design→code return trip still demands active attention.**
-
-**What the command reads from your codebase**
-
-`/design-sync` accepts a GitHub repo, a local directory, design files, or raw uploads. From your code it extracts:
-- Component APIs and structure
-- Color system, spacing scale, typography, CSS approach (custom properties, utility classes, etc.)
-- Framework patterns: hooks, state, file organization
-
-What it misses: conventions that live outside the code itself — custom `data-testid` patterns, undocumented a11y attributes, animation contracts. Before running `/design-sync` over a real codebase, write a short `DESIGN-SYSTEM.md` documenting those and include it in the upload. The day's earlier post on [understanding Claude Design's output format](https://cloudcodetree.com/ai-news/2026-08-20-02-claude-design-output-format-codebase-landing) covers what comes back.
-
-**Running it**
-
-```bash
-/design-sync   # in any Claude Code session
-```
-
-The sync is incremental — one component at a time — and presents a plan you approve before anything is written. First sync over a large library means multiple approval rounds.
-
-**The code→design direction: mostly solid**
-
-Practitioners report that once the design system is loaded, Claude Design generates prototypes that look like your system — your color tokens, your component variants — rather than Tailwind defaults. Deeply nested slot structures sometimes get flattened, but the extraction is reliable for standard component APIs.
-
-**The project round-trip: still rough**
-
-The design→code leg produces a handoff bundle Claude Code picks up directly, but practitioners flag it as still awkward: the moments that demanded human judgment were the permission approvals, catching when Claude read the wrong component version, and reviewing the output before accepting it. [One detailed walkthrough](https://paulkuo.tw/en/articles/claude-design-sync-codebase/) describes it as "I wish it were a little easier" — the direction works, but it needs more active shepherding than the code→design leg.
-
-**Requires:** Claude Pro, Max, or Team.
-
-**Sources:** [Set up your design system — Anthropic Help](https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design) · [Claude Design overhaul — VentureBeat](https://venturebeat.com/technology/anthropic-ships-major-claude-design-overhaul-with-design-system-imports-code-round-trips-and-a-fix-for-its-token-burning-problem) · [I Fed My Entire Design System to AI — Paul Kuo](https://paulkuo.tw/en/articles/claude-design-sync-codebase/)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
 
