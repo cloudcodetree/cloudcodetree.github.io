@@ -71,3 +71,39 @@ Feeds (URLs + GUIDs identical), article/tutorial URLs, search canonicals,
 inbound mail (MX recreated, SPF/DMARC only add), bookmarks. Losses are
 scoped to: cloudcodetree.github.io (accepted), and the five legacy Pages
 paths — which now 301 to their successors.
+
+## Status — 2026-09-04
+
+- **Step 1 (merge): DONE.** `draft/dealfinder` merged to `main` via PR #1
+  (`c4622f76`) after reconciling 215 routine commits (conflicts only in
+  `.gitignore`, `package.json`, `pnpm-workspace.yaml`; resolved as supersets).
+  The PR's CI build (Linux, pnpm 10, frozen lockfile) was green before merging.
+  The routine's own pipeline (`pnpm install --frozen-lockfile` → `ingest-feed`
+  → `validate-blog` → `validate-research-log`) was run on the merged tree:
+  no-op, all green. Supabase keepalive dispatched from `main`: succeeded.
+- **Step 3 (prod Worker deploy): DONE** from the merged tree — version
+  `1d4face3…`, parity contract 20/20 on `cct-site.chris-247.workers.dev`,
+  gate 302 / legacy 301 / CSP present. No routes attached yet.
+- **Step 5 (beta): re-verified** on the merged tree — contract 20/20, sweep
+  850/850, and a fresh-visitor demo request lands on the public landing page
+  with the sign-in dialog (GitHub / Google / LinkedIn / magic link).
+- **Step 2 (CI credentials): BLOCKED on a Cloudflare API token.** The MCP
+  session cannot mint tokens (error 9109) and this session could not set repo
+  secrets directly. Once `CLOUDFLARE_API_TOKEN` is in `.env`,
+  `node scripts/set-ci-secrets.mjs` verifies it and sets both secrets plus
+  `ENABLE_WORKER_DEPLOY=true`. Prove it with one push to `main` and a new
+  version on `wrangler deployments list`.
+- **Step 6 (apex flip): HELD until step 2 is proven**, so the routine's next
+  push can never land on a dead origin. The flip itself: add
+  `{ "pattern": "cloudcodetree.com/*", "zone_name": "cloudcodetree.com" }` to the
+  prod `routes` in `wrangler.jsonc`, `pnpm run deploy:prod`, then
+  `node scripts/configure-auth.mjs --site-url https://cloudcodetree.com`, then
+  purge the zone cache. **Do not route `www` yet**: the Worker only runs for
+  `run_worker_first` paths, so a `www` route would serve duplicate content.
+  GitHub Pages keeps answering `www` with its 301 to the apex until the zone
+  gets a Single Redirect rule (`http.host eq "www.cloudcodetree.com"` → 301
+  `concat("https://cloudcodetree.com", http.request.uri.path)`, query
+  preserved) — creating that rule was blocked in this session; add it in the
+  dashboard or via OpenTofu, and only then retire the Pages custom domain.
+- **Step 8 facts:** only `code_compare` and `backlot` still have Pages sites;
+  `span-calculator`, `motion-expression`, `sheetwise` have none to turn off.
