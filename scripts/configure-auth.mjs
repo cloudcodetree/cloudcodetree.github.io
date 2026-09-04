@@ -46,6 +46,12 @@ console.log('before:', {
 
 // Sign-in returns visitors to whatever page they were on, so every path on
 // our origins is a valid return target (** = any depth in Supabase's globs).
+// Default site URL is the origin that owns sign-in today; pass --site-url to
+// move it (the cutover runbook sets https://cloudcodetree.com at the apex flip).
+const siteArg = process.argv.indexOf('--site-url');
+const SITE_URL = siteArg > -1 ? process.argv[siteArg + 1] : 'https://cct-site-staging.chris-247.workers.dev';
+if (!/^https?:\/\/[^/]+$/.test(SITE_URL)) { console.error(`✗ --site-url must be an origin, got: ${SITE_URL}`); process.exit(1); }
+
 const ALLOW = [
   'https://cct-site-staging.chris-247.workers.dev/**',
   'https://beta.cloudcodetree.com/**',
@@ -57,7 +63,7 @@ const res = await fetch(API, {
   method: 'PATCH',
   headers,
   body: JSON.stringify({
-    site_url: 'https://cct-site-staging.chris-247.workers.dev',
+    site_url: SITE_URL,
     uri_allow_list: ALLOW,
     external_google_enabled: true,
     external_google_client_id: clientId,
