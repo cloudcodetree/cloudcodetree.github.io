@@ -1,5 +1,77 @@
 [
   {
+    "id": "2026-09-04-04-claude-design-multi-screen-component-inventory",
+    "title": "Claude Design Reinvents Your Button on Screen Two — Here's How to Stop It",
+    "excerpt": "When designing multiple screens in Claude Design, extract a component inventory after screen one and paste it as a constraint in subsequent prompts — this keeps choices consistent across regenerati…",
+    "author": "Chris Harper",
+    "date": "09-04-2026",
+    "publishedAt": "2026-09-04T04:12:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Claude Design"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://techglock.com/blog/ai-in-design-what-actually-ships-in-mid-2026-and-what-still-falls-apart",
+    "content": "**When designing multiple screens in Claude Design, extract a brief component inventory after screen one and paste it as a constraint in your next prompt — that is the one technique that consistently keeps component choices stable across regenerations.**\n\nAI design tools generate fast but forget. Between two prompts, Claude Design can produce the same feature twice with different button heights, different spacing rhythms, and different card styles — each direction internally consistent, but inconsistent with each other. Practitioners working on multi-step flows report that multi-screen continuity requires deliberate prompting rather than following automatically from shared context ([AI in Design Mid-2026 — Techglock](https://techglock.com/blog/ai-in-design-what-actually-ships-in-mid-2026-and-what-still-falls-apart)).\n\n**The pattern:**\n\nAfter generating screen one, before moving to screen two, write a brief component inventory — the 10–15 specific choices Claude Design just made:\n\n```\nCOMPONENT INVENTORY (from screen 1 — do not change these):\n- Primary button: 44px height, full-width on mobile, label \"Continue\"\n- Card: 16px padding, 8px border-radius, 1px border #E2E8F0\n- Heading: 24px / semibold / no letter-spacing\n- Input: 40px height, label above, 4px gap\n- Section spacing: 24px between sections, 16px within\n```\n\nOpen your screen two prompt with: \"Match the component inventory above exactly. Do not introduce new visual patterns.\"\n\n**Why this works instead of longer initial prompts:** Each regeneration is a fresh generation with the existing artboard as visual context — not a continuation of state. The inventory is what carries the decisions across. A longer initial prompt helps screen one; it doesn't bind screen two.\n\n**Limit:** The inventory won't stabilize genuinely different layout structures — a data table, a map view, or a dense multi-column grid will pull in new components regardless. Mark those explicitly: \"NEW COMPONENT: data table — all other components match inventory above.\" Claude Design treats only the marked element as novel and holds everything else.\n\n**Sources:** [AI in Design Mid-2026 — Techglock](https://techglock.com/blog/ai-in-design-what-actually-ships-in-mid-2026-and-what-still-falls-apart) · [Claude Design guides — support.claude.com](https://support.claude.com)"
+  },
+  {
+    "id": "2026-09-04-03-claude-code-cost-cache-hit-ratio-visibility",
+    "title": "Is Your System Prompt Actually Being Cached? `/cost` Now Shows the Hit Ratio",
+    "excerpt": "The /cost command in Claude Code now shows a per-session cache line — hit ratio, misses, and warm vs cold token counts — so you can verify in real time whether your system prompt is landing in cache.",
+    "author": "Chris Harper",
+    "date": "09-04-2026",
+    "publishedAt": "2026-09-04T04:11:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**The `/cost` command in Claude Code now shows a per-session cache line — hit ratio, misses, and warm vs cold token counts — the first direct way to verify in real time whether your system prompt is landing in cache or being re-sent on every turn.**\n\nRunning `/cost` in a Claude Code session now returns a line like:\n\n```\nCache: 52% hit ratio · 2 misses · 38k tokens re-cached (warm 34k / cold 4k)\n```\n\nBefore this, the only signal that your cache was being invalidated was an unexpectedly large bill. Now you can see it per session.\n\n**What the numbers mean:**\n\n- **Hit ratio below 80%:** the cache is being invalidated between turns. Common causes: an MCP server whose tool definitions change on each connection, a hook that writes a timestamp into the system prompt, or (now fixed in recent builds) OAuth token refreshes that cleared the entire prefix hourly.\n- **Cold tokens:** charged at full input rates. On Sonnet 5, $2/MTok.\n- **Warm tokens:** served from cache. On Sonnet 5, $0.20/MTok — one-tenth the price.\n\n**Tuning cache lifetime with `promptCacheTtl`:**\n\nIf your sessions run longer than the default 5-minute cache window, a new setting extends it:\n\n```json\n// .claude/settings.json\n{\n  \"promptCacheTtl\": 3600,\n  \"subagentPromptCacheTtl\": 300\n}\n```\n\n`subagentPromptCacheTtl` is separate — useful when you run many short-lived subagents sharing the same context. A shorter value there (e.g. 300s) reduces the cost of re-warming on each agent call.\n\n**Limit:** `promptCacheTtl` only extends the window; it does not prevent invalidation. If content inside the cache prefix is changing between turns — tool definitions, system prompt content, MCP server output — a longer TTL won't help. Diagnose with `/cost` first: if the hit ratio is low, find and stabilize what's changing before adjusting the TTL.\n\n**Sources:** [Claude Code changelog — code.claude.com/docs/en/changelog](https://code.claude.com/docs/en/changelog) · [Prompt caching — Anthropic docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) · [Claude Code context management — claudefa.st](https://claudefa.st/blog/guide/mechanics/context-management)"
+  },
+  {
+    "id": "2026-09-04-02-sonnet-5-price-locked-no-september-increase",
+    "title": "Sonnet 5 Stays at $2/$10 — The September 1 Price Increase Will Not Happen",
+    "excerpt": "Anthropic has made Claude Sonnet 5's $2/$10 per MTok launch pricing permanent. The previously scheduled September 1 increase to $3/$15 will not occur.",
+    "author": "Chris Harper",
+    "date": "09-04-2026",
+    "publishedAt": "2026-09-04T04:10:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 1,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "content": "**Anthropic has made Claude Sonnet 5's $2/$10 per MTok launch pricing permanent — the scheduled September 1 increase to $3/$15 per million input/output tokens will not occur, per the [official pricing docs](https://platform.claude.com/docs/en/about-claude/pricing).**\n\nThe pricing was announced at Sonnet 5's launch as introductory through August 31, 2026. It is now the standard price indefinitely. Batch processing remains at $1/$5 per MTok (50% discount). Cache reads stay at $0.20/MTok (0.1x the input rate).\n\nOne limit to factor into cost comparisons: Anthropic reports that Sonnet 5 and later models use a newer tokenizer that produces approximately 30% more tokens for the same text compared to Sonnet 4.6 and earlier. At $2/MTok with ~30% more tokens, the effective cost for the same payload isn't a direct drop from $3/MTok at the old token count. Run a sample through both models before assuming Sonnet 5 is cheaper for your specific workload.\n\n**Why it matters:** Cost projections built for Sonnet 5 through Q4 don't need updating. If you were holding back Sonnet 5 adoption pending the price increase, that reason is gone.\n\n**Sources:** [Anthropic pricing — platform.claude.com](https://platform.claude.com/docs/en/about-claude/pricing)"
+  },
+  {
+    "id": "2026-09-04-01-fireworks-ai-open-model-inference-api",
+    "title": "Your Pipeline Already Speaks OpenAI — Point It at Fireworks AI to Run 250+ Open Models in One Swap",
+    "excerpt": "Fireworks AI exposes 250+ open-weight models behind an OpenAI-compatible endpoint — change one URL and one model string, the rest of your pipeline stays the same.",
+    "author": "Chris Harper",
+    "date": "09-04-2026",
+    "publishedAt": "2026-09-04T04:09:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Developer Tools",
+      "Cloud"
+    ],
+    "readTime": 2,
+    "image": "https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/_default.png",
+    "imageSource": "https://fireworks.ai/inference",
+    "content": "**TL;DR: Fireworks AI exposes 250+ open-weight models (Llama 4, Qwen 3.7, DeepSeek V4) behind an OpenAI-compatible endpoint — change one URL and one model string, the rest of your pipeline stays the same.**\n\n**What you'll be able to do after this:** route any prompt through Llama 4, Qwen 3.7, or DeepSeek without rewriting your pipeline, switch models by changing a string, and run cost-sensitive tasks on a model at $0.30/MTok instead of $2/MTok.\n\n**Three things to know first:**\n- Fireworks claims its disaggregated prefill/decode architecture reduces latency on large models — per Fireworks' own benchmarks; verify with your specific payload before committing production traffic.\n- Free accounts start with a low requests-per-minute ceiling. Adding a payment method raises it, but both per-account and per-model token-per-minute limits apply — plan for rate-limit retries in production.\n- The API is compatible with the OpenAI Python SDK and, via `base_url`, with the Anthropic SDK.\n\n**Setup (3 steps):**\n\n1. Get an API key at `fireworks.ai` (free tier works for testing).\n2. `pip install openai` if you don't have it.\n3. Swap the base URL:\n\n```python\nfrom openai import OpenAI\n\nclient = OpenAI(\n    api_key=\"YOUR_FIREWORKS_KEY\",\n    base_url=\"https://api.fireworks.ai/inference/v1\",\n)\n\nresponse = client.chat.completions.create(\n    model=\"accounts/fireworks/models/llama-4-maverick-instruct\",\n    messages=[{\"role\": \"user\", \"content\": \"Summarize this PR diff in two sentences.\"}],\n)\nprint(response.choices[0].message.content)\n```\n\nModel IDs follow the pattern `accounts/fireworks/models/<slug>`. Find the full catalog at `fireworks.ai/models`.\n\n**Limit:** Fireworks' performance figures come from Fireworks itself. There are no published independent benchmarks covering the full 250+ model catalog as of this writing. Measure your p50/p95 on your actual payload before treating their latency numbers as facts. For very short prompts with many concurrent requests, check whether per-model token-per-minute limits become the real bottleneck before blaming latency.\n\n**Sources:** [Fireworks AI inference — fireworks.ai/inference](https://fireworks.ai/inference) · [Fireworks AI API guide — flo2.com](https://flo2.com/blog/fireworks-ai-api-guide) · [Fireworks docs — docs.fireworks.ai](https://docs.fireworks.ai)"
+  },
+  {
     "id": "2026-09-03-09-meta-muse-spark-1-3-api-launch",
     "title": "Meta Muse Spark 1.3 Opens API Access Today — But the Headline Benchmarks Are for the Preview Tier",
     "excerpt": "Meta opened paid API access to Muse Spark 1.3 today. The available (xhigh) variant scores 61 on the Artificial Analysis index — the 75.4 DeepSWE figure is for a limited-preview (max) variant.",

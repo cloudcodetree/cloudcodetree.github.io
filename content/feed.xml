@@ -10,7 +10,160 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 03 Sep 2026 20:03:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 04 Sep 2026 04:12:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Claude Design Reinvents Your Button on Screen Two — Here's How to Stop It</title>
+      <link>https://techglock.com/blog/ai-in-design-what-actually-ships-in-mid-2026-and-what-still-falls-apart</link>
+      <guid isPermaLink="false">2026-09-04-04-claude-design-multi-screen-component-inventory</guid>
+      <pubDate>Fri, 04 Sep 2026 04:12:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>When designing multiple screens in Claude Design, extract a component inventory after screen one and paste it as a constraint in subsequent prompts — this keeps choices consistent across regenerations.</description>
+      <content:encoded><![CDATA[**When designing multiple screens in Claude Design, extract a brief component inventory after screen one and paste it as a constraint in your next prompt — that is the one technique that consistently keeps component choices stable across regenerations.**
+
+AI design tools generate fast but forget. Between two prompts, Claude Design can produce the same feature twice with different button heights, different spacing rhythms, and different card styles — each direction internally consistent, but inconsistent with each other. Practitioners working on multi-step flows report that multi-screen continuity requires deliberate prompting rather than following automatically from shared context ([AI in Design Mid-2026 — Techglock](https://techglock.com/blog/ai-in-design-what-actually-ships-in-mid-2026-and-what-still-falls-apart)).
+
+**The pattern:**
+
+After generating screen one, before moving to screen two, write a brief component inventory — the 10–15 specific choices Claude Design just made:
+
+```
+COMPONENT INVENTORY (from screen 1 — do not change these):
+- Primary button: 44px height, full-width on mobile, label "Continue"
+- Card: 16px padding, 8px border-radius, 1px border #E2E8F0
+- Heading: 24px / semibold / no letter-spacing
+- Input: 40px height, label above, 4px gap
+- Section spacing: 24px between sections, 16px within
+```
+
+Open your screen two prompt with: "Match the component inventory above exactly. Do not introduce new visual patterns."
+
+**Why this works instead of longer initial prompts:** Each regeneration is a fresh generation with the existing artboard as visual context — not a continuation of state. The inventory is what carries the decisions across. A longer initial prompt helps screen one; it doesn't bind screen two.
+
+**Limit:** The inventory won't stabilize genuinely different layout structures — a data table, a map view, or a dense multi-column grid will pull in new components regardless. Mark those explicitly: "NEW COMPONENT: data table — all other components match inventory above." Claude Design treats only the marked element as novel and holds everything else.
+
+**Sources:** [AI in Design Mid-2026 — Techglock](https://techglock.com/blog/ai-in-design-what-actually-ships-in-mid-2026-and-what-still-falls-apart) · [Claude Design guides — support.claude.com](https://support.claude.com)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Is Your System Prompt Actually Being Cached? `/cost` Now Shows the Hit Ratio</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-09-04-03-claude-code-cost-cache-hit-ratio-visibility</guid>
+      <pubDate>Fri, 04 Sep 2026 04:11:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>The /cost command in Claude Code now shows a per-session cache line — hit ratio, misses, and warm vs cold token counts — so you can verify in real time whether your system prompt is landing in cache.</description>
+      <content:encoded><![CDATA[**The `/cost` command in Claude Code now shows a per-session cache line — hit ratio, misses, and warm vs cold token counts — the first direct way to verify in real time whether your system prompt is landing in cache or being re-sent on every turn.**
+
+Running `/cost` in a Claude Code session now returns a line like:
+
+```
+Cache: 52% hit ratio · 2 misses · 38k tokens re-cached (warm 34k / cold 4k)
+```
+
+Before this, the only signal that your cache was being invalidated was an unexpectedly large bill. Now you can see it per session.
+
+**What the numbers mean:**
+
+- **Hit ratio below 80%:** the cache is being invalidated between turns. Common causes: an MCP server whose tool definitions change on each connection, a hook that writes a timestamp into the system prompt, or (now fixed in recent builds) OAuth token refreshes that cleared the entire prefix hourly.
+- **Cold tokens:** charged at full input rates. On Sonnet 5, $2/MTok.
+- **Warm tokens:** served from cache. On Sonnet 5, $0.20/MTok — one-tenth the price.
+
+**Tuning cache lifetime with `promptCacheTtl`:**
+
+If your sessions run longer than the default 5-minute cache window, a new setting extends it:
+
+```json
+// .claude/settings.json
+{
+  "promptCacheTtl": 3600,
+  "subagentPromptCacheTtl": 300
+}
+```
+
+`subagentPromptCacheTtl` is separate — useful when you run many short-lived subagents sharing the same context. A shorter value there (e.g. 300s) reduces the cost of re-warming on each agent call.
+
+**Limit:** `promptCacheTtl` only extends the window; it does not prevent invalidation. If content inside the cache prefix is changing between turns — tool definitions, system prompt content, MCP server output — a longer TTL won't help. Diagnose with `/cost` first: if the hit ratio is low, find and stabilize what's changing before adjusting the TTL.
+
+**Sources:** [Claude Code changelog — code.claude.com/docs/en/changelog](https://code.claude.com/docs/en/changelog) · [Prompt caching — Anthropic docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) · [Claude Code context management — claudefa.st](https://claudefa.st/blog/guide/mechanics/context-management)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Sonnet 5 Stays at $2/$10 — The September 1 Price Increase Will Not Happen</title>
+      <link>https://platform.claude.com/docs/en/about-claude/pricing</link>
+      <guid isPermaLink="false">2026-09-04-02-sonnet-5-price-locked-no-september-increase</guid>
+      <pubDate>Fri, 04 Sep 2026 04:10:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Best Practices</category>
+      <description>Anthropic has made Claude Sonnet 5's $2/$10 per MTok launch pricing permanent. The previously scheduled September 1 increase to $3/$15 will not occur.</description>
+      <content:encoded><![CDATA[**Anthropic has made Claude Sonnet 5's $2/$10 per MTok launch pricing permanent — the scheduled September 1 increase to $3/$15 per million input/output tokens will not occur, per the [official pricing docs](https://platform.claude.com/docs/en/about-claude/pricing).**
+
+The pricing was announced at Sonnet 5's launch as introductory through August 31, 2026. It is now the standard price indefinitely. Batch processing remains at $1/$5 per MTok (50% discount). Cache reads stay at $0.20/MTok (0.1x the input rate).
+
+One limit to factor into cost comparisons: Anthropic reports that Sonnet 5 and later models use a newer tokenizer that produces approximately 30% more tokens for the same text compared to Sonnet 4.6 and earlier. At $2/MTok with ~30% more tokens, the effective cost for the same payload isn't a direct drop from $3/MTok at the old token count. Run a sample through both models before assuming Sonnet 5 is cheaper for your specific workload.
+
+**Why it matters:** Cost projections built for Sonnet 5 through Q4 don't need updating. If you were holding back Sonnet 5 adoption pending the price increase, that reason is gone.
+
+**Sources:** [Anthropic pricing — platform.claude.com](https://platform.claude.com/docs/en/about-claude/pricing)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Pipeline Already Speaks OpenAI — Point It at Fireworks AI to Run 250+ Open Models in One Swap</title>
+      <link>https://fireworks.ai/inference</link>
+      <guid isPermaLink="false">2026-09-04-01-fireworks-ai-open-model-inference-api</guid>
+      <pubDate>Fri, 04 Sep 2026 04:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Developer Tools</category>
+      <category>Cloud</category>
+      <description>Fireworks AI exposes 250+ open-weight models behind an OpenAI-compatible endpoint — change one URL and one model string, the rest of your pipeline stays the same.</description>
+      <content:encoded><![CDATA[**TL;DR: Fireworks AI exposes 250+ open-weight models (Llama 4, Qwen 3.7, DeepSeek V4) behind an OpenAI-compatible endpoint — change one URL and one model string, the rest of your pipeline stays the same.**
+
+**What you'll be able to do after this:** route any prompt through Llama 4, Qwen 3.7, or DeepSeek without rewriting your pipeline, switch models by changing a string, and run cost-sensitive tasks on a model at $0.30/MTok instead of $2/MTok.
+
+**Three things to know first:**
+- Fireworks claims its disaggregated prefill/decode architecture reduces latency on large models — per Fireworks' own benchmarks; verify with your specific payload before committing production traffic.
+- Free accounts start with a low requests-per-minute ceiling. Adding a payment method raises it, but both per-account and per-model token-per-minute limits apply — plan for rate-limit retries in production.
+- The API is compatible with the OpenAI Python SDK and, via `base_url`, with the Anthropic SDK.
+
+**Setup (3 steps):**
+
+1. Get an API key at `fireworks.ai` (free tier works for testing).
+2. `pip install openai` if you don't have it.
+3. Swap the base URL:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="YOUR_FIREWORKS_KEY",
+    base_url="https://api.fireworks.ai/inference/v1",
+)
+
+response = client.chat.completions.create(
+    model="accounts/fireworks/models/llama-4-maverick-instruct",
+    messages=[{"role": "user", "content": "Summarize this PR diff in two sentences."}],
+)
+print(response.choices[0].message.content)
+```
+
+Model IDs follow the pattern `accounts/fireworks/models/<slug>`. Find the full catalog at `fireworks.ai/models`.
+
+**Limit:** Fireworks' performance figures come from Fireworks itself. There are no published independent benchmarks covering the full 250+ model catalog as of this writing. Measure your p50/p95 on your actual payload before treating their latency numbers as facts. For very short prompts with many concurrent requests, check whether per-model token-per-minute limits become the real bottleneck before blaming latency.
+
+**Sources:** [Fireworks AI inference — fireworks.ai/inference](https://fireworks.ai/inference) · [Fireworks AI API guide — flo2.com](https://flo2.com/blog/fireworks-ai-api-guide) · [Fireworks docs — docs.fireworks.ai](https://docs.fireworks.ai)]]></content:encoded>
+    </item>
 
     <item>
       <title>Meta Muse Spark 1.3 Opens API Access Today — But the Headline Benchmarks Are for the Preview Tier</title>
@@ -5261,53 +5414,7 @@ Storage is 1 TB per organization at 500 requests per minute. Files do expire, so
 
 
 
-    <item>
-      <title>Set Your Claude Code Sessions to Run Without You: ANTHROPIC_DEFAULT_MODEL, Auto-Resume, and notify_when_idle</title>
-      <link>https://code.claude.com/docs/en/changelog</link>
-      <guid isPermaLink="false">2026-08-20-01-claude-code-unattended-session-defaults</guid>
-      <pubDate>Thu, 20 Aug 2026 04:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Three Claude Code defaults from weeks 33-34 that let long-running sessions finish without supervision: pin your startup model, auto-resume after a usage pause, and get pinged when a background session goes idle.</description>
-      <content:encoded><![CDATA[**Three Claude Code settings from the weeks 33–34 changelog that together cover the "start it and walk away" workflow: a persistent default model, a session that restarts itself, and a ping when a background session goes idle.**
-
-**`ANTHROPIC_DEFAULT_MODEL` — pin your startup model system-wide**
-
-Export it in your shell profile:
-
-```bash
-export ANTHROPIC_DEFAULT_MODEL=claude-sonnet-5-20260801
-```
-
-Unlike `ANTHROPIC_MODEL` (which applies only to the session you launch with the flag), `ANTHROPIC_DEFAULT_MODEL` sets the model every new session starts on. A `/model` pick in the session overrides it and persists across restarts — so per-project overrides still work. Use it if you have a preferred model you want without passing `--model` every time.
-
-**Auto-resume after a usage-limit pause**
-
-Claude Code now restarts your session automatically when a claude.ai usage limit resets, rather than dropping the session at the ceiling. If you're running a long-running job and step away, the session picks back up when your quota refills. Disable it in `/config` → "Continue session when usage limit resets" if you'd rather decide manually each time.
-
-**`notify_when_idle` in cross-session SendMessage**
-
-When you launch a background session, you can ask it to send a desktop notification the next time it goes idle:
-
-```json
-{"to": "my-review-session", "message": "notify_when_idle"}
-```
-
-One-shot and opt-in — the session sends one notification when it goes idle, then stops. Runs on macOS and Linux only (same-machine).
-
-**What these don't cover**
-
-- `notify_when_idle` is same-machine only — cloud sessions or remote runners can't ping back.
-- Auto-resume applies to claude.ai time-based usage limits, not API token quotas.
-- `ANTHROPIC_DEFAULT_MODEL` takes effect at session start, not mid-session.
-
-**Sources:** [Claude Code changelog — code.claude.com](https://code.claude.com/docs/en/changelog) · [Cross-session messaging — code.claude.com](https://code.claude.com/docs/en/cross-session-messaging) · [Model configuration — code.claude.com](https://code.claude.com/docs/en/model-config) · [Claude Code August changelog summary — releasebot.io](https://releasebot.io/updates/anthropic/claude-code)
-]]></content:encoded>
-    </item>
-
+    
     <item>
       <title>What Claude Design Hands You: Understanding the Output So You Can Land It in Your Codebase</title>
       <link>https://newsletter.victordibia.com/p/how-good-is-anthropics-claude-design</link>
@@ -5350,164 +5457,9 @@ Claude Design outputs HTML, CSS, and JavaScript for static prototypes, or React 
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>claude agents: See Which Background Sessions Need Your Attention, From One Terminal</title>
-      <link>https://code.claude.com/docs/en/agent-view</link>
-      <guid isPermaLink="false">2026-08-19-06-claude-agents-view-session-dashboard</guid>
-      <pubDate>Wed, 19 Aug 2026 20:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Run 'claude agents' to see every background session's state at a glance. 'Needs input' (yellow star) is your priority queue — Space to peek and reply without leaving the list.</description>
-      <content:encoded><![CDATA[**`claude agents` shows every background Claude Code session grouped by state — "Needs input" (yellow ✻) is the priority queue; `Space` lets you peek and reply without leaving the list.**
-
-When you're running multiple background sessions via `--bg`, `/fork`, or a Workflow fan-out, you can't tell which ones are blocked without reattaching to each one. `claude agents` solves that:
-
-```bash
-claude agents
-# optional flags:
-# --cwd ~/projects/my-app   scope to one directory
-# --model opus              set dispatch defaults
-```
-
-Sessions group by state. The three that matter:
-
-| State | Icon | What to do |
-|-------|------|------------|
-| **Needs input** | Yellow ✻ | Reply — Claude is blocked |
-| **Working** | Animated | Leave it running |
-| **Completed** | Green ✓ | Peek to read the result |
-
-**Navigate without fully attaching:**
-- `Space` opens a peek panel. Read the context, compose a reply, press `Enter` — Claude unblocks without you leaving the session list.
-- `Enter` or `→` attaches to the full interactive conversation.
-- `←` detaches and returns to the list.
-
-**Dispatch from the view:** type a task description in the input bar and press `Enter`. A new background session spins up alongside the existing ones. Use `Shift+Enter` to dispatch and attach immediately.
-
-**Other keybindings worth knowing:**
-- `Ctrl+T` — pin a session (prevents the 1-hour idle shutdown)
-- `Ctrl+R` — rename a session
-- `Ctrl+X` — stop; press twice to delete
-- `?` — full shortcut list
-
-**Stated limits:** Each background session draws on your rate-limit quota independently — 10 parallel sessions use roughly 10× your normal per-session rate. Non-pinned idle sessions stop after ~1 hour. The interface is still labeled research preview; shortcuts may change between releases.
-
-The practical pattern: keep `claude agents` open in a split pane during a multi-agent run. Every yellow ✻ is a decision waiting for you; everything else is running fine.
-
-**Sources:** [Agent view docs — code.claude.com](https://code.claude.com/docs/en/agent-view), [Claude Code v2.1.234 changelog](https://code.claude.com/docs/en/changelog)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Claude Code Weekly Quota +50% Extended to August 31; Anthropic Signals It May Become Permanent</title>
-      <link>https://x.com/ClaudeDevs/status/2089798442306711646</link>
-      <guid isPermaLink="false">2026-08-19-05-claude-code-weekly-limit-aug31</guid>
-      <pubDate>Wed, 19 Aug 2026 20:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Claude Code</category>
-      <category>Developer Tools</category>
-      <description>Claude Code's 50% weekly quota boost (Pro, Max, Team, Enterprise) has been extended through August 31. First time Anthropic explicitly says they hope to make the increase permanent.</description>
-      <content:encoded><![CDATA[**Claude Code's 50% weekly quota boost (Pro, Max, Team, and Enterprise) was extended through August 31 — and for the first time, Anthropic said they want to make it a permanent plan change.**
-
-The 50% weekly usage increase was originally due to expire today. On August 18, @ClaudeDevs announced another extension through August 31 and said they "hope to make this a permanent change to our plans." Previous extension announcements were framed as capacity-driven one-offs; this one explicitly names permanence as the goal, though Anthropic adds that strong model demand means they cannot commit to a timeline.
-
-In practice: your weekly token budget remains 1.5× documented plan limits through at least month-end. If you were pacing large multi-agent pipeline runs against the weekly cap, that constraint is lifted.
-
-**Limit:** The five-hour per-session rate limits (permanently doubled in May) are a separate constraint this extension does not affect. Permanence is not confirmed — the next decision point is August 31.
-
-**Why it matters:** Multi-agent Claude Code workflows you've been throttling against weekly quota limits have two more weeks — and this bump may become the new baseline.
-
-**Sources:** [@ClaudeDevs on X (Aug 18, 2026)](https://x.com/ClaudeDevs/status/2089798442306711646), [Claude Code limits timeline — explainx.ai](https://explainx.ai/blog/claude-usage-limits-2026-timeline-explained)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Your AI Agent Ignores Your Design System. DTCG Tokens + AGENTS.md Tells It to Stop.</title>
-      <link>https://styledictionary.com/info/dtcg/</link>
-      <guid isPermaLink="false">2026-08-19-04-design-tokens-dtcg-agents-md-ai</guid>
-      <pubDate>Wed, 19 Aug 2026 12:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Design</category>
-      <category>Design-to-Code</category>
-      <description>Export Figma variables as W3C DTCG JSON, transform to CSS with Style Dictionary, and add one line to AGENTS.md — agents then generate components that match your actual design tokens.</description>
-      <content:encoded><![CDATA[**Export your design system as W3C DTCG JSON, build CSS custom properties with Style Dictionary, and add one line to AGENTS.md — Claude Code will then use your actual tokens instead of generic defaults in every component it generates.**
-
-**What you'll be able to do after this:** make Claude Code (and other agents) generate components that use your actual design tokens — brand colors, spacing, typography — rather than the plausible-looking defaults they fall back on when you haven't told them where to look.
-
-**Three things you'll take away:**
-- How to export your design system as W3C DTCG JSON — the format agents can parse without special tooling
-- How to compile those tokens to CSS custom properties your agent can find and use
-- The one AGENTS.md line that makes the whole pipeline stick
-
-**Why agents ignore your tokens without this.** Agents parse your codebase but don't know which values represent deliberate design decisions. Without explicit pointing, they pattern-match on whatever they see first — often Tailwind defaults or shadcn variables. A machine-readable token file plus an instruction in AGENTS.md fixes this without plugins.
-
-**Step 1 — Export DTCG JSON from Figma.** *Plugins → Tokens Studio → Export → W3C DTCG format.* (Tokens Studio is free; DTCG export requires Figma with Variables, which is on paid plans.) This produces a `tokens.json` with `$value` and `$type` fields that any JSON-capable process can read:
-
-```json
-{
-  "color": {
-    "brand": {
-      "primary": { "$value": "#3b82f6", "$type": "color" },
-      "secondary": { "$value": "#06b6d4", "$type": "color" }
-    }
-  },
-  "spacing": {
-    "md": { "$value": "16px", "$type": "dimension" }
-  }
-}
-```
-
-Add this as `design-system/tokens.json` at the repo root and commit it.
-
-**Step 2 — Build CSS custom properties with Style Dictionary.**
-
-```bash
-npm install --save-dev style-dictionary
-```
-
-`sd.config.json`:
-```json
-{
-  "source": ["design-system/tokens.json"],
-  "platforms": {
-    "css": {
-      "transformGroup": "css",
-      "files": [{ "destination": "design-system/tokens.css", "format": "css/variables" }]
-    }
-  }
-}
-```
-
-```bash
-npx style-dictionary build --config sd.config.json
-```
-
-This writes `design-system/tokens.css` with entries like `--color-brand-primary: #3b82f6`. Commit it so the agent can read it at session start.
-
-**Step 3 — Point Claude Code at the token file.** Add to `AGENTS.md` (or `.claude/CLAUDE.md`):
-
-```markdown
-## Design system
-Always read `design-system/tokens.css` before generating or editing any component.
-Use CSS custom properties from that file for all colors, spacing, and typography.
-Do not invent color values or use Tailwind defaults when a token exists.
-```
-
-Claude Code reads AGENTS.md at session start and applies the instruction consistently.
-
-**Where this breaks:** agents will still fall back to defaults wherever your token file has gaps — incomplete coverage in the spec means incomplete coverage in the output. Style Dictionary's default CSS naming (e.g. `--color-brand-primary`) may not match your existing component library's naming convention; if they diverge you'll need a custom formatter. DTCG export from Figma also requires the Variables feature, which is not on the free plan.
-
-**Sources:** [Stop AI from Ignoring Your Design Tokens — atomize.tools](https://atomize.tools/blog/figma-design-tokens-vibe-coding/) · [Style Dictionary DTCG docs](https://styledictionary.com/info/dtcg/) · [W3C Design Tokens Community Group](https://www.designtokens.org/)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
     
