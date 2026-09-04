@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is CloudCodeTree's professional portfolio website built with Next.js 15 (App Router), React 19, and TypeScript, statically exported and deployed to GitHub Pages. It showcases the professional profile of Chris Harper, a Principal Software Engineering Manager with extensive experience leading enterprise teams and cloud architecture initiatives. Features include:
+This is CloudCodeTree's professional portfolio website built with Next.js 15 (App Router), React 19, and TypeScript, statically exported and served by one Cloudflare Worker (`cct-site`, Workers Static Assets — see "Deployment"). It showcases the professional profile of Chris Harper, a Principal Software Engineering Manager with extensive experience leading enterprise teams and cloud architecture initiatives. Features include:
 
 - **Dark Professional Theme**: Uses Material-UI v7 with custom dark theme, glass morphism effects, and gradient accents
 - **Hero Landing Page**: Professional intro with avatar, skills showcase, and service offerings
@@ -13,7 +13,7 @@ This is CloudCodeTree's professional portfolio website built with Next.js 15 (Ap
 - **Contact Form**: Web3Forms-backed contact form and professional contact methods
 - **Interview Scheduling**: Calendly integration for professional consultations
 - **Responsive Design**: Mobile-first design with glass morphism, animations, and modern CSS
-- **Custom Domain**: Configured for cloudcodetree.com with Route53 DNS and GitHub Pages
+- **Custom Domain**: cloudcodetree.com on a Cloudflare zone (nameservers moved 2026-09-03; Amazon Registrar still holds the registration)
 - **SEO Optimized**: Next.js Metadata API (per-page titles/descriptions, per-post Open Graph images, canonicals) + build-time sitemap.xml and RSS feed
 - **Performance Optimized**: Static export, build-time blog rendering, slim client-paginated list index
 
@@ -23,7 +23,8 @@ This is CloudCodeTree's professional portfolio website built with Next.js 15 (Ap
 # Install dependencies
 pnpm install
 
-# Start development server (Turbopack) at http://localhost:3000
+# Start development server (webpack) at http://localhost:3000. Turbopack cannot start
+# this project (@next/mdx registers a non-serializable rule) — it lives behind dev:turbo.
 pnpm run dev
 
 # Build the static export (outputs to ./out)
@@ -35,12 +36,24 @@ pnpm run start
 # Lint code
 pnpm run lint
 
-# Manual deploy of ./out to gh-pages (normally automatic via GitHub Actions on push to main)
-pnpm run deploy
+# Worker unit tests + worker typecheck
+pnpm test
+pnpm run typecheck:worker
+
+# Staging: relative-asset/noindex build → cct-site-staging (= https://beta.cloudcodetree.com)
+pnpm run build:staging && pnpm run deploy:staging
+
+# Production: build + vendor the demo builds → cct-site. Both deploy scripts first
+# assert the build variant (a prod build deployed to staging once blanked beta).
+pnpm run build && node scripts/fetch-demo-artifacts.mjs && pnpm run deploy:prod
+
+# Acceptance test against any origin: 20-case contract, --sweep adds every sitemap URL
+node scripts/check-parity.mjs --origin https://beta.cloudcodetree.com --sweep
 ```
 
-> Note: deployment is normally automatic — pushing to `main` triggers
-> `.github/workflows/deploy.yml`, which builds and publishes `./out` to GitHub Pages.
+> Note: production deploys are normally automatic — pushing to `main` triggers
+> `.github/workflows/deploy.yml` (re-host blog images → build → deploy the Worker).
+> `pnpm run deploy` (gh-pages) is the legacy path and is removed with GitHub Pages.
 
 ## Architecture
 
@@ -52,8 +65,9 @@ pnpm run deploy
 - **Routing**: Next.js App Router (file-based, under `app/`)
 - **Animation**: Framer Motion
 - **Markdown**: React Markdown with remark-gfm
-- **Deployment**: GitHub Actions → GitHub Pages (gh-pages branch)
-- **Domain**: Route53 DNS + GitHub Pages custom domain (cloudcodetree.com)
+- **Deployment**: GitHub Actions → Cloudflare Worker `cct-site` (Workers Static Assets + the small gateway in `worker/`); staging Worker `cct-site-staging` = beta.cloudcodetree.com
+- **Domain**: Cloudflare zone `cloudcodetree.com` (DNS, TLS, always-HTTPS); registrar stays Amazon Registrar
+- **Identity / analytics**: Supabase project `cct-demos` (sign-in for gated demos, append-only `demo_events`)
 
 > Historical note: this project was migrated from Vite + React Router to Next.js. The
 > legacy `src/` tree and Vite-era configs (netlify.toml, vercel.json) were removed in
@@ -148,31 +162,56 @@ GitHub repositories via REST API, with loading skeletons and error handling.
 
 ## Deployment
 
-### Repository Structure
-- **Repository**: `cloudcodetree/cloudcodetree.github.io`
-- **Main Branch**: Contains source code (React, TypeScript, etc.)
-- **gh-pages Branch**: Contains built/compiled files (auto-generated)
-- **Deploy Command**: `pnpm run deploy` builds and pushes to gh-pages branch
+The site is one Cloudflare Worker, `cct-site`, configured in `wrangler.jsonc`. Workers
+Static Assets serve `./out`; `worker/index.ts` runs only for `run_worker_first` paths
+(`/api/*` and the `/projects/*/demo/*` gate) and on asset misses. `public/_headers`
+(the CSP — live on Workers, it was inert on Pages; guarded by `scripts/validate-csp.mjs`)
+and `public/_redirects` (legacy Pages paths → successors, bare + splat forms) ship
+inside the assets.
 
-### GitHub Pages Setup
-1. Repository is named `cloudcodetree.github.io` for username pages
-2. GitHub Pages serves from `gh-pages` branch automatically
-3. Custom domain configured: `cloudcodetree.com`
-4. HTTPS enforced via GitHub Pages settings
+### Environments
+| | Worker | URL | Build |
+|---|---|---|---|
+| production | `cct-site` | https://cloudcodetree.com via the apex Worker route | `pnpm run build` + `node scripts/fetch-demo-artifacts.mjs` |
+| staging | `cct-site-staging` | https://beta.cloudcodetree.com (also `cct-site-staging.chris-247.workers.dev`) | `pnpm run build:staging` (relative assets, noindex) |
 
-### DNS Configuration (Route53)
-**A Records for cloudcodetree.com:**
-- 185.199.108.153
-- 185.199.109.153  
-- 185.199.110.153
-- 185.199.111.153
+`scripts/assert-variant.mjs` (inside `deploy:staging` / `deploy:prod`) refuses to
+deploy the wrong variant. `scripts/check-parity.mjs --origin <url> [--sweep]` is the
+acceptance test: a 20-case contract (redirects, feeds, headers, the gate) plus a sweep
+of every sitemap URL. HTTP checks cannot see a blank page — pair them with a browser.
 
-**CNAME Record:**
-- www.cloudcodetree.com → cloudcodetree.github.io
+### CI (`.github/workflows/deploy.yml`, on push to `main`)
+`rehost-images` (uploads the routine's placeholder images to the `blog-images`
+Release, commits the CDN URLs) → `build` (validate blog + research log,
+`pnpm run build`, upload `./out`) → `deploy-worker` (vendors the demo builds,
+`wrangler deploy`). `deploy-worker` is gated on the repo variable
+`ENABLE_WORKER_DEPLOY=true` plus the secrets `CLOUDFLARE_API_TOKEN` /
+`CLOUDFLARE_ACCOUNT_ID`; `node scripts/set-ci-secrets.mjs` sets all three from a
+token kept in `.env` (it never prints the token). Local deploys use `wrangler login`
+(OAuth) — no token on disk. `.github/workflows/supabase-keepalive.yml` pings the
+Supabase project twice a week so the free tier never pauses it.
+
+### DNS (Cloudflare zone `cloudcodetree.com`)
+Nameservers `henrik.ns.cloudflare.com` / `meg.ns.cloudflare.com`, changed at the
+**registrar** (Route 53 → Registered domains, not the hosted zone) on 2026-09-03. The
+apex A records and the `www` CNAME still point at GitHub Pages **behind the Cloudflare
+proxy**; the Worker route `cloudcodetree.com/*` overlays them, so rollback is deleting
+the route — seconds, no DNS edit. MX / SPF / DMARC for Google Workspace live in the
+zone; DKIM is still to be added. The zone is to be imported into OpenTofu (`infra/`)
+once an API token exists.
+
+### Cutover status
+- 2026-09-03: nameservers on Cloudflare; beta rehearsal green.
+- 2026-09-04: `draft/dealfinder` merged to `main` (PR #1); production Worker deployed
+  from the merged tree (parity 20/20); CI Worker deploy awaits the Cloudflare API token.
+- Remaining, in order: arm CI (`set-ci-secrets.mjs`) → apex route flip → retire
+  GitHub Pages (custom domain, `public/CNAME`, the gh-pages `deploy` job,
+  `pnpm run deploy`; keep the `gh-pages` branch two weeks) → DKIM, OpenTofu import.
+Runbook: `docs/superpowers/plans/2026-08-25-cutover-runbook.md`.
 
 ### URLs
-- **GitHub Pages**: `https://cloudcodetree.github.io/`
-- **Custom Domain**: `https://cloudcodetree.com/`
+- **Production**: `https://cloudcodetree.com/`
+- **Staging**: `https://beta.cloudcodetree.com/` (noindex)
 - **Development**: `http://localhost:3000/`
 
 ## Content Management
@@ -209,7 +248,7 @@ See the **Blog ("AI News")** section below — posts live inline in
 - The Web3Forms access key in ContactPage is public by design (see Integrations)
 - No sensitive API keys exposed in client code
 - All external links use rel="noopener noreferrer"
-- HTTPS enforced on both GitHub Pages and custom domain
+- HTTPS enforced at the Cloudflare zone (`always_use_https`, TLS 1.2+)
 - `.claude/hooks/secret-scan.sh` blocks commits containing Anthropic/AWS keys or PEMs
 
 ## Browser Support
@@ -231,17 +270,16 @@ See the **Blog ("AI News")** section below — posts live inline in
 2. **Code Quality**: `pnpm run lint` for ESLint validation
 3. **Type Checking**: enforced during `pnpm run build` (TS + ESLint failures fail the build)
 4. **Build**: `pnpm run build` generates the static export in `./out`
-5. **Deploy**: push to `main` → GitHub Actions builds and publishes (manual fallback: `pnpm run deploy`)
-6. **Live Sites**:
-   - GitHub Pages: `https://cloudcodetree.github.io/`
-   - Custom Domain: `https://cloudcodetree.com/`
-7. **DNS Management**: Route53 handles custom domain with A/CNAME records
+5. **Deploy**: push to `main` → GitHub Actions builds and deploys the Worker (manual:
+   `pnpm run deploy:prod`); rehearse on beta first with `pnpm run build:staging && pnpm run deploy:staging`
+6. **Live Sites**: production `https://cloudcodetree.com/`, staging `https://beta.cloudcodetree.com/`
+7. **DNS Management**: the Cloudflare zone (see "Deployment"); OpenTofu in `infra/` once imported
 8. **Content Updates**: blog content flows through the feed pipeline (see "Blog")
 
 ## Routing & SEO
 
 - **Static export**: every route is a real prerendered HTML file — deep links work
-  on GitHub Pages without SPA redirect tricks (`404.html` exists as fallback)
+  on Workers Static Assets without SPA redirect tricks (`404.html` is served on misses)
 - **Metadata**: Next.js Metadata API — per-page `metadata` exports; blog articles
   get per-post title/description/canonical/Open Graph image via `generateMetadata`
 - **Sitemap & feed**: `public/sitemap.xml` + `public/feed.xml` generated at prebuild
@@ -284,14 +322,17 @@ write-ups. It mirrors the tutorials subsystem:
   (`node scripts/generate-project-covers.mjs` → `public/projects/covers/`),
   same precedent as tutorial covers.
 - `scripts/generate-feeds.mjs` includes `/projects/` + every slug in the sitemap.
-- **Planned (Phase 2 of the design spec):** auth-gated live demos under
-  `/projects/<slug>/demo/` enforced by the Cloudflare Worker, Supabase identity,
-  and append-only analytics. Spec:
-  `docs/superpowers/specs/2026-08-20-projects-gated-demos-design.md` (which also
-  covers the GitHub Pages → Cloudflare Workers migration; staging Worker
-  `cct-site-staging` deploys via `pnpm run build:staging` +
-  `wrangler deploy --env staging`, verified by `scripts/check-parity.mjs`).
-  Production remains on GitHub Pages until the Phase 3 DNS cutover.
+- **Shipped (Phase 2 of the design spec):** auth-gated live demos under
+  `/projects/<slug>/demo/`. The Worker gate (`worker/index.ts`) verifies an HttpOnly
+  `cct_session` cookie holding a Supabase JWT against JWKS and fails closed; a
+  signed-out request bounces to the project's landing page with `?signin=1&next=<demo>`.
+  Identity is Supabase (magic link + Google / GitHub / LinkedIn; `app/lib/authConfig.ts`,
+  `app/components/demo/`, provider wiring via `scripts/configure-auth.mjs`); analytics
+  are append-only `demo_events` under RLS (`supabase/migrations/`, read through the
+  private `analytics` views). Sign-in is site-wide chrome (`GlobalAuth` → `AuthWidget`)
+  and returns visitors to the page they were on; **only the demos are gated** — the
+  gallery and landing pages are public. Spec:
+  `docs/superpowers/specs/2026-08-20-projects-gated-demos-design.md`.
 
 ## Blog ("AI News")
 
