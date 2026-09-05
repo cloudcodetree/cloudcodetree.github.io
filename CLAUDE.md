@@ -51,9 +51,9 @@ pnpm run build && node scripts/fetch-demo-artifacts.mjs && pnpm run deploy:prod
 node scripts/check-parity.mjs --origin https://beta.cloudcodetree.com --sweep
 ```
 
-> Note: production deploys are normally automatic — pushing to `main` triggers
+> Note: production deploys are automatic — pushing to `main` triggers
 > `.github/workflows/deploy.yml` (re-host blog images → build → deploy the Worker).
-> `pnpm run deploy` (gh-pages) is the legacy path and is removed with GitHub Pages.
+> GitHub Pages was retired on 2026-09-05; there is no gh-pages path any more.
 
 ## Architecture
 
@@ -181,32 +181,36 @@ acceptance test: a 20-case contract (redirects, feeds, headers, the gate) plus a
 of every sitemap URL. HTTP checks cannot see a blank page — pair them with a browser.
 
 ### CI (`.github/workflows/deploy.yml`, on push to `main`)
-`rehost-images` (uploads the routine's placeholder images to the `blog-images`
-Release, commits the CDN URLs) → `build` (validate blog + research log,
-`pnpm run build`, upload `./out`) → `deploy-worker` (vendors the demo builds,
-`wrangler deploy`). `deploy-worker` is gated on the repo variable
-`ENABLE_WORKER_DEPLOY=true` plus the secrets `CLOUDFLARE_API_TOKEN` /
-`CLOUDFLARE_ACCOUNT_ID`; `node scripts/set-ci-secrets.mjs` sets all three from a
-token kept in `.env` (it never prints the token). Local deploys use `wrangler login`
+Two jobs. `rehost-images` uploads the routine's placeholder images to the
+`blog-images` Release and commits the CDN URLs. `build` validates the blog and the
+research log, runs `pnpm run build`, and — on `main` pushes only, gated on the repo
+variable `ENABLE_WORKER_DEPLOY=true` plus the secrets `CLOUDFLARE_API_TOKEN` /
+`CLOUDFLARE_ACCOUNT_ID` — vendors the demo builds and runs `wrangler deploy` in the
+same job (no artifact hop). PR builds stop after the build.
+`node scripts/set-ci-secrets.mjs` sets the variable and both secrets from a token
+kept in `.env` (it never prints the token); `node scripts/cf-zone.mjs status|purge|www-redirect`
+covers the zone-level chores with the same token. Local deploys use `wrangler login`
 (OAuth) — no token on disk. `.github/workflows/supabase-keepalive.yml` pings the
 Supabase project twice a week so the free tier never pauses it.
 
 ### DNS (Cloudflare zone `cloudcodetree.com`)
 Nameservers `henrik.ns.cloudflare.com` / `meg.ns.cloudflare.com`, changed at the
 **registrar** (Route 53 → Registered domains, not the hosted zone) on 2026-09-03. The
-apex A records and the `www` CNAME still point at GitHub Pages **behind the Cloudflare
-proxy**; the Worker route `cloudcodetree.com/*` overlays them, so rollback is deleting
-the route — seconds, no DNS edit. MX / SPF / DMARC for Google Workspace live in the
-zone; DKIM is still to be added. The zone is to be imported into OpenTofu (`infra/`)
-once an API token exists.
+Worker route `cloudcodetree.com/*` serves the apex; the proxied A records underneath
+are historical (GitHub Pages IPs) and only matter if the route is ever removed. `www`
+is a zone-level Single Redirect rule (301 to the apex, path + query preserved) — it
+is deliberately **not** a Worker route, because the Worker only runs for
+`run_worker_first` paths and would otherwise serve duplicate content. MX / SPF / DMARC
+for Google Workspace live in the zone; DKIM is still to be added. The zone is to be
+imported into OpenTofu (`infra/`).
 
-### Cutover status
+### Cutover history
 - 2026-09-03: nameservers on Cloudflare; beta rehearsal green.
 - 2026-09-04: `draft/dealfinder` merged to `main` (PR #1); production Worker deployed
-  from the merged tree (parity 20/20); CI Worker deploy awaits the Cloudflare API token.
-- Remaining, in order: arm CI (`set-ci-secrets.mjs`) → apex route flip → retire
-  GitHub Pages (custom domain, `public/CNAME`, the gh-pages `deploy` job,
-  `pnpm run deploy`; keep the `gh-pages` branch two weeks) → DKIM, OpenTofu import.
+  from the merged tree.
+- 2026-09-05: CI armed, apex route deployed by CI (PR #3) — the site is on the Worker.
+  GitHub Pages retired: `public/CNAME`, the gh-pages job, `pnpm run deploy` removed;
+  the `gh-pages` branch is kept until ~2026-09-19 as a cold rollback.
 Runbook: `docs/superpowers/plans/2026-08-25-cutover-runbook.md`.
 
 ### URLs

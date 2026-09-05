@@ -107,3 +107,29 @@ paths — which now 301 to their successors.
   dashboard or via OpenTofu, and only then retire the Pages custom domain.
 - **Step 8 facts:** only `code_compare` and `backlot` still have Pages sites;
   `span-calculator`, `motion-expression`, `sheetwise` have none to turn off.
+
+## Status — 2026-09-05: CUT OVER
+
+- **Step 2 (CI credentials): DONE.** Token minted from the "Edit Cloudflare
+  Workers" template + Zone Read, DNS Edit, Single Redirect Edit, Zone Settings
+  Edit, Cache Purge (scoped to the account and the cloudcodetree.com zone).
+  `scripts/set-ci-secrets.mjs` verified it and set both secrets +
+  `ENABLE_WORKER_DEPLOY=true`.
+- **Step 6 (apex flip): DONE by CI** — PR #3 added the `cloudcodetree.com/*`
+  route; the merge's deploy run (rehost → build → deploy-worker) attached it.
+  The routine's three runs since the main merge all published and deployed.
+- **Step 7 (verify): DONE** — apex served by the Worker (CSP present, no
+  GitHub headers), demo 302 / legacy 301 / `/api/session` 405, http→https
+  301, www → apex 301 via the zone Single Redirect rule (created with
+  `cf-zone.mjs www-redirect`), feed 200. Parity contract + 850-URL sweep run
+  against https://cloudcodetree.com (see the session log for the result).
+  Supabase `site_url` → https://cloudcodetree.com; edge cache purged.
+- **Step 8 (retire): DONE in the follow-up PR** — `public/CNAME` deleted, the
+  gh-pages `deploy` job removed and the Worker deploy folded into the build
+  job (one install, no artifact hop), `pnpm run deploy` + the `gh-pages`
+  package dropped. The stale `cloudflare` template Worker (Aug 2025, Workers
+  Builds noise on every PR) was deleted. GitHub Pages turned off on this repo
+  and on code_compare / backlot; the `gh-pages` branch stays until ~2026-09-19.
+- **Still open (owner):** uninstall the Vercel and Netlify GitHub Apps
+  (https://github.com/settings/installations) and delete their projects;
+  DKIM TXT from Google Admin; OpenTofu import of the zone (`infra/`).
