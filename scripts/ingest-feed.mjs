@@ -5,15 +5,16 @@
  * Reads the syndication feed the "AI Developer News" task maintains
  * (default: content/feed.xml) and UPSERTS each <item> into public/blog/posts.json
  * (keyed by <guid> == id). Post bodies are stored INLINE in posts.json (no .md
- * files). Featured images are downloaded, compressed (sips, 1200px / JPEG q78),
- * and uploaded to the GitHub Release "blog-images" — posts.json stores the CDN
- * URL, so images never live in the repo.
+ * files). Featured images are downloaded, compressed (sharp, 1200px / JPEG q78),
+ * and uploaded to the R2 bucket behind https://img.cloudcodetree.com
+ * (scripts/lib/r2.mjs) — posts.json stores that URL, so images never live in
+ * the repo.
  *
  * It is a MERGE, not a rebuild: posts already in posts.json that aren't in the
- * feed are preserved. Idempotent; an image already uploaded for an id is reused
- * unless --refresh-images. Image work needs an authenticated `gh` plus sharp
- * (npm; falls back to macOS `sips`); without them, posts get the placeholder —
- * which the rehost-images CI job then fixes on the next push to main. XML is
+ * feed are preserved. Idempotent; an image already hosted for an id is reused
+ * unless --refresh-images. Image work needs CLOUDFLARE_API_TOKEN (env or .env)
+ * plus sharp (npm; falls back to macOS `sips`); without them, posts get the
+ * placeholder — which the rehost-images CI job then fixes on the next push. XML is
  * parsed with fast-xml-parser, so node_modules must be installed where this
  * runs (true everywhere it runs: CI, cloud agents, and the repo checkout).
  *
@@ -28,6 +29,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { XMLParser } from 'fast-xml-parser';
+import { PLACEHOLDER, imageUrl, isHosted, r2Put, r2Ready } from './lib/r2.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -39,10 +41,7 @@ const POSTS_JSON = path.join(ROOT, 'public', 'blog', 'posts.json');
 const NO_IMAGES = flags.has('--no-images');
 const REFRESH = flags.has('--refresh-images');
 
-const REPO = 'cloudcodetree/cloudcodetree.github.io';
-const RELEASE_TAG = 'blog-images';
-const CDN = `https://github.com/${REPO}/releases/download/${RELEASE_TAG}`;
-const PLACEHOLDER = `${CDN}/_default.png`;
+// Images are hosted on R2 at https://img.cloudcodetree.com (scripts/lib/r2.mjs).
 // Optional: when set (e.g. in the rehost-images CI job), posts with no source
 // image get a relevant Pexels stock photo instead of the placeholder.
 const PEXELS_KEY = process.env.PEXELS_API_KEY || '';
@@ -123,7 +122,7 @@ function excerptFrom(description, body) {
 }
 const readTime = (body) => Math.max(1, Math.ceil(body.trim().split(/\s+/).filter(Boolean).length / 200));
 
-// --- images: download → compress (sips) → upload to GitHub Release ----------
+// --- images: download → compress (sharp/sips) → upload to R2 ----------------
 
 /** True if buf starts like a real image (JPEG/PNG/GIF/WebP/HEIF-family). */
 function looksLikeImage(buf) {
@@ -173,12 +172,12 @@ async function compress(src, dst) {
   try { execFileSync('sips', ['-Z', '1200', '-s', 'format', 'jpeg', '-s', 'formatOptions', '78', src, '--out', dst], { stdio: 'ignore' }); return existsSync(dst); }
   catch { return false; }
 }
-function uploadAsset(file) {
-  try { execFileSync('gh', ['release', 'upload', RELEASE_TAG, file, '--clobber'], { stdio: 'ignore' }); return true; }
-  catch { return false; }
+async function uploadAsset(file, key) {
+  try { await r2Put(key, await readFile(file), 'image/jpeg'); return true; }
+  catch (err) { console.warn(`! upload ${key}: ${err.message}`); return false; }
 }
 
-/** Download one src URL → compress → upload to the CDN as <id>.jpg. Returns ok. */
+/** Download one src URL → compress → upload to R2 as <id>.jpg. Returns ok. */
 async function hostImage(srcUrl, id) {
   await mkdir(TMP, { recursive: true, mode: 0o700 });
   const raw = path.join(TMP, `${id}.raw`);
@@ -186,8 +185,9 @@ async function hostImage(srcUrl, id) {
   if (!(await downloadTo(srcUrl, raw))) return false;
   if (!(await compress(raw, jpg))) { await rm(raw, { force: true }); return false; }
   await rm(raw, { force: true });
-  if (!uploadAsset(jpg)) { await rm(jpg, { force: true }); return false; }
-  return true;
+  const ok = await uploadAsset(jpg, `${id}.jpg`);
+  await rm(jpg, { force: true });
+  return ok;
 }
 
 // Map a post's tags to a concrete, non-cliché Pexels search term.
@@ -241,24 +241,26 @@ async function pexelsPick(post, id) {
   return { src: p.src?.large2x || p.src?.large || p.src?.original, credit: { name: p.photographer, url: p.url } };
 }
 
-/** Resolve a featured image for one post → { url, credit? } (CDN URL or placeholder). */
+/** Resolve a featured image for one post → { url, credit? } (hosted URL or placeholder). */
 async function resolveImage(item, id, existing, post) {
-  // reuse an already-uploaded image unless refreshing (even with --no-images:
-  // that flag means "don't fetch/upload", never "discard existing CDN images")
-  if (!REFRESH && existing && existing.startsWith(CDN) && !existing.endsWith('_default.png')) return { url: existing };
+  // reuse an already-hosted image unless refreshing (even with --no-images:
+  // that flag means "don't fetch/upload", never "discard existing images").
+  // isHosted() accepts the legacy GitHub Release URLs too, so posts that
+  // predate R2 keep working until the migration rewrites them.
+  if (!REFRESH && isHosted(existing) && !existing.endsWith('_default.png')) return { url: existing };
   if (NO_IMAGES) return { url: PLACEHOLDER };
 
   // 1) The image URL the feed provided directly (if it's a real image).
   const srcUrl = urlAttr(item['media:content']) || urlAttr(item['media:thumbnail']);
   if (srcUrl) {
-    if (await hostImage(srcUrl, id)) return { url: `${CDN}/${id}.jpg` };
+    if (await hostImage(srcUrl, id)) return { url: imageUrl(`${id}.jpg`) };
     console.warn(`! ${id}: feed media image failed (${srcUrl})`);
   }
   // 2) The article's real og:image, scraped from its link (the feed media URL is
   //    often missing or a dead guess; the article's own og:image is reliable).
   const ogUrl = await ogImageFrom(post?.link);
   if (ogUrl) {
-    if (await hostImage(ogUrl, id)) { console.log(`  ${id}: og:image from article`); return { url: `${CDN}/${id}.jpg` }; }
+    if (await hostImage(ogUrl, id)) { console.log(`  ${id}: og:image from article`); return { url: imageUrl(`${id}.jpg`) }; }
     console.warn(`! ${id}: og:image failed (${ogUrl})`);
   }
   // 3) Pexels stock fallback (only when a key is configured, e.g. CI).
@@ -266,7 +268,7 @@ async function resolveImage(item, id, existing, post) {
     const pick = await pexelsPick(post, id);
     if (pick?.src && await hostImage(pick.src, id)) {
       console.log(`  ${id}: Pexels stock by "${pexelsQuery(post)}" (© ${pick.credit.name})`);
-      return { url: `${CDN}/${id}.jpg`, credit: pick.credit };
+      return { url: imageUrl(`${id}.jpg`), credit: pick.credit };
     }
   }
   console.warn(`! ${id}: no image — using placeholder`);
@@ -276,9 +278,8 @@ async function resolveImage(item, id, existing, post) {
 /** Warn up front if image hosting can't work, instead of failing silently per item. */
 function checkImagePrereqs() {
   if (NO_IMAGES) return;
-  try { execFileSync('gh', ['release', 'view', RELEASE_TAG, '--repo', REPO, '--json', 'tagName'], { stdio: 'ignore' }); }
-  catch {
-    console.warn(`! cannot reach GitHub Release "${RELEASE_TAG}" (gh missing/unauthenticated or release absent) — new images will use the placeholder`);
+  if (!r2Ready()) {
+    console.warn('! no CLOUDFLARE_API_TOKEN (env or .env) — new images will use the placeholder; the rehost-images CI job fixes them on the next push');
   }
 }
 
@@ -357,7 +358,7 @@ async function main() {
   await writeFile(POSTS_JSON, JSON.stringify(merged, null, 2) + '\n');
   await rm(TMP, { recursive: true, force: true });
 
-  console.log(`✓ ingested ${upserted} feed item(s) (${withImg} with CDN images) → ${merged.length} total posts`);
+  console.log(`✓ ingested ${upserted} feed item(s) (${withImg} with hosted images) → ${merged.length} total posts`);
 }
 
 main().catch((e) => { console.error('✗ ingest-feed failed:', e.message); process.exit(1); });

@@ -108,7 +108,7 @@ content/                      # Source feed the Desktop task writes (ingested at
 
 public/
 ├── blog/                    # Blog content
-│   └── posts.json          # Index + inlined post bodies (images live on the Release CDN)
+│   └── posts.json          # Index + inlined post bodies (images live on R2: img.cloudcodetree.com)
 ├── resume/                  # Resume assets
 │   └── chris_harper-resume.md
 ├── resume.pdf              # Protected resume PDF
@@ -181,8 +181,9 @@ acceptance test: a 20-case contract (redirects, feeds, headers, the gate) plus a
 of every sitemap URL. HTTP checks cannot see a blank page — pair them with a browser.
 
 ### CI (`.github/workflows/deploy.yml`, on push to `main`)
-Two jobs. `rehost-images` uploads the routine's placeholder images to the
-`blog-images` Release and commits the CDN URLs. `build` validates the blog and the
+Two jobs. `rehost-images` uploads the routine's placeholder images to R2
+(`img.cloudcodetree.com`, using the same Cloudflare token) and commits the URLs.
+`build` validates the blog and the
 research log, runs `pnpm run build`, and — on `main` pushes only, gated on the repo
 variable `ENABLE_WORKER_DEPLOY=true` plus the secrets `CLOUDFLARE_API_TOKEN` /
 `CLOUDFLARE_ACCOUNT_ID` — vendors the demo builds and runs `wrangler deploy` in the
@@ -244,7 +245,8 @@ See the **Blog ("AI News")** section below — posts live inline in
 - **React 19 / Next 15**: build-time type + lint checks are ON
   (`next.config.js` no longer ignores build errors)
 - **Lazy Loading**: Framer Motion animations animate when components enter viewport
-- **Image hosting**: blog images live on the GitHub Release CDN, never in the repo
+- **Image hosting**: blog images live in the R2 bucket `cct-blog-images`, served at
+  `https://img.cloudcodetree.com/<id>.jpg` with a one-year immutable cache — never in the repo
 - **Service Worker**: Basic service worker (`sw.js`) included for PWA capabilities
 
 ## Security Notes
@@ -345,8 +347,9 @@ The blog is labeled **AI News** in the nav and masthead; the route is **`/ai-new
 `app/components/Redirect.tsx`, with `canonical` + `noindex`). It's **static markdown**:
 `public/blog/posts.json` is the newest-first index; each entry points at a
 post's body **inlined in `posts.json`** (no per-post `.md` files). The only committed blog
-asset is `public/blog/posts.json`; **images are not in the repo** — they live on the GitHub
-Release `blog-images` (CDN) and `posts.json` stores their URLs.
+asset is `public/blog/posts.json`; **images are not in the repo** — they live in the R2
+bucket `cct-blog-images` behind `https://img.cloudcodetree.com` and `posts.json` stores
+their URLs (`scripts/lib/r2.mjs` is the one place that knows the bucket and origin).
 
 **Rendering.** The list (`/ai-news`, `app/ai-news/page.tsx` → `BlogPage`) embeds a slim,
 content-free index at build time (read from `posts.json` server-side) and paginates
@@ -373,9 +376,11 @@ paginates client-side. The feed is discoverable via a `<link rel="alternate">` i
 - Dates are `MM-DD-YYYY`. Posts are newest-first.
 - `id` == `posts.json` `id` (== the feed `<guid>`).
 - `posts.json` entry schema: `id, title, excerpt, author, date, tags[], readTime, content,
-  image` plus optional `imageSource` / `dek`. `image` is a **CDN URL** to a GitHub Release
-  asset (`https://github.com/<repo>/releases/download/blog-images/<id>.jpg`), falling back to
-  `…/blog-images/_default.png`. Images are never committed to the repo.
+  image` plus optional `imageSource` / `dek`. `image` is the R2 URL
+  `https://img.cloudcodetree.com/<id>.jpg`, falling back to `…/_default.png`. Images are
+  never committed to the repo. (Until 2026-09-05 they lived on the GitHub Release
+  `blog-images`; that Release still exists as a cold fallback and `isHosted()` still
+  accepts its URLs.)
   Posts are not separated by category (the old `eyebrow` badge was removed).
 - **Tags follow a fixed vocabulary** enforced by `validate-blog.mjs`: `AI` on every post,
   exactly one content-type (`News` / `Workflow` / `Tutorial`), plus topic tags from the
@@ -404,8 +409,8 @@ node scripts/ingest-feed.mjs [content/feed.xml] [--no-images] [--refresh-images]
 > passes 1.5× the window, which is the signal that the routine stopped trimming.
 Each `<item>` UPSERTS a post keyed by `<guid>` (== `id`): `<content:encoded>` CDATA → the
 `content` field (Markdown), `<media:content>`/`<media:thumbnail>` URL → the featured image,
-which ingest **downloads, compresses (`sips`, 1200px / JPEG q78), and uploads to the
-`blog-images` GitHub Release** (`posts.json` stores the CDN URL; `imageSource` = `<link>`),
+which ingest **downloads, compresses (sharp, 1200px / JPEG q78), and uploads to R2**
+(`posts.json` stores the `img.cloudcodetree.com` URL; `imageSource` = `<link>`),
 tags from `<category>`. It's a **merge, not a rebuild**: posts not in the feed are preserved.
 Idempotent; an image already uploaded for an id is reused unless `--refresh-images`. Requires
 `gh` (authenticated) + sharp; without them, posts get the placeholder (CI's
@@ -421,11 +426,11 @@ start doubting itself, not a cap) and derived by each run from `content/feed.xml
 The budget is a brake on filler, never a cap on signal: a genuinely new and useful
 item is always publishable, and past 8 each one must be justified in the run report. It researches the day's stories, updates
 `content/feed.xml` per `docs/ai-news-feed-contract.md`, runs ingest + `validate-blog`,
-and commits/pushes — no local machine involved. The routine's environment can't
-authenticate `gh`, so its posts land with placeholder images; the **`rehost-images`
-job in `.github/workflows/deploy.yml`** then uploads the real images to the
-`blog-images` Release (via `GITHUB_TOKEN`) and commits the CDN URLs before the same
-run builds and deploys.
+and commits/pushes — no local machine involved. The routine's environment has no
+Cloudflare token, so its posts land with placeholder images; the **`rehost-images`
+job in `.github/workflows/deploy.yml`** then uploads the real images to R2 (via the
+`CLOUDFLARE_API_TOKEN` secret) and commits the URLs before the same run builds and
+deploys.
 
 **Manual fallback.** If the routine is down, publish by hand: edit `content/feed.xml`
 per the contract, then `node scripts/ingest-feed.mjs && node scripts/validate-blog.mjs`,

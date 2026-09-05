@@ -19,9 +19,9 @@ concurrency:
 
 jobs:
   # Re-host any feed images that are still on the placeholder (the cloud
-  # routine can't authenticate gh, so its posts land with placeholders; this
-  # job uploads the real images to the blog-images release and commits the
-  # CDN URLs). Convergent: a push with nothing to fix commits nothing, and the
+  # routine has no Cloudflare token, so its posts land with placeholders; this
+  # job uploads the real images to R2 (img.cloudcodetree.com) and commits the
+  # URLs). Convergent: a push with nothing to fix commits nothing, and the
   # GITHUB_TOKEN push below doesn't trigger a new workflow run — the build job
   # checks out latest main instead, so the fix ships in THIS run's deploy.
   rehost-images:
@@ -49,9 +49,12 @@ jobs:
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
 
-    - name: Re-host feed images to the blog-images release
+    - name: Re-host feed images to R2 (img.cloudcodetree.com)
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # R2 uploads go through the Cloudflare API with the same token the
+        # Worker deploy uses (it carries Workers R2 Storage: Edit).
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         # Optional: add a free Pexels API key as a repo secret to give posts with
         # no source image a relevant stock photo instead of the placeholder.
         PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}

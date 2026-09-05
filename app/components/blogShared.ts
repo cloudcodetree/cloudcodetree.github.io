@@ -16,7 +16,7 @@ export interface BlogPost {
   tags: string[];
   readTime: number;
   dek?: string;
-  /** Featured image — CDN URL on the blog-images GitHub Release. */
+  /** Featured image — https://img.cloudcodetree.com/<id>.jpg (R2 bucket cct-blog-images). */
   image?: string;
   /** Where the featured image was sourced from (the article URL), for attribution. */
   imageSource?: string;
