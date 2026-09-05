@@ -10,8 +10,137 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 04 Sep 2026 20:04:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 05 Sep 2026 04:05:00 +0000</lastBuildDate>
 
+    <item>
+      <title>Your Generated Components Have Hardcoded Colors — One Stylelint Rule Catches Every One</title>
+      <link>https://github.com/nickvdyck/stylelint-declaration-strict-value</link>
+      <guid isPermaLink="false">2026-09-05-03-stylelint-design-token-enforcement-generated-css</guid>
+      <pubDate>Sat, 05 Sep 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>stylelint-declaration-strict-value flags any CSS property that uses a raw value instead of a CSS custom property — catching hardcoded colors and sizes before they land in your repo.</description>
+      <content:encoded><![CDATA[**AI code generators default to concrete values (`#3b82f6`, `16px`) because token names are project-specific — a one-rule linter catches every violation and sends the list back to Claude Code to fix.**
+
+**What you'll be able to do after this:** Run a single linter command that fails whenever generated CSS uses hardcoded colors, spacing, or typography values instead of your CSS custom properties — and feed the violation list to Claude Code for an automatic fix pass.
+
+**Three things to know:**
+- Language models write what's in training data. Token names (`--color-primary`, `--space-4`) are project-specific and invisible to the model; it defaults to concrete values unless your AGENTS.md explicitly provides the mapping.
+- `stylelint-declaration-strict-value` lets you declare which CSS properties must use a variable or function — not a literal — and fails on any violation with file and line number.
+- Claude Code can consume the lint output directly: paste the failure list into a new turn and ask it to substitute the correct token names. One pass typically clears the violations.
+
+**Walk-through:**
+
+Install:
+```bash
+npm install --save-dev stylelint stylelint-declaration-strict-value
+```
+
+Create `.stylelintrc.json` at your project root:
+```json
+{
+  "plugins": ["stylelint-declaration-strict-value"],
+  "rules": {
+    "scale-unlimited/declaration-strict-value": [
+      [
+        "color", "background-color", "border-color", "fill", "stroke",
+        "font-size", "font-family", "line-height", "letter-spacing",
+        "gap", "padding", "margin", "border-radius", "box-shadow"
+      ],
+      {
+        "ignoreValues": ["transparent", "inherit", "currentColor", "unset", "none", "0"],
+        "disableFix": false
+      }
+    ]
+  }
+}
+```
+
+Run against your component directory:
+```bash
+npx stylelint "src/**/*.css" "src/**/*.module.css"
+```
+
+Feed the violations back to Claude Code:
+```
+The following CSS declarations use raw values instead of design tokens.
+Replace each with the correct CSS custom property from our design system
+(token list in AGENTS.md). Do not change layout or structure, only substitute values.
+
+[paste stylelint output here]
+```
+
+Add it to your CI `package.json`:
+```json
+"scripts": {
+  "lint:tokens": "stylelint 'src/**/*.css' 'src/**/*.module.css'"
+}
+```
+
+**What this won't catch:** inline `style={{}}` props in JSX — stylelint only parses CSS and CSS-in-JS patterns it can statically analyze. For inline styles, use an ESLint rule (`no-restricted-syntax`) targeting `style={{color:` patterns, or review them manually after a generation pass.
+
+**The limit:** this approach enforces *that* a token is used, not *which* token. If Claude Code picks `--color-secondary` when the design calls for `--color-brand`, the linter passes. Pair it with a visual review or snapshot tests for pixel-level correctness.
+
+**Sources:** [stylelint-declaration-strict-value — GitHub](https://github.com/nickvdyck/stylelint-declaration-strict-value) · [Linting Design Tokens With Stylelint — Michael Mangialardi](https://www.michaelmang.dev/blog/linting-design-tokens-with-stylelint/) · [Mozilla no-base-design-tokens Stylelint rule](https://firefox-source-docs.mozilla.org/code-quality/lint/linters/stylelint-plugin-mozilla/rules/no-base-design-tokens.html) · [stylelint.io](https://stylelint.io/)]]></content:encoded>
+    </item>
+    <item>
+      <title>Review Every Change Claude Makes, Turn by Turn: The /diff Panel</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-09-05-02-claude-code-diff-turn-by-turn-review</guid>
+      <pubDate>Sat, 05 Sep 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.260 adds a /diff panel that shows per-turn diffs alongside the conversation in fullscreen mode — review what changed on each turn before you git add.</description>
+      <content:encoded><![CDATA[**Claude Code v2.1.260's /diff panel shows exactly what changed on each conversation turn — before you `git add` — so you can catch unexpected changes without digging through `git diff`.**
+
+Before `/diff`, the only way to review Claude Code's edits was `git diff HEAD` — which shows all uncommitted changes as one undifferentiated pile. If you ran five turns, you couldn't trace which change came from which prompt without checking git blame or manually diffing mid-session.
+
+**What /diff gives you:**
+
+In fullscreen mode (Ctrl+Shift+F), run `/diff` to open a panel beside the conversation. Two views:
+
+- **Current** — equivalent to `git diff HEAD`, everything uncommitted in your working directory. Use this for a final pre-commit sweep.
+- **Per-turn** (T1, T2, T3 …) — the diff produced by each individual conversation turn. Use ←/→ to switch between turns; each entry shows a snippet of your prompt so you remember what you asked. Use ↑/↓ to browse changed files within a turn.
+
+**The workflow:**
+
+After each significant turn, flip to the diff panel and review the per-turn view before continuing. If Claude's T3 change looks off, you can revert that file (`git checkout HEAD -- <file>`) and re-prompt on T4 with tighter constraints — without undoing T1 and T2's work.
+
+The per-turn view is reconstructed from conversation history, not from git, so it survives manual edits and partial `git add`. You don't need to commit between turns to maintain the per-turn record.
+
+**The practical habit:** treat every turn as a commit proposal. Before you `git add`, scan the T-N diff to confirm the change does exactly what the prompt asked. This is especially useful for turns that touch files you didn't intend — they show up immediately in the per-turn view.
+
+**Limit:** `/diff` only opens in fullscreen mode (Ctrl+Shift+F to toggle). If you prefer the split-pane layout, you'll need to switch modes to use the panel — it's not available inline. For inter-branch diffs or PR-scope review, you still need `git diff main..HEAD` outside the panel; the Current view is limited to `git diff HEAD`.
+
+**Sources:** [Claude Code 2.1.260 adds /diff — ccleaks.com](https://ccleaks.com/news/claude-code-2-1-260-sep-2026) · [/diff in Claude Code: inspect per-turn changes — wmedia.es](https://wmedia.es/en/tips/claude-code-diff-changes-per-turn) · [Claude Code /diff: See Exactly What Changed — Vincent's Blog](https://blog.vincentqiao.com/en/posts/claude-code-diff/)]]></content:encoded>
+    </item>
+    <item>
+      <title>Test Whether Your Agent Actually Finishes the Task: ThinkingBox + OpenAI DevDay Sept 29</title>
+      <link>https://devblogs.microsoft.com/foundry/build-2026-open-trust-stack-ai-agents/</link>
+      <guid isPermaLink="false">2026-09-05-01-thinkingbox-agent-reliability-devday-2026</guid>
+      <pubDate>Sat, 05 Sep 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Agents</category>
+      <category>Developer Tools</category>
+      <description>Microsoft open-sources ThinkingBox, an agent eval sandbox that verifies actual task completion rather than self-reported success. OpenAI DevDay is September 29 in San Francisco.</description>
+      <content:encoded><![CDATA[**Two items for engineers building agents: a benchmark that checks what your agent actually changed in the database, and a developer conference worth watching on September 29.**
+
+**Microsoft ThinkingBox (released Aug 19, open source):** An eval sandbox for testing AI agents on business-process tasks — order processing, inventory updates, scheduling. The key distinction: instead of grading an agent on what it *says* it did, ThinkingBox checks what it actually changed in a connected database. Microsoft tested 12 models across 507 tasks spanning five business domains; pass rates varied widely among models that look equivalent on standard coding benchmarks. Available at [github.com/microsoft/thinkingbox](https://github.com/microsoft/thinkingbox).
+
+**Why it matters:** Claim-vs-result divergence is the most common failure pattern in production business agents. If you're choosing a model for a workflow that writes to a real system, running candidates through ThinkingBox on representative tasks gives you actual completion rates rather than benchmark proxy scores.
+
+**OpenAI DevDay 2026:** September 29 at Fort Mason, San Francisco. In-person applications are closed; the opening keynote will be livestreamed. First year the conference adds satellite DevDay Exchange events in eight cities (Bengaluru, Tokyo, Seoul, Paris, Berlin, London, São Paulo, Mexico City). Historically the venue for significant API and platform announcements.
+
+**Sources:** [ThinkingBox — Microsoft Foundry Blog](https://devblogs.microsoft.com/foundry/build-2026-open-trust-stack-ai-agents/) · [ThinkingBox — github.com/microsoft/thinkingbox](https://github.com/microsoft/thinkingbox) · [OpenAI DevDay 2026](https://openai.com/index/devday-2026/) · [ThinkingBox agent reliability — CoinDesk](https://coindesk.cc/microsoft-introduces-thinkingbox-to-assess-ai-agent-reliability-104438.html)]]></content:encoded>
+    </item>
     <item>
       <title>Direct Edit, Targeted Regen, Full Restart: Which Claude Design Move to Make</title>
       <link>https://salesdorado.com/en/ai/review-claude-design/</link>
@@ -5281,166 +5410,12 @@ Hook commands inherit the session's environment, not a login shell. If your vali
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Fable 5 Biology Queries Mostly Unblocked: Anthropic Reports 85% Drop in False Positives</title>
-      <link>https://www.anthropic.com/news/improving-fable-5-s-biology-safeguards</link>
-      <guid isPermaLink="false">2026-08-21-02-fable5-biology-safeguards-update</guid>
-      <pubDate>Fri, 21 Aug 2026 04:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <category>Security</category>
-      <description>Anthropic retrained Fable 5's biology classifier, cutting false-positive fallbacks by ~85%. Everyday health and clinical queries now go through; virology and toxicology remain restricted to Opus 5.</description>
-      <content:encoded><![CDATA[**Anthropic reports ~85% fewer biology-related fallbacks on Fable 5 after retraining the classifier. Everyday health, clinical, and educational biology queries now reach the model. Dual-use research on pathogens and toxins remains restricted.**
-
-When Fable 5 launched, Anthropic blocked nearly all biology queries as a precaution — which meant interpreting lab results, explaining drug mechanisms, or answering clinical questions hit the same refusal wall as genuinely dangerous requests. The false-positive rate was high by design, accepted as the cost of a cautious launch.
-
-That tradeoff has now been recalibrated. Anthropic rewrote the classifier's rule set to carve out detailed exceptions for benign use cases, gathered feedback from medical and scientific reviewers, and retrained the model. Per Anthropic's announcement, biology-related fallbacks dropped by approximately 85% across product surfaces. The August 2026 Risk Report, published alongside this update, details the broader classifier framework: real-time blocking, jailbreak remediation, and a formal distinction between universal jailbreaks and targeted attacks.
-
-**For developers building on Fable 5:**
-
-If you added fallback handling (`model_fallback` credit logic, graceful degradation to Sonnet 5 for biology-adjacent queries), re-test your critical paths — most should now return a useful response. The fallback credit mechanism still applies for anything that does reach a block.
-
-**What remains restricted:** virology research, toxicology at the synthesis level, and similar dual-use areas. Per The Decoder's coverage, those capabilities remain gated to Opus 5, which carries stricter access controls. If your application depends on Fable 5 answering these queries, it still won't.
-
-**The underlying caveat:** classifiers don't publish precise boundaries, intentionally. Test your specific prompts — don't assume a topic category is safe because a neighboring category is. The boundaries will continue to shift as Anthropic gathers data on what the recalibrated classifier misses.
-
-**Why it matters:** developers who avoided Fable 5 for health, science, and clinical applications because of the fallback rate now have a substantially lower floor. The model is genuinely more usable for these workloads — though Opus 5 remains the right choice when dual-use biological research is the core task.
-
-**Sources:** [Improving Fable 5 Safeguards — Anthropic](https://www.anthropic.com/news/improving-fable-5-s-biology-safeguards) · [August 2026 Risk Report — Anthropic](https://www.anthropic.com/aug-2026-risk-report) · [Anthropic loosens Fable 5's biology restrictions — The Decoder](https://the-decoder.com/anthropic-loosens-fable-5s-biology-restrictions-but-keeps-the-guardrails-on-for-virology-and-toxicology/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Your Retriever Doesn't Know Which Documents Are Relevant — Metadata Filters Tell It Before Similarity Search Runs</title>
-      <link>https://python.langchain.com/docs/how_to/self_query/</link>
-      <guid isPermaLink="false">2026-08-21-01-rag-self-query-metadata-filter</guid>
-      <pubDate>Fri, 21 Aug 2026 04:02:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>RAG</category>
-      <category>Best Practices</category>
-      <description>Metadata filters narrow your vector search to the right source, date, or category before similarity scoring runs. LangChain's SelfQueryRetriever builds those filters from natural language automatically.</description>
-      <content:encoded><![CDATA[**What you'll be able to do after this:** query your vector store with natural language like "show me Python tutorials from 2024" and have the retriever automatically apply a structured filter — `language=Python AND year=2024` — before similarity search runs inside that subset.
-
-**Why cosine similarity alone isn't enough**
-
-Cosine similarity compares embedding vectors. It does not understand dates, categories, or document sources. A query like "what were the Q3 revenue numbers?" can return semantically close content from Q1 or Q2 if those happen to be nearest in embedding space. Metadata filtering adds an explicit pre-filter step: apply a WHERE clause first, then run similarity search inside the filtered subset.
-
-**Three takeaways**
-
-- Metadata filters run *before* similarity scoring — they narrow the haystack, they don't re-rank it.
-- You can mix structured filters (`year > 2023`, `category = "finance"`) with free-text semantic similarity in the same query.
-- LangChain's `SelfQueryRetriever` uses a small LLM call to translate natural language into filter predicates automatically — your users write plain queries, not structured filters.
-
-**Walk-through with Chroma and LangChain**
-
-First, store documents with metadata at index time:
-
-```python
-from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
-
-# Each doc.metadata carries fields like:
-# {"source": "blog", "year": 2024, "topic": "rag", "language": "python"}
-vectorstore = Chroma.from_documents(docs, OpenAIEmbeddings())
-```
-
-Declare the metadata fields the retriever is allowed to filter on:
-
-```python
-from langchain.chains.query_constructor.base import AttributeInfo
-from langchain.retrievers.self_query.base import SelfQueryRetriever
-from langchain_openai import ChatOpenAI
-
-metadata_field_info = [
-    AttributeInfo(name="source",   description="Document source: blog, docs, or wiki",        type="string"),
-    AttributeInfo(name="year",     description="Year the document was published",               type="integer"),
-    AttributeInfo(name="topic",    description="Primary topic tag, e.g. rag, embeddings, llm", type="string"),
-    AttributeInfo(name="language", description="Programming language featured, if any",         type="string"),
-]
-
-retriever = SelfQueryRetriever.from_llm(
-    llm=ChatOpenAI(model="gpt-4o-mini"),   # or claude-haiku-4-5 — filter construction is cheap
-    vectorstore=vectorstore,
-    document_contents="Technical articles about building AI applications",
-    metadata_field_info=metadata_field_info,
-)
-```
-
-Query with plain English — the LLM translates it into a Chroma filter automatically:
-
-```python
-docs = retriever.invoke("Python RAG articles from 2024")
-# Chroma filter applied: {"year": {"$eq": 2024}, "topic": {"$eq": "rag"}, "language": {"$eq": "python"}}
-```
-
-**Three limits to know before you ship**
-
-1. **Latency:** the filter-construction LLM call adds 100–500 ms. For latency-critical paths, build filters explicitly from structured query parameters (a date picker, a category dropdown) and skip the LLM translation entirely.
-
-2. **Comparator support varies by store:** Chroma supports `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$in`, `$nin`. Qdrant, Pinecone, and Weaviate support overlapping but non-identical sets. Check your store's comparator list before designing the metadata schema — a filter your store can't execute silently falls back to full scan.
-
-3. **Filter accuracy depends on field descriptions:** the LLM generates filters from the `AttributeInfo` descriptions. Ambiguous descriptions produce wrong filters at the edges. Test queries that cross multiple fields before going to production.
-
-**Sources:** [LangChain self-querying retrieval — official docs](https://python.langchain.com/docs/how_to/self_query/) · [How to Build a RAG System with a Self-Querying Retriever — Towards Data Science](https://towardsdatascience.com/how-to-build-a-rag-system-with-a-self-querying-retriever-in-langchain-16b4fa23e9ad/) · [Advanced RAG techniques Part 7 — Medium](https://medium.com/@roberto.g.infante/advanced-rag-techniques-with-langchain-part-7-843ecd3199f0)
-]]></content:encoded>
-    </item>
+    
+    
 
 
 
-
-    <item>
-      <title>Search Hugging Face Without Leaving Claude Code: Wire Up the Official HF MCP Server in One Command</title>
-      <link>https://huggingface.co/docs/hub/en/hf-mcp-server</link>
-      <guid isPermaLink="false">2026-08-20-07-hf-mcp-server-hub-from-claude-code</guid>
-      <pubDate>Thu, 20 Aug 2026 20:09:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>MCP</category>
-      <category>HuggingFace</category>
-      <description>The official Hugging Face MCP server plugs the Hub into Claude Code with one command. Its hf_fs tool covers repos, docs, and semantic search in about 1,000 tokens — no more tab-hopping to hunt a model.</description>
-      <content:encoded><![CDATA[**One `claude mcp add` command wires the official Hugging Face MCP server into Claude Code — its `hf_fs` tool covers Hub search, semantic docs lookup, and dataset discovery without leaving your editor.**
-
-**The setup — one line**
-
-```bash
-claude mcp add hf-mcp-server -t http https://huggingface.co/mcp?login
-```
-
-Then start a Claude Code session and follow the browser prompt to sign in with your Hugging Face account (a READ-scope token is all it needs). Cursor, VS Code, Zed, and Claude Desktop all get client-specific snippets from [huggingface.co/settings/mcp](https://huggingface.co/settings/mcp) — that page generates the exact configuration your client expects; don't hand-write it.
-
-**What `hf_fs` gives your agent**
-
-`hf_fs` is the primary built-in tool, and one interface covers most Hub tasks: repos, storage, documentation, papers, Spaces. It includes semantic search over docs and Spaces, and HF's docs put its whole footprint at roughly 1,000 tokens — small enough to leave enabled by default without eating your context. Real prompts that work:
-
-- "Search Hugging Face for Qwen 3.6 quantizations under 5B parameters."
-- "Find a Space that transcribes audio."
-- "How do I use LoRA adapters with PEFT?" (semantic docs search)
-- "List datasets tagged `weather` and `time-series`."
-
-Optional add-on tools — Contribute Repos, Sandboxes, Run and Manage Jobs — you turn on per-server in the settings page when you actually need them.
-
-**Where it fits in a real workflow**
-
-The point is not "chat with Hugging Face." It's that when Claude Code is picking a model, hunting a dataset, or clarifying a library API mid-task, the answer is a tool call instead of a context-switch to a browser tab. Combined with skills, it composes cleanly: a skill teaches Claude *when* to reach for the Hub; the MCP server gives it the *access*.
-
-**Limits — name them upfront**
-
-- **You give the agent your account's read access.** That includes your private repos if any exist. Use a fresh READ-only token if you want a clean audit trail.
-- **`hf_fs` is search, not download.** It surfaces the right resource; pulling weights, running inference, or fine-tuning still happens through the normal Hub/transformers/vLLM path.
-- **Restart the client after adding Spaces.** New Space-backed tools don't appear until the MCP client reloads.
-- **Rate limits apply to your HF token**, not to Claude Code — heavy loops can hit them.
-
-**Sources:** [Hugging Face MCP Server docs](https://huggingface.co/docs/hub/en/hf-mcp-server) · [MCP Server changelog + client snippets](https://huggingface.co/changelog/hf-mcp-server) · [Claude Code Beyond Basics: Skills, MCP, and Open Models — Adam Bernard](https://adambernard.com/kb/claude-code-beyond-basics-skills-mcp-and-open-models/)
-]]></content:encoded>
-      <media:content url="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hf-mcp-vscode.png" medium="image" />
-      <media:thumbnail url="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hf-mcp-vscode.png" />
-    </item>
-
+    
     
     
     
