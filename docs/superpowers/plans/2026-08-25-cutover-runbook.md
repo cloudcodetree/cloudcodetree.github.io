@@ -149,6 +149,12 @@ paths — which now 301 to their successors.
   a cold fallback; `isHosted()` still accepts its URLs. Lesson: never probe a
   canonical URL before uploading to it — Cloudflare caches the 404 for a few
   minutes and the post-upload check then fails; probes carry a query string.
+- **Route 53 hosted zone deleted (owner, 2026-09-05 13:30 CDT)** after its
+  six non-required records (A, MX, and the ACM-validation / netlify / vercel /
+  www CNAMEs) — everything live already existed in the Cloudflare zone; the
+  three dropped CNAMEs pointed at retired things. Route 53 now holds only the
+  domain registration. Rollback to Route 53 DNS is therefore no longer a
+  "re-point the nameservers" move; the Cloudflare zone is the only DNS.
 - **Still open (owner):** DKIM TXT from Google Admin; OpenTofu import of the
   zone + R2 bucket/domain (`infra/` has providers only; the token now
   carries the zone permissions); delete the `gh-pages` branch after the soak;
