@@ -155,7 +155,10 @@ paths — which now 301 to their successors.
   three dropped CNAMEs pointed at retired things. Route 53 now holds only the
   domain registration. Rollback to Route 53 DNS is therefore no longer a
   "re-point the nameservers" move; the Cloudflare zone is the only DNS.
-- **Still open (owner):** DKIM TXT from Google Admin; OpenTofu import of the
-  zone + R2 bucket/domain (`infra/` has providers only; the token now
-  carries the zone permissions); delete the `gh-pages` branch after the soak;
-  optionally delete the `blog-images` Release once R2 has soaked.
+- **DKIM added (2026-09-05):** TXT `google._domainkey` (2048-bit key from
+  Google Admin) in the Cloudflare zone; the owner clicks "Start
+  authentication" in Google Admin, which verifies within about an hour.
+- **Still open:** OpenTofu import of the zone + R2 bucket/domain (`infra/`
+  has providers only; the token carries the zone permissions); delete the
+  `gh-pages` branch after the soak; optionally delete the `blog-images`
+  Release once R2 has soaked; delete the stale Netlify site in its dashboard.
