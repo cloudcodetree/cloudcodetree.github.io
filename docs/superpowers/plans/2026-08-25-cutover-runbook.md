@@ -121,15 +121,24 @@ paths — which now 301 to their successors.
 - **Step 7 (verify): DONE** — apex served by the Worker (CSP present, no
   GitHub headers), demo 302 / legacy 301 / `/api/session` 405, http→https
   301, www → apex 301 via the zone Single Redirect rule (created with
-  `cf-zone.mjs www-redirect`), feed 200. Parity contract + 850-URL sweep run
-  against https://cloudcodetree.com (see the session log for the result).
-  Supabase `site_url` → https://cloudcodetree.com; edge cache purged.
-- **Step 8 (retire): DONE in the follow-up PR** — `public/CNAME` deleted, the
-  gh-pages `deploy` job removed and the Worker deploy folded into the build
-  job (one install, no artifact hop), `pnpm run deploy` + the `gh-pages`
-  package dropped. The stale `cloudflare` template Worker (Aug 2025, Workers
-  Builds noise on every PR) was deleted. GitHub Pages turned off on this repo
-  and on code_compare / backlot; the `gh-pages` branch stays until ~2026-09-19.
-- **Still open (owner):** uninstall the Vercel and Netlify GitHub Apps
-  (https://github.com/settings/installations) and delete their projects;
-  DKIM TXT from Google Admin; OpenTofu import of the zone (`infra/`).
+  `cf-zone.mjs www-redirect`), feed 200. Parity contract 20/20 and the
+  857-URL sitemap sweep all-200 against https://cloudcodetree.com; landing
+  page rendered in a browser with the sign-in chrome. Supabase `site_url` →
+  https://cloudcodetree.com; edge cache purged.
+- **Step 8 (retire): DONE (PR #4)** — `public/CNAME` deleted, the gh-pages
+  `deploy` job removed and the Worker deploy folded into the build job (one
+  install, no artifact hop; proven green on that merge), `pnpm run deploy` +
+  the `gh-pages` package dropped. The stale `cloudflare` template Worker
+  (Aug 2025, the "Workers Builds" red X on every PR) was deleted. GitHub
+  Pages turned off on code_compare / backlot. GitHub refuses to deactivate
+  Pages on a `<user>.github.io` repo (422), so the custom domain was removed
+  instead — cloudcodetree.github.io serves a stale snapshot until the
+  `gh-pages` branch is deleted (~2026-09-19), which makes it go dark.
+- **Integrations:** the Vercel GitHub App was uninstalled (owner: "I don't
+  want Vercel anymore"; it covered 23 repos) and the Netlify GitHub App was
+  suspended (reversible — Unsuspend on its installation page; its site
+  `hilarious-dasik-515d40` still exists in the Netlify dashboard and can be
+  deleted there). PR checks are now only the repo's own `build`.
+- **Still open (owner):** DKIM TXT from Google Admin; OpenTofu import of the
+  zone (`infra/` has providers only; the token now carries the zone
+  permissions); delete the `gh-pages` branch after the soak.
