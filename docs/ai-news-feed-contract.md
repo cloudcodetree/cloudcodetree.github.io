@@ -26,10 +26,11 @@ Cloud routine (3×/day) ─writes──▶ content/feed.xml      (rolling ~120-i
 ```
 
 The routine runs research, feed-writing, ingest, and push in one cloud session.
-Its environment can't authenticate `gh`, so its posts land with placeholder
+Its environment has no Cloudflare token, so its posts land with placeholder
 images — the `rehost-images` job in `.github/workflows/deploy.yml` re-hosts the
-real images (download → sharp compress → upload to the `blog-images` Release)
-and commits the CDN URLs before that same workflow run builds and deploys.
+real images (download → sharp compress → upload to the R2 bucket behind
+`img.cloudcodetree.com`) and commits the URLs before that same workflow run
+builds and deploys.
 
 > **History:** before June 2026 the producer was a Claude Desktop task that
 > couldn't push; a local launchd watcher did ingest + commit + push whenever
@@ -63,7 +64,7 @@ For each `<item>` it UPSERTS (keyed by `<guid>` == post `id`):
 | `<category>` (repeatable) | `tags[]` (default `["AI"]`) |
 | `<description>` | `excerpt` (plain text, ≤200 chars) |
 | `<content:encoded>` (CDATA, **Markdown**) | `content` (inlined in `posts.json`) |
-| `<media:content url>` / `<media:thumbnail url>` | `image` — downloaded, compressed (1200px JPEG q78), uploaded to the `blog-images` GitHub Release (CDN URL stored); `imageSource` = `<link>` |
+| `<media:content url>` / `<media:thumbnail url>` | `image` — downloaded, compressed (1200px JPEG q78), uploaded to R2 (`https://img.cloudcodetree.com/<id>.jpg` stored); `imageSource` = `<link>` |
 
 It is a **merge, not a rebuild**: posts already in `posts.json` that aren't in the
 feed are preserved (historical back-catalog, hand-written one-offs). Idempotent;

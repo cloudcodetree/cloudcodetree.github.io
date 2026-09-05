@@ -11,8 +11,9 @@
  *   4. validates the result.
  *
  * No per-post .md files are written; posts.json is the single artifact.
- * `image` defaults to the blog-images Release placeholder (upload a real
- * image with `gh release upload blog-images <id>.jpg` and update the entry).
+ * `image` defaults to the R2 placeholder (img.cloudcodetree.com/_default.png);
+ * host a real one with `node scripts/ingest-feed.mjs` or the r2Put helper in
+ * scripts/lib/r2.mjs and update the entry.
  *
  * Usage:
  *   node scripts/publish-post.mjs <draft.md> [--tags a,b] [--date MM-DD-YYYY]
@@ -32,8 +33,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BLOG_DIR = path.join(ROOT, 'public', 'blog');
 const POSTS_JSON = path.join(BLOG_DIR, 'posts.json');
 const DEFAULT_AUTHOR = 'Chris Harper';
-const CDN = 'https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images';
-const PLACEHOLDER_IMAGE = `${CDN}/_default.png`;
+import { PLACEHOLDER as PLACEHOLDER_IMAGE } from './lib/r2.mjs';
 
 // --- pure helpers ----------------------------------------------------------
 
@@ -160,7 +160,7 @@ export async function publishOne(srcPath, opts = {}) {
     publishedAt: prior?.publishedAt || new Date().toISOString(),
     tags,
     readTime: Number(opts.readTime || data.readTime || estimateReadTime(cleanBody)),
-    // Keep an already-uploaded CDN image on republish; otherwise placeholder.
+    // Keep an already-hosted image on republish; otherwise placeholder.
     image: opts.image || data.image || prior?.image || PLACEHOLDER_IMAGE,
     content: cleanBody,
   };

@@ -139,6 +139,17 @@ paths — which now 301 to their successors.
   suspended (reversible — Unsuspend on its installation page; its site
   `hilarious-dasik-515d40` still exists in the Netlify dashboard and can be
   deleted there). PR checks are now only the repo's own `build`.
+- **Images → R2 (same day):** bucket `cct-blog-images` with the R2 custom
+  domain `img.cloudcodetree.com` (Cloudflare serves the objects with real
+  content types and edge caching; no Worker code). All 839 post images copied
+  from the GitHub Release by `scripts/migrate-images-to-r2.mjs` and their
+  URLs rewritten in `posts.json`; `ingest-feed.mjs` and the `rehost-images`
+  CI job now upload through `scripts/lib/r2.mjs` with the same Cloudflare
+  token (objects are immutable per key, one-year cache). The Release stays as
+  a cold fallback; `isHosted()` still accepts its URLs. Lesson: never probe a
+  canonical URL before uploading to it — Cloudflare caches the 404 for a few
+  minutes and the post-upload check then fails; probes carry a query string.
 - **Still open (owner):** DKIM TXT from Google Admin; OpenTofu import of the
-  zone (`infra/` has providers only; the token now carries the zone
-  permissions); delete the `gh-pages` branch after the soak.
+  zone + R2 bucket/domain (`infra/` has providers only; the token now
+  carries the zone permissions); delete the `gh-pages` branch after the soak;
+  optionally delete the `blog-images` Release once R2 has soaked.
