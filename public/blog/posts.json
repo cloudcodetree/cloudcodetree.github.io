@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-09-05-08-claude-design-component-naming-handoff",
+    "title": "The Names You Give Design Elements in Claude Design Are What Claude Code Uses to Look Up Components",
+    "excerpt": "Claude Design generates screens with generic element names. Rename them to your actual component names before exporting — Claude Code uses those names to look up your real components.",
+    "author": "Chris Harper",
+    "date": "09-05-2026",
+    "publishedAt": "2026-09-05T20:08:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Claude Design"
+    ],
+    "readTime": 2,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://claudelab.net/workflow/component-naming-handoff/",
+    "content": "**Claude Design generates screens with generic element names like \"Card\" and \"Button.\" Before you export, rename every element to the actual name from your component library — Claude Code uses those names to find your real components, not build new ones.**\n\nWhen Claude Design generates a screen, its layer panel fills up with generic names: \"Card,\" \"Input Field,\" \"Modal Overlay.\" Those names look reasonable, but they're not your component names. When Claude Code sees the exported design and tries to implement it, it searches your codebase for a component called \"Card\" — and if your actual component is `<ProductCard>` or `<DashboardCard>`, it won't find it. It builds a fallback from scratch instead.\n\n**The naming pass** happens before you export, in Claude Design's layer panel:\n\n```\nPrompt: \"List every element on this screen as a flat list with its current name. I'll rename them.\"\n```\n\nGo through the list and rename each element to its actual component name from your library. For a design system with a `<DataTable>`, rename \"Table\" → \"DataTable.\" For `<PrimaryButton>`, rename \"Button\" → \"PrimaryButton.\" Keep the exact casing your codebase uses.\n\n**Base components** (Button, TextField, Checkbox) can keep their generic name if that's what your library calls them. The rename only matters where your library diverges from the generic.\n\n**Add a component map to DESIGN.md** so Claude Code knows which design element names map to which components:\n\n```md\n## Component name map\n| Design element | Component |\n|---|---|\n| ProductCard | `<ProductCard variant=\"summary\" />` |\n| HeroSection | `<PageHero />` |\n| FilterDrawer | `<SidebarFilter />` |\n```\n\n**Worst failure mode:** modals. A generic \"Modal Overlay\" becomes a bespoke div with manually managed z-index and focus trapping, bypassing whatever modal system you already have. If your library has `<DialogModal>` or `<Sheet>`, name it that in the design panel.\n\n**One limit:** this only helps when your library uses descriptive names. If your components are named by role (Button, Input) rather than by design intent (PrimaryAction, SearchInput), Claude Code's component lookup lands on the right component regardless — the naming pass matters most for divergent vocabularies.\n\n**Sources:** [claudelab.net — pre-handoff component naming](https://claudelab.net/workflow/component-naming-handoff/) · [aakashg/claude-design-pm-toolkit](https://github.com/aakashg/claude-design-pm-toolkit) · [dev.to/bilelsalemdev — naming components in Claude Design](https://dev.to/bilelsalemdev/naming-components-claude-design-before-handoff)"
+  },
+  {
+    "id": "2026-09-05-07-fable-5-1-conversation-history-append-only",
+    "title": "Your Fable 5.1 Agent Returns a 400 When You Edit Earlier Turns — Here's the Fix",
+    "excerpt": "Fable 5.1 validates thinking-block provenance for accounts after August 31 — any harness that edits earlier turns mid-session returns a 400. Use turn-scoped system messages instead.",
+    "author": "Chris Harper",
+    "date": "09-05-2026",
+    "publishedAt": "2026-09-05T20:07:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://arturmarkus.com/ai-unfiltered/fable-51-turn-editing/",
+    "content": "**Fable 5.1 validates thinking-block provenance. For accounts created after August 31, any harness that edits an earlier turn mid-session gets a 400: \"bound to a different conversation.\" The fix is turn-scoped system messages — not edited history.**\n\nThe error surfaces in agentic setups: a harness that injects context by rewriting an earlier turn, or that swaps tool definitions mid-session, now gets back:\n\n```\n400 Bad Request\nthinking_block_binding: bound to a different conversation\n```\n\n**What triggers it:**\n- Editing any turn earlier than the current one mid-session\n- Changing the tool list between turns in the same session\n- Client-side in-place summarization that rewrites earlier assistant turns\n\n**The fix — turn-scoped system messages.** Instead of editing history, inject context as a system message scoped to clear after the next user turn:\n\n```json\n{\n  \"role\": \"system\",\n  \"content\": \"...\",\n  \"clear_at\": \"next_user_message\"\n}\n```\n\nRequires beta header: `anthropic-beta: mid-conversation-system-clear-at-2026-08-21`.\n\n**Tool changes** must happen between sessions (after the conversation ends), not mid-session. If you need a different tool set for a sub-task, start a fresh session.\n\n**Whole-history compaction** is still valid — collapse all prior turns into a single summary turn and start fresh. That resets provenance cleanly. The harness pattern to avoid is surgical rewriting of individual earlier turns.\n\n**Detection:** The beta header `anthropic-beta: thinking-binding-controls-2026-08-01` exposes `thinking.block_binding.prefix_mismatch_behavior`. Set it to `\"drop_block\"` to downgrade the error to a warning (thinking blocks from mismatched history are silently dropped) while you migrate your harness.\n\n**One limit:** enforcement is currently scoped to accounts created after August 31, 2026. Earlier accounts see the old behavior until future model versions extend enforcement universally — migrate now rather than after the cutover.\n\n**Sources:** [Anthropic Fable 5.1 guide](https://www.anthropic.com/research/fable-51-guide) · [AI Unfiltered — Fable 5.1 turn editing](https://arturmarkus.com/ai-unfiltered/fable-51-turn-editing/) · [Anthropic preserved-thinking docs](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking/preserved-thinking)"
+  },
+  {
+    "id": "2026-09-05-06-nvidia-huggingface-acquisition-cc-limits",
+    "title": "Nvidia Buys HuggingFace for $12.9B — and Your Claude Code Limits Drop 17% on Sept. 14",
+    "excerpt": "Nvidia agreed to buy HuggingFace for $12.93B — hardware vendor now owns the primary open-model hub. Claude Code's temp +50% limit promo ends Sept. 14; effective cut is 17%.",
+    "author": "Chris Harper",
+    "date": "09-05-2026",
+    "publishedAt": "2026-09-05T20:06:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "HuggingFace",
+      "Developer Tools"
+    ],
+    "readTime": 2,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://blogs.nvidia.com/blog/nvidia-acquires-hugging-face/",
+    "content": "**Two items developers need to know about this weekend: Nvidia is buying HuggingFace for $12.93B — a hardware company will own the primary open-model hub — and Claude Code's temporary +50% limits end September 14, which means an effective 17% cut from today's limits.**\n\n**Nvidia acquires HuggingFace — $12.93B, closes H1 2027**\n\nAnnounced September 3. Nvidia is paying $12.93B for HuggingFace, the host of 3M+ models, 500K datasets, and 18M developers. Jensen Huang's stated position: maintain the open-ecosystem mission, no vendor lock-in. The obvious concern from the Forrester analysis: Nvidia has every incentive to optimize HuggingFace tooling for CUDA hardware, and the pressure to do so will grow as the deal ages.\n\nFor engineers who depend on HuggingFace for model access, dataset pipelines, or the Hub API: the platform keeps running under existing terms through close. Post-close behavior depends on what \"open ecosystem\" means in practice once quarterly earnings expectations apply.\n\nThe harder question is what this does to the trust stack under open-weights models. HuggingFace has been a neutral host. Nvidia is not.\n\n**Claude Code limits drop 17% on September 14**\n\nIn May, Anthropic added a temporary +50% boost to Claude Code's per-session and daily limits (the SpaceX compute partnership announcement). That boost ends September 14. The permanent increase from May — +25% above the pre-May baseline — stays. Net result: limits drop from the current boosted level to the permanent floor, which is 17% below where they are today.\n\nSession limits are unaffected. The change hits the daily and per-period aggregate caps.\n\nIf you're doing large refactors or multi-day agentic runs scheduled around current limits, plan for the reduction now rather than hitting it mid-task on the 14th.\n\n**Sources:** [NVIDIA Blog](https://blogs.nvidia.com/blog/nvidia-acquires-hugging-face/) · [TechCrunch](https://techcrunch.com/2026/09/03/nvidia-acquires-hugging-face-for-12-9-billion/) · [VentureBeat — deal analysis](https://venturebeat.com/ai/nvidia-hugging-face-12-9-billion-implications/) · [AI Catchup](https://www.ai-catchup.com/2026/09/nvidia-hugging-face-acquisition)"
+  },
+  {
     "id": "2026-09-05-05-claude-code-skill-doctor-output-caps",
     "title": "Your Claude Code Context Is Burning on Skills You Never Use. /skill-doctor Shows the Bill.",
     "excerpt": "Claude Code v2.1.261 adds /skill-doctor (shows unused skills and their context cost per turn) and bashOutputMaxChars/taskOutputMaxChars settings (raise inline output cap to 128K to fix truncated lo…",
