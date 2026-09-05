@@ -13,7 +13,7 @@
  *
  * Prints only booleans and public identifiers.
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
 const ACCOUNT_ID_DEFAULT = '2473c9873f03835b5779ea7c11d41106'; // public, not a secret
@@ -31,12 +31,30 @@ function parseEnv(p) {
 }
 
 const env = { ...parseEnv('.env'), ...parseEnv('.env.local') };
-const token = env.CLOUDFLARE_API_TOKEN;
+// Accept the common misspelling too — the value is what matters, not the label.
+const token = env.CLOUDFLARE_API_TOKEN || env.CLODFLARE_API_TOKEN;
 const accountId = env.CLOUDFLARE_ACCOUNT_ID || ACCOUNT_ID_DEFAULT;
 const verifyOnly = process.argv.includes('--verify');
 
+// --fix-name: rename the misspelled key in .env in place (value untouched, never printed).
+if (process.argv.includes('--fix-name')) {
+  let fixed = 0;
+  for (const p of ['.env', '.env.local']) {
+    let text; try { text = readFileSync(p, 'utf8'); } catch { continue; }
+    const next = text.replace(/^(\s*(?:export\s+)?)CLODFLARE_API_TOKEN(\s*=)/m, '$1CLOUDFLARE_API_TOKEN$2');
+    if (next !== text) { writeFileSync(p, next); fixed++; console.log(`renamed CLODFLARE_API_TOKEN → CLOUDFLARE_API_TOKEN in ${p}`); }
+  }
+  if (!fixed) console.log('nothing to rename');
+  process.exit(0);
+}
+
 if (!token) {
   console.error('✗ CLOUDFLARE_API_TOKEN is not set in .env');
+  // Diagnostics: key NAMES only (never values), so a typo is visible.
+  const names = Object.keys(env);
+  console.error(`  keys present (${names.length}): ${names.join(', ')}`);
+  const near = names.filter((k) => /cloud|cf_|token/i.test(k));
+  if (near.length) console.error(`  similar names: ${near.map((k) => `${k} (${env[k].length} chars)`).join(', ')}`);
   console.error('  Create one at https://dash.cloudflare.com/profile/api-tokens with the');
   console.error('  "Edit Cloudflare Workers" template, then add CLOUDFLARE_API_TOKEN=<token> to .env');
   process.exit(1);
