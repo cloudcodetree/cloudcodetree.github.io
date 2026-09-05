@@ -15,7 +15,6 @@
     "portfolio",
     "mui",
     "nextjs",
-    "github-pages",
     "cloudcodetree"
   ],
   "scripts": {
@@ -25,8 +24,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "predeploy": "pnpm run build",
-    "deploy": "gh-pages -d out --dotfiles",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck:worker": "tsc -p worker/tsconfig.json",
@@ -73,7 +70,6 @@
     "eslint": "^8.0.0",
     "eslint-config-next": "^15.1.6",
     "fast-xml-parser": "^5.8.0",
-    "gh-pages": "^6.3.0",
     "pg": "^8.23.0",
     "sharp": "^0.35.0",
     "typescript": "~5.8.3",

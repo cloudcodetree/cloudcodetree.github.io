@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy
 
 on:
   push:
@@ -10,9 +10,9 @@ on:
 permissions:
   contents: read
 
-# Rapid feed pushes can queue overlapping runs; with force_orphan deploys,
-# two racing pushes to gh-pages could interleave. Serialize per ref and drop
-# superseded in-flight runs (only the newest commit's deploy matters).
+# Rapid feed pushes can queue overlapping runs; two racing Worker deploys could
+# land out of order. Serialize per ref and drop superseded in-flight runs
+# (only the newest commit's deploy matters).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -110,79 +110,20 @@ jobs:
     - name: Build
       run: pnpm run build
 
-    - name: Upload built site
-      uses: actions/upload-artifact@v4
-      with:
-        name: site
-        path: ./out
-
-  # Phase 3: the production Worker deploy. Runs alongside the gh-pages
-  # publish until DNS cuts over (the Worker serves no custom domain until the
-  # runbook attaches one, so this is inert-but-armed). Enable by setting the
-  # repo VARIABLE ENABLE_WORKER_DEPLOY=true once CLOUDFLARE_API_TOKEN /
-  # CLOUDFLARE_ACCOUNT_ID secrets exist. After cutover, delete the gh-pages
-  # `deploy` job below and this comment.
-  deploy-worker:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_WORKER_DEPLOY == 'true'
-    permissions:
-      contents: read
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        ref: main
-
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 10
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-        cache: 'pnpm'
-
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-
-    - name: Download built site
-      uses: actions/download-artifact@v4
-      with:
-        name: site
-        path: ./out
-
+    # The production deploy, in the same job as the build (no artifact hop, no
+    # second install): cct-site on Cloudflare Workers, serving cloudcodetree.com
+    # via the route in wrangler.jsonc. Gated on the repo variable
+    # ENABLE_WORKER_DEPLOY=true plus the CLOUDFLARE_API_TOKEN /
+    # CLOUDFLARE_ACCOUNT_ID secrets (scripts/set-ci-secrets.mjs sets all three).
+    # PR builds stop after `Build`.
     - name: Vendor gated demo builds
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_WORKER_DEPLOY == 'true'
       run: node scripts/fetch-demo-artifacts.mjs
 
     - name: Deploy production Worker
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_WORKER_DEPLOY == 'true'
       uses: cloudflare/wrangler-action@v3
       with:
         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         command: deploy
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    # Only the push-to-main deploy gets write access; PR builds never do.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    permissions:
-      contents: write
-    steps:
-    - name: Download built site
-      uses: actions/download-artifact@v4
-      with:
-        name: site
-        path: ./out
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./out
-        # Keep gh-pages a single commit (no per-deploy history) so the deploy
-        # branch never accumulates old build artifacts.
-        force_orphan: true
