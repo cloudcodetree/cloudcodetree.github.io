@@ -1,0 +1,137 @@
+1:"$Sreact.fragment"
+2:I[68977,["9153","static/chunks/9153-c226a6a89a200c15.js","1437","static/chunks/1437-7b0183160a7b945d.js","7177","static/chunks/app/layout-5303e0f970e960e2.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/1f54c84255ccf44e-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/5fb5c05ff73c0616-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/61d96c4884191721-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/6ad0344ed98ac2e9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/b0bb26939bb40fdb-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","style"]
+0:{"P":null,"b":"IqKWM4UwqXmwxod5P6FUu","p":"https://cloudcodetree.com","c":["","ai-news","2026-08-06-08-claude-api-structured-outputs-tool-use",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-08-06-08-claude-api-structured-outputs-tool-use","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_d55552 __variable_fe51c3 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_d55552","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-08-06-08-claude-api-structured-outputs-tool-use","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[42155,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+11:I[82566,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+12:T133f,**The Claude API offers two orthogonal structured-output patterns — output_config JSON schema mode for constrained text responses and strict:true tool definitions for schema-valid tool inputs — that together eliminate JSON parse failures from agentic pipelines.**
+
+**What you'll be able to do after this:**
+- Get parseable JSON from Claude every time without try/except retry loops
+- Guarantee tool call inputs match your schema exactly via grammar-constrained sampling
+- Combine both patterns to build reliable agentic pipelines where Claude calls tools AND returns structured data
+
+## The two patterns
+
+Pattern 1 controls what Claude *says* (its text response). Pattern 2 controls what Claude *does* (its tool call parameters). Both are orthogonal — use either or both together.
+
+**Pattern 1: output_config JSON schema (constrained text responses)**
+
+Pass an `output_config` block with a `json_schema` format. The API compiles your schema into a grammar and samples tokens only from schema-valid continuations — the response is always valid JSON matching your schema.
+
+```python
+import anthropic, json
+
+client = anthropic.Anthropic()
+
+schema = {
+    "type": "object",
+    "properties": {
+        "sentiment": {"type": "string", "enum": ["positive", "negative", "neutral"]},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "key_phrases": {"type": "array", "items": {"type": "string"}, "maxItems": 5}
+    },
+    "required": ["sentiment", "confidence", "key_phrases"],
+    "additionalProperties": False
+}
+
+response = client.messages.create(
+    model="claude-sonnet-4-6-20260901",
+    max_tokens=512,
+    output_config={
+        "format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "sentiment_result",
+                "schema": schema
+            }
+        }
+    },
+    messages=[{"role": "user", "content": "Analyze sentiment: 'The new API is incredibly fast and docs are clear.'"}]
+)
+
+result = json.loads(response.content[0].text)
+# {"sentiment": "positive", "confidence": 0.95, "key_phrases": ["incredibly fast", "docs are clear"]}
+# sentiment is always "positive", "negative", or "neutral" — no parse error possible
+```
+
+**Tradeoff:** complex schemas with many nested objects produce larger grammars that take longer to compile on the first call. Keep schemas focused; subsequent calls with the same schema benefit from server-side caching.
+
+**Pattern 2: strict:true tool use (guaranteed tool call parameters)**
+
+Add `"strict": true` as a top-level property in a tool definition. When Claude calls that tool, its `input` always matches your `input_schema` — no coercion, no extra keys, no missing required fields.
+
+```python
+tool = {
+    "name": "create_task",
+    "description": "Create a task in the task management system",
+    "strict": True,
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "title": {"type": "string", "maxLength": 100},
+            "priority": {"type": "integer", "minimum": 1, "maximum": 5},
+            "assignee_id": {"type": "string", "pattern": "^usr_[a-z0-9]+$"}
+        },
+        "required": ["title", "priority"],
+        "additionalProperties": False
+    }
+}
+
+response = client.messages.create(
+    model="claude-sonnet-4-6-20260901",
+    max_tokens=256,
+    tools=[tool],
+    messages=[{"role": "user", "content": "Create a high-priority task: 'Fix the auth bug', assigned to usr_abc123."}]
+)
+
+for block in response.content:
+    if block.type == "tool_use" and block.name == "create_task":
+        task_data = block.input
+        # task_data["priority"] is always 1-5, title always ≤ 100 chars — guaranteed
+```
+
+**Combining both patterns**
+
+You can set `strict: true` on tools AND pass `output_config` in the same request. Claude calls tools with guaranteed-valid parameters and returns a structured final response — the right shape for multi-step agentic workflows.
+
+```python
+response = client.messages.create(
+    model="claude-sonnet-4-6-20260901",
+    max_tokens=1024,
+    tools=[tool],           # strict: True
+    output_config={
+        "format": {
+            "type": "json_schema",
+            "json_schema": {"name": "summary", "schema": summary_schema}
+        }
+    },
+    messages=[{"role": "user", "content": "Create tasks for the auth bug fix and return a summary."}]
+)
+# Claude calls create_task (guaranteed-valid inputs) then returns structured summary JSON
+```
+
+This pattern is available on Claude Sonnet 4.5+, Opus 4.5+, Haiku 4.5+, and later.
+
+**Sources:** [Structured outputs — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) · [Strict tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use) · [How to implement tool use — Claude Platform Docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/implement-tool-use)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-08-06-08-claude-api-structured-outputs-tool-use","title":"Guaranteed JSON From Claude: Two Native API Patterns That Never Need a Retry Loop","excerpt":"The Claude API has two orthogonal structured-output patterns: output_config JSON schema mode constrains Claude's text response; strict:true on tool definitions guarantees schema-valid tool inputs.","author":"Chris Harper","date":"08-06-2026","publishedAt":"2026-08-06T20:02:00.000Z","tags":["AI","Tutorial","Agents","Best Practices"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-06-08-claude-api-structured-outputs-tool-use.jpg","imageSource":"https://platform.claude.com/docs/en/build-with-claude/structured-outputs","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Guaranteed JSON From Claude: Two Native API Patterns That Never Need a Retry Loop | AI News"}],["$","meta","1",{"name":"description","content":"The Claude API has two orthogonal structured-output patterns: output_config JSON schema mode constrains Claude's text response; strict:true on tool definitions guarantees schema-valid tool inputs."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-08-06-08-claude-api-structured-outputs-tool-use/"}],["$","meta","3",{"property":"og:title","content":"Guaranteed JSON From Claude: Two Native API Patterns That Never Need a Retry Loop"}],["$","meta","4",{"property":"og:description","content":"The Claude API has two orthogonal structured-output patterns: output_config JSON schema mode constrains Claude's text response; strict:true on tool definitions guarantees schema-valid tool inputs."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-08-06-08-claude-api-structured-outputs-tool-use/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-06-08-claude-api-structured-outputs-tool-use.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Guaranteed JSON From Claude: Two Native API Patterns That Never Need a Retry Loop"}],["$","meta","13",{"name":"twitter:description","content":"The Claude API has two orthogonal structured-output patterns: output_config JSON schema mode constrains Claude's text response; strict:true on tool definitions guarantees schema-valid tool inputs."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-06-08-claude-api-structured-outputs-tool-use.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

@@ -1,0 +1,76 @@
+1:"$Sreact.fragment"
+2:I[68977,["9153","static/chunks/9153-c226a6a89a200c15.js","1437","static/chunks/1437-7b0183160a7b945d.js","7177","static/chunks/app/layout-5303e0f970e960e2.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/1f54c84255ccf44e-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/5fb5c05ff73c0616-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/61d96c4884191721-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/6ad0344ed98ac2e9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/b0bb26939bb40fdb-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","style"]
+0:{"P":null,"b":"IqKWM4UwqXmwxod5P6FUu","p":"https://cloudcodetree.com","c":["","ai-news","2026-08-25-01-axe-core-audit-ai-generated-ui",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-08-25-01-axe-core-audit-ai-generated-ui","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_d55552 __variable_fe51c3 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_d55552","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-08-25-01-axe-core-audit-ai-generated-ui","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[42155,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+11:I[82566,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+12:Td02,**TL;DR: AI-generated UI reliably passes visual review and fails accessibility audit. Install the axe-core Claude Code skill to catch violations in the same turn Claude Code writes the component.**
+
+**What you will be able to do after this:**
+- Automatically scan every AI-generated component for WCAG 2.2 violations before committing
+- Feed axe-core output back into Claude Code so it fixes violations in the same session
+- Know exactly where automated scanning stops and what still needs human eyes
+
+**Three things to know up front:**
+1. Automated scanners like axe-core catch 30–50% of WCAG 2.2 success criteria — mainly color contrast, missing labels, and structural errors. Keyboard flow, reading order, and cognitive-load issues usually need a human pass.
+2. The most consistent failures in Claude Design and Claude Code-generated UI: `<button>` elements without accessible names, generated color palettes below 4.5:1 contrast ratio, and `outline: none` in generated CSS that removes focus rings entirely.
+3. Running `jest-axe` in component tests gives you a baseline scan on every PR without spinning up a browser.
+
+**Walk-through:**
+
+Install the community skill:
+```bash
+claude skill install airowe/claude-a11y-skill
+```
+
+Run the audit on a component file:
+```
+/a11y-audit src/components/Button.tsx
+```
+
+The skill runs axe-core (Deque's engine) and jsx-a11y (static JSX lint rules), feeds the violation list back into context, and Claude Code proposes targeted fixes in the same turn. Typical output:
+
+```
+axe-core: 3 violations
+  [critical] Button: missing accessible name (aria-label or text content)
+  [serious]  Color contrast: 3.2:1 (target: 4.5:1) on .badge-text
+  [moderate] Focus indicator: outline removed on .btn-primary:focus
+```
+
+For a broader sweep before merging a feature:
+```bash
+npx jest --testPathPattern=accessibility
+```
+
+The skill generates a jest-axe component test if you don't already have one. For full-page checks, it generates a Playwright-based audit test that runs headless.
+
+**What to do after the scan:**
+1. Feed the violation list into the same Claude Code session: "Fix the three axe violations in Button.tsx." Claude Code can address most structural and ARIA issues in one turn.
+2. After the fix, rerun `/a11y-audit` to confirm the violations are gone (Claude sometimes introduces new ones while fixing others).
+3. Do one keyboard-only navigation pass through the feature manually — tab order, focus management after modal open/close, and screen-reader label flow are outside what axe catches.
+
+**The limit to be honest about:**
+Axe finds structure. It does not find that your generated error message says "Invalid input" instead of telling the user what to enter, or that your onboarding flow requires 12 clicks where 3 would suffice. The automated pass is not a substitute for testing with assistive technology — it is a first filter that prevents the worst violations from reaching users at all.
+
+**Sources:** [airowe/claude-a11y-skill — GitHub](https://github.com/airowe/claude-a11y-skill) · [dequelabs/axe-core — GitHub](https://github.com/dequelabs/axe-core) · [I Built 33 Claude Skills to Fix the Vibe Design Accessibility Gap — Matthew Stephens, Medium](https://matthewlarn.medium.com/i-built-33-claude-skills-to-fix-the-vibe-design-accessibility-gap-a0f7f3ff1d1c)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-08-25-01-axe-core-audit-ai-generated-ui","title":"Your AI-Generated Components Have Broken Focus States and Missing ARIA — Here is How to Find Them All","excerpt":"AI design tools generate visually clean components but consistently miss focus management, color contrast, and ARIA semantics. Install the axe-core Claude Code skill to find violations automaticall…","author":"Chris Harper","date":"08-25-2026","publishedAt":"2026-08-25T04:06:00.000Z","tags":["AI","Tutorial","Design-to-Code","UI/UX"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-25-01-axe-core-audit-ai-generated-ui.jpg","imageSource":"https://github.com/airowe/claude-a11y-skill","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Your AI-Generated Components Have Broken Focus States and Missing ARIA — Here is How to Find Them All | AI News"}],["$","meta","1",{"name":"description","content":"AI design tools generate visually clean components but consistently miss focus management, color contrast, and ARIA semantics. Install the axe-core Claude Code skill to find violations automaticall…"}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-08-25-01-axe-core-audit-ai-generated-ui/"}],["$","meta","3",{"property":"og:title","content":"Your AI-Generated Components Have Broken Focus States and Missing ARIA — Here is How to Find Them All"}],["$","meta","4",{"property":"og:description","content":"AI design tools generate visually clean components but consistently miss focus management, color contrast, and ARIA semantics. Install the axe-core Claude Code skill to find violations automaticall…"}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-08-25-01-axe-core-audit-ai-generated-ui/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-25-01-axe-core-audit-ai-generated-ui.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Your AI-Generated Components Have Broken Focus States and Missing ARIA — Here is How to Find Them All"}],["$","meta","13",{"name":"twitter:description","content":"AI design tools generate visually clean components but consistently miss focus management, color contrast, and ARIA semantics. Install the axe-core Claude Code skill to find violations automaticall…"}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-25-01-axe-core-audit-ai-generated-ui.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

@@ -1,0 +1,114 @@
+1:"$Sreact.fragment"
+2:I[68977,["9153","static/chunks/9153-c226a6a89a200c15.js","1437","static/chunks/1437-7b0183160a7b945d.js","7177","static/chunks/app/layout-5303e0f970e960e2.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/1f54c84255ccf44e-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/5fb5c05ff73c0616-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/61d96c4884191721-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/6ad0344ed98ac2e9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/b0bb26939bb40fdb-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","style"]
+0:{"P":null,"b":"IqKWM4UwqXmwxod5P6FUu","p":"https://cloudcodetree.com","c":["","ai-news","2026-08-11-07-faiss-local-vector-index-python",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-08-11-07-faiss-local-vector-index-python","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_d55552 __variable_fe51c3 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_d55552","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-08-11-07-faiss-local-vector-index-python","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[42155,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+11:I[82566,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+12:Tfa6,**FAISS is Meta's open-source library for searching millions of embeddings in milliseconds — pure in-memory, no server required, and the backbone of many production RAG systems.**
+
+**What you'll be able to do after this:**
+- Build an exact-search vector index (`IndexFlatL2`) and query it in two lines of Python
+- Switch to approximate-search (`IndexIVFFlat`) when your dataset grows past ~100K vectors, with configurable speed/recall trade-off
+- Save and reload a FAISS index to disk so your embeddings survive restarts
+
+---
+
+**FAISS vs. the alternatives.** pgvector lives inside Postgres; Chroma is a persistent managed store. FAISS is neither — it's a raw, in-memory C++ library with Python bindings. That makes it the fastest option for search-heavy workloads where you control the lifecycle, and the best tool for learning how vector similarity actually works under the hood before adding a database layer.
+
+**Two indexes every ML engineer should know:**
+
+| Index | How it works | Best for |
+|---|---|---|
+| `IndexFlatL2` | Brute-force L2 distance over all vectors | <100K vectors; always exact |
+| `IndexIVFFlat` | Partitions space into `nlist` cells; searches `nprobe` cells per query | 100K–100M vectors; ~1% recall trade-off for 10–100× speed |
+
+---
+
+**Walk-through**
+
+Install:
+```bash
+pip install faiss-cpu sentence-transformers numpy
+```
+
+**Step 1: Exact search with `IndexFlatL2`**
+
+```python
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
+docs = [
+    "Claude Code runs agentic sessions in your terminal",
+    "FAISS is a C++ library for fast vector similarity search",
+    "Embeddings encode meaning as high-dimensional float arrays",
+]
+doc_vecs = model.encode(docs, normalize_embeddings=True).astype("float32")
+d = doc_vecs.shape[1]          # 384 for MiniLM
+
+index = faiss.IndexFlatL2(d)   # exact L2 distance
+index.add(doc_vecs)            # add all vectors
+print(index.ntotal)            # 3
+
+query = model.encode(["vector similarity library"], normalize_embeddings=True).astype("float32")
+D, I = index.search(query, k=2)        # top-2 results
+print([docs[i] for i in I[0]])         # → ["FAISS is a C++ library…", "Embeddings encode…"]
+```
+
+**Step 2: Approximate search with `IndexIVFFlat` for large datasets**
+
+```python
+nlist = 100                               # cluster count (rule of thumb: sqrt(N))
+quantizer = faiss.IndexFlatL2(d)         # coarse-level quantizer
+index_ivf = faiss.IndexIVFFlat(quantizer, d, nlist)
+
+index_ivf.train(doc_vecs)                # required before adding
+index_ivf.add(doc_vecs)
+index_ivf.nprobe = 10                    # search 10 cells; raise for more recall
+
+D, I = index_ivf.search(query, k=2)
+print([docs[i] for i in I[0]])
+```
+
+Tune `nprobe` up to improve recall at the cost of speed. A value of 10 gives ~99% recall on most datasets; 1 gives maximum speed.
+
+**Step 3: Save and reload**
+
+```python
+faiss.write_index(index_ivf, "my_index.faiss")
+
+# --- later ---
+index_ivf = faiss.read_index("my_index.faiss")
+index_ivf.nprobe = 10                    # nprobe isn't saved — reset it
+```
+
+Note: FAISS doesn't store your original text — keep a parallel list or database to map integer indices back to documents (`docs[I[0][0]]` in the example above).
+
+---
+
+**Go deeper.** Pinecone's [FAISS: The Missing Manual](https://www.pinecone.io/learn/series/faiss/) series covers HNSW (graph-based, production-grade), Product Quantization (compress 97% of memory), and the Index Factory — and has runnable Colab notebooks for each.
+
+**Sources:** [FAISS: The Missing Manual — Pinecone](https://www.pinecone.io/learn/series/faiss/) · [Nearest Neighbor Indexes — Pinecone](https://www.pinecone.io/learn/series/faiss/vector-indexes/) · [Official FAISS Python tutorials — GitHub](https://github.com/facebookresearch/faiss/tree/main/tutorial/python) · [FAISS Python API reference — GoLinuxCloud](https://www.golinuxcloud.com/faiss-python-api/)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-08-11-07-faiss-local-vector-index-python","title":"FAISS: Build a Lightning-Fast Local Vector Index in 15 Lines of Python","excerpt":"FAISS is Meta's in-memory vector search library — no server, no SQL, just fast nearest-neighbor lookup over millions of embeddings. Learn IndexFlatL2 and IndexIVFFlat in 15 lines of Python.","author":"Chris Harper","date":"08-11-2026","publishedAt":"2026-08-11T20:03:00.000Z","tags":["AI","Tutorial","Vectors","Embeddings","HuggingFace"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-11-07-faiss-local-vector-index-python.jpg","imageSource":"https://www.pinecone.io/learn/series/faiss/","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"FAISS: Build a Lightning-Fast Local Vector Index in 15 Lines of Python | AI News"}],["$","meta","1",{"name":"description","content":"FAISS is Meta's in-memory vector search library — no server, no SQL, just fast nearest-neighbor lookup over millions of embeddings. Learn IndexFlatL2 and IndexIVFFlat in 15 lines of Python."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-08-11-07-faiss-local-vector-index-python/"}],["$","meta","3",{"property":"og:title","content":"FAISS: Build a Lightning-Fast Local Vector Index in 15 Lines of Python"}],["$","meta","4",{"property":"og:description","content":"FAISS is Meta's in-memory vector search library — no server, no SQL, just fast nearest-neighbor lookup over millions of embeddings. Learn IndexFlatL2 and IndexIVFFlat in 15 lines of Python."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-08-11-07-faiss-local-vector-index-python/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-11-07-faiss-local-vector-index-python.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"FAISS: Build a Lightning-Fast Local Vector Index in 15 Lines of Python"}],["$","meta","13",{"name":"twitter:description","content":"FAISS is Meta's in-memory vector search library — no server, no SQL, just fast nearest-neighbor lookup over millions of embeddings. Learn IndexFlatL2 and IndexIVFFlat in 15 lines of Python."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-11-07-faiss-local-vector-index-python.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

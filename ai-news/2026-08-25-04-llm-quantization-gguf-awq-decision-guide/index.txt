@@ -1,0 +1,76 @@
+1:"$Sreact.fragment"
+2:I[68977,["9153","static/chunks/9153-c226a6a89a200c15.js","1437","static/chunks/1437-7b0183160a7b945d.js","7177","static/chunks/app/layout-5303e0f970e960e2.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/1f54c84255ccf44e-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/5fb5c05ff73c0616-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/61d96c4884191721-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/6ad0344ed98ac2e9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/b0bb26939bb40fdb-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","style"]
+0:{"P":null,"b":"IqKWM4UwqXmwxod5P6FUu","p":"https://cloudcodetree.com","c":["","ai-news","2026-08-25-04-llm-quantization-gguf-awq-decision-guide",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-08-25-04-llm-quantization-gguf-awq-decision-guide","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_d55552 __variable_fe51c3 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_d55552","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-08-25-04-llm-quantization-gguf-awq-decision-guide","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[42155,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+11:I[82566,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+12:Tb83,**TL;DR: A 70B model quantized to Q4_K_M typically outperforms a 7B at full precision — here is the format decision that fits more intelligence into the GPU budget you already have.**
+
+**What you will be able to do after this:** Choose the right quantization format for your hardware, convert any HuggingFace model to GGUF with llama.cpp, and run it locally or serve it at production throughput with AWQ on vLLM.
+
+**Three things to take away:**
+- GGUF Q4_K_M is the universal starting point — runs on CPU, Apple Silicon, NVIDIA, and AMD with ~92% of FP16 quality at 3-4x compression
+- AWQ + vLLM + Marlin kernel is for NVIDIA production: 741 tok/s vs 461 tok/s for FP16 on a 70B Qwen2.5 (per independent benchmark)
+- bitsandbytes is for training only (QLoRA fine-tuning); at 168 tok/s, it is 4x slower than AWQ and the wrong choice for inference
+
+**How to pick:**
+
+| Your setup | Format | Variant |
+|---|---|---|
+| Ollama / LM Studio / CPU | GGUF | Q4_K_M (default) |
+| NVIDIA GPU, production | AWQ | 4-bit via vLLM |
+| Fine-tuning (QLoRA) | bitsandbytes | `load_in_4bit=True` |
+
+**Convert a HuggingFace model to GGUF:**
+
+```bash
+# Build llama.cpp
+git clone https://github.com/ggerganov/llama.cpp && cd llama.cpp
+cmake -B build && cmake --build build --config Release -j
+
+# Step 1: HF model -> F16 GGUF
+python convert_hf_to_gguf.py /path/to/model --outfile model-f16.gguf --outtype f16
+
+# Step 2: quantize to 4-bit
+./build/bin/llama-quantize model-f16.gguf model-q4_k_m.gguf Q4_K_M
+
+# Step 3: run it
+./build/bin/llama-cli -m model-q4_k_m.gguf -p "Explain quantization briefly." -n 80
+```
+
+If the model already has GGUF variants on HuggingFace, skip the build step entirely:
+
+```bash
+ollama run hf.co/bartowski/Qwen2.5-72B-Instruct-GGUF:Q4_K_M
+```
+
+Use Q5_K_M if you have 6-8 GB of headroom and want higher fidelity. Stay at Q4 or above for models 70B and up — Q3 and below produce noticeable reasoning quality loss.
+
+**Where it breaks:**
+- AWQ without the Marlin kernel runs slower than FP16 baseline — verify your vLLM version includes Marlin support before using AWQ in production
+- Quantization formats cannot be losslessly converted between each other; download the format you need from the start
+- Peak memory during GGUF conversion is roughly 1.5x the final model size, not the quantized size — plan disk and RAM accordingly
+- Some reasoning-heavy models are more quantization-sensitive than others; test on your specific task before committing to a format
+
+**Sources:** [GGUF Quantization Tutorial: Run Fine-Tuned LLMs on CPU with llama.cpp](https://www.youtube.com/watch?v=vvrGfqd1oxE) (video walk-through), [LLM Quantization Guide: GGUF vs AWQ vs GPTQ vs bitsandbytes — benchmarks](https://www.premai.io/blog/llm-quantization-guide-gguf-vs-awq-vs-gptq-vs-bitsandbytes-compared-2026/) (PremAI, independent), [llama.cpp quantize README](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md) (official docs)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-08-25-04-llm-quantization-gguf-awq-decision-guide","title":"Q4_K_M or AWQ? The Quantization Decision That Fits a 70B Model Into Your Existing GPU Budget","excerpt":"Quantization lets a 70B model at 4-bit outperform a 7B at full precision. Here is the format decision: GGUF Q4_K_M for Ollama and local inference, AWQ for NVIDIA production serving with vLLM.","author":"Chris Harper","date":"08-25-2026","publishedAt":"2026-08-25T12:07:00.000Z","tags":["AI","Tutorial","Self-Hosting","Local AI"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-25-04-llm-quantization-gguf-awq-decision-guide.jpg","imageSource":"https://www.youtube.com/watch?v=vvrGfqd1oxE","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Q4_K_M or AWQ? The Quantization Decision That Fits a 70B Model Into Your Existing GPU Budget | AI News"}],["$","meta","1",{"name":"description","content":"Quantization lets a 70B model at 4-bit outperform a 7B at full precision. Here is the format decision: GGUF Q4_K_M for Ollama and local inference, AWQ for NVIDIA production serving with vLLM."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-08-25-04-llm-quantization-gguf-awq-decision-guide/"}],["$","meta","3",{"property":"og:title","content":"Q4_K_M or AWQ? The Quantization Decision That Fits a 70B Model Into Your Existing GPU Budget"}],["$","meta","4",{"property":"og:description","content":"Quantization lets a 70B model at 4-bit outperform a 7B at full precision. Here is the format decision: GGUF Q4_K_M for Ollama and local inference, AWQ for NVIDIA production serving with vLLM."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-08-25-04-llm-quantization-gguf-awq-decision-guide/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-25-04-llm-quantization-gguf-awq-decision-guide.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Q4_K_M or AWQ? The Quantization Decision That Fits a 70B Model Into Your Existing GPU Budget"}],["$","meta","13",{"name":"twitter:description","content":"Quantization lets a 70B model at 4-bit outperform a 7B at full precision. Here is the format decision: GGUF Q4_K_M for Ollama and local inference, AWQ for NVIDIA production serving with vLLM."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-25-04-llm-quantization-gguf-awq-decision-guide.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

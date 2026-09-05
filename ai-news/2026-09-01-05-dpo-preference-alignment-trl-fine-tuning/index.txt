@@ -1,0 +1,98 @@
+1:"$Sreact.fragment"
+2:I[68977,["9153","static/chunks/9153-c226a6a89a200c15.js","1437","static/chunks/1437-7b0183160a7b945d.js","7177","static/chunks/app/layout-5303e0f970e960e2.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/1f54c84255ccf44e-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/5fb5c05ff73c0616-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/61d96c4884191721-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/6ad0344ed98ac2e9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/b0bb26939bb40fdb-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","style"]
+0:{"P":null,"b":"IqKWM4UwqXmwxod5P6FUu","p":"https://cloudcodetree.com","c":["","ai-news","2026-09-01-05-dpo-preference-alignment-trl-fine-tuning",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-09-01-05-dpo-preference-alignment-trl-fine-tuning","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_d55552 __variable_fe51c3 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_d55552","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-09-01-05-dpo-preference-alignment-trl-fine-tuning","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[42155,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+11:I[82566,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+12:T10be,**TL;DR: DPO trains a model on preferred/rejected response pairs — no reward model, no RL loop needed. TRL's DPOTrainer runs on LoRA adapters in 8 lines and works on any HuggingFace causal LM.**
+
+**What you'll be able to do after this:**
+- Run preference alignment (DPO) on any HuggingFace causal LM with a LoRA adapter
+- Build a minimal preference dataset from your own domain
+- Understand when DPO adds value on top of SFT and when SFT alone is enough
+
+## Why DPO
+
+SFT teaches the model "here is the correct output" — it requires labeled ground-truth answers. DPO teaches the model "here is what's preferred" — it requires pairs of responses to the same prompt: a better one (`chosen`) and a worse one (`rejected`). DPO fits quality judgements (writing style, tone, instruction following) where you can compare two responses but can't easily produce a perfect one from scratch.
+
+The mechanism: DPO directly optimizes the policy to widen the log-likelihood margin between chosen and rejected responses, relative to a reference model, without training a separate reward model first. Computationally cheaper than RLHF; on par or better in most alignment tasks.
+
+## The dataset format
+
+Three columns — `prompt`, `chosen`, `rejected`:
+
+```python
+# Conversational format (recommended)
+example = {
+    "prompt": [{"role": "user", "content": "Explain gradient descent."}],
+    "chosen": [{"role": "assistant", "content": "Gradient descent minimizes loss by moving parameters in the direction of the negative gradient..."}],
+    "rejected": [{"role": "assistant", "content": "It's when the model learns stuff..."}],
+}
+```
+
+The `trl-lib/ultrafeedback_binarized` dataset on HuggingFace Hub is a solid public starting point (~60k pairs across diverse prompts).
+
+## 8 lines to train
+
+```python
+from trl import DPOTrainer, DPOConfig
+from datasets import load_dataset
+from peft import LoraConfig
+
+dataset = load_dataset("trl-lib/ultrafeedback_binarized", split="train")
+
+trainer = DPOTrainer(
+    "Qwen/Qwen3-0.6B",            # any causal LM by name or path
+    train_dataset=dataset,
+    peft_config=LoraConfig(),      # LoRA keeps VRAM manageable on consumer GPUs
+    args=DPOConfig(
+        beta=0.1,                  # controls deviation from reference model
+        learning_rate=1e-5,        # higher than full fine-tune (adapter params only)
+        num_train_epochs=1,
+    ),
+)
+trainer.train()
+```
+
+## Building your own preference dataset
+
+| Domain | chosen | rejected | How to label |
+|--------|--------|----------|--------------|
+| Code | passes tests | fails tests | automated test runner |
+| Writing | follows house style | ignores it | LLM-as-judge with your rubric |
+| Factual QA | verified answer | plausible but wrong | human review or retrieval |
+
+For code, test results are a free labeling signal: generate 4 responses per prompt from your SFT model, run tests, label passing as `chosen` and failing as `rejected`. Phil Schmid's walk-through on using synthetic preference data shows ~2,000 pairs yielding a 5% benchmark improvement on reasoning tasks.
+
+## When DPO beats SFT alone
+
+DPO is most useful **after** SFT, not instead of it. SFT gets the model producing plausible outputs; DPO refines the distribution toward your quality standard. DPO without SFT often produces artifacts because the reference model (the pre-trained base) is too far from the target distribution.
+
+## Limits
+
+- **Double VRAM:** DPO keeps a reference model alongside the policy during training. Use `precompute_ref_log_probs=True` to pre-compute reference log-probs and free the reference model, or Unsloth for ~70% less VRAM overall.
+- **Preference quality beats quantity.** 1,000 clean pairs typically outperform 100,000 noisy ones. Contradictory labels degrade alignment instead of improving it.
+- **Won't rescue a bad base.** DPO shifts the distribution; it doesn't rebuild a model that wasn't pre-trained or SFT'd adequately.
+
+**Sources:** [DPO Trainer — HuggingFace TRL docs](https://huggingface.co/docs/trl/main/en/dpo_trainer) · [How to align open LLMs with DPO and synthetic data — philschmid.de](https://www.philschmid.de/rl-with-llms-in-2025-dpo) · [Preference alignment — smol-course (HuggingFace)](https://github.com/huggingface/smol-course/tree/main/2_preference_alignment)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-09-01-05-dpo-preference-alignment-trl-fine-tuning","title":"You've SFT'd Your Model. Now Tell It What \"Better\" Means: DPO With TRL in 8 Lines","excerpt":"DPO trains a model on preferred/rejected response pairs — no reward model needed. TRL's DPOTrainer runs on LoRA adapters in 8 lines, anchored to the official HuggingFace TRL docs.","author":"Chris Harper","date":"09-01-2026","publishedAt":"2026-09-01T12:05:00.000Z","tags":["AI","Tutorial","Fine-Tuning","HuggingFace"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-01-05-dpo-preference-alignment-trl-fine-tuning.jpg","imageSource":"https://huggingface.co/docs/trl/main/en/dpo_trainer","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"You've SFT'd Your Model. Now Tell It What \"Better\" Means: DPO With TRL in 8 Lines | AI News"}],["$","meta","1",{"name":"description","content":"DPO trains a model on preferred/rejected response pairs — no reward model needed. TRL's DPOTrainer runs on LoRA adapters in 8 lines, anchored to the official HuggingFace TRL docs."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-09-01-05-dpo-preference-alignment-trl-fine-tuning/"}],["$","meta","3",{"property":"og:title","content":"You've SFT'd Your Model. Now Tell It What \"Better\" Means: DPO With TRL in 8 Lines"}],["$","meta","4",{"property":"og:description","content":"DPO trains a model on preferred/rejected response pairs — no reward model needed. TRL's DPOTrainer runs on LoRA adapters in 8 lines, anchored to the official HuggingFace TRL docs."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-09-01-05-dpo-preference-alignment-trl-fine-tuning/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-01-05-dpo-preference-alignment-trl-fine-tuning.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"You've SFT'd Your Model. Now Tell It What \"Better\" Means: DPO With TRL in 8 Lines"}],["$","meta","13",{"name":"twitter:description","content":"DPO trains a model on preferred/rejected response pairs — no reward model needed. TRL's DPOTrainer runs on LoRA adapters in 8 lines, anchored to the official HuggingFace TRL docs."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-01-05-dpo-preference-alignment-trl-fine-tuning.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

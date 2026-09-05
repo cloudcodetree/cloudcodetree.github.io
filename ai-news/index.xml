@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>AI News · CloudCodeTree</title>
+    <link>https://cloudcodetree.com/ai-news/</link>
+    <atom:link href="https://cloudcodetree.com/ai-news/feed.xml" rel="self" type="application/rss+xml" />
+    <description>Daily field notes on AI-assisted engineering.</description>
+    <language>en-us</language>
+    <generator>cloudcodetree generate-feeds.mjs</generator>
+    <lastBuildDate>Sat, 05 Sep 2026 16:57:31 GMT</lastBuildDate>
+  <item>
+    <title><![CDATA[Your Claude Code Context Is Burning on Skills You Never Use. /skill-doctor Shows the Bill.]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-05-05-claude-code-skill-doctor-output-caps/</link>
+    <guid isPermaLink="false">2026-09-05-05-claude-code-skill-doctor-output-caps</guid>
+    <pubDate>Sat, 05 Sep 2026 12:04:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Best Practices]]></category>
+    <description><![CDATA[Claude Code v2.1.261 adds /skill-doctor (shows unused skills and their context cost per turn) and bashOutputMaxChars/taskOutputMaxChars settings (raise inline output cap to 128K to fix truncated lo…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-05-claude-code-skill-doctor-output-caps.jpg" alt="" /></p>
+<p><strong>Every skill loaded from CLAUDE.md burns tokens every turn whether it helped or not — v2.1.261 adds a diagnostic that shows exactly which ones to cut, and a setting that stops build logs from being silently truncated.</strong></p>
+<p>Every skill listed in auto-load burns context tokens on every turn — whether it fires or not. If your session pulls in a dozen skills, most of them are probably dead weight. Run the new diagnostic:</p>
+<p>``<code>
+/skill-doctor
+</code>``</p>
+<p>The command prints a table: skill name, used or unused in this session, and its approximate context cost per turn. Drop the unused ones, or move rarely-needed skills out of global auto-load and into project-specific settings so they only load when they're relevant.</p>
+<p>The second fix is for engineers who hit silently truncated command output. When a build log or test run exceeds Claude's default inline limit, the output gets offloaded to a file — Claude reads a filename, not the actual errors. Raise the cap in <code>.claude/settings.json</code>:</p>
+<p>``<code>json
+{
+  &quot;bashOutputMaxChars&quot;: 65536,
+  &quot;taskOutputMaxChars&quot;: 65536
+}
+</code>``</p>
+<p>The maximum is 128K characters. Match it to your actual worst-case output — a full <code>jest --verbose</code> run, a <code>cargo build</code> log — and don't go higher than you need. Every command above your old cap now sends its output inline, which means Claude sees the real failure instead of a file path, but also means context cost goes up proportionally on large outputs.</p>
+<p>One more addition in v2.1.261: <code>--append-subagent-system-prompt-file &lt;path&gt;</code> reads a subagent system prompt from a file — useful when the prompt is too long to pass as a command-line argument.</p>
+<p>One limit: raising <code>bashOutputMaxChars</code> to 128K is not free — it moves 128K of characters into context on every large command, whether Claude needed to read all of it or not. Set it to what your actual failure output requires; running at the ceiling when your logs are 20K wastes context on every tool call.</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/changelog">Claude Code changelog</a> · <a href="https://ai-tldr.dev/releases/anthropic-claude-code-2-1-261/">AI/TLDR — Claude Code 2.1.261</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-05-claude-code-skill-doctor-output-caps.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-05-claude-code-skill-doctor-output-caps.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[GPT-6 Astra Opens to API: What the Pricing Means for Engineers Who Route Across Models]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-05-04-gpt6-astra-api-pricing-developer-rollout/</link>
+    <guid isPermaLink="false">2026-09-05-04-gpt6-astra-api-pricing-developer-rollout</guid>
+    <pubDate>Sat, 05 Sep 2026 12:03:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[LLM]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <description><![CDATA[GPT-6 Astra's public rollout begins today — at $10/$50/M tokens per OpenAI's stated rates, it's 3-4x the cost of current workhorse models, which defines where it fits in a multi-provider stack.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-04-gpt6-astra-api-pricing-developer-rollout.jpg" alt="" /></p>
+<p><strong>GPT-6 Astra begins its public API rollout today. Per OpenAI's stated rates: $10/$50 per million tokens — 3–4× the cost of Claude Sonnet 5 or GPT-4o — which narrows where it fits in a cost-conscious multi-provider stack.</strong></p>
+<p>GPT-6 Astra's limited-partner preview started September 3. Public rollout to Plus, Pro, Business, and Enterprise users begins today; API access follows in the coming days. Per OpenAI's stated pricing: $10/M input, $50/M output, $1/M for cached input. Batch and flex processing at half price; Fast mode at 2×. Context window: 1,050,000 tokens; max output: 128K tokens.</p>
+<p>The technical distinction: a &quot;recurrent depth&quot; reasoning technique that OpenAI says improves focus and multi-step task handling. Researchers have flagged this design as less transparent than standard chain-of-thought — internal reasoning steps are obscured, making the model harder to audit or steer.</p>
+<p>For a multi-provider routing setup: Astra's cost profile places it firmly in the premium tier — useful for hard reasoning, large-document work, and complex multi-step agents where accuracy matters more than throughput cost. At 3–4× the rate of current workhorse models (per OpenAI's and Anthropic's respective published pricing), it's not a replacement for Claude Sonnet 5 or GPT-4o on routine calls.</p>
+<p>Note: the Sep 2 post on this blog covered Astra's cybersecurity-critical rating and zero-day exploit findings. This is about the practical developer API access opening today.</p>
+<p><strong>Why it matters:</strong> The benchmark gap between frontier models is narrowing; the pricing gap isn't. Knowing which calls to route where still saves real money.</p>
+<p><strong>Sources:</strong> <a href="https://www.cnbc.com/2026/09/03/open-ai-astra-gpt-6-cyber.html">CNBC — OpenAI announces rollout of GPT-6 Astra</a> · <a href="https://9to5mac.com/2026/09/04/openai-releasing-major-upgrade-to-chatgpt-and-codex-with-gpt-6-astra-details-here/">9to5Mac — OpenAI GPT-6 Astra details</a> · <a href="https://en.wikipedia.org/wiki/GPT-6_Astra">Wikipedia — GPT-6 Astra</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-04-gpt6-astra-api-pricing-developer-rollout.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-04-gpt6-astra-api-pricing-developer-rollout.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Your Generated Components Have Hardcoded Colors — One Stylelint Rule Catches Every One]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-05-03-stylelint-design-token-enforcement-generated-css/</link>
+    <guid isPermaLink="false">2026-09-05-03-stylelint-design-token-enforcement-generated-css</guid>
+    <pubDate>Sat, 05 Sep 2026 04:05:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[Design]]></category>
+    <category><![CDATA[Design-to-Code]]></category>
+    <description><![CDATA[stylelint-declaration-strict-value flags any CSS property that uses a raw value instead of a CSS custom property — catching hardcoded colors and sizes before they land in your repo.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-03-stylelint-design-token-enforcement-generated-css.jpg" alt="" /></p>
+<p><strong>AI code generators default to concrete values (<code>#3b82f6</code>, <code>16px</code>) because token names are project-specific — a one-rule linter catches every violation and sends the list back to Claude Code to fix.</strong></p>
+<p><strong>What you'll be able to do after this:</strong> Run a single linter command that fails whenever generated CSS uses hardcoded colors, spacing, or typography values instead of your CSS custom properties — and feed the violation list to Claude Code for an automatic fix pass.</p>
+<p><strong>Three things to know:</strong>
+- Language models write what's in training data. Token names (<code>--color-primary</code>, <code>--space-4</code>) are project-specific and invisible to the model; it defaults to concrete values unless your AGENTS.md explicitly provides the mapping.
+- <code>stylelint-declaration-strict-value</code> lets you declare which CSS properties must use a variable or function — not a literal — and fails on any violation with file and line number.
+- Claude Code can consume the lint output directly: paste the failure list into a new turn and ask it to substitute the correct token names. One pass typically clears the violations.</p>
+<p><strong>Walk-through:</strong></p>
+<p>Install:
+``<code>bash
+npm install --save-dev stylelint stylelint-declaration-strict-value
+</code>``</p>
+<p>Create <code>.stylelintrc.json</code> at your project root:
+``<code>json
+{
+  &quot;plugins&quot;: [&quot;stylelint-declaration-strict-value&quot;],
+  &quot;rules&quot;: {
+    &quot;scale-unlimited/declaration-strict-value&quot;: [
+      [
+        &quot;color&quot;, &quot;background-color&quot;, &quot;border-color&quot;, &quot;fill&quot;, &quot;stroke&quot;,
+        &quot;font-size&quot;, &quot;font-family&quot;, &quot;line-height&quot;, &quot;letter-spacing&quot;,
+        &quot;gap&quot;, &quot;padding&quot;, &quot;margin&quot;, &quot;border-radius&quot;, &quot;box-shadow&quot;
+      ],
+      {
+        &quot;ignoreValues&quot;: [&quot;transparent&quot;, &quot;inherit&quot;, &quot;currentColor&quot;, &quot;unset&quot;, &quot;none&quot;, &quot;0&quot;],
+        &quot;disableFix&quot;: false
+      }
+    ]
+  }
+}
+</code>``</p>
+<p>Run against your component directory:
+``<code>bash
+npx stylelint &quot;src/**/*.css&quot; &quot;src/**/*.module.css&quot;
+</code>``</p>
+<p>Feed the violations back to Claude Code:
+```
+The following CSS declarations use raw values instead of design tokens.
+Replace each with the correct CSS custom property from our design system
+(token list in AGENTS.md). Do not change layout or structure, only substitute values.</p>
+<p>[paste stylelint output here]
+```</p>
+<p>Add it to your CI <code>package.json</code>:
+``<code>json
+&quot;scripts&quot;: {
+  &quot;lint:tokens&quot;: &quot;stylelint 'src/**/*.css' 'src/**/*.module.css'&quot;
+}
+</code>``</p>
+<p><strong>What this won't catch:</strong> inline <code>style={{}}</code> props in JSX — stylelint only parses CSS and CSS-in-JS patterns it can statically analyze. For inline styles, use an ESLint rule (<code>no-restricted-syntax</code>) targeting <code>style={{color:</code> patterns, or review them manually after a generation pass.</p>
+<p><strong>The limit:</strong> this approach enforces <em>that</em> a token is used, not <em>which</em> token. If Claude Code picks <code>--color-secondary</code> when the design calls for <code>--color-brand</code>, the linter passes. Pair it with a visual review or snapshot tests for pixel-level correctness.</p>
+<p><strong>Sources:</strong> <a href="https://github.com/nickvdyck/stylelint-declaration-strict-value">stylelint-declaration-strict-value — GitHub</a> · <a href="https://www.michaelmang.dev/blog/linting-design-tokens-with-stylelint/">Linting Design Tokens With Stylelint — Michael Mangialardi</a> · <a href="https://firefox-source-docs.mozilla.org/code-quality/lint/linters/stylelint-plugin-mozilla/rules/no-base-design-tokens.html">Mozilla no-base-design-tokens Stylelint rule</a> · <a href="https://stylelint.io/">stylelint.io</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-03-stylelint-design-token-enforcement-generated-css.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-03-stylelint-design-token-enforcement-generated-css.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Review Every Change Claude Makes, Turn by Turn: The /diff Panel]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-05-02-claude-code-diff-turn-by-turn-review/</link>
+    <guid isPermaLink="false">2026-09-05-02-claude-code-diff-turn-by-turn-review</guid>
+    <pubDate>Sat, 05 Sep 2026 04:04:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Best Practices]]></category>
+    <description><![CDATA[Claude Code v2.1.260 adds a /diff panel that shows per-turn diffs alongside the conversation in fullscreen mode — review what changed on each turn before you git add.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-02-claude-code-diff-turn-by-turn-review.jpg" alt="" /></p>
+<p><strong>Claude Code v2.1.260's /diff panel shows exactly what changed on each conversation turn — before you <code>git add</code> — so you can catch unexpected changes without digging through <code>git diff</code>.</strong></p>
+<p>Before <code>/diff</code>, the only way to review Claude Code's edits was <code>git diff HEAD</code> — which shows all uncommitted changes as one undifferentiated pile. If you ran five turns, you couldn't trace which change came from which prompt without checking git blame or manually diffing mid-session.</p>
+<p><strong>What /diff gives you:</strong></p>
+<p>In fullscreen mode (Ctrl+Shift+F), run <code>/diff</code> to open a panel beside the conversation. Two views:</p>
+<p>- <strong>Current</strong> — equivalent to <code>git diff HEAD</code>, everything uncommitted in your working directory. Use this for a final pre-commit sweep.
+- <strong>Per-turn</strong> (T1, T2, T3 …) — the diff produced by each individual conversation turn. Use ←/→ to switch between turns; each entry shows a snippet of your prompt so you remember what you asked. Use ↑/↓ to browse changed files within a turn.</p>
+<p><strong>The workflow:</strong></p>
+<p>After each significant turn, flip to the diff panel and review the per-turn view before continuing. If Claude's T3 change looks off, you can revert that file (<code>git checkout HEAD -- &lt;file&gt;</code>) and re-prompt on T4 with tighter constraints — without undoing T1 and T2's work.</p>
+<p>The per-turn view is reconstructed from conversation history, not from git, so it survives manual edits and partial <code>git add</code>. You don't need to commit between turns to maintain the per-turn record.</p>
+<p><strong>The practical habit:</strong> treat every turn as a commit proposal. Before you <code>git add</code>, scan the T-N diff to confirm the change does exactly what the prompt asked. This is especially useful for turns that touch files you didn't intend — they show up immediately in the per-turn view.</p>
+<p><strong>Limit:</strong> <code>/diff</code> only opens in fullscreen mode (Ctrl+Shift+F to toggle). If you prefer the split-pane layout, you'll need to switch modes to use the panel — it's not available inline. For inter-branch diffs or PR-scope review, you still need <code>git diff main..HEAD</code> outside the panel; the Current view is limited to <code>git diff HEAD</code>.</p>
+<p><strong>Sources:</strong> <a href="https://ccleaks.com/news/claude-code-2-1-260-sep-2026">Claude Code 2.1.260 adds /diff — ccleaks.com</a> · <a href="https://wmedia.es/en/tips/claude-code-diff-changes-per-turn">/diff in Claude Code: inspect per-turn changes — wmedia.es</a> · <a href="https://blog.vincentqiao.com/en/posts/claude-code-diff/">Claude Code /diff: See Exactly What Changed — Vincent's Blog</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-02-claude-code-diff-turn-by-turn-review.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-02-claude-code-diff-turn-by-turn-review.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Test Whether Your Agent Actually Finishes the Task: ThinkingBox + OpenAI DevDay Sept 29]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-05-01-thinkingbox-agent-reliability-devday-2026/</link>
+    <guid isPermaLink="false">2026-09-05-01-thinkingbox-agent-reliability-devday-2026</guid>
+    <pubDate>Sat, 05 Sep 2026 04:03:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Agents]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <description><![CDATA[Microsoft open-sources ThinkingBox, an agent eval sandbox that verifies actual task completion rather than self-reported success. OpenAI DevDay is September 29 in San Francisco.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-01-thinkingbox-agent-reliability-devday-2026.jpg" alt="" /></p>
+<p><strong>Two items for engineers building agents: a benchmark that checks what your agent actually changed in the database, and a developer conference worth watching on September 29.</strong></p>
+<p><strong>Microsoft ThinkingBox (released Aug 19, open source):</strong> An eval sandbox for testing AI agents on business-process tasks — order processing, inventory updates, scheduling. The key distinction: instead of grading an agent on what it <em>says</em> it did, ThinkingBox checks what it actually changed in a connected database. Microsoft tested 12 models across 507 tasks spanning five business domains; pass rates varied widely among models that look equivalent on standard coding benchmarks. Available at <a href="https://github.com/microsoft/thinkingbox">github.com/microsoft/thinkingbox</a>.</p>
+<p><strong>Why it matters:</strong> Claim-vs-result divergence is the most common failure pattern in production business agents. If you're choosing a model for a workflow that writes to a real system, running candidates through ThinkingBox on representative tasks gives you actual completion rates rather than benchmark proxy scores.</p>
+<p><strong>OpenAI DevDay 2026:</strong> September 29 at Fort Mason, San Francisco. In-person applications are closed; the opening keynote will be livestreamed. First year the conference adds satellite DevDay Exchange events in eight cities (Bengaluru, Tokyo, Seoul, Paris, Berlin, London, São Paulo, Mexico City). Historically the venue for significant API and platform announcements.</p>
+<p><strong>Sources:</strong> <a href="https://devblogs.microsoft.com/foundry/build-2026-open-trust-stack-ai-agents/">ThinkingBox — Microsoft Foundry Blog</a> · <a href="https://github.com/microsoft/thinkingbox">ThinkingBox — github.com/microsoft/thinkingbox</a> · <a href="https://openai.com/index/devday-2026/">OpenAI DevDay 2026</a> · <a href="https://coindesk.cc/microsoft-introduces-thinkingbox-to-assess-ai-agent-reliability-104438.html">ThinkingBox agent reliability — CoinDesk</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-01-thinkingbox-agent-reliability-devday-2026.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-05-01-thinkingbox-agent-reliability-devday-2026.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Direct Edit, Targeted Regen, Full Restart: Which Claude Design Move to Make]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-04-09-claude-design-regenerate-vs-edit-decision/</link>
+    <guid isPermaLink="false">2026-09-04-09-claude-design-regenerate-vs-edit-decision</guid>
+    <pubDate>Fri, 04 Sep 2026 20:04:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Design]]></category>
+    <category><![CDATA[Claude Design]]></category>
+    <description><![CDATA[Claude Design has three iteration modes with different costs and consistency risks — reaching for full regen when a slider works wastes both.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-09-claude-design-regenerate-vs-edit-decision.jpg" alt="" /></p>
+<p><strong>Claude Design has three iteration modes with different costs and consistency risks — reaching for full regen when a slider works wastes both.</strong></p>
+<p>When something's wrong in a generated screen, the instinct is to re-prompt. That's often the wrong move — not just for tokens, but because each full regeneration means every previous design decision can shift.</p>
+<p><strong>Three modes, ordered from cheapest to most disruptive:</strong></p>
+<p><strong>1. Direct editing</strong> — inline text editing, property sliders (spacing, color, radius), and element manipulation — costs nothing and consumes no tokens. Use this for cosmetic fixes: wrong label, off-brand color, too much padding. The change applies to the selected element; everything else stays.</p>
+<p><strong>2. Targeted element regeneration</strong> — select a component and prompt Claude Design to rework it alone. Use this when a component's <em>structure</em> is wrong but the rest of the screen is right: the nav uses the wrong pattern, the card layout doesn't match your system. Targeted regen keeps the page as the anchor and regenerates only the selected piece.</p>
+<p><strong>3. Full page regeneration</strong> — re-prompting the whole screen. Reserve this for when the page's layout <em>premise</em> is wrong: wrong column count, wrong hierarchy, wrong primary action placement. Everything you've already refined goes with it.</p>
+<p><strong>The decision:</strong>
+- Something looks off, structure is right → direct edit (slider or inline)
+- One component is the wrong shape → targeted element regen
+- The page doesn't do what a user needs → full regen</p>
+<p>The common failure is using targeted or full regen for problems a slider would fix. Those trigger generation — and generation means your previous decisions can drift. Sliders don't.</p>
+<p><strong>Limit</strong>: direct editing works on what's already generated. For a fundamentally different approach, regeneration is the only path — but arrive there only after ruling out the cheaper modes.</p>
+<p><strong>Sources:</strong> <a href="https://salesdorado.com/en/ai/review-claude-design/">Claude Design review, iteration modes — Salesdorado</a> · <a href="https://designproject.io/blog/claude-design-workflow/">Claude Design workflow — designproject.io</a> · <a href="https://artofstyleframe.com/blog/claude-for-designers-2026/">Claude for designers in 2026 — artofstyleframe.com</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-09-claude-design-regenerate-vs-edit-decision.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-09-claude-design-regenerate-vs-edit-decision.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Fable 5.1 Calls Your Agent's Tools One at a Time — Fix It With One Sentence]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-04-08-fable-51-agent-loop-batch-nudge/</link>
+    <guid isPermaLink="false">2026-09-04-08-fable-51-agent-loop-batch-nudge</guid>
+    <pubDate>Fri, 04 Sep 2026 20:03:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Agents]]></category>
+    <category><![CDATA[Best Practices]]></category>
+    <description><![CDATA[In Fable 5.1 coding agents, implied-independent calls may serialize. A one-sentence turn-scoped message appended after each tool batch restores parallel execution.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-08-fable-51-agent-loop-batch-nudge.jpg" alt="" /></p>
+<p><strong>In Fable 5.1 coding agents, implied-independent calls may serialize instead of batching. A one-sentence turn-scoped system message appended after each tool batch restores parallel execution.</strong></p>
+<p>Fable 5.1 batches tool calls reliably when your request names what to fetch. The exception is coding agents and bash-and-editor harnesses where the next reads are <em>implied</em> by the task — there it may issue them one per turn instead of together. No quality loss, but each extra turn costs tokens, a round trip, and wall-clock time in a loop that can run dozens of turns.</p>
+<p><strong>The fix:</strong> append this sentence after each tool-result batch:</p>
+<p>``<code>
+First privately list what you need next; then request every item that doesn't depend on another's result in this one response.
+</code>``</p>
+<p>Deliver it as a turn-scoped system message — a <code>role: &quot;system&quot;</code> entry with <code>clear_at: &quot;next_user_message&quot;</code> (beta header: <code>mid-conversation-system-clear-at-2026-08-21</code>). Append a fresh copy after each tool-result batch; leave old copies in the array byte-for-byte. Once cleared, they cost zero input tokens and the model doesn't see them. <strong>Do not edit or delete them</strong>: that restarts the prompt cache from that point and invalidates the thinking blocks that follow.</p>
+<p>Without the beta flag, place the sentence in a <code>text</code> block inside the user message that carries the <code>tool_result</code> blocks — same turn, after the results.</p>
+<p><strong>This is different from <code>disable_parallel_tool_use</code></strong>, which intentionally forces one call per turn for pipelines that need to inspect or rate-limit each result. The nudge is for loops where calls are structurally independent but the model isn't batching them on its own.</p>
+<p><strong>Limit</strong>: the nudge works for implied-independent calls in agentic loops. Calls with genuine ordering dependencies — where each result determines the next call — can't be parallelized regardless of the prompt.</p>
+<p><strong>Sources:</strong> <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1#batch-independent-tool-calls-in-agent-loops">Batch independent tool calls — Anthropic Fable 5.1 prompting guide</a> · <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1">Prompting Claude Fable 5.1 (full guide) — Anthropic</a> · <a href="https://www.arturmarkus.com/anthropic-cuts-fable-5-1-cache-reads-75-to-0-25-m-and-breaks-three-prompt-patterns-developers-rely-on/">Three Fable 5.1 patterns that break existing agents — AI Unfiltered</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-08-fable-51-agent-loop-batch-nudge.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-08-fable-51-agent-loop-batch-nudge.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Give Claude Design a Brand Brief Before Screen One — Here's What to Include]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-04-07-claude-design-project-description-brand-brief/</link>
+    <guid isPermaLink="false">2026-09-04-07-claude-design-project-description-brand-brief</guid>
+    <pubDate>Fri, 04 Sep 2026 12:07:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Design]]></category>
+    <category><![CDATA[Claude Design]]></category>
+    <description><![CDATA[Claude Design's default output is competent but generic. Front-loading component names, color roles, type scale, and negatives into your project description prevents the generation-by-generation ae…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-07-claude-design-project-description-brand-brief.jpg" alt="" /></p>
+<p><strong>Claude Design's default output is competent but generic. Front-loading component names, color roles, type scale, and explicit negatives into your project description prevents the generation-by-generation aesthetic fight.</strong></p>
+<p>When you open a new Claude Design project and write &quot;SaaS dashboard&quot; as your prompt, you get a SaaS dashboard — with the right sections, the right density, and buttons that look like nobody on your team approved them. The fix, &quot;make it look more like our product,&quot; costs 3–5 correction rounds per screen and still doesn't converge, because each regeneration starts fresh from Claude's generic defaults (<a href="https://designproject.io/blog/claude-design-workflow/">Claude Design workflow — The Design Project</a>).</p>
+<p>The upstream fix is a project description that seeds every generation with your system. Practitioners report that Claude Design's project description persists as background context across generations — what you put there shapes every screen, not just the first.</p>
+<p><strong>What to include (10–15 lines is enough):</strong></p>
+<p>```
+Component conventions:
+- Buttons: filled/outlined/text variant pattern. Filled: #3B82F6 bg, white text.
+- Cards: 8px radius. No drop shadow. 1px border #E2E8F0.
+- Inputs: 40px height. 1px border, #3B82F6 on focus. Label above.</p>
+<p>Color roles:
+- Primary: #3B82F6. Surface: #1E293B. Text: #F1F5F9.
+- No additional colors. No gradients.</p>
+<p>Type scale: headings 24/20/16px. Body 14px. Never under 12px.</p>
+<p>Layout: 1280px max width. 12-column grid, 24px gutter.</p>
+<p>Negatives: no decorative illustrations. No rounded avatars with initials placeholders.
+No glassmorphism. No drop shadows on non-card elements.
+```</p>
+<p>The negatives matter as much as the positives. Without them, Claude Design fills unspecified gaps with visually consistent defaults that look fine in isolation but fight your system the moment they appear next to real components.</p>
+<p><strong>Sequencing with other techniques:</strong> This project description sets stylistic consistency. It does not make Claude Design component-aware — generated screens will still use generic <code>&lt;div class=&quot;btn-primary&quot;&gt;</code> rather than your <code>&lt;Button variant=&quot;primary&quot;&gt;</code>. For component-name accuracy across screens, pair this with the component inventory step (post [2026-09-04-04](/ai-news/2026-09-04-04-claude-design-multi-screen-component-inventory)) and the substitution pass (post [2026-09-04-05](/ai-news/2026-09-04-05-claude-design-generic-to-component-substitution)). The project description reduces aesthetic drift; the inventory and substitution steps handle component accuracy.</p>
+<p><strong>The limit:</strong> A project description is static context — it doesn't update when your design system evolves. Treat it like a constraint file: review and update it whenever you change your token values or component API. Stale constraints produce subtly wrong output, and because the description isn't visible in each prompt, the drift is harder to diagnose.</p>
+<p><strong>Sources:</strong> <a href="https://designproject.io/blog/claude-design-workflow/">Claude Design workflow — The Design Project</a> · <a href="https://www.productcompass.pm/p/claude-design-product-discovery">From Weeks to Hours: Claude Design Compresses Product Discovery — Product Compass</a> · <a href="https://academy.claude.com/tutorials/using-claude-design-for-prototypes-and-ux">Using Claude Design for prototypes and UX — Claude Academy</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-07-claude-design-project-description-brand-brief.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-07-claude-design-project-description-brand-brief.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Your MCP Server Is Already a LangChain Tool: Wire It Into a LangGraph Agent With MCPAdapter]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-04-06-langchain-mcp-adapter-agent-tools/</link>
+    <guid isPermaLink="false">2026-09-04-06-langchain-mcp-adapter-agent-tools</guid>
+    <pubDate>Fri, 04 Sep 2026 12:06:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[MCP]]></category>
+    <category><![CDATA[Agents]]></category>
+    <description><![CDATA[LangChain 1.4.0 alpha ships MCPAdapter — wrap any MCP server URL or local script as a LangGraph agent tool in five lines, with cached tool discovery and multi-server support via MCPClientGroup.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-06-langchain-mcp-adapter-agent-tools.jpg" alt="" /></p>
+<p><strong>LangChain 1.4.0 alpha ships <code>langchain.mcp.MCPAdapter</code> — drop in any MCP server URL or local script and your LangGraph agent discovers and calls its tools without a custom wrapper.</strong></p>
+<p>The MCP-to-LangChain gap previously required either a bespoke integration or a separate client library with its own connection management. LangChain 1.4.0-alpha.3 ships a new <code>langchain.mcp</code> namespace that handles connection, tool discovery, and schema translation automatically (<a href="https://releasebot.io/updates/langchain-ai">LangChain release notes — Releasebot</a>).</p>
+<p>```python
+from langchain.mcp import MCPAdapter
+from langgraph.prebuilt import create_react_agent</p>
+<p># Accepts a URL, a local script path, an in-process server, or an MCPConfig
+adapter = MCPAdapter(&quot;http://localhost:8080/mcp&quot;)
+tools = await adapter.list_tools()   # discovers + adapts all server tools</p>
+<p>agent = create_react_agent(&quot;claude-sonnet-5&quot;, tools)
+result = await agent.ainvoke({&quot;messages&quot;: [(&quot;user&quot;, &quot;your query here&quot;)]})
+```</p>
+<p>Tool discovery is cached by default — <code>await adapter.list_tools(refresh=True)</code> repopulates it if a server changes without restarting your process.</p>
+<p>For a fleet of servers, <code>MCPClientGroup</code> aggregates them behind one client:</p>
+<p>```python
+from langchain.mcp import MCPClientGroup</p>
+<p>group = MCPClientGroup({
+    &quot;db&quot;:     &quot;http://localhost:8080/mcp&quot;,
+    &quot;search&quot;: &quot;http://localhost:8090/mcp&quot;,
+})
+all_tools = await group.list_tools()   # one list from all servers
+agent = create_react_agent(&quot;claude-sonnet-5&quot;, all_tools)
+```</p>
+<p>This is particularly useful when you have multiple Claude Code MCP servers — the file-access server, the internal-API server, the DB query server — and want to combine them inside a LangGraph agent without writing a custom fan-out layer.</p>
+<p><strong>Two limits to know upfront:</strong></p>
+<p>1. <strong>This is 1.4.0-alpha.</strong> The <code>langchain.mcp</code> interface will shift before the final release. Pin the exact alpha version in your lockfile and watch the <a href="https://github.com/langchain-ai/langchain/releases">LangChain releases</a> before upgrading. Don't build production dependencies on an alpha API.</p>
+<p>2. <strong>stdio servers need an HTTP wrapper.</strong> <code>MCPAdapter</code> expects a network endpoint (HTTP/SSE). If your MCP server runs as a local subprocess (stdio transport), you need to expose it over HTTP first — a small FastAPI wrapper around your stdio session is the standard pattern, and Claude Code's own managed MCP servers already enforce this for the same reason.</p>
+<p><strong>Sources:</strong> <a href="https://releasebot.io/updates/langchain-ai">LangChain 1.4.0 release notes — Releasebot</a> · <a href="https://latenode.com/blog/ai-frameworks-technical-infrastructure/langchain-setup-tools-agents-memory/langchain-mcp-integration-complete-guide-to-mcp-adapters">LangChain MCPAdapter complete guide — Latenode</a> · <a href="https://www.getknit.dev/blog/integrating-mcp-with-popular-frameworks-langchain-openagents">MCP vs LangChain Tools — getknit.dev</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-06-langchain-mcp-adapter-agent-tools.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-06-langchain-mcp-adapter-agent-tools.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[After Claude Design, Before Claude Code: Replace Generic HTML With Your Real Components in One Pass]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-04-05-claude-design-generic-to-component-substitution/</link>
+    <guid isPermaLink="false">2026-09-04-05-claude-design-generic-to-component-substitution</guid>
+    <pubDate>Fri, 04 Sep 2026 12:05:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[Design]]></category>
+    <category><![CDATA[Claude Design]]></category>
+    <description><![CDATA[Claude Design outputs generic HTML. Before handing it to Claude Code, run one substitution pass that maps every div/button/input to your actual design system components — or Claude Code builds feat…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-05-claude-design-generic-to-component-substitution.jpg" alt="" /></p>
+<p><strong>Before Claude Code starts adding features, run one substitution pass that replaces Claude Design's generic HTML with your actual design system components — otherwise Claude Code builds around the generics and you pay to fix them later.</strong></p>
+<p><strong>What you'll be able to do after this:</strong> Run a single pre-handoff prompt that maps every generic HTML element to the closest component in your library, before any feature code accumulates.</p>
+<p>Claude Design generates valid, styled markup, but it doesn't know your component library. Its output uses <code>&lt;div class=&quot;card&quot;&gt;</code>, <code>&lt;button class=&quot;btn-primary&quot;&gt;</code>, <code>&lt;input placeholder=&quot;Search&quot;&gt;</code>. Your codebase has <code>&lt;Card&gt;</code>, <code>&lt;Button variant=&quot;primary&quot;&gt;</code>, <code>&lt;SearchInput&gt;</code>. If you hand that file directly to Claude Code and ask it to add feature logic, it writes the feature around the generic elements. Refactoring later costs a full re-review of everything Claude Code touched (<a href="https://www.designsystemscollective.com/from-prompt-to-production-a-designers-step-by-step-workflow-with-claude-design-claude-code-a7705daad026">From Prompt to Production — Design Systems Collective</a>).</p>
+<p><strong>The substitution prompt — paste this into a Claude Code session after staging the generated file:</strong></p>
+<p>``<code>
+Look at [generated-file.tsx]. Compare every div, button, input, anchor,
+and paragraph to the components in src/components/. For each element that
+maps cleanly to a named component — same role, compatible props — make the
+substitution. Preserve all layout classes, spacing, and event stubs exactly.
+Do not change behavior. Stop if a mapping is ambiguous; list what you
+couldn't map and why.
+</code>``</p>
+<p><strong>Three-step walk-through:</strong></p>
+<p>1. <strong>Stage the export.</strong> Copy your Claude Design export into a temporary file at <code>src/screens/generated-[feature].tsx</code> — not directly into your component tree.
+2. <strong>Run the substitution pass.</strong> Expect 80–90% of elements to map cleanly on a well-maintained component library. Review the ambiguous list manually; &quot;ambiguous&quot; usually means a layout primitive that has no component equivalent, which is correct behavior.
+3. <strong>Commit the substituted file.</strong> Now hand it to Claude Code for feature work. Everything Claude Code touches from this point forward is already in your component vocabulary.</p>
+<p><strong>The limit:</strong> The substitution pass handles clear 1:1 analogues. Highly composed layouts — hero sections, complex data grids, multi-level navigation — often contain patterns without a single matching component. The prompt will tell you what it couldn't map; those are the decisions to make manually before proceeding. Don't re-run the substitution pass after feature code accumulates — the ordering matters.</p>
+<p><strong>Pair this with:</strong> the component inventory technique from [this morning's post](/ai-news/2026-09-04-04-claude-design-multi-screen-component-inventory) (keep components consistent across screens) and the project description technique from [today's design post](/ai-news/2026-09-04-07-claude-design-project-description-brand-brief) (seed stylistic consistency upfront). The substitution pass is the bridge between them.</p>
+<p><strong>Sources:</strong> <a href="https://www.designsystemscollective.com/from-prompt-to-production-a-designers-step-by-step-workflow-with-claude-design-claude-code-a7705daad026">From Prompt to Production: A Designers Step-by-Step Workflow with Claude Design + Claude Code — Design Systems Collective</a> · <a href="https://designproject.io/blog/claude-design-workflow/">Claude Design workflow — The Design Project</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-05-claude-design-generic-to-component-substitution.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-05-claude-design-generic-to-component-substitution.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Claude Design Reinvents Your Button on Screen Two — Here's How to Stop It]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-04-04-claude-design-multi-screen-component-inventory/</link>
+    <guid isPermaLink="false">2026-09-04-04-claude-design-multi-screen-component-inventory</guid>
+    <pubDate>Fri, 04 Sep 2026 04:12:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Design]]></category>
+    <category><![CDATA[Claude Design]]></category>
+    <description><![CDATA[When designing multiple screens in Claude Design, extract a component inventory after screen one and paste it as a constraint in subsequent prompts — this keeps choices consistent across regenerati…]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-04-claude-design-multi-screen-component-inventory.jpg" alt="" /></p>
+<p><strong>When designing multiple screens in Claude Design, extract a brief component inventory after screen one and paste it as a constraint in your next prompt — that is the one technique that consistently keeps component choices stable across regenerations.</strong></p>
+<p>AI design tools generate fast but forget. Between two prompts, Claude Design can produce the same feature twice with different button heights, different spacing rhythms, and different card styles — each direction internally consistent, but inconsistent with each other. Practitioners working on multi-step flows report that multi-screen continuity requires deliberate prompting rather than following automatically from shared context (<a href="https://techglock.com/blog/ai-in-design-what-actually-ships-in-mid-2026-and-what-still-falls-apart">AI in Design Mid-2026 — Techglock</a>).</p>
+<p><strong>The pattern:</strong></p>
+<p>After generating screen one, before moving to screen two, write a brief component inventory — the 10–15 specific choices Claude Design just made:</p>
+<p>``<code>
+COMPONENT INVENTORY (from screen 1 — do not change these):
+- Primary button: 44px height, full-width on mobile, label &quot;Continue&quot;
+- Card: 16px padding, 8px border-radius, 1px border #E2E8F0
+- Heading: 24px / semibold / no letter-spacing
+- Input: 40px height, label above, 4px gap
+- Section spacing: 24px between sections, 16px within
+</code>``</p>
+<p>Open your screen two prompt with: &quot;Match the component inventory above exactly. Do not introduce new visual patterns.&quot;</p>
+<p><strong>Why this works instead of longer initial prompts:</strong> Each regeneration is a fresh generation with the existing artboard as visual context — not a continuation of state. The inventory is what carries the decisions across. A longer initial prompt helps screen one; it doesn't bind screen two.</p>
+<p><strong>Limit:</strong> The inventory won't stabilize genuinely different layout structures — a data table, a map view, or a dense multi-column grid will pull in new components regardless. Mark those explicitly: &quot;NEW COMPONENT: data table — all other components match inventory above.&quot; Claude Design treats only the marked element as novel and holds everything else.</p>
+<p><strong>Sources:</strong> <a href="https://techglock.com/blog/ai-in-design-what-actually-ships-in-mid-2026-and-what-still-falls-apart">AI in Design Mid-2026 — Techglock</a> · <a href="https://support.claude.com">Claude Design guides — support.claude.com</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-04-claude-design-multi-screen-component-inventory.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-04-claude-design-multi-screen-component-inventory.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Is Your System Prompt Actually Being Cached? `/cost` Now Shows the Hit Ratio]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-04-03-claude-code-cost-cache-hit-ratio-visibility/</link>
+    <guid isPermaLink="false">2026-09-04-03-claude-code-cost-cache-hit-ratio-visibility</guid>
+    <pubDate>Fri, 04 Sep 2026 04:11:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[Best Practices]]></category>
+    <description><![CDATA[The /cost command in Claude Code now shows a per-session cache line — hit ratio, misses, and warm vs cold token counts — so you can verify in real time whether your system prompt is landing in cache.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-03-claude-code-cost-cache-hit-ratio-visibility.jpg" alt="" /></p>
+<p><strong>The <code>/cost</code> command in Claude Code now shows a per-session cache line — hit ratio, misses, and warm vs cold token counts — the first direct way to verify in real time whether your system prompt is landing in cache or being re-sent on every turn.</strong></p>
+<p>Running <code>/cost</code> in a Claude Code session now returns a line like:</p>
+<p>``<code>
+Cache: 52% hit ratio · 2 misses · 38k tokens re-cached (warm 34k / cold 4k)
+</code>``</p>
+<p>Before this, the only signal that your cache was being invalidated was an unexpectedly large bill. Now you can see it per session.</p>
+<p><strong>What the numbers mean:</strong></p>
+<p>- <strong>Hit ratio below 80%:</strong> the cache is being invalidated between turns. Common causes: an MCP server whose tool definitions change on each connection, a hook that writes a timestamp into the system prompt, or (now fixed in recent builds) OAuth token refreshes that cleared the entire prefix hourly.
+- <strong>Cold tokens:</strong> charged at full input rates. On Sonnet 5, $2/MTok.
+- <strong>Warm tokens:</strong> served from cache. On Sonnet 5, $0.20/MTok — one-tenth the price.</p>
+<p><strong>Tuning cache lifetime with <code>promptCacheTtl</code>:</strong></p>
+<p>If your sessions run longer than the default 5-minute cache window, a new setting extends it:</p>
+<p>``<code>json
+// .claude/settings.json
+{
+  &quot;promptCacheTtl&quot;: 3600,
+  &quot;subagentPromptCacheTtl&quot;: 300
+}
+</code>``</p>
+<p><code>subagentPromptCacheTtl</code> is separate — useful when you run many short-lived subagents sharing the same context. A shorter value there (e.g. 300s) reduces the cost of re-warming on each agent call.</p>
+<p><strong>Limit:</strong> <code>promptCacheTtl</code> only extends the window; it does not prevent invalidation. If content inside the cache prefix is changing between turns — tool definitions, system prompt content, MCP server output — a longer TTL won't help. Diagnose with <code>/cost</code> first: if the hit ratio is low, find and stabilize what's changing before adjusting the TTL.</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/changelog">Claude Code changelog — code.claude.com/docs/en/changelog</a> · <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching">Prompt caching — Anthropic docs</a> · <a href="https://claudefa.st/blog/guide/mechanics/context-management">Claude Code context management — claudefa.st</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-03-claude-code-cost-cache-hit-ratio-visibility.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-03-claude-code-cost-cache-hit-ratio-visibility.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Sonnet 5 Stays at $2/$10 — The September 1 Price Increase Will Not Happen]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-04-02-sonnet-5-price-locked-no-september-increase/</link>
+    <guid isPermaLink="false">2026-09-04-02-sonnet-5-price-locked-no-september-increase</guid>
+    <pubDate>Fri, 04 Sep 2026 04:10:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[LLM]]></category>
+    <category><![CDATA[Best Practices]]></category>
+    <description><![CDATA[Anthropic has made Claude Sonnet 5's $2/$10 per MTok launch pricing permanent. The previously scheduled September 1 increase to $3/$15 will not occur.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-02-sonnet-5-price-locked-no-september-increase.jpg" alt="" /></p>
+<p><strong>Anthropic has made Claude Sonnet 5's $2/$10 per MTok launch pricing permanent — the scheduled September 1 increase to $3/$15 per million input/output tokens will not occur, per the <a href="https://platform.claude.com/docs/en/about-claude/pricing">official pricing docs</a>.</strong></p>
+<p>The pricing was announced at Sonnet 5's launch as introductory through August 31, 2026. It is now the standard price indefinitely. Batch processing remains at $1/$5 per MTok (50% discount). Cache reads stay at $0.20/MTok (0.1x the input rate).</p>
+<p>One limit to factor into cost comparisons: Anthropic reports that Sonnet 5 and later models use a newer tokenizer that produces approximately 30% more tokens for the same text compared to Sonnet 4.6 and earlier. At $2/MTok with ~30% more tokens, the effective cost for the same payload isn't a direct drop from $3/MTok at the old token count. Run a sample through both models before assuming Sonnet 5 is cheaper for your specific workload.</p>
+<p><strong>Why it matters:</strong> Cost projections built for Sonnet 5 through Q4 don't need updating. If you were holding back Sonnet 5 adoption pending the price increase, that reason is gone.</p>
+<p><strong>Sources:</strong> <a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic pricing — platform.claude.com</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-02-sonnet-5-price-locked-no-september-increase.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-02-sonnet-5-price-locked-no-september-increase.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Your Pipeline Already Speaks OpenAI — Point It at Fireworks AI to Run 250+ Open Models in One Swap]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-04-01-fireworks-ai-open-model-inference-api/</link>
+    <guid isPermaLink="false">2026-09-04-01-fireworks-ai-open-model-inference-api</guid>
+    <pubDate>Fri, 04 Sep 2026 04:09:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <category><![CDATA[Cloud]]></category>
+    <description><![CDATA[Fireworks AI exposes 250+ open-weight models behind an OpenAI-compatible endpoint — change one URL and one model string, the rest of your pipeline stays the same.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-01-fireworks-ai-open-model-inference-api.jpg" alt="" /></p>
+<p><strong>TL;DR: Fireworks AI exposes 250+ open-weight models (Llama 4, Qwen 3.7, DeepSeek V4) behind an OpenAI-compatible endpoint — change one URL and one model string, the rest of your pipeline stays the same.</strong></p>
+<p><strong>What you'll be able to do after this:</strong> route any prompt through Llama 4, Qwen 3.7, or DeepSeek without rewriting your pipeline, switch models by changing a string, and run cost-sensitive tasks on a model at $0.30/MTok instead of $2/MTok.</p>
+<p><strong>Three things to know first:</strong>
+- Fireworks claims its disaggregated prefill/decode architecture reduces latency on large models — per Fireworks' own benchmarks; verify with your specific payload before committing production traffic.
+- Free accounts start with a low requests-per-minute ceiling. Adding a payment method raises it, but both per-account and per-model token-per-minute limits apply — plan for rate-limit retries in production.
+- The API is compatible with the OpenAI Python SDK and, via <code>base_url</code>, with the Anthropic SDK.</p>
+<p><strong>Setup (3 steps):</strong></p>
+<p>1. Get an API key at <code>fireworks.ai</code> (free tier works for testing).
+2. <code>pip install openai</code> if you don't have it.
+3. Swap the base URL:</p>
+<p>```python
+from openai import OpenAI</p>
+<p>client = OpenAI(
+    api_key=&quot;YOUR_FIREWORKS_KEY&quot;,
+    base_url=&quot;https://api.fireworks.ai/inference/v1&quot;,
+)</p>
+<p>response = client.chat.completions.create(
+    model=&quot;accounts/fireworks/models/llama-4-maverick-instruct&quot;,
+    messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Summarize this PR diff in two sentences.&quot;}],
+)
+print(response.choices[0].message.content)
+```</p>
+<p>Model IDs follow the pattern <code>accounts/fireworks/models/&lt;slug&gt;</code>. Find the full catalog at <code>fireworks.ai/models</code>.</p>
+<p><strong>Limit:</strong> Fireworks' performance figures come from Fireworks itself. There are no published independent benchmarks covering the full 250+ model catalog as of this writing. Measure your p50/p95 on your actual payload before treating their latency numbers as facts. For very short prompts with many concurrent requests, check whether per-model token-per-minute limits become the real bottleneck before blaming latency.</p>
+<p><strong>Sources:</strong> <a href="https://fireworks.ai/inference">Fireworks AI inference — fireworks.ai/inference</a> · <a href="https://flo2.com/blog/fireworks-ai-api-guide">Fireworks AI API guide — flo2.com</a> · <a href="https://docs.fireworks.ai">Fireworks docs — docs.fireworks.ai</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-01-fireworks-ai-open-model-inference-api.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-04-01-fireworks-ai-open-model-inference-api.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Meta Muse Spark 1.3 Opens API Access Today — But the Headline Benchmarks Are for the Preview Tier]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-03-09-meta-muse-spark-1-3-api-launch/</link>
+    <guid isPermaLink="false">2026-09-03-09-meta-muse-spark-1-3-api-launch</guid>
+    <pubDate>Thu, 03 Sep 2026 20:03:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[LLM]]></category>
+    <category><![CDATA[Developer Tools]]></category>
+    <description><![CDATA[Meta opened paid API access to Muse Spark 1.3 today. The available (xhigh) variant scores 61 on the Artificial Analysis index — the 75.4 DeepSWE figure is for a limited-preview (max) variant.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-09-meta-muse-spark-1-3-api-launch.jpg" alt="" /></p>
+<p><strong>Meta opened Muse Spark 1.3 API access today — the (xhigh) variant you can actually call scores 61 on the Artificial Analysis index, competitive with GPT-5.6 Sol and Grok 4.6. The 75.4 DeepSWE figure in Meta's announcement is for (max), still in limited partner preview.</strong></p>
+<p>Released September 2, paid API access opened September 3. The endpoint is OpenAI-SDK-compatible — swap base URL and model string.</p>
+<p>What you can call today is <strong>Muse Spark 1.3 (xhigh)</strong>, scoring 61 on the <a href="https://artificialanalysis.ai/articles/muse-spark-1-3">Artificial Analysis Intelligence Index</a> — behind Claude Fable 5.1 but tying GPT-5.6 Sol (max) and Grok 4.6 (high). Meta's announcement highlights 75.4% on DeepSWE 1.1 and 88.8% on Terminal-Bench 2.1, but <a href="https://the-decoder.com/meta-closes-in-on-the-top-with-muse-spark-1-3-and-undercuts-rivals-on-price/">those numbers are from <strong>(max)</strong></a>, the variant available only to Meta partners — not the tier you can access now.</p>
+<p>Standard pricing at $1.25/$4.25 per MTok ($0.15 cached input). Meta reports Spark 1.3 uses 25% fewer tokens than 1.2 on comparable tasks — their figure, unverified independently. There's also a &quot;contributor tier&quot; at $0.10/$0.20 per MTok; Meta hasn't published what limitations apply to it.</p>
+<p><strong>Why it matters:</strong> Muse Spark 1.3 (xhigh) is a credible additional option for agentic coding pipelines — OpenAI-SDK-compatible, frontier-competitive. Calibrate against the actual available variant, not the benchmarks in the press release.</p>
+<p><strong>Sources:</strong> <a href="https://artificialanalysis.ai/articles/muse-spark-1-3">Muse Spark 1.3: Meta reaches the frontier — Artificial Analysis</a> · <a href="https://the-decoder.com/meta-closes-in-on-the-top-with-muse-spark-1-3-and-undercuts-rivals-on-price/">Meta closes in on the top, undercuts rivals on price — The Decoder</a> · <a href="https://primexbt.com/news/meta-releases-muse-spark-1-3-its-most-capable-ai-model-and-opens-paid-api-access/">Meta opens paid API access — PrimeXBT</a> · <a href="https://research.meta.ai/blog/introducing-muse-spark-1-3">Introducing Muse Spark 1.3 — Meta AI Research</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-09-meta-muse-spark-1-3-api-launch.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-09-meta-muse-spark-1-3-api-launch.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[The Gap Between Claude Design and Your Codebase: When to Regenerate and When to Fix in the Editor]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-03-08-claude-design-implement-gap-regenerate-vs-edit/</link>
+    <guid isPermaLink="false">2026-09-03-08-claude-design-implement-gap-regenerate-vs-edit</guid>
+    <pubDate>Thu, 03 Sep 2026 12:12:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Design]]></category>
+    <category><![CDATA[Claude Design]]></category>
+    <description><![CDATA[Structural drift in a Claude Code implementation goes back to Claude Design. Presentational drift gets fixed in the editor. One rule separates them.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-08-claude-design-implement-gap-regenerate-vs-edit.jpg" alt="" /></p>
+<p><strong>After Claude Code implements your Claude Design artifact, the result drifts from the spec in two distinct ways. Use one rule to decide: structural problems go back to Claude Design; presentational problems get fixed in the editor.</strong></p>
+<p>Claude Code reads the design artifact — component specs, tokens, layout intent — and generates implementation code. Most of the time it's close. When it isn't, the drift falls into one of two categories.</p>
+<p><strong>Structural drift:</strong> The layout hierarchy is wrong. A sidebar renders inline. A card grid collapses to a single column. A shared sub-component is inlined where it should be extracted. These problems exist because the implementation missed the <em>structure</em> of the design intent, not its surface values. <strong>Fix: go back to Claude Design.</strong> Annotate the structural intent more precisely in the artifact (label layout containers, name component boundaries explicitly), then regenerate. Trying to patch structural drift in the editor turns into a long sequence of changes that leaves your code diverged from the design spec — and the next regeneration overwrites them anyway.</p>
+<p><strong>Presentational drift:</strong> The right components are in the right places but values are off. Padding is 16px where the spec says 24px. The primary button renders with the wrong background token. Font weight reads <code>700</code> where the design says <code>600</code>. <strong>Fix: patch in the editor.</strong> These are implementation errors, not design errors — Claude Code pulled the wrong token or misread a spacing value. Fix them directly and push. Don't round-trip through the design tool for a padding value.</p>
+<p><strong>The practical rule:</strong>
+&gt; If you can describe the problem in one sentence containing <em>where something is</em> or <em>what a component is</em>, go back to the design. If the sentence contains only <em>what value something has</em>, fix it in the editor.</p>
+<p><strong>One limit to be aware of:</strong> Claude Design currently regenerates an entire component — there's no way to regenerate just the layout container while preserving the rest. When you go back to fix structural drift, you'll lose any presentational values you've already tuned in the editor. Note them (screenshot or a quick comment) before regenerating, and apply them after. This is the main reason to do structural and presentational fixes in the right order: structure first, presentation last.</p>
+<p><strong>Sources:</strong> <a href="https://support.claude.com">Claude Design — support.claude.com</a> · <a href="https://dev.to/bilelsalemdev/from-prompt-to-pull-request-using-claude-design-claude-code-and-github-together-3m00">From Prompt to Pull Request: Claude Design + Claude Code — DEV Community</a> · <a href="https://thenewstack.io/anthropic-claude-design-overhaul/">Anthropic overhauled Claude Design to fix the handoff — The New Stack</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-08-claude-design-implement-gap-regenerate-vs-edit.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-08-claude-design-implement-gap-regenerate-vs-edit.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[One Config File, Every Team Member: Deploy Shared MCP Servers Org-Wide in Claude Code 2.1.259]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-03-05-claude-code-managed-mcp-servers-org-deploy/</link>
+    <guid isPermaLink="false">2026-09-03-05-claude-code-managed-mcp-servers-org-deploy</guid>
+    <pubDate>Thu, 03 Sep 2026 12:11:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Claude Code]]></category>
+    <category><![CDATA[MCP]]></category>
+    <description><![CDATA[Claude Code 2.1.259 adds managedMcpServers — push HTTP/SSE MCP servers to every engineer in your org without per-machine .mcp.json edits.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-05-claude-code-managed-mcp-servers-org-deploy.jpg" alt="" /></p>
+<p><strong>Claude Code 2.1.259 adds <code>managedMcpServers</code> — a managed setting that pushes HTTP/SSE MCP servers to every user in your org without per-machine <code>.mcp.json</code> setup.</strong></p>
+<p>When you run Claude Code across a team, each engineer configures their own <code>.mcp.json</code>. Add a new internal tool — a knowledge base connector, a database MCP, a CI runner — and every engineer needs to update their config manually. <code>managedMcpServers</code> removes that friction.</p>
+<p><strong>How to configure it:</strong></p>
+<p>In your org's managed settings file (deployed via MDM, a dotfile repo, or the Claude console for Enterprise users), add:</p>
+<p>``<code>json
+{
+  &quot;managedMcpServers&quot;: {
+    &quot;company-wiki&quot;: {
+      &quot;url&quot;: &quot;https://mcp.internal.example.com/wiki/sse&quot;,
+      &quot;type&quot;: &quot;sse&quot;
+    },
+    &quot;jira-connector&quot;: {
+      &quot;url&quot;: &quot;https://mcp.internal.example.com/jira&quot;,
+      &quot;type&quot;: &quot;http&quot;
+    }
+  }
+}
+</code>``</p>
+<p>Every Claude Code session on a managed machine sees these servers immediately — no <code>.mcp.json</code> edit, no restart. The entry shape is identical to <code>.mcp.json</code>.</p>
+<p><strong>One hard constraint:</strong> <code>managedMcpServers</code> accepts HTTP/SSE endpoints only. Entries that name a command to run are silently skipped. If your MCP servers are stdio/command-based, you need an HTTP adapter (a small FastAPI wrapper over the stdio session is the common pattern) or you keep per-user setup for those.</p>
+<p><strong>When to use this vs. <code>.mcp.json</code>:</strong> Use managed settings for shared org services (internal knowledge bases, company-specific integrations, compliance tools). Use per-project <code>.mcp.json</code> for tools that vary by repo. User-level <code>~/.mcp.json</code> still handles personal one-off servers.</p>
+<p>Also new in 2.1.259: <code>--permission-prompts none</code> for unattended headless environments — anything that would prompt is auto-denied, useful for CI runs where a hanging prompt would silently block the job.</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/changelog">Claude Code changelog v2.1.259 — code.claude.com</a> · <a href="https://systemprompt.io/guides/claude-code-mcp-servers-extensions">Install and Configure MCP Servers in Claude Code — systemprompt.io</a> · <a href="https://www.truefoundry.com/blog/how-to-add-an-mcp-server-to-claude-code">How to Add an MCP Server to Claude Code — TrueFoundry</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-05-claude-code-managed-mcp-servers-org-deploy.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-05-claude-code-managed-mcp-servers-org-deploy.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Sony and Warner Sue Anthropic for Training-Data Scraping — What It Means for AI Product Builders]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-03-06-anthropic-music-copyright-lawsuit-sony-warner/</link>
+    <guid isPermaLink="false">2026-09-03-06-anthropic-music-copyright-lawsuit-sony-warner</guid>
+    <pubDate>Thu, 03 Sep 2026 12:10:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[News]]></category>
+    <category><![CDATA[Policy]]></category>
+    <category><![CDATA[LLM]]></category>
+    <description><![CDATA[Sony and Warner filed a multi-billion dollar copyright lawsuit against Anthropic on August 29 over training-data scraping. What it means for engineers building on Claude.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-06-anthropic-music-copyright-lawsuit-sony-warner.jpg" alt="" /></p>
+<p><strong>Sony Music Publishing and Warner Chappell filed a multi-billion dollar copyright lawsuit against Anthropic on August 29, alleging Claude was trained on unlicensed song lyrics scraped at scale. Dario Amodei and Benjamin Mann are named personally.</strong></p>
+<p>The complaint, filed in Northern California federal court, accuses Anthropic of &quot;torrenting, scraping, and downloading copyrighted works on a massive scale&quot; — naming tens of thousands of song compositions. The publishers seek up to $150,000 per infringed work plus $25,000 per copyright management information violation, yielding potential multi-billion dollar exposure. Anthropic says it will defend itself.</p>
+<p><strong>Three things this does and doesn't mean for engineers building on Claude:</strong></p>
+<p>1. <strong>Downstream liability doesn't automatically flow to API users.</strong> If Anthropic's training data is found infringing, the exposure is Anthropic's, not the product builder's — you're using a deployed model via API, not replicating the training run. The downstream question for API customers remains unsettled in case law; there's no clear precedent yet.</p>
+<p>2. <strong>This is the third major music suit against an AI lab</strong> — following earlier cases against Google and Meta. A win for the publishers would force industry-wide reckoning with training data provenance, affecting every major foundation model.</p>
+<p>3. <strong>Claude's API and capabilities are unaffected.</strong> Fable 5.1, Mythos 5.1, and the Claude API remain in production. The suit challenges training methodology, not inference behavior.</p>
+<p><strong>What it doesn't mean:</strong> &quot;Unsafe to build on.&quot; IP litigation over training data is structurally separate from model safety or operational risk. Monitor the case alongside the Google and Meta precedents — the outcomes will define what responsible AI training means in law, not just in policy.</p>
+<p><strong>Why it matters:</strong> The legal framework for AI training data is being written in real time. The combined multi-billion dollar exposure, if liability is found, would reshape how every AI lab approaches training data sourcing and licensing.</p>
+<p><strong>Sources:</strong> <a href="https://techcrunch.com/2026/08/29/sony-music-warner-sue-anthropic-alleging-a-brazen-campaign-of-intellectual-property-theft/">Sony, Warner sue Anthropic — TechCrunch</a> · <a href="https://www.axios.com/2026/08/29/anthropic-sony-warner-music-copyright">Sony, Warner sue Anthropic — Axios</a> · <a href="https://www.musicbusinessworldwide.com/now-sony-music-publishing-and-warner-chappell-sue-anthropic-in-multi-billion-dollar-lawsuit-one-of-the-largest-and-most-blatant-ongoing-thefts-of-intellectual-property-in-history/">Sony Music Publishing and Warner Chappell sue Anthropic — Music Business Worldwide</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-06-anthropic-music-copyright-lawsuit-sony-warner.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-06-anthropic-music-copyright-lawsuit-sony-warner.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[You're Already on Postgres — Add Vector Search in Five SQL Lines With pgvector]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-03-07-pgvector-postgres-vector-search-rag-foundations/</link>
+    <guid isPermaLink="false">2026-09-03-07-pgvector-postgres-vector-search-rag-foundations</guid>
+    <pubDate>Thu, 03 Sep 2026 12:09:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Tutorial]]></category>
+    <category><![CDATA[RAG]]></category>
+    <category><![CDATA[Vectors]]></category>
+    <description><![CDATA[pgvector adds a vector column type and similarity search operators to PostgreSQL — add vector search to your existing database with one extension, no new infra.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-07-pgvector-postgres-vector-search-rag-foundations.jpg" alt="" /></p>
+<p><strong>pgvector turns your existing PostgreSQL database into a vector store with one extension — no separate service, no new infra. Here's the minimal path from embeddings to similarity search for RAG.</strong></p>
+<p><strong>What you'll be able to do after this:</strong>
+- Add a <code>vector</code> column to any Postgres table and store embeddings alongside relational data
+- Run cosine similarity search in SQL with two lines
+- Add an HNSW index so queries stay fast at 100k+ rows</p>
+<p>## Enable the extension</p>
+<p>``<code>sql
+CREATE EXTENSION IF NOT EXISTS vector;
+</code>``</p>
+<p>On Supabase: one toggle in Database → Extensions. On AWS RDS (PostgreSQL 15+) or Azure Database for PostgreSQL: enable from the extensions list. For a local Postgres install: <code>apt install postgresql-16-pgvector</code>, then run the SQL above.</p>
+<p>## Store embeddings</p>
+<p>``<code>sql
+CREATE TABLE documents (
+  id        SERIAL PRIMARY KEY,
+  content   TEXT,
+  embedding VECTOR(1536)  -- match your model's output dimension
+);
+</code>``</p>
+<p>From Python, generate embeddings with <code>sentence-transformers</code> or any embedding endpoint and insert with <code>psycopg2</code>:</p>
+<p>``<code>python
+import psycopg2
+cur.execute(
+    &quot;INSERT INTO documents (content, embedding) VALUES (%s, %s)&quot;,
+    (chunk_text, embedding_list)
+)
+</code>``</p>
+<p>## Query by similarity</p>
+<p>``<code>sql
+SELECT content, 1 - (embedding &lt;=&gt; %s::vector) AS score
+FROM documents
+ORDER BY embedding &lt;=&gt; %s::vector
+LIMIT 5;
+</code>``</p>
+<p><code>&lt;=&gt;</code> is cosine distance; <code>&lt;-&gt;</code> is L2 (Euclidean); <code>&lt;#&gt;</code> is negative inner product. For normalized embeddings, all three produce the same ranking — cosine (<code>&lt;=&gt;</code>) is the safe default.</p>
+<p>## Add an index before production</p>
+<p>``<code>sql
+CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops);
+</code>``</p>
+<p>Without an index, pgvector does a full table scan — fine under ~10k rows, noticeable past that. HNSW keeps query time in low milliseconds at 100k+ rows.</p>
+<p>## When to use something else</p>
+<p>pgvector uses Postgres CPU and I/O budget. If you're storing millions of vectors with heavy concurrent load, a dedicated vector database (Qdrant, Chroma, Pinecone) offloads the index pressure and keeps your Postgres instance uncontested. For a typical RAG app under ~500k documents, staying in Postgres means one fewer service to run, one fewer connection to manage, and free joins against your existing tables.</p>
+<p><strong>The best starting resource:</strong> <a href="https://supabase.com/docs/guides/database/extensions/pgvector">pgvector: Embeddings and vector similarity — Supabase Docs</a> covers setup, LangChain integration, and metadata filtering. For a hands-on video: <a href="https://www.youtube.com/watch?v=erNoI9COOn0">PGVector: Turn PostgreSQL into Vector Database (Python Tutorial) — YouTube</a>.</p>
+<p><strong>Sources:</strong> <a href="https://supabase.com/docs/guides/database/extensions/pgvector">pgvector extension — Supabase Docs</a> · <a href="https://www.datacamp.com/tutorial/pgvector-tutorial">pgvector tutorial — DataCamp</a> · <a href="https://encore.dev/blog/you-probably-dont-need-a-vector-database">You probably don't need a vector database — Encore</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-07-pgvector-postgres-vector-search-rag-foundations.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-07-pgvector-postgres-vector-search-rag-foundations.jpg" />
+  </item>
+  <item>
+    <title><![CDATA[Your Component Needs a Bigger Change: Step Back Into Claude Design Before Touching Code]]></title>
+    <link>https://cloudcodetree.com/ai-news/2026-09-03-04-existing-component-redesign-reverse-loop/</link>
+    <guid isPermaLink="false">2026-09-03-04-existing-component-redesign-reverse-loop</guid>
+    <pubDate>Thu, 03 Sep 2026 04:12:00 GMT</pubDate>
+    <dc:creator><![CDATA[Chris Harper]]></dc:creator>
+    <category><![CDATA[AI]]></category>
+    <category><![CDATA[Workflow]]></category>
+    <category><![CDATA[Design]]></category>
+    <category><![CDATA[Claude Design]]></category>
+    <description><![CDATA[When an existing component needs a layout shift or structural rework, run /design with the current code as context to explore directions before any file changes are committed.]]></description>
+    <content:encoded><![CDATA[<p><img src="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-04-existing-component-redesign-reverse-loop.jpg" alt="" /></p>
+<p><strong>When an existing component needs more than a style tweak — a layout shift, a structural rework — run <code>/design</code> with the current code as context to explore directions before any file changes are committed.</strong></p>
+<p>The default Claude Design flow is linear: sketch → implement. The reverse loop — code → design — is what you reach for when a component already exists and the problem isn't a CSS property but a structural one.</p>
+<p><strong>The workflow:</strong></p>
+<p>1. In your Claude Code session, run <code>/design explore directions for [component name]</code> and paste the component's current JSX or reference its file path. Claude Code reads your DESIGN.md and existing design system context, then drafts 2–3 artboard directions in the <code>/design</code> preview. It already knows your tokens, components, and layout conventions from earlier file reads.</p>
+<p>2. Review the directions in the artboard. You can click elements to adjust colors, spacing, or text directly before committing — this is where you catch &quot;this feels wrong&quot; before code changes are in flight.</p>
+<p>3. Pick the direction and tell Claude to implement it. It writes to the actual component file starting from the artboard structure, not as an incremental patch on the old layout.</p>
+<p><strong>When to use this vs. just editing:</strong> Use the design loop when the fix requires rethinking where elements sit — layout, hierarchy, visual weight. If the fix is &quot;change this color to match the token&quot; or &quot;fix the margin&quot;, just edit. The fork is worth the extra step only when you genuinely don't know which direction is right.</p>
+<p><strong>The limit:</strong> the artboard preview renders a static snapshot — it doesn't pull live component state (loading skeletons, error states, empty states). If those matter for your redesign, spec them explicitly in your <code>/design</code> prompt or in DESIGN.md before you implement. Edge states you don't name tend to come out as empty-div placeholders that pass a quick visual check and break in production.</p>
+<p><strong>Sources:</strong> <a href="https://code.claude.com/docs/en/whats-new/2026-w34">Claude Code /design — What's New Week 34, code.claude.com</a> · <a href="https://vanbeaumond.nl/en/blog/claude-design-claude-code-workflow-setup-2026">Claude Design + Claude Code Workflow 2026 — vanbeaumond.nl</a> · <a href="https://claudefa.st/blog/guide/mechanics/claude-design-handoff">Claude Design to Claude Code: AI Design Handoff — claudefa.st</a></p>]]></content:encoded>
+    <media:content url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-04-existing-component-redesign-reverse-loop.jpg" medium="image" type="image/jpeg" />
+    <media:thumbnail url="https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-09-03-04-existing-component-redesign-reverse-loop.jpg" />
+  </item>
+  </channel>
+</rss>

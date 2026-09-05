@@ -1,0 +1,94 @@
+1:"$Sreact.fragment"
+2:I[68977,["9153","static/chunks/9153-c226a6a89a200c15.js","1437","static/chunks/1437-7b0183160a7b945d.js","7177","static/chunks/app/layout-5303e0f970e960e2.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/1f54c84255ccf44e-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/5fb5c05ff73c0616-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/61d96c4884191721-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/6ad0344ed98ac2e9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/b0bb26939bb40fdb-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","style"]
+0:{"P":null,"b":"IqKWM4UwqXmwxod5P6FUu","p":"https://cloudcodetree.com","c":["","ai-news","2026-08-02-01-ollama-tool-calling-local-agent-function-use",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-08-02-01-ollama-tool-calling-local-agent-function-use","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_d55552 __variable_fe51c3 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_d55552","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-08-02-01-ollama-tool-calling-local-agent-function-use","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[42155,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+11:I[82566,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+12:Td19,**Ollama has native tool calling built in — define a schema, wire up a dispatch table, and any Qwen3 or Llama 3.1 model running locally can call your Python functions with validated arguments.**
+
+**What you'll be able to do after this:**
+- Define tools (function name, description, typed parameters) that a local LLM can call by name with validated arguments
+- Drive a multi-turn agent loop where the model decides when to invoke tools and what arguments to pass — the same pattern that powers cloud-based AI agents, fully offline
+- Extend any Ollama-backed chatbot into one that can query databases, call APIs, read files, or run shell commands without sending data to the cloud
+
+## The pattern in 45 lines
+
+```bash
+pip install ollama
+ollama pull qwen3:8b
+```
+
+```python
+import ollama
+
+# 1. Your real function
+def get_current_weather(city: str) -> str:
+    return f"72F and sunny in {city}"   # swap for a real weather API call
+
+# 2. Tool schema — what the model reads to know when and how to call it
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "get_current_weather",
+        "description": "Get current weather for a city",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "city": {"type": "string", "description": "The city name"}
+            },
+            "required": ["city"]
+        }
+    }
+}]
+
+dispatch = {"get_current_weather": get_current_weather}
+messages  = [{"role": "user", "content": "What's the weather in Portland?"}]
+MODEL     = "qwen3:8b"   # or llama3.1:8b, mistral:7b-instruct
+
+# 3. Multi-turn agent loop — runs until no more tool calls
+response = ollama.chat(model=MODEL, messages=messages, tools=tools)
+
+while response.message.tool_calls:
+    for tc in response.message.tool_calls:
+        result = dispatch[tc.function.name](**tc.function.arguments)
+        messages += [
+            response.message,
+            {"role": "tool", "content": str(result)}
+        ]
+    response = ollama.chat(model=MODEL, messages=messages, tools=tools)
+
+print(response.message.content)
+```
+
+**Key points:**
+- `response.message.tool_calls` is a list — the `while` loop handles **parallel tool calls** (model fires multiple tools at once) automatically.
+- Each tool result goes back as a `{"role": "tool", "content": ...}` message before the next `ollama.chat()` call — this is the multi-turn pattern.
+- The loop exits when the model returns a response with no tool calls (it has enough information to answer).
+- For **streaming tool calls** (seeing partial arguments as they generate), switch to `ollama.chat(..., stream=True)` and accumulate `content_block_delta` events — the Ollama docs cover this pattern.
+
+**Models with reliable tool support in 2026:** `qwen3:8b`, `qwen3:14b`, `llama3.1:8b-instruct-q4_K_M`, `llama3.3:70b-instruct-q4_K_M`, `mistral:7b-instruct`.
+
+The IBM Think tutorial linked below shows the same pattern applied to searching a local filesystem — a Granite 3.2 model picks between a text-search tool and an image-search tool based on query content. Good "real" example beyond a toy weather function.
+
+**Sources:** [Tool Calling — Ollama Docs](https://docs.ollama.com/capabilities/tool-calling) · [Local Tool Calling with Ollama and IBM Granite — IBM Think](https://www.ibm.com/think/tutorials/local-tool-calling-ollama-granite)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-08-02-01-ollama-tool-calling-local-agent-function-use","title":"Give Your Local LLM Real Tools: Function Calling with Ollama in Under 50 Lines","excerpt":"Define tool schemas, let Qwen3 or Llama 3.1 decide when to call them, and drive a multi-turn agent loop in under 50 lines of Python -- all locally with no API keys using Ollama's native tool calling.","author":"Chris Harper","date":"08-02-2026","publishedAt":"2026-08-02T04:05:00.000Z","tags":["AI","Tutorial","Agents","Self-Hosting"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-02-01-ollama-tool-calling-local-agent-function-use.jpg","imageSource":"https://docs.ollama.com/capabilities/tool-calling","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Give Your Local LLM Real Tools: Function Calling with Ollama in Under 50 Lines | AI News"}],["$","meta","1",{"name":"description","content":"Define tool schemas, let Qwen3 or Llama 3.1 decide when to call them, and drive a multi-turn agent loop in under 50 lines of Python -- all locally with no API keys using Ollama's native tool calling."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-08-02-01-ollama-tool-calling-local-agent-function-use/"}],["$","meta","3",{"property":"og:title","content":"Give Your Local LLM Real Tools: Function Calling with Ollama in Under 50 Lines"}],["$","meta","4",{"property":"og:description","content":"Define tool schemas, let Qwen3 or Llama 3.1 decide when to call them, and drive a multi-turn agent loop in under 50 lines of Python -- all locally with no API keys using Ollama's native tool calling."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-08-02-01-ollama-tool-calling-local-agent-function-use/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-02-01-ollama-tool-calling-local-agent-function-use.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Give Your Local LLM Real Tools: Function Calling with Ollama in Under 50 Lines"}],["$","meta","13",{"name":"twitter:description","content":"Define tool schemas, let Qwen3 or Llama 3.1 decide when to call them, and drive a multi-turn agent loop in under 50 lines of Python -- all locally with no API keys using Ollama's native tool calling."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-02-01-ollama-tool-calling-local-agent-function-use.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

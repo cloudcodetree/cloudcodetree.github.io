@@ -1,0 +1,100 @@
+1:"$Sreact.fragment"
+2:I[68977,["9153","static/chunks/9153-c226a6a89a200c15.js","1437","static/chunks/1437-7b0183160a7b945d.js","7177","static/chunks/app/layout-5303e0f970e960e2.js"],"default"]
+3:I[4827,[],""]
+4:I[1063,[],""]
+6:I[96050,[],"OutletBoundary"]
+8:I[29479,[],"AsyncMetadataOutlet"]
+a:I[96050,[],"ViewportBoundary"]
+c:I[96050,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+f:I[66177,[],""]
+:HL["https://cloudcodetree.com/_next/static/media/1f54c84255ccf44e-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/5fb5c05ff73c0616-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/61d96c4884191721-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/6ad0344ed98ac2e9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/98e207f02528a563-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/b0bb26939bb40fdb-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/d3ebbfd689654d3a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/media/db96af6b531dc71f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","style"]
+0:{"P":null,"b":"IqKWM4UwqXmwxod5P6FUu","p":"https://cloudcodetree.com","c":["","ai-news","2026-08-07-07-ray-serve-llm-vllm-autoscaling",""],"i":false,"f":[[["",{"children":["ai-news",{"children":[["id","2026-08-07-07-ray-serve-llm-vllm-autoscaling","d"],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"https://cloudcodetree.com/_next/static/css/5dc75fe2e05c3179.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"__variable_d55552 __variable_fe51c3 __variable_5277e6","children":[["$","head",null,{"children":[["$","meta",null,{"name":"emotion-insertion-point","content":""}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.googleapis.com"}],["$","link",null,{"rel":"dns-prefetch","href":"//fonts.gstatic.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","meta",null,{"name":"viewport","content":"width=device-width, initial-scale=1"}],"$undefined"]}],["$","body",null,{"className":"__className_d55552","children":["$","$L2",null,{"children":["$","div",null,{"className":"min-h-screen bg-dark-950 text-dark-50 critical-css","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}]]}],{"children":["ai-news",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["id","2026-08-07-07-ray-serve-llm-vllm-autoscaling","d"],["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":["$L5",null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]],["$","$Lc",null,{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"m":"$undefined","G":["$f",[]],"s":false,"S":true}
+10:I[42155,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+11:I[82566,["9153","static/chunks/9153-c226a6a89a200c15.js","9294","static/chunks/9294-a6e0e527f41d50a7.js","2066","static/chunks/2066-beedcb8afb85c6e1.js","1733","static/chunks/1733-3d497b420eb411e2.js","2707","static/chunks/2707-d96357b30635c8bd.js","7689","static/chunks/7689-c657164a53a2d5a6.js","4047","static/chunks/4047-d75a28835929eb5f.js","1155","static/chunks/1155-0ffc5f263a510b8b.js","410","static/chunks/410-911ac102ceb3bca6.js","9614","static/chunks/9614-d6fd32d456c725b0.js","2155","static/chunks/2155-3852dc658a55ad76.js","647","static/chunks/app/ai-news/%5Bid%5D/page-21f6ee03687acbf2.js"],"default"]
+12:Tb79,**Ray Serve LLM wraps vLLM in a production harness — queue-depth autoscaling, multi-model routing, and an OpenAI-compatible API endpoint in ~25 lines of Python.**
+
+You've loaded a model with Ollama or spun up a raw vLLM server. That works for one machine and modest load. When you need autoscaling, rolling upgrades, multi-model routing, or true production reliability, Ray Serve LLM is the missing layer.
+
+**What you'll be able to do after this:**
+- Deploy any Hugging Face model behind an OpenAI-compatible REST endpoint using Ray Serve LLM and vLLM
+- Enable autoscaling that responds to request queue depth (not CPU) — spinning up replicas under load, scaling back down at idle
+- Serve multiple models from one cluster and route traffic by model name, with no changes to the client
+
+## Install
+
+```bash
+pip install "ray[serve]" vllm
+```
+
+## Deploy a model in ~20 lines
+
+```python
+# serve_llm.py
+from ray import serve
+from ray.serve.llm import LLMServer, LLMConfig
+
+config = LLMConfig(
+    model_loading_config={
+        "model_id": "meta-llama/Llama-3.1-8B-Instruct",
+    },
+    deployment_config={
+        "autoscaling_config": {
+            "min_replicas": 1,
+            "max_replicas": 4,
+            "target_ongoing_requests": 5,
+        }
+    },
+    accelerator_type="A10G",   # or "T4", "A100", etc.
+)
+
+llm_server = LLMServer.from_llm_config(config)
+serve.run(llm_server)
+```
+
+```bash
+# Start
+serve run serve_llm.py
+
+# Query — standard OpenAI API
+curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "meta-llama/Llama-3.1-8B-Instruct",
+    "messages": [{"role": "user", "content": "Explain KV caching in one paragraph."}]
+  }'
+```
+
+## Multi-model serving
+
+Add a second `LLMConfig` entry with a different `model_id` — Ray Serve routes requests by the `model` field in each API call. No load balancer config needed; Ray handles it.
+
+## Why queue depth, not CPU
+
+Traditional autoscalers trigger on CPU or memory. LLMs are I/O-bound: a GPU can be 100% utilized but still have headroom for more requests in the batch. Ray Serve autoscales on `target_ongoing_requests` — the number of requests currently being processed per replica. This correctly captures backpressure and scales before the queue grows too long.
+
+## What this covers beyond raw vLLM
+
+| Feature | Raw `vllm serve` | Ray Serve LLM |
+|---|---|---|
+| OpenAI-compatible API | Yes | Yes |
+| Autoscaling | No | Yes (queue-depth) |
+| Multi-model routing | No | Yes |
+| Rolling upgrades | No | Yes |
+| Multi-node tensor parallel | Yes | Yes |
+| Health checks | Basic | Enterprise-grade |
+
+**Sources:** [Serving LLMs — Ray 2.56.0 docs](https://docs.ray.io/en/latest/serve/llm/index.html) · [Ray Serve LLM Quickstart](https://docs.ray.io/en/latest/serve/llm/quick-start.html) · [Announcing Native LLM APIs in Ray Data and Ray Serve — Anyscale blog](https://www.anyscale.com/blog/llm-apis-ray-data-serve)5:["$","$L10",null,{"children":["$","$L11",null,{"post":{"id":"2026-08-07-07-ray-serve-llm-vllm-autoscaling","title":"Scale Any vLLM-Backed Model to Production with Ray Serve LLM","excerpt":"Ray Serve LLM wraps vLLM in a production harness — autoscaling that responds to queue depth, multi-model routing, and a built-in OpenAI-compatible API in under 30 lines of Python.","author":"Chris Harper","date":"08-07-2026","publishedAt":"2026-08-07T20:04:00.000Z","tags":["AI","Tutorial","Self-Hosting","Developer Tools"],"readTime":3,"image":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-07-07-ray-serve-llm-vllm-autoscaling.jpg","imageSource":"https://docs.ray.io/en/latest/serve/llm/quick-start.html","content":"$12"}}]}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+13:I[91319,[],"IconMark"]
+9:{"metadata":[["$","title","0",{"children":"Scale Any vLLM-Backed Model to Production with Ray Serve LLM | AI News"}],["$","meta","1",{"name":"description","content":"Ray Serve LLM wraps vLLM in a production harness — autoscaling that responds to queue depth, multi-model routing, and a built-in OpenAI-compatible API in under 30 lines of Python."}],["$","link","2",{"rel":"canonical","href":"https://cloudcodetree.com/ai-news/2026-08-07-07-ray-serve-llm-vllm-autoscaling/"}],["$","meta","3",{"property":"og:title","content":"Scale Any vLLM-Backed Model to Production with Ray Serve LLM"}],["$","meta","4",{"property":"og:description","content":"Ray Serve LLM wraps vLLM in a production harness — autoscaling that responds to queue depth, multi-model routing, and a built-in OpenAI-compatible API in under 30 lines of Python."}],["$","meta","5",{"property":"og:url","content":"https://cloudcodetree.com/ai-news/2026-08-07-07-ray-serve-llm-vllm-autoscaling/"}],["$","meta","6",{"property":"og:site_name","content":"CloudCodeTree"}],["$","meta","7",{"property":"og:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-07-07-ray-serve-llm-vllm-autoscaling.jpg"}],["$","meta","8",{"property":"og:image:width","content":"1200"}],["$","meta","9",{"property":"og:image:height","content":"630"}],["$","meta","10",{"property":"og:type","content":"article"}],["$","meta","11",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","12",{"name":"twitter:title","content":"Scale Any vLLM-Backed Model to Production with Ray Serve LLM"}],["$","meta","13",{"name":"twitter:description","content":"Ray Serve LLM wraps vLLM in a production harness — autoscaling that responds to queue depth, multi-model routing, and a built-in OpenAI-compatible API in under 30 lines of Python."}],["$","meta","14",{"name":"twitter:image","content":"https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images/2026-08-07-07-ray-serve-llm-vllm-autoscaling.jpg"}],["$","link","15",{"rel":"shortcut icon","href":"/Fav_Icon.svg"}],["$","link","16",{"rel":"icon","href":"/Fav_Icon.svg","type":"image/svg+xml"}],["$","link","17",{"rel":"icon","href":"/Fav_Icon_32.png","type":"image/png","sizes":"32x32"}],["$","link","18",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","19",{}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"
