@@ -10,7 +10,72 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 05 Sep 2026 04:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 05 Sep 2026 12:04:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Your Claude Code Context Is Burning on Skills You Never Use. /skill-doctor Shows the Bill.</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-09-05-05-claude-code-skill-doctor-output-caps</guid>
+      <pubDate>Sat, 05 Sep 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code v2.1.261 adds /skill-doctor (shows unused skills and their context cost per turn) and bashOutputMaxChars/taskOutputMaxChars settings (raise inline output cap to 128K to fix truncated logs).</description>
+      <content:encoded><![CDATA[**Every skill loaded from CLAUDE.md burns tokens every turn whether it helped or not — v2.1.261 adds a diagnostic that shows exactly which ones to cut, and a setting that stops build logs from being silently truncated.**
+
+Every skill listed in auto-load burns context tokens on every turn — whether it fires or not. If your session pulls in a dozen skills, most of them are probably dead weight. Run the new diagnostic:
+
+```
+/skill-doctor
+```
+
+The command prints a table: skill name, used or unused in this session, and its approximate context cost per turn. Drop the unused ones, or move rarely-needed skills out of global auto-load and into project-specific settings so they only load when they're relevant.
+
+The second fix is for engineers who hit silently truncated command output. When a build log or test run exceeds Claude's default inline limit, the output gets offloaded to a file — Claude reads a filename, not the actual errors. Raise the cap in `.claude/settings.json`:
+
+```json
+{
+  "bashOutputMaxChars": 65536,
+  "taskOutputMaxChars": 65536
+}
+```
+
+The maximum is 128K characters. Match it to your actual worst-case output — a full `jest --verbose` run, a `cargo build` log — and don't go higher than you need. Every command above your old cap now sends its output inline, which means Claude sees the real failure instead of a file path, but also means context cost goes up proportionally on large outputs.
+
+One more addition in v2.1.261: `--append-subagent-system-prompt-file <path>` reads a subagent system prompt from a file — useful when the prompt is too long to pass as a command-line argument.
+
+One limit: raising `bashOutputMaxChars` to 128K is not free — it moves 128K of characters into context on every large command, whether Claude needed to read all of it or not. Set it to what your actual failure output requires; running at the ceiling when your logs are 20K wastes context on every tool call.
+
+**Sources:** [Claude Code changelog](https://code.claude.com/docs/en/changelog) · [AI/TLDR — Claude Code 2.1.261](https://ai-tldr.dev/releases/anthropic-claude-code-2-1-261/)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>GPT-6 Astra Opens to API: What the Pricing Means for Engineers Who Route Across Models</title>
+      <link>https://www.cnbc.com/2026/09/03/open-ai-astra-gpt-6-cyber.html</link>
+      <guid isPermaLink="false">2026-09-05-04-gpt6-astra-api-pricing-developer-rollout</guid>
+      <pubDate>Sat, 05 Sep 2026 12:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Developer Tools</category>
+      <description>GPT-6 Astra's public rollout begins today — at $10/$50/M tokens per OpenAI's stated rates, it's 3-4x the cost of current workhorse models, which defines where it fits in a multi-provider stack.</description>
+      <content:encoded><![CDATA[**GPT-6 Astra begins its public API rollout today. Per OpenAI's stated rates: $10/$50 per million tokens — 3–4× the cost of Claude Sonnet 5 or GPT-4o — which narrows where it fits in a cost-conscious multi-provider stack.**
+
+GPT-6 Astra's limited-partner preview started September 3. Public rollout to Plus, Pro, Business, and Enterprise users begins today; API access follows in the coming days. Per OpenAI's stated pricing: $10/M input, $50/M output, $1/M for cached input. Batch and flex processing at half price; Fast mode at 2×. Context window: 1,050,000 tokens; max output: 128K tokens.
+
+The technical distinction: a "recurrent depth" reasoning technique that OpenAI says improves focus and multi-step task handling. Researchers have flagged this design as less transparent than standard chain-of-thought — internal reasoning steps are obscured, making the model harder to audit or steer.
+
+For a multi-provider routing setup: Astra's cost profile places it firmly in the premium tier — useful for hard reasoning, large-document work, and complex multi-step agents where accuracy matters more than throughput cost. At 3–4× the rate of current workhorse models (per OpenAI's and Anthropic's respective published pricing), it's not a replacement for Claude Sonnet 5 or GPT-4o on routine calls.
+
+Note: the Sep 2 post on this blog covered Astra's cybersecurity-critical rating and zero-day exploit findings. This is about the practical developer API access opening today.
+
+**Why it matters:** The benchmark gap between frontier models is narrowing; the pricing gap isn't. Knowing which calls to route where still saves real money.
+
+**Sources:** [CNBC — OpenAI announces rollout of GPT-6 Astra](https://www.cnbc.com/2026/09/03/open-ai-astra-gpt-6-cyber.html) · [9to5Mac — OpenAI GPT-6 Astra details](https://9to5mac.com/2026/09/04/openai-releasing-major-upgrade-to-chatgpt-and-codex-with-gpt-6-astra-details-here/) · [Wikipedia — GPT-6 Astra](https://en.wikipedia.org/wiki/GPT-6_Astra)]]></content:encoded>
+    </item>
 
     <item>
       <title>Your Generated Components Have Hardcoded Colors — One Stylelint Rule Catches Every One</title>
@@ -5292,124 +5357,8 @@ No in-the-wild exploitation was reported. Varonis disclosed responsibly; the CVE
 **Sources:** [CoSnitch: Prompt Injection via URL Parameter in Microsoft Copilot Personal (CVE-2026-24301) — Varonis](https://www.varonis.com/blog/cosnitch-microsoft-copilot-personal-cve-2026-24301) · [Microsoft Copilot CVE-2026-24301: Hidden Parameter Enabled Memory Poisoning — The Hacker News](https://thehackernews.com/2026/08/microsoft-copilot-cve-2026-24301.html) · [CoSnitch: How a URL Parameter Let Attackers Plant False Memories in Copilot — Dark Reading](https://www.darkreading.com/cyber-risk/cosnitch-copilot-memory-poisoning-cve-2026-24301)
 ]]></content:encoded>
     </item>
-    <item>
-      <title>Generated Components Don't Know Your Breakpoints: A Three-Step Responsive Review Before Claude Code Handoff</title>
-      <link>https://support.claude.com/en/articles/14604416-get-started-with-claude-design</link>
-      <guid isPermaLink="false">2026-08-21-04-generated-components-responsive-review</guid>
-      <pubDate>Fri, 21 Aug 2026 04:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Design</category>
-      <category>Claude Design</category>
-      <description>AI-generated UI is built at a fixed canvas size. Three concrete checks — pixel widths, missing mobile layout, text overflow — to run in Claude Design before sending the handoff bundle to Claude Code.</description>
-      <content:encoded><![CDATA[**Design tools generate components at the canvas size you give them. They don't know your Tailwind breakpoints. Here are three responsive failures to catch before the handoff bundle lands in Claude Code.**
-
-Sending a component straight to Claude Code with unresolved responsive issues means Claude Code tries to implement a layout that can't scale — and you spend the cleanup time you were hoping to skip.
-
-**Check 1: Fixed pixel widths where relative units belong.**
-
-Generated components commonly hard-code widths like `width: 480px`. In Claude Design, select each container element and look at the layout panel. Any explicit pixel width that should be fluid — a card, a content column, a grid cell — swap to `%`, `fr`, or a named token from your design system. The rule is simple: if the element should grow when the viewport grows, it needs a relative unit. If Claude Design locked it to pixels, it was working from what the canvas implied, not what your system requires.
-
-Before handing off, every container that crosses a layout boundary should be relative. Fixed widths are fine for icons, avatars, and constrained inline elements.
-
-**Check 2: No mobile layout rule.**
-
-A horizontal card grid looks correct on a 1280px canvas. It has no rule for what happens below 640px — it just overflows. In Claude Design, duplicate the frame to a mobile viewport (375 × 812 is the standard reference size), apply the same component, and specify explicitly what changes:
-
-- Grid collapses from three columns to one.
-- Card image stacks above text.
-- Font sizes drop one step in the type scale.
-- The CTA button goes full-width.
-
-Each breakpoint behavior you define in the canvas is a decision Claude Code doesn't have to guess. Whatever you don't specify, Claude Code invents — and it will invent something.
-
-**Check 3: Text overflow on real content.**
-
-Generated copy fills the design neatly because it was written to fit. Real content is longer. Before handing off, manually extend the text in two or three text nodes to 2× their current length and observe what breaks: truncation without ellipsis, overflow past the card boundary, a heading that wraps awkwardly. Add explicit handling in the canvas — `line-clamp`, `overflow: hidden`, or a `min-height` — for every case you find.
-
-**The handoff note that pays off.**
-
-When you pass the bundle to Claude Code, include a one-paragraph note alongside it:
-
-> "Grid collapses to 1 column below 640px (`sm:grid-cols-1`). All container widths use `w-full` or design-system `max-w-*` tokens — no hardcoded px widths. Text nodes use `clamp()` from the typography scale; long values clamp at two lines."
-
-Claude Code reads this note and implements to your spec instead of reconstructing intent from the component structure alone. The note costs 30 seconds and saves a review cycle.
-
-**What this pass doesn't cover:** accessibility (color contrast, ARIA roles, keyboard focus) — that's a separate checklist, covered in the [August 18 post](https://cloudcodetree.com/ai-news/2026-08-18-08-generated-ui-accessibility-review-pass).
-
-**Sources:** [Get started with Claude Design — Anthropic Help](https://support.claude.com/en/articles/14604416-get-started-with-claude-design) · [Set up your design system — Anthropic Help](https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design) · [Responsive design testing — Smashing Magazine](https://www.smashingmagazine.com/2024/09/responsive-design-testing-tools-techniques/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Catch What Claude Just Changed: A PostToolUse Hook That Validates Every File in Your Session</title>
-      <link>https://code.claude.com/docs/en/hooks-guide</link>
-      <guid isPermaLink="false">2026-08-21-03-claude-code-posttooluse-validation-hook</guid>
-      <pubDate>Fri, 21 Aug 2026 04:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>A PostToolUse hook in .claude/settings.json runs a shell command after every Write or Edit. 12 lines of JSON catches lint errors, type failures, or schema violations before the session ends.</description>
-      <content:encoded><![CDATA[**A PostToolUse hook in `.claude/settings.json` runs your validator after every Write or Edit call. Claude sees the output, understands if something broke, and fixes it — without you prompting again.**
-
-Claude Code's hook system lets you intercept every tool call. `PostToolUse` fires after a tool succeeds. It is different from a pre-commit check: it runs in the middle of a session, while Claude still has context, can still fix the problem, and hasn't moved on to the next task.
-
-**The minimal pattern — 12 lines**
-
-In `.claude/settings.json`:
-
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/validate-edit.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-In `.claude/hooks/validate-edit.sh`:
-
-```bash
-#!/bin/bash
-FILE=$(jq -r '.file_path // empty' -)
-[[ -z "$FILE" ]] && exit 0
-pnpm eslint --quiet "$FILE" 2>&1 | head -30
-```
-
-Exit codes determine what Claude does next:
-- **Exit 0** — nothing; Claude continues.
-- **Exit 1** — Claude sees the output and attempts to fix the error before continuing.
-- **Exit 2** — Claude stops and asks you before doing anything else.
-
-**What to validate:**
-
-- `pnpm eslint --quiet "$FILE"` — catch lint before the conversation ends.
-- `pnpm tsc --noEmit` — surface type errors immediately instead of at build time.
-- `jq empty` on any JSON file — structural validation; a corrupted JSON write is caught before it propagates.
-- A custom schema check — this blog's `.claude/hooks/validate-blog.sh` runs after every write to `public/blog/` and blocks commits if `posts.json` is inconsistent. That is PostToolUse in production.
-
-**What to watch out for:**
-
-Hook commands inherit the session's environment, not a login shell. If your validator requires `PATH` entries that only exist in a login shell (e.g., `nvm`-managed node, Homebrew tools), add `export PATH=...` at the top of the hook script.
-
-**The one gap:** hooks run in interactive sessions and the main loop. They do not fire inside Workflow SDK subagents. If your validation is critical in a multi-agent workflow, add it as an explicit `agent()` step after the write agent, not as a hook.
-
-**Sources:** [Automate actions with hooks — Claude Code Docs](https://code.claude.com/docs/en/hooks-guide) · [Hooks reference — Claude Code Docs](https://code.claude.com/docs/en/hooks) · [Intercept and control agent behavior — Claude Code SDK Docs](https://code.claude.com/docs/en/agent-sdk/hooks)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
 
