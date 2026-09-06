@@ -1,5 +1,41 @@
 [
   {
+    "id": "2026-09-06-07-claude-design-explore-directions-decision-brief",
+    "title": "Use the Exploration Phase — Three Design Directions Before You Commit, Then Write the Brief That Drives Implementation",
+    "excerpt": "Before committing to a layout, ask Claude Design for three explicit directions in one prompt, compare them structurally, pick the least wrong, and write a decision brief that Claude Code can implem…",
+    "author": "Chris Harper",
+    "date": "09-06-2026",
+    "publishedAt": "2026-09-06T20:05:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Design",
+      "Claude Design"
+    ],
+    "readTime": 2,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://support.claude.com/en/articles/claude-design",
+    "content": "**Ask for three explicit layout directions in one prompt, pick the least wrong, and write a decision brief that Claude Code can implement without re-interpreting the design.**\n\nMost teams use Claude Design to generate one screen and then iterate on it. That works for refinement, but it locks you into the first interpretation of the problem before you have seen any alternatives.\n\nA more useful starting move: ask for three explicitly different directions in a single prompt.\n\n```\nGenerate three layout directions for the admin dashboard header:\n- Direction A: compact, content-first, no sidebar (mobile-first)\n- Direction B: sidebar navigation with persistent page context, desktop-optimized\n- Direction C: command-bar style, keyboard-driven, minimal visual chrome\n\nUse our existing Header, Sidebar, and CommandBar component names where they fit.\n```\n\nClaude Design produces all three in one turn. What you are comparing is not aesthetics — it is structural decisions: which direction solves the navigation problem the way your users will actually encounter it, and which fits your existing component tree without major surgery.\n\nOnce you pick a direction, do not iterate on it in Claude Design with vague feedback like \"make it less busy.\" Write a decision brief instead:\n\n```\nGoing with Direction B. Adjustments before implementation:\n- Use 16px gap between sidebar items instead of the generated 24px\n- Replace the custom header with our existing <AppShell> component\n- The card grid in the main panel can use <DataCard> from our library as-is\n```\n\nHand that brief to Claude Code as context. It becomes the spec — grounded in your actual component names, not in generic HTML the design tool guessed at.\n\n**The limits.** Claude Design generates all three directions from the same prompt, so they share the same interpretation of your design system. If you want directions that disagree on the *problem* — not just the *layout* — you need separate sessions with explicitly different framing.\n\nThe other limit is that Claude Design's component names in the exploration output are still guesses. The brief above is doing real work by replacing \"Card\" with `<DataCard>` — that substitution is what keeps Claude Code inside your design system rather than building its own.\n\n**Sources:** [Claude Design — Anthropic](https://support.claude.com/en/articles/claude-design) · [Claude Design just dropped — Here is How it Completes the Designer's AI Stack — Nervegna](https://nervegna.substack.com/p/claude-design-just-dropped-heres) · [From Prompt to Production: Claude Design + Claude Code — Design Systems Collective](https://www.designsystemscollective.com/from-prompt-to-production-a-designers-step-by-step-workflow-with-claude-design-claude-code-a7705daad026)"
+  },
+  {
+    "id": "2026-09-06-06-per-message-effort-cache-fable-5-1-beta",
+    "title": "Change Effort Mid-Conversation Without Busting the Cache — Per-Message Effort on Fable 5.1",
+    "excerpt": "On Fable 5.1, Mythos 5.1, and Opus 5, inject a role:system message with the new effort level to change it mid-conversation without invalidating the cached prefix — useful for sessions that need hig…",
+    "author": "Chris Harper",
+    "date": "09-06-2026",
+    "publishedAt": "2026-09-06T20:04:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/build-with-claude/effort#change-effort-mid-conversation-beta",
+    "content": "**Inject a `role:system` message with the new effort level to step down mid-conversation on Fable 5.1, Mythos 5.1, and Opus 5 (beta) — the cached prefix stays intact.**\n\nLong agentic sessions often need two effort modes: `high` for the initial analysis or planning turn, `low` for the follow-up turns (summarize, format, confirm). The naive fix — change `output_config.effort` at the top level on the next request — starts a new cache prefix. Every token you have already paid for gets re-billed.\n\nPer-message effort (beta header: `mid-conversation-output-config-2026-07-01`) gives you a cleaner path. Add a system message with empty `content` and the new effort level in `output_config.effort`. The new level takes effect from the next user turn forward; the cached prefix before that message is unchanged.\n\n```python\nresponse = client.beta.messages.create(\n    model=\"claude-fable-5-1\",\n    max_tokens=8096,\n    output_config={\"effort\": \"high\"},\n    messages=[\n        {\"role\": \"user\", \"content\": \"Find all N+1 queries in this 3,000-line Django module.\"},\n        {\"role\": \"assistant\", \"content\": previous_analysis},\n        # Step down without cache bust:\n        {\"role\": \"system\", \"content\": [], \"output_config\": {\"effort\": \"low\"}},\n        {\"role\": \"user\", \"content\": \"List the top three as one-line bullets.\"},\n    ],\n    betas=[\"mid-conversation-output-config-2026-07-01\"],\n)\n```\n\n**The limits.** Only `claude-fable-5-1`, `claude-mythos-5-1`, and `claude-opus-5` support per-message effort; other models (including Fable 5 and Sonnet 4.6) return a 400. Use `client.beta.messages.create` — the standard path ignores the beta header. The system message must carry empty `content`; text in it triggers the normal mid-conversation placement rules and can fail validation. On Opus 5 at `xhigh` or `max` effort, thinking cannot be disabled — per-message effort cannot work around that constraint.\n\nA GitHub issue documented that the older `/effort` slash command caused full cache misses on Opus 4.7 in 5 of 6 measured transitions. The per-message form was designed specifically to avoid that pattern on the newer models.\n\n**Sources:** [Per-message effort (beta) — Anthropic Platform Docs](https://platform.claude.com/docs/en/build-with-claude/effort#change-effort-mid-conversation-beta) · [GitHub issue #61984: /effort changes cause cache misses on Opus 4.7 — anthropics/claude-code](https://github.com/anthropics/claude-code/issues/61984) · [Claude effort control and mid-conversation system messages — AI for Anything](https://www.aiforanything.io/blog/claude-effort-control-mid-conversation-system-messages-api-guide-2026)"
+  },
+  {
     "id": "2026-09-06-04-ant-apply-claude-agents-as-code",
     "title": "Your Claude Agents Weren't in Code Review. `ant apply` Changes That.",
     "excerpt": "ant apply (ant CLI v1.30.0, Sep 3) declares Claude Platform resources — agents, skills, environments, memory stores, deployments — as files in your repo and reconciles them against the API with a p…",

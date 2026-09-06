@@ -10,7 +10,93 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 06 Sep 2026 12:13:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 06 Sep 2026 20:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Use the Exploration Phase — Three Design Directions Before You Commit, Then Write the Brief That Drives Implementation</title>
+      <link>https://support.claude.com/en/articles/claude-design</link>
+      <guid isPermaLink="false">2026-09-06-07-claude-design-explore-directions-decision-brief</guid>
+      <pubDate>Sun, 06 Sep 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Before committing to a layout, ask Claude Design for three explicit directions in one prompt, compare them structurally, pick the least wrong, and write a decision brief that Claude Code can implement without re-interpreting the design.</description>
+      <content:encoded><![CDATA[**Ask for three explicit layout directions in one prompt, pick the least wrong, and write a decision brief that Claude Code can implement without re-interpreting the design.**
+
+Most teams use Claude Design to generate one screen and then iterate on it. That works for refinement, but it locks you into the first interpretation of the problem before you have seen any alternatives.
+
+A more useful starting move: ask for three explicitly different directions in a single prompt.
+
+```
+Generate three layout directions for the admin dashboard header:
+- Direction A: compact, content-first, no sidebar (mobile-first)
+- Direction B: sidebar navigation with persistent page context, desktop-optimized
+- Direction C: command-bar style, keyboard-driven, minimal visual chrome
+
+Use our existing Header, Sidebar, and CommandBar component names where they fit.
+```
+
+Claude Design produces all three in one turn. What you are comparing is not aesthetics — it is structural decisions: which direction solves the navigation problem the way your users will actually encounter it, and which fits your existing component tree without major surgery.
+
+Once you pick a direction, do not iterate on it in Claude Design with vague feedback like "make it less busy." Write a decision brief instead:
+
+```
+Going with Direction B. Adjustments before implementation:
+- Use 16px gap between sidebar items instead of the generated 24px
+- Replace the custom header with our existing <AppShell> component
+- The card grid in the main panel can use <DataCard> from our library as-is
+```
+
+Hand that brief to Claude Code as context. It becomes the spec — grounded in your actual component names, not in generic HTML the design tool guessed at.
+
+**The limits.** Claude Design generates all three directions from the same prompt, so they share the same interpretation of your design system. If you want directions that disagree on the *problem* — not just the *layout* — you need separate sessions with explicitly different framing.
+
+The other limit is that Claude Design's component names in the exploration output are still guesses. The brief above is doing real work by replacing "Card" with `<DataCard>` — that substitution is what keeps Claude Code inside your design system rather than building its own.
+
+**Sources:** [Claude Design — Anthropic](https://support.claude.com/en/articles/claude-design) · [Claude Design just dropped — Here is How it Completes the Designer's AI Stack — Nervegna](https://nervegna.substack.com/p/claude-design-just-dropped-heres) · [From Prompt to Production: Claude Design + Claude Code — Design Systems Collective](https://www.designsystemscollective.com/from-prompt-to-production-a-designers-step-by-step-workflow-with-claude-design-claude-code-a7705daad026)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Change Effort Mid-Conversation Without Busting the Cache — Per-Message Effort on Fable 5.1</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/effort#change-effort-mid-conversation-beta</link>
+      <guid isPermaLink="false">2026-09-06-06-per-message-effort-cache-fable-5-1-beta</guid>
+      <pubDate>Sun, 06 Sep 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>LLM</category>
+      <category>Best Practices</category>
+      <description>On Fable 5.1, Mythos 5.1, and Opus 5, inject a role:system message with the new effort level to change it mid-conversation without invalidating the cached prefix — useful for sessions that need high effort for planning and low effort for follow-up turns.</description>
+      <content:encoded><![CDATA[**Inject a `role:system` message with the new effort level to step down mid-conversation on Fable 5.1, Mythos 5.1, and Opus 5 (beta) — the cached prefix stays intact.**
+
+Long agentic sessions often need two effort modes: `high` for the initial analysis or planning turn, `low` for the follow-up turns (summarize, format, confirm). The naive fix — change `output_config.effort` at the top level on the next request — starts a new cache prefix. Every token you have already paid for gets re-billed.
+
+Per-message effort (beta header: `mid-conversation-output-config-2026-07-01`) gives you a cleaner path. Add a system message with empty `content` and the new effort level in `output_config.effort`. The new level takes effect from the next user turn forward; the cached prefix before that message is unchanged.
+
+```python
+response = client.beta.messages.create(
+    model="claude-fable-5-1",
+    max_tokens=8096,
+    output_config={"effort": "high"},
+    messages=[
+        {"role": "user", "content": "Find all N+1 queries in this 3,000-line Django module."},
+        {"role": "assistant", "content": previous_analysis},
+        # Step down without cache bust:
+        {"role": "system", "content": [], "output_config": {"effort": "low"}},
+        {"role": "user", "content": "List the top three as one-line bullets."},
+    ],
+    betas=["mid-conversation-output-config-2026-07-01"],
+)
+```
+
+**The limits.** Only `claude-fable-5-1`, `claude-mythos-5-1`, and `claude-opus-5` support per-message effort; other models (including Fable 5 and Sonnet 4.6) return a 400. Use `client.beta.messages.create` — the standard path ignores the beta header. The system message must carry empty `content`; text in it triggers the normal mid-conversation placement rules and can fail validation. On Opus 5 at `xhigh` or `max` effort, thinking cannot be disabled — per-message effort cannot work around that constraint.
+
+A GitHub issue documented that the older `/effort` slash command caused full cache misses on Opus 4.7 in 5 of 6 measured transitions. The per-message form was designed specifically to avoid that pattern on the newer models.
+
+**Sources:** [Per-message effort (beta) — Anthropic Platform Docs](https://platform.claude.com/docs/en/build-with-claude/effort#change-effort-mid-conversation-beta) · [GitHub issue #61984: /effort changes cause cache misses on Opus 4.7 — anthropics/claude-code](https://github.com/anthropics/claude-code/issues/61984) · [Claude effort control and mid-conversation system messages — AI for Anything](https://www.aiforanything.io/blog/claude-effort-control-mid-conversation-system-messages-api-guide-2026)]]></content:encoded>
+    </item>
 
     <item>
       <title>Your Claude Agents Weren't in Code Review. `ant apply` Changes That.</title>
@@ -5231,53 +5317,9 @@ What a marketer can do tomorrow: inventory every place genAI touches your publis
     </item>
 
 
-    <item>
-      <title>A 22B Video-With-Sound Model That Runs on a 16GB Gaming GPU: LTX-2.5's Weights Are Out</title>
-      <link>https://www.opensourceforu.com/2026/08/ltx-2-5-brings-open-weight-video-generation/</link>
-      <guid isPermaLink="false">2026-08-22-10-ltx-2-5-video-audio-on-your-gpu</guid>
-      <pubDate>Sat, 22 Aug 2026 05:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Everyday AI</category>
-      <category>Video Generation</category>
-      <category>Local AI</category>
-      <description>Lightricks released LTX-2.5 open weights (Aug 11): one 22B model generates synchronized video and audio, 720p–4K, runnable locally from ~16GB VRAM with FP8 quantization.</description>
-      <content:encoded><![CDATA[**TL;DR: Lightricks released LTX-2.5 open weights (Aug 11): one 22B model generates synchronized video and audio, 720p–4K, runnable locally from ~16GB VRAM with FP8 quantization.**
+    
 
-If you have a 16GB consumer GPU, you can now generate video *with synchronized audio* from one local model. LTX-2.5's 22B checkpoints (full and 8-step distilled) are on Hugging Face, with ComfyUI and Diffusers support; FP8 quantization brings VRAM needs down roughly 40%, to about the 16GB floor. Native multishot holds character, lighting, and voice consistent across cuts — the thing that made local video toys fall apart at clip two. On top-end datacenter hardware Lightricks claims a 10-second clip in 6.8 seconds; at home you'll wait longer, but it runs.
-
-One honest caveat: "open weights" here means the LTX-2.x Community License — free commercial use only under $10M revenue. For a weekend project, that's academic; know it before building a business on it.
-
-**Sources:** [VentureBeat](https://venturebeat.com/technology/ltx-2-5-can-generate-a-10-second-ai-video-from-an-image-in-just-6-8-seconds-on-nvidia-superchips-and-its-open-weights), [Open Source For You](https://www.opensourceforu.com/2026/08/ltx-2-5-brings-open-weight-video-generation/), [DataNorth](https://datanorth.ai/news/ltx-releases-ltx-2-5-open-weights-video-world-model)]]></content:encoded>
-          <media:content url="https://www.opensourceforu.com/wp-content/uploads/2026/08/images-11.jpg" medium="image" />
-      <media:thumbnail url="https://www.opensourceforu.com/wp-content/uploads/2026/08/images-11.jpg" />
-    </item>
-
-
-    <item>
-      <title>"Agentic QA" Stopped Being a Demo This Year — What a QA Engineer Should Actually Evaluate</title>
-      <link>https://www.gartner.com/reviews/market/ai-augmented-software-testing-tools</link>
-      <guid isPermaLink="false">2026-08-22-11-agentic-qa-what-changed-for-testers</guid>
-      <pubDate>Sat, 22 Aug 2026 05:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>AI for Your Role</category>
-      <category>QA</category>
-      <category>Agents</category>
-      <description>Autonomous test agents — plan coverage, generate cases from user stories, execute, self-repair — matured to production-grade across many vendors in 2026. Evaluate the category, not the pitch.</description>
-      <content:encoded><![CDATA[**TL;DR: Autonomous test agents — plan coverage, generate cases from user stories, execute, self-repair — matured to production-grade across many vendors in 2026. Evaluate the category, not the pitch.**
-
-The pattern across the testing market in 2026: agents that read user stories, generate executable tests, run them in real browsers, and repair themselves on UI change are now shipping from essentially every major vendor (mabl's agentic platform re-launch in April was the loudest; Tricentis, Functionize, Katalon, Autify, QA Wolf and a dozen others have equivalents), with Gartner Peer Insights now tracking it as a category transition. Vendor-reported coverage gains run 5–10x at flat headcount — treat that as a claim to test, not a fact.
-
-What a QA person can do tomorrow: pick your flakiest existing suite, run one agentic tool against the same user stories, and score it on the two things vendor demos skip — false-pass rate, and how much *review* time the generated tests cost you. The bottleneck moves from writing tests to auditing them; whether that trade wins depends on your app, not the demo.
-
-**Sources:** [Gartner Peer Insights — AI-augmented testing market](https://www.gartner.com/reviews/market/ai-augmented-software-testing-tools), [mabl agentic platform announcement](https://www.prnewswire.com/news-releases/mabl-unveils-next-generation-agentic-testing-platform-for-the-ai-development-era-302751783.html), [TestQuality on agentic QA](https://testquality.com/the-shift-to-agentic-qa-beyond-automated-testing-to-autonomous-ai-generation-in-2026/)]]></content:encoded>
-          <media:content url="https://testquality.com/wp-content/uploads/2026/03/Agentic-QA-AI-Powered-QA-Agent-Test-Creation-Autonomous-AI-Test-Generation-TestStory-TestQuality-1920x1280px--1024x609.jpg" medium="image" />
-      <media:thumbnail url="https://testquality.com/wp-content/uploads/2026/03/Agentic-QA-AI-Powered-QA-Agent-Test-Creation-Autonomous-AI-Test-Generation-TestStory-TestQuality-1920x1280px--1024x609.jpg" />
-    </item>
-
+    
     
     
     
