@@ -158,7 +158,12 @@ paths — which now 301 to their successors.
 - **DKIM added (2026-09-05):** TXT `google._domainkey` (2048-bit key from
   Google Admin) in the Cloudflare zone; the owner clicks "Start
   authentication" in Google Admin, which verifies within about an hour.
-- **Still open:** OpenTofu import of the zone + R2 bucket/domain (`infra/`
-  has providers only; the token carries the zone permissions); delete the
-  `gh-pages` branch after the soak; optionally delete the `blog-images`
-  Release once R2 has soaked; delete the stale Netlify site in its dashboard.
+- **OpenTofu import DONE (2026-09-05):** `infra/` now owns the zone, its
+  settings, all 14 DNS records, the www redirect ruleset and the R2 bucket —
+  21 resources imported via committed `import` blocks, `plan` = "No changes".
+  Run it with `node scripts/tofu.mjs plan|apply` (token from `.env`). Not
+  managed: the Worker (wrangler) and the R2 custom domain
+  `img.cloudcodetree.com` — provider 5.x cannot import it (see `infra/r2.tf`).
+- **Still open:** delete the `gh-pages` branch after the soak (~2026-09-19);
+  optionally delete the `blog-images` Release once R2 has soaked; delete the
+  stale Netlify site in its dashboard.

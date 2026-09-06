@@ -1,36 +1,52 @@
 # Infrastructure (OpenTofu)
 
-Owns account-level state: the Cloudflare zone and DNS records, R2 buckets,
-the Worker's custom domain, the Supabase project and auth settings, the
-Google OAuth client, and GitHub Actions secrets. Matches the homestead.deals
-OpenTofu setup.
+Owns the Cloudflare zone `cloudcodetree.com` — the zone itself, its DNS
+records, its settings, the www→apex redirect rule — and the R2 bucket that
+holds the blog images. Local state, single operator. Since the Route 53
+hosted zone was deleted (2026-09-05) this configuration is the only copy of
+the DNS outside Cloudflare, which is the point of it.
 
-**Does NOT own the Worker itself.** The script, its assets, and everything
-under `assets` in `wrangler.jsonc` (`_headers`, `html_handling`,
-`not_found_handling`, `run_worker_first`, bindings) belong to wrangler.
-`cloudflare_workers_script` *can* manage them — which is exactly why the rule
-needs stating: two writers on one resource produce drift, and the AI News
-routine deploys content daily.
+**Does NOT own** (two writers on one object produce drift):
 
-The database schema, RLS policies, and views will be SQL migrations under
-`supabase/migrations/` (Phase 2). Forced, not preferred: the Supabase
-provider has no resource for tables, policies, or views.
+- the Worker `cct-site` / `cct-site-staging`: script, assets, routes, and the
+  `beta.cloudcodetree.com` custom domain (its AAAA record) — `wrangler.jsonc`
+- the R2 custom domain `img.cloudcodetree.com` and the CNAME it creates — the
+  provider cannot import it (see `r2.tf`); it was attached with wrangler
+- Supabase (auth settings live in `scripts/configure-auth.mjs`, schema in
+  `supabase/migrations/`), the OAuth clients, GitHub Actions secrets
+  (`scripts/set-ci-secrets.mjs`)
 
-## Phase plan
+## Files
 
-- **Phase 0 (now):** walking skeleton, local state, zero resources.
-- **Phase 1:** `r2.tf` — the `cct-media` bucket.
-- **Phase 2:** `supabase.tf`, `google_oauth.tf`, `github.tf`.
-- **Phase 3:** `dns.tf` + `worker.tf` — the zone and its 11 records arrive via
-  `import` blocks (the zone already exists, scanned from Route53), so
-  `tofu plan` proves no-changes against reality before cutover. The zone
-  settings applied 2026-08-20 (`always_use_https=on`, `min_tls_version=1.2`)
-  get imported then too.
+| File | Contents |
+|---|---|
+| `zone.tf` | `cloudflare_zone` + settings (always_use_https, automatic_https_rewrites, ssl=full, min_tls 1.2) |
+| `dns.tf` | A ×4 (GitHub Pages IPs, historical, proxied), CNAME www, MX ×6, TXT SPF / DMARC / DKIM |
+| `redirects.tf` | the `http_request_dynamic_redirect` ruleset: www → apex 301 |
+| `r2.tf` | bucket `cct-blog-images` |
+| `imports.tf` | one `import` block per resource, so a fresh checkout rebuilds state instead of re-creating anything |
 
 ## Use
 
-    cd infra
-    export CLOUDFLARE_API_TOKEN=...   # only needed once resources exist
-    tofu init
-    tofu validate
-    tofu plan
+The provider reads `CLOUDFLARE_API_TOKEN` from the environment. The wrapper
+loads it from `.env` so it never has to be exported or pasted:
+
+    node scripts/tofu.mjs init
+    node scripts/tofu.mjs plan      # "No changes" is the healthy answer
+    node scripts/tofu.mjs apply
+
+Everything after the script name goes to `tofu` verbatim.
+
+- **Drift check:** `plan` against a healthy zone prints `No changes`. Anything
+  else means someone changed DNS or a setting in the dashboard — decide
+  whether the config or the dashboard is right, then apply or edit.
+- **Fresh checkout, no state:** `init` then `apply` — the `import` blocks
+  pull every resource into state; nothing is created.
+- **Adding a record:** add the resource, `plan`, `apply`. No import block is
+  needed for new resources.
+- The token needs: Zone Read, DNS Edit, Zone Settings Edit, Single Redirect
+  Edit, Workers R2 Storage Edit (the CI token has all of them).
+
+State is local and gitignored (`terraform.tfstate*`, `.terraform/`,
+`.terraform.lock.hcl`). Shared state (an R2 backend) is sketched in
+`backend.tf` for when a second operator or CI applies appear.

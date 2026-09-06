@@ -201,9 +201,13 @@ Worker route `cloudcodetree.com/*` serves the apex; the proxied A records undern
 are historical (GitHub Pages IPs) and only matter if the route is ever removed. `www`
 is a zone-level Single Redirect rule (301 to the apex, path + query preserved) — it
 is deliberately **not** a Worker route, because the Worker only runs for
-`run_worker_first` paths and would otherwise serve duplicate content. MX / SPF / DMARC
-for Google Workspace live in the zone; DKIM is still to be added. The zone is to be
-imported into OpenTofu (`infra/`).
+`run_worker_first` paths and would otherwise serve duplicate content. MX / SPF / DMARC /
+DKIM for Google Workspace live in the zone. **The zone, its settings, every DNS record,
+the redirect rule and the R2 bucket are managed by OpenTofu in `infra/`** (`node
+scripts/tofu.mjs plan` should say "No changes"; see `infra/README.md`). The Route 53
+hosted zone was deleted on 2026-09-05, so `infra/` is the only copy of the DNS outside
+Cloudflare. Not in OpenTofu: the Worker (wrangler) and the R2 custom domain
+`img.cloudcodetree.com` (not importable in provider 5.x).
 
 ### Cutover history
 - 2026-09-03: nameservers on Cloudflare; beta rehearsal green.
