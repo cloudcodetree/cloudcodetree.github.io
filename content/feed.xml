@@ -10,7 +10,130 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 05 Sep 2026 12:04:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 05 Sep 2026 20:08:00 +0000</lastBuildDate>
+
+    <item>
+      <title>The Names You Give Design Elements in Claude Design Are What Claude Code Uses to Look Up Components</title>
+      <link>https://claudelab.net/workflow/component-naming-handoff/</link>
+      <guid isPermaLink="false">2026-09-05-08-claude-design-component-naming-handoff</guid>
+      <pubDate>Sat, 05 Sep 2026 20:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Claude Design generates screens with generic element names. Rename them to your actual component names before exporting — Claude Code uses those names to look up your real components.</description>
+      <content:encoded><![CDATA[**Claude Design generates screens with generic element names like "Card" and "Button." Before you export, rename every element to the actual name from your component library — Claude Code uses those names to find your real components, not build new ones.**
+
+When Claude Design generates a screen, its layer panel fills up with generic names: "Card," "Input Field," "Modal Overlay." Those names look reasonable, but they're not your component names. When Claude Code sees the exported design and tries to implement it, it searches your codebase for a component called "Card" — and if your actual component is `<ProductCard>` or `<DashboardCard>`, it won't find it. It builds a fallback from scratch instead.
+
+**The naming pass** happens before you export, in Claude Design's layer panel:
+
+```
+Prompt: "List every element on this screen as a flat list with its current name. I'll rename them."
+```
+
+Go through the list and rename each element to its actual component name from your library. For a design system with a `<DataTable>`, rename "Table" → "DataTable." For `<PrimaryButton>`, rename "Button" → "PrimaryButton." Keep the exact casing your codebase uses.
+
+**Base components** (Button, TextField, Checkbox) can keep their generic name if that's what your library calls them. The rename only matters where your library diverges from the generic.
+
+**Add a component map to DESIGN.md** so Claude Code knows which design element names map to which components:
+
+```md
+## Component name map
+| Design element | Component |
+|---|---|
+| ProductCard | `<ProductCard variant="summary" />` |
+| HeroSection | `<PageHero />` |
+| FilterDrawer | `<SidebarFilter />` |
+```
+
+**Worst failure mode:** modals. A generic "Modal Overlay" becomes a bespoke div with manually managed z-index and focus trapping, bypassing whatever modal system you already have. If your library has `<DialogModal>` or `<Sheet>`, name it that in the design panel.
+
+**One limit:** this only helps when your library uses descriptive names. If your components are named by role (Button, Input) rather than by design intent (PrimaryAction, SearchInput), Claude Code's component lookup lands on the right component regardless — the naming pass matters most for divergent vocabularies.
+
+**Sources:** [claudelab.net — pre-handoff component naming](https://claudelab.net/workflow/component-naming-handoff/) · [aakashg/claude-design-pm-toolkit](https://github.com/aakashg/claude-design-pm-toolkit) · [dev.to/bilelsalemdev — naming components in Claude Design](https://dev.to/bilelsalemdev/naming-components-claude-design-before-handoff)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your Fable 5.1 Agent Returns a 400 When You Edit Earlier Turns — Here's the Fix</title>
+      <link>https://arturmarkus.com/ai-unfiltered/fable-51-turn-editing/</link>
+      <guid isPermaLink="false">2026-09-05-07-fable-5-1-conversation-history-append-only</guid>
+      <pubDate>Sat, 05 Sep 2026 20:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Fable 5.1 validates thinking-block provenance for accounts after August 31 — any harness that edits earlier turns mid-session returns a 400. Use turn-scoped system messages instead.</description>
+      <content:encoded><![CDATA[**Fable 5.1 validates thinking-block provenance. For accounts created after August 31, any harness that edits an earlier turn mid-session gets a 400: "bound to a different conversation." The fix is turn-scoped system messages — not edited history.**
+
+The error surfaces in agentic setups: a harness that injects context by rewriting an earlier turn, or that swaps tool definitions mid-session, now gets back:
+
+```
+400 Bad Request
+thinking_block_binding: bound to a different conversation
+```
+
+**What triggers it:**
+- Editing any turn earlier than the current one mid-session
+- Changing the tool list between turns in the same session
+- Client-side in-place summarization that rewrites earlier assistant turns
+
+**The fix — turn-scoped system messages.** Instead of editing history, inject context as a system message scoped to clear after the next user turn:
+
+```json
+{
+  "role": "system",
+  "content": "...",
+  "clear_at": "next_user_message"
+}
+```
+
+Requires beta header: `anthropic-beta: mid-conversation-system-clear-at-2026-08-21`.
+
+**Tool changes** must happen between sessions (after the conversation ends), not mid-session. If you need a different tool set for a sub-task, start a fresh session.
+
+**Whole-history compaction** is still valid — collapse all prior turns into a single summary turn and start fresh. That resets provenance cleanly. The harness pattern to avoid is surgical rewriting of individual earlier turns.
+
+**Detection:** The beta header `anthropic-beta: thinking-binding-controls-2026-08-01` exposes `thinking.block_binding.prefix_mismatch_behavior`. Set it to `"drop_block"` to downgrade the error to a warning (thinking blocks from mismatched history are silently dropped) while you migrate your harness.
+
+**One limit:** enforcement is currently scoped to accounts created after August 31, 2026. Earlier accounts see the old behavior until future model versions extend enforcement universally — migrate now rather than after the cutover.
+
+**Sources:** [Anthropic Fable 5.1 guide](https://www.anthropic.com/research/fable-51-guide) · [AI Unfiltered — Fable 5.1 turn editing](https://arturmarkus.com/ai-unfiltered/fable-51-turn-editing/) · [Anthropic preserved-thinking docs](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking/preserved-thinking)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Nvidia Buys HuggingFace for $12.9B — and Your Claude Code Limits Drop 17% on Sept. 14</title>
+      <link>https://blogs.nvidia.com/blog/nvidia-acquires-hugging-face/</link>
+      <guid isPermaLink="false">2026-09-05-06-nvidia-huggingface-acquisition-cc-limits</guid>
+      <pubDate>Sat, 05 Sep 2026 20:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>HuggingFace</category>
+      <category>Developer Tools</category>
+      <description>Nvidia agreed to buy HuggingFace for $12.93B — hardware vendor now owns the primary open-model hub. Claude Code's temp +50% limit promo ends Sept. 14; effective cut is 17%.</description>
+      <content:encoded><![CDATA[**Two items developers need to know about this weekend: Nvidia is buying HuggingFace for $12.93B — a hardware company will own the primary open-model hub — and Claude Code's temporary +50% limits end September 14, which means an effective 17% cut from today's limits.**
+
+**Nvidia acquires HuggingFace — $12.93B, closes H1 2027**
+
+Announced September 3. Nvidia is paying $12.93B for HuggingFace, the host of 3M+ models, 500K datasets, and 18M developers. Jensen Huang's stated position: maintain the open-ecosystem mission, no vendor lock-in. The obvious concern from the Forrester analysis: Nvidia has every incentive to optimize HuggingFace tooling for CUDA hardware, and the pressure to do so will grow as the deal ages.
+
+For engineers who depend on HuggingFace for model access, dataset pipelines, or the Hub API: the platform keeps running under existing terms through close. Post-close behavior depends on what "open ecosystem" means in practice once quarterly earnings expectations apply.
+
+The harder question is what this does to the trust stack under open-weights models. HuggingFace has been a neutral host. Nvidia is not.
+
+**Claude Code limits drop 17% on September 14**
+
+In May, Anthropic added a temporary +50% boost to Claude Code's per-session and daily limits (the SpaceX compute partnership announcement). That boost ends September 14. The permanent increase from May — +25% above the pre-May baseline — stays. Net result: limits drop from the current boosted level to the permanent floor, which is 17% below where they are today.
+
+Session limits are unaffected. The change hits the daily and per-period aggregate caps.
+
+If you're doing large refactors or multi-day agentic runs scheduled around current limits, plan for the reduction now rather than hitting it mid-task on the 14th.
+
+**Sources:** [NVIDIA Blog](https://blogs.nvidia.com/blog/nvidia-acquires-hugging-face/) · [TechCrunch](https://techcrunch.com/2026/09/03/nvidia-acquires-hugging-face-for-12-9-billion/) · [VentureBeat — deal analysis](https://venturebeat.com/ai/nvidia-hugging-face-12-9-billion-implications/) · [AI Catchup](https://www.ai-catchup.com/2026/09/nvidia-hugging-face-acquisition)]]></content:encoded>
+    </item>
 
     <item>
       <title>Your Claude Code Context Is Burning on Skills You Never Use. /skill-doctor Shows the Bill.</title>
@@ -5074,290 +5197,7 @@ Three things launched alongside:
       <media:thumbnail url="https://www.anthropic.com/images/index/mythos-5.jpg" />
     </item>
 
-    <item>
-      <title>Run Three Claude Design Directions Before You Commit to One</title>
-      <link>https://support.claude.com/en/articles/14604416-get-started-with-claude-design</link>
-      <guid isPermaLink="false">2026-08-21-07-claude-design-three-directions-exploration</guid>
-      <pubDate>Fri, 21 Aug 2026 12:18:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Design</category>
-      <category>Claude Design</category>
-      <description>Most designers commit to a direction too early. This three-direction exploration pattern uses Claude Design's canvas for rapid parallel iteration — then a structured comparison prompt to pick the winner before you spec anything out for Claude Code. Design ramp-up 11 of 12.</description>
-      <content:encoded><![CDATA[**Most designers commit to a direction too early. This three-direction exploration pattern uses Claude Design's canvas for rapid parallel iteration — then a structured comparison prompt to pick the winner before you spec anything out for Claude Code.**
-
-Previous: [Fix responsive failures before Claude Code handoff](/ai-news/2026-08-21-04-generated-components-responsive-review) · Design ramp-up 11 of 12.
-
-## Why three directions, not one iterated
-
-A single prompt to Claude Design produces one solution — which you then refine. That's not iteration; it's proofreading. You're optimizing a single local maximum.
-
-The directions pattern generates genuinely different structural approaches first, evaluates them against explicit criteria, and only then commits to a layout. You can defend the pick to a stakeholder, and you don't discard the best ideas from the directions you didn't choose.
-
-Three is the right number. Two is too few to reveal the tradeoff space. Four creates analysis paralysis. Each direction needs a different *starting constraint*, not just a different color scheme.
-
-## Step 1: Generate three constrained directions
-
-Open a fresh Claude Design canvas and send this in one prompt:
-
-```
-Generate three UI directions for a [your feature description] screen.
-Keep them on separate artboard areas so I can compare.
-
-Direction A — Information-first: structure this around data density.
-Show as much relevant context as possible before the fold.
-Navigation is secondary to content.
-
-Direction B — Action-first: the primary call-to-action is the visual
-anchor. Everything else exists to support the decision the user is
-about to make.
-
-Direction C — Progressive disclosure: show the minimum needed to start;
-reveal detail only as the user engages. Optimise for a first-time user
-who doesn't yet know what they need.
-
-Use the same color palette and type scale across all three so we're
-comparing layout structure and information hierarchy, not aesthetics.
-```
-
-The constraint per direction forces structural differences. "Round corners vs square corners" is not a direction; "data-dense vs action-anchored vs progressive" is.
-
-## Step 2: Score with the evaluation prompt
-
-After reviewing all three, send:
-
-```
-Review these three directions against these criteria:
-
-1. First-time user: which direction minimises time-to-first-meaningful-action?
-2. Returning power user: which direction puts repeat-use features closest to reach?
-3. Mobile at 375px: which direction degrades least at small viewports?
-4. Handoff complexity: which direction has the fewest layout-specific edge cases
-   a developer would need to handle?
-
-Score each direction 1–3 per criterion (3 = best). Recommend the winner.
-Then identify the single strongest element from each runner-up worth
-incorporating into the winning direction.
-```
-
-This does two things: it gives you a defensible scorecard you can show a stakeholder, and it surfaces the best ideas from the directions you're discarding so they don't disappear.
-
-## Step 3: Spec the winner, hand off to Claude Code
-
-Once you have a direction, spec it out before touching Claude Code:
-
-```
-Take the winning direction. Expand the primary content area into a
-full layout spec:
-
-- Exact spacing between elements (assume an 8px base grid)
-- Hover, focus, and active states for all interactive elements
-- Empty state: no data yet
-- Error state: action failed
-- Loading state: data is fetching
-
-Output this as a structured component spec I can hand to a developer.
-```
-
-Then hand that spec to Claude Code directly:
-
-```
-Build this component in React + Tailwind. Here's the spec:
-[paste the spec]
-
-Start with the desktop layout at 1280px. Responsive breakpoints come
-after the base layout is working and reviewed.
-```
-
-The structured spec gives Claude Code enough to produce a working component, not a layout approximation. "Here's a screenshot, make this" produces a guess. "Here's a spec with states and spacing" produces an implementation.
-
-## What this isn't
-
-This pattern is for **deciding what to build**, not for visual polish. Once you've picked a direction and produced the spec, Claude Design's job is done for this feature. Visual refinement happens in your real design tool and in code review — not by iterating further in the canvas.
-
-The pattern also doesn't replace user research. It accelerates *designer* decision-making, not *user* validation. Run usability sessions on the implemented component, not the canvas direction.
-
-**Sources:** [Get started with Claude Design — Anthropic Help](https://support.claude.com/en/articles/14604416-get-started-with-claude-design) · [Set up your design system in Claude Design — Anthropic Help](https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design) · [Claude Design plugin — claude.com](https://claude.com/plugins/figma)
-]]></content:encoded>
-    </item>
-    <item>
-      <title>Keep Your RAG Index Fresh Without a Full Rebuild: LangChain RecordManager and Incremental Indexing</title>
-      <link>https://python.langchain.com/docs/how_to/indexing/</link>
-      <guid isPermaLink="false">2026-08-21-06-rag-incremental-index-recordmanager</guid>
-      <pubDate>Fri, 21 Aug 2026 12:17:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>RAG</category>
-      <category>Best Practices</category>
-      <description>Every day your docs change, only a fraction do — but a naive rebuild re-embeds everything. RecordManager tracks document hashes so you can add, update, and delete changed docs only, keeping your vector store in sync at a fraction of the cost.</description>
-      <content:encoded><![CDATA[**Every day your docs change, only a fraction of them do — but a naive rebuild re-embeds everything. `RecordManager` tracks document hashes so you can add, update, and delete changed docs only, keeping your vector store current at a fraction of the cost.**
-
-This is part of the *Better RAG* curriculum. Previous entry: [self-query metadata filtering with SelfQueryRetriever](/ai-news/2026-08-21-01-rag-self-query-metadata-filter).
-
-## The problem with full rebuilds
-
-A standard ingest script looks like this:
-
-```python
-docs = load_all_documents()          # Load every doc
-chunks = text_splitter.split(docs)   # Chunk all of them
-vectorstore.add_documents(chunks)    # Embed and store
-```
-
-Run this on a cron job and you re-embed the 95% of documents that haven't changed since yesterday. At `$0.00002` per token for `text-embedding-3-small`, a 10,000-document knowledge base costs roughly $2 per full rebuild. Run it daily and you're also accumulating duplicate chunks from any document that was split differently after an edit.
-
-`RecordManager` solves both problems.
-
-## How RecordManager works
-
-`RecordManager` maintains a SQLite (or Postgres) table that maps each document chunk to a content hash. On re-ingest, it computes hashes of incoming chunks and compares against the cache:
-
-- **New hash** → embed and add
-- **Existing hash, same source** → skip (no embedding call)
-- **Changed hash for a source** → delete old chunks, embed and add new ones
-- **Source no longer in the batch** → delete all chunks for that source (with `cleanup="incremental"`)
-
-```python
-from langchain.indexes import SQLRecordManager, index
-from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
-
-embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
-vectorstore = Chroma(embedding_function=embeddings, persist_directory="./chroma_db")
-
-# One-time setup
-record_manager = SQLRecordManager(
-    namespace="my_kb",
-    db_url="sqlite:///record_manager_cache.sql"
-)
-record_manager.create_schema()
-
-def sync_documents(docs):
-    return index(
-        docs_source=docs,
-        record_manager=record_manager,
-        vector_store=vectorstore,
-        cleanup="incremental",   # delete chunks from removed or changed sources
-        source_id_key="source",  # group chunks by their originating document
-    )
-```
-
-## Running the sync
-
-```python
-from langchain_community.document_loaders import DirectoryLoader
-
-loader = DirectoryLoader("./docs", glob="**/*.md")
-all_docs = loader.load()
-
-# First run — embeds everything
-result = sync_documents(all_docs)
-print(result)
-# {'num_added': 10000, 'num_updated': 0, 'num_skipped': 0, 'num_deleted': 0}
-
-# Daily run after minor changes
-result = sync_documents(all_docs)
-print(result)
-# {'num_added': 3, 'num_updated': 7, 'num_skipped': 9990, 'num_deleted': 2}
-```
-
-The 9,990 `skipped` chunks are confirmed-unchanged by hash — zero embedding API calls.
-
-## The three cleanup modes
-
-- **`cleanup=None`**: add new docs, never delete. Default behavior. Stale chunks accumulate silently.
-- **`cleanup="incremental"`**: add new, update changed, delete chunks from sources no longer in the batch. Correct for ongoing sync jobs.
-- **`cleanup="full"`**: delete everything not in this exact batch. Correct only for a one-shot full refresh; too aggressive for incremental jobs because a transient loader failure can wipe your whole index.
-
-Use `"incremental"` for scheduled sync jobs.
-
-## Handling deletions correctly
-
-`"incremental"` cleanup relies on the `source_id_key` metadata field being stable and consistent. If your loader derives `source` from a file path, moving a file looks like a delete + new add — you pay for re-embedding the content, but you don't accumulate stale chunks.
-
-Add a simple assertion to catch unexpected bulk deletes:
-
-```python
-result = sync_documents(all_docs)
-assert result["num_deleted"] < 50, (
-    f"Unexpected bulk deletion: {result['num_deleted']} chunks removed. "
-    "Check whether source IDs changed (renamed files, changed loader)."
-)
-```
-
-Sudden deletion spikes usually mean a loader is regenerating `source` IDs (timestamps, hash-based names) rather than reflecting an actual content change.
-
-## What RecordManager doesn't fix
-
-**Embedding model changes.** If you switch embedding models, the hash comparison still works — hashes are over content, not embeddings — but the stored vectors are incompatible with your new model. A full rebuild is unavoidable on model changes.
-
-**Chunking strategy changes.** Any change to your `TextSplitter` parameters (chunk size, overlap, separators) invalidates all existing chunks. Reset both the vector store and the RecordManager cache together when you change chunking.
-
-**Cross-store consistency.** `RecordManager` is a separate SQLite/Postgres store; if you reset your vector store without resetting the RecordManager, subsequent syncs will skip re-adding documents because the hashes are still cached.
-
-The canonical reset pattern:
-
-```python
-# When you need to rebuild from scratch
-vectorstore.delete_collection()
-record_manager.create_schema()    # This drops and recreates the cache table
-result = sync_documents(all_docs)
-```
-
-**Sources:** [How to use the indexing API — LangChain Python docs](https://python.langchain.com/docs/how_to/indexing/) · [Efficient Document Indexing with LangChain RecordManager — particula.tech](https://particula.tech/langchain-recordmanager-efficient-document-indexing/) · [RAG Vector Store Sync Patterns: Incremental vs Full Rebuild — TianPan.co](https://tianpan.co/blog/rag-vector-store-sync)
-]]></content:encoded>
-    </item>
-    <item>
-      <title>CoSnitch: A Hidden URL Parameter Let Attackers Execute Prompts in Your Copilot Session (CVE-2026-24301, Patched)</title>
-      <link>https://www.varonis.com/blog/cosnitch-microsoft-copilot-personal-cve-2026-24301</link>
-      <guid isPermaLink="false">2026-08-21-05-cosnitch-copilot-prompt-injection</guid>
-      <pubDate>Fri, 21 Aug 2026 12:16:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Security</category>
-      <category>LLM</category>
-      <description>Varonis found an undocumented ?autorun=1 parameter in Microsoft Copilot Personal that silently executed attacker-controlled prompts in an authenticated session — reading Gmail, Drive, and Calendar data, then poisoning persistent memory. Microsoft patched it Aug 18.</description>
-      <content:encoded><![CDATA[**Varonis researchers found an undocumented `?autorun=1` URL parameter in Microsoft Copilot Personal that silently fed attacker-controlled prompts into a victim's authenticated session — no click required beyond opening the link, CVSS 8.8. Microsoft patched it server-side on August 18, 2026.**
-
-The attack, named "CoSnitch" by Varonis, required nothing beyond tricking a target into opening a crafted URL:
-
-1. Attacker constructs a URL: `https://copilot.microsoft.com/?autorun=1&prompt=<injected-instruction>`
-2. Victim opens the link — their authenticated Copilot Personal session loads
-3. The `autorun=1` parameter fires the injected prompt immediately, before any UI is visible
-4. The prompt directs Copilot to read Gmail, Google Drive, and Calendar via its connected OAuth integrations and relay the data to an attacker-controlled endpoint
-5. A follow-on injected prompt poisons Copilot's **persistent memory** with false context that persists across all future sessions
-
-Varonis confirmed the full exfiltration and memory-poisoning chain in a controlled demo. The researchers disclosed the flaw to Microsoft in late 2025 and published their full technical write-up after the Aug 18 patch.
-
-## Why enterprise Copilot wasn't affected
-
-Microsoft 365 Copilot (the enterprise product) uses a separate URL scheme and authentication flow. The `?autorun=1` parameter was not present in the enterprise product. CVE-2026-24301 is specific to the **Copilot Personal** consumer product at copilot.microsoft.com.
-
-## What was patched
-
-Microsoft removed the `?autorun=1` parameter in a server-side update on August 18. No client update is needed — the fix is deployed globally. If you're concerned about memory poisoning from prior exposure, audit your Copilot memory at **copilot.microsoft.com/settings/memory**.
-
-## Why this matters for developers building AI products with external integrations
-
-The attack surface here is a URL parameter that bypassed every user-intent signal: no typed prompt, no form submission, no approval dialog. The attacker used Copilot's own interface against the authenticated user.
-
-Three things to audit in your own products:
-
-**URL-driven prompt execution.** Never auto-execute a prompt sourced from a URL parameter or query string without a visible, interruptible confirmation step. Treat URL-delivered instructions as untrusted input at the same level as form input.
-
-**Broad OAuth scopes.** Copilot's wide-open Gmail + Drive + Calendar grants made mass exfiltration trivial once the prompt ran. Scope your OAuth grants to the minimum your feature actually requires. "Request everything now in case we need it later" is the pattern that turns a prompt injection into a data breach.
-
-**Persistent memory as an attack surface.** Any persistent context store your product maintains — user preferences, conversation history, agent memory — can be poisoned via prompt injection. Design write access to persistent memory with the same caution you'd apply to a database: validate sources, limit scope, and make writes auditable.
-
-No in-the-wild exploitation was reported. Varonis disclosed responsibly; the CVE was assigned and the fix shipped in August 2026.
-
-**Sources:** [CoSnitch: Prompt Injection via URL Parameter in Microsoft Copilot Personal (CVE-2026-24301) — Varonis](https://www.varonis.com/blog/cosnitch-microsoft-copilot-personal-cve-2026-24301) · [Microsoft Copilot CVE-2026-24301: Hidden Parameter Enabled Memory Poisoning — The Hacker News](https://thehackernews.com/2026/08/microsoft-copilot-cve-2026-24301.html) · [CoSnitch: How a URL Parameter Let Attackers Plant False Memories in Copilot — Dark Reading](https://www.darkreading.com/cyber-risk/cosnitch-copilot-memory-poisoning-cve-2026-24301)
-]]></content:encoded>
-    </item>
-    
+                
     
     
     
