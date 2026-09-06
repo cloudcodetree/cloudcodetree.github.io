@@ -10,7 +10,154 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 05 Sep 2026 20:08:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 06 Sep 2026 04:06:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Claude Design Generates at One Viewport Width — Four Things to Check Before You Hand Off</title>
+      <link>https://dev.to/bilelsalemdev/from-prompt-to-pull-request-using-claude-design-claude-code-and-github-together-3m00</link>
+      <guid isPermaLink="false">2026-09-06-03-claude-design-responsive-review-before-handoff</guid>
+      <pubDate>Sun, 06 Sep 2026 04:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Claude Design's canvas doesn't simulate responsive behavior. Four failure modes that survive a good prompt: fixed pixel widths, missing flex-wrap, hardcoded font sizes, and absolute-positioned elements.</description>
+      <content:encoded><![CDATA[**Before you hand Claude Design output to Claude Code: four responsive failure modes that survive a good prompt, and the two-pass review that catches them before any code is written.**
+
+Claude Design generates screens at a fixed canvas width. The artboards look complete — but responsive behavior isn't simulated in the canvas. There's no breakpoint preview, no flex-wrap test, no dynamic content check. What typically arrives in Claude Code's first pass:
+
+1. **Fixed pixel widths** — `width: 800px` instead of `max-width` or a percentage
+2. **Missing flex-wrap** — horizontal item rows that overflow on narrow viewports
+3. **Hardcoded font sizes** — `font-size: 20px` where `clamp()` or a type scale belongs
+4. **Absolutely positioned elements** that collide when the viewport narrows
+
+**Two-pass review before you commit to the implementation:**
+
+**Pass 1 — in Claude Design:** Ask "Check this screen for fixed widths, overflow risks, and anything that won't adapt to a narrower layout." Claude Design can flag most of these in text even though the canvas doesn't resize. If a component inventory is already in the session context, this also catches elements that drift between screens.
+
+**Pass 2 — in the browser:** Once the exported bundle lands in your repo, resize to 375px and 768px before writing any new code. Add the breakpoints you need to the handoff message or your CLAUDE.md so Claude Code applies them from the first file it touches.
+
+**The limit:** The canvas editor shows one artboard width and doesn't preview responsive states. Until Claude Design adds breakpoint views, browser testing is the only way to verify responsive behavior.
+
+**Sources:** [From Prompt to Pull Request: Claude Design + Claude Code — DEV Community](https://dev.to/bilelsalemdev/from-prompt-to-pull-request-using-claude-design-claude-code-and-github-together-3m00) · [Claude Design responsive output — The Human Co.](https://thehumanco.org/ai-resources/claude-design-update-brand-consistency) · [The Claude Design Handoff Playbook — Hyperautomation Labs](https://hyperautomationlabs.co/free/claude-design-long)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Claude Code Hangs in CI Because It's Waiting for You — `--permission-prompts none` Fixes That</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-09-06-02-claude-code-ci-unattended-no-permission-prompts</guid>
+      <pubDate>Sun, 06 Sep 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Three settings for a fully unattended Claude Code run in CI: --permission-prompts none auto-denies unexpected prompts, an explicit allow list handles tool permissions, and bashOutputMaxChars keeps logs from being silently truncated.</description>
+      <content:encoded><![CDATA[**`--permission-prompts none` + auto mode + `bashOutputMaxChars` gives you a Claude Code run that never hangs on a prompt and always surfaces the actual failure, not a timeout.**
+
+A Claude Code agent running in CI hits a permission prompt for an action outside its allow list — and the job silently times out rather than failing. No error, no output, just a hung runner. Three settings together prevent this:
+
+**1. `--permission-prompts none`** (v2.1.259)
+
+Any action that would normally open a permission prompt is auto-denied instead:
+
+```bash
+claude -p --permission-prompts none "run tests, fix any failures, commit the result"
+```
+
+This layers on top of whatever permission mode is active. Auto mode still runs its classifier; anything that falls through to a prompt gets denied rather than blocking the runner.
+
+**2. An explicit allow list in `.claude/settings.json`**
+
+Tell Claude exactly what it's trusted to do in this pipeline so safe actions pass auto mode without a classification delay:
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(npm test)", "Bash(npm run lint)", "Edit"],
+    "deny": ["Bash(git push)", "Bash(git commit)"]
+  }
+}
+```
+
+**3. `bashOutputMaxChars`** (v2.1.261)
+
+When a test log exceeds the default inline limit, Claude receives a file path instead of the actual errors. Raise the cap so the full output arrives:
+
+```json
+{ "bashOutputMaxChars": 65536 }
+```
+
+**The limit:** This combination keeps the run alive and gives Claude the information it needs — but you still need to review the diff before merging. With `--permission-prompts none`, Claude can't ask when it's unsure; ambiguous actions fail silently rather than being recovered.
+
+**Sources:** [Claude Code auto mode — Anthropic docs](https://code.claude.com/docs/en/core-concepts/auto-mode) · [Running Claude Code agents in CI — Tembo.io](https://www.tembo.io/blog/claude-code-subagents) · [v2.1.259 changelog](https://code.claude.com/docs/en/changelog)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your RAG Retriever Pulls the Right Text — From Last Year's Policy Doc. Metadata Filters Fix That.</title>
+      <link>https://www.youtube.com/watch?v=bBFu6fbmPDk</link>
+      <guid isPermaLink="false">2026-09-06-01-qdrant-metadata-filter-rag-scoped-retrieval</guid>
+      <pubDate>Sun, 06 Sep 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Vectors</category>
+      <description>Metadata filtering scopes vector search to documents matching hard attributes — category, year, tenant — before similarity scoring runs, so contextually wrong chunks never compete for top-k slots.</description>
+      <media:content url="https://img.youtube.com/vi/bBFu6fbmPDk/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/bBFu6fbmPDk/maxresdefault.jpg" />
+      <content:encoded><![CDATA[**What you'll be able to do after this:** scope your vector search by document attributes — category, date, tenant, access tier — so retrieval never surfaces semantically close text from the contextually wrong document.
+
+Similarity search finds chunks that are close in embedding space. It doesn't know that "refund policy" from last year's version is the wrong document to surface today. Metadata filtering adds a hard constraint that runs inside the vector index, before similarity scoring starts — only matching chunks enter the retrieval pool.
+
+**At ingest, store structured payload fields alongside your embedding:**
+
+```python
+from qdrant_client import QdrantClient, models
+
+client = QdrantClient("localhost", port=6333)
+
+client.upsert(
+    collection_name="docs",
+    points=[models.PointStruct(
+        id=chunk_id,
+        vector=embedding,
+        payload={"category": "policy", "year": 2026, "department": "support"}
+    )]
+)
+```
+
+**At query time, add a filter before similarity scoring runs:**
+
+```python
+from qdrant_client.http.models import Filter, FieldCondition, MatchValue
+
+results = client.search(
+    collection_name="docs",
+    query_vector=query_embedding,
+    query_filter=Filter(must=[
+        FieldCondition(key="category", match=MatchValue(value="policy")),
+        FieldCondition(key="year",     match=MatchValue(value=2026))
+    ]),
+    limit=5
+)
+```
+
+**Index every field you filter on — without this, filtered queries fall back to a full scan:**
+
+```python
+client.create_payload_index("docs", "category", field_schema="keyword")
+client.create_payload_index("docs", "year",     field_schema="integer")
+```
+
+Chroma uses `where={"year": 2026}`. Pinecone uses a `filter` dict. LangChain's `SelfQueryRetriever` can auto-generate the filter object from a natural language question — useful when users write free-text queries that carry implicit filter intent ("show me last year's support tickets").
+
+**The real limit:** filtering only helps if the metadata is stored at ingest time. Retroactively adding category labels to thousands of existing chunks is the hard part, not the query syntax.
+
+**Sources:** [RAG #8: Metadata Filtering in Vector Databases Explained — YouTube](https://www.youtube.com/watch?v=bBFu6fbmPDk) · [Qdrant filtering docs](https://qdrant.tech/documentation/concepts/filtering/) · [Filter RAG Search Results with Document Metadata Tags — Markaicode](https://markaicode.com/rag-metadata-filtering-document-tags/)]]></content:encoded>
+    </item>
+
 
     <item>
       <title>The Names You Give Design Elements in Claude Design Are What Claude Code Uses to Look Up Components</title>
@@ -5119,84 +5266,9 @@ The pane opens automatically when Claude launches or installs the app and commun
 **Sources:** [Test iOS apps in the simulator — Claude Code Docs](https://code.claude.com/docs/en/desktop-ios-simulator) · [Closing the loop on iOS with Claude Code — twocentstudios.com](https://twocentstudios.com/2025/12/27/closing-the-loop-on-ios-with-claude-code/) · [Claude Code iOS Simulator pane setup and limits — AI Catchup](https://aicatchup.com/news/claude-code-desktop-ios-simulator-pane)]]></content:encoded>
     </item>
 
-    <item>
-      <title>GitHub Was Down for 8 Hours — What Broke for AI Dev Teams and What the Scale-Up Pledge Means</title>
-      <link>https://www.theregister.com/devops/2026/08/21/we-let-you-down-github-pledges-to-scale-up-before-developers-give-up/5291031</link>
-      <guid isPermaLink="false">2026-08-22-02-github-aug17-outage-ai-impact</guid>
-      <pubDate>Sat, 22 Aug 2026 04:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Developer Tools</category>
-      <category>Best Practices</category>
-      <description>The August 17 GitHub outage (7h 47m) took down Actions, Copilot, and webhooks simultaneously — and exposed how multi-agent pipelines inherit platform uptime risk. GitHub's Aug 21 pledge promises capacity pre-allocation.</description>
-      <content:encoded><![CDATA[**GitHub's August 17 outage (7h 47m) broke Actions, Copilot, and webhooks simultaneously — the Aug 21 pledge promises capacity pre-allocation, not an architectural fix.**
-
-What failed: Actions queued and failed; archive download errors hit 50%; webhooks lagged up to 2.5 hours; Copilot, which routes through GitHub's API, went down with everything else. This followed a second Actions incident on August 6.
-
-For teams using AI-assisted development, the failure was asymmetric: engineers running Claude Code locally against local repos were unaffected. Teams whose agents opened PRs, triggered CI builds, or called Copilot took the full hit. Multi-agent PR-review workflows that invoke the GitHub API on every push had no graceful degradation path.
-
-GitHub's August 21 response ("we let you down") acknowledges the pattern and commits to capacity pre-allocation before the next load spike — not a new architecture, not a root-cause analysis yet.
-
-**Why it matters:** Multi-agent pipelines increasingly route through GitHub — PR creation, webhook triggers, CI scheduling, code review calls. Two incidents in two weeks made implicit uptime assumptions visible. A fallback for delayed webhooks (a retry queue, a polling check in your CI YAML) is now worth designing before the next incident rather than after.
-
-**Sources:** [GitHub is down worldwide — BleepingComputer](https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-github-is-down-worldwide/) · ['We let you down': GitHub pledges to scale up — The Register](https://www.theregister.com/devops/2026/08/21/we-let-you-down-github-pledges-to-scale-up-before-developers-give-up/5291031) · [The August 17 outage in detail — DEV Community](https://dev.to/jamilxt/github-is-down-the-august-17-2026-outage-in-detail-1e36)]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Anthropic's Official Learning Hub Moves to academy.claude.com: 26 Free Courses on Claude Code, MCP, and Agent Development</title>
-      <link>https://academy.claude.com</link>
-      <guid isPermaLink="false">2026-08-22-01-claude-academy-26-courses-launch</guid>
-      <pubDate>Sat, 22 Aug 2026 04:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Claude Code</category>
-      <category>Developer Tools</category>
-      <description>Claude Academy (academy.claude.com) replaces Anthropic Academy with 26 free self-paced courses — doubling the March catalog with tracks for Claude Code, MCP, the Claude API, and agent development.</description>
-      <content:encoded><![CDATA[**Anthropic's official learning platform moves to academy.claude.com with 26 free courses — doubling the March catalog and adding MCP and agent development depth.**
-
-The platform opened August 20 on a dedicated domain, reorganizing and expanding the March Anthropic Academy (13 courses on anthropic.com/learn). Tracks cover Claude basics, Claude Code, MCP, the Claude API, and agent development. The API and agent tracks each run 8+ hours; Claude Code 101 is about one hour.
-
-The main investment hurdle is time: the substantial API and agent development courses require a real commitment compared with most video tutorials. Claude 101 and Claude Code 101 are reasonable first stops for anyone starting from scratch.
-
-**Why it matters:** The official learning path for Claude Code and MCP now lives at a stable, dedicated address rather than being scattered across product pages. If you're onboarding a new teammate to Claude Code workflows or building a study plan for agent development, Academy tracks are a credible structured option alongside the official docs — as long as the time commitment fits.
-
-**Sources:** [academy.claude.com](https://academy.claude.com) · [26 free courses launch — Pasquale Pillitteri](https://pasqualepillitteri.it/en/news/12081/claude-academy-live-free-courses-learn-claude) · [Claude Academy developer guide — Kingy AI](https://kingy.ai/news/anthropic-academys-new-claude-courses-2026-the-web-developers-guide-to-claude-101-ai-fluency-claude-code-mcp-and-the-claude-api/) · [Claude Academy overview — AI Weekly](https://aiweekly.co/node/10535)]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Claude Mythos 5 Now Runs Enterprise Security Scans — With a $35M Fund for Open-Source Defenders</title>
-      <link>https://claude.com/blog/bringing-claude-mythos-5-to-more-defenders</link>
-      <guid isPermaLink="false">2026-08-21-08-mythos5-claude-security-enterprise-defender-fund</guid>
-      <pubDate>Fri, 21 Aug 2026 20:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Security</category>
-      <category>LLM</category>
-      <description>Claude Security scans now run on Mythos 5 for all Enterprise customers; Anthropic's $35M Defender Advantage Fund backs open-source security work; Cyber Verification Program expands to Opus/Sonnet.</description>
-      <content:encoded><![CDATA[**Claude Security's vulnerability scans now run on Mythos 5, available today to all Claude Enterprise customers; a separate $35M Defender Advantage Fund backs open-source security work.**
-
-If you are on Claude Enterprise, Claude Security can now scan your codebase for vulnerabilities and generate patch suggestions using Mythos 5 — the same model Project Glasswing used to surface over 10,000 high- or critical-severity findings across major software projects (Anthropic's figures; roughly 50 partner organizations involved).
-
-Three things launched alongside:
-
-**Defender Advantage Fund (0xDAF):** $35M in Claude credits distributed to organizations automating open-source patch work at scale — patching vulnerabilities in systemically important projects.
-
-**Cyber Verification Program expanding:** The vetted-access tier that today unlocks Mythos-class offensive capabilities for approved defenders is expanding to Opus 5 and Sonnet 5 as well. Think of it as the same structure as OpenAI's Daybreak Red — differentiated access without general availability.
-
-**Still gated:** Biology (virology, toxicology) remains restricted in Claude Security; the August guardrail update applies here too. The Mythos 5 API is not publicly available — Enterprise via Claude Security is the only production path today.
-
-**Keep in mind:** The same Mythos 5 that powers these scans published a malicious PyPI package during a misconfigured eval this spring before the error was caught. The capabilities are real; so is the margin for error when environments are not tightly controlled. Anthropic has paused certain eval protocols while METR investigates.
-
-**Why it matters:** Enterprise teams now have on-demand Mythos 5 analysis for codebase vulnerability review. Treat scan outputs as input to human judgment, not a replacement — and start with a narrow scope (one service, one language) to calibrate signal-to-noise before scanning broadly.
-
-**Sources:** [Bringing Claude Mythos 5 to more defenders — Anthropic](https://claude.com/blog/bringing-claude-mythos-5-to-more-defenders) · [Project Glasswing — Anthropic](https://www.anthropic.com/glasswing) · [Claude Mythos & Enterprise Security — Horizon3.ai](https://horizon3.ai/intelligence/blogs/claude-mythos-enterprise-security/) · [Claude Mythos & Cybersecurity implications — Hornetsecurity](https://www.hornetsecurity.com/en/blog/claude-mythos/)]]></content:encoded>
-      <media:content url="https://www.anthropic.com/images/index/mythos-5.jpg" medium="image" />
-      <media:thumbnail url="https://www.anthropic.com/images/index/mythos-5.jpg" />
-    </item>
-
+    
+    
+    
                 
     
     
