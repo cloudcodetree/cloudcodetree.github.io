@@ -10,8 +10,108 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 06 Sep 2026 04:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 06 Sep 2026 12:13:00 +0000</lastBuildDate>
 
+    <item>
+      <title>Your Claude Agents Weren't in Code Review. `ant apply` Changes That.</title>
+      <link>https://platform.claude.com/docs/en/cli-sdks-libraries/cli/apply</link>
+      <guid isPermaLink="false">2026-09-06-04-ant-apply-claude-agents-as-code</guid>
+      <pubDate>Sun, 06 Sep 2026 12:13:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Developer Tools</category>
+      <description>ant apply (ant CLI v1.30.0, Sep 3) declares Claude Platform resources — agents, skills, environments, memory stores, deployments — as files in your repo and reconciles them against the API with a plan-approve-apply loop.</description>
+      <content:encoded><![CDATA[**TL;DR: `ant apply` (ant CLI v1.30.0, released Sep 3) declares your Claude Platform agents, skills, environments, memory stores, and deployments as files in your repo — Terraform-style plan, approve, apply.**
+
+Before this, your agent's system prompt and model config lived in a Console form or an ad-hoc API call that left no trace in git. `ant apply` treats them as code: you PR them, review them, and roll them back like everything else.
+
+**The minimal workflow:**
+
+Write your agent as a Markdown file — frontmatter is config, body is the system prompt:
+
+```markdown
+# agents/summarizer.md
+---
+name: Summarizer
+model: claude-opus-5
+tools:
+  - type: agent_toolset_20260401
+---
+You are a helpful assistant that writes concise summaries.
+```
+
+Run `ant apply agents/summarizer.md`. The CLI prints a plan, waits for approval, creates the resource, and writes `claude-lock.json`. Commit the lockfile — it maps each file to its API resource ID. The next run on any machine reads the lockfile and updates rather than duplicates.
+
+**CI setup:**
+
+```yaml
+# On PRs: print the plan, informational only (exits 0 even if blocked)
+- run: ant apply --dry-run .
+
+# On merge: apply without prompting
+- run: ant apply --yes .
+- run: git add claude-lock.json && git commit -m "update claude-lock.json [skip ci]"
+```
+
+Resources refer to each other by file path. Your deployment YAML can name `../agents/reviewer.md`; `ant apply` resolves real API IDs at create time in dependency order. Skill references can be GitHub URLs pointing to a directory in any repo, pinned to a commit.
+
+**Real limits:**
+
+- **Can't adopt a resource you already built in the Console**: applying a file that describes an existing agent creates a second one. Use the Console's **Export as code** button to get a starting lockfile.
+- **Nothing serializes the lockfile in CI** — two concurrent `ant apply` runs will conflict. Serialize your CI jobs.
+- Requires ant CLI v1.30.0+; use [Workload Identity Federation](https://platform.claude.com/docs/en/manage-claude/workload-identity-federation) for CI auth rather than a stored API key.
+
+**Sources:** [`ant apply` docs — platform.claude.com](https://platform.claude.com/docs/en/cli-sdks-libraries/cli/apply) · [Terraform-Style Workflow for Claude Agents — AlphaSignal](https://alphasignal.ai/news/anthropic-ships-terraform-style-workflow-to-deploy-claude-agents-from-code) · [Claude Developer Platform release notes (Sep 3) — platform.claude.com](https://platform.claude.com/docs/en/release-notes/overview)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Four Chunking Strategies for RAG — and the Default That's Right 80% of the Time</title>
+      <link>https://www.firecrawl.dev/blog/best-chunking-strategies-rag</link>
+      <guid isPermaLink="false">2026-09-06-05-rag-chunking-strategies-recursive-semantic</guid>
+      <pubDate>Sun, 06 Sep 2026 12:12:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>RAG</category>
+      <category>Embeddings</category>
+      <description>Most RAG pipelines default to fixed-size chunking — the lowest-recall strategy. Recursive character splitting at 400-512 tokens beats it in two lines; semantic chunking adds 9% recall at embedding cost.</description>
+      <content:encoded><![CDATA[**TL;DR: Most RAG pipelines use fixed-size chunking by default — lowest recall, easiest to swap. Recursive character splitting at 400–512 tokens beats it with two lines of code; semantic chunking adds recall but costs an embedding call per sentence.**
+
+**What you'll be able to do after this:** choose a chunking strategy for your document type, replace naive splitting with LangChain's `RecursiveCharacterTextSplitter`, and know exactly when semantic chunking's accuracy gain is worth its compute cost.
+
+Chunking controls what your retriever sees. A chunk that splits mid-sentence or folds three topics together embeds poorly, and poor embeddings lose recall before your reranker or LLM touches anything.
+
+**The four strategies (fastest to most accurate):**
+
+**1. Fixed-size (baseline).** Splits at a hard character or token limit. Fastest; fragments sentences mid-thought. Use for prototyping only.
+
+**2. Recursive character (recommended default).** Splits at a hierarchy — `["\n\n", "\n", ". ", " ", ""]` — paragraph breaks first, then lines, then sentences — respecting natural boundaries without reading the content. A February 2026 benchmark by Vecta across 50 academic papers placed this first at 69% end-to-end accuracy, 85–90% retrieval recall:
+
+```python
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=512,    # tokens
+    chunk_overlap=50,  # ~10% overlap preserves cross-chunk context
+    separators=["\n\n", "\n", ". ", " ", ""]
+)
+chunks = splitter.split_text(doc_text)
+```
+
+Start here for 80% of RAG workloads: 400–512 tokens, 10–20% overlap.
+
+**3. Page-level (PDFs).** Each page is a chunk. Topped NVIDIA's 2024 retrieval benchmark (0.648 accuracy). Only applies to paginated documents where page boundaries carry meaning — financial reports, slide decks. Useless for long-form web content where pages are arbitrary.
+
+**4. Semantic chunking.** Embed every sentence, split where cosine similarity between adjacent sentences drops — each chunk stays on one topic regardless of length. Adds up to 9% recall over recursive splitting, per a Vectara/NAACL 2025 study. The cost: one embedding API call per sentence at ingest time, which compounds on large corpora. Threshold also requires tuning per corpus.
+
+**The decision rule:** start with recursive character splitting at 400–512 tokens + 50-token overlap. Move to semantic chunking only if evaluation shows retrieval quality is the bottleneck *and* you can afford the ingest embedding compute.
+
+**Sources:** [Best Chunking Strategies for RAG (2026) — Firecrawl](https://www.firecrawl.dev/blog/best-chunking-strategies-rag) · [RAG Tutorial 2026 #8: Text Chunking Strategies — YouTube](https://www.youtube.com/watch?v=POE8LDjdAw4) · [RecursiveCharacterTextSplitter — LangChain docs](https://python.langchain.com/docs/modules/data_connection/document_transformers/recursive_text_splitter/)]]></content:encoded>
+      <media:content url="https://img.youtube.com/vi/POE8LDjdAw4/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/POE8LDjdAw4/maxresdefault.jpg" />
+    </item>
     <item>
       <title>Claude Design Generates at One Viewport Width — Four Things to Check Before You Hand Off</title>
       <link>https://dev.to/bilelsalemdev/from-prompt-to-pull-request-using-claude-design-claude-code-and-github-together-3m00</link>
@@ -5178,94 +5278,8 @@ What a QA person can do tomorrow: pick your flakiest existing suite, run one age
       <media:thumbnail url="https://testquality.com/wp-content/uploads/2026/03/Agentic-QA-AI-Powered-QA-Agent-Test-Creation-Autonomous-AI-Test-Generation-TestStory-TestQuality-1920x1280px--1024x609.jpg" />
     </item>
 
-    <item>
-      <title>Your Design Doesn't Cover the Empty Cart — Specify Edge States in Claude Design Before Claude Code Starts Writing</title>
-      <link>https://academy.claude.com/tutorials/using-claude-design-for-prototypes-and-ux</link>
-      <guid isPermaLink="false">2026-08-22-04-claude-design-edge-states-before-handoff</guid>
-      <pubDate>Sat, 22 Aug 2026 04:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Design</category>
-      <category>Claude Design</category>
-      <description>A three-prompt checklist for specifying empty, error, and loading states in Claude Design before the handoff — so Claude Code has a real design for every component state, not just the happy path.</description>
-      <content:encoded><![CDATA[**Add three prompts before your Claude Design export to cover empty, error, and loading states — or Claude Code invents them during generation.**
-
-**What you'll be able to do after this:** generate a complete edge-state specification in Claude Design so Claude Code receives a real design for every component state, not just the happy path.
-
-- Claude Design generates static states on request — empty, error, loading — that travel in the handoff bundle and give Claude Code a reference layout for each
-- Claude Code uses whatever states are in the bundle; states that are missing get invented at generation time (a spinner guess, a raw error string, nothing at all for an empty list)
-- State transitions and timing cannot be captured in a design export — add those to CLAUDE.md or a first-message context note separately
-
-The failure mode is common: the design looks great, the bundle lands in Claude Code, and the generated components handle loading with a spinner guess, errors with a raw message string, and empty lists with nothing at all. The design did not cover those states, so the agent invented them.
-
-**Three-prompt pattern — run these before you export:**
-
-**1. Empty states:**
-> Show the [component] when there is no data yet — a new account with an empty list, no search results, and a profile with no activity.
-
-Claude Design generates a placeholder layout with a clear call to action. That static frame goes in the handoff bundle.
-
-**2. Error conditions:**
-> Show the [component] in three error states: network failure, permission denied, and validation error. Include the error message, a visual cue, and a recovery action for each.
-
-This gives Claude Code an actual layout for error display rather than an invented stack trace or generic toast.
-
-**3. Loading states:**
-> Show the loading state for [component] as a skeleton screen matching the data shape, not a full-page spinner.
-
-A skeleton that mirrors the loaded layout prevents layout shift and gives the agent a concrete shape to generate code for.
-
-**Export after all three.** The handoff bundle then includes full state coverage and Claude Code can reference each variant directly rather than pausing mid-session to ask you how an error should look.
-
-**The limit:** design tools capture static states, not transitions. Animation duration, easing curves, and sequencing for loading-to-loaded or error-to-retry transitions cannot live in the export bundle — add them as a note in CLAUDE.md or in the first message of your Claude Code session.
-
-**Sources:** [Using Claude Design for prototypes and UX — Claude Academy](https://academy.claude.com/tutorials/using-claude-design-for-prototypes-and-ux) · [Anthropic overhauled Claude Design to fix the handoff — The New Stack](https://thenewstack.io/anthropic-claude-design-overhaul/) · [From Prompt to Pull Request — DEV Community](https://dev.to/bilelsalemdev/from-prompt-to-pull-request-using-claude-design-claude-code-and-github-together-3m00)]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Prompt Claude Code to "Build and Verify" in the Simulator, Not Just Edit and Hope</title>
-      <link>https://code.claude.com/docs/en/desktop-ios-simulator</link>
-      <guid isPermaLink="false">2026-08-22-03-claude-code-ios-simulator-verify-loop</guid>
-      <pubDate>Sat, 22 Aug 2026 04:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Developer Tools</category>
-      <description>The iOS Simulator pane in Claude Code Desktop streams your running app live next to the conversation — phrase tasks as "build and verify" and Claude checks its own work before prompting you.</description>
-      <content:encoded><![CDATA[**Phrase tasks as "build and verify" in Claude Code Desktop — the iOS Simulator pane streams your running app so Claude checks its own work before prompting you.**
-
-The standard iOS dev cycle is: edit, build, run, switch windows, look, switch back. With the Simulator pane open in Claude Code Desktop on macOS, that loop runs inside the conversation: Claude builds the app, the pane opens automatically, and Claude can observe the running UI before writing more code.
-
-**Setup:**
-1. Open Claude Code Desktop on macOS (local session — cloud and SSH sessions cannot access a local simulator)
-2. Open your iOS project in the Code tab
-3. Xcode with the iOS platform installed is required
-
-**The prompting pattern that closes the loop:**
-
-```
-Build the app and run it in the simulator.
-Check that the onboarding flow completes without errors,
-then make the Skip button visible on smaller screens.
-```
-
-Compare with the incomplete version: "Make the Skip button visible on smaller screens." Claude edits the code but cannot verify the result without a second prompt asking it to look. The "build and run" instruction gives it a verification target.
-
-For iterative work, follow each change with: "Run the app again and confirm [specific thing] looks correct." This also catches regressions — Claude can verify the adjacent screen it did not intend to touch.
-
-The pane opens automatically when Claude launches or installs the app and communicates directly with the iOS Simulator process — no Screen Recording permission or macOS Accessibility access required.
-
-**Hard limits:**
-- macOS Desktop (local sessions) only — cloud and SSH sessions cannot reach a local simulator
-- Up to four simulator panes per Claude Code session
-- Requires Xcode with iOS platform installed; does not work with Xcode 27, which replaced the Simulator app with Device Hub
-- Not available on Enterprise configurations with HIPAA or Zero Data Retention enabled
-
-**Sources:** [Test iOS apps in the simulator — Claude Code Docs](https://code.claude.com/docs/en/desktop-ios-simulator) · [Closing the loop on iOS with Claude Code — twocentstudios.com](https://twocentstudios.com/2025/12/27/closing-the-loop-on-ios-with-claude-code/) · [Claude Code iOS Simulator pane setup and limits — AI Catchup](https://aicatchup.com/news/claude-code-desktop-ios-simulator-pane)]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
