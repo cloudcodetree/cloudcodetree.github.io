@@ -10,7 +10,101 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 06 Sep 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 07 Sep 2026 04:07:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Your Subagent System Prompt Breaks When It's Too Long for the CLI — Pass It From a File</title>
+      <link>https://code.claude.com/docs/en/changelog</link>
+      <guid isPermaLink="false">2026-09-07-03-subagent-system-prompt-file-large-prompts</guid>
+      <pubDate>Mon, 07 Sep 2026 04:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <description>Claude Code v2.1.261 adds --append-subagent-system-prompt-file so you can load a subagent system prompt from a file — fixing CLI length limits and escaping failures for complex agent contexts.</description>
+      <content:encoded><![CDATA[**Pass your subagent system prompt as a file path instead of a CLI argument — `--append-subagent-system-prompt-file` ships in Claude Code v2.1.261 and removes the length and escaping ceiling on complex agent contexts.**
+
+When you run Claude Code in CI or as a scheduled task with multi-step agents, you eventually hit a ceiling: the subagent system prompt lives on the command line, and shell argument length limits — plus escaping of quotes, newlines, and special characters — make large prompts fragile and hard to maintain. A 2,000-word researcher context that works fine in a shell heredoc starts misfiring when it has to survive `JSON.stringify` → CLI arg → shell re-parsing.
+
+`--append-subagent-system-prompt-file` reads the subagent system prompt from a file and appends it to the default context:
+
+```bash
+claude \
+  --append-subagent-system-prompt-file ./prompts/researcher-agent.md \
+  --permission-prompts none \
+  "Summarize this week's AI research and flag anything security-relevant"
+```
+
+The file contents are appended to (not a replacement for) the built-in subagent context, so the agent still carries standard Claude Code behaviors — only your additions live in the file.
+
+**Practical uses:**
+- CI pipelines that spawn agents with domain-specific rules (coding standards, output schemas, which repos are in scope)
+- Scheduled tasks where the agent context changes per-run without a code change — update the file, not the workflow YAML
+- Keeping sensitive-but-not-secret context (internal service names, team conventions) out of command history
+
+**The limit to know:** the file is read once at session start, not spawned fresh per subagent. If your workflow fans out to subagents that need different contexts, you still need the Agent SDK's programmatic `system` parameter — this flag is for the common case where one prompt governs all subagents in a session.
+
+**Sources:** [Claude Code v2.1.261 release notes — code.claude.com](https://code.claude.com/docs/en/changelog) · [v2.1.261 changelog summary — dev.classmethod.jp](https://dev.classmethod.jp/en/articles/20260905-cc-updates-v2-1-261/) · [Release v2.1.261 — github.com/anthropics/claude-code](https://github.com/anthropics/claude-code/releases/tag/v2.1.261)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Import Your Design System Into Claude Design Before Writing the First Prompt</title>
+      <link>https://www.youtube.com/watch?v=vgg4md-Kbs4</link>
+      <guid isPermaLink="false">2026-09-07-02-claude-design-import-design-system</guid>
+      <pubDate>Mon, 07 Sep 2026 04:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>Claude Design's design-system import (shipped June 2026) pulls in your tokens and components from GitHub, Figma, or tokens JSON so every generated screen starts from your system, not generic HTML defaults.</description>
+      <media:content url="https://img.youtube.com/vi/vgg4md-Kbs4/maxresdefault.jpg" medium="image" />
+      <media:thumbnail url="https://img.youtube.com/vi/vgg4md-Kbs4/maxresdefault.jpg" />
+      <content:encoded><![CDATA[**Before the June 2026 update, every Claude Design screen started from generic HTML defaults. The design-system import changes the starting point: your tokens, your components, your variants — no substitution pass after export.**
+
+**What you'll be able to do after this:** Generate screens in Claude Design that open with your real button variants, type scale, and spacing tokens already applied — meaning the first thing you review is layout and content, not a round of find-and-replace on `bg-blue-500`.
+
+**Three things to know going in:**
+- Claude Design accepts design systems from three sources: a connected GitHub repo (reads your CSS variables or Tailwind config), a Figma file export (tokens + component JSON), or a raw upload (design tokens JSON, Storybook config)
+- Once imported, generated screens reference your token names, not generic values — if your system defines `--color-action-primary`, that's what appears in the output
+- The import is a snapshot, not a live sync — update it when your design system changes, or generated output will drift toward stale values
+
+**How to set it up (four steps):**
+
+1. Open Claude Design → Settings → Design System → Import
+2. Choose your source: GitHub repo URL (Claude Design clones and parses it), Figma export zip, or tokens JSON upload
+3. Review the parse report — Claude Design lists which tokens and component variants it recognized; fix any misses before you start designing (typically spacing and motion tokens need the most cleanup)
+4. Start a new session; the component selector now surfaces your variants, and generated screens reference your token names from the first output
+
+**What it doesn't import:** Interaction states (hover, focus, error), animation specs, and semantic usage rules ("use action-primary for CTAs, not brand-primary") don't survive the import. Those still belong in your DESIGN.md or explicit prompts — Claude Design reads token values, not intent. If you skip this, generated screens will use your token names but often pick the wrong one for the context.
+
+**Sources:** [Design system import walkthrough — mikekwal.com](https://mikekwal.com/blog/claude-design-system-import/) · [Full workflow tutorial — YouTube (vgg4md-Kbs4)](https://www.youtube.com/watch?v=vgg4md-Kbs4) · [Design Systems in 2026: Turn Your System into a Claude Skill — Design Systems Collective](https://www.designsystemscollective.com/design-systems-in-2026-turn-your-system-into-a-claude-skill-3dd4d8bf5feb)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Three Fable 5.1 API Changes Your Existing Integrations Need to Test Against Now</title>
+      <link>https://platform.claude.com/docs/en/release-notes/overview</link>
+      <guid isPermaLink="false">2026-09-07-01-fable-5-1-api-breaking-changes-test</guid>
+      <pubDate>Mon, 07 Sep 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Best Practices</category>
+      <description>Fable 5.1 (Sept 1) ships three API-level breaking changes around thinking blocks and conversation editing — and one change that silently drops thinking output rather than erroring.</description>
+      <content:encoded><![CDATA[**Fable 5.1 launched September 1 with three API-level breaking changes. The most dangerous one doesn't error — it silently drops thinking blocks when conversation history is edited before them.**
+
+Anthropic shipped [Claude Fable 5.1](https://platform.claude.com/docs/en/release-notes/overview) with changes that don't appear in the model's output quality — they change what the API accepts:
+
+1. **Thinking block constraint.** Editing anything before a Fable 5.1 thinking block (system prompt, tools array, an earlier message) causes the next request to error or silently drop the block — per [the migration guide](https://blog.4sapi.com/blog/claude-fable-5-1-migration-guide), which variant depends on how the account was provisioned.
+2. **Conversation editing restriction.** For API accounts created on or after September 1, manually editing Claude's prior context while preserving a thinking block transcript is no longer permitted.
+3. **Cache read price drop.** Cache reads fall from $1 to $0.25 per million tokens (per Anthropic's release notes) — this one you likely want.
+
+**Why it matters:** Any multi-turn pipeline that patches conversation history, hot-swaps system prompts mid-session, or injects tool results around thinking blocks needs an explicit compatibility test before migrating from Fable 5. The silent-drop behavior is the specific failure mode to check: your pipeline continues running, your logs show no error, and your reasoning output is gone.
+
+**Sources:** [Fable 5.1 migration guide — blog.4sapi.com](https://blog.4sapi.com/blog/claude-fable-5-1-migration-guide) · [What actually changed — medium.com/codetodeploy](https://medium.com/codetodeploy/claude-fable-5-1-what-actually-changed-4f285ebf65ed) · [Release notes — platform.claude.com](https://platform.claude.com/docs/en/release-notes/overview)]]></content:encoded>
+    </item>
 
     <item>
       <title>Use the Exploration Phase — Three Design Directions Before You Commit, Then Write the Brief That Drives Implementation</title>
@@ -5240,82 +5334,11 @@ Two releases this week say the same thing from opposite ends of the market: the 
     </item>
 
 
-    <item>
-      <title>AI Spend Up ~28x, Innovation Ratio Up One Point: The Q2 Numbers Every Eng Lead Should Bring to Their Next Planning Meeting</title>
-      <link>https://newsletter.getdx.com/p/ai-in-engineering-q2-2026-benchmarks</link>
-      <guid isPermaLink="false">2026-08-22-07-dx-q2-benchmarks-spend-28x-innovation-flat</guid>
-      <pubDate>Sat, 22 Aug 2026 05:10:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Team Adoption</category>
-      <category>Metrics</category>
-      <description>DX's Q2 2026 benchmarks: ~95% developer AI adoption, over half of merged code AI-authored, PRs grown 42→72 lines — while AI spend rose ~28x and innovation ratio barely moved.</description>
-      <content:encoded><![CDATA[**TL;DR: DX's Q2 2026 benchmarks (Aug 14): ~95% developer AI adoption, over half of merged code AI-authored, PRs grown 42→72 lines — while AI spend rose ~28x and innovation ratio barely moved.**
+    
 
-DX's Q2 2026 engineering benchmarks readout (published August 14) is the most useful adoption snapshot a lead can steal numbers from right now. Adoption is effectively saturated — ~95% measured through telemetry, so "should we adopt" is over as a question. More than half of merged code is now AI-authored. Average PR size grew from 42 to 72 lines. And the uncomfortable pair: code maintainability is *improving* while developers' change confidence is *declining* — two metrics that historically moved together. Meanwhile AI expenditure hit roughly 28x year-ago levels against an innovation ratio up about one percentage point.
+    
 
-This lines up with the spring DORA 2026 report ("The ROI of AI-assisted Software Development"), whose core finding was that returns show up in the delivery flow — review, integration, deployment — not in individual typing speed, and that AI amplifies whatever organizational strengths or dysfunctions you already have.
-
-The playbook implication for a team that's behind: don't buy seats and measure acceptance rates. Instrument the flow (review latency, PR size, change confidence, rework), expect the J-curve dip, and put your effort where both reports point — the review and integration bottleneck that 72-line AI-assisted PRs are now pressing on.
-
-**Sources:** [DX Q2 2026 benchmarks readout](https://newsletter.getdx.com/p/ai-in-engineering-q2-2026-benchmarks), [DX AI Impact Report Q1 2026](https://getdx.com/blog/ai-impact-report-q1-2026/), [InfoQ on DORA 2026](https://www.infoq.com/news/2026/05/dora-roi-ai-assisted-dev-report/)]]></content:encoded>
-          <media:content url="https://substackcdn.com/image/youtube/w_728,c_limit/Bf44cPeNPjg" medium="image" />
-      <media:thumbnail url="https://substackcdn.com/image/youtube/w_728,c_limit/Bf44cPeNPjg" />
-    </item>
-
-
-    <item>
-      <title>As of This Month, the EU AI Act Applies to Your Content Pipeline: What Marketing Teams Using GenAI Must Do Now</title>
-      <link>https://artificialintelligenceact.eu/implementation-timeline/</link>
-      <guid isPermaLink="false">2026-08-22-08-eu-ai-act-aug-2026-marketing-content</guid>
-      <pubDate>Sat, 22 Aug 2026 05:09:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>AI for Your Role</category>
-      <category>Marketing</category>
-      <category>Policy</category>
-      <description>The EU AI Act's main obligations — including transparency rules for AI-generated and synthetic content — became applicable August 2, 2026. Marketing content ops are directly in scope.</description>
-      <content:encoded><![CDATA[**TL;DR: The EU AI Act's main obligations — including transparency rules for AI-generated and synthetic content — became applicable August 2, 2026. Marketing content ops are directly in scope.**
-
-August 2, 2026 was the EU AI Act's biggest compliance milestone: the bulk of its obligations, including the Chapter IV transparency rules, are now applicable. For marketing teams the concrete piece is synthetic-content transparency: AI-generated or AI-manipulated content (deepfake-style imagery, synthetic voices, generated video) must be disclosed, with machine-readable marking expected from the systems producing it. High-risk-system obligations also now bite for anything touching profiling of people.
-
-What a marketer can do tomorrow: inventory every place genAI touches your published output (image gen, video, voiceover, personalization engines); ask each vendor how their output is marked and what their AI Act posture is; and write the one-page internal policy for when disclosure labels are required. If you sell into or target EU audiences, "we didn't build it, our tool did" is not a defense.
-
-**Sources:** [EU AI Act implementation timeline](https://artificialintelligenceact.eu/implementation-timeline/), [GenAI for marketing: what actually works, July 2026](https://aiconference.london/news/generative-ai-for-marketing-in-2026-what-actually-works-july-2026-20260719-12)]]></content:encoded>
-          <media:content url="https://wfuvfnmjtnejnmhbdpqr.supabase.co/storage/v1/object/public/news-images/generative-ai-for-marketing-in-2026-what-actually-works-july-2026-20260719-12.png" medium="image" />
-      <media:thumbnail url="https://wfuvfnmjtnejnmhbdpqr.supabase.co/storage/v1/object/public/news-images/generative-ai-for-marketing-in-2026-what-actually-works-july-2026-20260719-12.png" />
-    </item>
-
-
-    <item>
-      <title>Your Video Pipeline Detects "What." Cosmos Reason 2 Answers "Why" — an Open Reasoning VLM You Can Point at Camera Footage</title>
-      <link>https://huggingface.co/nvidia/Cosmos-Reason2-8B</link>
-      <guid isPermaLink="false">2026-08-22-09-cosmos-reason2-why-questions-over-video</guid>
-      <pubDate>Sat, 22 Aug 2026 05:08:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Building AI Products</category>
-      <category>Video AI</category>
-      <category>VLM</category>
-      <description>NVIDIA's Cosmos Reason 2 (8B, open license, 256K context) does chain-of-thought reasoning over video — causality and intent, not just detection — and runs with standard transformers on a single big GPU.</description>
-      <content:encoded><![CDATA[**TL;DR: NVIDIA's Cosmos Reason 2 (8B, open license, 256K context) does chain-of-thought reasoning over video — causality and intent, not just detection — and runs with standard transformers on a single big GPU.**
-
-**What you'll be able to do after this:** ask causal, timestamped questions over recorded or live video — "why did the forklift stop," "what led up to the spill at 02:14" — and get chain-of-thought answers with 2D/3D grounding boxes, from a model whose weights you control.
-
-- **Reasoning is the new layer above detection.** Classic video analytics answers *what* is in frame. Cosmos Reason 2 applies chain-of-thought to visual scenes — intent, causality, physics — which is what incident triage and operations root-cause actually need.
-- **The license permits building on it.** It ships under the NVIDIA Open Model License with commercial use and derivative models allowed — industry practice is already post-training it on domain footage at the ~150,000-hours scale for city-wide deployments. The March 10, 2026 update cut hallucinations and sharpened timestamp precision.
-- **Budget real hardware, or wait for Edge.** The 8B model wants ~32GB GPU memory (tested on A100/H100, BF16); 256K context covers hours of sampled frames. The Cosmos 3 family spans Edge (4B) to Super scales if on-device is the target.
-
-**Walk-through:** pull `nvidia/Cosmos-Reason2-8B` from Hugging Face; load with standard `transformers` (SDPA attention, BF16); sample frames from your stream or clip; prompt with the frames plus a why-question; cap output around 4K tokens for the reasoning chain. Start on recorded incident clips — where a human already knows the answer — to eval it before wiring it to anything live.
-
-**Sources:** [Cosmos-Reason2-8B model card](https://huggingface.co/nvidia/Cosmos-Reason2-8B), [NVIDIA Cosmos 3 developer blog](https://developer.nvidia.com/blog/develop-physical-ai-reasoning-world-and-action-models-with-nvidia-cosmos-3/), [NVIDIA/Cosmos on GitHub](https://github.com/NVIDIA/Cosmos), [VAST Data on real-time city video AI](https://www.vastdata.com/blog/vast-nvidia-cosmos-reason-smart-cities)]]></content:encoded>
-          <media:content url="https://cdn-thumbnails.huggingface.co/social-thumbnails/models/nvidia/Cosmos-Reason2-8B.png" medium="image" />
-      <media:thumbnail url="https://cdn-thumbnails.huggingface.co/social-thumbnails/models/nvidia/Cosmos-Reason2-8B.png" />
-    </item>
-
+    
 
     
 

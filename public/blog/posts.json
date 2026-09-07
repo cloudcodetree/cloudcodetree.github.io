@@ -1,5 +1,59 @@
 [
   {
+    "id": "2026-09-07-03-subagent-system-prompt-file-large-prompts",
+    "title": "Your Subagent System Prompt Breaks When It's Too Long for the CLI — Pass It From a File",
+    "excerpt": "Claude Code v2.1.261 adds --append-subagent-system-prompt-file so you can load a subagent system prompt from a file — fixing CLI length limits and escaping failures for complex agent contexts.",
+    "author": "Chris Harper",
+    "date": "09-07-2026",
+    "publishedAt": "2026-09-07T04:07:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/changelog",
+    "content": "**Pass your subagent system prompt as a file path instead of a CLI argument — `--append-subagent-system-prompt-file` ships in Claude Code v2.1.261 and removes the length and escaping ceiling on complex agent contexts.**\n\nWhen you run Claude Code in CI or as a scheduled task with multi-step agents, you eventually hit a ceiling: the subagent system prompt lives on the command line, and shell argument length limits — plus escaping of quotes, newlines, and special characters — make large prompts fragile and hard to maintain. A 2,000-word researcher context that works fine in a shell heredoc starts misfiring when it has to survive `JSON.stringify` → CLI arg → shell re-parsing.\n\n`--append-subagent-system-prompt-file` reads the subagent system prompt from a file and appends it to the default context:\n\n```bash\nclaude \\\n  --append-subagent-system-prompt-file ./prompts/researcher-agent.md \\\n  --permission-prompts none \\\n  \"Summarize this week's AI research and flag anything security-relevant\"\n```\n\nThe file contents are appended to (not a replacement for) the built-in subagent context, so the agent still carries standard Claude Code behaviors — only your additions live in the file.\n\n**Practical uses:**\n- CI pipelines that spawn agents with domain-specific rules (coding standards, output schemas, which repos are in scope)\n- Scheduled tasks where the agent context changes per-run without a code change — update the file, not the workflow YAML\n- Keeping sensitive-but-not-secret context (internal service names, team conventions) out of command history\n\n**The limit to know:** the file is read once at session start, not spawned fresh per subagent. If your workflow fans out to subagents that need different contexts, you still need the Agent SDK's programmatic `system` parameter — this flag is for the common case where one prompt governs all subagents in a session.\n\n**Sources:** [Claude Code v2.1.261 release notes — code.claude.com](https://code.claude.com/docs/en/changelog) · [v2.1.261 changelog summary — dev.classmethod.jp](https://dev.classmethod.jp/en/articles/20260905-cc-updates-v2-1-261/) · [Release v2.1.261 — github.com/anthropics/claude-code](https://github.com/anthropics/claude-code/releases/tag/v2.1.261)"
+  },
+  {
+    "id": "2026-09-07-02-claude-design-import-design-system",
+    "title": "Import Your Design System Into Claude Design Before Writing the First Prompt",
+    "excerpt": "Claude Design's design-system import (shipped June 2026) pulls in your tokens and components from GitHub, Figma, or tokens JSON so every generated screen starts from your system, not generic HTML d…",
+    "author": "Chris Harper",
+    "date": "09-07-2026",
+    "publishedAt": "2026-09-07T04:06:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Design",
+      "Claude Design"
+    ],
+    "readTime": 2,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://www.youtube.com/watch?v=vgg4md-Kbs4",
+    "content": "**Before the June 2026 update, every Claude Design screen started from generic HTML defaults. The design-system import changes the starting point: your tokens, your components, your variants — no substitution pass after export.**\n\n**What you'll be able to do after this:** Generate screens in Claude Design that open with your real button variants, type scale, and spacing tokens already applied — meaning the first thing you review is layout and content, not a round of find-and-replace on `bg-blue-500`.\n\n**Three things to know going in:**\n- Claude Design accepts design systems from three sources: a connected GitHub repo (reads your CSS variables or Tailwind config), a Figma file export (tokens + component JSON), or a raw upload (design tokens JSON, Storybook config)\n- Once imported, generated screens reference your token names, not generic values — if your system defines `--color-action-primary`, that's what appears in the output\n- The import is a snapshot, not a live sync — update it when your design system changes, or generated output will drift toward stale values\n\n**How to set it up (four steps):**\n\n1. Open Claude Design → Settings → Design System → Import\n2. Choose your source: GitHub repo URL (Claude Design clones and parses it), Figma export zip, or tokens JSON upload\n3. Review the parse report — Claude Design lists which tokens and component variants it recognized; fix any misses before you start designing (typically spacing and motion tokens need the most cleanup)\n4. Start a new session; the component selector now surfaces your variants, and generated screens reference your token names from the first output\n\n**What it doesn't import:** Interaction states (hover, focus, error), animation specs, and semantic usage rules (\"use action-primary for CTAs, not brand-primary\") don't survive the import. Those still belong in your DESIGN.md or explicit prompts — Claude Design reads token values, not intent. If you skip this, generated screens will use your token names but often pick the wrong one for the context.\n\n**Sources:** [Design system import walkthrough — mikekwal.com](https://mikekwal.com/blog/claude-design-system-import/) · [Full workflow tutorial — YouTube (vgg4md-Kbs4)](https://www.youtube.com/watch?v=vgg4md-Kbs4) · [Design Systems in 2026: Turn Your System into a Claude Skill — Design Systems Collective](https://www.designsystemscollective.com/design-systems-in-2026-turn-your-system-into-a-claude-skill-3dd4d8bf5feb)"
+  },
+  {
+    "id": "2026-09-07-01-fable-5-1-api-breaking-changes-test",
+    "title": "Three Fable 5.1 API Changes Your Existing Integrations Need to Test Against Now",
+    "excerpt": "Fable 5.1 (Sept 1) ships three API-level breaking changes around thinking blocks and conversation editing — and one change that silently drops thinking output rather than erroring.",
+    "author": "Chris Harper",
+    "date": "09-07-2026",
+    "publishedAt": "2026-09-07T04:05:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://platform.claude.com/docs/en/release-notes/overview",
+    "content": "**Fable 5.1 launched September 1 with three API-level breaking changes. The most dangerous one doesn't error — it silently drops thinking blocks when conversation history is edited before them.**\n\nAnthropic shipped [Claude Fable 5.1](https://platform.claude.com/docs/en/release-notes/overview) with changes that don't appear in the model's output quality — they change what the API accepts:\n\n1. **Thinking block constraint.** Editing anything before a Fable 5.1 thinking block (system prompt, tools array, an earlier message) causes the next request to error or silently drop the block — per [the migration guide](https://blog.4sapi.com/blog/claude-fable-5-1-migration-guide), which variant depends on how the account was provisioned.\n2. **Conversation editing restriction.** For API accounts created on or after September 1, manually editing Claude's prior context while preserving a thinking block transcript is no longer permitted.\n3. **Cache read price drop.** Cache reads fall from $1 to $0.25 per million tokens (per Anthropic's release notes) — this one you likely want.\n\n**Why it matters:** Any multi-turn pipeline that patches conversation history, hot-swaps system prompts mid-session, or injects tool results around thinking blocks needs an explicit compatibility test before migrating from Fable 5. The silent-drop behavior is the specific failure mode to check: your pipeline continues running, your logs show no error, and your reasoning output is gone.\n\n**Sources:** [Fable 5.1 migration guide — blog.4sapi.com](https://blog.4sapi.com/blog/claude-fable-5-1-migration-guide) · [What actually changed — medium.com/codetodeploy](https://medium.com/codetodeploy/claude-fable-5-1-what-actually-changed-4f285ebf65ed) · [Release notes — platform.claude.com](https://platform.claude.com/docs/en/release-notes/overview)"
+  },
+  {
     "id": "2026-09-06-07-claude-design-explore-directions-decision-brief",
     "title": "Use the Exploration Phase — Three Design Directions Before You Commit, Then Write the Brief That Drives Implementation",
     "excerpt": "Before committing to a layout, ask Claude Design for three explicit directions in one prompt, compare them structurally, pick the least wrong, and write a decision brief that Claude Code can implem…",
