@@ -59,8 +59,10 @@ const createMDX = require('@next/mdx').default ?? require('@next/mdx');
 const withMDX = createMDX({
   extension: /\.mdx?$/,
   // GFM so markdown tables/strikethrough/task-lists render (string form for
-  // Turbopack serialization). Syntax highlighting stays a component (see above).
-  options: { remarkPlugins: [['remark-gfm']] },
+  // Turbopack serialization). rehype-slug gives every heading a GitHub-style
+  // id so the in-page tables of contents in the tutorials actually resolve.
+  // Syntax highlighting stays a component (see above).
+  options: { remarkPlugins: [['remark-gfm']], rehypePlugins: [['rehype-slug']] },
 });
 
 module.exports = withMDX(nextConfig);

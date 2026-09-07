@@ -75,6 +75,24 @@ jobs:
           git push origin main
         fi
 
+    # Cutover leftovers on a timer (runbook step 8). The gh-pages branch and
+    # the blog-images Release are cold fallbacks that must not be deleted
+    # until the new paths have soaked. Both actions are idempotent; once both
+    # are gone this step is a no-op and can be removed.
+    - name: Retire cold fallbacks once their soak has passed
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        today=$(date -u +%F)
+        if [ "$today" \> "2026-09-18" ] && git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+          echo "soak over: deleting the gh-pages branch"
+          git push origin --delete gh-pages
+        fi
+        if [ "$today" \> "2026-09-25" ] && gh release view blog-images >/dev/null 2>&1; then
+          echo "soak over: deleting the blog-images Release"
+          gh release delete blog-images --yes --cleanup-tag
+        fi
+
   build:
     needs: rehost-images
     # Run for PRs (rehost-images is skipped there) and after it on main pushes.

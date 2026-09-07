@@ -35,8 +35,14 @@ describe('readProjects', () => {
     expect(bySlug['span-calculator'].artifact).toMatch(/^[0-9a-f]{40}$|^demo-v/);
   });
 
-  it('only span-calculator is published for now', () => {
-    expect(projects.filter((p) => !p.draft).map((p) => p.slug)).toEqual(['span-calculator']);
+  it('nothing is held as a draft (the launch hold was lifted 2026-09-07)', () => {
+    expect(projects.filter((p) => p.draft).map((p) => p.slug)).toEqual([]);
+  });
+
+  it('every live demo pins an artifact commit', () => {
+    for (const p of projects.filter((p) => p.demoStatus === 'live')) {
+      expect(p.artifact, p.slug).toMatch(/^[0-9a-f]{40}$|^demo-v/);
+    }
   });
 
   it('slugs are url-safe', () => {
