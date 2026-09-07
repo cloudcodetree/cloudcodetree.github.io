@@ -477,6 +477,10 @@ use it to add one. In short:
   `scripts/generate-tutorial-covers.mjs` (committed). `scripts/generate-feeds.mjs`
   auto-discovers tutorial slugs for the sitemap.
 - First tutorial: `build-a-rag-over-your-blog` (repo: `tutorial-rag-over-blog`).
+- Headings get GitHub-style ids from `rehype-slug` (`next.config.js`), so in-page
+  tables of contents link to `#the-heading-text`. A "capture" in a lesson must be
+  real output: `node scripts/render-terminal-capture.mjs <out.png> --title '$ cmd' --file lines.txt`
+  renders actual terminal lines into the screenshot style — never compose numbers by hand.
 
 ## Local multi-repo workspace
 
