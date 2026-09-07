@@ -1,5 +1,41 @@
 [
   {
+    "id": "2026-09-07-07-tool-description-field-claude-function-selection",
+    "title": "Your Tool Schema Has One Field That Controls Whether Claude Calls the Right Function — and It's Not the Name",
+    "excerpt": "The description field is a mini-prompt — write when to call, when not to, what the side effect is, and what comes back. Most tool schemas get the name right and stop there.",
+    "author": "Chris Harper",
+    "date": "09-07-2026",
+    "publishedAt": "2026-09-07T20:03:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 3,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://docs.anthropic.com/en/docs/build-with-claude/tool-use/best-practices-for-tool-definitions",
+    "content": "**The `description` field is a mini-prompt — write when to call, when not to, what the side effect is, and what comes back. Most tool schemas get the name right and stop there.**\n\nClaude decides whether to call a tool — and how to fill in its arguments — from three things: the tool name, the `description` field, and the `input_schema`. Most schemas get the name right and stop there. The description is where most agents go wrong.\n\n**What the description field is actually for.** It's not a label. It's the instruction Claude reads before every tool call to decide whether this is the right tool and what it will receive. A one-sentence description that restates the name (\"search orders in the database\") tells Claude nothing it doesn't already know. An effective description answers four questions:\n\n1. **When should I call this?** (\"Call when the user asks about an existing order or order status\")\n2. **When should I NOT call this?** (\"Not for creating new orders — use `create_order` for that\")\n3. **What is the side effect?** (for writes: \"Cancels the order and triggers a refund if payment was collected\")\n4. **What does the response contain?** (\"Returns order_id, status, items[], and shipping_address\")\n\n**Before:**\n```python\n{\n  \"name\": \"search_orders\",\n  \"description\": \"Search orders in the database.\",\n  ...\n}\n```\n\n**After:**\n```python\n{\n  \"name\": \"search_orders\",\n  \"description\": (\n    \"Look up one or more orders by order_id, customer_email, or date range. \"\n    \"Use this when the user asks about an existing order — its status, items, or shipping. \"\n    \"Do NOT use this to create or modify orders. \"\n    \"Returns: order_id, status (pending|processing|shipped|delivered|cancelled), \"\n    \"items[], shipping_address, and created_at.\"\n  ),\n  ...\n}\n```\n\n**The input_schema matters too.** Use `enum` for constrained fields — Claude picks the right value instead of guessing a string. Add a `description` on every property, especially when the parameter name is ambiguous. Mark `required` honestly — don't list optional parameters as required and then null-check in your code.\n\n```python\n\"properties\": {\n  \"status_filter\": {\n    \"type\": \"string\",\n    \"enum\": [\"pending\", \"processing\", \"shipped\", \"delivered\", \"cancelled\"],\n    \"description\": \"Only return orders in this status. Omit to return all statuses.\"\n  }\n}\n```\n\n**The real limit.** When a tool list grows past 10–15 entries, Claude's selection accuracy drops even with good descriptions — the context becomes a long scan rather than a targeted lookup. If you hit this, narrow the available set with `tool_choice`, or decompose the agent so each subagent holds only the tools it actually needs.\n\n**Sources:** [Designing Claude Connector Tools — sunpeak.ai](https://sunpeak.ai/blogs/claude-connector-tool-design/) · [Tool use best practices — docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/tool-use/best-practices-for-tool-definitions)"
+  },
+  {
+    "id": "2026-09-07-08-deepeval-pytest-llm-agent-quality-gates",
+    "title": "Your LLM App Has No Regression Tests — DeepEval 4 Adds Pytest-Style Quality Gates in 20 Lines",
+    "excerpt": "DeepEval 4 lets you write LLM test cases like pytest fixtures and run them in CI: if output quality drops below a threshold, the build fails. @observe traces individual agent spans.",
+    "author": "Chris Harper",
+    "date": "09-07-2026",
+    "publishedAt": "2026-09-07T20:02:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Agents",
+      "Developer Tools"
+    ],
+    "readTime": 3,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://deepeval.com/docs/getting-started-agents",
+    "content": "**DeepEval 4 lets you write LLM test cases like pytest fixtures and run them in CI: if output quality drops below a threshold, the build fails.**\n\n**What you'll be able to do after this:** Write test cases for your LLM app that run in CI and block a deploy when answer quality drops, retrieval fails to return relevant chunks, or an agent calls the wrong tool.\n\n- `LLMTestCase` wraps one input/output pair and its retrieval context — the unit of every test\n- `deepeval test run` is the CI command (not `pytest`) — it runs DeepEval's own runner, which aggregates scores and handles async; `pytest` works but skips DeepEval's runner behavior\n- `@observe` on agent functions traces individual spans, letting you attach metrics at the retrieval step or tool-call step rather than only the final answer\n\n**Walk-through.**\n\n```bash\npip install deepeval\n```\n\n```python\n# test_qa.py\nfrom deepeval import assert_test\nfrom deepeval.test_case import LLMTestCase\nfrom deepeval.metrics import AnswerRelevancyMetric, FaithfulnessMetric\n\ndef test_order_status_answer():\n    tc = LLMTestCase(\n        input=\"What is the status of order #8821?\",\n        actual_output=run_my_agent(\"What is the status of order #8821?\"),\n        expected_output=\"Order #8821 is shipped.\",\n        retrieval_context=[\n            \"Order #8821 — Status: shipped — Updated: 2026-09-06\"\n        ]\n    )\n    assert_test(tc, [\n        AnswerRelevancyMetric(threshold=0.7),\n        FaithfulnessMetric(threshold=0.8),\n    ])\n```\n\n```bash\ndeepeval test run test_qa.py\n```\n\nAdd `deepeval test run` to your CI step as a normal build stage — it exits non-zero when a test case fails, blocking the deploy.\n\n**For agents, trace individual spans with `@observe`:**\n\n```python\nfrom deepeval.tracing import observe\n\n@observe()\ndef retrieve_context(query: str) -> list[str]:\n    return vector_db.search(query, top_k=5)\n```\n\nThis turns each function call into a span in DeepEval's trace. You can attach metrics directly to the span rather than only the final output — useful for catching a retrieval step that returns stale documents even when the final answer looks plausible.\n\n**Where this breaks down.** The default threshold of 0.5 is a starting value, not a quality guarantee — calibrate it on a labeled sample of your own data before making it a CI gate. DeepEval uses an LLM judge internally, which means eval itself costs tokens and isn't deterministic across runs; set a cheap judge model for CI speed. The cloud dashboard (Confident AI) is a paid service; local `deepeval test run` is free. These tests run offline against a fixed dataset — they don't monitor production traffic.\n\n**Sources:** [DeepEval AI Agent Evaluation Quickstart — deepeval.com](https://deepeval.com/docs/getting-started-agents) · [DeepEval 4 tutorial for pytest-style LLM, RAG, and agent testing — qaskills.sh](https://qaskills.sh/blog/deepeval-llm-testing-guide) · [DeepEval alternatives compared — Braintrust](https://www.braintrust.dev/articles/deepeval-alternatives-2026)"
+  },
+  {
     "id": "2026-09-07-06-claude-code-continue-resume-session-management",
     "title": "One Task Per Claude Code Session — and How to Resume It the Next Day",
     "excerpt": "--continue loads the most recent session for your directory; --resume picks an older one by ID. One task per session plus a short handoff note keeps multi-day coding work coherent.",

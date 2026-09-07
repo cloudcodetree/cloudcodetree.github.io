@@ -10,7 +10,141 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 07 Sep 2026 12:16:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 07 Sep 2026 20:03:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Your Tool Schema Has One Field That Controls Whether Claude Calls the Right Function — and It's Not the Name</title>
+      <link>https://docs.anthropic.com/en/docs/build-with-claude/tool-use/best-practices-for-tool-definitions</link>
+      <guid isPermaLink="false">2026-09-07-07-tool-description-field-claude-function-selection</guid>
+      <pubDate>Mon, 07 Sep 2026 20:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>The description field is a mini-prompt — write when to call, when not to, what the side effect is, and what comes back. Most tool schemas get the name right and stop there.</description>
+      <content:encoded><![CDATA[**The `description` field is a mini-prompt — write when to call, when not to, what the side effect is, and what comes back. Most tool schemas get the name right and stop there.**
+
+Claude decides whether to call a tool — and how to fill in its arguments — from three things: the tool name, the `description` field, and the `input_schema`. Most schemas get the name right and stop there. The description is where most agents go wrong.
+
+**What the description field is actually for.** It's not a label. It's the instruction Claude reads before every tool call to decide whether this is the right tool and what it will receive. A one-sentence description that restates the name ("search orders in the database") tells Claude nothing it doesn't already know. An effective description answers four questions:
+
+1. **When should I call this?** ("Call when the user asks about an existing order or order status")
+2. **When should I NOT call this?** ("Not for creating new orders — use `create_order` for that")
+3. **What is the side effect?** (for writes: "Cancels the order and triggers a refund if payment was collected")
+4. **What does the response contain?** ("Returns order_id, status, items[], and shipping_address")
+
+**Before:**
+```python
+{
+  "name": "search_orders",
+  "description": "Search orders in the database.",
+  ...
+}
+```
+
+**After:**
+```python
+{
+  "name": "search_orders",
+  "description": (
+    "Look up one or more orders by order_id, customer_email, or date range. "
+    "Use this when the user asks about an existing order — its status, items, or shipping. "
+    "Do NOT use this to create or modify orders. "
+    "Returns: order_id, status (pending|processing|shipped|delivered|cancelled), "
+    "items[], shipping_address, and created_at."
+  ),
+  ...
+}
+```
+
+**The input_schema matters too.** Use `enum` for constrained fields — Claude picks the right value instead of guessing a string. Add a `description` on every property, especially when the parameter name is ambiguous. Mark `required` honestly — don't list optional parameters as required and then null-check in your code.
+
+```python
+"properties": {
+  "status_filter": {
+    "type": "string",
+    "enum": ["pending", "processing", "shipped", "delivered", "cancelled"],
+    "description": "Only return orders in this status. Omit to return all statuses."
+  }
+}
+```
+
+**The real limit.** When a tool list grows past 10–15 entries, Claude's selection accuracy drops even with good descriptions — the context becomes a long scan rather than a targeted lookup. If you hit this, narrow the available set with `tool_choice`, or decompose the agent so each subagent holds only the tools it actually needs.
+
+**Sources:** [Designing Claude Connector Tools — sunpeak.ai](https://sunpeak.ai/blogs/claude-connector-tool-design/) · [Tool use best practices — docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/tool-use/best-practices-for-tool-definitions)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your LLM App Has No Regression Tests — DeepEval 4 Adds Pytest-Style Quality Gates in 20 Lines</title>
+      <link>https://deepeval.com/docs/getting-started-agents</link>
+      <guid isPermaLink="false">2026-09-07-08-deepeval-pytest-llm-agent-quality-gates</guid>
+      <pubDate>Mon, 07 Sep 2026 20:02:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Agents</category>
+      <category>Developer Tools</category>
+      <description>DeepEval 4 lets you write LLM test cases like pytest fixtures and run them in CI: if output quality drops below a threshold, the build fails. @observe traces individual agent spans.</description>
+      <content:encoded><![CDATA[**DeepEval 4 lets you write LLM test cases like pytest fixtures and run them in CI: if output quality drops below a threshold, the build fails.**
+
+**What you'll be able to do after this:** Write test cases for your LLM app that run in CI and block a deploy when answer quality drops, retrieval fails to return relevant chunks, or an agent calls the wrong tool.
+
+- `LLMTestCase` wraps one input/output pair and its retrieval context — the unit of every test
+- `deepeval test run` is the CI command (not `pytest`) — it runs DeepEval's own runner, which aggregates scores and handles async; `pytest` works but skips DeepEval's runner behavior
+- `@observe` on agent functions traces individual spans, letting you attach metrics at the retrieval step or tool-call step rather than only the final answer
+
+**Walk-through.**
+
+```bash
+pip install deepeval
+```
+
+```python
+# test_qa.py
+from deepeval import assert_test
+from deepeval.test_case import LLMTestCase
+from deepeval.metrics import AnswerRelevancyMetric, FaithfulnessMetric
+
+def test_order_status_answer():
+    tc = LLMTestCase(
+        input="What is the status of order #8821?",
+        actual_output=run_my_agent("What is the status of order #8821?"),
+        expected_output="Order #8821 is shipped.",
+        retrieval_context=[
+            "Order #8821 — Status: shipped — Updated: 2026-09-06"
+        ]
+    )
+    assert_test(tc, [
+        AnswerRelevancyMetric(threshold=0.7),
+        FaithfulnessMetric(threshold=0.8),
+    ])
+```
+
+```bash
+deepeval test run test_qa.py
+```
+
+Add `deepeval test run` to your CI step as a normal build stage — it exits non-zero when a test case fails, blocking the deploy.
+
+**For agents, trace individual spans with `@observe`:**
+
+```python
+from deepeval.tracing import observe
+
+@observe()
+def retrieve_context(query: str) -> list[str]:
+    return vector_db.search(query, top_k=5)
+```
+
+This turns each function call into a span in DeepEval's trace. You can attach metrics directly to the span rather than only the final output — useful for catching a retrieval step that returns stale documents even when the final answer looks plausible.
+
+**Where this breaks down.** The default threshold of 0.5 is a starting value, not a quality guarantee — calibrate it on a labeled sample of your own data before making it a CI gate. DeepEval uses an LLM judge internally, which means eval itself costs tokens and isn't deterministic across runs; set a cheap judge model for CI speed. The cloud dashboard (Confident AI) is a paid service; local `deepeval test run` is free. These tests run offline against a fixed dataset — they don't monitor production traffic.
+
+**Sources:** [DeepEval AI Agent Evaluation Quickstart — deepeval.com](https://deepeval.com/docs/getting-started-agents) · [DeepEval 4 tutorial for pytest-style LLM, RAG, and agent testing — qaskills.sh](https://qaskills.sh/blog/deepeval-llm-testing-guide) · [DeepEval alternatives compared — Braintrust](https://www.braintrust.dev/articles/deepeval-alternatives-2026)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>One Task Per Claude Code Session — and How to Resume It the Next Day</title>
@@ -5345,63 +5479,8 @@ Claude Code loads `CLAUDE.md` at session start. When it writes UI, it reads `DES
 **Sources:** [Writing a DESIGN.md file Claude can actually use — Process to Pixels](https://processtopixels.substack.com/p/writing-a-designmd-file-claude-can) · [The DESIGN.md Workflow — Design Systems Collective](https://www.designsystemscollective.com/the-design-md-workflow-how-google-stitch-claude-code-quietly-changed-the-design-to-code-handoff-c4213f97ed8f) · [Google Stitch open-sources DESIGN.md spec (Apache 2.0) — Pasquale Pillitteri](https://pasqualepillitteri.it/en/news/1251/google-stitch-design-md-open-source-spec-2026)]]></content:encoded>
     </item>
 
-    <item>
-      <title>An AI Agent Found and Exploited a 5-Day-Old GitHub Actions Flaw That Another AI Co-Authored and Approved</title>
-      <link>https://www.wiz.io/blog/red-agent-snowflake-copilot-cicd-bug</link>
-      <guid isPermaLink="false">2026-08-23-01-wiz-red-agent-ci-security</guid>
-      <pubDate>Sun, 23 Aug 2026 04:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Security</category>
-      <category>Developer Tools</category>
-      <description>Wiz's Red Agent autonomously discovered and exploited a GitHub Actions script injection in Snowflake's public repo — a PR that GitHub Copilot had co-authored and reviewed as clear — five days after it merged.</description>
-      <content:encoded><![CDATA[**TL;DR: Wiz's Red Agent autonomously found and exploited a script injection in Snowflake's CI workflow five days after GitHub Copilot co-authored the vulnerable PR and reviewed it as clear — a useful case study for teams running AI-assisted CI.**
-
-On June 18, 2026, a pull request to `snowflakedb/snowflake-connector-net` replaced a safe pattern (env vars + `jq` parsing) with direct shell interpolation of a GitHub issue title. GitHub Copilot was listed as co-author. The PR merged.
-
-Five days later, Wiz's Red Agent autonomously reviewed the workflow, crafted a payload, got the first attempt wrong, read the Bash error output, revised the payload, and exfiltrated Jira credentials to an attacker-controlled server — no human guidance. Snowflake patched the same day after responsible disclosure.
-
-**What to check in your workflows.** The unsafe pattern is `${{ github.event.issue.title }}` or any user-controlled string interpolated directly into a `run:` shell step. The fix is to route it through an environment variable instead: `env: ISSUE_TITLE: ${{ github.event.issue.title }}` and reference `$ISSUE_TITLE` in the shell. GitHub's own [security hardening guide](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions) documents exactly this pattern.
-
-**A note on the source.** This is primarily Wiz's own disclosure — their Red Agent is a security product, and the blog post serves their interests. Independent coverage from The Hacker News and CyberSecurity News corroborates the technical details and Snowflake's confirmation.
-
-**Why it matters:** AI code review doesn't transfer security responsibility — a model that approved the PR was also a model that could exploit it. For teams using Copilot or Claude Code to review CI changes, own the security check on untrusted-input workflows.
-
-**Sources:** [Red Agent Exploits Snowflake Vuln Missed by GitHub Copilot — Wiz](https://www.wiz.io/blog/red-agent-snowflake-copilot-cicd-bug) · [Snowflake GitHub Actions Flaw — The Hacker News](https://thehackernews.com/2026/08/snowflake-github-actions-flaw-lets_0330881554.html) · [GitHub Actions Security Hardening — GitHub Docs](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions)]]></content:encoded>
-    </item>
-
-    <item>
-      <title>The MCP Spec Dropped Session State — Migration Checklist for Your Server</title>
-      <link>https://blog.modelcontextprotocol.io/posts/2026-07-28/</link>
-      <guid isPermaLink="false">2026-08-22-13-mcp-stateless-spec-migration</guid>
-      <pubDate>Sat, 22 Aug 2026 20:02:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>MCP</category>
-      <category>Agents</category>
-      <category>Building AI Products</category>
-      <description>The July 2026 MCP spec removed session state: no Mcp-Session-Id, no initialize handshake, and your server becomes a load-balanced stateless HTTP service.</description>
-      <content:encoded><![CDATA[**TL;DR: The July 2026 MCP spec removed session state — no `Mcp-Session-Id`, no handshake — and your server becomes a plain stateless HTTP service with working load balancing and caching.**
-
-The MCP 2026-07-28 specification shipped a protocol-level change that affects every MCP server in production: session state is gone. The `initialize`/`initialized` handshake is removed. `Mcp-Session-Id` is gone. Every request now carries protocol version, client info, and capabilities in a `_meta` field, making each one self-describing and independent.
-
-**Why this matters.** Stateful MCP servers required sticky sessions — a request from client A had to reach the same server instance that handled its initialization. That made round-robin load balancing, autoscaling, and CDN caching impossible. Stateless servers let any instance handle any request: horizontal scaling works without infrastructure workarounds.
-
-**Migration checklist:**
-
-1. **Audit session state.** Search your codebase for `Mcp-Session-Id`, `initialize` event handlers, and per-session in-memory stores. Replace them with explicit handles or request-scoped state.
-2. **Pass `_meta` through.** Ensure your handler forwards the incoming `_meta` object on every response — it carries the client's declared capabilities and protocol version.
-3. **Wire up header-based routing.** The new `Mcp-Method` and `Mcp-Name` headers let your gateway or rate limiter route and meter without parsing JSON bodies. Add them to your load balancer config.
-4. **Add cache hints to list responses.** `tools/list`, `resources/list`, and `prompts/list` responses now support `ttlMs` and `cacheScope` fields — fill them in so clients know how long to reuse a listing without re-fetching.
-5. **Check your SDK version.** Cloudflare's Agents SDK has supported the spec since the day it shipped; `createMcpHandler` returns a standard fetch handler that runs as a Worker with no session Durable Object overhead. If you're on another framework, confirm its MCP SDK version is ≥ 2.0.
-
-**Limit to know.** Legacy MCP clients that haven't updated their client library may still send `Mcp-Session-Id` or expect the handshake. The Cloudflare handler serves both spec versions until clients migrate — but verify your client versions before switching production traffic. The experimental Tasks API has a separate, not-yet-final migration path; hold off on that piece until the spec stabilizes.
-
-**Sources:** [MCP 2026-07-28 Specification — MCP Blog](https://blog.modelcontextprotocol.io/posts/2026-07-28/) · [The next generation of MCP — Cloudflare Blog](https://blog.cloudflare.com/mcp-v2/) · [What changed — DEV Community](https://dev.to/krlz/mcp-went-stateless-what-the-2026-07-28-spec-actually-changes-273k) · [Build and deploy on the new spec — DEV Community](https://dev.to/composiodev/how-to-build-and-deploy-an-mcp-server-to-production-2026-07-28-spec-50p3) · [Cloudflare Agents SDK changelog](https://developers.cloudflare.com/changelog/post/2026-07-27-agents-sdk-v0.20.0-mcp-sdk-v2/)]]></content:encoded>
-    </item>
-
+    
+    
     
     
 
