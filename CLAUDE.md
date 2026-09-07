@@ -136,8 +136,12 @@ public/
   server route (`app/ai-news/[id]/page.tsx`), no client-side fetch
 - Markdown rendered via `react-markdown` + `remark-gfm`
 
-**ProjectsPage.tsx** (implemented, not in nav): featured projects + dynamic
-GitHub repositories via REST API, with loading skeletons and error handling.
+**Admin (owner-only)**: `/admin/analytics/` (`app/admin/`, `AnalyticsDashboard`) —
+signups by day and provider, demo opens per project, and the recent-activity feed.
+The Worker answers `/admin/*` only to the owner's session (404 for everyone else,
+including other signed-in visitors); the data comes through the SECURITY DEFINER
+function `owner_analytics()` (`supabase/migrations/0004_owner_analytics.sql`), which
+refuses any caller not in `site_owners`. `OWNER_USER_ID` lives in `wrangler.jsonc`.
 
 **Theme Configuration**: 
 - Custom dark theme with blue/cyan gradient accents (#3b82f6, #06b6d4)
@@ -146,10 +150,6 @@ GitHub repositories via REST API, with loading skeletons and error handling.
 - Consistent component styling with rounded corners and hover effects
 
 ### External Integrations
-
-**GitHub API** (ProjectsPage, not currently in nav):
-- Fetches repository data from `https://api.github.com/users/cloudcodetree/repos`
-- No authentication required for public repos
 
 **Web3Forms** (contact form):
 - ContactPage.tsx submits to the Web3Forms API with an access key that is
@@ -235,9 +235,8 @@ See the **Blog ("AI News")** section below — posts live inline in
 - Contains sensitive contact information (protected by a `.claude` deny rule)
 
 ### GitHub Integration
-- GitHub username set to 'cloudcodetree' in ProjectsPage.tsx
-- Featured projects are manually curated in the featuredProjects array
-- Real repositories are fetched from GitHub API dynamically
+- Projects are curated by hand in `app/projects/manifest.ts` (see "Projects");
+  nothing on the site calls the GitHub API at runtime
 - No authentication required for public repositories
 
 ## Performance Considerations
@@ -500,9 +499,10 @@ from lists (`publishedTutorials` / `publishedProjects`), feeds, and the
 sitemap — and **excluded from the build**: `scripts/apply-drafts.mjs` (runs
 at prebuild) renames its `page.mdx` → `page.draft.mdx`, which Next does not
 route, so the URL does not exist in the export. Draft projects also skip demo
-vendoring. To publish, flip the flag; prebuild restores `page.mdx`. Held at
-launch (2026-09-03): the 37-part "Become a Full-Stack AI Engineer" course and
-every project except span-calculator.
+vendoring. To publish, flip the flag; prebuild restores `page.mdx`. The 37-part
+"Become a Full-Stack AI Engineer" course and the seven remaining projects were
+held as drafts at launch (2026-09-03) and published on 2026-09-07; nothing is
+held right now.
 
 ## Editor theme (VS Code)
 

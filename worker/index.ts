@@ -10,11 +10,17 @@ export interface Env {
   PRODUCTION_HOSTNAME: string;
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
+  /** Supabase user id of the site owner — the only account /admin/* answers to. */
+  OWNER_USER_ID?: string;
 }
 
 // Gated: the live demos only — /projects/<slug>/demo/*. Landing pages, the
 // gallery, and covers are public (owner decision 2026-09-03).
 const GATED_PATH = /^\/projects\/([a-z0-9-]+)\/demo\//;
+// Owner-only: /admin/* (the analytics dashboard). Anyone else gets a 404, not
+// a 403 — the pages should not be discoverable. The database applies the same
+// owner check again inside owner_analytics(), so the Worker is not the only wall.
+const ADMIN_PATH = /^\/admin(\/|$)/;
 
 /**
  * This handler runs only for `run_worker_first` paths (/api/*, the demo
@@ -34,9 +40,37 @@ export default {
     const gated = url.pathname.match(GATED_PATH);
     if (gated) return gate(request, env, ctx, url, gated[1]);
 
+    if (ADMIN_PATH.test(url.pathname)) return ownerGate(request, env, url);
+
     return env.ASSETS.fetch(request);
   },
 } satisfies ExportedHandler<Env>;
+
+const notFound = () => new Response('not found', { status: 404 });
+
+async function ownerGate(request: Request, env: Env, url: URL): Promise<Response> {
+  // Fail closed: no owner configured, or no auth backend, means no admin at all.
+  if (!env.SUPABASE_URL || !env.OWNER_USER_ID) return notFound();
+
+  const token = readCookie(request);
+  if (!token) {
+    // Signed out: let the site-wide sign-in handler bring them back here.
+    const dest = new URL('/', url);
+    dest.searchParams.set('signin', '1');
+    dest.searchParams.set('next', url.pathname);
+    return Response.redirect(dest.toString(), 302);
+  }
+
+  try {
+    const payload = await verifyToken(token, env.SUPABASE_URL);
+    if (payload.sub !== env.OWNER_USER_ID) return notFound();
+    return env.ASSETS.fetch(request);
+  } catch (err) {
+    if (err instanceof InvalidTokenError) return notFound();
+    if (err instanceof JwksUnavailableError) return new Response('auth unavailable', { status: 503 });
+    throw err;
+  }
+}
 
 // Bounce to the project's (public) landing page — it hosts the launch button
 // and the site-wide ?signin=1 handler continues to the demo after sign-in.

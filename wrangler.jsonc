@@ -14,7 +14,7 @@
     "not_found_handling": "404-page",
     // These paths 404 until Phase 2. Declared now so the array form is proven
     // to deploy before anything depends on it.
-    "run_worker_first": ["/api/*", "/projects/*/demo/*"]
+    "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*"]
   },
   "observability": { "enabled": true },
   // The apex flip (cutover runbook step 6): a Worker ROUTE overlays the proxied
@@ -30,7 +30,9 @@
     // Filled when the cct-demos Supabase project exists (Phase 2 Task 0).
     // Empty means the gate fails CLOSED (503) — never open.
     "SUPABASE_URL": "https://tgcysgioncdmtzcfknix.supabase.co",
-    "SUPABASE_ANON_KEY": "sb_publishable_xElUD5_ZTjOVM8ZHSZ1lQw_Zq5gto2o"
+    "SUPABASE_ANON_KEY": "sb_publishable_xElUD5_ZTjOVM8ZHSZ1lQw_Zq5gto2o",
+    // The owner's Supabase user id — /admin/* answers only to this account. Not a secret.
+    "OWNER_USER_ID": "e57766e4-81ca-438e-bb08-e45735dfda2c"
   },
   "env": {
     "staging": {
@@ -44,14 +46,16 @@
       "vars": {
         "PRODUCTION_HOSTNAME": "cloudcodetree.com",
         "SUPABASE_URL": "https://tgcysgioncdmtzcfknix.supabase.co",
-        "SUPABASE_ANON_KEY": "sb_publishable_xElUD5_ZTjOVM8ZHSZ1lQw_Zq5gto2o"
+        "SUPABASE_ANON_KEY": "sb_publishable_xElUD5_ZTjOVM8ZHSZ1lQw_Zq5gto2o",
+        // The owner's Supabase user id — /admin/* answers only to this account. Not a secret.
+        "OWNER_USER_ID": "e57766e4-81ca-438e-bb08-e45735dfda2c"
       },
       "assets": {
         "directory": "./out",
         "binding": "ASSETS",
         "html_handling": "force-trailing-slash",
         "not_found_handling": "404-page",
-        "run_worker_first": ["/api/*", "/projects/*/demo/*"]
+        "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*"]
       }
     }
   }
