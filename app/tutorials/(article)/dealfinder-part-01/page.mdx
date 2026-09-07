@@ -25,7 +25,7 @@ This is **Part 1 of DealFinder**, and it starts where every production AI system
 <Callout tone="tip">
 **Code along, version by version.** Full project at
 [github.com/cloudcodetree/tutorial-dealfinder](https://github.com/cloudcodetree/tutorial-dealfinder).
-Step tags: `step-01a` (connector skeleton) · `step-01b` (normalize + dedup) · `step-01c` (snapshot frozen).
+Step tag: `step-01` (the finished part — connector, normalize + dedup, and the frozen snapshot).
 A `.devcontainer/` gives you Python 3.11 in one click (locally or in Codespaces).
 </Callout>
 
@@ -36,11 +36,11 @@ A `.devcontainer/` gives you Python 3.11 in one click (locally or in Codespaces)
 3. [Stand up the Google Shopping connector](#stand-up-the-google-shopping-connector)
 4. [The brand field lie: 154 of 270 rows hold the retailer](#the-brand-field-lie-154-of-270-rows-hold-the-retailer)
 5. [Normalize titles, extract the real manufacturer](#normalize-titles-extract-the-real-manufacturer)
-6. [Dedup: Sony WH-1000XM5 at two prices](#dedup-sony-wh-1000xm5-at-two-prices)
+6. [Dedup: same product, or two offers to compare?](#dedup-same-product-or-two-offers-to-compare)
 7. [Freeze the snapshot](#freeze-the-snapshot)
 8. [Load and validate the snapshot](#load-and-validate-the-snapshot)
 9. [Reproducibility checks](#reproducibility-checks)
-10. [Where this goes next](#where-this-goes-next)
+10. [What you can demo now](#what-you-can-demo-now)
 
 ---
 
@@ -119,7 +119,7 @@ RAPIDAPI_KEY=your_key_here
 ```
 
 ```python
-# step-01a: connector skeleton
+# step-01 — connector skeleton
 from dealfinder.live_sources import RapidApiSource
 
 src = RapidApiSource()
@@ -322,7 +322,7 @@ The snapshot is the stable ground truth. Every quoted number in this course — 
 ## Load and validate the snapshot
 
 ```python
-# step-01c: load_snapshot + schema validation
+# step-01 — load_snapshot + schema validation
 from dealfinder.snapshot import load_snapshot, to_products
 
 items = load_snapshot("data/snapshots/electronics-2026-07.json")

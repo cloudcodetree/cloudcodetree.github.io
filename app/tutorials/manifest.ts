@@ -577,7 +577,7 @@ export const tutorials: Tutorial[] = [
     series: 'Become a Full-Stack AI Engineer',
     part: 35,
     excerpt:
-      'Multi-tenant hardening that extends Part 21: a sliding-window rate limiter, GDPR export/delete, and abuse detection — importing the safety modules, not re-implementing them.',
+      'Multi-tenant hardening that extends Part 25: a sliding-window rate limiter, GDPR export/delete, and abuse detection — importing the safety modules, not re-implementing them.',
     date: '06-30-2026',
     tags: ['Tutorial', 'DealFinder', 'Security', 'Compliance', 'Python'],
     order: 45,
@@ -667,7 +667,7 @@ export const SERIES_INFO: Record<string, { blurb: string }> = {
 
 /**
  * Total parts in a tutorial's series — the canonical override when set
- * (e.g. DealFinder = 33, a fixed syllabus with unbuilt parts), otherwise the
+ * (e.g. DealFinder = 37, a fixed syllabus), otherwise the
  * number of built entries.
  */
 export function seriesTotal(series: string): number {

@@ -38,7 +38,6 @@ export const projects: Project[] = [
     summary:
       'Cross-platform JUCE app to play guitar through Neural Amp Modeler captures — first-class A2 model support and one-click tone downloads from TONE3000, built on a JUCE-free, unit-tested DSP/net core.',
     tech: ['C++', 'JUCE', 'DSP', 'CMake', 'NeuralAudio'],
-    repoUrl: 'https://github.com/cloudcodetree/nam-app',
     cover: '/projects/covers/nam-app.png',
     featured: true,
     order: 1,
@@ -72,7 +71,6 @@ export const projects: Project[] = [
     summary:
       'A homestead-buyer’s research desk: scrapes land listings, scores deals, and serves a dashboard with email alerts — Supabase + Cloudflare Pages with a Mac-mini-hosted Claude bridge.',
     tech: ['Python', 'React', 'Supabase', 'Cloudflare'],
-    externalUrl: 'https://homestead.deals',
     cover: '/projects/covers/homestead-finder.png',
     order: 4,
   },

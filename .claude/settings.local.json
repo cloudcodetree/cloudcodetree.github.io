@@ -55,7 +55,23 @@
       "Bash(git check-ignore *)",
       "Bash(git merge *)",
       "mcp__plugin_supabase_supabase__execute_sql",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(pnpm test *)",
+      "Bash(node scripts/db-migrate.mjs)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(node scripts/check-parity.mjs --origin https://beta.cloudcodetree.com --sweep)",
+      "Bash(python3 -c \"import sys,json; [print\\(f\\\\\"{r['visibility']:8s} {r['name']}\\\\\"\\) for r in json.load\\(sys.stdin\\) if any\\(k in r['name'].lower\\(\\) for k in ['nam','backlot','motion','navigator','midea','code_compare','homestead','tutorial-dealfinder']\\)]\")",
+      "Bash(dig +short homestead.deals)",
+      "Bash(curl -sS -o /dev/null -w \"%{http_code} %{redirect_url}\\\\n\" --max-time 20 -I \"https://homestead.deals/\")",
+      "Bash(dig @1.1.1.1 +short homestead.deals A)",
+      "Bash(dig @8.8.8.8 +short homestead.deals A)",
+      "Bash(dig @1.1.1.1 +short homestead.deals NS)",
+      "Bash(curl -s --max-time 15 \"https://dns.google/resolve?name=homestead.deals&type=A\")",
+      "Bash(dig @1.1.1.1 +short www.homestead.deals)",
+      "Bash(whois homestead.deals)",
+      "Bash(uv run *)",
+      "Bash(sort -k2)",
+      "Bash(grep -v -E '\\\\$224|224\\\\.[0-9]')"
     ],
     "deny": []
   }
