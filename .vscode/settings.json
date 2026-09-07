@@ -1,9 +1,9 @@
 // GENERATED — do not hand-edit. Rebuild with: node scripts/generate-vscode-theme.mjs
 // Cobalt2 (wesbos/cobalt2-vscode @ c4e9574) hue-shifted -87° in OKLCH
 // onto a dark green/grey ground, accent chroma capped at 0.13 for eye comfort.
-// Base theme "Default Dark Modern" only fills keys Cobalt2 leaves unset.
+// Base theme "Dark Modern" only fills keys Cobalt2 leaves unset.
 {
-  "workbench.colorTheme": "Default Dark Modern",
+  "workbench.colorTheme": "Dark Modern",
   "workbench.colorCustomizations": {
     "menu.selectionForeground": "#d8e0da",
     "menubar.selectionBackground": "#263d2f",

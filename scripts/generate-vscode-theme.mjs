@@ -41,7 +41,7 @@ const MIN_TEXT_CONTRAST = 4.5; // WCAG AA for token foregrounds vs editor bg
 const SURFACE_HUE_WINDOW = 35; // deg around the source bg hue that counts as "surface"
 const SURFACE_CHROMA_MAX = 0.12; // above this it is an accent, not a surface
 
-const BASE_THEME = 'Default Dark Modern'; // ships with VS Code; fills any key Cobalt2 leaves unset
+const BASE_THEME = 'Dark Modern'; // ships with VS Code; fills any key Cobalt2 leaves unset
 
 // Keys whose *accent* colors mean something by hue → not rotated.
 const SEMANTIC_KEY =
