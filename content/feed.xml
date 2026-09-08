@@ -10,7 +10,113 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 08 Sep 2026 12:06:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 08 Sep 2026 20:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Claude Code Has Been Taking Notes About Your Project in a File You've Probably Never Opened</title>
+      <link>https://code.claude.com/docs/en/memory</link>
+      <guid isPermaLink="false">2026-09-08-07-claude-code-auto-memory-curate-memory-md</guid>
+      <pubDate>Tue, 08 Sep 2026 20:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code's auto memory writes session notes to ~/.claude/projects/&lt;project&gt;/memory/MEMORY.md — the first 200 lines load every session. Here's how to read, curate, and fix stale entries.</description>
+      <content:encoded><![CDATA[**Claude Code writes cross-session notes about your project to `~/.claude/projects/<project>/memory/MEMORY.md` — the first 200 lines load on every new session, so the quality of that file matters.**
+
+Every time Claude corrects a mistake you flag, discovers your build command, or learns a debugging pattern that consistently works in your project, it optionally saves a note. These accumulate in a `MEMORY.md` index file — loaded at the start of the next session before you type anything.
+
+**Browse what it saved:**
+```bash
+# From within a session:
+/memory    # opens the memory directory browser
+
+# Or directly in the shell:
+cat ~/.claude/projects/*/memory/MEMORY.md
+```
+
+The directory also holds per-topic files — `feedback_testing.md`, `user_role.md`, and any others Claude creates. `MEMORY.md` acts as an index; Claude loads it at session start and reads the topic files on demand as it needs them. The limit is the first 200 lines or 25KB of `MEMORY.md`, whichever comes first — everything past that threshold is silently dropped on load.
+
+**Four note types Claude saves:**
+- `user` — your role and working preferences
+- `feedback` — corrections you've given and approaches you confirmed work
+- `project` — ongoing work, decisions, and context Claude can't derive from the code
+- `reference` — external resources like your issue tracker or dashboard URL
+
+Claude skips anything it can derive from the codebase itself: architecture, file paths, debugging patterns visible in the code. It also doesn't save something every session — only when the information would be useful in a future conversation.
+
+**Monthly audit pattern:**
+```bash
+# Review the index
+cat ~/.claude/projects/*/memory/MEMORY.md
+
+# Edit stale entries directly
+$EDITOR ~/.claude/projects/<project>/memory/MEMORY.md
+```
+
+**The contamination failure mode:** auto memory is per-repository, shared across all worktrees. If you've been on a long-running feature branch, `MEMORY.md` can accumulate contradictory facts — "the payment module uses the v1 API" from last sprint alongside "use the v2 payment API" from this one. Both load every session and both shape Claude's context. A quarterly audit that removes facts about removed dependencies and finished features is the fix.
+
+**Machine-local, not cloud-synced:** auto memory is per-machine. Cloud and remote sessions write to their own separate memory directories and never sync back to your local machine. If you rely on remote execution heavily, check what each environment has accumulated independently.
+
+**To disable for a project:**
+```json
+// .claude/settings.json
+{ "autoMemoryEnabled": false }
+```
+Or set `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` for a single session.
+
+**Sources:** [Claude Code memory docs](https://code.claude.com/docs/en/memory) · [Automatic Memory Is Not Learning — Medium/@brentwpeterson](https://medium.com/@brentwpeterson/automatic-memory-is-not-learning-4191f548df4c) · [Claude Code Memory Persistence Guide — thepromptshelf.dev](https://thepromptshelf.dev/blog/claude-code-memory-persistence-guide-2026/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>'Budget Flights' Should Find 'Cheap Tickets' — Here's the Embedding Pipeline That Makes It Happen</title>
+      <link>https://sbert.net/docs/quickstart.html</link>
+      <guid isPermaLink="false">2026-09-08-06-sentence-transformers-embeddings-foundations</guid>
+      <pubDate>Tue, 08 Sep 2026 20:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Embeddings</category>
+      <category>RAG</category>
+      <description>Dense vector embeddings let you match meaning, not keywords. sentence-transformers generates them in three lines — this is the layer every RAG pipeline and vector database tutorial starts from.</description>
+      <content:encoded><![CDATA[**What you'll be able to do after this:** generate dense vector embeddings from any text, score semantic similarity with cosine to find paraphrases that keyword search misses, and understand why every RAG pipeline starts here before the index.
+
+Keyword search matches tokens. A query for "budget flights" misses a document that says "cheap tickets to Heathrow" — no shared terms, no result. Dense embeddings sidestep this by encoding meaning into a float vector, where similar concepts cluster near each other regardless of wording.
+
+**Three-line version:**
+```python
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+embeddings = model.encode(["cheap tickets", "budget aviation", "quantum entanglement"])
+print(model.similarity(embeddings[0:1], embeddings))
+# → [[1.0, 0.82, 0.15]]
+```
+
+`all-MiniLM-L6-v2` maps each input to a 384-dimension float vector. Cosine similarity — the dot product of L2-normalized vectors — gives a score from −1 to 1. "Cheap tickets" and "budget aviation" score 0.82; "quantum entanglement" scores 0.15.
+
+**Three starting model choices:**
+
+| Model | Params | Dims | When to use |
+|---|---|---|---|
+| `all-MiniLM-L6-v2` | 22M | 384 | Fast, CPU-friendly, good enough for most RAG |
+| `all-mpnet-base-v2` | 110M | 768 | Better quality, ~3× slower |
+| OpenAI `text-embedding-3-small` | — | 1536 | No local GPU, managed scale |
+
+**The one limit that bites before you go further:** sentence-transformers silently truncates input at the model's max sequence length — typically 512 tokens — with no warning. A 2,000-word document gets its tail dropped: the last ~75% of a long document disappears. For anything longer than a short paragraph, chunk first, embed each chunk, and store them as separate vectors. This is why every RAG chunking step comes before embedding, not after.
+
+**3-bullet takeaway:**
+- `SentenceTransformer.encode()` → float vector, `model.similarity()` → cosine score; that's the full retrieval API for a first-pass semantic search
+- `all-MiniLM-L6-v2` is the right default until your recall numbers say otherwise
+- Silent 512-token truncation is the gotcha that causes retrieval misses on long documents — chunk first
+
+**Why this matters for what you build:** when you call `ChromaDB.add()`, `pgvector`'s INSERT, or LangChain's `HuggingFaceBgeEmbeddings.embed_documents()`, one of these models runs under the hood. Knowing what it produces — and where it truncates — is the foundation for diagnosing retrieval misses when your search returns the wrong chunks.
+
+**Sources:** [sentence-transformers quickstart — sbert.net](https://sbert.net/docs/quickstart.html) · [Semantic Search docs — sbert.net](https://sbert.net/examples/sentence_transformer/applications/semantic-search/README.html) · [An Intuitive Explanation of Sentence-BERT — Towards Data Science](https://towardsdatascience.com/an-intuitive-explanation-of-sentence-bert-1984d144a868/)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Your Parallel Claude Code Sessions Can Now Coordinate Without You in the Middle</title>
@@ -5381,66 +5487,8 @@ Fine-tuning bakes behavior into weights at a point in time. When output schemas 
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Your Agent Gets a Browser at 1/7th the Memory: Kitesurf Drops Into Playwright With One Parameter Change</title>
-      <link>https://blog.cloudflare.com/kitesurf/</link>
-      <guid isPermaLink="false">2026-08-23-08-kitesurf-cloudflare-agent-browser</guid>
-      <pubDate>Sun, 23 Aug 2026 20:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Developer Tools</category>
-      <category>Building AI Products</category>
-      <description>Kitesurf (Cloudflare, public beta) runs in V8 isolates on Workers — no Chromium, CDP-compatible, 5-7x less memory — and drops into Playwright with one browser=kitesurf parameter change.</description>
-      <content:encoded><![CDATA[**TL;DR: Kitesurf (Cloudflare, public beta) is an agent-first browser running in V8 isolates — no Chromium binary, Chrome DevTools Protocol-compatible, 5-7x less memory — and drops into existing Playwright or Puppeteer code with one parameter change.**
-
-Giving an agent a browser normally means spinning up headless Chromium: several hundred MB per instance, seconds to initialize, and it won't fit in a V8 isolate. For agents doing screenshots, form fills, or reading pages, that's a significant overhead cost at any scale.
-
-Kitesurf runs entirely inside Cloudflare Workers as V8 isolates. It exposes the Chrome DevTools Protocol (CDP), so existing Playwright and Puppeteer code works without modification — swap your Browser Run endpoint URL and add `browser=kitesurf`:
-
-```python
-browser = await p.chromium.connect_over_cdp(
-    f"wss://browser.playwright.cloudflare.com?token={TOKEN}&browser=kitesurf"
-)
-```
-
-**What it handles well:** screenshots, HTML extraction, JSON-structured scraping, form interaction, and API calls wrapped in browser requests. Benchmark numbers from Cloudflare: 3–4x less CPU, 5–7x less memory than Chromium.
-
-**Where you still need full Chromium:** video/audio playback, WebGL rendering, bot-challenge handshakes (including Cloudflare's own bot protection — notable given the source), and multi-step authenticated sessions held open over several minutes. Kitesurf renders 1.7x slower than Chromium on raster-heavy pages — the expected tradeoff for an isolate that isn't doing full pixel rasterization.
-
-Try it without signing up at [kitesurf.cloudflare.app](https://kitesurf.cloudflare.app) — paste any URL to see what Kitesurf returns to an agent.
-
-**Sources:** [Cloudflare blog](https://blog.cloudflare.com/kitesurf/) · [TechCrunch](https://techcrunch.com/2026/08/07/cloudflare-launches-kitesurf-a-browser-built-for-ai-agents/) · [The Next Web](https://thenextweb.com/news/cloudflare-kitesurf-browser-ai-agents-workers)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>MCP Got a Sibling: A2A Joins the Same Governance Body, Completing the Open Agent Protocol Stack</title>
-      <link>https://www.axios.com/2026/08/17/a2a-agentic-ai-foundation-open-ai-standards</link>
-      <guid isPermaLink="false">2026-08-23-07-a2a-aaif-mcp-agent-standards</guid>
-      <pubDate>Sun, 23 Aug 2026 20:03:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Agents</category>
-      <category>MCP</category>
-      <category>Building AI Products</category>
-      <description>Google transferred A2A to the AAIF on Aug 20, putting agent-to-agent communication alongside Anthropic's MCP under neutral Linux Foundation governance — 250+ member organizations.</description>
-      <content:encoded><![CDATA[**TL;DR: Google transferred A2A — the protocol for agent-to-agent handoffs — to the Agentic AI Foundation (AAIF) on Aug 20, placing it alongside Anthropic's MCP under neutral Linux Foundation governance.**
-
-For anyone building multi-agent systems: **MCP** connects agents to tools and data; **A2A** is the protocol for agents to delegate work to other agents. Both now live under the Agentic AI Foundation (AAIF), a Linux Foundation project with 250+ member organizations — AWS, Anthropic, Cloudflare, Google, Microsoft, and OpenAI are platinum members.
-
-A2A v1.0 (March 2026) is already in production in supply chain, financial services, and IT operations. The move follows the same path MCP took when it moved to AAIF governance earlier this year.
-
-**The limit:** this is a governance transfer, not a spec update. MCP and A2A still require separate implementations, and neither protocol mandates a specific orchestration approach — "A2A + MCP" is a stack you compose, not a product you install.
-
-**Why it matters:** if you're building agents that delegate work to other agents — not just call tools — A2A + MCP is now the pair of stable, community-governed open specs to build against, with reduced risk that a vendor pivot strands your architecture.
-
-**Sources:** [Axios](https://www.axios.com/2026/08/17/a2a-agentic-ai-foundation-open-ai-standards) · [Linux Foundation](https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year) · [DevOpsDigest](https://www.devopsdigest.com/google-agent2agent-protocol-joins-aaif)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
