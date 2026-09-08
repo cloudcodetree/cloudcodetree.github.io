@@ -19,6 +19,13 @@ import SearchBox from './SearchBox';
 interface BlogPageProps {
   /** Slim (content-free) index of every post, newest-first, embedded at build time. */
   posts: BlogPost[];
+  heading?: string;
+  intro?: React.ReactNode;
+  feedPath?: string;
+  emptyMessage?: string;
+  /** Highlights a topic chip and (Task 12) seeds the filter for a topic landing page. */
+  topic?: { tag: string; slug: string };
+  showSearch?: boolean;
 }
 
 type View = 'list' | 'cards' | 'feed';
@@ -48,7 +55,12 @@ function Pills({ post, max = 3 }: { post: BlogPost; max?: number }) {
   );
 }
 
-export default function BlogPage({ posts }: BlogPageProps) {
+export default function BlogPage({
+  posts, heading = 'AI News', intro = 'Daily field notes on AI-assisted engineering.',
+  feedPath = '/feed.xml', emptyMessage, topic, showSearch = true,
+}: BlogPageProps) {
+  void topic; // consumed by Task 12 (topic landing pages)
+
   const [view, setView] = useState<View>('cards');              // SSR default
   const [sizeOverride, setSizeOverride] = useState<Partial<Record<View, number>>>({});
   const [page, setPage] = useState(1);
@@ -92,7 +104,8 @@ export default function BlogPage({ posts }: BlogPageProps) {
     if (n > 1) setPage(n);
   }, []);
 
-  // Keep the URL (?page, ?topics) in sync, clamped, on the CURRENT path (/ or /ai-news/).
+  // Keep the URL (?page, ?topics) in sync, clamped, on the CURRENT path (/ or /ai-news/,
+  // also /ai-news/search/ where a foreign `?q=` must survive this rewrite).
   //
   // Skips its OWN first run. On mount `selectedTags`/`page` still hold their SSR
   // defaults, so writing the URL here would serialize empty state over an incoming
@@ -103,9 +116,14 @@ export default function BlogPage({ posts }: BlogPageProps) {
   useEffect(() => {
     if (page !== safePage) { setPage(safePage); return; }
     if (!urlSyncArmed.current) { urlSyncArmed.current = true; return; }
-    const params = new URLSearchParams();
-    if (selectedTags.length) params.set('topics', selectedTags.join(','));
-    if (safePage > 1) params.set('page', String(safePage));
+    // Seed from the CURRENT query string and only touch the keys this effect owns —
+    // a rebuild-from-scratch here would silently drop any other param a host page
+    // relies on (e.g. /ai-news/search/'s `?q=`), and under React 18 StrictMode's
+    // dev-only double-effect-invoke this "armed" branch can fire before that page's
+    // own mount effect has read its query, corrupting the term it reads mid-flight.
+    const params = new URLSearchParams(window.location.search);
+    if (selectedTags.length) params.set('topics', selectedTags.join(',')); else params.delete('topics');
+    if (safePage > 1) params.set('page', String(safePage)); else params.delete('page');
     const qs = params.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -156,13 +174,13 @@ export default function BlogPage({ posts }: BlogPageProps) {
   // clipboard to paste into a reader app. The <a> stays a real link so
   // middle-click / "open in new tab" / a browser extension still work.
   const copyFeedUrl = async () => {
-    const url = `${window.location.origin}/feed.xml`;
+    const url = `${window.location.origin}${feedPath}`;
     try {
       await navigator.clipboard.writeText(url);
       setFeedCopied(true);
       window.setTimeout(() => setFeedCopied(false), 2000);
     } catch {
-      window.open('/feed.xml', '_blank', 'noopener');   // clipboard blocked → just show it
+      window.open(feedPath, '_blank', 'noopener');   // clipboard blocked → just show it
     }
   };
 
@@ -296,12 +314,12 @@ export default function BlogPage({ posts }: BlogPageProps) {
         </Typography>
         <Typography component="h1"
           sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '3rem', md: '4.75rem' }, lineHeight: 0.95, letterSpacing: '-0.02em', m: 0, background: 'linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          AI News
+          {heading}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mt: 2.5, flexWrap: 'wrap' }}>
           <Box sx={{ height: 2, width: 56, background: ACCENT, alignSelf: 'center' }} />
           <Typography sx={{ color: 'text.secondary', fontSize: { xs: '1rem', md: '1.12rem' }, maxWidth: 560 }}>
-            Daily field notes on AI-assisted engineering.
+            {intro}
           </Typography>
         </Box>
 
@@ -309,7 +327,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mt: 3, flexWrap: 'wrap' }}>
           <Box
             component="a"
-            href="/feed.xml"
+            href={feedPath}
             onClick={(e: React.MouseEvent) => { e.preventDefault(); copyFeedUrl(); }}
             aria-label="Copy the RSS feed URL"
             sx={{
@@ -328,7 +346,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
             {!feedCopied && <ContentCopy sx={{ fontSize: 13, opacity: 0.6 }} />}
           </Box>
           <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>
-            cloudcodetree.com/feed.xml&nbsp;·&nbsp;full text, no tracking
+            cloudcodetree.com{feedPath}&nbsp;·&nbsp;full text, no tracking
           </Typography>
         </Box>
       </Box>
@@ -336,7 +354,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
       {/* Controls: view switcher + page size */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: { xs: 2, md: 3 }, flexWrap: 'wrap' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', flex: 1 }}>
-          <SearchBox />
+          {showSearch && <SearchBox />}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
             <Select value={pageSize} inputProps={{ 'aria-label': 'Posts per page' }} onChange={(e) => choosePageSize(Number(e.target.value))} size="small"
@@ -390,7 +408,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
       {filteredPosts.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10 }}>
           <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>
-            {posts.length === 0 ? '// no posts yet' : '// no posts match those topics — clear a filter above'}
+            {emptyMessage ?? (posts.length === 0 ? '// no posts yet' : '// no posts match those topics — clear a filter above')}
           </Typography>
         </Box>
       ) : (
