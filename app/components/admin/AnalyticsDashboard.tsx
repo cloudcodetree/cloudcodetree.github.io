@@ -21,6 +21,13 @@ interface Sections {
   recent: Row[];
 }
 
+/** One line of content/search-misses.jsonl, baked in by the server route. */
+export interface SearchMiss {
+  q: string;
+  first_seen: string;
+  count: number;
+}
+
 type State =
   | { kind: 'loading' }
   | { kind: 'signed-out' }
@@ -93,7 +100,7 @@ function Section({ title, hint, rows, columns }: { title: string; hint: string; 
   );
 }
 
-export default function AnalyticsDashboard() {
+export default function AnalyticsDashboard({ misses = [] }: { misses?: SearchMiss[] }) {
   const [state, setState] = useState<State>({ kind: 'loading' });
 
   useEffect(() => {
@@ -145,6 +152,17 @@ export default function AnalyticsDashboard() {
             columns={['created_at', 'email', 'full_name', 'company', 'role', 'event', 'slug', 'country']}
           />
         </>
+      )}
+
+      {/* Baked into the page by the server route, so it needs no session and
+          no fetch; nothing renders until the harvester has found something. */}
+      {misses.length > 0 && (
+        <Section
+          title="Search misses"
+          hint="content/search-misses.jsonl · searches that returned nothing"
+          rows={misses.map((m) => ({ query: m.q, count: m.count, first_seen: m.first_seen }))}
+          columns={['query', 'count', 'first_seen']}
+        />
       )}
     </Container>
   );
