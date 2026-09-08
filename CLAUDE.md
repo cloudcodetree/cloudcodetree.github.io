@@ -97,7 +97,9 @@ scripts/                      # Blog automation (Node; deps: fast-xml-parser, sh
 └── validate-blog.mjs        # Validate posts.json consistency + tag vocabulary
 
 content/                      # Source feed the Desktop task writes (ingested at publish time)
-└── feed.xml                 # RSS 2.0 + Media RSS — source of truth for 2026-06-09 onward
+├── feed.xml                 # RSS 2.0 + Media RSS — source of truth for 2026-06-09 onward
+├── search-misses.jsonl      # Committed: searches that found nothing (see "Search analytics")
+└── search-misses.state.json # Harvest cursor, so counts are not re-counted per push
 
 .claude/                      # Claude Code project tooling (see "Claude Code Tooling")
 ├── settings.json            # Hooks + protective deny rules
@@ -391,6 +393,21 @@ A multi-topic feed is served by the Worker at `/ai-news/feed.xml?topics=<slug,sl
 file). `--dry-run` never touches Cloudflare; no token =
 keyword-only + related posts from the last mirror (empty if there is none), never a failed
 build.
+
+**Search analytics (2026-09).** `/api/search` logs `{event:'search_miss', q, top}`
+when a **deliberate** search (the results page, marked `?intent=submit` — never the
+typeahead) clears no match above the relevance floor `MIN_SCORE` in `worker/search.ts`.
+Queries under 3 chars, or matching an email or a 7+ digit run, are never written down.
+`node scripts/harvest-search-misses.mjs [--days N] [--dry-run]` pulls those events from
+the Workers observability API into `content/search-misses.jsonl` (committed), advancing
+the cursor in `content/search-misses.state.json` so a push-triggered CI cannot re-count
+the same event; it exits 0 on every failure and never blocks a deploy. The `rehost-images`
+job runs it daily-ish and commits the result. Consumers: the owner dashboard
+(`/admin/analytics/`, read at build time, ranked by count) and the publishing routine
+(`docs/ai-news-feed-contract.md` — a repeated miss is a topic candidate, not an
+instruction). **The repo is public, so anything harvested is published permanently** —
+that is why only deliberate, scrubbed queries are recorded. `validate-blog.mjs` warns
+past 500 rows, the same backstop `content/feed.xml` has.
 
 **Hard rules**
 - Post bodies are Markdown stored inline in `posts.json` `content` (no `.md` files, no YAML

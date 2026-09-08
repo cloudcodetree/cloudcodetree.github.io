@@ -72,8 +72,7 @@
       "Bash(uv run *)",
       "Bash(sort -k2)",
       "Bash(grep -v -E '\\\\$224|224\\\\.[0-9]')",
-      "mcp__chrome-devtools__fill",
-      "Bash(node scripts/tofu.mjs apply -auto-approve -no-color)"
+      "mcp__chrome-devtools__fill"
     ],
     "deny": []
   }
