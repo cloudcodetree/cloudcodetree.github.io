@@ -17,6 +17,10 @@
     "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*"]
   },
   "observability": { "enabled": true },
+  // Search: Workers AI embeds the query, Vectorize holds the post chunks.
+  // Both on the Free plan; the index is filled by scripts/index-search.mjs in CI.
+  "ai": { "binding": "AI" },
+  "vectorize": [{ "binding": "VECTORIZE", "index_name": "cct-search" }],
   // The apex flip (cutover runbook step 6): a Worker ROUTE overlays the proxied
   // GitHub Pages A records — no DNS edit, and deleting the route is the rollback.
   // www is deliberately NOT routed: the Worker only runs for run_worker_first
@@ -56,7 +60,11 @@
         "html_handling": "force-trailing-slash",
         "not_found_handling": "404-page",
         "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*"]
-      }
+      },
+      // Search: Workers AI embeds the query, Vectorize holds the post chunks.
+      // Both on the Free plan; the index is filled by scripts/index-search.mjs in CI.
+      "ai": { "binding": "AI" },
+      "vectorize": [{ "binding": "VECTORIZE", "index_name": "cct-search" }]
     }
   }
 }

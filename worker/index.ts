@@ -3,6 +3,7 @@
 import { InvalidTokenError, JwksUnavailableError, readCookie, verifyToken } from './auth';
 import { handleSession } from './session';
 import { isNavigation, logDemoOpen } from './events';
+import { handleSearch } from './search';
 
 export interface Env {
   ASSETS: Fetcher;
@@ -12,6 +13,9 @@ export interface Env {
   SUPABASE_ANON_KEY: string;
   /** Supabase user id of the site owner — the only account /admin/* answers to. */
   OWNER_USER_ID?: string;
+  /** Workers AI + Vectorize — the search endpoint. Optional so a missing binding degrades to 503, never a crash. */
+  AI?: Ai;
+  VECTORIZE?: Vectorize;
 }
 
 // Gated: the live demos only — /projects/<slug>/demo/*. Landing pages, the
@@ -32,6 +36,9 @@ export default {
 
     if (url.pathname === '/api/session' || url.pathname === '/api/session/') {
       return handleSession(request, env);
+    }
+    if (url.pathname === '/api/search' || url.pathname === '/api/search/') {
+      return handleSearch(request, env, ctx);
     }
     if (url.pathname.startsWith('/api/')) {
       return new Response('not found', { status: 404 });
