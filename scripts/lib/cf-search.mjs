@@ -29,7 +29,8 @@ async function cf(pathname, init, attempts = 3) {
     if (i > 0) await sleep(500 * 2 ** i);
     const res = await fetch(url, { ...init, headers: { authorization: `Bearer ${token}`, ...(init.headers || {}) } });
     if (res.status >= 500 || res.status === 429) { last = new Error(`${pathname}: HTTP ${res.status}`); continue; }
-    const json = await res.json().catch(() => ({}));
+    let json;
+    try { json = await res.json(); } catch { throw new Error(`${pathname}: HTTP ${res.status} returned a non-JSON body`); }
     if (!res.ok || json.success === false) {
       throw new Error(`${pathname}: HTTP ${res.status} ${JSON.stringify(json.errors || '')}`);
     }

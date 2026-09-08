@@ -24,12 +24,25 @@ describe('embed', () => {
     expect(out).toHaveLength(70);
   });
 
-  it('retries a 5xx then succeeds', async () => {
-    let n = 0;
-    vi.stubGlobal('fetch', vi.fn(async () => (n++ === 0 ? new Response('boom', { status: 503 }) : ok({ data: [[1]] }))));
+  it('retries a 5xx after a 1000 ms backoff then succeeds', async () => {
+    vi.useFakeTimers();
+    try {
+      let n = 0;
+      vi.stubGlobal('fetch', vi.fn(async () => (n++ === 0 ? new Response('boom', { status: 503 }) : ok({ data: [[1]] }))));
+      const { embed } = await import('./cf-search.mjs');
+      const p = embed(['x']);
+      await vi.advanceTimersByTimeAsync(999);
+      expect(n).toBe(1);
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(p).resolves.toEqual([[1]]);
+      expect(n).toBe(2);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it('rejects a non-JSON 2xx body with a clear error', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>oops</html>', { status: 200 })));
     const { embed } = await import('./cf-search.mjs');
-    await expect(embed(['x'])).resolves.toEqual([[1]]);
-    expect(n).toBe(2);
+    await expect(embed(['x'])).rejects.toThrow(/non-JSON body/);
   });
 });
 
