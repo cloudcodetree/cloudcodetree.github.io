@@ -53,6 +53,11 @@ export function chunkText(text, { maxWords = 350, overlap = 40 } = {}) {
       const tail = cur.join(' ').split(' ').slice(-overlap);
       cur = tail.length ? [tail.join(' ')] : [];
       curWords = tail.length;
+      // If tail + next sentence exceeds maxWords, start fresh without tail
+      if (curWords + n > maxWords) {
+        cur = [];
+        curWords = 0;
+      }
     }
     cur.push(s);
     curWords += n;

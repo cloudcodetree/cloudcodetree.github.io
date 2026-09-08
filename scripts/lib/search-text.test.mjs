@@ -32,6 +32,22 @@ describe('chunkText', () => {
     expect(chunks.length).toBe(3);
     expect(chunks[0].split(' ').length).toBe(350);
   });
+
+  it('respects maxWords boundary even with overlap tail plus large sentence', () => {
+    // ~10 short sentences (5 words each = 50 words) followed by a 340-word sentence
+    const shortSentences = Array.from({ length: 10 }, (_, i) => `Short sent${i} one two three.`).join(' ');
+    const longSentence = words(340, 'long');
+    const text = shortSentences + ' ' + longSentence;
+    const chunks = chunkText(text, { maxWords: 350, overlap: 40 });
+
+    // Every chunk must be ≤ 350 words
+    for (const c of chunks) {
+      expect(c.split(' ').length).toBeLessThanOrEqual(350);
+    }
+
+    // Last chunk must contain the long sentence's final word
+    expect(chunks[chunks.length - 1]).toContain('long339');
+  });
 });
 
 describe('chunkPost + postHash', () => {
