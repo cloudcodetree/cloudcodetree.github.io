@@ -62,6 +62,9 @@ importers:
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
+      minisearch:
+        specifier: ^7.2.0
+        version: 7.2.0
       next:
         specifier: ^15.5.19
         version: 15.5.19(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -3065,6 +3068,9 @@ packages:
   minipass@7.1.2:
     resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
     engines: {node: '>=16 || 14 >=14.17'}
+
+  minisearch@7.2.0:
+    resolution: {integrity: sha512-dqT2XBYUOZOiC5t2HRnwADjhNS2cecp9u+TJRiJ1Qp/f5qjkeT5APcGPjHw+bz89Ms8Jp+cG4AlE+QZ/QnDglg==}
 
   motion-dom@12.40.0:
     resolution: {integrity: sha512-HxU3ZaBwNPVQUBQf1xxgq+7JrPNZvjLVxgbpEZL7RrWJnsxOf0/OM+yrHG9ogLQ31Do/r57Oz2gQWPK+6q62mg==}
@@ -7253,6 +7259,8 @@ snapshots:
   minimist@1.2.8: {}
 
   minipass@7.1.2: {}
+
+  minisearch@7.2.0: {}
 
   motion-dom@12.40.0:
     dependencies:
