@@ -9,12 +9,13 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { BlogPost as Post, SERIF, MONO, formatPublished, markdownSx, markdownComponents } from './blogShared';
+import SearchBox from './SearchBox';
 
 // The post is loaded at build time by app/ai-news/[id]/page.tsx and baked into
 // the static HTML — no client-side fetch, no loading state.
 export default function BlogPost({ post }: { post: Post }) {
   const backButton = (
-    <Button component={Link} href="/ai-news/" sx={{ mb: 4 }}>
+    <Button component={Link} href="/ai-news/">
       ← Back to AI News
     </Button>
   );
@@ -22,7 +23,10 @@ export default function BlogPost({ post }: { post: Post }) {
   return (
     <Container maxWidth="md" sx={{ py: { xs: 2, md: 4 } }}>
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        {backButton}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 4 }}>
+          {backButton}
+          <SearchBox />
+        </Box>
 
         {post.image && (
           <Box sx={{ mb: 3 }}>
