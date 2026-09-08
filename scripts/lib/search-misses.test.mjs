@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mergeMisses, parseMisses, serializeMisses } from './search-misses.mjs';
-import { dayOf, sightingFrom } from '../harvest-search-misses.mjs';
+import { dayOf, harvestWindow, newestEventMs, sightingFrom } from '../harvest-search-misses.mjs';
 
 const rows = [
   { q: 'langgraph checkpointing', first_seen: '2026-09-01', count: 3 },
@@ -22,6 +22,20 @@ describe('parseMisses', () => {
 
   it('is empty for empty input', () => {
     expect(parseMisses('')).toEqual([]);
+  });
+
+  it('reads the optional top score', () => {
+    expect(parseMisses('{"q":"a","first_seen":"2026-09-01","count":2,"top":0.657}\n')).toEqual([
+      { q: 'a', first_seen: '2026-09-01', count: 2, top: 0.657 },
+    ]);
+  });
+
+  it('merges a query that appears on two lines into one row', () => {
+    const text = '{"q":"a","first_seen":"2026-09-02","count":2}\n{"q":"b","first_seen":"2026-09-03","count":1}\n{"q":"a","first_seen":"2026-09-01","count":3,"top":0.6}\n';
+    expect(parseMisses(text)).toEqual([
+      { q: 'a', first_seen: '2026-09-01', count: 5, top: 0.6 },
+      { q: 'b', first_seen: '2026-09-03', count: 1 },
+    ]);
   });
 });
 
@@ -73,6 +87,63 @@ describe('mergeMisses', () => {
   it('is a no-op when nothing came in', () => {
     expect(mergeMisses(rows, [], '2026-09-08')).toEqual(rows);
   });
+
+  it('records the top score on a first sighting and leaves it alone on repeats', () => {
+    const first = mergeMisses([], [{ q: 'vectorize hnsw', date: '2026-09-08', top: 0.657 }], '2026-09-08');
+    expect(first).toEqual([{ q: 'vectorize hnsw', first_seen: '2026-09-08', count: 1, top: 0.657 }]);
+    const again = mergeMisses(first, [{ q: 'vectorize hnsw', date: '2026-09-09', top: 0.42 }], '2026-09-09');
+    expect(again).toEqual([{ q: 'vectorize hnsw', first_seen: '2026-09-08', count: 2, top: 0.657 }]);
+  });
+});
+
+// CI runs on every push (the routine pushes 3x/day), not daily, so a fixed
+// window would re-harvest the same events several times and inflate `count` —
+// the field the dashboard and the routine rank by. The cursor is what stops it.
+describe('harvestWindow', () => {
+  const now = 1788901599409; // 2026-09-08T21:06:39Z
+  const day = 86_400_000;
+
+  it('falls back to the --days window with no state', () => {
+    expect(harvestWindow({ lastEventMs: null, days: 2, now })).toEqual({ from: now - 2 * day, to: now });
+    expect(harvestWindow({ lastEventMs: NaN, days: 2, now })).toEqual({ from: now - 2 * day, to: now });
+  });
+
+  it('resumes just after the newest event already harvested', () => {
+    const last = now - 3600_000;
+    expect(harvestWindow({ lastEventMs: last, days: 2, now })).toEqual({ from: last + 1, to: now });
+  });
+
+  it('never reaches back further than the --days window (the API caps at 7 days)', () => {
+    expect(harvestWindow({ lastEventMs: now - 30 * day, days: 2, now })).toEqual({ from: now - 2 * day, to: now });
+  });
+
+  it('harvesting the same window twice does not change counts', () => {
+    const events = [
+      { q: 'terraform state locking', date: '2026-09-08', ts: now - 20_000 },
+      { q: 'terraform state locking', date: '2026-09-08', ts: now - 10_000 },
+      { q: 'vim keybindings', date: '2026-09-08', ts: now - 5_000 },
+    ];
+    // Run 1: no state, whole window.
+    const w1 = harvestWindow({ lastEventMs: null, days: 2, now });
+    const seen1 = events.filter((e) => e.ts >= w1.from && e.ts <= w1.to);
+    const after1 = mergeMisses([], seen1, '2026-09-08');
+    expect(after1.map((r) => r.count)).toEqual([2, 1]);
+
+    // Run 2, minutes later: same events still inside the --days window, but the
+    // cursor from run 1 excludes every one of them.
+    const w2 = harvestWindow({ lastEventMs: newestEventMs(seen1), days: 2, now: now + 60_000 });
+    const seen2 = events.filter((e) => e.ts >= w2.from && e.ts <= w2.to);
+    expect(seen2).toEqual([]);
+    expect(mergeMisses(after1, seen2, '2026-09-08')).toEqual(after1);
+  });
+});
+
+describe('newestEventMs', () => {
+  it('is the largest timestamp, or null when there is nothing to remember', () => {
+    expect(newestEventMs([{ ts: 5 }, { ts: 9 }, { ts: 7 }])).toBe(9);
+    expect(newestEventMs([])).toBeNull();
+    expect(newestEventMs([{ ts: undefined }])).toBeNull();
+  });
 });
 
 describe('serializeMisses', () => {
@@ -81,6 +152,11 @@ describe('serializeMisses', () => {
       '{"q":"langgraph checkpointing","first_seen":"2026-09-01","count":3}\n{"q":"mcp auth","first_seen":"2026-09-02","count":1}\n',
     );
     expect(serializeMisses([])).toBe('');
+  });
+
+  it('keeps the top score when a row has one', () => {
+    expect(serializeMisses([{ q: 'a', first_seen: '2026-09-01', count: 1, top: 0.657 }]))
+      .toBe('{"q":"a","first_seen":"2026-09-01","count":1,"top":0.657}\n');
   });
 
   it('round-trips through parseMisses', () => {
@@ -101,13 +177,19 @@ describe('sightingFrom', () => {
     $metadata: { service: 'cct-site', type: 'cf-worker', trigger: 'GET /api/search' },
   };
 
-  it('reads q and the UTC day off a parsed miss event', () => {
-    expect(sightingFrom(miss)).toEqual({ q: 'langgraph checkpointing', date: '2026-09-08' });
+  it('reads q, the UTC day, the timestamp and the top score off a parsed miss event', () => {
+    expect(sightingFrom({ ...miss, source: { ...miss.source, top: 0.657 } })).toEqual({
+      q: 'langgraph checkpointing', date: '2026-09-08', ts: 1788901599409, top: 0.657,
+    });
+  });
+
+  it('tolerates a miss logged without a top score (a cache hit has none)', () => {
+    expect(sightingFrom(miss)).toEqual({ q: 'langgraph checkpointing', date: '2026-09-08', ts: 1788901599409, top: undefined });
   });
 
   it('also reads a miss the platform left as a raw string', () => {
-    expect(sightingFrom({ source: { message: '{"event":"search_miss","q":"mcp auth"}' }, timestamp: 1788901599409 }))
-      .toEqual({ q: 'mcp auth', date: '2026-09-08' });
+    expect(sightingFrom({ source: { message: '{"event":"search_miss","q":"mcp auth","top":0.5}' }, timestamp: 1788901599409 }))
+      .toEqual({ q: 'mcp auth', date: '2026-09-08', ts: 1788901599409, top: 0.5 });
   });
 
   it('ignores successful searches, request rows, unparseable messages and empty queries', () => {

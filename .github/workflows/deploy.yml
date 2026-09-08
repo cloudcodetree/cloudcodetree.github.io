@@ -62,9 +62,13 @@ jobs:
 
     # Zero-result searches, out of Workers observability (which keeps them for
     # about a week) and into the committed content/search-misses.jsonl, so the
-    # publishing routine can see what readers could not find. Telemetry: it
-    # exits 0 on every failure path and never blocks the deploy.
+    # publishing routine can see what readers could not find. The script exits 0
+    # on every failure path, and continue-on-error makes that structural rather
+    # than conventional: a failure of THIS job skips `build` entirely
+    # (build's `if` drops out when rehost-images fails), so telemetry must never
+    # be able to take the deploy down with it.
     - name: Harvest zero-result searches
+      continue-on-error: true
       env:
         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -74,16 +78,19 @@ jobs:
       run: node scripts/validate-blog.mjs
 
     - name: Commit re-hosted image URLs + harvested searches (if any)
-      # search-misses.jsonl is committed (empty to begin with) precisely so
-      # this guard can see it: `git diff` is blind to untracked files, and a
-      # first harvest into an untracked file would never be committed.
+      # The two search-misses files are committed (empty / zeroed to begin with)
+      # precisely so this guard can see them: `git diff` is blind to untracked
+      # files, and a first harvest into an untracked file would never be
+      # committed. The .state.json is the harvest cursor — without it every run
+      # would re-count the same events.
       run: |
-        if git diff --quiet -- public/blog/posts.json content/search-misses.jsonl; then
+        paths="public/blog/posts.json content/search-misses.jsonl content/search-misses.state.json"
+        if git diff --quiet -- $paths; then
           echo "nothing to commit"
         else
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/blog/posts.json content/search-misses.jsonl
+          git add $paths
           git commit -m "blog: re-host images + harvest search misses (CI)"
           git push origin main
         fi
