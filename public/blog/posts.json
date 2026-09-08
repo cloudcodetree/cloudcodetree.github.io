@@ -1,5 +1,41 @@
 [
   {
+    "id": "2026-09-08-05-claude-code-cross-session-messaging",
+    "title": "Your Parallel Claude Code Sessions Can Now Coordinate Without You in the Middle",
+    "excerpt": "Claude Code v2.1.224 adds cross-session messaging: two independent sessions on the same machine can pass findings and decisions directly via ListAgents + SendMessage, no copy-paste required.",
+    "author": "Chris Harper",
+    "date": "09-08-2026",
+    "publishedAt": "2026-09-08T12:06:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Claude Code",
+      "Agents"
+    ],
+    "readTime": 2,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/cross-session-messaging",
+    "content": "**Since v2.1.224 (August 7), Claude Code sessions on the same machine can message each other. `ListAgents` discovers which sessions are running; `SendMessage` delivers. The practical win: parallel sessions pass findings and decisions without you copy-pasting between terminals.**\n\nWhen you run two Claude Code sessions in parallel — one on a backend schema migration, one on the API layer that depends on it — the natural breakpoint is when one session has a finding the other needs. Before cross-session messaging, you stopped, copied the relevant context, and re-explained it. Now Claude routes it.\n\n**How it works.** Two tools power it: `ListAgents` and `SendMessage`. You never call them yourself — Claude discovers the target and composes the message from your prompt.\n\nThe simplest form:\n```\nLet @api-worker know the schema migration finished and tenant_id is the new column\n```\nClaude finds the session named `api-worker` and writes the message. The receiving session shows a preview and Claude reads the full text.\n\nYou can also ask Claude to poll another session:\n```\nAsk the session in my other terminal whether the migration is done yet\n```\nOr subscribe to a one-shot notification when a long-running task finishes:\n```\nTell me when the migration session finishes what it's working on\n```\nThat last form sends one notice the next time the watched session goes idle — no polling, no repeated messages.\n\n**Session naming.** Type `/list-agents` (or `/peers`) to see every session Claude can reach. Use `--name <name>` at launch or `/rename` mid-session to make sessions easy to @-mention.\n\n**Limits to know:**\n- **Text only.** No conversation history, no files, no structured tool calls cross session boundaries. The size cap is about 1M characters.\n- **Same machine only** without Remote Control. Reaching sessions on another machine requires a Remote Control connection.\n- **A received message cannot approve pending permission prompts** or change settings in the receiving session — it is not treated as your input.\n- Rapid bursts to one session are throttled automatically; identical repeat messages within a short window are dropped.\n\nAvailable on macOS and Linux (including WSL2) from v2.1.224; native Windows from v2.1.234.\n\n**Sources:** [Claude Code cross-session messaging docs](https://code.claude.com/docs/en/cross-session-messaging) · [v2.1.224 release — GitHub](https://github.com/anthropics/claude-code/releases/tag/v2.1.224) · [Developers Digest analysis](https://www.developersdigest.tech/blog/claude-code-cross-session-messaging-2026)"
+  },
+  {
+    "id": "2026-09-08-04-tencent-hy4-open-weight-1m-context",
+    "title": "Tencent's Hy4 Opens Up the First 1M-Context Open-Weight Model — Self-Hosting Needs a Datacenter",
+    "excerpt": "Tencent's Hy4 Preview (770B/49B-active MoE, Apache 2.0) is the first open-weight model with a 1M-token context. Self-hosting needs 8 B300 GPUs; OpenRouter is the practical entry point.",
+    "author": "Chris Harper",
+    "date": "09-08-2026",
+    "publishedAt": "2026-09-08T12:05:00.000Z",
+    "tags": [
+      "AI",
+      "News",
+      "LLM",
+      "Self-Hosting"
+    ],
+    "readTime": 2,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://technode.global/2026/09/04/tencent-hy4-preview-open-source-model/",
+    "content": "**Tencent's Hy4 Preview is a 770B-total/49B-active-per-token Mixture-of-Experts model released on HuggingFace August 28 under Apache 2.0, with a genuine 1M-token context window — the first open-weight model to credibly offer this at commercial scale.**\n\nThe architecture is 78 transformer layers, each with 256 routed experts plus one shared expert; each token activates the top 8 routed experts plus the shared one. On coding benchmarks, Tencent reports 65.7 on SWE-bench Pro and 64.3 on DeepSWE (comparable to closed frontier models, per Tencent's own evaluation). An independent practitioner review by Wavect found it retained \"requirements, implementation state, and tool outputs\" well across longer agentic workflows.\n\n**The practical ceiling is hardware.** Tencent's own deployment recipes require at minimum 8 NVIDIA B300 GPUs (or 16 B200s) for the BF16 variant under vLLM with 8-way tensor parallelism; an FP8 quantized variant lowers that but remains datacenter-class. Prebuilt containers (`vllm/vllm-openai:hy4-preview`, `lmsysorg/sglang:hy4-preview`) are available for both. For most teams, OpenRouter (Tencent reports $0.83/M input, $2.50/M output) or WorkBuddy is the practical entry point — not self-hosting.\n\n**Two limits before committing.** Independent testing found that 1M-token context ≠ 1M-token recall: accuracy degrades as the context window fills, same as all other long-context models. The model also has a documented tendency to over-verify on complex tasks, generating unnecessary reasoning steps that drive up cost.\n\n**Why it matters:** If your agent pipeline is hitting a ceiling on long repository retrieval or multi-document reasoning, Hy4 is the first open-weight option that competes with closed frontier models on context length — with an Apache 2.0 license that carries none of the community-agreement restrictions on the Llama line.\n\n**Sources:** [TechNode Global](https://technode.global/2026/09/04/tencent-hy4-preview-open-source-model/) · [Independent review — Wavect.io](https://wavect.io/blog/tencent-hy4-preview-coding-agent-review/) · [BenchLM independent benchmarks](https://benchlm.ai/models/hy4-preview) · [Forbes coverage (Aug 31)](https://www.forbes.com/sites/jonmarkman/2026/08/31/tencent-open-sources-hy4-its-770-billion-parameter-flagship-model/)"
+  },
+  {
     "id": "2026-09-08-03-mcp-stateless-cloudflare-workers-handler",
     "title": "Your MCP Server Doesn't Need Durable Objects Anymore — Deploy It as a Stateless Worker",
     "excerpt": "The MCP 2026-07-28 spec made the protocol stateless. Cloudflare's createMcpHandler now deploys any MCP server as a plain Worker — no Durable Objects, no session management required.",
