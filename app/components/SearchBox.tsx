@@ -76,6 +76,11 @@ export default function SearchBox() {
   };
 
   const showList = open && q.trim().length > 0;
+  // aria-activedescendant points the screen reader at the row arrow keys moved
+  // to; aria-controls only means something while the listbox actually exists.
+  const optionId = (i: number) => `${listId}-opt-${i}`;
+  const allOptionId = `${listId}-opt-all`;
+  const activeId = active < 0 ? undefined : active === items ? allOptionId : optionId(active);
 
   return (
     <Box ref={wrap} sx={{ position: 'relative', width: { xs: '100%', sm: 320 } }}>
@@ -87,7 +92,14 @@ export default function SearchBox() {
           onFocus={() => { setOpen(true); loadIndex().catch(() => {}); }}
           onKeyDown={onKey}
           placeholder="Search AI News"
-          inputProps={{ 'aria-label': 'Search AI News', 'aria-controls': listId, 'aria-expanded': showList, 'aria-autocomplete': 'list', role: 'combobox' }}
+          inputProps={{
+            'aria-label': 'Search AI News',
+            'aria-controls': showList ? listId : undefined,
+            'aria-expanded': showList,
+            'aria-activedescendant': showList ? activeId : undefined,
+            'aria-autocomplete': 'list',
+            role: 'combobox',
+          }}
           sx={{ flex: 1, fontFamily: MONO, fontSize: 13, color: 'text.primary' }}
         />
       </Box>
@@ -98,7 +110,7 @@ export default function SearchBox() {
             <Typography sx={{ p: 1.5, fontFamily: MONO, fontSize: 12, color: 'text.secondary' }}>{'// no matches yet'}</Typography>
           )}
           {rows.map((d, i) => (
-            <Box key={d.id} component={Link} href={`/ai-news/${d.id}/`} role="option" aria-selected={active === i}
+            <Box key={d.id} id={optionId(i)} component={Link} href={`/ai-news/${d.id}/`} role="option" aria-selected={active === i}
               onMouseEnter={() => setActive(i)} onClick={() => setOpen(false)}
               sx={{ display: 'block', px: 1.5, py: 1.1, textDecoration: 'none', borderTop: i ? border : 'none', background: active === i ? 'rgba(148,188,227,0.12)' : 'transparent' }}>
               <Typography sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: 15, lineHeight: 1.2, color: 'text.primary' }}>{d.title}</Typography>
@@ -107,7 +119,7 @@ export default function SearchBox() {
               </Typography>
             </Box>
           ))}
-          <Box component={Link} href={resultsHref} role="option" aria-selected={active === items}
+          <Box id={allOptionId} component={Link} href={resultsHref} role="option" aria-selected={active === items}
             onMouseEnter={() => setActive(items)} onClick={() => setOpen(false)}
             sx={{ display: 'flex', justifyContent: 'space-between', px: 1.5, py: 1, textDecoration: 'none', borderTop: border, background: active === items ? 'rgba(148,188,227,0.12)' : 'transparent' }}>
             <Typography sx={{ fontFamily: MONO, fontSize: 12, color: LINK }}>See all results →</Typography>

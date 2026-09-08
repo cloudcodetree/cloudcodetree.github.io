@@ -71,4 +71,14 @@ describe('handleSearch', () => {
     const res2 = await handleSearch(req('x'), {} as SearchEnv, ctx, fakeCache());
     expect(res2.status).toBe(503);
   });
+
+  it('503 (not 500) when the Cache API itself throws', async () => {
+    const cache: CacheLike = {
+      match: async () => { throw new Error('cache exploded'); },
+      put: async () => {},
+    };
+    const res = await handleSearch(req('rag'), stubEnv(), ctx, cache);
+    expect(res.status).toBe(503);
+    expect(res.headers.get('retry-after')).toBe('60');
+  });
 });

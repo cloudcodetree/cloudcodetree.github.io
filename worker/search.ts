@@ -59,13 +59,16 @@ export async function handleSearch(
   if (!q) return Response.json({ error: 'q is required' }, { status: 400 });
 
   const cacheKey = new Request(new URL(`/api/search?q=${encodeURIComponent(q)}`, request.url).toString(), { method: 'GET' });
-  const hit = await cache?.match(cacheKey);
-  if (hit) return hit;
 
   if (!env.AI || !env.VECTORIZE) return unavailable();
 
   const started = Date.now();
+  // The cache lookup lives inside the try on purpose: a throwing Cache API is
+  // an upstream failure like any other, and must degrade to the 503 the client
+  // reads as "keyword-only for now" — never an unhandled 500.
   try {
+    const hit = await cache?.match(cacheKey);
+    if (hit) return hit;
     const emb = (await env.AI.run(MODEL, { text: [q] })) as { data: number[][] };
     const { matches } = await env.VECTORIZE.query(emb.data[0], { topK: TOP_K, returnMetadata: 'none' });
     const results = collapseMatches(matches);

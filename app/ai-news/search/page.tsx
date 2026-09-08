@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,7 +20,11 @@ export default function SearchPage() {
   const slim = posts.map(({ content, ...rest }) => rest);
   return (
     <ClientLayout>
-      <SearchResults posts={slim} />
+      {/* SearchResults reads ?q= with useSearchParams(), which a static export
+          requires to sit under a Suspense boundary. */}
+      <Suspense fallback={null}>
+        <SearchResults posts={slim} />
+      </Suspense>
     </ClientLayout>
   );
 }
