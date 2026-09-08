@@ -64,6 +64,16 @@ export const CONTRACT = [
   { path: '/ai-news/feed.xml',       status: 200, bodyIncludes: '<rss' },
   { path: '/tutorials/feed.xml',     status: 200, bodyIncludes: '<rss' },
   { path: '/definitely-not-a-page/', status: 404, bodyIncludes: '404' },
+  // Search + discovery (2026-09). /api/search is 503 until the bindings and
+  // index exist — both are acceptable "delivered" states; 404 is not.
+  { path: '/api/search?q=claude+code',            status: [200, 503], contentType: /application\/json/ },
+  { path: '/api/search',                          status: 400 },
+  { path: '/ai-news/search/',                     status: 200, contentType: /text\/html/ },
+  { path: '/ai-news/topic/claude-code/',          status: 200, contentType: /text\/html/, bodyIncludes: 'Claude Code' },
+  { path: '/ai-news/topic/claude-code/feed.xml',  status: 200, bodyIncludes: '<rss' },
+  // Oldest post (frozen back-catalog, never trimmed): the Related strip is
+  // baked in once the index has run at least once on main.
+  { path: '/ai-news/2026-05-28-19-amd-venice-enters-production-on-tsmc-2nm/', status: 200, bodyIncludes: 'data-related' },
 ];
 
 export function evaluateCase(testCase, { status, headers, body }) {

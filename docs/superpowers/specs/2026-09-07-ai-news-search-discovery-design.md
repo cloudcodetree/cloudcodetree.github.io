@@ -76,16 +76,15 @@ cosine metric), on the existing Worker's account.
    about 350 words on sentence boundaries with a short overlap. Vector ids
    are `<postId>#<n>`. Metadata per vector: `postId` (string), `date`
    (number, epoch days), `hash` (content hash of the whole post).
-3. Diffs. Lists the index's existing ids and hashes (Vectorize
-   `list-vectors` + `getByIds`), embeds only posts whose hash changed or
-   that are new, upserts their vectors, and deletes vectors of posts that
-   vanished. A run with nothing changed makes zero model calls.
+3. Diffs. Reads the last run's manifest from R2 (`search/manifest.json`: per
+   post hash, chunk count, date, mean vector), embeds only posts whose hash
+   changed or that are new, upserts their vectors, and deletes vectors of
+   posts that vanished. A run with nothing changed makes zero model calls.
 4. Embeds through the Workers AI REST API with `@cf/baai/bge-base-en-v1.5`
    (768 dimensions, 512-token input cap; chunk size keeps every input under
    the cap). Batches inputs; retries with backoff.
-5. Related posts. Fetches every vector back, averages a post's chunk
-   vectors into one post vector, ranks each post's neighbors by cosine
-   similarity with a small recency tiebreak, and writes
+5. Related posts. Uses the manifest's post vectors, ranks each post's
+   neighbors by cosine similarity with a small recency tiebreak, and writes
    `public/blog/related.json` (`{ [postId]: [id, id, id, id, id] }`).
    Gitignored, generated like `feed.xml`. Without a token (local builds,
    PR builds) the file is written empty and the Related strip renders
@@ -205,6 +204,9 @@ Workers AI or Vectorize is down, exits with a GitHub warning annotation but
 does not fail the deploy: the routine's posts always ship, the script is
 diff-based so the next push catches up, and `related.json` still builds
 from whatever the index already holds.
+
+**Indexer state.** The R2 manifest; deleting it forces a full re-embed on
+the next run.
 
 **CSP.** `connect-src 'self'` already covers `/api/search`; no change to
 `public/_headers`.
