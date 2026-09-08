@@ -21,6 +21,7 @@ export default function SearchBox() {
   const [semantic, setSemantic] = useState(false);
   const [active, setActive] = useState(-1);
   const seq = useRef(0);
+  const mergedSeq = useRef(0);
   const abort = useRef<AbortController | null>(null);
   const wrap = useRef<HTMLDivElement>(null);
 
@@ -31,7 +32,7 @@ export default function SearchBox() {
     if (!term) { setRows([]); setSemantic(false); setActive(-1); return; }
     const mine = ++seq.current;
     loadIndex().then(({ docs, keyword }) => {
-      if (mine !== seq.current) return;
+      if (mine !== seq.current || mergedSeq.current === mine) return;
       setRows(keyword(term).slice(0, SHOW).map((id) => docs.get(id)!).filter(Boolean));
     }).catch(() => {});
     const ctl = new AbortController();
@@ -41,6 +42,8 @@ export default function SearchBox() {
         const { ids, semantic: ok } = await hybridSearch(term, { signal: ctl.signal });
         if (mine !== seq.current) return;
         const { docs } = await loadIndex();
+        if (mine !== seq.current) return;
+        mergedSeq.current = mine;
         setRows(ids.slice(0, SHOW).map((id) => docs.get(id)!).filter(Boolean));
         setSemantic(ok);
       } catch { /* keyword rows stand */ }
