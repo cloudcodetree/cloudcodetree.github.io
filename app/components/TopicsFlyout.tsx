@@ -5,12 +5,14 @@ import { Box, Button, Chip, IconButton, Popover, TextField, Typography } from '@
 import { ArrowOutward, Check, ContentCopy, FilterList, RssFeed } from '@mui/icons-material';
 import Link from 'next/link';
 import { MONO, ACCENT } from './blogShared';
-// eslint-disable-next-line import/no-relative-packages
-import { slugForTag } from '../../scripts/lib/topics.mjs';
 
 export interface TopicsFlyoutProps {
-  /** Every topic with its post count, most-used first (the caller's order is kept). */
-  topics: { tag: string; count: number }[];
+  /**
+   * Every topic with its slug and post count, most-used first (the caller's
+   * order is kept). Slugs arrive as data — this component never derives one,
+   * so there is exactly one slug source on the page.
+   */
+  topics: { tag: string; slug: string; count: number }[];
   selected: string[];
   onToggle: (tag: string) => void;
   onClear: () => void;
@@ -133,7 +135,7 @@ export default function TopicsFlyout({ topics, selected, onToggle, onClear, feed
               {`// no topic matches “${filter.trim()}”`}
             </Typography>
           )}
-          {shown.map(({ tag, count }) => {
+          {shown.map(({ tag, slug, count }) => {
             const on = selected.includes(tag);
             return (
               // The chip and its link icon travel together: one inline-flex unit,
@@ -156,7 +158,7 @@ export default function TopicsFlyout({ topics, selected, onToggle, onClear, feed
                 />
                 <IconButton
                   component={Link}
-                  href={`/ai-news/topic/${slugForTag(tag)}/`}
+                  href={`/ai-news/topic/${slug}/`}
                   size="small"
                   aria-label={`Open the ${tag} topic page`}
                   onClick={(e) => e.stopPropagation()}

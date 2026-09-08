@@ -17,7 +17,7 @@ import { Corners } from './Blueprint';
 import SearchBox from './SearchBox';
 import TopicsFlyout from './TopicsFlyout';
 // eslint-disable-next-line import/no-relative-packages
-import { slugForTag } from '../../scripts/lib/topics.mjs';
+import { topicTags } from '../../scripts/lib/topics.mjs';
 
 interface BlogPageProps {
   /** Slim (content-free) index of every post, newest-first, embedded at build time. */
@@ -46,11 +46,11 @@ const clamp = (n: number) => ({
   overflow: 'hidden', textOverflow: 'ellipsis',
 } as const);
 
-const topicTags = (post: BlogPost) => post.tags.filter((t) => t.toLowerCase() !== 'ai');
+const postTopics = (post: BlogPost) => post.tags.filter((t) => t.toLowerCase() !== 'ai');
 
 /** Shared tag-pill row, identical across every view. */
 function Pills({ post, max = 3 }: { post: BlogPost; max?: number }) {
-  const tags = topicTags(post).slice(0, max);
+  const tags = postTopics(post).slice(0, max);
   if (!tags.length) return null;
   return (
     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
@@ -80,12 +80,10 @@ export default function BlogPage({
   const [origin, setOrigin] = useState('');
 
   // What the Topics flyout lists: every tag except the ubiquitous "AI",
-  // most-used first, with counts.
-  const topics = useMemo(() => {
-    const c: Record<string, number> = {};
-    for (const p of posts) for (const t of p.tags || []) if (t.toLowerCase() !== 'ai') c[t] = (c[t] || 0) + 1;
-    return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count }));
-  }, [posts]);
+  // most-used first, with its slug and count. topicTags() is the ONE definition
+  // shared with the feed/sitemap generators, so a pill's link and the page it
+  // opens can never disagree about a slug.
+  const topics: { tag: string; slug: string; count: number }[] = useMemo(() => topicTags(posts), [posts]);
 
   // Filter (OR): a post matches if it carries any selected topic.
   const filteredPosts = useMemo(
@@ -184,12 +182,16 @@ export default function BlogPage({
   // feed, so only a real multi-topic selection needs the Worker's ?topics=
   // merge; nothing selected is just this page's own feed.
   const feedUrlForSelection = useMemo(() => {
-    const slugs = selectedTags.map(slugForTag).sort();
+    // Slugs come from the same topics array the pills link to. A `?topics=` tag
+    // that no post carries has no topic page and no feed, so it is dropped
+    // rather than turned into a URL that 404s.
+    const bySlug = new Map(topics.map((t) => [t.tag, t.slug]));
+    const slugs = selectedTags.map((t) => bySlug.get(t)).filter(Boolean).sort() as string[];
     const path = slugs.length === 0 ? feedPath
       : slugs.length === 1 ? `/ai-news/topic/${slugs[0]}/feed.xml`
         : `/ai-news/feed.xml?topics=${slugs.join(',')}`;
     return `${origin}${path}`;
-  }, [selectedTags, feedPath, origin]);
+  }, [selectedTags, topics, feedPath, origin]);
 
   // Copy the feed URL rather than only linking it: most browsers render feed XML
   // as a wall of markup, and what a reader actually needs is the URL on their
