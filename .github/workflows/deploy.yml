@@ -60,18 +60,31 @@ jobs:
         PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
       run: node scripts/ingest-feed.mjs
 
+    # Zero-result searches, out of Workers observability (which keeps them for
+    # about a week) and into the committed content/search-misses.jsonl, so the
+    # publishing routine can see what readers could not find. Telemetry: it
+    # exits 0 on every failure path and never blocks the deploy.
+    - name: Harvest zero-result searches
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      run: node scripts/harvest-search-misses.mjs
+
     - name: Validate blog index
       run: node scripts/validate-blog.mjs
 
-    - name: Commit re-hosted image URLs (if any)
+    - name: Commit re-hosted image URLs + harvested searches (if any)
+      # search-misses.jsonl is committed (empty to begin with) precisely so
+      # this guard can see it: `git diff` is blind to untracked files, and a
+      # first harvest into an untracked file would never be committed.
       run: |
-        if git diff --quiet -- public/blog/posts.json; then
-          echo "no image changes to commit"
+        if git diff --quiet -- public/blog/posts.json content/search-misses.jsonl; then
+          echo "nothing to commit"
         else
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/blog/posts.json
-          git commit -m "blog: re-host images (CI)"
+          git add public/blog/posts.json content/search-misses.jsonl
+          git commit -m "blog: re-host images + harvest search misses (CI)"
           git push origin main
         fi
 
