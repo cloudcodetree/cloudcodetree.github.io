@@ -4,6 +4,7 @@ import { InvalidTokenError, JwksUnavailableError, readCookie, verifyToken } from
 import { handleSession } from './session';
 import { isNavigation, logDemoOpen } from './events';
 import { handleSearch } from './search';
+import { handleFeed } from './feed';
 
 export interface Env {
   ASSETS: Fetcher;
@@ -28,7 +29,8 @@ const ADMIN_PATH = /^\/admin(\/|$)/;
 
 /**
  * This handler runs only for `run_worker_first` paths (/api/*, the demo
- * gate) and asset misses; every ordinary page is served at the edge.
+ * gate, /ai-news/feed.xml) and asset misses; every ordinary page is served
+ * at the edge.
  */
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -42,6 +44,11 @@ export default {
     }
     if (url.pathname.startsWith('/api/')) {
       return new Response('not found', { status: 404 });
+    }
+    // The one static asset the Worker may rewrite: ?topics= merges the
+    // per-topic feeds. Without the parameter it hands back the file untouched.
+    if (url.pathname === '/ai-news/feed.xml') {
+      return handleFeed(request, env, ctx);
     }
 
     const gated = url.pathname.match(GATED_PATH);

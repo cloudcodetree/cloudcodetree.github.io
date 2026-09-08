@@ -178,6 +178,24 @@ Existing `?tags=` links keep working through the current client-side path.
 per-topic RSS feed at `/ai-news/topic/<slug>/feed.xml`, emitted by
 `generate-feeds.mjs` in the main feed's item format.
 
+**Filtered feeds.** The Topics flyout's "Subscribe to this selection" hands the
+reader one URL for whatever is selected: nothing → `/feed.xml` (or the host
+page's own feed), exactly one topic → that topic's static
+`/ai-news/topic/<slug>/feed.xml`, two or more →
+`/ai-news/feed.xml?topics=<slug,slug>`. Only the last needs a server, and
+`worker/feed.ts` answers it: it normalizes the slugs (trim, lowercase, dedupe,
+sort; non-slug input or more than ten is a 400), fetches each per-topic static
+feed through `env.ASSETS`, skips slugs that 404 (all of them 404 → 404), then
+merges the `<item>` blocks verbatim — deduped by guid, sorted by `pubDate`
+newest-first, capped at 20 — into a channel with the same namespaces
+`generate-feeds.mjs` emits. Reusing the generated per-topic feeds means the
+Worker never parses `posts.json` and there is no second item renderer to keep
+in sync. The response carries a 1 h `Cache-Control` and is stored in the Cache
+API under the normalized selection, so every spelling of the same subscription
+shares one entry. With no `topics` parameter the request is handed straight to
+`env.ASSETS` — the static file, unchanged — which is why putting
+`/ai-news/feed.xml` in `run_worker_first` costs nothing for ordinary readers.
+
 ## Operations
 
 **One-time setup.**

@@ -385,7 +385,10 @@ filled by `node scripts/index-search.mjs` in the CI deploy job (diff-based; stat
 which also writes the generated `public/blog/related.json` behind the **Related** strip on
 every article and mirrors it to R2 as `search-related.json`.
 `/ai-news/topic/<slug>/` (+ `feed.xml`) exists per tag from `scripts/lib/topics.mjs` — the
-ONE slug source for scripts and app code. `--dry-run` never touches Cloudflare; no token =
+ONE slug source for scripts and app code.
+A multi-topic feed is served by the Worker at `/ai-news/feed.xml?topics=<slug,slug>`
+(merges the per-topic static feeds, newest 20, 1 h edge cache; no `topics` = the static
+file). `--dry-run` never touches Cloudflare; no token =
 keyword-only + related posts from the last mirror (empty if there is none), never a failed
 build.
 

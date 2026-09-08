@@ -71,6 +71,8 @@ export const CONTRACT = [
   { path: '/ai-news/search/',                     status: 200, contentType: /text\/html/ },
   { path: '/ai-news/topic/claude-code/',          status: 200, contentType: /text\/html/, bodyIncludes: 'Claude Code' },
   { path: '/ai-news/topic/claude-code/feed.xml',  status: 200, bodyIncludes: '<rss' },
+  // Multi-topic feed: built by the Worker from the per-topic static feeds.
+  { path: '/ai-news/feed.xml?topics=claude-code,security', status: 200, contentType: /rss\+xml/, bodyIncludes: '<rss' },
   // Oldest post (frozen back-catalog, never trimmed): the Related strip is
   // baked in once the index has run at least once on main.
   { path: '/ai-news/2026-05-28-19-amd-venice-enters-production-on-tsmc-2nm/', status: 200, bodyIncludes: 'data-related' },
