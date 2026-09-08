@@ -1,4 +1,5 @@
 export function cosine(a, b) {
+  if (a.length !== b.length) throw new Error(`cosine: dimension mismatch (${a.length} vs ${b.length})`);
   let dot = 0, na = 0, nb = 0;
   for (let i = 0; i < a.length; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
   const d = Math.sqrt(na) * Math.sqrt(nb);
@@ -6,6 +7,7 @@ export function cosine(a, b) {
 }
 
 export function meanVector(vs) {
+  if (!vs.length) throw new Error('meanVector: no vectors');
   const out = new Array(vs[0].length).fill(0);
   for (const v of vs) for (let i = 0; i < v.length; i++) out[i] += v[i];
   return out.map((x) => x / vs.length);

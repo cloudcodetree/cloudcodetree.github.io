@@ -15,6 +15,12 @@ describe('vector math', () => {
     expect(back.length).toBe(3);
     back.forEach((x, i) => expect(x).toBeCloseTo(v[i], 5));
   });
+  it('cosine rejects mismatched dimensions', () => {
+    expect(() => cosine([1, 0], [1])).toThrow(/dimension mismatch/);
+  });
+  it('meanVector rejects empty input', () => {
+    expect(() => meanVector([])).toThrow(/no vectors/);
+  });
 });
 
 describe('relatedFor', () => {
