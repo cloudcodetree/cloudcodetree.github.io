@@ -64,6 +64,12 @@ const ONLY_B = nn(10).map((n) => `b-${n}`);
 const STATIC_FEEDS: Record<string, string> = {
   'claude-code': topicFeed('Claude Code', 'claude-code', SHARED.concat(ONLY_A)),
   security: topicFeed('Security', 'security', SHARED.concat(ONLY_B)),
+  // A feed that breaks the item-boundary assumption: a post body quoting the
+  // literal string <item> swallows the real boundary and loses posts silently.
+  poisoned: topicFeed('Poisoned', 'poisoned', ['a-01']).replace(
+    'excerpt for a-01',
+    'an RSS <item> looks like this',
+  ),
 };
 
 function stubEnv(): FeedEnv & { assetFetch: ReturnType<typeof vi.fn> } {
@@ -168,6 +174,12 @@ describe('handleFeed', () => {
     const res = await handleFeed(req('?topics=nope,also-nope'), stubEnv(), ctx, fakeCache());
     expect(res.status).toBe(404);
     expect(await res.json()).toEqual({ error: 'no such topics' });
+  });
+
+  it('503s rather than silently dropping items when a body contains a literal <item>', async () => {
+    const res = await handleFeed(req('?topics=poisoned'), stubEnv(), ctx, fakeCache());
+    expect(res.status).toBe(503);
+    expect(res.headers.get('retry-after')).toBe('60');
   });
 
   it('serves a cache hit without touching the assets binding', async () => {

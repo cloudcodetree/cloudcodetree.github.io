@@ -47,13 +47,29 @@ const xmlEscape = (s: string) =>
 
 interface FeedItem { guid: string; time: number; xml: string }
 
-/** Pull the tag name and the raw <item> blocks out of one of our own feeds. */
+/**
+ * Pull the tag name and the raw <item> blocks out of one of our own feeds.
+ *
+ * The input is ONLY ever a feed generate-feeds.mjs wrote, and item boundaries
+ * are found with the literal strings `<item>` / `</item>`. That is safe purely
+ * because that generator never emits those literals inside CDATA — a post body
+ * quoting `<item>` would swallow a real boundary and silently drop posts from
+ * the merged feed. The count check below turns that from a silent wrong answer
+ * into a thrown error, which handleFeed reports as a 503.
+ */
 export function parseTopicFeed(body: string, slug: string): { tag: string; items: FeedItem[] } {
   const head = body.split('<item>')[0];
   const title = head.match(/<title>([\s\S]*?)<\/title>/);
   const tag = title ? uncdata(title[1]).replace(TITLE_SUFFIX, '').trim() || slug : slug;
   const items: FeedItem[] = [];
-  for (const xml of Array.from(body.matchAll(/<item>[\s\S]*?<\/item>/g), (m) => m[0])) {
+  const blocks = Array.from(body.matchAll(/<item>[\s\S]*?<\/item>/g), (m) => m[0]);
+  const opens = (body.match(/<item>/g) || []).length;
+  if (opens !== blocks.length) {
+    // Deliberately no slug in the message: it is logged, and which topics a
+    // reader asked for is theirs. The counts say what went wrong.
+    throw new Error(`item boundary mismatch: ${opens} markers, ${blocks.length} parsed`);
+  }
+  for (const xml of blocks) {
     const guid = xml.match(/<guid[^>]*>([\s\S]*?)<\/guid>/);
     const pubDate = xml.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
     if (!guid) continue;
@@ -112,14 +128,22 @@ export async function handleFeed(
   const started = Date.now();
   const tags: string[] = [];
   const merged = new Map<string, FeedItem>();
-  for (const slug of slugs) {
-    const source = new URL(`/ai-news/topic/${slug}/feed.xml`, request.url).toString();
-    const res = await env.ASSETS.fetch(new Request(source, { method: 'GET' }));
-    if (res.status === 404) continue;                      // unknown topic — skip it
-    if (!res.ok) return unavailable();
-    const { tag, items } = parseTopicFeed(await res.text(), slug);
-    tags.push(tag);
-    for (const it of items) if (!merged.has(it.guid)) merged.set(it.guid, it);   // first wins
+  // A failed fetch or a feed that violates parseTopicFeed's boundary assumption
+  // is an upstream problem: answer 503 (retryable, never cached), never a
+  // quietly incomplete feed and never an unhandled 500.
+  try {
+    for (const slug of slugs) {
+      const source = new URL(`/ai-news/topic/${slug}/feed.xml`, request.url).toString();
+      const res = await env.ASSETS.fetch(new Request(source, { method: 'GET' }));
+      if (res.status === 404) continue;                    // unknown topic — skip it
+      if (!res.ok) return unavailable();
+      const { tag, items } = parseTopicFeed(await res.text(), slug);
+      tags.push(tag);
+      for (const it of items) if (!merged.has(it.guid)) merged.set(it.guid, it); // first wins
+    }
+  } catch (err) {
+    console.log(JSON.stringify({ event: 'feed_error', message: (err as Error).message.slice(0, 200) }));
+    return unavailable();
   }
   if (!tags.length) return Response.json({ error: 'no such topics' }, { status: 404 });
 
