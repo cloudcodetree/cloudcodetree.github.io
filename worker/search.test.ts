@@ -104,4 +104,23 @@ describe('handleSearch', () => {
     expect(res.status).toBe(503);
     expect(res.headers.get('retry-after')).toBe('60');
   });
+
+  it('logs one search_miss carrying the normalized query when nothing matches, and none when something does', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const logged = () => log.mock.calls.map((c) => JSON.parse(String(c[0])) as { event: string; q?: string });
+    try {
+      await handleSearch(req('  Zzqqxx   Nonexistent Topic '), stubEnv({ matches: [] }), ctx, fakeCache());
+      expect(logged().filter((e) => e.event === 'search_miss')).toEqual([
+        { event: 'search_miss', q: 'zzqqxx nonexistent topic' },
+      ]);
+      // The success log stays as it was: counts and latency, never the query.
+      expect(logged().filter((e) => e.event === 'search')).toEqual([{ event: 'search', results: 0, ms: expect.any(Number) }]);
+
+      log.mockClear();
+      await handleSearch(req('rag'), stubEnv(), ctx, fakeCache());
+      expect(logged().filter((e) => e.event === 'search_miss')).toEqual([]);
+    } finally {
+      log.mockRestore();
+    }
+  });
 });

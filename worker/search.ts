@@ -9,8 +9,12 @@
  * are cached by normalized query for an hour, in the Worker (Cache API) and
  * at the edge (Cache-Control). Any upstream failure — including the Free
  * plan's daily allocation running out, which FAILS the call rather than
- * billing — is a 503 the client treats as "keyword-only for now". The query
- * text is never logged.
+ * billing — is a 503 the client treats as "keyword-only for now".
+ *
+ * A successful search logs its count and latency and never its text. The one
+ * exception is a search that matched NOTHING, which logs the normalized query
+ * as `search_miss` so scripts/harvest-search-misses.mjs can make it durable —
+ * see docs/superpowers/specs/2026-09-08-search-analytics-design.md.
  */
 export interface SearchEnv {
   AI?: Ai;
@@ -80,6 +84,14 @@ export async function handleSearch(
     const { matches } = await env.VECTORIZE.query(emb.data[0], { topK: TOP_K, returnMetadata: 'all' });
     const results = collapseMatches(matches);
     console.log(JSON.stringify({ event: 'search', results: results.length, ms: Date.now() - started }));
+    if (results.length === 0) {
+      // Zero-result queries are the only ones written down; see the privacy
+      // section of docs/superpowers/specs/2026-09-08-search-analytics-design.md
+      // (Cloudflare already logs the full URL, query string included, either
+      // way). scripts/harvest-search-misses.mjs turns these into a committed
+      // file so the publishing routine can see what readers could not find.
+      console.log(JSON.stringify({ event: 'search_miss', q }));
+    }
     const res = Response.json({ results }, { headers: { 'cache-control': `public, max-age=${TTL_SECONDS}` } });
     if (cache) ctx.waitUntil(cache.put(cacheKey, res.clone()));
     return res;
