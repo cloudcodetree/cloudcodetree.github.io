@@ -34,7 +34,8 @@ async function semantic(q: string, signal?: AbortSignal): Promise<string[] | nul
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), SEMANTIC_TIMEOUT_MS);
   const onAbort = () => ctl.abort();
-  signal?.addEventListener('abort', onAbort);
+  if (signal?.aborted) ctl.abort();
+  else signal?.addEventListener('abort', onAbort);
   try {
     const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: ctl.signal });
     if (!res.ok) return null;
