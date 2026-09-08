@@ -10,7 +10,205 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 07 Sep 2026 20:03:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 08 Sep 2026 12:06:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Your Parallel Claude Code Sessions Can Now Coordinate Without You in the Middle</title>
+      <link>https://code.claude.com/docs/en/cross-session-messaging</link>
+      <guid isPermaLink="false">2026-09-08-05-claude-code-cross-session-messaging</guid>
+      <pubDate>Tue, 08 Sep 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Agents</category>
+      <description>Claude Code v2.1.224 adds cross-session messaging: two independent sessions on the same machine can pass findings and decisions directly via ListAgents + SendMessage, no copy-paste required.</description>
+      <content:encoded><![CDATA[**Since v2.1.224 (August 7), Claude Code sessions on the same machine can message each other. `ListAgents` discovers which sessions are running; `SendMessage` delivers. The practical win: parallel sessions pass findings and decisions without you copy-pasting between terminals.**
+
+When you run two Claude Code sessions in parallel — one on a backend schema migration, one on the API layer that depends on it — the natural breakpoint is when one session has a finding the other needs. Before cross-session messaging, you stopped, copied the relevant context, and re-explained it. Now Claude routes it.
+
+**How it works.** Two tools power it: `ListAgents` and `SendMessage`. You never call them yourself — Claude discovers the target and composes the message from your prompt.
+
+The simplest form:
+```
+Let @api-worker know the schema migration finished and tenant_id is the new column
+```
+Claude finds the session named `api-worker` and writes the message. The receiving session shows a preview and Claude reads the full text.
+
+You can also ask Claude to poll another session:
+```
+Ask the session in my other terminal whether the migration is done yet
+```
+Or subscribe to a one-shot notification when a long-running task finishes:
+```
+Tell me when the migration session finishes what it's working on
+```
+That last form sends one notice the next time the watched session goes idle — no polling, no repeated messages.
+
+**Session naming.** Type `/list-agents` (or `/peers`) to see every session Claude can reach. Use `--name <name>` at launch or `/rename` mid-session to make sessions easy to @-mention.
+
+**Limits to know:**
+- **Text only.** No conversation history, no files, no structured tool calls cross session boundaries. The size cap is about 1M characters.
+- **Same machine only** without Remote Control. Reaching sessions on another machine requires a Remote Control connection.
+- **A received message cannot approve pending permission prompts** or change settings in the receiving session — it is not treated as your input.
+- Rapid bursts to one session are throttled automatically; identical repeat messages within a short window are dropped.
+
+Available on macOS and Linux (including WSL2) from v2.1.224; native Windows from v2.1.234.
+
+**Sources:** [Claude Code cross-session messaging docs](https://code.claude.com/docs/en/cross-session-messaging) · [v2.1.224 release — GitHub](https://github.com/anthropics/claude-code/releases/tag/v2.1.224) · [Developers Digest analysis](https://www.developersdigest.tech/blog/claude-code-cross-session-messaging-2026)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Tencent's Hy4 Opens Up the First 1M-Context Open-Weight Model — Self-Hosting Needs a Datacenter</title>
+      <link>https://technode.global/2026/09/04/tencent-hy4-preview-open-source-model/</link>
+      <guid isPermaLink="false">2026-09-08-04-tencent-hy4-open-weight-1m-context</guid>
+      <pubDate>Tue, 08 Sep 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <category>Self-Hosting</category>
+      <description>Tencent's Hy4 Preview (770B/49B-active MoE, Apache 2.0) is the first open-weight model with a 1M-token context. Self-hosting needs 8 B300 GPUs; OpenRouter is the practical entry point.</description>
+      <content:encoded><![CDATA[**Tencent's Hy4 Preview is a 770B-total/49B-active-per-token Mixture-of-Experts model released on HuggingFace August 28 under Apache 2.0, with a genuine 1M-token context window — the first open-weight model to credibly offer this at commercial scale.**
+
+The architecture is 78 transformer layers, each with 256 routed experts plus one shared expert; each token activates the top 8 routed experts plus the shared one. On coding benchmarks, Tencent reports 65.7 on SWE-bench Pro and 64.3 on DeepSWE (comparable to closed frontier models, per Tencent's own evaluation). An independent practitioner review by Wavect found it retained "requirements, implementation state, and tool outputs" well across longer agentic workflows.
+
+**The practical ceiling is hardware.** Tencent's own deployment recipes require at minimum 8 NVIDIA B300 GPUs (or 16 B200s) for the BF16 variant under vLLM with 8-way tensor parallelism; an FP8 quantized variant lowers that but remains datacenter-class. Prebuilt containers (`vllm/vllm-openai:hy4-preview`, `lmsysorg/sglang:hy4-preview`) are available for both. For most teams, OpenRouter (Tencent reports $0.83/M input, $2.50/M output) or WorkBuddy is the practical entry point — not self-hosting.
+
+**Two limits before committing.** Independent testing found that 1M-token context ≠ 1M-token recall: accuracy degrades as the context window fills, same as all other long-context models. The model also has a documented tendency to over-verify on complex tasks, generating unnecessary reasoning steps that drive up cost.
+
+**Why it matters:** If your agent pipeline is hitting a ceiling on long repository retrieval or multi-document reasoning, Hy4 is the first open-weight option that competes with closed frontier models on context length — with an Apache 2.0 license that carries none of the community-agreement restrictions on the Llama line.
+
+**Sources:** [TechNode Global](https://technode.global/2026/09/04/tencent-hy4-preview-open-source-model/) · [Independent review — Wavect.io](https://wavect.io/blog/tencent-hy4-preview-coding-agent-review/) · [BenchLM independent benchmarks](https://benchlm.ai/models/hy4-preview) · [Forbes coverage (Aug 31)](https://www.forbes.com/sites/jonmarkman/2026/08/31/tencent-open-sources-hy4-its-770-billion-parameter-flagship-model/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your MCP Server Doesn't Need Durable Objects Anymore — Deploy It as a Stateless Worker</title>
+      <link>https://blog.cloudflare.com/mcp-v2/</link>
+      <guid isPermaLink="false">2026-09-08-03-mcp-stateless-cloudflare-workers-handler</guid>
+      <pubDate>Tue, 08 Sep 2026 04:09:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>MCP</category>
+      <category>Cloud</category>
+      <description>The MCP 2026-07-28 spec made the protocol stateless. Cloudflare's createMcpHandler now deploys any MCP server as a plain Worker — no Durable Objects, no session management required.</description>
+      <content:encoded><![CDATA[**The MCP 2026-07-28 spec redesigned the protocol around stateless request/response. Cloudflare's `createMcpHandler` API deploys any MCP server as a plain Worker — no Durable Objects, no session management, no WebSocket handshake.**
+
+Before the MCP 2026-07-28 specification, every remote MCP server had to maintain per-client session state. On Cloudflare Workers, that meant Durable Objects: one per client session, coordinated handshake, stateful upgrade. It worked, but added infrastructure complexity and per-session storage overhead.
+
+The 2026-07-28 spec redesigned the protocol around stateless request/response. Cloudflare's `createMcpHandler` API ships that consequence as a one-liner:
+
+```ts
+import { createMcpHandler, McpServer } from '@cloudflare/mcp-server';
+import { z } from 'zod';
+
+const server = new McpServer({ name: 'my-tools', version: '1.0.0' });
+server.tool('fetch_weather', { city: z.string() }, async ({ city }) => {
+  const data = await fetch(`https://wttr.in/${city}?format=j1`);
+  return { content: [{ type: 'text', text: await data.text() }] };
+});
+
+export default { fetch: createMcpHandler(server) };
+```
+
+`wrangler deploy` ships it. No Durable Object bindings, no session upgrade handling, no reconnect logic. Cloudflare routes requests using the `Mcp-Method` HTTP header — not a WebSocket session — so each request is independent and the server sits behind any standard round-robin load balancer.
+
+**Three concrete wins from the stateless model:**
+1. No per-session storage overhead — each request is independent from billing through to code.
+2. Local integration tests are plain HTTP calls against `wrangler dev`. No WebSocket client required.
+3. The underlying pattern (stateless HTTP, `Mcp-Method` routing) transfers to any HTTP runtime, even if you don't use the Cloudflare library.
+
+**Two things to know before migrating:**
+1. The 2026-07-28 spec deprecated server-to-client requests (elicitation). If your current server uses that pattern, the formal deprecation window is 12+ months — the migration is not immediate.
+2. `createMcpHandler` is Cloudflare-specific. On Lambda, Modal, or Fly.io, you wire the MCP SDK directly to an HTTP handler using the same stateless architecture, but without this wrapper.
+
+**Sources:** [The next generation of MCP — Cloudflare Blog](https://blog.cloudflare.com/mcp-v2/) · [MCP 2026-07-28 Specification — modelcontextprotocol.io](https://blog.modelcontextprotocol.io/posts/2026-07-28/) · [MCP's growing pains for production use — The New Stack](https://thenewstack.io/model-context-protocol-roadmap-2026/)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>HuggingFace: A 350M Model Learns Structured Output Compliance in 100 GRPO Steps</title>
+      <link>https://huggingface.co/blog/grpo-with-trl-ifstruct</link>
+      <guid isPermaLink="false">2026-09-08-02-huggingface-grpo-structured-output-finetune</guid>
+      <pubDate>Tue, 08 Sep 2026 04:08:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Fine-Tuning</category>
+      <category>HuggingFace</category>
+      <description>HuggingFace's September 3 guide fine-tunes LFM2.5-350M with GRPO+TRL+LoRA on 500 examples in 100 steps, raising IFStruct structured-output accuracy from 22.6% to 29.7% — runs on a free Colab GPU.</description>
+      <content:encoded><![CDATA[**A September 3 HuggingFace guide shows GRPO fine-tuning a 350M-parameter model on 500 examples in 100 steps — per the IFStruct benchmark, structured output accuracy rises from 22.6% to 29.7% on a free Colab GPU.**
+
+A September 3 HuggingFace post fine-tunes LiquidAI's LFM2.5-350M using GRPO (Group Relative Policy Optimization) with TRL and LoRA adapters — only 6M of the model's 350M parameters are updated. Training data: 500 examples. Steps: 100. Hardware: free-tier Colab or Kaggle GPU. Per the IFStruct benchmark, schema-adherence accuracy goes from 22.6% to 29.7%, with JSON compliance driving most of the gain: +13.9 points on JSON-specific tasks.
+
+The technique works because GRPO uses a verifiable pass/fail reward — valid JSON parses, invalid JSON doesn't — so it doesn't need preference labels or a reward model. The reward function is your schema validator.
+
+**Why it matters for agents:** Local models that drop malformed JSON on 15–20% of turns will interrupt any agentic pipeline that calls tool APIs. 100 GRPO training steps against a JSON schema validator may be the fastest fix — cheaper than switching to a larger model, and cheaper than adding retry logic that obscures the underlying problem.
+
+**Two limits worth knowing:** YAML compliance barely moved (+0.3 points per the same benchmark) despite JSON improving significantly — GRPO's reward needs a reliable verifiable signal, and YAML parsers are strict about whitespace in ways that weaken it. Also, 29.7% still trails Qwen3.5-2B (33.15%) on IFStruct, per the post's own comparison — evaluate before committing to fine-tuning over simply choosing a more capable model.
+
+**Sources:** [Fine-tuning a 350M Model for Better Structured Outputs in 100 GRPO Steps — HuggingFace Blog](https://huggingface.co/blog/grpo-with-trl-ifstruct) · [GRPO Trainer — TRL docs](https://huggingface.co/docs/trl/grpo_trainer) · [GRPO — DeepSeek-R1, arXiv:2501.12948](https://arxiv.org/abs/2501.12948)]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Your AI-Generated Component Looks Right at 1280px — Here's a 10-Line Playwright Test That Checks 375px Too</title>
+      <link>https://playwright.dev/docs/test-snapshots</link>
+      <guid isPermaLink="false">2026-09-08-01-playwright-viewport-responsive-ai-components</guid>
+      <pubDate>Tue, 08 Sep 2026 04:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Design-to-Code</category>
+      <category>UI/UX</category>
+      <description>AI-generated components look right at 1280px but break at 375px. Playwright's toHaveScreenshot() with multi-project viewport config catches layout regressions per breakpoint automatically in CI.</description>
+      <content:encoded><![CDATA[**Add Playwright's `toHaveScreenshot()` across three viewport projects — mobile, tablet, desktop — and any Claude Code session that breaks your responsive layout fails in CI before it ships.**
+
+**What you'll be able to do after this:**
+- Generate per-breakpoint visual baselines for AI-generated components in a single Playwright config
+- Catch layout regressions introduced by Claude Code edits automatically in CI
+- Update baselines intentionally with `--update-snapshots`, not accidentally on every run
+
+Axe-core ([covered previously](https://cloudcodetree.com/ai-news/2026-08-25-01-axe-core-audit-ai-generated-ui)) catches broken ARIA and missing focus states. It doesn't catch a flex container that stacks vertically at 375px because Claude Design rendered it at 1280px. For that, you need a visual diff.
+
+**`playwright.config.ts`** — three viewport projects, one test file:
+
+```ts
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  projects: [
+    { name: 'mobile',  use: { viewport: { width: 375, height: 812 } } },
+    { name: 'tablet',  use: { viewport: { width: 768, height: 1024 } } },
+    { name: 'desktop', use: { viewport: { width: 1280, height: 800 } } },
+  ],
+});
+```
+
+**The test** — works against Storybook, `next dev`, or a static export:
+
+```ts
+import { test, expect } from '@playwright/test';
+
+test('nav responsive', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  await page.waitForLoadState('networkidle');
+  await expect(page).toHaveScreenshot('nav.png', { maxDiffPixels: 50 });
+});
+```
+
+Run once with `npx playwright test --update-snapshots` to generate `nav-mobile.png`, `nav-tablet.png`, `nav-desktop.png`. From here on, every Claude Code session that shifts the layout at any breakpoint fails this test and produces a diff image naming the exact viewport where the regression occurred.
+
+**Three things to know:**
+1. Playwright includes the project name in snapshot filenames automatically — no naming collisions between viewports.
+2. `maxDiffPixels: 50` absorbs sub-pixel rendering noise; tighten it only when you're missing real regressions.
+3. When a diff fails, cross-reference it with `/diff` in Claude Code to find the exact CSS rule that caused the shift — the visual diff names the breakpoint, not the line.
+
+**One limit:** Screenshots differ between macOS and Linux by font rendering and anti-aliasing. Generate baselines in the same environment your CI uses — add a CI job that runs `--update-snapshots` on first run if you need that guarantee. Locally generated baselines against a Linux CI runner are the most common source of false failures on this setup.
+
+**Sources:** [Visual comparisons — Playwright docs](https://playwright.dev/docs/test-snapshots) · [Playwright visual regression guide — TestQuality](https://testquality.com/playwright-visual-regression-guide/) · [Responsive design testing tools — BrowserStack](https://www.browserstack.com/guide/responsive-design-testing-tools)]]></content:encoded>
+    </item>
 
     <item>
       <title>Your Tool Schema Has One Field That Controls Whether Claude Calls the Right Function — and It's Not the Name</title>
@@ -5243,242 +5441,11 @@ A2A v1.0 (March 2026) is already in production in supply chain, financial servic
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>OpenAI Previews Safety Monitoring That Doesn&#39;t Give Staff Access to Your Prompts</title>
-      <link>https://openai.com/index/offering-zero-data-retention-for-frontier-models/</link>
-      <guid isPermaLink="false">2026-08-23-04-openai-private-safety-zero-data-retention</guid>
-      <pubDate>Sun, 23 Aug 2026 12:14:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>Security</category>
-      <category>Developer Tools</category>
-      <description>OpenAI&#39;s Private Safety Processing, previewed August 19, runs behavioral misuse-pattern checks across API sessions without routing prompt content to staff — designed for enterprise ZDR customers.</description>
-      <content:encoded><![CDATA[**TL;DR: OpenAI&#39;s Private Safety Processing (preview, Aug 19) identifies misuse patterns across API interactions without giving staff access to your prompts — designed for enterprise customers using Zero Data Retention.**
-
-OpenAI previewed Private Safety Processing on August 19 for API customers with Zero Data Retention active. The system detects behavioral patterns across multiple interactions — sequences of requests that collectively signal misuse — without routing the actual content to human reviewers or OpenAI&#39;s training pipeline. When it flags activity, OpenAI receives a category-level signal, not the underlying prompts. Content stays encrypted with customer-controlled keys.
-
-**The limits:** it is live with a "small set" of early testers (Microsoft and Databricks named); broader rollout and an accompanying technical white paper are both planned for September 2026. Until the white paper ships, false-positive rates and the technical threat model are vendor assertions, not independently verified numbers.
-
-**Why it matters:** ZDR customers previously had to choose between data privacy and any safety oversight at all. If the implementation holds — which the white paper should clarify — this closes that tradeoff for API teams with strict data-handling requirements.
-
-**Sources:** [OpenAI announcement](https://openai.com/index/offering-zero-data-retention-for-frontier-models/) · [The Next Web](https://thenextweb.com/news/openai-zero-data-retention-private-safety-processing) · [Security Boulevard](https://securityboulevard.com/2026/08/openai-unveils-private-safety-processing-to-detect-ai-misuse-without-storing-enterprise-data/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Turn Any Text Into Numbers Your Code Can Search: Sentence Transformers in 10 Lines of Python</title>
-      <link>https://sbert.net/docs/quickstart.html</link>
-      <guid isPermaLink="false">2026-08-23-05-sentence-transformers-text-embeddings-basics</guid>
-      <pubDate>Sun, 23 Aug 2026 12:15:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Embeddings</category>
-      <category>HuggingFace</category>
-      <description>Sentence Transformers converts text into dense vectors that encode meaning. Three lines of Python: load a model, call .encode(), compare with .similarity(). No API key needed.</description>
-      <content:encoded><![CDATA[**TL;DR: The sentence-transformers library converts text into dense vectors that encode meaning — load a model, call `.encode()`, compare with `.similarity()`. No API key, no cloud call, runs on a laptop CPU.**
-
-**What you&#39;ll be able to do after this:**
-- Convert sentences into 384-dimensional float arrays where similar text ends up close together in vector space
-- Find the semantically closest match to a query in a list of documents without writing a single rule
-- Understand what every RAG pipeline&#39;s embedding step is actually doing under the hood
-
-The model has one job: given a sentence, return a fixed-length vector where meaning is encoded in direction and magnitude. Sentences about similar topics cluster together; unrelated sentences don&#39;t. That geometry is what makes semantic search, clustering, and retrieval work.
-
-```bash
-pip install sentence-transformers
-```
-
-```python
-from sentence_transformers import SentenceTransformer
-
-model = SentenceTransformer("all-MiniLM-L6-v2")  # 384-dim, ~80MB, CPU-friendly
-
-corpus = [
-    "Claude Code can spin up subagents for parallel work",
-    "Autonomous agents complete tasks without step-by-step supervision",
-    "The weather in San Francisco is mild year-round",
-]
-corpus_embeddings = model.encode(corpus)
-
-query_embedding = model.encode(["agents that work unattended"])
-scores = model.similarity(query_embedding, corpus_embeddings)
-print(scores)  # tensor([[0.88, 0.83, 0.10]])
-```
-
-The first two sentences are semantically close to the query; the weather one is not. You wrote no rules — the similarity falls out of the geometry of the embedding space.
-
-**Where it breaks:** `all-MiniLM-L6-v2` is fast and small (80 MB) but loses precision on domain-specific jargon and proprietary terms that were not in its training data. For production over technical documentation, compare candidates on the [MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard) before committing. Also: cosine similarity scores are not calibrated — 0.6 does not mean "60% similar." Compare scores against each other, not against an absolute cutoff.
-
-**Sources:** [Sentence Transformers quickstart — sbert.net](https://sbert.net/docs/quickstart.html) · [HuggingFace sentence-transformers collection](https://huggingface.co/sentence-transformers) · [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard)
-]]></content:encoded>
-      <media:content url="https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo-with-title.png" medium="image"/>
-      <media:thumbnail url="https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo-with-title.png"/>
-    </item>
-
-    <item>
-      <title>Lock Your Agent&#39;s Web Searches to a Domain Allowlist — A One-Config Fix for Indirect Prompt Injection</title>
-      <link>https://platform.claude.com/docs/en/managed-agents/tools#restrict-web-search-and-web-fetch-domains</link>
-      <guid isPermaLink="false">2026-08-23-06-managed-agents-web-tool-domain-allowlists</guid>
-      <pubDate>Sun, 23 Aug 2026 12:16:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Agents</category>
-      <category>Security</category>
-      <description>Managed Agents now supports allowed_domains and blocked_domains on web_search and web_fetch — restricts which URLs the agent reads and narrows the indirect prompt injection attack surface.</description>
-      <content:encoded><![CDATA[**TL;DR: Managed Agents&#39; `allowed_domains` and `blocked_domains` config on `web_search` and `web_fetch` restrict which URLs your agent reads — a single config change that removes the long tail of arbitrary web content from the indirect prompt injection attack surface.**
-
-When your agent uses `web_search` or `web_fetch`, it reads content written by people who know (or can guess) that an agent is reading it. Indirect prompt injection is the attack where a page embeds text designed to redirect the agent&#39;s next action. You don&#39;t need to know every attacker&#39;s technique to defend against most of them: just restrict which sites the agent can reach to the ones it actually needs.
-
-**The config (shipped August 19):**
-
-```python
-# On agent creation or update
-tools=[{
-    "type": "agent_toolset_20260401",
-    "configs": [
-        {
-            "name": "web_search",
-            "allowed_domains": ["docs.anthropic.com", "github.com", "pypi.org"]
-        },
-        {
-            "name": "web_fetch",
-            "allowed_domains": ["docs.anthropic.com", "github.com"],
-            "max_content_tokens": 50_000
-        }
-    ]
-}]
-```
-
-A listed domain covers that host and all subdomains. `allowed_domains` and `blocked_domains` cannot both be set on the same entry. A `web_fetch` call for a non-allowed URL returns `is_error: true` to the agent; `web_search` silently omits non-allowed results.
-
-**The limits:** this is a mitigating control, not a complete defense. An adversarial page on an allowed domain — a comment section on GitHub, a user-editable wiki — can still inject. Combine allowlisting with a tightly scoped system prompt, output validation, and human-in-the-loop checks on actions with side effects.
-
-**Sources:** [Restrict web search and web fetch domains — Anthropic Managed Agents docs](https://platform.claude.com/docs/en/managed-agents/tools#restrict-web-search-and-web-fetch-domains) · [Indirect prompt injection attacks — Simon Willison](https://simonwillison.net/2023/Apr/14/prompt-injection-attacks-against-gpt-4/) · [OWASP LLM Top 10: Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Claude Code's /claude-api upgrade Migrates Your Python SDK from 0.x to 1.x — What It Handles Automatically and What Still Needs Eyes</title>
-      <link>https://code.claude.com/docs/en/changelog</link>
-      <guid isPermaLink="false">2026-08-23-03-claude-api-upgrade-python-sdk-1x</guid>
-      <pubDate>Sun, 23 Aug 2026 04:09:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Developer Tools</category>
-      <description>Claude Code v2.1.239 added /claude-api upgrade — a skill that finds 0.x SDK usage in your Python project, creates a migration branch, and applies the 1.x breaking changes, except for custom HTTP transport and instrumentation.</description>
-      <content:encoded><![CDATA[**TL;DR: Claude Code v2.1.239 added `/claude-api upgrade` — a skill that finds 0.x SDK usage in your Python project, creates a migration branch, and applies the 1.x breaking changes automatically, except for custom HTTP transport and instrumentation.**
-
-The `anthropic` Python SDK is on 1.x, and if your project is still on 0.x (`pip show anthropic` shows a version starting with `0.`), there are real breaking changes. The two that catch teams by surprise:
-
-- `httpx.Timeout` is replaced by `anthropic.Timeout`. Code that passes `timeout=httpx.Timeout(60.0, connect=2.0)` to the client throws a `TypeError` on 1.x.
-- The internal transport switched from `httpx` to `httpx2`. Anything that patches `httpx` directly — OpenTelemetry's `HTTPXClientInstrumentor`, Sentry's `httpx` integration, `respx`, `pytest-httpx` — no longer sees the SDK's requests. Fix: call `httpx2.alias_httpx()` once at startup, before any `import httpx`.
-
-**Running the migration**
-
-In any Claude Code session with your project open:
-
-```
-/claude-api upgrade
-```
-
-The skill detects your `anthropic` version from `requirements.txt` or `pyproject.toml`, greps the codebase for 0.x patterns, creates a feature branch, applies the mechanical changes, and writes a summary of what it touched. It handles the `httpx.Timeout` → `anthropic.Timeout` swap and the common response-field access pattern changes.
-
-**What still needs a human**
-
-- Custom HTTP client injection (proxies, transports) — update to `httpx2` explicitly
-- Any `httpx`-level instrumentation — add `httpx2.alias_httpx()` at startup
-- Tool-use code: `@beta_tool` decorator and `tool_runner` are new 1.x helpers the skill won't introduce automatically; check the [updated docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)
-
-The skill is good for the mechanical 80%. Test your actual API calls after — it can't know if your production request patterns exercise edge cases.
-
-**Sources:** [Claude Code changelog v2.1.239 — Anthropic](https://code.claude.com/docs/en/changelog) · [Python SDK docs — Anthropic](https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python) · [0.x → 1.x MIGRATION.md — GitHub](https://github.com/anthropics/anthropic-sdk-python/blob/main/MIGRATION.md) · [Real-world upgrade discussion — microsoft/agent-framework #6986](https://github.com/microsoft/agent-framework/issues/6986)]]></content:encoded>
-    </item>
-
-    <item>
-      <title>The File That Makes Claude Code Generate UI Inside Your Design System (Not Generic Tailwind)</title>
-      <link>https://processtopixels.substack.com/p/writing-a-designmd-file-claude-can</link>
-      <guid isPermaLink="false">2026-08-23-02-design-md-claude-code-design-system</guid>
-      <pubDate>Sun, 23 Aug 2026 04:08:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Design</category>
-      <category>Design-to-Code</category>
-      <description>DESIGN.md is a plain-English file in your repo root — colors, typography, spacing, component rules, and explicit don'ts — that tells Claude Code what your design system actually means, not just what the tokens are.</description>
-      <content:encoded><![CDATA[**TL;DR: A `DESIGN.md` in your repo root tells Claude Code (and any code agent) your color palette, typography, spacing, and component constraints — with intent and boundaries, not just values — so generated UI stays inside your design system.**
-
-**What you'll be able to do after this:**
-- Make Claude Code generate components that use your actual tokens, not Tailwind defaults
-- Write token constraints that prevent the agent from misusing values (e.g., "primary blue is for CTAs only — never backgrounds, never decorative")
-- Version-control your design system as a first-class repo artifact any compatible agent can load
-
-**The key insight: value + intent + boundary**
-
-The difference between a file Claude can *read* and a file Claude can *follow* is whether each token says what it's for and what it's **not** for.
-
-Instead of:
-```
-primary: #3b82f6
-```
-
-Write:
-```
-primary: #3b82f6 — CTAs and active states only. Never used as a background, never decorative.
-```
-
-**A minimal DESIGN.md that works**
-
-```markdown
-# Design System
-
-## Product
-[2–3 sentences: what the product does, who uses it, its core UI purpose.]
-
-## Colors
-- primary: #3b82f6 — CTAs and active link text. Never as a background.
-- surface: rgba(255,255,255,0.06) — Card backgrounds only. Always paired with backdrop-blur.
-- text-primary: #f1f5f9 — Body copy. Never on anything lighter than surface.
-
-## Typography
-- h1: 2rem, weight 700, leading-tight
-- body: 1rem, weight 400, leading-relaxed
-- caption: 0.75rem — metadata and labels only. Never body text.
-
-## Spacing
-Base unit: 4px. Use only multiples: 8, 16, 24, 32, 48px.
-
-## Components
-- Buttons: rounded-md bg-primary px-4 py-2. Primary action only, one per viewport section.
-- Cards: rounded-xl bg-surface backdrop-blur-sm border-white/10 p-6.
-
-## Don'ts
-- Never use Tailwind's default blue — always #3b82f6.
-- Never hardcode a hex that isn't in this file.
-- Never add margin to a Card — let the layout own spacing.
-```
-
-**Wiring it into Claude Code**
-
-Add one line to your `CLAUDE.md`:
-
-```
-When generating or editing UI components, read DESIGN.md and apply every token, constraint, and Don't rule from it.
-```
-
-Claude Code loads `CLAUDE.md` at session start. When it writes UI, it reads `DESIGN.md` and your tokens flow into every generated component without re-explaining them per prompt.
-
-**Limits to know**
-
-`DESIGN.md` requires maintenance — when your system evolves, update the file, or the agent will confidently apply stale tokens. More importantly: if you ask Claude to generate `DESIGN.md` from a Figma export without guidance, it extracts token values accurately but *fabricates* the intent and boundary constraints. Those require a designer's actual decisions. The model infers plausible-sounding rules; they are not your rules. Write the product brief and the don'ts yourself.
-
-**Sources:** [Writing a DESIGN.md file Claude can actually use — Process to Pixels](https://processtopixels.substack.com/p/writing-a-designmd-file-claude-can) · [The DESIGN.md Workflow — Design Systems Collective](https://www.designsystemscollective.com/the-design-md-workflow-how-google-stitch-claude-code-quietly-changed-the-design-to-code-handoff-c4213f97ed8f) · [Google Stitch open-sources DESIGN.md spec (Apache 2.0) — Pasquale Pillitteri](https://pasqualepillitteri.it/en/news/1251/google-stitch-design-md-open-source-spec-2026)]]></content:encoded>
-    </item>
-
+    
+    
+    
+    
+    
     
     
     
