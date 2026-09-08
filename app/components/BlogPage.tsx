@@ -15,6 +15,7 @@ import rehypeHighlight from 'rehype-highlight';
 import { BlogPost, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx, markdownComponents } from './blogShared';
 import { Corners } from './Blueprint';
 import SearchBox from './SearchBox';
+import TopicsFlyout from './TopicsFlyout';
 // eslint-disable-next-line import/no-relative-packages
 import { slugForTag } from '../../scripts/lib/topics.mjs';
 
@@ -25,7 +26,11 @@ interface BlogPageProps {
   intro?: React.ReactNode;
   feedPath?: string;
   emptyMessage?: string;
-  /** Highlights a topic chip and (Task 12) seeds the filter for a topic landing page. */
+  /**
+   * Set by the topic landing route. The posts arriving here are ALREADY
+   * prefiltered to this tag, so it is deliberately not preselected in the
+   * flyout — the flyout narrows within the topic instead of re-applying it.
+   */
   topic?: { tag: string; slug: string };
   showSearch?: boolean;
 }
@@ -59,7 +64,7 @@ function Pills({ post, max = 3 }: { post: BlogPost; max?: number }) {
 
 export default function BlogPage({
   posts, heading = 'AI News', intro = 'Daily field notes on AI-assisted engineering.',
-  feedPath = '/feed.xml', emptyMessage, topic, showSearch = true,
+  feedPath = '/feed.xml', emptyMessage, showSearch = true,
 }: BlogPageProps) {
   const [view, setView] = useState<View>('cards');              // SSR default
   const [sizeOverride, setSizeOverride] = useState<Partial<Record<View, number>>>({});
@@ -70,8 +75,12 @@ export default function BlogPage({
   const [feedLoading, setFeedLoading] = useState(false);
   const feedRef = useRef<Map<string, string> | null>(null);
   const [feedCopied, setFeedCopied] = useState(false);
+  // Empty until mount: this component prerenders, and window.location.origin
+  // does not exist then. Only click handlers read the absolute URL.
+  const [origin, setOrigin] = useState('');
 
-  // Topic chips: every tag except the ubiquitous "AI", most-used first, with counts.
+  // What the Topics flyout lists: every tag except the ubiquitous "AI",
+  // most-used first, with counts.
   const topics = useMemo(() => {
     const c: Record<string, number> = {};
     for (const p of posts) for (const t of p.tags || []) if (t.toLowerCase() !== 'ai') c[t] = (c[t] || 0) + 1;
@@ -91,6 +100,7 @@ export default function BlogPage({
 
   // Reconcile view + page-size prefs from localStorage and ?page/?topics from the URL.
   useEffect(() => {
+    setOrigin(window.location.origin);
     const v = window.localStorage.getItem('ainews-view') as View | null;
     if (v && VIEWS.includes(v)) setView(v);
     try {
@@ -163,7 +173,23 @@ export default function BlogPage({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : prev.concat(tag)));
+    setPage(1);
+  };
+
   const clearTags = () => { setSelectedTags([]); setPage(1); };
+
+  // The feed for what is selected right now. One topic already HAS a static
+  // feed, so only a real multi-topic selection needs the Worker's ?topics=
+  // merge; nothing selected is just this page's own feed.
+  const feedUrlForSelection = useMemo(() => {
+    const slugs = selectedTags.map(slugForTag).sort();
+    const path = slugs.length === 0 ? feedPath
+      : slugs.length === 1 ? `/ai-news/topic/${slugs[0]}/feed.xml`
+        : `/ai-news/feed.xml?topics=${slugs.join(',')}`;
+    return `${origin}${path}`;
+  }, [selectedTags, feedPath, origin]);
 
   // Copy the feed URL rather than only linking it: most browsers render feed XML
   // as a wall of markup, and what a reader actually needs is the URL on their
@@ -351,6 +377,15 @@ export default function BlogPage({
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: { xs: 2, md: 3 }, flexWrap: 'wrap' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', flex: 1 }}>
           {showSearch && <SearchBox />}
+          {topics.length > 0 && (
+            <TopicsFlyout
+              topics={topics}
+              selected={selectedTags}
+              onToggle={toggleTag}
+              onClear={clearTags}
+              feedUrlForSelection={feedUrlForSelection}
+            />
+          )}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
             <Select value={pageSize} inputProps={{ 'aria-label': 'Posts per page' }} onChange={(e) => choosePageSize(Number(e.target.value))} size="small"
@@ -366,42 +401,6 @@ export default function BlogPage({
           <ToggleButton value="feed" aria-label="Full feed"><ViewStream fontSize="small" /></ToggleButton>
         </ToggleButtonGroup>
       </Box>
-
-      {/* Topic filter */}
-      {topics.length > 0 && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mb: { xs: 3, md: 4 } }}>
-          <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', mr: 0.5 }}>Topics</Typography>
-          {topics.map(({ tag, count }) => {
-            const on = topic?.tag === tag || selectedTags.includes(tag);
-            return (
-              <Chip
-                key={tag}
-                component={Link}
-                href={`/ai-news/topic/${slugForTag(tag)}/`}
-                clickable
-                label={`${tag} ${count}`}
-                size="small"
-                sx={{
-                  fontFamily: MONO, fontSize: 11, cursor: 'pointer',
-                  color: on ? '#1d1f20' : 'text.secondary',
-                  background: on ? ACCENT : 'transparent',
-                  border: '1px solid', borderColor: on ? ACCENT : 'rgba(148,163,184,0.25)',
-                  '& .MuiChip-label': { px: 1 },
-                  '&:hover': { background: on ? ACCENT : 'rgba(148,188,227,0.12)' },
-                }}
-              />
-            );
-          })}
-          {selectedTags.length > 0 && (
-            <Chip
-              label={`Clear · ${filteredPosts.length} post${filteredPosts.length === 1 ? '' : 's'}`}
-              size="small"
-              onClick={clearTags}
-              sx={{ fontFamily: MONO, fontSize: 11, cursor: 'pointer', color: ACCENT, background: 'transparent', border: '1px solid', borderColor: ACCENT, '& .MuiChip-label': { px: 1 } }}
-            />
-          )}
-        </Box>
-      )}
 
       {filteredPosts.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10 }}>
