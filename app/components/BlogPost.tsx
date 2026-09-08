@@ -10,10 +10,11 @@ import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { BlogPost as Post, SERIF, MONO, formatPublished, markdownSx, markdownComponents } from './blogShared';
 import SearchBox from './SearchBox';
+import RelatedPosts from './RelatedPosts';
 
 // The post is loaded at build time by app/ai-news/[id]/page.tsx and baked into
 // the static HTML — no client-side fetch, no loading state.
-export default function BlogPost({ post }: { post: Post }) {
+export default function BlogPost({ post, related = [] }: { post: Post; related?: Post[] }) {
   const backButton = (
     <Button component={Link} href="/ai-news/">
       ← Back to AI News
@@ -100,6 +101,8 @@ export default function BlogPost({ post }: { post: Post }) {
             </Box>
           </CardContent>
         </Card>
+
+        <RelatedPosts posts={related} />
       </motion.div>
     </Container>
   );
