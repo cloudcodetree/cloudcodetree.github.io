@@ -74,8 +74,11 @@ cosine metric), on the existing Worker's account.
    tags, and body (Markdown stripped to text).
 2. Chunks. Posts under about 350 words are one vector; longer ones split at
    about 350 words on sentence boundaries with a short overlap. Vector ids
-   are `<postId>#<n>`. Metadata per vector: `postId` (string), `date`
-   (number, epoch days), `hash` (content hash of the whole post).
+   are `<sha256(postId) first 24 hex>#<n>` — Vectorize caps ids at 64 bytes
+   and the post-id slugs are longer; the real post id rides in the indexed
+   `postId` metadata, which the query path reads back. Metadata per vector:
+   `postId` (string), `date` (number, epoch days), `hash` (content hash of
+   the whole post).
 3. Diffs. Reads the last run's manifest from R2 (`search-manifest.json`: per
    post hash, chunk count, date, mean vector — a flat key, because the R2 API
    put percent-encodes a `/`), embeds only posts whose hash

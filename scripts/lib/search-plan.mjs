@@ -1,6 +1,6 @@
-import { postHash } from './search-text.mjs';
+import { postHash, vectorIdFor } from './search-text.mjs';
 
-const chunkIds = (id, n) => Array.from({ length: n }, (_, i) => `${id}#${i}`);
+const chunkIds = (id, n) => Array.from({ length: n }, (_, i) => vectorIdFor(id, i));
 
 /** Decide what to embed and what to delete, given the last run's manifest. */
 export function planIndex(posts, manifest) {

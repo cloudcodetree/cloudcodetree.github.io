@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { planIndex } from './search-plan.mjs';
-import { postHash } from './search-text.mjs';
+import { postHash, vectorIdFor } from './search-text.mjs';
 
 const post = (id, content) => ({ id, title: 't', excerpt: 'e', tags: ['AI'], content, date: '09-07-2026' });
 
@@ -19,13 +19,13 @@ describe('planIndex', () => {
     const manifest = { version: 1, model: 'm', posts: { a: { hash: 'stale', chunks: 3, date: 1, v: '' } } };
     const plan = planIndex([a], manifest);
     expect(plan.toEmbed.map((p) => p.id)).toEqual(['a']);
-    expect(plan.toDelete).toEqual(['a#0', 'a#1', 'a#2']);
+    expect(plan.toDelete).toEqual([vectorIdFor('a', 0), vectorIdFor('a', 1), vectorIdFor('a', 2)]);
   });
 
   it('deletes every chunk of a vanished post', () => {
     const manifest = { version: 1, model: 'm', posts: { gone: { hash: 'x', chunks: 2, date: 1, v: '' } } };
     const plan = planIndex([], manifest);
-    expect(plan.toDelete).toEqual(['gone#0', 'gone#1']);
+    expect(plan.toDelete).toEqual([vectorIdFor('gone', 0), vectorIdFor('gone', 1)]);
     expect(plan.toEmbed).toEqual([]);
   });
 

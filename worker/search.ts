@@ -33,12 +33,15 @@ export function normalizeQuery(raw: string | null): string | null {
   return q.length ? q : null;
 }
 
-/** `<postId>#<n>` → best score per postId, descending. */
-export function collapseMatches(matches: { id: string; score: number }[]): { id: string; score: number }[] {
+export function collapseMatches(
+  matches: { id: string; score: number; metadata?: Record<string, unknown> }[],
+): { id: string; score: number }[] {
   const best = new Map<string, number>();
   for (const m of matches) {
-    const id = m.id.split('#')[0];
-    if ((best.get(id) ?? -Infinity) < m.score) best.set(id, m.score);
+    // The vector id is a hash (Vectorize caps ids at 64 bytes); the real post
+    // id rides in indexed metadata. The split is a fallback for older vectors.
+    const postId = typeof m.metadata?.postId === 'string' ? m.metadata.postId : m.id.split('#')[0];
+    if ((best.get(postId) ?? -Infinity) < m.score) best.set(postId, m.score);
   }
   return Array.from(best.entries(), ([id, score]) => ({ id, score })).sort((a, b) => b.score - a.score);
 }
@@ -70,7 +73,7 @@ export async function handleSearch(
     const hit = await cache?.match(cacheKey);
     if (hit) return hit;
     const emb = (await env.AI.run(MODEL, { text: [q] })) as { data: number[][] };
-    const { matches } = await env.VECTORIZE.query(emb.data[0], { topK: TOP_K, returnMetadata: 'none' });
+    const { matches } = await env.VECTORIZE.query(emb.data[0], { topK: TOP_K, returnMetadata: 'indexed' });
     const results = collapseMatches(matches);
     console.log(JSON.stringify({ event: 'search', results: results.length, ms: Date.now() - started }));
     const res = Response.json({ results }, { headers: { 'cache-control': `public, max-age=${TTL_SECONDS}` } });

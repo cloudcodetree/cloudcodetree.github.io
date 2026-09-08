@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { stripMarkdown, postText, chunkText, chunkPost, postHash } from './search-text.mjs';
+import { readFileSync } from 'node:fs';
+import { stripMarkdown, postText, chunkText, chunkPost, postHash, vectorIdFor } from './search-text.mjs';
 
 const words = (n, w = 'word') => Array.from({ length: n }, (_, i) => `${w}${i}`).join(' ');
 
@@ -53,8 +54,8 @@ describe('chunkText', () => {
 describe('chunkPost + postHash', () => {
   const post = { id: 'p1', title: 'T', excerpt: 'E', tags: ['AI', 'News'], content: words(60) };
 
-  it('ids chunks by post id and index', () => {
-    expect(chunkPost(post)).toEqual([{ id: 'p1#0', text: postText(post) }]);
+  it('ids chunks by a hash of the post id and index', () => {
+    expect(chunkPost(post)).toEqual([{ id: vectorIdFor('p1', 0), text: postText(post) }]);
   });
 
   it('hash is stable and changes with content', () => {
@@ -62,5 +63,22 @@ describe('chunkPost + postHash', () => {
     expect(a).toMatch(/^[0-9a-f]{16}$/);
     expect(postHash({ ...post })).toBe(a);
     expect(postHash({ ...post, content: words(61) })).not.toBe(a);
+  });
+});
+
+describe('chunk ids over the real corpus', () => {
+  const posts = JSON.parse(readFileSync('public/blog/posts.json', 'utf8'));
+
+  it('every chunk id fits Vectorize\'s 64-byte limit, with distinct id prefixes per post', () => {
+    const prefixes = new Set();
+    for (const p of posts) {
+      const chunks = chunkPost(p);
+      for (const { id } of chunks) {
+        expect(Buffer.byteLength(id, 'utf8')).toBeLessThanOrEqual(64);
+      }
+      // The part before the chunk index must be stable and distinct per post.
+      prefixes.add(chunks[0].id.split('#')[0]);
+    }
+    expect(prefixes.size).toBe(posts.length);
   });
 });

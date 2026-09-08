@@ -66,8 +66,18 @@ export function chunkText(text, { maxWords = 350, overlap = 40 } = {}) {
   return chunks;
 }
 
+/**
+ * Vectorize caps vector ids at 64 bytes; our post ids are long slugs (up to 76
+ * bytes with the chunk suffix). The id is therefore a stable hash of the post
+ * id — the REAL post id travels in each vector's `postId` metadata, which is
+ * what the Worker reads back.
+ */
+export function vectorIdFor(postId, n) {
+  return `${createHash('sha256').update(String(postId)).digest('hex').slice(0, 24)}#${n}`;
+}
+
 export function chunkPost(post) {
-  return chunkText(postText(post)).map((text, i) => ({ id: `${post.id}#${i}`, text }));
+  return chunkText(postText(post)).map((text, i) => ({ id: vectorIdFor(post.id, i), text }));
 }
 
 export function postHash(post) {
