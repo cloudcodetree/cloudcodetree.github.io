@@ -13,10 +13,15 @@
     // would return a bare 404 and break parity.
     "not_found_handling": "404-page",
     // These paths 404 until Phase 2. Declared now so the array form is proven
-    // to deploy before anything depends on it.
-    "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*"]
+    // to deploy before anything depends on it. /ai-news/feed.xml is here so the
+    // Worker can answer ?topics= — with no parameter it serves the same asset.
+    "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*", "/ai-news/feed.xml"]
   },
   "observability": { "enabled": true },
+  // Search: Workers AI embeds the query, Vectorize holds the post chunks.
+  // Both on the Free plan; the index is filled by scripts/index-search.mjs in CI.
+  "ai": { "binding": "AI" },
+  "vectorize": [{ "binding": "VECTORIZE", "index_name": "cct-search" }],
   // The apex flip (cutover runbook step 6): a Worker ROUTE overlays the proxied
   // GitHub Pages A records — no DNS edit, and deleting the route is the rollback.
   // www is deliberately NOT routed: the Worker only runs for run_worker_first
@@ -55,8 +60,12 @@
         "binding": "ASSETS",
         "html_handling": "force-trailing-slash",
         "not_found_handling": "404-page",
-        "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*"]
-      }
+        "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*", "/ai-news/feed.xml"]
+      },
+      // Search: Workers AI embeds the query, Vectorize holds the post chunks.
+      // Both on the Free plan; the index is filled by scripts/index-search.mjs in CI.
+      "ai": { "binding": "AI" },
+      "vectorize": [{ "binding": "VECTORIZE", "index_name": "cct-search" }]
     }
   }
 }

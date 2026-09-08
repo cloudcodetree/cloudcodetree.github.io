@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { FEED_WINDOW, FEED_WINDOW_LIMIT } from './lib/feed-window.mjs';
 import { isFeedEra } from './lib/feed-era.mjs';
+import { slugForTag, topicTags } from './lib/topics.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BLOG_DIR = path.join(ROOT, 'public', 'blog');
@@ -75,6 +76,48 @@ async function checkTombstones(posts, errors) {
           'Re-run scripts/remove-post.mjs or restore the deletion.',
       );
     }
+  }
+}
+
+const RELATED_JSON = path.join(BLOG_DIR, 'related.json');
+
+/**
+ * related.json is generated (scripts/index-search.mjs) from the search
+ * manifest, which can lag posts.json by a run. A neighbor id that no longer
+ * exists would render a dead card, so it is an error — but only when the
+ * file exists (local builds without a token never write one).
+ */
+async function checkRelated(posts, errors) {
+  if (!existsSync(RELATED_JSON)) return;
+  const related = JSON.parse(await readFile(RELATED_JSON, 'utf8'));
+  if (!related || typeof related !== 'object' || Array.isArray(related)) {
+    errors.push('related.json: expected an object of { postId: [neighborId, …] }');
+    return;
+  }
+  const ids = new Set(posts.map((p) => p.id));
+  for (const [id, neighbors] of Object.entries(related)) {
+    if (!ids.has(id)) errors.push(`related.json: "${id}" is not in posts.json`);
+    if (!Array.isArray(neighbors) || neighbors.some((n) => typeof n !== 'string')) {
+      errors.push(`related.json: "${id}" must map to an array of post ids`);
+      continue;
+    }
+    for (const n of neighbors) if (!ids.has(n)) errors.push(`related.json: "${id}" points at missing post "${n}"`);
+    if (neighbors.includes(id)) errors.push(`related.json: "${id}" lists itself`);
+  }
+}
+
+/**
+ * Two different tags that slugify to the same string would silently share one
+ * /ai-news/topic/<slug>/ page (and one feed), so one topic's posts would
+ * vanish behind the other's. Cheap to check, impossible to spot in review.
+ */
+function checkTopicSlugs(posts, errors) {
+  const bySlug = new Map();
+  for (const { tag } of topicTags(posts)) {
+    const slug = slugForTag(tag);
+    const first = bySlug.get(slug);
+    if (first === undefined) bySlug.set(slug, tag);
+    else errors.push(`topic slug "${slug}" is produced by both "${first}" and "${tag}"`);
   }
 }
 
@@ -146,6 +189,8 @@ async function main() {
 
   await checkFeedWindow(warnings);
   await checkTombstones(posts, errors);
+  await checkRelated(posts, errors);
+  checkTopicSlugs(posts || [], errors);
 
   for (const w of warnings) console.warn(`  ! ${w}`);
 

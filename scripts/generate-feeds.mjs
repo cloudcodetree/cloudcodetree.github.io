@@ -29,6 +29,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readTutorials, seriesTotal } from './lib/tutorials-data.mjs';
 import { readProjects } from './lib/projects-data.mjs';
+import { topicTags } from './lib/topics.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -122,7 +123,7 @@ async function main() {
   }));
 
   const feedPosts = items.slice(0, FEED_LIMIT); // newest-first; cap the feed (sitemap below keeps all)
-  const rssItems = feedPosts.map(({ p, html, img, date }) => {
+  const renderItem = ({ p, html, img, date }) => {
     const link = `${SITE}/ai-news/${p.id}/`;
     const cats = (p.tags || []).map((t) => `    <category>${cdata(t)}</category>`).join('\n');
     const media = img
@@ -139,7 +140,8 @@ async function main() {
 ${cats ? cats + '\n' : ''}    <description>${cdata(p.excerpt || '')}</description>
     <content:encoded>${cdata(figure + html)}</content:encoded>
 ${media}  </item>`;
-  }).join('\n');
+  };
+  const rssItems = feedPosts.map(renderItem).join('\n');
 
   // Each feed is written at its canonical .../feed.xml AND at guessable aliases
   // (rss.xml, index.xml) so naive path-discovery also finds it; autodiscovery
@@ -153,6 +155,31 @@ ${media}  </item>`;
   await writeAll('', siteBody, feedPosts.length);
   const aiBody = rssChannel({ title: FEED_TITLE, desc: FEED_DESC, self: `${SITE}/ai-news/feed.xml`, link: `${SITE}/ai-news/`, itemsXml: rssItems, now });
   await writeAll('ai-news', aiBody, feedPosts.length);
+
+  // Per-topic feeds: /ai-news/topic/<slug>/feed.xml (same item format, newest 20 with that tag).
+  const topics = topicTags(posts);
+  // Two tags slugifying the same would overwrite each other's feed here and
+  // share one topic page; fail loudly rather than lose a topic's posts.
+  const seenSlugs = new Set();
+  for (const { tag, slug } of topics) {
+    if (seenSlugs.has(slug)) throw new Error('duplicate topic slug: ' + slug);
+    seenSlugs.add(slug);
+    const tagged = items.filter(({ p }) => (p.tags || []).includes(tag)).slice(0, FEED_LIMIT);
+    const body = rssChannel({
+      title: `${tag} · AI News · CloudCodeTree`,
+      desc: `AI News posts tagged ${tag}.`,
+      self: `${SITE}/ai-news/topic/${slug}/feed.xml`,
+      link: `${SITE}/ai-news/topic/${slug}/`,
+      itemsXml: tagged.map(renderItem).join('\n'),
+      now,
+    });
+    await writeAll(`ai-news/topic/${slug}`, body, tagged.length);
+  }
+
+  // Keyword search index for the browser (MiniSearch): no bodies, newest-first.
+  const searchIndex = posts.map((p) => ({ id: p.id, title: p.title, excerpt: p.excerpt || '', tags: p.tags || [], date: p.date }));
+  await writeFile(path.join(BLOG_DIR, 'search-index.json'), JSON.stringify(searchIndex));
+  console.log(`✓ blog/search-index.json (${searchIndex.length} posts) → public/`);
 
   // Tutorials feed — built from the hand-authored manifest (newest-first, capped).
   const allTuts = readTutorials().filter((t) => !t.draft);
@@ -186,6 +213,7 @@ ${media}  </item>`;
 
   const staticRoutes = [
     { loc: `${SITE}/`, lastmod: newest, priority: '1.0' }, // home = AI News blog
+    ...topics.map((t) => ({ loc: `${SITE}/ai-news/topic/${t.slug}/`, lastmod: newest, priority: '0.5' })),
     { loc: `${SITE}/tutorials/`, priority: '0.8' },
     ...tutorialSlugs.map((s) => ({ loc: `${SITE}/tutorials/${s}/`, priority: '0.7' })),
     { loc: `${SITE}/projects/`, priority: '0.8' },

@@ -3,6 +3,8 @@
 import { InvalidTokenError, JwksUnavailableError, readCookie, verifyToken } from './auth';
 import { handleSession } from './session';
 import { isNavigation, logDemoOpen } from './events';
+import { handleSearch } from './search';
+import { handleFeed } from './feed';
 
 export interface Env {
   ASSETS: Fetcher;
@@ -12,6 +14,9 @@ export interface Env {
   SUPABASE_ANON_KEY: string;
   /** Supabase user id of the site owner — the only account /admin/* answers to. */
   OWNER_USER_ID?: string;
+  /** Workers AI + Vectorize — the search endpoint. Optional so a missing binding degrades to 503, never a crash. */
+  AI?: Ai;
+  VECTORIZE?: Vectorize;
 }
 
 // Gated: the live demos only — /projects/<slug>/demo/*. Landing pages, the
@@ -24,7 +29,8 @@ const ADMIN_PATH = /^\/admin(\/|$)/;
 
 /**
  * This handler runs only for `run_worker_first` paths (/api/*, the demo
- * gate) and asset misses; every ordinary page is served at the edge.
+ * gate, /ai-news/feed.xml) and asset misses; every ordinary page is served
+ * at the edge.
  */
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -33,8 +39,16 @@ export default {
     if (url.pathname === '/api/session' || url.pathname === '/api/session/') {
       return handleSession(request, env);
     }
+    if (url.pathname === '/api/search' || url.pathname === '/api/search/') {
+      return handleSearch(request, env, ctx);
+    }
     if (url.pathname.startsWith('/api/')) {
       return new Response('not found', { status: 404 });
+    }
+    // The one static asset the Worker may rewrite: ?topics= merges the
+    // per-topic feeds. Without the parameter it hands back the file untouched.
+    if (url.pathname === '/ai-news/feed.xml') {
+      return handleFeed(request, env, ctx);
     }
 
     const gated = url.pathname.match(GATED_PATH);

@@ -47,7 +47,7 @@ pnpm run build:staging && pnpm run deploy:staging
 # assert the build variant (a prod build deployed to staging once blanked beta).
 pnpm run build && node scripts/fetch-demo-artifacts.mjs && pnpm run deploy:prod
 
-# Acceptance test against any origin: 20-case contract, --sweep adds every sitemap URL
+# Acceptance test against any origin: 26-case contract, --sweep adds every sitemap URL
 node scripts/check-parity.mjs --origin https://beta.cloudcodetree.com --sweep
 ```
 
@@ -177,7 +177,7 @@ inside the assets.
 
 `scripts/assert-variant.mjs` (inside `deploy:staging` / `deploy:prod`) refuses to
 deploy the wrong variant. `scripts/check-parity.mjs --origin <url> [--sweep]` is the
-acceptance test: a 20-case contract (redirects, feeds, headers, the gate) plus a sweep
+acceptance test: a 26-case contract (redirects, feeds, headers, the gate) plus a sweep
 of every sitemap URL. HTTP checks cannot see a blank page — pair them with a browser.
 
 ### CI (`.github/workflows/deploy.yml`, on push to `main`)
@@ -190,8 +190,11 @@ variable `ENABLE_WORKER_DEPLOY=true` plus the secrets `CLOUDFLARE_API_TOKEN` /
 same job (no artifact hop). PR builds stop after the build.
 `node scripts/set-ci-secrets.mjs` sets the variable and both secrets from a token
 kept in `.env` (it never prints the token); `node scripts/cf-zone.mjs status|purge|www-redirect`
-covers the zone-level chores with the same token. Local deploys use `wrangler login`
-(OAuth) — no token on disk. `.github/workflows/supabase-keepalive.yml` pings the
+covers the zone-level chores with the same token. Both environments carry the `ai` (`AI`)
+and `vectorize` (`VECTORIZE` → `cct-search`) bindings in `wrangler.jsonc` for search; the CI
+token's scopes include Workers AI Read and Vectorize Edit alongside its existing scopes.
+Local deploys use `wrangler login` (OAuth) — no token on disk.
+`.github/workflows/supabase-keepalive.yml` pings the
 Supabase project twice a week so the free tier never pauses it.
 
 ### DNS (Cloudflare zone `cloudcodetree.com`)
@@ -372,6 +375,22 @@ Both are gitignored (regenerated each build). Per-page JSON chunks were retired 
 paginates client-side. The feed is discoverable via a `<link rel="alternate">` in
 `app/layout.tsx`, the sitemap via robots.txt. This is separate from the **ingest** feed at
 `content/feed.xml` (task → site).
+
+**Search + discovery (2026-09).** Hybrid search: keywords in the browser (MiniSearch over
+the generated `public/blog/search-index.json`) merged by reciprocal rank fusion with
+meaning from `GET /api/search?q=` (`worker/search.ts`: Workers AI `bge-base` embeds the
+query, Vectorize index `cct-search` answers; 1 h cache; 503 = keyword-only). The index is
+filled by `node scripts/index-search.mjs` in the CI deploy job (diff-based; state =
+`search-manifest.json` on the R2 bucket — a FLAT key, since `r2Put` percent-encodes a `/`),
+which also writes the generated `public/blog/related.json` behind the **Related** strip on
+every article and mirrors it to R2 as `search-related.json`.
+`/ai-news/topic/<slug>/` (+ `feed.xml`) exists per tag from `scripts/lib/topics.mjs` — the
+ONE slug source for scripts and app code.
+A multi-topic feed is served by the Worker at `/ai-news/feed.xml?topics=<slug,slug>`
+(merges the per-topic static feeds, newest 20, 1 h edge cache; no `topics` = the static
+file). `--dry-run` never touches Cloudflare; no token =
+keyword-only + related posts from the last mirror (empty if there is none), never a failed
+build.
 
 **Hard rules**
 - Post bodies are Markdown stored inline in `posts.json` `content` (no `.md` files, no YAML

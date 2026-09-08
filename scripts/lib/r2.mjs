@@ -21,7 +21,7 @@ export const LEGACY_CDN = 'https://github.com/cloudcodetree/cloudcodetree.github
 export const PLACEHOLDER = `${IMG_ORIGIN}/_default.png`;
 
 const ACCOUNT_ID_DEFAULT = '2473c9873f03835b5779ea7c11d41106'; // public identifier
-const API = 'https://api.cloudflare.com/client/v4';
+export const API = 'https://api.cloudflare.com/client/v4';
 const CACHE_CONTROL = 'public, max-age=31536000, immutable';
 
 function parseEnv(p) {
@@ -36,7 +36,7 @@ function parseEnv(p) {
 }
 
 let creds;
-function credentials() {
+export function cfCredentials() {
   if (creds) return creds;
   const env = { ...parseEnv('.env'), ...parseEnv('.env.local'), ...process.env };
   creds = {
@@ -48,7 +48,7 @@ function credentials() {
 
 /** True when an upload token is available (CI secret or .env). */
 export function r2Ready() {
-  return Boolean(credentials().token);
+  return Boolean(cfCredentials().token);
 }
 
 /** Public URL of an object key. */
@@ -67,12 +67,12 @@ export function contentTypeFor(key) {
 }
 
 /** Upload bytes as `key`. Overwrites. Throws on failure. */
-export async function r2Put(key, body, contentType = contentTypeFor(key)) {
-  const { token, accountId } = credentials();
+export async function r2Put(key, body, contentType = contentTypeFor(key), cacheControl = CACHE_CONTROL) {
+  const { token, accountId } = cfCredentials();
   if (!token) throw new Error('CLOUDFLARE_API_TOKEN is not set');
   const res = await fetch(`${API}/accounts/${accountId}/r2/buckets/${R2_BUCKET}/objects/${encodeURIComponent(key)}`, {
     method: 'PUT',
-    headers: { authorization: `Bearer ${token}`, 'content-type': contentType, 'cache-control': CACHE_CONTROL },
+    headers: { authorization: `Bearer ${token}`, 'content-type': contentType, 'cache-control': cacheControl },
     body,
   });
   if (!res.ok) {

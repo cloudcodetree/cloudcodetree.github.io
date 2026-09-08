@@ -14,10 +14,25 @@ import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { BlogPost, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx, markdownComponents } from './blogShared';
 import { Corners } from './Blueprint';
+import SearchBox from './SearchBox';
+import TopicsFlyout from './TopicsFlyout';
+// eslint-disable-next-line import/no-relative-packages
+import { topicTags } from '../../scripts/lib/topics.mjs';
 
 interface BlogPageProps {
   /** Slim (content-free) index of every post, newest-first, embedded at build time. */
   posts: BlogPost[];
+  heading?: string;
+  intro?: React.ReactNode;
+  feedPath?: string;
+  emptyMessage?: string;
+  /**
+   * Set by the topic landing route. The posts arriving here are ALREADY
+   * prefiltered to this tag, so it is deliberately not preselected in the
+   * flyout — the flyout narrows within the topic instead of re-applying it.
+   */
+  topic?: { tag: string; slug: string };
+  showSearch?: boolean;
 }
 
 type View = 'list' | 'cards' | 'feed';
@@ -31,11 +46,11 @@ const clamp = (n: number) => ({
   overflow: 'hidden', textOverflow: 'ellipsis',
 } as const);
 
-const topicTags = (post: BlogPost) => post.tags.filter((t) => t.toLowerCase() !== 'ai');
+const postTopics = (post: BlogPost) => post.tags.filter((t) => t.toLowerCase() !== 'ai');
 
 /** Shared tag-pill row, identical across every view. */
 function Pills({ post, max = 3 }: { post: BlogPost; max?: number }) {
-  const tags = topicTags(post).slice(0, max);
+  const tags = postTopics(post).slice(0, max);
   if (!tags.length) return null;
   return (
     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
@@ -47,7 +62,10 @@ function Pills({ post, max = 3 }: { post: BlogPost; max?: number }) {
   );
 }
 
-export default function BlogPage({ posts }: BlogPageProps) {
+export default function BlogPage({
+  posts, heading = 'AI News', intro = 'Daily field notes on AI-assisted engineering.',
+  feedPath = '/feed.xml', emptyMessage, showSearch = true,
+}: BlogPageProps) {
   const [view, setView] = useState<View>('cards');              // SSR default
   const [sizeOverride, setSizeOverride] = useState<Partial<Record<View, number>>>({});
   const [page, setPage] = useState(1);
@@ -57,13 +75,15 @@ export default function BlogPage({ posts }: BlogPageProps) {
   const [feedLoading, setFeedLoading] = useState(false);
   const feedRef = useRef<Map<string, string> | null>(null);
   const [feedCopied, setFeedCopied] = useState(false);
+  // Empty until mount: this component prerenders, and window.location.origin
+  // does not exist then. Only click handlers read the absolute URL.
+  const [origin, setOrigin] = useState('');
 
-  // Topic chips: every tag except the ubiquitous "AI", most-used first, with counts.
-  const topics = useMemo(() => {
-    const c: Record<string, number> = {};
-    for (const p of posts) for (const t of p.tags || []) if (t.toLowerCase() !== 'ai') c[t] = (c[t] || 0) + 1;
-    return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count }));
-  }, [posts]);
+  // What the Topics flyout lists: every tag except the ubiquitous "AI",
+  // most-used first, with its slug and count. topicTags() is the ONE definition
+  // shared with the feed/sitemap generators, so a pill's link and the page it
+  // opens can never disagree about a slug.
+  const topics: { tag: string; slug: string; count: number }[] = useMemo(() => topicTags(posts), [posts]);
 
   // Filter (OR): a post matches if it carries any selected topic.
   const filteredPosts = useMemo(
@@ -78,6 +98,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
 
   // Reconcile view + page-size prefs from localStorage and ?page/?topics from the URL.
   useEffect(() => {
+    setOrigin(window.location.origin);
     const v = window.localStorage.getItem('ainews-view') as View | null;
     if (v && VIEWS.includes(v)) setView(v);
     try {
@@ -91,7 +112,8 @@ export default function BlogPage({ posts }: BlogPageProps) {
     if (n > 1) setPage(n);
   }, []);
 
-  // Keep the URL (?page, ?topics) in sync, clamped, on the CURRENT path (/ or /ai-news/).
+  // Keep the URL (?page, ?topics) in sync, clamped, on the CURRENT path (/ or /ai-news/,
+  // also /ai-news/search/ where a foreign `?q=` must survive this rewrite).
   //
   // Skips its OWN first run. On mount `selectedTags`/`page` still hold their SSR
   // defaults, so writing the URL here would serialize empty state over an incoming
@@ -102,9 +124,14 @@ export default function BlogPage({ posts }: BlogPageProps) {
   useEffect(() => {
     if (page !== safePage) { setPage(safePage); return; }
     if (!urlSyncArmed.current) { urlSyncArmed.current = true; return; }
-    const params = new URLSearchParams();
-    if (selectedTags.length) params.set('topics', selectedTags.join(','));
-    if (safePage > 1) params.set('page', String(safePage));
+    // Seed from the CURRENT query string and only touch the keys this effect owns —
+    // a rebuild-from-scratch here would silently drop any other param a host page
+    // relies on (e.g. /ai-news/search/'s `?q=`), and under React 18 StrictMode's
+    // dev-only double-effect-invoke this "armed" branch can fire before that page's
+    // own mount effect has read its query, corrupting the term it reads mid-flight.
+    const params = new URLSearchParams(window.location.search);
+    if (selectedTags.length) params.set('topics', selectedTags.join(',')); else params.delete('topics');
+    if (safePage > 1) params.set('page', String(safePage)); else params.delete('page');
     const qs = params.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -145,23 +172,39 @@ export default function BlogPage({ posts }: BlogPageProps) {
   };
 
   const toggleTag = (tag: string) => {
-    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : prev.concat(tag)));
     setPage(1);
   };
+
   const clearTags = () => { setSelectedTags([]); setPage(1); };
+
+  // The feed for what is selected right now. One topic already HAS a static
+  // feed, so only a real multi-topic selection needs the Worker's ?topics=
+  // merge; nothing selected is just this page's own feed.
+  const feedUrlForSelection = useMemo(() => {
+    // Slugs come from the same topics array the pills link to. A `?topics=` tag
+    // that no post carries has no topic page and no feed, so it is dropped
+    // rather than turned into a URL that 404s.
+    const bySlug = new Map(topics.map((t) => [t.tag, t.slug]));
+    const slugs = selectedTags.map((t) => bySlug.get(t)).filter(Boolean).sort() as string[];
+    const path = slugs.length === 0 ? feedPath
+      : slugs.length === 1 ? `/ai-news/topic/${slugs[0]}/feed.xml`
+        : `/ai-news/feed.xml?topics=${slugs.join(',')}`;
+    return `${origin}${path}`;
+  }, [selectedTags, topics, feedPath, origin]);
 
   // Copy the feed URL rather than only linking it: most browsers render feed XML
   // as a wall of markup, and what a reader actually needs is the URL on their
   // clipboard to paste into a reader app. The <a> stays a real link so
   // middle-click / "open in new tab" / a browser extension still work.
   const copyFeedUrl = async () => {
-    const url = `${window.location.origin}/feed.xml`;
+    const url = `${window.location.origin}${feedPath}`;
     try {
       await navigator.clipboard.writeText(url);
       setFeedCopied(true);
       window.setTimeout(() => setFeedCopied(false), 2000);
     } catch {
-      window.open('/feed.xml', '_blank', 'noopener');   // clipboard blocked → just show it
+      window.open(feedPath, '_blank', 'noopener');   // clipboard blocked → just show it
     }
   };
 
@@ -295,12 +338,12 @@ export default function BlogPage({ posts }: BlogPageProps) {
         </Typography>
         <Typography component="h1"
           sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '3rem', md: '4.75rem' }, lineHeight: 0.95, letterSpacing: '-0.02em', m: 0, background: 'linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          AI News
+          {heading}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mt: 2.5, flexWrap: 'wrap' }}>
           <Box sx={{ height: 2, width: 56, background: ACCENT, alignSelf: 'center' }} />
           <Typography sx={{ color: 'text.secondary', fontSize: { xs: '1rem', md: '1.12rem' }, maxWidth: 560 }}>
-            Daily field notes on AI-assisted engineering.
+            {intro}
           </Typography>
         </Box>
 
@@ -308,7 +351,7 @@ export default function BlogPage({ posts }: BlogPageProps) {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mt: 3, flexWrap: 'wrap' }}>
           <Box
             component="a"
-            href="/feed.xml"
+            href={feedPath}
             onClick={(e: React.MouseEvent) => { e.preventDefault(); copyFeedUrl(); }}
             aria-label="Copy the RSS feed URL"
             sx={{
@@ -327,19 +370,31 @@ export default function BlogPage({ posts }: BlogPageProps) {
             {!feedCopied && <ContentCopy sx={{ fontSize: 13, opacity: 0.6 }} />}
           </Box>
           <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>
-            cloudcodetree.com/feed.xml&nbsp;·&nbsp;full text, no tracking
+            cloudcodetree.com{feedPath}&nbsp;·&nbsp;full text, no tracking
           </Typography>
         </Box>
       </Box>
 
       {/* Controls: view switcher + page size */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: { xs: 2, md: 3 }, flexWrap: 'wrap' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
-          <Select value={pageSize} inputProps={{ 'aria-label': 'Posts per page' }} onChange={(e) => choosePageSize(Number(e.target.value))} size="small"
-            sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(148,163,184,0.2)' }, '.MuiSvgIcon-root': { color: 'text.secondary' } }}>
-            {PAGE_OPTIONS.map((n) => <MenuItem key={n} value={n} sx={{ fontFamily: MONO, fontSize: 12 }}>{n}</MenuItem>)}
-          </Select>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', flex: 1 }}>
+          {showSearch && <SearchBox />}
+          {topics.length > 0 && (
+            <TopicsFlyout
+              topics={topics}
+              selected={selectedTags}
+              onToggle={toggleTag}
+              onClear={clearTags}
+              feedUrlForSelection={feedUrlForSelection}
+            />
+          )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
+            <Select value={pageSize} inputProps={{ 'aria-label': 'Posts per page' }} onChange={(e) => choosePageSize(Number(e.target.value))} size="small"
+              sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(148,163,184,0.2)' }, '.MuiSvgIcon-root': { color: 'text.secondary' } }}>
+              {PAGE_OPTIONS.map((n) => <MenuItem key={n} value={n} sx={{ fontFamily: MONO, fontSize: 12 }}>{n}</MenuItem>)}
+            </Select>
+          </Box>
         </Box>
         <ToggleButtonGroup value={view} exclusive size="small" onChange={(_, v) => chooseView(v)} aria-label="Choose layout"
           sx={{ '& .MuiToggleButton-root': { color: 'text.secondary', borderColor: 'rgba(148,163,184,0.2)', px: 1.25 }, '& .Mui-selected': { color: `${ACCENT} !important`, background: 'rgba(148,188,227,0.12) !important' } }}>
@@ -349,44 +404,10 @@ export default function BlogPage({ posts }: BlogPageProps) {
         </ToggleButtonGroup>
       </Box>
 
-      {/* Topic filter */}
-      {topics.length > 0 && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mb: { xs: 3, md: 4 } }}>
-          <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', mr: 0.5 }}>Topics</Typography>
-          {topics.map(({ tag, count }) => {
-            const on = selectedTags.includes(tag);
-            return (
-              <Chip
-                key={tag}
-                label={`${tag} ${count}`}
-                size="small"
-                onClick={() => toggleTag(tag)}
-                sx={{
-                  fontFamily: MONO, fontSize: 11, cursor: 'pointer',
-                  color: on ? '#1d1f20' : 'text.secondary',
-                  background: on ? ACCENT : 'transparent',
-                  border: '1px solid', borderColor: on ? ACCENT : 'rgba(148,163,184,0.25)',
-                  '& .MuiChip-label': { px: 1 },
-                  '&:hover': { background: on ? ACCENT : 'rgba(148,188,227,0.12)' },
-                }}
-              />
-            );
-          })}
-          {selectedTags.length > 0 && (
-            <Chip
-              label={`Clear · ${filteredPosts.length} post${filteredPosts.length === 1 ? '' : 's'}`}
-              size="small"
-              onClick={clearTags}
-              sx={{ fontFamily: MONO, fontSize: 11, cursor: 'pointer', color: ACCENT, background: 'transparent', border: '1px solid', borderColor: ACCENT, '& .MuiChip-label': { px: 1 } }}
-            />
-          )}
-        </Box>
-      )}
-
       {filteredPosts.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10 }}>
           <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>
-            {posts.length === 0 ? '// no posts yet' : '// no posts match those topics — clear a filter above'}
+            {emptyMessage ?? (posts.length === 0 ? '// no posts yet' : '// no posts match those topics — clear a filter above')}
           </Typography>
         </Box>
       ) : (
