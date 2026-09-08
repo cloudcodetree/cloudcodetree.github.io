@@ -12,7 +12,7 @@ function fakeCache(): CacheLike & { store: Map<string, Response> } {
   };
 }
 
-function stubEnv(opts: { matches?: { id: string; score: number }[]; aiError?: Error } = {}): SearchEnv & { ai: ReturnType<typeof vi.fn>; query: ReturnType<typeof vi.fn> } {
+function stubEnv(opts: { matches?: { id: string; score: number; metadata?: Record<string, unknown> }[]; aiError?: Error } = {}): SearchEnv & { ai: ReturnType<typeof vi.fn>; query: ReturnType<typeof vi.fn> } {
   const ai = vi.fn(async () => { if (opts.aiError) throw opts.aiError; return { shape: [1, 3], data: [[0.1, 0.2, 0.3]] }; });
   const query = vi.fn(async () => ({ matches: opts.matches ?? [{ id: 'p1#0', score: 0.9 }] }));
   return { ai, query, AI: { run: ai } as unknown as Ai, VECTORIZE: { query } as unknown as Vectorize };
@@ -63,7 +63,20 @@ describe('handleSearch', () => {
     expect(res.headers.get('cache-control')).toBe('public, max-age=3600');
     expect(await res.json()).toEqual({ results: [{ id: 'p1', score: 0.9 }, { id: 'p2', score: 0.6 }] });
     expect(env.ai).toHaveBeenCalledWith('@cf/baai/bge-base-en-v1.5', { text: ['rag'] });
-    expect(env.query).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ returnMetadata: 'indexed' }));
+    expect(env.query).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ returnMetadata: 'all' }));
+  });
+
+  it('returns a post id longer than 64 bytes whole (Vectorize truncates the indexed projection there)', async () => {
+    const longId = '2026-09-07-05-llamaindex-citation-query-engine-rag-attributed-answers';
+    expect(longId.length).toBe(69);
+    const env = stubEnv({ matches: [{ id: 'hash#0', score: 0.9, metadata: { postId: longId } }] });
+    const res = await handleSearch(req('llamaindex citation query engine'), env, ctx, fakeCache());
+    const body = (await res.json()) as { results: { id: string; score: number }[] };
+    expect(body.results[0].id.length).toBe(69);
+    expect(body.results[0].id).toBe(longId);
+    // Guards the real bug: only 'all' returns untruncated metadata, so a
+    // regression to the indexed projection fails this assertion.
+    expect(env.query).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ returnMetadata: 'all' }));
   });
 
   it('serves a cache hit without calling the model', async () => {

@@ -114,9 +114,12 @@ implemented in `worker/search.ts` and routed from `worker/index.ts`:
    `Cache-Control: public, max-age=3600` so the edge caches too.
 3. Embeds the query with the `AI` binding, queries the `VECTORIZE` binding
    with `topK: 20`, collapses chunks to the best score per post, and
-   returns `{ results: [{ id, score }] }`. No post content leaves the
-   Worker; the browser hydrates titles and excerpts from the index it
-   already holds.
+   returns `{ results: [{ id, score }] }`. The query asks for full metadata
+   (`returnMetadata: 'all'`), not the indexed projection — Vectorize
+   truncates indexed metadata at 64 bytes per field and 14 post-id slugs
+   are longer, which would return ids the browser cannot hydrate. No post
+   content leaves the Worker; the browser hydrates titles and excerpts
+   from the index it already holds.
 4. A Workers AI or Vectorize quota error (Free-plan overage fails the call
    rather than billing) returns 503 with `Retry-After`. Any other upstream
    failure also returns 503. The client treats both as "keyword-only".

@@ -73,7 +73,11 @@ export async function handleSearch(
     const hit = await cache?.match(cacheKey);
     if (hit) return hit;
     const emb = (await env.AI.run(MODEL, { text: [q] })) as { data: number[][] };
-    const { matches } = await env.VECTORIZE.query(emb.data[0], { topK: TOP_K, returnMetadata: 'indexed' });
+    // Full metadata, not the indexed projection: Vectorize caps indexed
+    // metadata at 64 bytes per field, and 14 of our post-id slugs are
+    // longer, so 'indexed' silently truncates postId and the browser can't
+    // hydrate the result. 'all' returns the complete stored metadata.
+    const { matches } = await env.VECTORIZE.query(emb.data[0], { topK: TOP_K, returnMetadata: 'all' });
     const results = collapseMatches(matches);
     console.log(JSON.stringify({ event: 'search', results: results.length, ms: Date.now() - started }));
     const res = Response.json({ results }, { headers: { 'cache-control': `public, max-age=${TTL_SECONDS}` } });
