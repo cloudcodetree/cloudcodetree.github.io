@@ -15,6 +15,8 @@ import rehypeHighlight from 'rehype-highlight';
 import { BlogPost, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx, markdownComponents } from './blogShared';
 import { Corners } from './Blueprint';
 import SearchBox from './SearchBox';
+// eslint-disable-next-line import/no-relative-packages
+import { slugForTag } from '../../scripts/lib/topics.mjs';
 
 interface BlogPageProps {
   /** Slim (content-free) index of every post, newest-first, embedded at build time. */
@@ -59,8 +61,6 @@ export default function BlogPage({
   posts, heading = 'AI News', intro = 'Daily field notes on AI-assisted engineering.',
   feedPath = '/feed.xml', emptyMessage, topic, showSearch = true,
 }: BlogPageProps) {
-  void topic; // consumed by Task 12 (topic landing pages)
-
   const [view, setView] = useState<View>('cards');              // SSR default
   const [sizeOverride, setSizeOverride] = useState<Partial<Record<View, number>>>({});
   const [page, setPage] = useState(1);
@@ -163,10 +163,6 @@ export default function BlogPage({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
-    setPage(1);
-  };
   const clearTags = () => { setSelectedTags([]); setPage(1); };
 
   // Copy the feed URL rather than only linking it: most browsers render feed XML
@@ -376,13 +372,15 @@ export default function BlogPage({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mb: { xs: 3, md: 4 } }}>
           <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', mr: 0.5 }}>Topics</Typography>
           {topics.map(({ tag, count }) => {
-            const on = selectedTags.includes(tag);
+            const on = topic?.tag === tag || selectedTags.includes(tag);
             return (
               <Chip
                 key={tag}
+                component={Link}
+                href={`/ai-news/topic/${slugForTag(tag)}/`}
+                clickable
                 label={`${tag} ${count}`}
                 size="small"
-                onClick={() => toggleTag(tag)}
                 sx={{
                   fontFamily: MONO, fontSize: 11, cursor: 'pointer',
                   color: on ? '#1d1f20' : 'text.secondary',
