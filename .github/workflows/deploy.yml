@@ -31,17 +31,17 @@ jobs:
       contents: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         ref: main
 
     - name: Setup pnpm
-      uses: pnpm/action-setup@v4
+      uses: pnpm/action-setup@v6
       with:
         version: 10
 
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: '22'
         cache: 'pnpm'
@@ -102,25 +102,33 @@ jobs:
       contents: read
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         # On main pushes, build latest main so a rehost-images commit (which
         # can't trigger its own run) is included; empty ref = default for PRs.
         ref: ${{ github.event_name == 'push' && 'main' || '' }}
 
     - name: Setup pnpm
-      uses: pnpm/action-setup@v4
+      uses: pnpm/action-setup@v6
       with:
         version: 10
 
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: '22'
         cache: 'pnpm'
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
+
+    # The suite guards the Worker handlers, the chunker, the feed merger and
+    # the rank fusion — none of which validate-blog can see. It ran only on a
+    # developer's machine until 2026-09-08, so a broken handler could deploy.
+    - name: Unit tests + worker typecheck
+      run: |
+        pnpm test
+        pnpm run typecheck:worker
 
     - name: Validate blog index
       run: node scripts/validate-blog.mjs
@@ -164,8 +172,25 @@ jobs:
 
     - name: Deploy production Worker
       if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_WORKER_DEPLOY == 'true'
-      uses: cloudflare/wrangler-action@v3
+      uses: cloudflare/wrangler-action@v4
       with:
         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         command: deploy
+
+    # A fresh Worker version cold-starts the AI binding: the first /api/search
+    # takes 4-8s, past the browser's 2s budget, so search silently degrades to
+    # keyword-only for the first visitors. One throwaway query absorbs that.
+    # Never fails the deploy — the site is already live at this point.
+    - name: Warm the search endpoint
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_WORKER_DEPLOY == 'true'
+      run: |
+        for i in 1 2 3; do
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
+            "https://cloudcodetree.com/api/search?q=warmup+$(date +%s)-$i" || true)
+          echo "warm-up $i: HTTP $code"
+          [ "$code" = "200" ] && exit 0
+          sleep 5
+        done
+        echo "::warning title=search warm-up::endpoint did not return 200; first live search may be keyword-only"
+
