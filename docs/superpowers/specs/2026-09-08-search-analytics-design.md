@@ -70,6 +70,40 @@ miss inside the one-hour cache window is logged once. That undercounts
 frequency and is fine: the signal wanted is *which* queries fail, not how
 many times.
 
+**What "empty" means: nothing cleared the relevance floor.** Vectorize always
+returns `topK` nearest neighbours, so an empty *unfiltered* list happens only
+when the index itself is empty — as written above, the miss log would
+essentially never fire, and a reader asking for something the archive lacks
+would be handed twenty irrelevant posts. The handler therefore drops matches
+below a cosine floor before deciding anything:
+
+```ts
+const MIN_SCORE = 0.7;
+const results = collapseMatches(matches).filter((r) => r.score >= MIN_SCORE);
+```
+
+0.7 is measured, not guessed — top score of 15 queries against the live index,
+2026-09-08:
+
+- **Covered topics:** claude code hooks 0.854, rag evaluation 0.796, mcp server
+  auth 0.791, prompt caching 0.758, embeddings drift 0.735, postgres connection
+  pooling 0.711
+- **Not covered:** kubernetes operator pattern 0.657, terraform state locking
+  0.652, vim keybindings 0.636, django middleware 0.630
+- **Nonsense:** zzqqxx 0.631, lasagna 0.616, weather 0.587, sourdough 0.583,
+  my cat is sick 0.516
+
+The nearest points either side of the floor are 0.657 and 0.711, so the split is
+clean. The second and third bands overlapping is correct and wanted: "vim
+keybindings" is a genuine miss — a real thing the reader wanted and the archive
+does not have — not noise, and both bands should log.
+
+The floor lives in the handler, not in `collapseMatches`, which stays a pure
+best-score-per-post fold. And an empty semantic list is not an empty page: the
+client (`app/lib/searchIndex.ts`) merges these results with its own keyword
+index, so keyword hits still reach the reader when the semantic half returns
+nothing.
+
 ### 2. Harvest — `scripts/harvest-search-misses.mjs`
 
 Queries the Workers observability API for `search_miss` events since the last

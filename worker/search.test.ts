@@ -57,11 +57,11 @@ describe('handleSearch', () => {
   });
 
   it('embeds, queries, collapses, and returns ids + scores with a 1h cache header', async () => {
-    const env = stubEnv({ matches: [{ id: 'p1#0', score: 0.9 }, { id: 'p1#1', score: 0.4 }, { id: 'p2#0', score: 0.6 }] });
+    const env = stubEnv({ matches: [{ id: 'p1#0', score: 0.9 }, { id: 'p1#1', score: 0.4 }, { id: 'p2#0', score: 0.8 }] });
     const res = await handleSearch(req('rag'), env, ctx, fakeCache());
     expect(res.status).toBe(200);
     expect(res.headers.get('cache-control')).toBe('public, max-age=3600');
-    expect(await res.json()).toEqual({ results: [{ id: 'p1', score: 0.9 }, { id: 'p2', score: 0.6 }] });
+    expect(await res.json()).toEqual({ results: [{ id: 'p1', score: 0.9 }, { id: 'p2', score: 0.8 }] });
     expect(env.ai).toHaveBeenCalledWith('@cf/baai/bge-base-en-v1.5', { text: ['rag'] });
     expect(env.query).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ returnMetadata: 'all' }));
   });
@@ -103,6 +103,37 @@ describe('handleSearch', () => {
     const res = await handleSearch(req('rag'), stubEnv(), ctx, cache);
     expect(res.status).toBe(503);
     expect(res.headers.get('retry-after')).toBe('60');
+  });
+
+  // Vectorize always returns topK, so relevance is decided here: measured on the
+  // live index, covered topics score 0.711-0.854 and uncovered/nonsense queries
+  // 0.516-0.657. Below the floor means "we have nothing on that" — an empty
+  // semantic list and a miss, not twenty irrelevant posts.
+  it('drops every match below the relevance floor and calls that a miss', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const env = stubEnv({ matches: [{ id: 'p1#0', score: 0.657 }, { id: 'p2#0', score: 0.516 }] });
+      const res = await handleSearch(req('  Sourdough   Starter '), env, ctx, fakeCache());
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ results: [] });
+      expect(log.mock.calls.map((c) => JSON.parse(String(c[0]))).filter((e) => e.event === 'search_miss')).toEqual([
+        { event: 'search_miss', q: 'sourdough starter' },
+      ]);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it('keeps only the above-floor posts when the matches straddle the floor, and logs no miss', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const env = stubEnv({ matches: [{ id: 'p1#0', score: 0.711 }, { id: 'p2#0', score: 0.69 }, { id: 'p3#0', score: 0.854 }] });
+      const res = await handleSearch(req('rag evaluation'), env, ctx, fakeCache());
+      expect(await res.json()).toEqual({ results: [{ id: 'p3', score: 0.854 }, { id: 'p1', score: 0.711 }] });
+      expect(log.mock.calls.map((c) => JSON.parse(String(c[0]))).filter((e) => e.event === 'search_miss')).toEqual([]);
+    } finally {
+      log.mockRestore();
+    }
   });
 
   it('logs one search_miss carrying the normalized query when nothing matches, and none when something does', async () => {
