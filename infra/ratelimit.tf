@@ -13,7 +13,7 @@ resource "cloudflare_ruleset" "ratelimit" {
     {
       ref         = "search-api-30-per-10s"
       description = "/api/search: 30 requests per 10 s per IP → 429 for 10 s"
-      expression  = "(http.request.uri.path eq \"/api/search\")"
+      expression  = "(http.request.uri.path in {\"/api/search\" \"/api/search/\"})"
       action      = "block"
       enabled     = true
       ratelimit = {

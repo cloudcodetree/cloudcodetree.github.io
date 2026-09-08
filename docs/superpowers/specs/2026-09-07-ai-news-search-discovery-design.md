@@ -76,8 +76,9 @@ cosine metric), on the existing Worker's account.
    about 350 words on sentence boundaries with a short overlap. Vector ids
    are `<postId>#<n>`. Metadata per vector: `postId` (string), `date`
    (number, epoch days), `hash` (content hash of the whole post).
-3. Diffs. Reads the last run's manifest from R2 (`search/manifest.json`: per
-   post hash, chunk count, date, mean vector), embeds only posts whose hash
+3. Diffs. Reads the last run's manifest from R2 (`search-manifest.json`: per
+   post hash, chunk count, date, mean vector — a flat key, because the R2 API
+   put percent-encodes a `/`), embeds only posts whose hash
    changed or that are new, upserts their vectors, and deletes vectors of
    posts that vanished. A run with nothing changed makes zero model calls.
 4. Embeds through the Workers AI REST API with `@cf/baai/bge-base-en-v1.5`
@@ -86,9 +87,10 @@ cosine metric), on the existing Worker's account.
 5. Related posts. Uses the manifest's post vectors, ranks each post's
    neighbors by cosine similarity with a small recency tiebreak, and writes
    `public/blog/related.json` (`{ [postId]: [id, id, id, id, id] }`).
-   Gitignored, generated like `feed.xml`. Without a token (local builds,
-   PR builds) the file is written empty and the Related strip renders
-   nothing.
+   Gitignored, generated like `feed.xml`. Each successful run also mirrors it
+   to R2 as `search-related.json`; without a token (local builds, PR builds)
+   the script writes that mirror instead — stale neighbors beat an empty strip
+   — and falls back to an empty file only when no mirror exists.
 6. Dry-run mode (`--dry-run`) runs the chunker and the diff on the real
    corpus without calling the model or writing to the index; PR builds use
    it.
@@ -165,8 +167,8 @@ content-type tags (News / Workflow / Tutorial), which matches the chips.
 Slug = lowercased, hyphenated tag (`Claude Code` → `claude-code`); the slug
 function is tested against the whole vocabulary for collisions. The page
 reuses `BlogPage` with the posts prefiltered and a title set to the tag, so
-view toggle, page size, and further chip narrowing work as on the front
-page. Metadata: title "<Tag> · AI News", description with the post count,
+view toggle and page size work as on the front page; chips navigate to other
+topic pages; legacy `?topics=` links still filter client-side. Metadata: title "<Tag> · AI News", description with the post count,
 canonical URL. New tags in the feed create their page on the next build.
 
 **Chips become links.** Front-page topic chips link to their topic page.
@@ -205,8 +207,10 @@ does not fail the deploy: the routine's posts always ship, the script is
 diff-based so the next push catches up, and `related.json` still builds
 from whatever the index already holds.
 
-**Indexer state.** The R2 manifest; deleting it forces a full re-embed on
-the next run.
+**Indexer state.** The R2 manifest (`search-manifest.json`, read on every
+tokened run including `--dry-run`; world-readable on the public bucket,
+derived only from public content) and the `search-related.json` mirror;
+deleting the manifest forces a full re-embed on the next run.
 
 **CSP.** `connect-src 'self'` already covers `/api/search`; no change to
 `public/_headers`.

@@ -47,7 +47,7 @@ pnpm run build:staging && pnpm run deploy:staging
 # assert the build variant (a prod build deployed to staging once blanked beta).
 pnpm run build && node scripts/fetch-demo-artifacts.mjs && pnpm run deploy:prod
 
-# Acceptance test against any origin: 20-case contract, --sweep adds every sitemap URL
+# Acceptance test against any origin: 26-case contract, --sweep adds every sitemap URL
 node scripts/check-parity.mjs --origin https://beta.cloudcodetree.com --sweep
 ```
 
@@ -177,7 +177,7 @@ inside the assets.
 
 `scripts/assert-variant.mjs` (inside `deploy:staging` / `deploy:prod`) refuses to
 deploy the wrong variant. `scripts/check-parity.mjs --origin <url> [--sweep]` is the
-acceptance test: a 20-case contract (redirects, feeds, headers, the gate) plus a sweep
+acceptance test: a 26-case contract (redirects, feeds, headers, the gate) plus a sweep
 of every sitemap URL. HTTP checks cannot see a blank page — pair them with a browser.
 
 ### CI (`.github/workflows/deploy.yml`, on push to `main`)
@@ -381,11 +381,13 @@ the generated `public/blog/search-index.json`) merged by reciprocal rank fusion 
 meaning from `GET /api/search?q=` (`worker/search.ts`: Workers AI `bge-base` embeds the
 query, Vectorize index `cct-search` answers; 1 h cache; 503 = keyword-only). The index is
 filled by `node scripts/index-search.mjs` in the CI deploy job (diff-based; state =
-`search/manifest.json` on the R2 bucket), which also writes the generated
-`public/blog/related.json` behind the **Related** strip on every article.
+`search-manifest.json` on the R2 bucket — a FLAT key, since `r2Put` percent-encodes a `/`),
+which also writes the generated `public/blog/related.json` behind the **Related** strip on
+every article and mirrors it to R2 as `search-related.json`.
 `/ai-news/topic/<slug>/` (+ `feed.xml`) exists per tag from `scripts/lib/topics.mjs` — the
 ONE slug source for scripts and app code. `--dry-run` never touches Cloudflare; no token =
-keyword-only + no related posts, never a failed build.
+keyword-only + related posts from the last mirror (empty if there is none), never a failed
+build.
 
 **Hard rules**
 - Post bodies are Markdown stored inline in `posts.json` `content` (no `.md` files, no YAML
