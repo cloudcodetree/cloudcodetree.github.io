@@ -78,6 +78,25 @@ async function checkTombstones(posts, errors) {
   }
 }
 
+const RELATED_JSON = path.join(BLOG_DIR, 'related.json');
+
+/**
+ * related.json is generated (scripts/index-search.mjs) from the search
+ * manifest, which can lag posts.json by a run. A neighbor id that no longer
+ * exists would render a dead card, so it is an error — but only when the
+ * file exists (local builds without a token never write one).
+ */
+async function checkRelated(posts, errors) {
+  if (!existsSync(RELATED_JSON)) return;
+  const related = JSON.parse(await readFile(RELATED_JSON, 'utf8'));
+  const ids = new Set(posts.map((p) => p.id));
+  for (const [id, neighbors] of Object.entries(related)) {
+    if (!ids.has(id)) errors.push(`related.json: "${id}" is not in posts.json`);
+    for (const n of neighbors) if (!ids.has(n)) errors.push(`related.json: "${id}" points at missing post "${n}"`);
+    if (neighbors.includes(id)) errors.push(`related.json: "${id}" lists itself`);
+  }
+}
+
 async function checkFeedWindow(warnings) {
   if (!existsSync(FEED)) return;
   const xml = await readFile(FEED, 'utf8');
@@ -146,6 +165,7 @@ async function main() {
 
   await checkFeedWindow(warnings);
   await checkTombstones(posts, errors);
+  await checkRelated(posts, errors);
 
   for (const w of warnings) console.warn(`  ! ${w}`);
 
