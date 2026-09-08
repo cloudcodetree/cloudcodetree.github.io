@@ -76,4 +76,44 @@ describe('manifest', () => {
     mod = await import('./cf-search.mjs');
     expect(await mod.getManifest()).toEqual({ version: 1, posts: {} });
   });
+
+  it('putManifest writes a FLAT key (a "/" would be percent-encoded and read back as a 404)', async () => {
+    const calls = [];
+    vi.stubGlobal('fetch', vi.fn(async (url, init) => { calls.push({ url: String(url), init }); return ok({}); }));
+    const { putManifest, MANIFEST_KEY } = await import('./cf-search.mjs');
+    expect(MANIFEST_KEY).not.toContain('/');
+    await putManifest({ version: 1, posts: {} });
+    expect(calls[0].url).toBe('https://api.cloudflare.com/client/v4/accounts/acct/r2/buckets/cct-blog-images/objects/search-manifest.json');
+  });
+});
+
+describe('related mirror', () => {
+  it('getRelated returns null on 404 and parses JSON on 200', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('nope', { status: 404 })));
+    let mod = await import('./cf-search.mjs');
+    expect(await mod.getRelated()).toBeNull();
+    vi.resetModules();
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ a: ['b'] }), { status: 200 })));
+    mod = await import('./cf-search.mjs');
+    expect(await mod.getRelated()).toEqual({ a: ['b'] });
+  });
+
+  it('getRelated throws on any other non-ok status', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('boom', { status: 500 })));
+    const { getRelated } = await import('./cf-search.mjs');
+    await expect(getRelated()).rejects.toThrow(/related: HTTP 500/);
+  });
+
+  it('putRelated PUTs the flat object key with no-cache', async () => {
+    const calls = [];
+    vi.stubGlobal('fetch', vi.fn(async (url, init) => { calls.push({ url: String(url), init }); return ok({}); }));
+    const { putRelated } = await import('./cf-search.mjs');
+    await putRelated({ a: ['b'] });
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe('https://api.cloudflare.com/client/v4/accounts/acct/r2/buckets/cct-blog-images/objects/search-related.json');
+    expect(calls[0].init.method).toBe('PUT');
+    expect(calls[0].init.headers['cache-control']).toBe('no-cache');
+    expect(calls[0].init.headers['content-type']).toBe('application/json');
+    expect(calls[0].init.body).toBe('{"a":["b"]}');
+  });
 });

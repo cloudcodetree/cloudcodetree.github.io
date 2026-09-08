@@ -5,16 +5,19 @@
  *   vectorizeUpsert()  Vectorize v2 REST, ndjson body
  *   vectorizeDelete()  Vectorize v2 REST, JSON { ids }
  *
- * plus the indexer's own state: a manifest object on the existing R2 bucket
- * (public read via img.cloudcodetree.com, write via r2Put). The token is the
- * CI token (Workers AI Read + Vectorize Edit + R2 Edit); its value never
- * enters tool output.
+ * plus the indexer's own state on the existing R2 bucket (public read via
+ * img.cloudcodetree.com, write via r2Put): the manifest and a mirror of
+ * related.json. Both keys are FLAT — r2Put percent-encodes the key, so a `/`
+ * in it would write one object and read back another (a silent 404 that
+ * re-embeds the whole corpus every run). The token is the CI token (Workers
+ * AI Read + Vectorize Edit + R2 Edit); its value never enters tool output.
  */
 import { API, IMG_ORIGIN, cfCredentials, r2Put } from './r2.mjs';
 
 export const INDEX_NAME = 'cct-search';
 export const MODEL = '@cf/baai/bge-base-en-v1.5';
-export const MANIFEST_KEY = 'search/manifest.json';
+export const MANIFEST_KEY = 'search-manifest.json';
+export const RELATED_KEY = 'search-related.json';
 const EMBED_BATCH = 50;
 const VEC_BATCH = 1000;
 
@@ -84,4 +87,20 @@ export async function getManifest() {
 
 export async function putManifest(manifest) {
   await r2Put(MANIFEST_KEY, JSON.stringify(manifest), 'application/json', 'no-cache');
+}
+
+/**
+ * The last run's related.json, mirrored to R2 so a tokenless build (a PR, a
+ * local build, a run where the secret is missing) can serve the previous
+ * neighbors instead of an empty strip. Same read path as the manifest.
+ */
+export async function getRelated() {
+  const res = await fetch(`${IMG_ORIGIN}/${RELATED_KEY}?v=${Date.now()}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`related: HTTP ${res.status}`);
+  return res.json();
+}
+
+export async function putRelated(related) {
+  await r2Put(RELATED_KEY, JSON.stringify(related), 'application/json', 'no-cache');
 }
