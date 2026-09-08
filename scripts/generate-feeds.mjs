@@ -158,7 +158,12 @@ ${media}  </item>`;
 
   // Per-topic feeds: /ai-news/topic/<slug>/feed.xml (same item format, newest 20 with that tag).
   const topics = topicTags(posts);
+  // Two tags slugifying the same would overwrite each other's feed here and
+  // share one topic page; fail loudly rather than lose a topic's posts.
+  const seenSlugs = new Set();
   for (const { tag, slug } of topics) {
+    if (seenSlugs.has(slug)) throw new Error('duplicate topic slug: ' + slug);
+    seenSlugs.add(slug);
     const tagged = items.filter(({ p }) => (p.tags || []).includes(tag)).slice(0, FEED_LIMIT);
     const body = rssChannel({
       title: `${tag} · AI News · CloudCodeTree`,

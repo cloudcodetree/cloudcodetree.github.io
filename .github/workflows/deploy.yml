@@ -143,6 +143,12 @@ jobs:
       if: github.event_name != 'push'
       run: node scripts/index-search.mjs --dry-run
 
+    # The earlier validate runs before related.json exists, so checkRelated()
+    # is a no-op there. This one is the only pass that sees the real file — a
+    # neighbor pointing at a removed post fails the build here, not in prod.
+    - name: Validate blog index (with related.json)
+      run: node scripts/validate-blog.mjs
+
     - name: Build
       run: pnpm run build
 
