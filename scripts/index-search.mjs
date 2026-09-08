@@ -11,6 +11,11 @@
  * float32). A run with nothing changed makes zero model calls. Without a
  * CLOUDFLARE_API_TOKEN the script writes an EMPTY related.json and exits 0 —
  * local builds and PR builds must never depend on Cloudflare.
+ *
+ * Failure mid-run is safe: deletes are applied first and are idempotent, the
+ * manifest is only written after a successful upsert, so the next run's plan
+ * simply re-queues the same posts. The cost is a changed post being
+ * unsearchable until that next run.
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -80,7 +85,9 @@ async function main() {
 
   // Embed in one flat pass so batching stays efficient, then re-group per post.
   const flat = chunked.flatMap(({ post, chunks }) => chunks.map((c) => ({ post, ...c })));
+  for (const c of flat) if (!c.text.trim()) throw new Error(`post ${c.post.id} produced an empty chunk (${c.id})`);
   const vectors = flat.length ? await embed(flat.map((c) => c.text)) : [];
+  if (vectors.length !== flat.length) throw new Error(`embed returned ${vectors.length} vectors for ${flat.length} chunks`);
   const upserts = flat.map((c, i) => ({
     id: c.id,
     values: vectors[i],
