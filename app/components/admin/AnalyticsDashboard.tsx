@@ -26,6 +26,8 @@ export interface SearchMiss {
   q: string;
   first_seen: string;
   count: number;
+  /** Best similarity score before the relevance floor; absent on a cached miss. */
+  top?: number;
 }
 
 type State =

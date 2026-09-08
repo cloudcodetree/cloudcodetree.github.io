@@ -15,12 +15,18 @@ const MISSES_SHOWN = 25;
 // Zero-result searches, harvested into a committed file by
 // scripts/harvest-search-misses.mjs and read here at build time — no endpoint,
 // no credential, no client fetch. Absent or unreadable means "no misses yet".
+//
+// Ranked by count, not by date: an old query that keeps coming back is the
+// strongest signal there is, and sorting by first_seen dropped it off the list
+// as soon as 25 newer one-off misses arrived. Date only breaks ties.
 function readMisses(): SearchMiss[] {
   const file = path.join(process.cwd(), 'content', 'search-misses.jsonl');
   if (!fs.existsSync(file)) return [];
   try {
     const rows: SearchMiss[] = parseMisses(fs.readFileSync(file, 'utf8'));
-    return rows.sort((a, b) => (a.first_seen < b.first_seen ? 1 : a.first_seen > b.first_seen ? -1 : 0)).slice(0, MISSES_SHOWN);
+    return rows
+      .sort((a, b) => b.count - a.count || (a.first_seen < b.first_seen ? 1 : a.first_seen > b.first_seen ? -1 : 0))
+      .slice(0, MISSES_SHOWN);
   } catch { return []; }
 }
 
