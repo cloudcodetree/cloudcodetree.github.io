@@ -21,6 +21,13 @@ function stubEnv(opts: { matches?: { id: string; score: number; metadata?: Recor
 const req = (q: string | null, method = 'GET') =>
   new Request(`https://cloudcodetree.com/api/search${q === null ? '' : `?q=${encodeURIComponent(q)}`}`, { method });
 
+/** What the results page sends: a search the reader actually committed to. */
+const deliberateReq = (q: string) =>
+  new Request(`https://cloudcodetree.com/api/search?q=${encodeURIComponent(q)}&intent=submit`);
+
+const missesIn = (log: { mock: { calls: unknown[][] } }) =>
+  log.mock.calls.map((c) => JSON.parse(String(c[0])) as { event: string; q?: string; top?: number }).filter((e) => e.event === 'search_miss');
+
 describe('normalizeQuery', () => {
   it('trims, collapses whitespace, lowercases, caps at 200', () => {
     expect(normalizeQuery('  Claude   Code ')).toBe('claude code');
@@ -106,19 +113,17 @@ describe('handleSearch', () => {
   });
 
   // Vectorize always returns topK, so relevance is decided here: measured on the
-  // live index, covered topics score 0.711-0.854 and uncovered/nonsense queries
+  // live index, covered topics score 0.706-0.854 and uncovered/nonsense queries
   // 0.516-0.657. Below the floor means "we have nothing on that" — an empty
   // semantic list and a miss, not twenty irrelevant posts.
-  it('drops every match below the relevance floor and calls that a miss', async () => {
+  it('drops every match below the relevance floor and calls that a miss, with the pre-filter top score', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
     try {
-      const env = stubEnv({ matches: [{ id: 'p1#0', score: 0.657 }, { id: 'p2#0', score: 0.516 }] });
-      const res = await handleSearch(req('  Sourdough   Starter '), env, ctx, fakeCache());
+      const env = stubEnv({ matches: [{ id: 'p1#0', score: 0.6571 }, { id: 'p2#0', score: 0.516 }] });
+      const res = await handleSearch(deliberateReq('  Sourdough   Starter '), env, ctx, fakeCache());
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual({ results: [] });
-      expect(log.mock.calls.map((c) => JSON.parse(String(c[0]))).filter((e) => e.event === 'search_miss')).toEqual([
-        { event: 'search_miss', q: 'sourdough starter' },
-      ]);
+      expect(missesIn(log)).toEqual([{ event: 'search_miss', q: 'sourdough starter', top: 0.657 }]);
     } finally {
       log.mockRestore();
     }
@@ -127,10 +132,10 @@ describe('handleSearch', () => {
   it('keeps only the above-floor posts when the matches straddle the floor, and logs no miss', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
     try {
-      const env = stubEnv({ matches: [{ id: 'p1#0', score: 0.711 }, { id: 'p2#0', score: 0.69 }, { id: 'p3#0', score: 0.854 }] });
-      const res = await handleSearch(req('rag evaluation'), env, ctx, fakeCache());
-      expect(await res.json()).toEqual({ results: [{ id: 'p3', score: 0.854 }, { id: 'p1', score: 0.711 }] });
-      expect(log.mock.calls.map((c) => JSON.parse(String(c[0]))).filter((e) => e.event === 'search_miss')).toEqual([]);
+      const env = stubEnv({ matches: [{ id: 'p1#0', score: 0.706 }, { id: 'p2#0', score: 0.657 }, { id: 'p3#0', score: 0.854 }] });
+      const res = await handleSearch(deliberateReq('rag evaluation'), env, ctx, fakeCache());
+      expect(await res.json()).toEqual({ results: [{ id: 'p3', score: 0.854 }, { id: 'p1', score: 0.706 }] });
+      expect(missesIn(log)).toEqual([]);
     } finally {
       log.mockRestore();
     }
@@ -138,18 +143,65 @@ describe('handleSearch', () => {
 
   it('logs one search_miss carrying the normalized query when nothing matches, and none when something does', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const logged = () => log.mock.calls.map((c) => JSON.parse(String(c[0])) as { event: string; q?: string });
+    const logged = () => log.mock.calls.map((c) => JSON.parse(String(c[0])) as { event: string; results?: number });
     try {
-      await handleSearch(req('  Zzqqxx   Nonexistent Topic '), stubEnv({ matches: [] }), ctx, fakeCache());
-      expect(logged().filter((e) => e.event === 'search_miss')).toEqual([
-        { event: 'search_miss', q: 'zzqqxx nonexistent topic' },
-      ]);
+      await handleSearch(deliberateReq('  Zzqqxx   Nonexistent Topic '), stubEnv({ matches: [] }), ctx, fakeCache());
+      expect(missesIn(log)).toEqual([{ event: 'search_miss', q: 'zzqqxx nonexistent topic', top: 0 }]);
       // The success log stays as it was: counts and latency, never the query.
       expect(logged().filter((e) => e.event === 'search')).toEqual([{ event: 'search', results: 0, ms: expect.any(Number) }]);
 
       log.mockClear();
-      await handleSearch(req('rag'), stubEnv(), ctx, fakeCache());
-      expect(logged().filter((e) => e.event === 'search_miss')).toEqual([]);
+      await handleSearch(deliberateReq('rag'), stubEnv(), ctx, fakeCache());
+      expect(missesIn(log)).toEqual([]);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  // The file these logs feed is committed to a PUBLIC repo, so only a search the
+  // reader committed to is recorded: SearchBox fires on a 250ms pause, and
+  // keystroke fragments must not be published.
+  it('records nothing for a typeahead search (no intent=submit)', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      await handleSearch(req('sourdough starter'), stubEnv({ matches: [{ id: 'p1#0', score: 0.51 }] }), ctx, fakeCache());
+      expect(missesIn(log)).toEqual([]);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it('still records the miss when a deliberate search is served from cache (the typeahead filled it)', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const env = stubEnv({ matches: [{ id: 'p1#0', score: 0.4 }] });
+      const cache = fakeCache();
+      // Typeahead first: fills the cache, records nothing.
+      await handleSearch(req('Sourdough  Starter'), env, ctx, cache);
+      expect(missesIn(log)).toEqual([]);
+      // The reader then submits. Same normalized q, so this is a cache hit —
+      // and it must still be recorded, or the deliberate search vanishes.
+      const res = await handleSearch(deliberateReq('sourdough starter'), env, ctx, cache);
+      expect(await res.json()).toEqual({ results: [] });
+      expect(missesIn(log)).toEqual([{ event: 'search_miss', q: 'sourdough starter' }]);
+      // Cache key is the query alone: intent must not double the model calls.
+      expect(env.ai).toHaveBeenCalledTimes(1);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it('scrubs queries that could carry something personal', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const env = () => stubEnv({ matches: [] });
+      await handleSearch(deliberateReq('ab'), env(), ctx, fakeCache());               // too short
+      await handleSearch(deliberateReq('me@example.com'), env(), ctx, fakeCache());   // email-ish
+      await handleSearch(deliberateReq('order 40281337722'), env(), ctx, fakeCache()); // long digit run
+      expect(missesIn(log)).toEqual([]);
+      // The guard is narrow: an ordinary short-ish query still records.
+      await handleSearch(deliberateReq('rag'), env(), ctx, fakeCache());
+      expect(missesIn(log)).toEqual([{ event: 'search_miss', q: 'rag', top: 0 }]);
     } finally {
       log.mockRestore();
     }
