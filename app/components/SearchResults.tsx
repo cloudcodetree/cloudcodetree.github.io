@@ -23,7 +23,9 @@ export default function SearchResults({ posts }: Props) {
     setState({ ids: [], semantic: false, done: false });
     // A slow pass for an earlier query must never overwrite a newer one's rows.
     const ctl = new AbortController();
-    hybridSearch(q, { signal: ctl.signal })
+    // This page is a search the reader committed to (they submitted the box or
+    // followed a ?q= link), so it is the one search worth recording on a miss.
+    hybridSearch(q, { signal: ctl.signal, deliberate: true })
       .then((r) => { if (!ctl.signal.aborted) setState({ ...r, done: true }); })
       .catch(() => { if (!ctl.signal.aborted) setState({ ids: [], semantic: false, done: true }); });
     return () => ctl.abort();

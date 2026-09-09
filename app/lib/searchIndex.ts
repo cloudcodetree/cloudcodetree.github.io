@@ -30,14 +30,17 @@ export function loadIndex(): Promise<Loaded> {
   return loading;
 }
 
-async function semantic(q: string, signal?: AbortSignal): Promise<string[] | null> {
+async function semantic(q: string, signal?: AbortSignal, deliberate = false): Promise<string[] | null> {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), SEMANTIC_TIMEOUT_MS);
   const onAbort = () => ctl.abort();
   if (signal?.aborted) ctl.abort();
   else signal?.addEventListener('abort', onAbort);
   try {
-    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: ctl.signal });
+    // intent=submit tells the Worker this search is worth recording if it
+    // misses; a typeahead keystroke is not (see worker/search.ts logMiss).
+    const url = `/api/search?q=${encodeURIComponent(q)}${deliberate ? '&intent=submit' : ''}`;
+    const res = await fetch(url, { signal: ctl.signal });
     if (!res.ok) return null;
     const body = (await res.json()) as { results: { id: string }[] };
     return body.results.map((r) => r.id);
@@ -49,11 +52,18 @@ async function semantic(q: string, signal?: AbortSignal): Promise<string[] | nul
   }
 }
 
-/** Keyword results immediately merged with semantic ones; semantic:false means keyword-only. */
-export async function hybridSearch(q: string, opts: { signal?: AbortSignal } = {}): Promise<{ ids: string[]; semantic: boolean }> {
+/**
+ * Keyword results immediately merged with semantic ones; semantic:false means
+ * keyword-only. `deliberate` marks a search the reader committed to (the
+ * results page), which is the only kind the Worker records when it misses.
+ */
+export async function hybridSearch(
+  q: string,
+  opts: { signal?: AbortSignal; deliberate?: boolean } = {},
+): Promise<{ ids: string[]; semantic: boolean }> {
   const { keyword } = await loadIndex();
   const kw = keyword(q);
-  const sem = await semantic(q, opts.signal);
+  const sem = await semantic(q, opts.signal, opts.deliberate === true);
   if (!sem) return { ids: kw, semantic: false };
   return { ids: rrfMerge([kw, sem]), semantic: true };
 }

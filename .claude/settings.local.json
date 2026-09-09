@@ -71,7 +71,8 @@
       "Bash(whois homestead.deals)",
       "Bash(uv run *)",
       "Bash(sort -k2)",
-      "Bash(grep -v -E '\\\\$224|224\\\\.[0-9]')"
+      "Bash(grep -v -E '\\\\$224|224\\\\.[0-9]')",
+      "mcp__chrome-devtools__fill"
     ],
     "deny": []
   }
