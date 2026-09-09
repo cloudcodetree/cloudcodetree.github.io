@@ -20,7 +20,7 @@ import { Corners } from './Blueprint';
 import SearchBox from './SearchBox';
 import TopicsFlyout from './TopicsFlyout';
 import {
-  applyReaderState, filterHideRead, loadReaderState, setSaved, watchReaderAuth,
+  applyReaderState, loadReaderState, selectVisiblePosts, setSaved, watchReaderAuth,
   type ReaderRow, type ReaderStateMap, type WithReaderState,
 } from '../lib/readerState';
 // eslint-disable-next-line import/no-relative-packages
@@ -173,12 +173,13 @@ export default function BlogPage({
     [annotated, selectedTags],
   );
 
-  const filteredPosts = useMemo(() => {
-    const scoped = onlySaved ? topicFiltered.filter((p) => p.isSaved) : topicFiltered;
-    // `hideRead` can only be true when signed in, but gate it anyway: the
-    // signed-out list must be today's list under every combination of state.
-    return filterHideRead(scoped, hideRead && signedIn);
-  }, [topicFiltered, onlySaved, hideRead, signedIn]);
+  // `hideRead` can only be true when signed in, but gate it anyway: the
+  // signed-out list must be today's list under every combination of state.
+  // selectVisiblePosts is where "saved beats hide-read" lives.
+  const filteredPosts = useMemo(
+    () => selectVisiblePosts(topicFiltered, { onlySaved, hideRead: hideRead && signedIn }),
+    [topicFiltered, onlySaved, hideRead, signedIn],
+  );
 
   const pageSize = sizeOverride[view] ?? PAGE_DEFAULT[view];
   const pageCount = Math.max(1, Math.ceil(filteredPosts.length / pageSize));
@@ -208,13 +209,19 @@ export default function BlogPage({
   // deliberately does not navigate when you are already on the destination.
   // A signed-out visitor never gets past watchReaderAuth's first line: no
   // supabase-js chunk, no request, no controls.
+  // Only a CHANGE of reader reloads. TOKEN_REFRESHED arrives roughly hourly and
+  // means nothing here; reloading on it would replace the state map wholesale,
+  // which throws away an optimistic save that has not been confirmed yet — the
+  // chip would flip back to "Save" and forward again as the write lands.
+  const readerRef = useRef<string | null>(null);
   useEffect(() => {
     let live = true;
-    const stop = watchReaderAuth((isSignedIn) => {
+    const stop = watchReaderAuth((userId) => {
       if (!live) return;
-      if (!isSignedIn) {
+      if (!userId) {
         // Every setter here is idempotent, so the signed-out case (which
         // arrives synchronously on mount) bails out of re-rendering entirely.
+        readerRef.current = null;
         setSignedIn(false);
         setReaderState(EMPTY_STATE);
         setHideRead(false);
@@ -222,6 +229,8 @@ export default function BlogPage({
         setPendingSaves((cur) => (Object.keys(cur).length ? {} : cur));
         return;
       }
+      if (userId === readerRef.current) return;   // same reader, new token
+      readerRef.current = userId;
       setSignedIn(true);
       setHideRead(window.localStorage.getItem('ainews-hide-read') === '1');
       void loadReaderState().then((state) => { if (live) setReaderState(state); });
@@ -563,8 +572,10 @@ export default function BlogPage({
             />
           )}
           {/* Signed-in only: a control a signed-out reader cannot use is worse
-              than no control. Sits beside Topics and narrows what those leave. */}
-          {signedIn && (
+              than no control. Sits beside Topics and narrows what those leave.
+              Absent on /saved, where it has nothing to do — an explicit save
+              outranks read state there, so the toggle would be a dead switch. */}
+          {signedIn && !onlySaved && (
             <Button
               variant="outlined"
               size="small"
@@ -605,7 +616,8 @@ export default function BlogPage({
           <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>
             {emptyMessage
               ?? (posts.length === 0 ? '// no posts yet'
-                : hideRead && signedIn ? '// everything here is already read — switch off Hide read'
+                : hideRead && signedIn && !onlySaved
+                  ? '// everything here is already read — switch off Hide read'
                   : '// no posts match those topics — clear a filter above')}
           </Typography>
         </Box>

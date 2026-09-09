@@ -211,18 +211,25 @@ function shouldWatchAuth(): boolean {
 let watchedUserId: string | null = null;
 
 /**
- * Track whether a reader is signed in, for as long as the caller is mounted.
- * `onChange` always fires with the current answer — synchronously with `false`
- * when there is no reason to load supabase-js at all — and then on every later
- * transition. Returns an unsubscribe function.
+ * Track who is reading, for as long as the caller is mounted. `onChange`
+ * receives the signed-in reader's id, or null when signed out. It always fires
+ * with the current answer — synchronously with `null` when there is no reason
+ * to load supabase-js at all — and then on every later transition. Returns an
+ * unsubscribe function.
+ *
+ * It reports the id rather than a boolean because supabase-js also emits events
+ * that change nothing a caller cares about: TOKEN_REFRESHED fires roughly
+ * hourly, and a caller that treats it as a fresh sign-in will visibly reload
+ * itself under a reader who is just sitting on the page. Comparing the id makes
+ * "same reader, new token" distinguishable from "a different reader".
  *
  * Failure of any kind — no session, an expired token, supabase-js not loading —
- * ends with `onChange(false)`, so a stale token cannot leave dead controls on
+ * ends with `onChange(null)`, so a stale token cannot leave dead controls on
  * screen. Callers can therefore treat this as the single source of truth and
  * never probe storage themselves.
  */
-export function watchReaderAuth(onChange: (signedIn: boolean) => void): () => void {
-  if (!shouldWatchAuth()) { onChange(false); return () => {}; }
+export function watchReaderAuth(onChange: (userId: string | null) => void): () => void {
+  if (!shouldWatchAuth()) { onChange(null); return () => {}; }
 
   let live = true;
   let unsubscribe: (() => void) | null = null;
@@ -240,12 +247,12 @@ export function watchReaderAuth(onChange: (signedIn: boolean) => void): () => vo
           watchedUserId = userId;
           resetReaderState();
         }
-        onChange(!!session);
+        onChange(userId);
       });
       if (!live) { data.subscription.unsubscribe(); return; }
       unsubscribe = () => data.subscription.unsubscribe();
     } catch {
-      if (live) onChange(false);
+      if (live) onChange(null);
     }
   })();
 
@@ -271,4 +278,21 @@ export function applyReaderState<T extends { id: string }>(posts: T[], state: Re
  */
 export function filterHideRead<T extends { isRead: boolean }>(posts: T[], hide: boolean): T[] {
   return hide ? posts.filter((post) => !post.isRead) : posts;
+}
+
+/**
+ * The reader-state narrowing the list applies, in one place.
+ *
+ * `onlySaved` (the /saved page) deliberately ignores `hideRead`. Saving is an
+ * explicit "keep this for later", and the ordinary way a post becomes saved is
+ * that the reader opened it and then saved it — so composing the two filters
+ * would empty /saved for exactly the readers using both features as intended,
+ * and make the page look broken. Read state never overrides an explicit save.
+ */
+export function selectVisiblePosts<T extends { isRead: boolean; isSaved: boolean }>(
+  posts: T[],
+  options: { onlySaved?: boolean; hideRead?: boolean },
+): T[] {
+  if (options.onlySaved) return posts.filter((post) => post.isSaved);
+  return filterHideRead(posts, !!options.hideRead);
 }

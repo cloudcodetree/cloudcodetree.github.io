@@ -7,7 +7,7 @@
 // own saved set only ever arrives client-side over their JWT. No reader's list
 // can leak into another's HTML because no reader's list is ever in the HTML.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Box, Button, Container, Typography } from '@mui/material';
 import { Bookmark, Login } from '@mui/icons-material';
 import BlogPage from './BlogPage';
@@ -22,11 +22,19 @@ export default function SavedPosts({ posts }: { posts: BlogPost[] }) {
 
   // Tracked, not probed once: signing out here has to fall back to the sign-in
   // prompt rather than keep showing the previous reader's saved posts.
+  //
+  // Only a CHANGE of reader reloads. supabase-js emits TOKEN_REFRESHED roughly
+  // hourly, and treating that as a fresh sign-in made a reader parked on this
+  // page watch the intro flash "2 posts saved" → "Loading…" → "2 posts saved"
+  // for no reason they caused.
+  const readerRef = useRef<string | null>(null);
   useEffect(() => {
     let live = true;
-    const stop = watchReaderAuth((isSignedIn) => {
+    const stop = watchReaderAuth((userId) => {
       if (!live) return;
-      if (!isSignedIn) { setState(null); setPhase('signedOut'); return; }
+      if (!userId) { readerRef.current = null; setState(null); setPhase('signedOut'); return; }
+      if (userId === readerRef.current) return;   // same reader, new token
+      readerRef.current = userId;
       setPhase('loading');
       void loadReaderState().then((loaded) => {
         if (!live) return;
@@ -85,9 +93,14 @@ export default function SavedPosts({ posts }: { posts: BlogPost[] }) {
       intro={phase === 'loading'
         ? 'Loading the posts you saved for later.'
         : (visible: number) => `${visible} post${visible === 1 ? '' : 's'} saved for later.`}
+      // "nothing saved yet" only when nothing IS saved. With saved posts on the
+      // page an empty list means a topic filter or search inside /saved matched
+      // none of them, which is BlogPage's own message to give.
       emptyMessage={phase === 'loading'
         ? '// loading your saved posts…'
-        : '// nothing saved yet — use Save on any post to keep it here'}
+        : saved.length === 0
+          ? '// nothing saved yet — use Save on any post to keep it here'
+          : undefined}
     />
   );
 }

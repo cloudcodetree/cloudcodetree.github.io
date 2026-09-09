@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   applyReaderState, filterHideRead, loadReaderState, markRead, resetReaderState,
-  type ReaderRow,
+  selectVisiblePosts, type ReaderRow,
 } from './readerState';
 
 // The one place supabase-js is reachable from this module; stubbing it lets the
@@ -133,5 +133,37 @@ describe('resetReaderState', () => {
     markRead('post-a');
     await settle();
     expect(calls.upsert).toBe(2);
+  });
+});
+
+describe('selectVisiblePosts', () => {
+  // The normal way a post becomes saved: the reader opened it, then saved it.
+  const readAndSaved = { id: 'a', isRead: true, isSaved: true };
+  const readNotSaved = { id: 'b', isRead: true, isSaved: false };
+  const unreadSaved = { id: 'c', isRead: false, isSaved: true };
+  const unreadNotSaved = { id: 'd', isRead: false, isSaved: false };
+  const all = [readAndSaved, readNotSaved, unreadSaved, unreadNotSaved];
+
+  it('keeps a read+saved post on /saved even with Hide read on', () => {
+    expect(selectVisiblePosts(all, { onlySaved: true, hideRead: true }).map((p) => p.id))
+      .toEqual(['a', 'c']);
+  });
+
+  it('gives /saved the same answer whatever hideRead says', () => {
+    const on = selectVisiblePosts(all, { onlySaved: true, hideRead: true });
+    const off = selectVisiblePosts(all, { onlySaved: true, hideRead: false });
+    expect(on).toEqual(off);
+  });
+
+  it('still hides read posts on the ordinary list', () => {
+    expect(selectVisiblePosts(all, { hideRead: true }).map((p) => p.id)).toEqual(['c', 'd']);
+  });
+
+  it('is a no-op with neither option — same array identity', () => {
+    expect(selectVisiblePosts(all, {})).toBe(all);
+  });
+
+  it('narrows to saved posts on /saved when Hide read is off', () => {
+    expect(selectVisiblePosts(all, { onlySaved: true }).map((p) => p.id)).toEqual(['a', 'c']);
   });
 });
