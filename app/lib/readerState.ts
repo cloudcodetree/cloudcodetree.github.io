@@ -132,7 +132,7 @@ export function markRead(postId: string): void {
       const readAt = new Date().toISOString();
       const { error } = await supabase()
         .from('reader_state')
-        .upsert({ user_id: userId, post_id: postId, read_at: readAt }, { onConflict: 'user_id,post_id' });
+        .upsert({ user_id: userId, post_id: postId, read_at: readAt, updated_at: readAt }, { onConflict: 'user_id,post_id' });
       if (error) marked.delete(postId);
       else patchCache(postId, { read_at: readAt });
     } catch {
@@ -153,7 +153,7 @@ export async function setSaved(postId: string, saved: boolean): Promise<boolean>
     const { supabase } = await import('./supabaseClient');
     const { error } = await supabase()
       .from('reader_state')
-      .upsert({ user_id: userId, post_id: postId, saved }, { onConflict: 'user_id,post_id' });
+      .upsert({ user_id: userId, post_id: postId, saved, updated_at: new Date().toISOString() }, { onConflict: 'user_id,post_id' });
     if (!error) patchCache(postId, { saved });
     return !error;
   } catch {
