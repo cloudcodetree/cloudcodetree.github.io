@@ -20,7 +20,7 @@ import { Corners } from './Blueprint';
 import SearchBox from './SearchBox';
 import TopicsFlyout from './TopicsFlyout';
 import {
-  applyReaderState, filterHideRead, hasReaderSession, loadReaderState, setSaved,
+  applyReaderState, filterHideRead, loadReaderState, setSaved, watchReaderAuth,
   type ReaderRow, type ReaderStateMap, type WithReaderState,
 } from '../lib/readerState';
 // eslint-disable-next-line import/no-relative-packages
@@ -30,7 +30,12 @@ interface BlogPageProps {
   /** Slim (content-free) index of every post, newest-first, embedded at build time. */
   posts: BlogPost[];
   heading?: string;
-  intro?: React.ReactNode;
+  /**
+   * A function is called with the number of posts actually on screen after
+   * every filter. /saved needs that: unsaving a card removes it here, inside
+   * this component, so a caller-computed count would immediately be a lie.
+   */
+  intro?: React.ReactNode | ((visibleCount: number) => React.ReactNode);
   feedPath?: string;
   emptyMessage?: string;
   /**
@@ -96,10 +101,11 @@ function ReadChip() {
 }
 
 /** Save / unsave, sitting in the pill row. Optimistic; reverts if the write fails. */
-function SaveChip({ post, onToggle }: { post: ReaderPost; onToggle: (post: ReaderPost) => void }) {
+function SaveChip({ post, onToggle, busy }: { post: ReaderPost; onToggle: (post: ReaderPost) => void; busy: boolean }) {
   return (
     <Chip
       size="small"
+      disabled={busy}
       icon={post.isSaved ? <Bookmark sx={{ fontSize: 13 }} /> : <BookmarkBorder sx={{ fontSize: 13 }} />}
       label={post.isSaved ? 'Saved' : 'Save'}
       onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle(post); }}
@@ -140,6 +146,15 @@ export default function BlogPage({
   const [signedIn, setSignedIn] = useState(false);
   const [readerState, setReaderState] = useState<ReaderStateMap>(EMPTY_STATE);
   const [hideRead, setHideRead] = useState(false);
+  /**
+   * Post ids with a save/unsave write in flight. The ref is the guard and the
+   * state is only what disables the chip: two clicks in the SAME tick both read
+   * the render's captured state, which is still empty, so state alone lets the
+   * second one through and `true` can land after `false`. A ref updates
+   * synchronously, so the second click sees the first.
+   */
+  const pendingRef = useRef<Record<string, boolean>>({});
+  const [pendingSaves, setPendingSaves] = useState<Record<string, boolean>>({});
 
   // What the Topics flyout lists: every tag except the ubiquitous "AI",
   // most-used first, with its slug and count. topicTags() is the ONE definition
@@ -186,16 +201,32 @@ export default function BlogPage({
     if (n > 1) setPage(n);
   }, []);
 
-  // Reader state: one query per page load, and only for a reader who has a
-  // session in storage. A signed-out visitor never gets past the first line —
-  // no supabase-js chunk, no request, no controls.
+  // Reader state, tracked for as long as this list is mounted rather than
+  // probed once: signing out has to take the decoration away without a reload
+  // (otherwise the next person on a shared machine sees the last reader's
+  // state), and signing in on this very page has to turn it on — AuthWidget
+  // deliberately does not navigate when you are already on the destination.
+  // A signed-out visitor never gets past watchReaderAuth's first line: no
+  // supabase-js chunk, no request, no controls.
   useEffect(() => {
-    if (!hasReaderSession()) return;
-    setSignedIn(true);
-    setHideRead(window.localStorage.getItem('ainews-hide-read') === '1');
     let live = true;
-    void loadReaderState().then((state) => { if (live) setReaderState(state); });
-    return () => { live = false; };
+    const stop = watchReaderAuth((isSignedIn) => {
+      if (!live) return;
+      if (!isSignedIn) {
+        // Every setter here is idempotent, so the signed-out case (which
+        // arrives synchronously on mount) bails out of re-rendering entirely.
+        setSignedIn(false);
+        setReaderState(EMPTY_STATE);
+        setHideRead(false);
+        pendingRef.current = {};
+        setPendingSaves((cur) => (Object.keys(cur).length ? {} : cur));
+        return;
+      }
+      setSignedIn(true);
+      setHideRead(window.localStorage.getItem('ainews-hide-read') === '1');
+      void loadReaderState().then((state) => { if (live) setReaderState(state); });
+    });
+    return () => { live = false; stop(); };
   }, []);
 
   // Keep the URL (?page, ?topics) in sync, clamped, on the CURRENT path (/ or /ai-news/,
@@ -278,23 +309,41 @@ export default function BlogPage({
 
   // Optimistic: flip the pill immediately, revert just this post's row if the
   // write fails. read_at is carried over, so saving never forgets a read.
+  // Ignored while a write for the same post is still in flight, so a rapid
+  // double-click cannot land `true` after `false` or revert to a value the
+  // server never confirmed.
   const toggleSaved = (post: ReaderPost) => {
+    if (pendingRef.current[post.id]) return;
+    pendingRef.current[post.id] = true;
     const before = readerState.get(post.id);
     const saved = !post.isSaved;
+    setPendingSaves((cur) => ({ ...cur, [post.id]: true }));
     putRow(post.id, { post_id: post.id, saved, read_at: before ? before.read_at : null });
-    void setSaved(post.id, saved).then((ok) => { if (!ok) putRow(post.id, before); });
+    void setSaved(post.id, saved).then((ok) => {
+      delete pendingRef.current[post.id];
+      if (!ok) putRow(post.id, before);
+      setPendingSaves((cur) => ({ ...cur, [post.id]: false }));
+    });
   };
 
   /** The signed-in extras for a card's pill row; undefined signed out. */
   const readerExtras = (post: ReaderPost): React.ReactNode => (signedIn ? (
     <>
       {post.isRead && <ReadChip />}
-      <SaveChip post={post} onToggle={toggleSaved} />
+      <SaveChip post={post} onToggle={toggleSaved} busy={!!pendingSaves[post.id]} />
     </>
   ) : undefined);
 
-  /** Read posts recede rather than vanish — the archive stays browsable. */
-  const cardOpacity = (post: ReaderPost) => (signedIn && post.isRead ? 0.55 : 1);
+  /**
+   * Read posts recede rather than vanish — the archive stays browsable.
+   *
+   * Applied to the image, meta line, headline and excerpt, and NOT to the pill
+   * row: opacity cannot be undone by a child, and at any dim that reads as
+   * "receded" the tag pills and the Save control would fall under the 4.5:1
+   * floor. 0.7 keeps the dimmed text itself legible too — text.secondary
+   * lands at 4.76:1 (it was 3.47:1 at 0.55), the headline at 7.86:1.
+   */
+  const dim = (post: ReaderPost) => (signedIn && post.isRead ? { opacity: 0.7 } : null);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : prev.concat(tag)));
@@ -343,25 +392,25 @@ export default function BlogPage({
         <Box
           key={post.id}
           component={motion.div}
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: cardOpacity(post), y: 0 }}
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: Math.min(i * 0.025, 0.25) }}
           sx={{ display: 'flex', gap: 2.5, py: 3, borderTop: border, alignItems: 'flex-start' }}
         >
           {post.image && (
-            <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ flexShrink: 0, display: { xs: 'none', sm: 'block' } }}>
+            <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ flexShrink: 0, display: { xs: 'none', sm: 'block' }, ...dim(post) }}>
               <Box component="img" src={post.image} alt={post.title} loading="lazy"
                 sx={{ width: 132, aspectRatio: '16 / 9', objectFit: 'cover', display: 'block', borderRadius: 1.5, border }} />
             </Box>
           )}
           <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', letterSpacing: '0.04em' }}>
+            <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', letterSpacing: '0.04em', ...dim(post) }}>
               {metaLine(post)}
             </Typography>
             <Typography component={Link} href={`/ai-news/${post.id}/`}
-              sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.5rem' }, lineHeight: 1.15, color: 'text.primary', textDecoration: 'none', ...clamp(2), transition: 'color .2s ease', '&:hover': { color: LINK } }}>
+              sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.5rem' }, lineHeight: 1.15, color: 'text.primary', textDecoration: 'none', ...clamp(2), transition: 'color .2s ease', '&:hover': { color: LINK }, ...dim(post) }}>
               {post.title}
             </Typography>
-            <Typography sx={{ color: 'text.secondary', fontSize: '0.95rem', lineHeight: 1.5, ...clamp(2) }}>
+            <Typography sx={{ color: 'text.secondary', fontSize: '0.95rem', lineHeight: 1.5, ...clamp(2), ...dim(post) }}>
               {post.excerpt}
             </Typography>
             <Pills post={post} extra={readerExtras(post)} />
@@ -378,7 +427,7 @@ export default function BlogPage({
         <Grid size={{ xs: 12, sm: 6 }} key={post.id}>
           <Box
             component={motion.div}
-            initial={{ opacity: 0, y: 14 }} animate={{ opacity: cardOpacity(post), y: 0 }}
+            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.4) }}
             sx={{
               height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 0, border,
@@ -388,20 +437,20 @@ export default function BlogPage({
           >
             <Corners />
             {post.image && (
-              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block' }}>
+              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', ...dim(post) }}>
                 <Box component="img" src={post.image} alt={post.title} loading="lazy"
                   sx={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>
             )}
             <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1.25, flexGrow: 1 }}>
-              <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', letterSpacing: '0.04em' }}>
+              <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', letterSpacing: '0.04em', ...dim(post) }}>
                 {metaLine(post)}
               </Typography>
               <Typography component={Link} href={`/ai-news/${post.id}/`}
-                sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: '1.3rem', lineHeight: 1.2, color: 'text.primary', textDecoration: 'none', ...clamp(3), transition: 'color .2s ease', '&:hover': { color: LINK } }}>
+                sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: '1.3rem', lineHeight: 1.2, color: 'text.primary', textDecoration: 'none', ...clamp(3), transition: 'color .2s ease', '&:hover': { color: LINK }, ...dim(post) }}>
                 {post.title}
               </Typography>
-              <Typography sx={{ color: 'text.secondary', fontSize: '0.92rem', lineHeight: 1.5, ...clamp(3) }}>
+              <Typography sx={{ color: 'text.secondary', fontSize: '0.92rem', lineHeight: 1.5, ...clamp(3), ...dim(post) }}>
                 {post.excerpt}
               </Typography>
               <Box sx={{ mt: 'auto', pt: 0.5 }}><Pills post={post} extra={readerExtras(post)} /></Box>
@@ -420,26 +469,26 @@ export default function BlogPage({
           <Box
             key={post.id}
             component={motion.div}
-            initial={{ opacity: 0, y: 14 }} animate={{ opacity: cardOpacity(post), y: 0 }}
+            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.4) }}
             sx={{ py: { xs: 4, md: 6 }, borderTop: border }}
           >
             {post.image && (
-              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5, border }}>
+              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5, border, ...dim(post) }}>
                 <Box component="img" src={post.image} alt={post.title} loading="lazy"
                   sx={{ width: '100%', maxHeight: 320, aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>
             )}
-            <Typography sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', letterSpacing: '0.04em', mb: 1.5 }}>
+            <Typography sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', letterSpacing: '0.04em', mb: 1.5, ...dim(post) }}>
               {metaLine(post)}
             </Typography>
             <Typography component={Link} href={`/ai-news/${post.id}/`}
-              sx={{ display: 'block', fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.7rem', md: '2.2rem' }, lineHeight: 1.12, letterSpacing: '-0.015em', mb: 1.5, color: 'text.primary', textDecoration: 'none', transition: 'color 0.22s ease', '&:hover': { color: LINK } }}>
+              sx={{ display: 'block', fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.7rem', md: '2.2rem' }, lineHeight: 1.12, letterSpacing: '-0.015em', mb: 1.5, color: 'text.primary', textDecoration: 'none', transition: 'color 0.22s ease', '&:hover': { color: LINK }, ...dim(post) }}>
               {post.title}
             </Typography>
             <Box sx={{ mb: 2.5 }}><Pills post={post} extra={readerExtras(post)} /></Box>
             {body !== undefined ? (
-              <Box sx={markdownSx}>
+              <Box sx={{ ...markdownSx, ...dim(post) }}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>{body}</ReactMarkdown>
               </Box>
             ) : (
@@ -468,7 +517,7 @@ export default function BlogPage({
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mt: 2.5, flexWrap: 'wrap' }}>
           <Box sx={{ height: 2, width: 56, background: ACCENT, alignSelf: 'center' }} />
           <Typography sx={{ color: 'text.secondary', fontSize: { xs: '1rem', md: '1.12rem' }, maxWidth: 560 }}>
-            {intro}
+            {typeof intro === 'function' ? intro(filteredPosts.length) : intro}
           </Typography>
         </Box>
 

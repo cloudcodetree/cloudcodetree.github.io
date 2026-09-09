@@ -12,7 +12,7 @@ import { Box, Button, Container, Typography } from '@mui/material';
 import { Bookmark, Login } from '@mui/icons-material';
 import BlogPage from './BlogPage';
 import { MONO, SERIF, ACCENT, type BlogPost } from './blogShared';
-import { hasReaderSession, loadReaderState, type ReaderStateMap } from '../lib/readerState';
+import { loadReaderState, watchReaderAuth, type ReaderStateMap } from '../lib/readerState';
 
 type Phase = 'loading' | 'signedOut' | 'ready';
 
@@ -20,15 +20,21 @@ export default function SavedPosts({ posts }: { posts: BlogPost[] }) {
   const [phase, setPhase] = useState<Phase>('loading');
   const [state, setState] = useState<ReaderStateMap | null>(null);
 
+  // Tracked, not probed once: signing out here has to fall back to the sign-in
+  // prompt rather than keep showing the previous reader's saved posts.
   useEffect(() => {
-    if (!hasReaderSession()) { setPhase('signedOut'); return; }
     let live = true;
-    void loadReaderState().then((loaded) => {
+    const stop = watchReaderAuth((isSignedIn) => {
       if (!live) return;
-      setState(loaded);
-      setPhase('ready');
+      if (!isSignedIn) { setState(null); setPhase('signedOut'); return; }
+      setPhase('loading');
+      void loadReaderState().then((loaded) => {
+        if (!live) return;
+        setState(loaded);
+        setPhase('ready');
+      });
     });
-    return () => { live = false; };
+    return () => { live = false; stop(); };
   }, []);
 
   if (phase === 'signedOut') {
@@ -73,9 +79,12 @@ export default function SavedPosts({ posts }: { posts: BlogPost[] }) {
       onlySaved
       heading="Saved"
       feedPath="/feed.xml"
+      // A function, so the count follows what is actually on screen: unsaving a
+      // card removes it inside BlogPage, and a count computed from `saved` here
+      // would still claim the post that just left.
       intro={phase === 'loading'
         ? 'Loading the posts you saved for later.'
-        : `${saved.length} post${saved.length === 1 ? '' : 's'} saved for later.`}
+        : (visible: number) => `${visible} post${visible === 1 ? '' : 's'} saved for later.`}
       emptyMessage={phase === 'loading'
         ? '// loading your saved posts…'
         : '// nothing saved yet — use Save on any post to keep it here'}

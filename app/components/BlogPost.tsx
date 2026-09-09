@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Corners } from './Blueprint';
 import { Container, Typography, Box, Card, CardContent, Chip, Button } from '@mui/material';
 import { AccessTime as TimeIcon, Person as PersonIcon, Bookmark, BookmarkBorder } from '@mui/icons-material';
@@ -12,7 +12,7 @@ import rehypeHighlight from 'rehype-highlight';
 import { BlogPost as Post, SERIF, MONO, ACCENT, formatPublished, markdownSx, markdownComponents } from './blogShared';
 import SearchBox from './SearchBox';
 import RelatedPosts from './RelatedPosts';
-import { hasReaderSession, loadReaderState, markRead, setSaved } from '../lib/readerState';
+import { loadReaderState, markRead, setSaved, watchReaderAuth } from '../lib/readerState';
 
 // The post is loaded at build time by app/ai-news/[id]/page.tsx and baked into
 // the static HTML — no client-side fetch, no loading state.
@@ -21,25 +21,49 @@ export default function BlogPost({ post, related = [] }: { post: Post; related?:
   // and the signed-out browser render are the same page.
   const [signedIn, setSignedIn] = useState(false);
   const [saved, setSavedState] = useState(false);
+  const [savePending, setSavePending] = useState(false);
+  const savePendingRef = useRef(false);
 
   // Opening the article IS the read event — no extra click. Fire-and-forget:
   // markRead never blocks the render and swallows its own failures.
+  //
+  // Tracked rather than probed once, so signing out clears the control instead
+  // of leaving the previous reader's "Saved" on screen, and signing in here
+  // turns it on without a reload.
   useEffect(() => {
-    if (!hasReaderSession()) return;
-    setSignedIn(true);
-    markRead(post.id);
     let live = true;
-    void loadReaderState().then((state) => {
-      const row = state.get(post.id);
-      if (live && row) setSavedState(row.saved);
+    const stop = watchReaderAuth((isSignedIn) => {
+      if (!live) return;
+      // Reset first: this effect re-runs when the route changes to another
+      // article, and a stale `true` would show "Saved" on a post that is not.
+      setSignedIn(isSignedIn);
+      setSavedState(false);
+      setSavePending(false);
+      savePendingRef.current = false;
+      if (!isSignedIn) return;
+      markRead(post.id);
+      void loadReaderState().then((state) => {
+        const row = state.get(post.id);
+        if (live && row) setSavedState(row.saved);
+      });
     });
-    return () => { live = false; };
+    return () => { live = false; stop(); };
   }, [post.id]);
 
+  // The ref is the guard, the state only disables the button: two clicks in one
+  // tick both read the render's captured `savePending`, so state alone would let
+  // the second through and `true` could land after `false`.
   const toggleSaved = () => {
+    if (savePendingRef.current) return;
+    savePendingRef.current = true;
     const next = !saved;
     setSavedState(next);                                        // optimistic
-    void setSaved(post.id, next).then((ok) => { if (!ok) setSavedState(!next); });
+    setSavePending(true);
+    void setSaved(post.id, next).then((ok) => {
+      savePendingRef.current = false;
+      if (!ok) setSavedState(!next);
+      setSavePending(false);
+    });
   };
 
   const backButton = (
@@ -60,6 +84,7 @@ export default function BlogPost({ post, related = [] }: { post: Post; related?:
                 variant="outlined"
                 startIcon={saved ? <Bookmark /> : <BookmarkBorder />}
                 onClick={toggleSaved}
+                disabled={savePending}
                 aria-pressed={saved}
                 sx={{
                   fontFamily: MONO, fontSize: 12, textTransform: 'none',
