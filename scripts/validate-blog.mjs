@@ -21,6 +21,8 @@ const TOMBSTONES = path.join(ROOT, 'content', 'removed-posts.json');
 const SEARCH_MISSES = path.join(ROOT, 'content', 'search-misses.jsonl');
 const MISSES_LIMIT = 500;
 const REQUIRED =['id', 'title', 'excerpt', 'author', 'date', 'tags', 'readTime', 'content', 'image'];
+/** Must stay identical to reader_state's CHECK constraint (migration 0006). */
+const POST_ID_RE = /^[a-z0-9][a-z0-9-]{0,127}$/;
 
 /**
  * Tag vocabulary — see "Per-item fields" in docs/ai-news-feed-contract.md.
@@ -183,6 +185,11 @@ async function main() {
     }
     if (p.id && seen.has(p.id)) errors.push(`${where}: duplicate id "${p.id}"`);
     if (p.id) seen.add(p.id);
+    // The id is a database key, not just a URL slug: public.reader_state carries
+    // the identical CHECK (migration 0006). If posts.json drifts from it, a
+    // reader's "mark as read" and "save" both fail silently against that post —
+    // so the drift is caught here, at publish time, instead.
+    if (p.id && !POST_ID_RE.test(p.id)) errors.push(`${where}: id must match ${POST_ID_RE} (lowercase, digits, hyphens; ≤128 chars)`);
     if (p.tags && !Array.isArray(p.tags)) errors.push(`${where}: "tags" must be an array`);
     if (p.readTime !== undefined && typeof p.readTime !== 'number') errors.push(`${where}: "readTime" must be a number`);
     if (p.date && !/^\d{2}-\d{2}-\d{4}$/.test(p.date)) errors.push(`${where}: "date" must be MM-DD-YYYY (got "${p.date}")`);
