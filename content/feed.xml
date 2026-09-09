@@ -10,8 +10,120 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 09 Sep 2026 04:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 09 Sep 2026 12:07:00 +0000</lastBuildDate>
 
+    <item>
+      <title>Add and Remove Tools Between Agent Turns Without Blowing Up Your Cache</title>
+      <link>https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages</link>
+      <guid isPermaLink="false">2026-09-09-05-claude-api-tool-addition-removal-mid-conversation</guid>
+      <pubDate>Wed, 09 Sep 2026 12:07:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Agents</category>
+      <category>Best Practices</category>
+      <description>The mid-conversation-tool-changes-2026-07-01 beta lets you offer or withdraw tools at any point in a conversation without editing the tools array — the cached prefix stays intact.</description>
+      <content:encoded><![CDATA[**Declare all tools up front, then use `tool_addition`/`tool_removal` content blocks in a `role: "system"` message to surface or withdraw tools mid-session — the `tools` array never changes, so the cached prefix stays intact.**
+
+Multi-step agent workflows often need different tools at different phases: a planning pass that can call `search` and `read_file`; an execution pass that can call `bash` but not `search`. The old choice was fix the tool list for the session (simple, inflexible) or edit the `tools` array between turns (flexible, but invalidates the entire cache every time). Mid-conversation tool changes give you a third path.
+
+**How it works:**
+
+1. Declare every tool in the top-level `tools` array at session start. Tools you want withheld initially: set `defer_loading: true`.
+2. When the conversation reaches the point where a tool becomes relevant, inject a `role: "system"` message with a `tool_addition` content block naming the tool.
+3. To withdraw a tool, inject a `tool_removal` block the same way.
+
+```python
+import anthropic
+client = anthropic.Anthropic()
+
+response = client.beta.messages.create(
+    model="claude-opus-5",
+    max_tokens=2048,
+    betas=["mid-conversation-tool-changes-2026-07-01"],
+    tools=[
+        {
+            "name": "bash",
+            "description": "Run shell commands.",
+            "input_schema": {"type": "object", "properties": {"command": {"type": "string"}}, "required": ["command"]},
+            "defer_loading": True,   # withheld at session start
+        },
+        {
+            "name": "search",
+            "description": "Search the web.",
+            "input_schema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]},
+        },
+    ],
+    messages=[
+        {"role": "user", "content": "Research this topic, then write a script to process the results."},
+        # ... planning turns with search active ...
+        # Transition: withdraw search, surface bash
+        {
+            "role": "system",
+            "content": [
+                {"type": "tool_removal", "tool": {"type": "tool_reference", "name": "search"}},
+                {"type": "tool_addition", "tool": {"type": "tool_reference", "name": "bash"}},
+            ],
+        },
+        # Execution turns: bash available, search withdrawn
+    ],
+)
+```
+
+**Key limits before shipping:**
+- **Beta header required:** `anthropic-beta: mid-conversation-tool-changes-2026-07-01`. Available on Fable 5.1, Mythos 5.1, Fable 5, Mythos 5, Opus 4.8, Opus 5. **Not available on Sonnet 5** — use the static top-level `tools` array there.
+- **Reference only, never define mid-session:** `tool_addition`/`tool_removal` blocks name a tool from the session's `tools` array. A name not declared there returns a 400 immediately.
+- **MCP toolsets supported:** reference an entire MCP server's toolset with `mcp_toolset_reference` and a `server_name` to add or remove the whole set in one block.
+
+The technique pairs naturally with `defer_loading: true` — pre-register every tool at session start, withhold the dangerous or phase-inappropriate ones, surface them only when the conversation state justifies it.
+
+**Sources:** [Mid-conversation system messages and tool changes — Anthropic Platform Docs](https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages) · [Claude API Now Lets You Change Tools Mid-Conversation — BlurBrahLab via Medium](https://blurbrahlab.medium.com/claude-api-now-lets-you-change-tools-mid-conversation-without-breaking-the-cache-top-10-ai-4c30954c4be7) · [Claude API: Swap Tools Mid-Session Without Cache Blowup — ByteIota](https://byteiota.com/claude-api-swap-tools-mid-session-without-cache-blowup/)
+]]></content:encoded>
+    </item>
+    <item>
+      <title>RAG Handles Facts That Change; Fine-Tuning Handles Behavior That Shouldn't — Here Is the Decision Tree</title>
+      <link>https://winder.ai/rag-vs-fine-tuning-2026-decision-framework/</link>
+      <guid isPermaLink="false">2026-09-09-04-rag-vs-fine-tuning-decision-framework</guid>
+      <pubDate>Wed, 09 Sep 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Fine-Tuning</category>
+      <category>Best Practices</category>
+      <description>When to retrieve vs. when to train: a five-question decision tree that routes LLM problems to the right approach — and the production hybrid pattern that combines both without wasting either.</description>
+      <media:content url="https://img.youtube.com/vi/-W2JdSl1v48/maxresdefault.jpg" medium="image"/>
+      <media:thumbnail url="https://img.youtube.com/vi/-W2JdSl1v48/maxresdefault.jpg"/>
+      <content:encoded><![CDATA[**What you'll be able to do after this:** decide whether your LLM problem calls for RAG, fine-tuning, or the specific combination that survives a base-model upgrade — before you've written a line of training code.
+
+RAG and fine-tuning solve different problems. Choosing wrong doesn't make the system fail outright — it makes it expensive to maintain, brittle when the base model upgrades, and hard to improve.
+
+**Three-bullet takeaway:**
+- RAG is for knowledge that changes. Fine-tuning is for behavior that shouldn't. When in doubt, RAG is cheaper to start and easier to discard.
+- The strongest fine-tuning case in 2026 is distillation: training a small model to match a frontier model's quality on your specific task at around one-tenth the inference cost.
+- The production hybrid is not "both at once." It is: build a RAG baseline, run it, collect the failure cases retrieval cannot fix, then fine-tune a small adapter on exactly those residuals.
+
+**The decision tree — walk it in order:**
+
+**1. Does the answer depend on data that changes?** -> RAG. Fine-tuning bakes knowledge into weights and goes stale when data updates. You cannot fine-tune something you would have to retrain weekly.
+
+**2. Do you need source citations or an audit trail?** -> RAG. A fine-tuned model cannot point to the document it drew from. RAG returns documents alongside the answer.
+
+**3. Do you need a fixed output schema or deeply consistent tone?** -> Fine-tune. Per Winder AI's framework, prompting alone cannot lock output structure reliably at scale; a thin LoRA adapter on a smaller model is cheaper to serve and more consistent than a frontier model on a long prompt.
+
+**4. Is inference cost or latency a hard constraint?** -> Fine-tune for distillation. A QLoRA-distilled 8B model can match a frontier model on a narrow task at about one-tenth the per-token rate, according to Winder AI's 2026 benchmarks — the commercial case most teams discover last.
+
+**5. Otherwise?** -> Start with RAG, measure, then revisit fine-tuning for gaps retrieval cannot close.
+
+**The production hybrid pattern:**
+Build the RAG baseline and run it. Collect the queries where retrieval still fails — wrong chunks, hallucinated answers, inconsistent format. That failure set is the fine-tuning dataset. Train a small adapter on it. The result: live facts from retrieval, locked behavior from fine-tuning, inference on a model small enough to keep costs predictable.
+
+**The real constraint to know:** fine-tuning couples you to a specific base model version. When the model lab ships an upgrade, your adapter typically needs retraining from scratch. RAG survives a base-model swap with nothing more than a re-embedding run and a re-index.
+
+**One resource to anchor this:** [Is Fine-Tuning Still Needed? LLMs, RAG, & LoRA](https://www.youtube.com/watch?v=-W2JdSl1v48) — a 30-minute video that covers the mechanics of both approaches and walks through the decision points with worked examples. Follow it with the written decision framework below for the 2026 production angle.
+
+**Sources:** [RAG vs Fine-Tuning 2026: A Decision Framework — Winder.AI](https://winder.ai/rag-vs-fine-tuning-2026-decision-framework/) · [Is Fine-Tuning Still Needed? LLMs, RAG, & LoRA — YouTube](https://www.youtube.com/watch?v=-W2JdSl1v48) · [RAG vs Fine-Tuning for LLMs — HuggingFace Blog](https://huggingface.co/blog/airabbitX/rag-vs-fine-tuning-for-llms-a-com)
+]]></content:encoded>
+    </item>
     <item>
       <title>Point --plugin-dir at a Folder and Claude Code 2.1.265 Auto-Loads Every Plugin Inside It</title>
       <link>https://code.claude.com/docs/en/plugins</link>
@@ -5371,74 +5483,8 @@ Sandbox boundaries in agentic systems belong in your threat model — the July O
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Eight Claude API Incidents in Three Weeks — This Morning's Outage and the Pattern Worth Designing For</title>
-      <link>https://status.claude.com</link>
-      <guid isPermaLink="false">2026-08-24-04-claude-api-outage-frontier-pattern</guid>
-      <pubDate>Mon, 24 Aug 2026 12:08:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <category>Best Practices</category>
-      <description>Elevated errors on Claude Mythos 5, Fable 5, Opus 5, and Opus 4.8 ran 05:06–06:42 UTC today — the eighth Claude API incident since August 5. Frontier models cluster together; Sonnet 5 stayed accessible.</description>
-      <content:encoded><![CDATA[**TL;DR: Elevated errors on Claude's frontier models (Mythos 5, Fable 5, Opus 5, Opus 4.8) ran 05:06–06:42 UTC today — the eighth Claude API incident since August 5.**
-
-This morning's incident followed the same pattern as the seven before it: the frontier tier outaged together while Sonnet 5 remained accessible. Engineers identified the root cause at 05:27 UTC and completed remediation by 06:42. The Claude Code, claude.ai, and API surfaces all showed partial disruption.
-
-The pattern now has enough repetitions to design around: the frontier models (Opus, Fable, Mythos) share a failure blast radius; Sonnet 5 has remained accessible during every frontier outage this month. If your production agent targets Opus 5 or Fable 5 exclusively, this morning's window was a three-hour availability gap.
-
-**Why it matters:** A single-provider, single-model production agent is now a known reliability risk. Routing to Sonnet 5 on 5xx, or adding a second-provider fallback chain, turns today's gap into a degraded-but-alive situation — the next post covers the LiteLLM pattern that sets this up in about 10 lines.
-
-**Sources:** [Claude status page](https://status.claude.com) · [Claude AI Suffers Another Outage — CybersecurityNews](https://cybersecuritynews.com/claude-ai-suffers-outage/) · [Claude faces another outage — Notebookcheck](https://www.notebookcheck.net/Claude-faces-another-outage-as-errors-hit-multiple-models.1376666.0.html) · [Claude outage hits multiple models — The Next Web](https://thenextweb.com/news/claude-outage-multiple-models)]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Exit Code 2 Blocks the Tool: PreToolUse Hooks as Deterministic Safety Gates in Claude Code</title>
-      <link>https://code.claude.com/docs/en/hooks</link>
-      <guid isPermaLink="false">2026-08-24-05-claude-code-pretooluse-safety-gate</guid>
-      <pubDate>Mon, 24 Aug 2026 12:09:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Exit code 2 from a PreToolUse hook blocks any Claude Code tool call before it runs. Block dangerous commands, protect generated files, auto-approve safe ops — deterministically, not prompt-dependently.</description>
-      <content:encoded><![CDATA[**TL;DR: A PreToolUse hook exits with code 2 to block any Claude Code tool call before it runs — making your safety rules deterministic rather than relying on Claude's judgment call.**
-
-The PostToolUse validation hook ([covered August 21](https://cloudcodetree.com/ai-news/2026-08-21-03-claude-code-posttooluse-validation-hook)) reacts after a write succeeds. PreToolUse intercepts before — useful for cases where you cannot let the action happen at all.
-
-**How blocking works**
-
-Exit code 2 from a PreToolUse hook blocks the tool call. Claude sees the hook's stdout and adjusts. Exit code 0 allows it. Any other non-zero exit also blocks, but code 2 gives Claude the clearest signal — use it.
-
-**Three guard patterns worth wiring**
-
-**1. Block destructive shell commands.** Intercept the `Bash` tool and reject commands matching `rm -rf`, `git reset --hard`, or `DROP TABLE`:
-
-```json
-"hooks": {
-  "PreToolUse": [{
-    "matcher": "Bash",
-    "hooks": [{"type": "command",
-      "command": "bash .claude/hooks/danger-guard.sh"}]
-  }]
-}
-```
-
-In `danger-guard.sh`: read `$CLAUDE_TOOL_INPUT` (JSON with the `command` field), grep for dangerous patterns, exit 2 if any match.
-
-**2. Block writes to generated files.** Intercept `Edit` and `Write`, check the path against a deny list (`public/blog/posts.json`, `dist/`, `out/`), and exit 2 if the file is off-limits. This blog uses exactly this pattern — `validate-blog.sh` fires on every write to `public/blog/` and blocks inconsistent writes.
-
-**3. Auto-approve read-only commands.** Exit 0 immediately for `cat`, `ls`, `grep`, `git status`, and `git log` — no permission prompt, no approval fatigue.
-
-**With `--dangerously-skip-permissions`:** PreToolUse hooks still fire in this mode. They become the last remaining guardrail when permission prompts are disabled — add your danger-guard before enabling that flag in CI or in unattended workflows.
-
-**The one gap:** Hooks do not fire inside Workflow SDK subagents. If your workflow calls an `agent()` step that writes files, the PreToolUse hooks in your main session do not cover it. Add validation as an explicit `agent()` step in the script instead.
-
-**Sources:** [Hooks reference — code.claude.com](https://code.claude.com/docs/en/hooks) · [Claude Code Hooks: Security Gates for Agent Workflows — DEV Community](https://dev.to/jangwook_kim_e31e7291ad98/claude-code-hooks-security-gates-for-agent-workflows-5he7) · [PreToolUse hooks with --dangerously-skip-permissions — pasqualepillitteri.it](https://pasqualepillitteri.it/en/news/1832/claude-code-dangerously-skip-permissions-pretooluse-hooks-2026)]]></content:encoded>
-    </item>
-
+    
+    
     <item>
       <title>Keep Your Agent Running When the Primary Model Is Down: LiteLLM Router Fallback in 10 Lines</title>
       <link>https://docs.litellm.ai/docs/proxy/reliability</link>
