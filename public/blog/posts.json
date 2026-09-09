@@ -1,5 +1,41 @@
 [
   {
+    "id": "2026-09-09-06-agent-sdk-loop-max-turns-budget-effort",
+    "title": "Three Agent SDK Settings That Prevent a Runaway Loop From Running All Night",
+    "excerpt": "Set max_turns, max_budget_usd, and effort before deploying any Agent SDK loop — none have defaults, and an open-ended prompt without limits runs until the context window is exhausted.",
+    "author": "Chris Harper",
+    "date": "09-09-2026",
+    "publishedAt": "2026-09-09T20:07:00.000Z",
+    "tags": [
+      "AI",
+      "Workflow",
+      "Agents",
+      "Best Practices"
+    ],
+    "readTime": 2,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+    "content": "**Set `max_turns`, `max_budget_usd`, and `effort` before your first production Agent SDK call — none of them have defaults, and an open-ended prompt with no limits will run until context is exhausted.**\n\nWhen you call `query()` in the Claude Agent SDK, the loop runs until Claude decides it's done. On a well-scoped task (\"fix the failing test in auth.ts\") that's usually a few turns. On an open-ended one (\"improve this codebase\") Claude will keep going until it hits a wall you didn't intend to set.\n\n**`max_turns` / `maxTurns`** counts tool-use turns only (one round of Claude producing tool calls + the SDK executing them). A lint fix runs in 5–10 turns; a full-module refactor might need 30–50. When the limit is hit, `ResultMessage.subtype` is `\"error_max_turns\"` and `session_id` is preserved — you can resume with a higher limit rather than starting over.\n\n**`max_budget_usd` / `maxBudgetUsd`** caps spend across the whole agent tree, including subagents. Once the budget is hit, Claude Code stops spawning further subagents and exits cleanly. Useful for batch jobs where you need predictable cost per item.\n\n**`effort`** trades reasoning depth for cost. `\"low\"` for file lookups and directory scans; `\"medium\"` for routine edits; `\"high\"` for debugging or refactors; `\"xhigh\"` / `\"max\"` for deep multi-step analysis. Set it per subagent via `AgentDefinition.effort` to use cheap reasoning for search tasks and thorough reasoning for the synthesis step.\n\n```python\nfrom claude_agent_sdk import query, ClaudeAgentOptions\n\nasync for msg in query(\n    prompt=\"Refactor the auth module and update all tests\",\n    options=ClaudeAgentOptions(\n        allowed_tools=[\"Read\", \"Edit\", \"Bash\", \"Glob\", \"Grep\"],\n        max_turns=40,\n        max_budget_usd=0.50,\n        effort=\"high\",\n    ),\n):\n    if msg.type == \"result\":\n        print(f\"Status: {msg.subtype}, Cost: ${msg.total_cost_usd:.4f}\")\n```\n\n**Limit to know:** `max_turns` and `max_budget_usd` have no defaults — if you don't set them, there's no automatic stop. An agent given `\"improve this codebase\"` without limits will run until the context window is exhausted. Also: `effort` is silently ignored on models that don't support it, so pin your model explicitly (`model=\"claude-sonnet-5\"`) if you're relying on `effort` for cost control.\n\n**Sources:** [How the agent loop works — Claude Code Docs](https://code.claude.com/docs/en/agent-sdk/agent-loop) · [Context Window Management in AI Agents — Atlan (2026)](https://atlan.com/know/ai-agent/ai-agent-context/what-is-context-window-management-in-ai-agents/) · [Context Engineering for AI Agents — Sourcegraph](https://sourcegraph.com/blog/context-engineering)"
+  },
+  {
+    "id": "2026-09-09-07-faiss-vector-similarity-search-foundations",
+    "title": "Your RAG Pipeline Stores Vectors. Here's What Actually Searches Them: FAISS Explained",
+    "excerpt": "FAISS is Meta's in-memory C++ library for vector similarity search — the engine under most local RAG stacks. Three index types cover most use cases; persistence is a footgun you need to know about.",
+    "author": "Chris Harper",
+    "date": "09-09-2026",
+    "publishedAt": "2026-09-09T20:06:00.000Z",
+    "tags": [
+      "AI",
+      "Tutorial",
+      "Vectors",
+      "Embeddings"
+    ],
+    "readTime": 3,
+    "image": "https://img.cloudcodetree.com/_default.png",
+    "imageSource": "https://huggingface.co/learn/llm-course/chapter5/6",
+    "content": "**FAISS is Meta's pure in-memory C++ library for vector similarity search — the engine under most local RAG stacks. Three index types cover 95% of use cases; persistence requires an explicit save/load or you lose the index on process exit.**\n\n**What you'll be able to do after this:**\nUse FAISS to build a searchable embedding index, pick the right index type for your dataset size, and understand what `Dataset.add_faiss_index()` is actually doing under the hood of a HuggingFace pipeline.\n\n**Three things that clarify how FAISS works:**\n\n- **FAISS does exactly one thing: find the k nearest vectors to a query.** It knows nothing about text, metadata, or persistence — it only handles arrays of float32. Everything else (chunking, embedding, metadata filtering) lives outside FAISS. Vector databases like Chroma, pgvector, and Qdrant manage all of that and offload the actual search step to FAISS or a similar ANN library internally.\n\n- **Three index types cover most use cases.** `IndexFlatIP` (dot product) / `IndexFlatL2` (Euclidean) does exact brute-force search — 100% recall, but slow past ~500K vectors. `IndexIVFFlat` clusters vectors first with k-means and searches only the nearest clusters — 10–100× faster, with tunable recall via the `nprobe` parameter. `IndexHNSWFlat` uses a navigable graph — fast queries with high recall, but ~100 bytes/vector at M=32. For RAG prototypes under 500K chunks, Flat is fine. Past that, IVF first; HNSW when you need consistently high recall and can afford the RAM.\n\n- **Persistence is not automatic.** FAISS lives entirely in RAM. `faiss.write_index(index, \"my.index\")` and `faiss.read_index(\"my.index\")` are the only path to survive a process restart. This is FAISS's sharpest footgun.\n\n**Hands-on: semantic search over GitHub issues (HuggingFace LLM Course, Chapter 5.6)**\n\n```python\nfrom datasets import load_dataset\nfrom sentence_transformers import SentenceTransformer\n\nmodel = SentenceTransformer(\"multi-qa-mpnet-base-dot-v1\")\nds = load_dataset(\"lewtun/github-issues\", split=\"train\")\n\n# Embed a column and add the FAISS index in one pass\nds = ds.map(\n    lambda x: {\"embeddings\": model.encode(x[\"text\"])},\n    batched=True, batch_size=32\n)\nds.add_faiss_index(column=\"embeddings\")  # IndexFlatIP by default\n\n# Query\nquery_vec = model.encode(\"How do I install the library?\")\nscores, results = ds.get_nearest_examples(\"embeddings\", query_vec, k=5)\nfor title in results[\"title\"][:3]:\n    print(title)\n\n# Save and reload (required for production)\nds.get_index(\"embeddings\").save(\"github_issues.faiss\")\nds.load_faiss_index(\"embeddings\", \"github_issues.faiss\")\n```\n\n**Where FAISS fits vs. a vector DB:** Use FAISS when you need pure speed on a dataset that fits in RAM and you don't need metadata filtering or persistence abstractions. Use Chroma, pgvector, or Qdrant when you need filters, multi-tenancy, or want persistence managed for you.\n\n**Sources:** [Semantic search with FAISS — HuggingFace LLM Course Ch. 5.6](https://huggingface.co/learn/llm-course/chapter5/6) · [Vector Search with FAISS: ANN Explained — PyImageSearch (Feb 2026)](https://pyimagesearch.com/2026/02/16/vector-search-with-faiss-approximate-nearest-neighbor-ann-explained/) · [FAISS library — Facebook Research GitHub](https://github.com/facebookresearch/faiss)"
+  },
+  {
     "id": "2026-09-09-05-claude-api-tool-addition-removal-mid-conversation",
     "title": "Add and Remove Tools Between Agent Turns Without Blowing Up Your Cache",
     "excerpt": "The mid-conversation-tool-changes-2026-07-01 beta lets you offer or withdraw tools at any point in a conversation without editing the tools array — the cached prefix stays intact.",
