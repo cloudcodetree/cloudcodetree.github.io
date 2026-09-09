@@ -10,7 +10,144 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 08 Sep 2026 20:05:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 09 Sep 2026 04:05:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Point --plugin-dir at a Folder and Claude Code 2.1.265 Auto-Loads Every Plugin Inside It</title>
+      <link>https://code.claude.com/docs/en/plugins</link>
+      <guid isPermaLink="false">2026-09-09-03-claude-code-plugin-dir-folder-team-plugins</guid>
+      <pubDate>Wed, 09 Sep 2026 04:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code 2.1.265: --plugin-dir now accepts a parent directory — every subfolder with a .claude-plugin/plugin.json manifest auto-loads. One flag, your whole team plugin suite.</description>
+      <content:encoded><![CDATA[**Claude Code 2.1.265 (September 8): `--plugin-dir` now accepts a parent folder — every subfolder with a `.claude-plugin/plugin.json` manifest auto-loads in one flag.**
+
+Before 2.1.265, `--plugin-dir` pointed at a single plugin directory. Loading multiple plugins meant multiple flags, or a wrapper script that assembled the list. The update changes that: point `--plugin-dir` at a parent directory and Claude Code scans one level deep, auto-loading every immediate subdirectory that contains a valid plugin manifest.
+
+Structure a shared plugin collection like this:
+
+```
+my-org-plugins/
+  api-checker/
+    .claude-plugin/plugin.json   # skills + hooks for checking internal APIs
+  github-tools/
+    .claude-plugin/plugin.json   # custom gh commands the team has standardized
+  style-enforcer/
+    .claude-plugin/plugin.json   # hooks to enforce your coding style
+```
+
+Then load the whole suite with one flag:
+
+```bash
+claude --plugin-dir ~/my-org-plugins/
+```
+
+To make it the default for everyone who opens a project, add it to the repo's `.claude/settings.json`:
+
+```json
+{
+  "pluginDirs": ["~/my-org-plugins/"]
+}
+```
+
+Use `/reload-plugins` inside a session to pick up plugin changes without restarting.
+
+**Where it breaks:** The directory scan is one level deep — nested plugin directories do not auto-load. A local `--plugin-dir` plugin shadows any same-named marketplace plugin for that session, which is useful for testing changes but easy to forget when a teammate reports different behavior. The flag also accepts a `.zip` archive of the plugin directory if you want to distribute the collection as a single file.
+
+**Sources:** [Claude Code 2.1.265 changelog](https://code.claude.com/docs/en/changelog) · [Claude Code plugins documentation](https://code.claude.com/docs/en/plugins) · [Awesome Claude Plugins community list](https://github.com/composio-community/awesome-claude-plugins)
+]]></content:encoded>
+    </item>
+    <item>
+      <title>207 GPU Kernels, No Server Required — @huggingface/kernels Brings ML Ops to Your Users' Browsers</title>
+      <link>https://huggingface.co/blog/webgpu-kernels</link>
+      <guid isPermaLink="false">2026-09-09-02-huggingface-webgpu-kernels-browser-inference</guid>
+      <pubDate>Wed, 09 Sep 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>Developer Tools</category>
+      <category>Local AI</category>
+      <description>HuggingFace shipped @huggingface/kernels (Sept 1): 207 WebGPU ML operations via npm. Run attention and matmul in your users' browsers — no server endpoint needed.</description>
+      <content:encoded><![CDATA[**HuggingFace's new `@huggingface/kernels` puts 207 WebGPU-optimized ML operations in your npm install — no server endpoint needed for embedding generation or lightweight inference.**
+
+HuggingFace's Web AI team shipped `@huggingface/kernels` on September 1: 207 GPU operations (attention, matrix multiplication, layernorm, activations) that run in the browser via WebGPU. Instead of adding a server endpoint for an embedding call, you load a kernel and pass typed tensors:
+
+```js
+import { getKernel } from "@huggingface/kernels";
+const matmul = await getKernel("huggingface/kernels-matmul-wgsl", { rev: "v0.1" });
+const result = await matmul(a, b, shape);
+```
+
+Each kernel ships with correctness test cases, performance benchmarks, and parameterized WGSL shader implementations as versioned Hub packages. The library includes Fleet, an in-browser GPU benchmarking tool that scores kernels on your specific hardware before you build on them.
+
+**Where it breaks:** WebGPU support varies — Safari's implementation is partial, and the library is preview-tagged for a reason: HuggingFace documents that 947 of the 1,756 ORT WebGPU reference test cases produced unreliable results. Benchmarks measure individual GPU operations only, not full model inference (shader compilation and data transfer add latency on top).
+
+**Why it matters:** If you are adding embedding generation or a lightweight classifier to a web app, this is worth evaluating as an alternative to a server round-trip. For anything requiring a full model pipeline, the coverage gaps mean server inference remains more reliable.
+
+**Sources:** [HuggingFace @huggingface/kernels blog post](https://huggingface.co/blog/webgpu-kernels) · [WebGPU Kernels: Local AI Closer to the Browser — Ken Ashe](https://kenashe.ai/blog/2026-09-01-webgpu-kernels-move-local-ai-closer-to-the-browser) · [HuggingFace ships 207 Apache-2.0 WebGPU kernels](https://ccleaks.com/news/huggingface-webgpu-kernels-sep-2026)
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Your Brand Colors Live in Your Head, Not Claude Code's — Structure a tokens.json File It Can Actually Read</title>
+      <link>https://www.designtokens.org/tr/drafts/format/</link>
+      <guid isPermaLink="false">2026-09-09-01-w3c-dtcg-design-tokens-claude-code</guid>
+      <pubDate>Wed, 09 Sep 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Design</category>
+      <category>Design-to-Code</category>
+      <description>Give Claude Code a W3C DTCG tokens.json file and it uses your actual brand colors and spacing — not generic defaults — from the first component it generates.</description>
+      <content:encoded><![CDATA[**Give Claude Code a W3C DTCG tokens.json file and it uses your actual brand colors and spacing — not generic defaults — from the first component it generates.**
+
+When Claude Code generates a component, it defaults to whatever spacing and colors make sense to it — typically Bootstrap-adjacent values (16px gaps, generic blues). That is not incompetence; it just does not know your system exists.
+
+The fix is a `tokens.json` file in the [W3C Design Tokens Community Group (DTCG) format](https://www.designtokens.org/tr/drafts/format/) — the spec backed by Figma, Adobe, Google, and Shopify, that every serious design-to-code tool now reads and writes. The shape is simple: each token has a `$value` and a `$type`.
+
+```json
+{
+  "color": {
+    "brand": {
+      "primary": { "$value": "#3b82f6", "$type": "color" },
+      "surface": { "$value": "#0f172a", "$type": "color" }
+    }
+  },
+  "spacing": {
+    "md": { "$value": "16px", "$type": "dimension" },
+    "lg": { "$value": "24px", "$type": "dimension" }
+  }
+}
+```
+
+Reference it in your `CLAUDE.md`:
+
+```markdown
+## Design system
+All color and spacing values are in `tokens.json` (W3C DTCG format).
+Use `color.brand.primary.$value` for primary actions,
+`color.brand.surface.$value` for page backgrounds.
+Do not invent values — look them up in the token file.
+```
+
+Then run [Style Dictionary v4](https://styledictionary.com/info/dtcg/) to generate CSS custom properties, Tailwind config, and TypeScript constants from the same source:
+
+```bash
+npx style-dictionary build --config sd.config.mjs
+```
+
+**What you'll be able to do after this:** Claude Code generates components that start from your palette, and the same `tokens.json` drives both the agent instructions and your CSS output.
+
+**Three-bullet takeaway:**
+- The DTCG 2025.10 spec defines the portable JSON shape: `$value`/`$type` per token, with alias references via `{path.to.token}` for semantic token trees.
+- Style Dictionary v4 processes DTCG tokens into CSS vars, Tailwind config, or TS constants in one command — one source file, many output formats.
+- The gap: Claude Code respects the token file when CLAUDE.md points to it, but for multi-component sessions you still benefit from explicit references in your prompts ("use the `color.brand.primary` token, not a hardcoded hex").
+
+**Sources:** [Design Tokens Community Group spec 2025.10](https://www.designtokens.org/tr/drafts/format/) · [Style Dictionary DTCG support docs](https://styledictionary.com/info/dtcg/) · [W3C announcement: specification reaches first stable version](https://www.w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/) · [W3C DTCG practical guide](https://tasteprofile.io/blog/w3c-dtcg-design-tokens-practical-guide)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Claude Code Has Been Taking Notes About Your Project in a File You've Probably Never Opened</title>
@@ -5352,141 +5489,9 @@ response = router.completion(model="primary", messages=messages)
 **Sources:** [Fallbacks (Provider Failover) — LiteLLM docs](https://docs.litellm.ai/docs/proxy/reliability) · [LLM API Resilience in Production: Rate Limits, Failover, and Naive Retry Costs — TianPan.co](https://tianpan.co/blog/2026-03-11-llm-api-resilience-production) · [LLM Gateway in Production: Multi-Provider Routing with LiteLLM — DevOpsBoys](https://devopsboys.com/blog/llm-gateway-litellm-multi-provider-routing-production-2026)]]></content:encoded>
     </item>
 
-    <item>
-      <title>Write a Specialist Once, Delegate to It Forever: Custom Subagents in .claude/agents/</title>
-      <link>https://code.claude.com/docs/en/sub-agents</link>
-      <guid isPermaLink="false">2026-08-24-03-claude-code-custom-subagent-agents-dir</guid>
-      <pubDate>Mon, 24 Aug 2026 04:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Agents</category>
-      <description>Define a specialist in a .claude/agents/ markdown file and Claude Code delegates to it automatically — no re-briefing, each invocation runs in its own context with the right tools.</description>
-      <content:encoded><![CDATA[**Write a markdown file once, and Claude Code delegates matching tasks to your specialist automatically — each invocation runs in its own context window, with only the tools you specified.**
-
-Most re-briefing in multi-step Claude Code sessions is wasted effort: "you are a code reviewer, read-only, security focus, return JSON" re-appears in the prompt again and again, burning tokens and producing subtly inconsistent specialists each time. The fix is a file.
-
-**The format**
-
-Create `.claude/agents/code-reviewer.md` in your project:
-
-```markdown
----
-name: code-reviewer
-description: Reviews changed files for security issues, logic bugs, and API misuse. Read-only — does not edit files. Invoke when asked to review code or before committing.
-tools: Read, Grep, Glob
-model: sonnet
----
-You are a security-focused code reviewer. For each file you review:
-1. Check for injection vulnerabilities, unsafe deserialization, and hardcoded credentials
-2. Flag API calls where error handling is missing or swallows exceptions
-3. Return findings as a JSON array: [{file, line, severity, issue, suggestion}]
-
-Do not edit files. Do not offer praise. List defects only.
-```
-
-Claude Code reads all `.claude/agents/` files at startup. When you type "review the auth module before I commit", Claude routes the task to this agent by matching your intent to the `description` field. The description is what drives routing — write it as a sentence describing what tasks should land here.
-
-**Per-project vs per-user**
-
-- `.claude/agents/` in the repo — checked into git, available to every team member who clones it
-- `~/.claude/agents/` in your home directory — follows you across every project you work on
-
-Both coexist. A project-level agent with the same name wins over the user-level one.
-
-**The context isolation**
-
-Each invocation runs in a fresh context window. Grep results, file reads, and reasoning from the review never appear in your main session — you see only the summary that comes back. This keeps long sessions from degrading and prevents the review's detail noise from influencing your next edits.
-
-**The constraint to know**
-
-A plain subagent starts with no knowledge of your main session — it sees only the task description you send with the Agent call. If the specialist needs context from earlier in your session (a design decision, a prior finding), pass it explicitly in the task description, or use a fork subagent, which starts from a copy of the current conversation.
-
-Other useful specialists to define: a `test-writer` (generates pytest from a function signature), a `doc-writer` (extracts docstrings from a module), a `migration-writer` (produces Django migrations from model diffs), a `dependency-auditor` (reads package files and flags known CVEs). Each one costs one markdown file and pays back every session you use it.
-
-**Sources:** [Create custom subagents — Claude Code Docs](https://code.claude.com/docs/en/sub-agents) · [How to Build Custom Sub-Agents in Claude Code — MindStudio](https://www.mindstudio.ai/blog/build-custom-sub-agents-claude-code-yaml) · [Claude Code Subagents and Multi-Agent Orchestration — hidekazu-konishi.com](https://hidekazu-konishi.com/entry/claude_code_subagents_and_orchestration_guide.html)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Developers Are Running OX Alpha — Free, Anonymous, Strong on Coding, but Its Retention Policy Contradicts Itself</title>
-      <link>https://thenextweb.com/news/ox-alpha-stealth-model-openrouter-anonymous-provider</link>
-      <guid isPermaLink="false">2026-08-24-02-ox-alpha-anonymous-model-retention-risk</guid>
-      <pubDate>Mon, 24 Aug 2026 04:05:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>LLM</category>
-      <category>Security</category>
-      <description>An anonymous model with 1M context appeared on OpenRouter Aug 20, scoring above GPT-5.6 Sol on coding benchmarks — but its operator is unknown and retention terms contradict each other.</description>
-      <content:encoded><![CDATA[**An unidentified model appeared on OpenRouter on August 20 with a 1M-token context window and free pricing. It scores 80% on DeepSWE — above GPT-5.6 Sol on that benchmark. Its operator is still anonymous, and its data retention terms disagree depending on which page you read.**
-
-OX Alpha accepts text, image, and video input with tool-calling support. On DeepSWE (an agentic coding benchmark), it scores 80%, ranking above GPT-5.6 Sol and Claude Opus 5 in that specific test. Community fingerprinting published August 22 points with high confidence to Zhipu AI's GLM infrastructure — likely GLM-5.3 — but no lab has officially claimed it.
-
-**The retention problem**
-
-The per-model data notice and the OpenRouter stealth-model listing give different answers. One access route (OpenCode) says zero retention; the OpenRouter listing says the anonymous provider retains prompts and completions. That contradiction was still unresolved as of August 23.
-
-The practical guidance: OX Alpha is useful for benchmarking your own tasks against what is achievable at free pricing. Running it against your own open-source code or synthetic evals is low-risk and informative. Keep customer data, proprietary source code, and credentials off it until the operator is publicly identified and the retention story is consistent.
-
-**The free window**
-
-The provider stated the free pricing window as approximately one week from August 20. Watch [the OpenRouter listing](https://openrouter.ai/ox/alpha) for an identity disclosure or pricing announcement this week — that is when the cost-per-token story will become clear.
-
-**Why it matters:** an 80% DeepSWE score from an anonymous model is worth tracking — if the operator surfaces and retention terms clarify, it becomes a serious option for coding tasks. For now: benchmark on it, do not ship with it.
-
-**Sources:** [Coding Model Ox Alpha Retains Every Prompt: You Cannot Name Company Holding Them — TechTimes](https://www.techtimes.com/articles/325244/20260823/coding-model-ox-alpha-retains-every-prompt-you-cannot-name-company-holding-them.htm) · [A free AI model is winning over developers. Nobody knows whose servers it runs on — The Next Web](https://thenextweb.com/news/ox-alpha-stealth-model-openrouter-anonymous-provider) · [Ox Alpha likely GLM-5.3: the mystery model fingerprint — Orca Router](https://www.orcarouter.ai/blog/ox-alpha-stealth-model-what-we-know) · [Ox Alpha Free AI Model: Setup, Privacy and Cost — Wavect](https://wavect.io/blog/ox-alpha-free-ai-model-guide-2026/)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Fine-Tune or Retrieve? The One Question That Tells You Which to Try First</title>
-      <link>https://parlance-labs.com/education/fine_tuning_course/workshop_1.html</link>
-      <guid isPermaLink="false">2026-08-24-01-rag-vs-fine-tuning-decision-sequence</guid>
-      <pubDate>Mon, 24 Aug 2026 04:04:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Fine-Tuning</category>
-      <category>Best Practices</category>
-      <description>Fine-tuning changes model behavior; RAG changes what it knows. Confusing the two costs teams months. Here is the decision sequence practitioners actually use before committing to either approach.</description>
-      <content:encoded><![CDATA[**Fine-tuning changes how a model behaves; RAG changes what it knows. Most teams lose weeks fine-tuning a behavior problem that was actually a knowledge problem — here is the decision sequence that catches that early.**
-
-**What you will be able to do after this:** identify whether a model failure is a knowledge gap or a behavior gap before committing to either approach, and pick the right order of tools to try.
-
-**The misdiagnosis pattern**
-
-When a model gives the wrong answer, two different root causes look identical on the surface:
-
-- It lacks the information (internal docs, this week's pricing, your API spec, a proprietary codebase)
-- It has the information but formats or reasons about it incorrectly
-
-Fine-tuning only fixes the second. RAG only fixes the first. The diagnosis error is common because the symptom — "wrong output" — is the same either way.
-
-**The decision sequence**
-
-1. **Prompt engineering first.** Write a clear system prompt, add 5–10 few-shot examples, run evals on your failure cases. If accuracy climbs to acceptable, stop here. Parlance Labs estimates that 70% of production LLM problems do not require fine-tuning.
-2. **RAG** when the model lacks proprietary or time-sensitive data, when you need citations or source attribution, when data changes frequently, or when compliance requires keeping source data separable from the model weights.
-3. **Fine-tuning (LoRA or QLoRA)** when the model already knows the right answer but consistently produces the wrong format, tone, or structured output even after good prompting — and when that pattern is stable enough to train on.
-4. **Hybrid (fine-tune + RAG)** is the 2026 production default: a thin LoRA adapter on a small open-weight model (Llama 3.1 8B, Qwen 2.5 7B) controls output schema and style; a RAG step injects current facts. The two do not compete.
-
-**The single question to ask before choosing**
-
-> Is the model wrong because it does not have the information, or because it does not handle the information correctly?
-
-*Does not have it* → RAG. *Has it, handles it wrong* → fine-tuning.
-
-If you are unsure: run evals on a sample of failure cases and count which error type dominates. That count is your answer.
-
-**The real cost of fine-tuning**
-
-Fine-tuning bakes behavior into weights at a point in time. When output schemas or formatting standards change, you retrain. When your knowledge base updates, the fine-tuned model does not — it needs a retrieval step anyway. Debugging a fine-tuned model that started misbehaving is significantly harder than tracing a retrieval step through logs. Fine-tune only for what retrieval and prompt engineering genuinely cannot fix.
-
-**Sources:** [When and Why to Fine-Tune an LLM — Parlance Labs Workshop 1](https://parlance-labs.com/education/fine_tuning_course/workshop_1.html) · [RAG vs Fine-Tuning in 2026: A Decision Framework for LLM Teams — Winder.ai](https://winder.ai/rag-vs-fine-tuning-2026-decision-framework/) · [Fine-Tuning LLMs: When RAG Is Not Enough — Big Data Boutique](https://bigdataboutique.com/blog/fine-tuning-llms-when-rag-isnt-enough)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
     
