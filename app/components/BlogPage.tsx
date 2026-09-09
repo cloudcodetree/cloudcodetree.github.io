@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  Container, Typography, Box, Skeleton, Pagination,
+  Container, Typography, Box, Button, Skeleton, Pagination,
   ToggleButtonGroup, ToggleButton, Grid, Chip,
   Select, MenuItem,
 } from '@mui/material';
-import { GridView, ViewList, ViewStream, RssFeed, ContentCopy, Check } from '@mui/icons-material';
+import {
+  GridView, ViewList, ViewStream, RssFeed, ContentCopy, Check,
+  VisibilityOff, Bookmark, BookmarkBorder,
+} from '@mui/icons-material';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -16,6 +19,10 @@ import { BlogPost, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx, markd
 import { Corners } from './Blueprint';
 import SearchBox from './SearchBox';
 import TopicsFlyout from './TopicsFlyout';
+import {
+  applyReaderState, filterHideRead, hasReaderSession, loadReaderState, setSaved,
+  type ReaderRow, type ReaderStateMap, type WithReaderState,
+} from '../lib/readerState';
 // eslint-disable-next-line import/no-relative-packages
 import { topicTags } from '../../scripts/lib/topics.mjs';
 
@@ -33,6 +40,12 @@ interface BlogPageProps {
    */
   topic?: { tag: string; slug: string };
   showSearch?: boolean;
+  /**
+   * /saved. Narrows the list to posts this reader has saved, live: unsaving a
+   * card here drops it from the list without a reload. Signed out it is inert —
+   * no reader state is ever loaded, so nothing is saved and the list is empty.
+   */
+  onlySaved?: boolean;
 }
 
 type View = 'list' | 'cards' | 'feed';
@@ -48,23 +61,64 @@ const clamp = (n: number) => ({
 
 const postTopics = (post: BlogPost) => post.tags.filter((t) => t.toLowerCase() !== 'ai');
 
-/** Shared tag-pill row, identical across every view. */
-function Pills({ post, max = 3 }: { post: BlogPost; max?: number }) {
+/** The signed-out reader's state: no rows, ever. One shared, never-mutated Map. */
+const EMPTY_STATE: ReaderStateMap = new Map();
+
+/**
+ * Shared tag-pill row, identical across every view.
+ *
+ * `extra` carries the signed-in reader-state controls. It is undefined for a
+ * signed-out reader, so the row renders exactly the markup it always has.
+ */
+function Pills({ post, max = 3, extra }: { post: BlogPost; max?: number; extra?: React.ReactNode }) {
   const tags = postTopics(post).slice(0, max);
-  if (!tags.length) return null;
+  if (!tags.length && !extra) return null;
   return (
     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
       {tags.map((t) => (
         <Chip key={t} label={t} size="small"
           sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(255,178,77,0.08)', color: '#ffb24d', border: '1px solid rgba(255,178,77,0.3)' }} />
       ))}
+      {extra}
     </Box>
+  );
+}
+
+/** Post as the list sees it once this reader's state is merged in. */
+type ReaderPost = WithReaderState<BlogPost>;
+
+/** "Read" marker — same geometry as a tag pill, in the accent rather than amber. */
+function ReadChip() {
+  return (
+    <Chip label="Read" size="small"
+      sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(148,188,227,0.08)', color: ACCENT, border: `1px solid rgba(148,188,227,0.3)` }} />
+  );
+}
+
+/** Save / unsave, sitting in the pill row. Optimistic; reverts if the write fails. */
+function SaveChip({ post, onToggle }: { post: ReaderPost; onToggle: (post: ReaderPost) => void }) {
+  return (
+    <Chip
+      size="small"
+      icon={post.isSaved ? <Bookmark sx={{ fontSize: 13 }} /> : <BookmarkBorder sx={{ fontSize: 13 }} />}
+      label={post.isSaved ? 'Saved' : 'Save'}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle(post); }}
+      aria-label={post.isSaved ? `Remove “${post.title}” from saved` : `Save “${post.title}” for later`}
+      sx={{
+        height: 22, fontFamily: MONO, fontSize: 10, cursor: 'pointer',
+        background: post.isSaved ? 'rgba(148,188,227,0.16)' : 'transparent',
+        color: post.isSaved ? ACCENT : 'text.secondary',
+        border: `1px solid ${post.isSaved ? 'rgba(148,188,227,0.45)' : 'rgba(148,163,184,0.25)'}`,
+        '& .MuiChip-icon': { color: 'inherit', ml: 0.6 },
+        '&:hover': { background: 'rgba(148,188,227,0.12)', borderColor: 'rgba(148,188,227,0.45)', color: ACCENT },
+      }}
+    />
   );
 }
 
 export default function BlogPage({
   posts, heading = 'AI News', intro = 'Daily field notes on AI-assisted engineering.',
-  feedPath = '/feed.xml', emptyMessage, showSearch = true,
+  feedPath = '/feed.xml', emptyMessage, showSearch = true, onlySaved = false,
 }: BlogPageProps) {
   const [view, setView] = useState<View>('cards');              // SSR default
   const [sizeOverride, setSizeOverride] = useState<Partial<Record<View, number>>>({});
@@ -79,17 +133,37 @@ export default function BlogPage({
   // does not exist then. Only click handlers read the absolute URL.
   const [origin, setOrigin] = useState('');
 
+  // ---- reader state --------------------------------------------------------
+  // Both start in their signed-out shape and only ever leave it inside the
+  // effect below. The prerendered HTML is therefore always the signed-out list,
+  // and read/saved decoration lands after hydration — never in the static file.
+  const [signedIn, setSignedIn] = useState(false);
+  const [readerState, setReaderState] = useState<ReaderStateMap>(EMPTY_STATE);
+  const [hideRead, setHideRead] = useState(false);
+
   // What the Topics flyout lists: every tag except the ubiquitous "AI",
   // most-used first, with its slug and count. topicTags() is the ONE definition
   // shared with the feed/sitemap generators, so a pill's link and the page it
   // opens can never disagree about a slug.
   const topics: { tag: string; slug: string; count: number }[] = useMemo(() => topicTags(posts), [posts]);
 
+  // Annotate first, then narrow. Every filter below operates on the same
+  // annotated list, so Hide-read composes with topics, search and /saved
+  // instead of replacing any of them.
+  const annotated = useMemo(() => applyReaderState(posts, readerState), [posts, readerState]);
+
   // Filter (OR): a post matches if it carries any selected topic.
-  const filteredPosts = useMemo(
-    () => (selectedTags.length ? posts.filter((p) => p.tags.some((t) => selectedTags.includes(t))) : posts),
-    [posts, selectedTags],
+  const topicFiltered = useMemo(
+    () => (selectedTags.length ? annotated.filter((p) => p.tags.some((t) => selectedTags.includes(t))) : annotated),
+    [annotated, selectedTags],
   );
+
+  const filteredPosts = useMemo(() => {
+    const scoped = onlySaved ? topicFiltered.filter((p) => p.isSaved) : topicFiltered;
+    // `hideRead` can only be true when signed in, but gate it anyway: the
+    // signed-out list must be today's list under every combination of state.
+    return filterHideRead(scoped, hideRead && signedIn);
+  }, [topicFiltered, onlySaved, hideRead, signedIn]);
 
   const pageSize = sizeOverride[view] ?? PAGE_DEFAULT[view];
   const pageCount = Math.max(1, Math.ceil(filteredPosts.length / pageSize));
@@ -110,6 +184,18 @@ export default function BlogPage({
     if (t) setSelectedTags(t.split(',').map((s) => s.trim()).filter(Boolean));
     const n = parseInt(params.get('page') || '1', 10);
     if (n > 1) setPage(n);
+  }, []);
+
+  // Reader state: one query per page load, and only for a reader who has a
+  // session in storage. A signed-out visitor never gets past the first line —
+  // no supabase-js chunk, no request, no controls.
+  useEffect(() => {
+    if (!hasReaderSession()) return;
+    setSignedIn(true);
+    setHideRead(window.localStorage.getItem('ainews-hide-read') === '1');
+    let live = true;
+    void loadReaderState().then((state) => { if (live) setReaderState(state); });
+    return () => { live = false; };
   }, []);
 
   // Keep the URL (?page, ?topics) in sync, clamped, on the CURRENT path (/ or /ai-news/,
@@ -171,6 +257,45 @@ export default function BlogPage({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const toggleHideRead = () => {
+    setHideRead((prev) => {
+      const next = !prev;
+      window.localStorage.setItem('ainews-hide-read', next ? '1' : '0');
+      return next;
+    });
+    setPage(1);
+  };
+
+  /** Replace one post's row, leaving every other reader-state entry alone. */
+  const putRow = (postId: string, row: ReaderRow | undefined) => {
+    setReaderState((cur) => {
+      const next: ReaderStateMap = new Map();
+      cur.forEach((v, k) => next.set(k, v));
+      if (row) next.set(postId, row); else next.delete(postId);
+      return next;
+    });
+  };
+
+  // Optimistic: flip the pill immediately, revert just this post's row if the
+  // write fails. read_at is carried over, so saving never forgets a read.
+  const toggleSaved = (post: ReaderPost) => {
+    const before = readerState.get(post.id);
+    const saved = !post.isSaved;
+    putRow(post.id, { post_id: post.id, saved, read_at: before ? before.read_at : null });
+    void setSaved(post.id, saved).then((ok) => { if (!ok) putRow(post.id, before); });
+  };
+
+  /** The signed-in extras for a card's pill row; undefined signed out. */
+  const readerExtras = (post: ReaderPost): React.ReactNode => (signedIn ? (
+    <>
+      {post.isRead && <ReadChip />}
+      <SaveChip post={post} onToggle={toggleSaved} />
+    </>
+  ) : undefined);
+
+  /** Read posts recede rather than vanish — the archive stays browsable. */
+  const cardOpacity = (post: ReaderPost) => (signedIn && post.isRead ? 0.55 : 1);
+
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : prev.concat(tag)));
     setPage(1);
@@ -218,7 +343,7 @@ export default function BlogPage({
         <Box
           key={post.id}
           component={motion.div}
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: cardOpacity(post), y: 0 }}
           transition={{ duration: 0.3, delay: Math.min(i * 0.025, 0.25) }}
           sx={{ display: 'flex', gap: 2.5, py: 3, borderTop: border, alignItems: 'flex-start' }}
         >
@@ -239,7 +364,7 @@ export default function BlogPage({
             <Typography sx={{ color: 'text.secondary', fontSize: '0.95rem', lineHeight: 1.5, ...clamp(2) }}>
               {post.excerpt}
             </Typography>
-            <Pills post={post} />
+            <Pills post={post} extra={readerExtras(post)} />
           </Box>
         </Box>
       ))}
@@ -253,7 +378,7 @@ export default function BlogPage({
         <Grid size={{ xs: 12, sm: 6 }} key={post.id}>
           <Box
             component={motion.div}
-            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 14 }} animate={{ opacity: cardOpacity(post), y: 0 }}
             transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.4) }}
             sx={{
               height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 0, border,
@@ -279,7 +404,7 @@ export default function BlogPage({
               <Typography sx={{ color: 'text.secondary', fontSize: '0.92rem', lineHeight: 1.5, ...clamp(3) }}>
                 {post.excerpt}
               </Typography>
-              <Box sx={{ mt: 'auto', pt: 0.5 }}><Pills post={post} /></Box>
+              <Box sx={{ mt: 'auto', pt: 0.5 }}><Pills post={post} extra={readerExtras(post)} /></Box>
             </Box>
           </Box>
         </Grid>
@@ -295,7 +420,7 @@ export default function BlogPage({
           <Box
             key={post.id}
             component={motion.div}
-            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 14 }} animate={{ opacity: cardOpacity(post), y: 0 }}
             transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.4) }}
             sx={{ py: { xs: 4, md: 6 }, borderTop: border }}
           >
@@ -312,7 +437,7 @@ export default function BlogPage({
               sx={{ display: 'block', fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.7rem', md: '2.2rem' }, lineHeight: 1.12, letterSpacing: '-0.015em', mb: 1.5, color: 'text.primary', textDecoration: 'none', transition: 'color 0.22s ease', '&:hover': { color: LINK } }}>
               {post.title}
             </Typography>
-            <Box sx={{ mb: 2.5 }}><Pills post={post} /></Box>
+            <Box sx={{ mb: 2.5 }}><Pills post={post} extra={readerExtras(post)} /></Box>
             {body !== undefined ? (
               <Box sx={markdownSx}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>{body}</ReactMarkdown>
@@ -388,6 +513,28 @@ export default function BlogPage({
               feedUrlForSelection={feedUrlForSelection}
             />
           )}
+          {/* Signed-in only: a control a signed-out reader cannot use is worse
+              than no control. Sits beside Topics and narrows what those leave. */}
+          {signedIn && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<VisibilityOff />}
+              onClick={toggleHideRead}
+              aria-pressed={hideRead}
+              sx={{
+                fontFamily: MONO, fontSize: 12, textTransform: 'none',
+                color: hideRead ? '#1d1f20' : 'text.secondary',
+                background: hideRead ? ACCENT : 'transparent',
+                borderColor: hideRead ? ACCENT : 'rgba(148,163,184,0.25)',
+                '&:hover': hideRead
+                  ? { background: ACCENT, borderColor: ACCENT }
+                  : { borderColor: ACCENT, color: ACCENT, background: 'rgba(148,188,227,0.08)' },
+              }}
+            >
+              Hide read
+            </Button>
+          )}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
             <Select value={pageSize} inputProps={{ 'aria-label': 'Posts per page' }} onChange={(e) => choosePageSize(Number(e.target.value))} size="small"
@@ -407,7 +554,10 @@ export default function BlogPage({
       {filteredPosts.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10 }}>
           <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>
-            {emptyMessage ?? (posts.length === 0 ? '// no posts yet' : '// no posts match those topics — clear a filter above')}
+            {emptyMessage
+              ?? (posts.length === 0 ? '// no posts yet'
+                : hideRead && signedIn ? '// everything here is already read — switch off Hide read'
+                  : '// no posts match those topics — clear a filter above')}
           </Typography>
         </Box>
       ) : (
