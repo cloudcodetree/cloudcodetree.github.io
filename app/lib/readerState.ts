@@ -56,9 +56,10 @@ async function currentUserId(): Promise<string | null> {
 }
 
 /**
- * One query per page load, shared: /saved renders BlogPage, and both want the
- * same rows. Callers each get their OWN Map copy so an optimistic update in one
- * component can never alias another's state.
+ * One query per signed-in session, shared: /saved renders BlogPage, and both
+ * want the same rows. Callers each get their OWN Map copy so an optimistic
+ * update in one component can never alias another's state. Cleared by
+ * resetReaderState() whenever the reader changes.
  */
 let inFlight: Promise<ReaderStateMap> | null = null;
 
@@ -106,6 +107,18 @@ export async function loadReaderState(): Promise<ReaderStateMap> {
 }
 
 /**
+ * Forget everything cached for the previous reader: the shared row Map and the
+ * set of posts already marked read. Called on every auth transition, so signing
+ * out — or signing in as somebody else on the same browser — cannot leave one
+ * reader looking at another's state, or suppress the next reader's first
+ * "mark as read" because the previous one had already read that post.
+ */
+export function resetReaderState(): void {
+  inFlight = null;
+  marked.clear();
+}
+
+/**
  * Record that the reader opened this post. Fire-and-forget: never awaited
  * before render, failures swallowed, exactly as the Worker's logDemoOpen is.
  *
@@ -117,11 +130,16 @@ const marked = new Set<string>();
 
 export function markRead(postId: string): void {
   if (!hasReaderSession()) return;
-  // Once per post per page load. An article's effect can run more than once for
-  // reasons that have nothing to do with the reader — StrictMode's double
-  // invoke in dev, AnimatePresence remounting the route — and each extra run
-  // would be another identical write. Cleared again if the write fails, so a
-  // later mount still gets its chance.
+  // At most one write per post for as long as this reader's session lasts in
+  // this tab — module state, so it survives client-side navigation between
+  // articles, and is cleared only by resetReaderState() on an auth change. That
+  // is deliberately wider than "per page load": an article's effect can run
+  // several times for reasons that have nothing to do with the reader
+  // (StrictMode's double invoke in dev, AnimatePresence remounting the route),
+  // and re-opening a post the reader already opened in this session tells us
+  // nothing new. A real return visit is a fresh page load, which re-reads
+  // read_at honestly. Cleared again if the write fails, so a later mount
+  // still gets its chance.
   if (marked.has(postId)) return;
   marked.add(postId);
   void (async () => {
@@ -130,9 +148,12 @@ export function markRead(postId: string): void {
     try {
       const { supabase } = await import('./supabaseClient');
       const readAt = new Date().toISOString();
+      // updated_at is deliberately absent: a before-insert-or-update trigger
+      // (migration 0006) sets it from server time, which no client clock can
+      // backdate and no payload can forget.
       const { error } = await supabase()
         .from('reader_state')
-        .upsert({ user_id: userId, post_id: postId, read_at: readAt, updated_at: readAt }, { onConflict: 'user_id,post_id' });
+        .upsert({ user_id: userId, post_id: postId, read_at: readAt }, { onConflict: 'user_id,post_id' });
       if (error) marked.delete(postId);
       else patchCache(postId, { read_at: readAt });
     } catch {
@@ -153,12 +174,85 @@ export async function setSaved(postId: string, saved: boolean): Promise<boolean>
     const { supabase } = await import('./supabaseClient');
     const { error } = await supabase()
       .from('reader_state')
-      .upsert({ user_id: userId, post_id: postId, saved, updated_at: new Date().toISOString() }, { onConflict: 'user_id,post_id' });
+      .upsert({ user_id: userId, post_id: postId, saved }, { onConflict: 'user_id,post_id' });
     if (!error) patchCache(postId, { saved });
     return !error;
   } catch {
     return false;
   }
+}
+
+// ---- auth ------------------------------------------------------------------
+
+/**
+ * Whether it is worth loading supabase-js at all.
+ *
+ * A token in storage is the ordinary signal. The `?signin=1` fallback is the
+ * same one GlobalAuth carries: on the OAuth return the client that will hold
+ * the session does not exist yet when a page's mount effect runs, so
+ * hasReaderSession() is still false and the reader would get none of this
+ * feature until a manual refresh. AuthWidget deliberately does not navigate
+ * when the destination is the page you are already on, so there is no reload to
+ * rescue it.
+ *
+ * Neither branch is ever true for an ordinary signed-out visitor, so they still
+ * download no auth SDK and fire no query.
+ */
+function shouldWatchAuth(): boolean {
+  if (hasReaderSession()) return true;
+  try {
+    return new URLSearchParams(window.location.search).get('signin') === '1';
+  } catch {
+    return false;
+  }
+}
+
+/** The reader the cache belongs to, so a change of reader invalidates it. */
+let watchedUserId: string | null = null;
+
+/**
+ * Track whether a reader is signed in, for as long as the caller is mounted.
+ * `onChange` always fires with the current answer — synchronously with `false`
+ * when there is no reason to load supabase-js at all — and then on every later
+ * transition. Returns an unsubscribe function.
+ *
+ * Failure of any kind — no session, an expired token, supabase-js not loading —
+ * ends with `onChange(false)`, so a stale token cannot leave dead controls on
+ * screen. Callers can therefore treat this as the single source of truth and
+ * never probe storage themselves.
+ */
+export function watchReaderAuth(onChange: (signedIn: boolean) => void): () => void {
+  if (!shouldWatchAuth()) { onChange(false); return () => {}; }
+
+  let live = true;
+  let unsubscribe: (() => void) | null = null;
+
+  void (async () => {
+    try {
+      const { supabase } = await import('./supabaseClient');
+      // Fires INITIAL_SESSION immediately, so this doubles as the first read.
+      const { data } = supabase().auth.onAuthStateChange((_event, session) => {
+        if (!live) return;
+        const userId = session?.user.id ?? null;
+        // Synchronous, before onChange, so several subscribers on one page
+        // agree about whose cache this is and only the first one clears it.
+        if (userId !== watchedUserId) {
+          watchedUserId = userId;
+          resetReaderState();
+        }
+        onChange(!!session);
+      });
+      if (!live) { data.subscription.unsubscribe(); return; }
+      unsubscribe = () => data.subscription.unsubscribe();
+    } catch {
+      if (live) onChange(false);
+    }
+  })();
+
+  return () => {
+    live = false;
+    if (unsubscribe) unsubscribe();
+  };
 }
 
 // ---- pure helpers (unit-tested in readerState.test.ts) ---------------------

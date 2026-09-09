@@ -1,5 +1,28 @@
-import { describe, expect, it } from 'vitest';
-import { applyReaderState, filterHideRead, type ReaderRow } from './readerState';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  applyReaderState, filterHideRead, loadReaderState, markRead, resetReaderState,
+  type ReaderRow,
+} from './readerState';
+
+// The one place supabase-js is reachable from this module; stubbing it lets the
+// caching behaviour be observed by counting real calls rather than by exposing
+// module internals for the test's benefit.
+const calls = { select: 0, upsert: 0 };
+vi.mock('./supabaseClient', () => ({
+  supabase: () => ({
+    auth: { getSession: async () => ({ data: { session: { user: { id: 'reader-1' } } } }) },
+    from: () => ({
+      select: async () => { calls.select++; return { data: [] as ReaderRow[], error: null }; },
+      upsert: async () => { calls.upsert++; return { error: null }; },
+    }),
+  }),
+}));
+
+/** hasReaderSession() only ever does Object.keys() on this. */
+function signIn() {
+  (globalThis as unknown as { localStorage: unknown }).localStorage = { 'sb-proj-auth-token': '{}' };
+}
+const settle = () => new Promise((r) => setTimeout(r, 0));
 
 interface P { id: string; title: string }
 const posts: P[] = [
@@ -66,5 +89,49 @@ describe('filterHideRead', () => {
       ['c', { post_id: 'c', saved: false, read_at: 'x' }],
     ]));
     expect(filterHideRead(allRead, true)).toEqual([]);
+  });
+});
+
+describe('resetReaderState', () => {
+  beforeEach(() => {
+    signIn();
+    resetReaderState();
+    calls.select = 0;
+    calls.upsert = 0;
+  });
+
+  it('a second loadReaderState reuses the cached query', async () => {
+    await loadReaderState();
+    await loadReaderState();
+    expect(calls.select).toBe(1);
+  });
+
+  it('clears the row cache, so the next load queries again', async () => {
+    await loadReaderState();
+    resetReaderState();
+    await loadReaderState();
+    expect(calls.select).toBe(2);
+  });
+
+  it('hands every caller its own Map, not the shared one', async () => {
+    const a = await loadReaderState();
+    const b = await loadReaderState();
+    expect(a).not.toBe(b);
+  });
+
+  it('markRead writes once per post while the session lasts', async () => {
+    markRead('post-a');
+    markRead('post-a');
+    await settle();
+    expect(calls.upsert).toBe(1);
+  });
+
+  it('clears the marked set, so the next reader can mark the same post read', async () => {
+    markRead('post-a');
+    await settle();
+    resetReaderState();
+    markRead('post-a');
+    await settle();
+    expect(calls.upsert).toBe(2);
   });
 });
