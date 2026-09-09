@@ -69,6 +69,8 @@ export const CONTRACT = [
   { path: '/api/search?q=claude+code',            status: [200, 503], contentType: /application\/json/ },
   { path: '/api/search',                          status: 400 },
   { path: '/ai-news/search/',                     status: 200, contentType: /text\/html/ },
+  // Per-reader, so it must ship as a shared empty shell that anyone can fetch.
+  { path: '/saved/',                              status: 200, contentType: /text\/html/ },
   { path: '/ai-news/topic/claude-code/',          status: 200, contentType: /text\/html/, bodyIncludes: 'Claude Code' },
   { path: '/ai-news/topic/claude-code/feed.xml',  status: 200, bodyIncludes: '<rss' },
   // Multi-topic feed: built by the Worker from the per-topic static feeds.

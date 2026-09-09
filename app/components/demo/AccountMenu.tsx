@@ -8,8 +8,9 @@
 // browser for up to an hour unless /api/session DELETE clears it too.
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Avatar, Box, IconButton, Menu, MenuItem, Typography, Divider, ListItemIcon } from '@mui/material';
-import { Logout } from '@mui/icons-material';
+import { Bookmark, Logout } from '@mui/icons-material';
 import { MONO } from '../blogShared';
 import { supabase } from '../../lib/supabaseClient';
 
@@ -72,6 +73,12 @@ export default function AccountMenu() {
           <Typography sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary' }}>{user.email}</Typography>
         </Box>
         <Divider sx={{ borderColor: 'rgba(148,163,184,0.12)' }} />
+        {/* /saved is deliberately not in the top nav: it is per-reader and
+            noindex, so it belongs where only a signed-in reader will find it. */}
+        <MenuItem component={Link} href="/saved/" onClick={() => setAnchor(null)} sx={{ fontFamily: MONO, fontSize: 13 }}>
+          <ListItemIcon><Bookmark fontSize="small" /></ListItemIcon>
+          Saved posts
+        </MenuItem>
         <MenuItem onClick={() => void signOut()} sx={{ fontFamily: MONO, fontSize: 13 }}>
           <ListItemIcon><Logout fontSize="small" /></ListItemIcon>
           Sign out
