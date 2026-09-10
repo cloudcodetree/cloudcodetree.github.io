@@ -10,7 +10,136 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 10 Sep 2026 04:04:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 10 Sep 2026 12:06:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Expand Claude Code's Workspace Mid-Session with `--add-dir` and `/add-dir`</title>
+      <link>https://code.claude.com/docs/en/cli-reference</link>
+      <guid isPermaLink="false">2026-09-10-05-claude-code-add-dir-multi-directory</guid>
+      <pubDate>Thu, 10 Sep 2026 12:06:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code's --add-dir flag and /add-dir slash command let you add trusted directories to a session without restarting. For teams, additionalDirectories in settings.json applies the same directories to every session.</description>
+      <content:encoded><![CDATA[**`--add-dir` gives Claude Code read-write access to a directory outside your current working tree — useful for monorepos, shared libraries, and cross-repo refactors.**
+
+By default, Claude Code's file access is scoped to the directory you started it in. `--add-dir` extends that:
+
+```bash
+# At launch: grant access to two extra directories
+claude --add-dir ../shared-components --add-dir ~/company/design-tokens
+
+# During an interactive session: add a directory without restarting
+/add-dir ../backend-api
+```
+
+Paths resolve relative to the directory where Claude Code was started.
+
+**Why this matters for monorepos.** Working on a frontend app and need Claude Code to read (and edit) a sibling package? Without `--add-dir`, you work from the repo root and drown in unrelated context. With it, you get targeted access to exactly the packages you need.
+
+**Team default: `additionalDirectories` in settings.json.** For a team that always needs access to the same sibling repo:
+
+```json
+// .claude/settings.json (committed — shared with the team)
+{
+  "additionalDirectories": ["../shared-api", "../design-system"]
+}
+```
+
+Every session loading this project config gets the directories automatically.
+
+**Loading CLAUDE.md from additional directories (opt-in).** Since 2.1.20, set `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` and Claude Code will also load any `CLAUDE.md` found in additional directories — useful when a sibling repo has its own project instructions.
+
+**Where this breaks down.** `--add-dir` grants full read *and write* access — there is no read-only mode. Don't add directories you don't want Claude to be able to modify. There is also no per-directory permission control. For large monorepos, adding too many packages inflates context; be selective.
+
+**Sources:** [Claude Code CLI reference](https://code.claude.com/docs/en/cli-reference), [GitHub issue #21138 — CLAUDE.md loading from --add-dir](https://github.com/anthropics/claude-code/issues/21138), [Boris Cherny / Threads tip](https://www.threads.com/@boris_cherny/post/DWfjvGZFH8b/use-add-dir-to-give-claude-access-to-more-folders-when-working-across-multiple), [apidog.com multi-directory guide](https://apidog.com/blog/claude-code-multi-directory-support/)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Anthropic's J-Lens Reveals a Hidden Reasoning Workspace Inside Claude</title>
+      <link>https://transformer-circuits.pub/2026/workspace/index.html</link>
+      <guid isPermaLink="false">2026-09-10-04-anthropic-j-space-global-workspace</guid>
+      <pubDate>Thu, 10 Sep 2026 12:05:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>News</category>
+      <category>LLM</category>
+      <description>Anthropic's J-lens maps J-space — a sparse 6–10% of Claude's activation variance that carries nearly all verbalizable reasoning. Swapping its concept vectors causally changes the model's answers.</description>
+      <content:encoded><![CDATA[**Anthropic's interpretability paper from July 2026 is getting wide attention now: Claude has a privileged internal reasoning zone — J-space — where concepts appear before they reach the output tokens.**
+
+The paper "[Verbalizable Representations Form a Global Workspace in Language Models](https://transformer-circuits.pub/2026/workspace/index.html)" introduces the J-lens (Jacobian lens): by computing the average linearized effect of an activation on output probability across thousands of contexts, researchers identify which internal representations Claude can reliably report on. That set of representations is J-space — roughly 6–10% of total activation variance, located in middle layers (~L38–L92).
+
+Three findings that matter:
+
+- **Causal, not just correlational.** Swapping the J-lens vector for "soccer" with the one for "rugby" causally shifted Claude's self-report. The workspace doesn't just read the model — it controls it.
+- **Reasoning steps appear before outputs.** On multi-step math, intermediate answers appear in J-space before they appear in generated text.
+- **Ablate J-space and reasoning collapses.** Fluency survives but summarization, analogy, and chain-of-thought do not. The workspace is where flexible deliberate cognition actually runs.
+
+**Why it matters:** this is the clearest mechanistic picture yet of *where* chain-of-thought prompting has traction inside the model — and where safety interventions can actually land. Directly relevant for anyone building production evals or interpretability tooling.
+
+**Sources:** [Anthropic research paper](https://transformer-circuits.pub/2026/workspace/index.html), [VentureBeat](https://venturebeat.com/technology/anthropics-new-j-lens-reveals-a-silent-workspace-inside-claude-that-mirrors-a-leading-theory-of-consciousness), [Tom's Hardware](https://www.tomshardware.com/tech-industry/artificial-intelligence/anthropic-says-it-can-read-claudes-thoughts-as-detailed-in-new-research-paper-models-observed-to-have-a-global-workspace-revealing-more-of-what-makes-llms-tick)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Serve Multiple Fine-Tuned LoRA Adapters on One vLLM Instance</title>
+      <link>https://docs.vllm.ai/en/latest/features/lora/</link>
+      <guid isPermaLink="false">2026-09-10-03-vllm-multi-lora-adapter-serving</guid>
+      <pubDate>Thu, 10 Sep 2026 12:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Self-Hosting</category>
+      <category>LLM</category>
+      <description>One vLLM server, multiple LoRA adapters — each request selects its adapter via the `model` param. --enable-lora and --lora-modules are all you need to start; dynamic load/unload via REST is available too.</description>
+      <content:encoded><![CDATA[**What you'll be able to do after this:** run a single vLLM server that hosts a shared base model and routes each request to a different fine-tuned LoRA adapter by name — no extra GPU required for each adapter.
+
+- Load multiple LoRA adapters at launch with `--lora-modules`; clients select the adapter by passing its name in the `model` field
+- Control GPU residency with `--max-loras` and spill the rest to a CPU LRU cache for larger adapter pools
+- Add or remove adapters at runtime — no server restart — with the `/v1/load_lora_adapter` endpoint
+
+**How it works.** The base model weights stay frozen and are computed once per batch. Each request also computes its LoRA delta weights (small — often 10–200 MB per adapter) which are then added to the base output. vLLM keeps up to `max_loras` adapters in GPU memory; others live in a CPU LRU cache and are paged in on demand.
+
+**Start the server:**
+
+```bash
+vllm serve meta-llama/Llama-3.2-8B-Instruct \
+  --enable-lora \
+  --max-loras 4 \
+  --max-lora-rank 64 \
+  --lora-modules \
+    '{"name":"sql-bot","path":"company/llama-sql-lora"}' \
+    '{"name":"support-bot","path":"company/llama-support-lora"}'
+```
+
+Set `--max-lora-rank` to match your highest-rank adapter exactly — setting it higher wastes GPU memory allocation.
+
+**Route requests:**
+
+```bash
+curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model":"sql-bot","messages":[{"role":"user","content":"List orders by date"}]}'
+```
+
+The base model is still reachable by its original model name.
+
+**Dynamic load/unload (optional).** Set `VLLM_ALLOW_RUNTIME_LORA_UPDATING=True`, then:
+
+```bash
+# Load a new adapter without restarting
+curl -X POST http://localhost:8000/v1/load_lora_adapter \
+  -d '{"lora_name":"new-adapter","lora_path":"/mnt/models/new-adapter"}'
+```
+
+**Where this breaks down.** Adapter switching adds ~2–5% per-request latency overhead for typical ranks. If nearly all traffic goes to one adapter, a dedicated server is cheaper. All adapters must share the same base model architecture — you cannot mix Llama and Mistral adapters on one server. High adapter diversity under load can cause LRU thrashing.
+
+**Sources:** [vLLM LoRA Adapters docs](https://docs.vllm.ai/en/latest/features/lora/), [vLLM multi-LoRA blog (Feb 2026)](https://vllm.ai/blog/2026-02-26-multi-lora), [Spheron multi-adapter serving guide](https://www.spheron.network/blog/lora-multi-adapter-serving-gpu-cloud/), [Anyscale multi-LoRA docs](https://docs.anyscale.com/llm/serving/multi-lora)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Cap Claude's Thinking Budget Globally: The New `maxEffortLevel` Setting in 2.1.267</title>
@@ -5399,153 +5528,9 @@ If your CLAUDE.md has grown into a dense rule list, you may have optimized it fo
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Q4_K_M or AWQ? The Quantization Decision That Fits a 70B Model Into Your Existing GPU Budget</title>
-      <link>https://www.youtube.com/watch?v=vvrGfqd1oxE</link>
-      <guid isPermaLink="false">2026-08-25-04-llm-quantization-gguf-awq-decision-guide</guid>
-      <pubDate>Tue, 25 Aug 2026 12:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Self-Hosting</category>
-      <category>Local AI</category>
-      <description>Quantization lets a 70B model at 4-bit outperform a 7B at full precision. Here is the format decision: GGUF Q4_K_M for Ollama and local inference, AWQ for NVIDIA production serving with vLLM.</description>
-      <content:encoded><![CDATA[**TL;DR: A 70B model quantized to Q4_K_M typically outperforms a 7B at full precision — here is the format decision that fits more intelligence into the GPU budget you already have.**
-
-**What you will be able to do after this:** Choose the right quantization format for your hardware, convert any HuggingFace model to GGUF with llama.cpp, and run it locally or serve it at production throughput with AWQ on vLLM.
-
-**Three things to take away:**
-- GGUF Q4_K_M is the universal starting point — runs on CPU, Apple Silicon, NVIDIA, and AMD with ~92% of FP16 quality at 3-4x compression
-- AWQ + vLLM + Marlin kernel is for NVIDIA production: 741 tok/s vs 461 tok/s for FP16 on a 70B Qwen2.5 (per independent benchmark)
-- bitsandbytes is for training only (QLoRA fine-tuning); at 168 tok/s, it is 4x slower than AWQ and the wrong choice for inference
-
-**How to pick:**
-
-| Your setup | Format | Variant |
-|---|---|---|
-| Ollama / LM Studio / CPU | GGUF | Q4_K_M (default) |
-| NVIDIA GPU, production | AWQ | 4-bit via vLLM |
-| Fine-tuning (QLoRA) | bitsandbytes | `load_in_4bit=True` |
-
-**Convert a HuggingFace model to GGUF:**
-
-```bash
-# Build llama.cpp
-git clone https://github.com/ggerganov/llama.cpp && cd llama.cpp
-cmake -B build && cmake --build build --config Release -j
-
-# Step 1: HF model -> F16 GGUF
-python convert_hf_to_gguf.py /path/to/model --outfile model-f16.gguf --outtype f16
-
-# Step 2: quantize to 4-bit
-./build/bin/llama-quantize model-f16.gguf model-q4_k_m.gguf Q4_K_M
-
-# Step 3: run it
-./build/bin/llama-cli -m model-q4_k_m.gguf -p "Explain quantization briefly." -n 80
-```
-
-If the model already has GGUF variants on HuggingFace, skip the build step entirely:
-
-```bash
-ollama run hf.co/bartowski/Qwen2.5-72B-Instruct-GGUF:Q4_K_M
-```
-
-Use Q5_K_M if you have 6-8 GB of headroom and want higher fidelity. Stay at Q4 or above for models 70B and up — Q3 and below produce noticeable reasoning quality loss.
-
-**Where it breaks:**
-- AWQ without the Marlin kernel runs slower than FP16 baseline — verify your vLLM version includes Marlin support before using AWQ in production
-- Quantization formats cannot be losslessly converted between each other; download the format you need from the start
-- Peak memory during GGUF conversion is roughly 1.5x the final model size, not the quantized size — plan disk and RAM accordingly
-- Some reasoning-heavy models are more quantization-sensitive than others; test on your specific task before committing to a format
-
-**Sources:** [GGUF Quantization Tutorial: Run Fine-Tuned LLMs on CPU with llama.cpp](https://www.youtube.com/watch?v=vvrGfqd1oxE) (video walk-through), [LLM Quantization Guide: GGUF vs AWQ vs GPTQ vs bitsandbytes — benchmarks](https://www.premai.io/blog/llm-quantization-guide-gguf-vs-awq-vs-gptq-vs-bitsandbytes-compared-2026/) (PremAI, independent), [llama.cpp quantize README](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md) (official docs)
-]]></content:encoded>
-      <media:content url="https://img.youtube.com/vi/vvrGfqd1oxE/maxresdefault.jpg" medium="image"/>
-      <media:thumbnail url="https://img.youtube.com/vi/vvrGfqd1oxE/maxresdefault.jpg"/>
-    </item>
-
-    <item>
-      <title>Stop Coming Back to a Stalled Background Session: /goal Now Checks In After 30 Minutes</title>
-      <link>https://code.claude.com/docs/en/whats-new/2026-w34</link>
-      <guid isPermaLink="false">2026-08-25-03-claude-code-goal-background-checkins</guid>
-      <pubDate>Tue, 25 Aug 2026 04:08:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Best Practices</category>
-      <description>Claude Code /goal now checks in automatically after 30+ minutes of background-task activity, instead of stalling indefinitely. Step away from long multi-hour agentic runs with confidence.</description>
-      <content:encoded><![CDATA[**TL;DR: Claude Code's /goal command now checks in on background tasks after 30 minutes of waiting — you no longer come back to a session frozen at hour three.**
-
-Long /goal sessions used to be a gamble: if a background task stalled, the session waited without telling you. Week 34 of Claude Code (shipped August 21) adds automatic check-ins.
-
-**What changed:**
-When you launch a session with `/goal "ship the auth PR"` and background tasks (`--bg`, `/fork`) are keeping it busy, Claude now checks in after those tasks have been running for 30+ minutes. The check-in reports what's done, what's blocked, and whether it needs your call before continuing. If you stay away, it checks in again at longer intervals rather than silently stalling.
-
-**How to use it:**
-```
-/goal "Refactor the payments module, run tests, fix failures, open PR when green"
-```
-
-Step away. After 30+ minutes of background task activity, you get a push notification (Remote Control / Desktop app):
-
-```
-Goal check-in: 3/5 files refactored, 2 test failures blocking the PR.
-API naming collision between old and new — need your call.
-```
-
-Two configuration knobs if the defaults don't fit:
-
-```bash
-# Disable check-ins entirely (shell env)
-export CLAUDE_CODE_GOAL_CHECKIN_MINUTES=0
-
-# Or per-repo in .claude/settings.json
-{"goalCheckinMinutes": 60}
-```
-
-Also new in the same release: `/goal` now clears itself with a notice when a turn dies on an unrecoverable error (revoked auth, exhausted credit balance, context overflow) instead of staying armed and silently blocking future goals.
-
-**Where it doesn't help:**
-- API token quotas don't trigger check-ins — only claude.ai time-based usage limits support auto-continuation. A session paused at an API quota just waits for you.
-- Tasks under 30 minutes never trigger a check-in. Short runs complete before the threshold.
-- Check-ins arrive via push notification in Remote Control or the Desktop app. Terminal-only sessions show the check-in when you reattach — you need to be watching.
-
-**Why it matters**: Before this change, a six-hour agentic task that stalled at hour two looked identical to one that finished cleanly — you only discovered the difference on return. Check-ins give you an intervention window at a reasonable cadence without polling the session yourself.
-
-**Sources:** [Claude Code Week 34 — code.claude.com/docs/en/whats-new/2026-w34](https://code.claude.com/docs/en/whats-new/2026-w34) · [/goal, /loop, and long-horizon agents — Pinggy Blog](https://pinggy.io/blog/claude_code_loop_codex_goal_long_horizon_tasks/) · [Background Tasks guide — Developers Digest](https://www.developersdigest.tech/guides/background-tasks)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>What MCP Is Building Next: Server-Side Webhooks and .well-known Discovery</title>
-      <link>https://blog.modelcontextprotocol.io/posts/mcp-roadmap/</link>
-      <guid isPermaLink="false">2026-08-25-02-mcp-roadmap-august-2026-webhooks</guid>
-      <pubDate>Tue, 25 Aug 2026 04:07:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>News</category>
-      <category>MCP</category>
-      <category>Agents</category>
-      <description>MCP's August 22 roadmap adds server-initiated webhooks (ending the long-polling pattern), Server Card .well-known discovery, and Tasks extension graduation — three changes worth knowing before you design your next server.</description>
-      <content:encoded><![CDATA[**TL;DR: MCP's August 22 roadmap targets server-initiated webhooks (ending long-polling), .well-known server discovery, and Tasks extension graduation — three directions worth knowing before you architect a new server.**
-
-The Model Context Protocol team published an updated roadmap on August 22. Three things worth knowing if you are building MCP servers today:
-
-**Server-initiated events (next specification release).** MCP will add webhooks and channels so servers can push to clients. Today, the client initiates every exchange. The upcoming release lifts that constraint, enabling progress notifications, streaming results, and asynchronous multi-step workflows without client polling. If you are currently queuing events server-side to work around this gap, the protocol-level fix is on the roadmap.
-
-**Server Card discovery.** The `.well-known` working group is defining metadata conventions so a client can discover what a server offers without connecting to it first. The target format is `/.well-known/mcp-server.json`. The spec is not finalized, but the direction is clear enough to plan around.
-
-**Tasks extension graduation.** The Tasks extension (SEP-2663) was reworked based on early-adopter feedback and is on track to move from an extension into the core specification.
-
-**What this doesn't change now:** timelines are roadmap directions, not release commitments. The July 28 spec (stateless core, authorization hardening, Multi Round-Trip Requests) is what you migrate to today. The August 22 roadmap describes where the next release is heading — not what shipped.
-
-**Why it matters:** Server-initiated events unlock patterns that the current polling model handles awkwardly: progress from a long tool call, streaming partial results, background job completion. Design your event handling layer now so the upgrade is a configuration change rather than a rewrite.
-
-**Sources:** [MCP Updated Roadmap (August 22, 2026) — blog.modelcontextprotocol.io](https://blog.modelcontextprotocol.io/posts/mcp-roadmap/) · [2026-07-28 Specification — blog.modelcontextprotocol.io](https://blog.modelcontextprotocol.io/posts/2026-07-28/) · [MCP 2026-07-28: What Breaks and How to Migrate — Stacktree](https://stacktr.ee/blog/mcp-2026-spec-changes)
-]]></content:encoded>
-    </item>
-
+    
+    
+    
     
     
     
