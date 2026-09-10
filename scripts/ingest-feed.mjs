@@ -305,7 +305,11 @@ async function main() {
   let upserted = 0, withImg = 0, failed = 0;
   for (const item of items) {
     const id = text(item.guid).trim();
-    if (!/^[a-z0-9][a-z0-9-]*$/i.test(id)) { console.warn(`! skipping item with bad/missing guid: "${id}"`); continue; }
+    // Deliberately case-SENSITIVE and length-capped: this is the same shape as
+    // reader_state's CHECK (migration 0006) and validate-blog's POST_ID_RE. An
+    // uppercase or over-long guid is rejected here, at ingest, rather than
+    // silently failing a reader's save months later.
+    if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(id)) { console.warn(`! skipping item with bad/missing guid: "${id}"`); continue; }
 
     // One malformed item shouldn't abort the whole ingest.
     try {

@@ -69,6 +69,10 @@ export const CONTRACT = [
   { path: '/api/search?q=claude+code',            status: [200, 503], contentType: /application\/json/ },
   { path: '/api/search',                          status: 400 },
   { path: '/ai-news/search/',                     status: 200, contentType: /text\/html/ },
+  // Per-reader: a shared empty shell anyone can fetch, and it must never be
+  // indexed — the noindex is the only thing keeping a personal page out of
+  // search results.
+  { path: '/saved/',                              status: 200, contentType: /text\/html/, bodyIncludes: 'noindex' },
   { path: '/ai-news/topic/claude-code/',          status: 200, contentType: /text\/html/, bodyIncludes: 'Claude Code' },
   { path: '/ai-news/topic/claude-code/feed.xml',  status: 200, bodyIncludes: '<rss' },
   // Multi-topic feed: built by the Worker from the per-topic static feeds.

@@ -47,7 +47,7 @@ pnpm run build:staging && pnpm run deploy:staging
 # assert the build variant (a prod build deployed to staging once blanked beta).
 pnpm run build && node scripts/fetch-demo-artifacts.mjs && pnpm run deploy:prod
 
-# Acceptance test against any origin: 26-case contract, --sweep adds every sitemap URL
+# Acceptance test against any origin: 28-case contract, --sweep adds every sitemap URL
 node scripts/check-parity.mjs --origin https://beta.cloudcodetree.com --sweep
 ```
 
@@ -179,7 +179,7 @@ inside the assets.
 
 `scripts/assert-variant.mjs` (inside `deploy:staging` / `deploy:prod`) refuses to
 deploy the wrong variant. `scripts/check-parity.mjs --origin <url> [--sweep]` is the
-acceptance test: a 26-case contract (redirects, feeds, headers, the gate) plus a sweep
+acceptance test: a 28-case contract (redirects, feeds, headers, the gate) plus a sweep
 of every sitemap URL. HTTP checks cannot see a blank page — pair them with a browser.
 
 ### CI (`.github/workflows/deploy.yml`, on push to `main`)

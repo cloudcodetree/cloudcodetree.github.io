@@ -1,20 +1,79 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { Corners } from './Blueprint';
 import { Container, Typography, Box, Card, CardContent, Chip, Button } from '@mui/material';
-import { AccessTime as TimeIcon, Person as PersonIcon } from '@mui/icons-material';
+import { AccessTime as TimeIcon, Person as PersonIcon, Bookmark, BookmarkBorder } from '@mui/icons-material';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
-import { BlogPost as Post, SERIF, MONO, formatPublished, markdownSx, markdownComponents } from './blogShared';
+import { BlogPost as Post, SERIF, MONO, ACCENT, formatPublished, markdownSx, markdownComponents } from './blogShared';
 import SearchBox from './SearchBox';
 import RelatedPosts from './RelatedPosts';
+import { loadReaderState, markRead, setSaved, watchReaderAuth } from '../lib/readerState';
 
 // The post is loaded at build time by app/ai-news/[id]/page.tsx and baked into
 // the static HTML — no client-side fetch, no loading state.
 export default function BlogPost({ post, related = [] }: { post: Post; related?: Post[] }) {
+  // Signed-out readers never leave these defaults, so the prerendered article
+  // and the signed-out browser render are the same page.
+  const [signedIn, setSignedIn] = useState(false);
+  const [saved, setSavedState] = useState(false);
+  const [savePending, setSavePending] = useState(false);
+  const savePendingRef = useRef(false);
+
+  // Opening the article IS the read event — no extra click. Fire-and-forget:
+  // markRead never blocks the render and swallows its own failures.
+  //
+  // Tracked rather than probed once, so signing out clears the control instead
+  // of leaving the previous reader's "Saved" on screen, and signing in here
+  // turns it on without a reload.
+  // Keyed on the reader, not on every auth event: TOKEN_REFRESHED arrives
+  // roughly hourly, and re-running this would blank `saved` and re-read it,
+  // flashing the button from "Saved" to "Save" and back under a reader who is
+  // simply reading the article.
+  const readerRef = useRef<string | null>(null);
+  useEffect(() => {
+    readerRef.current = null;   // a new article re-reads state for this reader
+    let live = true;
+    const stop = watchReaderAuth((userId) => {
+      if (!live) return;
+      if (userId === readerRef.current) return;   // same reader, new token
+      readerRef.current = userId;
+      // Reset first: this effect re-runs when the route changes to another
+      // article, and a stale `true` would show "Saved" on a post that is not.
+      setSignedIn(!!userId);
+      setSavedState(false);
+      setSavePending(false);
+      savePendingRef.current = false;
+      if (!userId) return;
+      markRead(post.id);
+      void loadReaderState().then((state) => {
+        const row = state.get(post.id);
+        if (live && row) setSavedState(row.saved);
+      });
+    });
+    return () => { live = false; stop(); };
+  }, [post.id]);
+
+  // The ref is the guard, the state only disables the button: two clicks in one
+  // tick both read the render's captured `savePending`, so state alone would let
+  // the second through and `true` could land after `false`.
+  const toggleSaved = () => {
+    if (savePendingRef.current) return;
+    savePendingRef.current = true;
+    const next = !saved;
+    setSavedState(next);                                        // optimistic
+    setSavePending(true);
+    void setSaved(post.id, next).then((ok) => {
+      savePendingRef.current = false;
+      if (!ok) setSavedState(!next);
+      setSavePending(false);
+    });
+  };
+
   const backButton = (
     <Button component={Link} href="/ai-news/">
       ← Back to AI News
@@ -26,7 +85,28 @@ export default function BlogPost({ post, related = [] }: { post: Post; related?:
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 4 }}>
           {backButton}
-          <SearchBox />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+            {signedIn && (
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={saved ? <Bookmark /> : <BookmarkBorder />}
+                onClick={toggleSaved}
+                disabled={savePending}
+                aria-pressed={saved}
+                sx={{
+                  fontFamily: MONO, fontSize: 12, textTransform: 'none',
+                  color: saved ? ACCENT : 'text.secondary',
+                  borderColor: saved ? 'rgba(148,188,227,0.45)' : 'rgba(148,163,184,0.25)',
+                  background: saved ? 'rgba(148,188,227,0.12)' : 'transparent',
+                  '&:hover': { borderColor: ACCENT, color: ACCENT, background: 'rgba(148,188,227,0.08)' },
+                }}
+              >
+                {saved ? 'Saved' : 'Save'}
+              </Button>
+            )}
+            <SearchBox />
+          </Box>
         </Box>
 
         {post.image && (

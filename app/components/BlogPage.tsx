@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  Container, Typography, Box, Skeleton, Pagination,
+  Container, Typography, Box, Button, Skeleton, Pagination,
   ToggleButtonGroup, ToggleButton, Grid, Chip,
   Select, MenuItem,
 } from '@mui/material';
-import { GridView, ViewList, ViewStream, RssFeed, ContentCopy, Check } from '@mui/icons-material';
+import {
+  GridView, ViewList, ViewStream, RssFeed, ContentCopy, Check,
+  VisibilityOff, Bookmark, BookmarkBorder,
+} from '@mui/icons-material';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -16,6 +19,10 @@ import { BlogPost, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx, markd
 import { Corners } from './Blueprint';
 import SearchBox from './SearchBox';
 import TopicsFlyout from './TopicsFlyout';
+import {
+  applyReaderState, loadReaderState, selectVisiblePosts, setSaved, watchReaderAuth,
+  type ReaderRow, type ReaderStateMap, type WithReaderState,
+} from '../lib/readerState';
 // eslint-disable-next-line import/no-relative-packages
 import { topicTags } from '../../scripts/lib/topics.mjs';
 
@@ -23,7 +30,12 @@ interface BlogPageProps {
   /** Slim (content-free) index of every post, newest-first, embedded at build time. */
   posts: BlogPost[];
   heading?: string;
-  intro?: React.ReactNode;
+  /**
+   * A function is called with the number of posts actually on screen after
+   * every filter. /saved needs that: unsaving a card removes it here, inside
+   * this component, so a caller-computed count would immediately be a lie.
+   */
+  intro?: React.ReactNode | ((visibleCount: number) => React.ReactNode);
   feedPath?: string;
   emptyMessage?: string;
   /**
@@ -33,6 +45,12 @@ interface BlogPageProps {
    */
   topic?: { tag: string; slug: string };
   showSearch?: boolean;
+  /**
+   * /saved. Narrows the list to posts this reader has saved, live: unsaving a
+   * card here drops it from the list without a reload. Signed out it is inert —
+   * no reader state is ever loaded, so nothing is saved and the list is empty.
+   */
+  onlySaved?: boolean;
 }
 
 type View = 'list' | 'cards' | 'feed';
@@ -48,23 +66,65 @@ const clamp = (n: number) => ({
 
 const postTopics = (post: BlogPost) => post.tags.filter((t) => t.toLowerCase() !== 'ai');
 
-/** Shared tag-pill row, identical across every view. */
-function Pills({ post, max = 3 }: { post: BlogPost; max?: number }) {
+/** The signed-out reader's state: no rows, ever. One shared, never-mutated Map. */
+const EMPTY_STATE: ReaderStateMap = new Map();
+
+/**
+ * Shared tag-pill row, identical across every view.
+ *
+ * `extra` carries the signed-in reader-state controls. It is undefined for a
+ * signed-out reader, so the row renders exactly the markup it always has.
+ */
+function Pills({ post, max = 3, extra }: { post: BlogPost; max?: number; extra?: React.ReactNode }) {
   const tags = postTopics(post).slice(0, max);
-  if (!tags.length) return null;
+  if (!tags.length && !extra) return null;
   return (
     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
       {tags.map((t) => (
         <Chip key={t} label={t} size="small"
           sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(255,178,77,0.08)', color: '#ffb24d', border: '1px solid rgba(255,178,77,0.3)' }} />
       ))}
+      {extra}
     </Box>
+  );
+}
+
+/** Post as the list sees it once this reader's state is merged in. */
+type ReaderPost = WithReaderState<BlogPost>;
+
+/** "Read" marker — same geometry as a tag pill, in the accent rather than amber. */
+function ReadChip() {
+  return (
+    <Chip label="Read" size="small"
+      sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(148,188,227,0.08)', color: ACCENT, border: `1px solid rgba(148,188,227,0.3)` }} />
+  );
+}
+
+/** Save / unsave, sitting in the pill row. Optimistic; reverts if the write fails. */
+function SaveChip({ post, onToggle, busy }: { post: ReaderPost; onToggle: (post: ReaderPost) => void; busy: boolean }) {
+  return (
+    <Chip
+      size="small"
+      disabled={busy}
+      icon={post.isSaved ? <Bookmark sx={{ fontSize: 13 }} /> : <BookmarkBorder sx={{ fontSize: 13 }} />}
+      label={post.isSaved ? 'Saved' : 'Save'}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle(post); }}
+      aria-label={post.isSaved ? `Remove “${post.title}” from saved` : `Save “${post.title}” for later`}
+      sx={{
+        height: 22, fontFamily: MONO, fontSize: 10, cursor: 'pointer',
+        background: post.isSaved ? 'rgba(148,188,227,0.16)' : 'transparent',
+        color: post.isSaved ? ACCENT : 'text.secondary',
+        border: `1px solid ${post.isSaved ? 'rgba(148,188,227,0.45)' : 'rgba(148,163,184,0.25)'}`,
+        '& .MuiChip-icon': { color: 'inherit', ml: 0.6 },
+        '&:hover': { background: 'rgba(148,188,227,0.12)', borderColor: 'rgba(148,188,227,0.45)', color: ACCENT },
+      }}
+    />
   );
 }
 
 export default function BlogPage({
   posts, heading = 'AI News', intro = 'Daily field notes on AI-assisted engineering.',
-  feedPath = '/feed.xml', emptyMessage, showSearch = true,
+  feedPath = '/feed.xml', emptyMessage, showSearch = true, onlySaved = false,
 }: BlogPageProps) {
   const [view, setView] = useState<View>('cards');              // SSR default
   const [sizeOverride, setSizeOverride] = useState<Partial<Record<View, number>>>({});
@@ -79,16 +139,46 @@ export default function BlogPage({
   // does not exist then. Only click handlers read the absolute URL.
   const [origin, setOrigin] = useState('');
 
+  // ---- reader state --------------------------------------------------------
+  // Both start in their signed-out shape and only ever leave it inside the
+  // effect below. The prerendered HTML is therefore always the signed-out list,
+  // and read/saved decoration lands after hydration — never in the static file.
+  const [signedIn, setSignedIn] = useState(false);
+  const [readerState, setReaderState] = useState<ReaderStateMap>(EMPTY_STATE);
+  const [hideRead, setHideRead] = useState(false);
+  /**
+   * Post ids with a save/unsave write in flight. The ref is the guard and the
+   * state is only what disables the chip: two clicks in the SAME tick both read
+   * the render's captured state, which is still empty, so state alone lets the
+   * second one through and `true` can land after `false`. A ref updates
+   * synchronously, so the second click sees the first.
+   */
+  const pendingRef = useRef<Record<string, boolean>>({});
+  const [pendingSaves, setPendingSaves] = useState<Record<string, boolean>>({});
+
   // What the Topics flyout lists: every tag except the ubiquitous "AI",
   // most-used first, with its slug and count. topicTags() is the ONE definition
   // shared with the feed/sitemap generators, so a pill's link and the page it
   // opens can never disagree about a slug.
   const topics: { tag: string; slug: string; count: number }[] = useMemo(() => topicTags(posts), [posts]);
 
+  // Annotate first, then narrow. Every filter below operates on the same
+  // annotated list, so Hide-read composes with topics, search and /saved
+  // instead of replacing any of them.
+  const annotated = useMemo(() => applyReaderState(posts, readerState), [posts, readerState]);
+
   // Filter (OR): a post matches if it carries any selected topic.
+  const topicFiltered = useMemo(
+    () => (selectedTags.length ? annotated.filter((p) => p.tags.some((t) => selectedTags.includes(t))) : annotated),
+    [annotated, selectedTags],
+  );
+
+  // `hideRead` can only be true when signed in, but gate it anyway: the
+  // signed-out list must be today's list under every combination of state.
+  // selectVisiblePosts is where "saved beats hide-read" lives.
   const filteredPosts = useMemo(
-    () => (selectedTags.length ? posts.filter((p) => p.tags.some((t) => selectedTags.includes(t))) : posts),
-    [posts, selectedTags],
+    () => selectVisiblePosts(topicFiltered, { onlySaved, hideRead: hideRead && signedIn }),
+    [topicFiltered, onlySaved, hideRead, signedIn],
   );
 
   const pageSize = sizeOverride[view] ?? PAGE_DEFAULT[view];
@@ -110,6 +200,42 @@ export default function BlogPage({
     if (t) setSelectedTags(t.split(',').map((s) => s.trim()).filter(Boolean));
     const n = parseInt(params.get('page') || '1', 10);
     if (n > 1) setPage(n);
+  }, []);
+
+  // Reader state, tracked for as long as this list is mounted rather than
+  // probed once: signing out has to take the decoration away without a reload
+  // (otherwise the next person on a shared machine sees the last reader's
+  // state), and signing in on this very page has to turn it on — AuthWidget
+  // deliberately does not navigate when you are already on the destination.
+  // A signed-out visitor never gets past watchReaderAuth's first line: no
+  // supabase-js chunk, no request, no controls.
+  // Only a CHANGE of reader reloads. TOKEN_REFRESHED arrives roughly hourly and
+  // means nothing here; reloading on it would replace the state map wholesale,
+  // which throws away an optimistic save that has not been confirmed yet — the
+  // chip would flip back to "Save" and forward again as the write lands.
+  const readerRef = useRef<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    const stop = watchReaderAuth((userId) => {
+      if (!live) return;
+      if (!userId) {
+        // Every setter here is idempotent, so the signed-out case (which
+        // arrives synchronously on mount) bails out of re-rendering entirely.
+        readerRef.current = null;
+        setSignedIn(false);
+        setReaderState(EMPTY_STATE);
+        setHideRead(false);
+        pendingRef.current = {};
+        setPendingSaves((cur) => (Object.keys(cur).length ? {} : cur));
+        return;
+      }
+      if (userId === readerRef.current) return;   // same reader, new token
+      readerRef.current = userId;
+      setSignedIn(true);
+      setHideRead(window.localStorage.getItem('ainews-hide-read') === '1');
+      void loadReaderState().then((state) => { if (live) setReaderState(state); });
+    });
+    return () => { live = false; stop(); };
   }, []);
 
   // Keep the URL (?page, ?topics) in sync, clamped, on the CURRENT path (/ or /ai-news/,
@@ -171,6 +297,63 @@ export default function BlogPage({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const toggleHideRead = () => {
+    setHideRead((prev) => {
+      const next = !prev;
+      window.localStorage.setItem('ainews-hide-read', next ? '1' : '0');
+      return next;
+    });
+    setPage(1);
+  };
+
+  /** Replace one post's row, leaving every other reader-state entry alone. */
+  const putRow = (postId: string, row: ReaderRow | undefined) => {
+    setReaderState((cur) => {
+      const next: ReaderStateMap = new Map();
+      cur.forEach((v, k) => next.set(k, v));
+      if (row) next.set(postId, row); else next.delete(postId);
+      return next;
+    });
+  };
+
+  // Optimistic: flip the pill immediately, revert just this post's row if the
+  // write fails. read_at is carried over, so saving never forgets a read.
+  // Ignored while a write for the same post is still in flight, so a rapid
+  // double-click cannot land `true` after `false` or revert to a value the
+  // server never confirmed.
+  const toggleSaved = (post: ReaderPost) => {
+    if (pendingRef.current[post.id]) return;
+    pendingRef.current[post.id] = true;
+    const before = readerState.get(post.id);
+    const saved = !post.isSaved;
+    setPendingSaves((cur) => ({ ...cur, [post.id]: true }));
+    putRow(post.id, { post_id: post.id, saved, read_at: before ? before.read_at : null });
+    void setSaved(post.id, saved).then((ok) => {
+      delete pendingRef.current[post.id];
+      if (!ok) putRow(post.id, before);
+      setPendingSaves((cur) => ({ ...cur, [post.id]: false }));
+    });
+  };
+
+  /** The signed-in extras for a card's pill row; undefined signed out. */
+  const readerExtras = (post: ReaderPost): React.ReactNode => (signedIn ? (
+    <>
+      {post.isRead && <ReadChip />}
+      <SaveChip post={post} onToggle={toggleSaved} busy={!!pendingSaves[post.id]} />
+    </>
+  ) : undefined);
+
+  /**
+   * Read posts recede rather than vanish — the archive stays browsable.
+   *
+   * Applied to the image, meta line, headline and excerpt, and NOT to the pill
+   * row: opacity cannot be undone by a child, and at any dim that reads as
+   * "receded" the tag pills and the Save control would fall under the 4.5:1
+   * floor. 0.7 keeps the dimmed text itself legible too — text.secondary
+   * lands at 4.76:1 (it was 3.47:1 at 0.55), the headline at 7.86:1.
+   */
+  const dim = (post: ReaderPost) => (signedIn && post.isRead ? { opacity: 0.7 } : null);
+
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : prev.concat(tag)));
     setPage(1);
@@ -223,23 +406,23 @@ export default function BlogPage({
           sx={{ display: 'flex', gap: 2.5, py: 3, borderTop: border, alignItems: 'flex-start' }}
         >
           {post.image && (
-            <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ flexShrink: 0, display: { xs: 'none', sm: 'block' } }}>
+            <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ flexShrink: 0, display: { xs: 'none', sm: 'block' }, ...dim(post) }}>
               <Box component="img" src={post.image} alt={post.title} loading="lazy"
                 sx={{ width: 132, aspectRatio: '16 / 9', objectFit: 'cover', display: 'block', borderRadius: 1.5, border }} />
             </Box>
           )}
           <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', letterSpacing: '0.04em' }}>
+            <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', letterSpacing: '0.04em', ...dim(post) }}>
               {metaLine(post)}
             </Typography>
             <Typography component={Link} href={`/ai-news/${post.id}/`}
-              sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.5rem' }, lineHeight: 1.15, color: 'text.primary', textDecoration: 'none', ...clamp(2), transition: 'color .2s ease', '&:hover': { color: LINK } }}>
+              sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.5rem' }, lineHeight: 1.15, color: 'text.primary', textDecoration: 'none', ...clamp(2), transition: 'color .2s ease', '&:hover': { color: LINK }, ...dim(post) }}>
               {post.title}
             </Typography>
-            <Typography sx={{ color: 'text.secondary', fontSize: '0.95rem', lineHeight: 1.5, ...clamp(2) }}>
+            <Typography sx={{ color: 'text.secondary', fontSize: '0.95rem', lineHeight: 1.5, ...clamp(2), ...dim(post) }}>
               {post.excerpt}
             </Typography>
-            <Pills post={post} />
+            <Pills post={post} extra={readerExtras(post)} />
           </Box>
         </Box>
       ))}
@@ -263,23 +446,23 @@ export default function BlogPage({
           >
             <Corners />
             {post.image && (
-              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block' }}>
+              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', ...dim(post) }}>
                 <Box component="img" src={post.image} alt={post.title} loading="lazy"
                   sx={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>
             )}
             <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1.25, flexGrow: 1 }}>
-              <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', letterSpacing: '0.04em' }}>
+              <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', letterSpacing: '0.04em', ...dim(post) }}>
                 {metaLine(post)}
               </Typography>
               <Typography component={Link} href={`/ai-news/${post.id}/`}
-                sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: '1.3rem', lineHeight: 1.2, color: 'text.primary', textDecoration: 'none', ...clamp(3), transition: 'color .2s ease', '&:hover': { color: LINK } }}>
+                sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: '1.3rem', lineHeight: 1.2, color: 'text.primary', textDecoration: 'none', ...clamp(3), transition: 'color .2s ease', '&:hover': { color: LINK }, ...dim(post) }}>
                 {post.title}
               </Typography>
-              <Typography sx={{ color: 'text.secondary', fontSize: '0.92rem', lineHeight: 1.5, ...clamp(3) }}>
+              <Typography sx={{ color: 'text.secondary', fontSize: '0.92rem', lineHeight: 1.5, ...clamp(3), ...dim(post) }}>
                 {post.excerpt}
               </Typography>
-              <Box sx={{ mt: 'auto', pt: 0.5 }}><Pills post={post} /></Box>
+              <Box sx={{ mt: 'auto', pt: 0.5 }}><Pills post={post} extra={readerExtras(post)} /></Box>
             </Box>
           </Box>
         </Grid>
@@ -300,21 +483,21 @@ export default function BlogPage({
             sx={{ py: { xs: 4, md: 6 }, borderTop: border }}
           >
             {post.image && (
-              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5, border }}>
+              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5, border, ...dim(post) }}>
                 <Box component="img" src={post.image} alt={post.title} loading="lazy"
                   sx={{ width: '100%', maxHeight: 320, aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>
             )}
-            <Typography sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', letterSpacing: '0.04em', mb: 1.5 }}>
+            <Typography sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', letterSpacing: '0.04em', mb: 1.5, ...dim(post) }}>
               {metaLine(post)}
             </Typography>
             <Typography component={Link} href={`/ai-news/${post.id}/`}
-              sx={{ display: 'block', fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.7rem', md: '2.2rem' }, lineHeight: 1.12, letterSpacing: '-0.015em', mb: 1.5, color: 'text.primary', textDecoration: 'none', transition: 'color 0.22s ease', '&:hover': { color: LINK } }}>
+              sx={{ display: 'block', fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.7rem', md: '2.2rem' }, lineHeight: 1.12, letterSpacing: '-0.015em', mb: 1.5, color: 'text.primary', textDecoration: 'none', transition: 'color 0.22s ease', '&:hover': { color: LINK }, ...dim(post) }}>
               {post.title}
             </Typography>
-            <Box sx={{ mb: 2.5 }}><Pills post={post} /></Box>
+            <Box sx={{ mb: 2.5 }}><Pills post={post} extra={readerExtras(post)} /></Box>
             {body !== undefined ? (
-              <Box sx={markdownSx}>
+              <Box sx={{ ...markdownSx, ...dim(post) }}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>{body}</ReactMarkdown>
               </Box>
             ) : (
@@ -343,7 +526,7 @@ export default function BlogPage({
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mt: 2.5, flexWrap: 'wrap' }}>
           <Box sx={{ height: 2, width: 56, background: ACCENT, alignSelf: 'center' }} />
           <Typography sx={{ color: 'text.secondary', fontSize: { xs: '1rem', md: '1.12rem' }, maxWidth: 560 }}>
-            {intro}
+            {typeof intro === 'function' ? intro(filteredPosts.length) : intro}
           </Typography>
         </Box>
 
@@ -388,6 +571,30 @@ export default function BlogPage({
               feedUrlForSelection={feedUrlForSelection}
             />
           )}
+          {/* Signed-in only: a control a signed-out reader cannot use is worse
+              than no control. Sits beside Topics and narrows what those leave.
+              Absent on /saved, where it has nothing to do — an explicit save
+              outranks read state there, so the toggle would be a dead switch. */}
+          {signedIn && !onlySaved && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<VisibilityOff />}
+              onClick={toggleHideRead}
+              aria-pressed={hideRead}
+              sx={{
+                fontFamily: MONO, fontSize: 12, textTransform: 'none',
+                color: hideRead ? '#1d1f20' : 'text.secondary',
+                background: hideRead ? ACCENT : 'transparent',
+                borderColor: hideRead ? ACCENT : 'rgba(148,163,184,0.25)',
+                '&:hover': hideRead
+                  ? { background: ACCENT, borderColor: ACCENT }
+                  : { borderColor: ACCENT, color: ACCENT, background: 'rgba(148,188,227,0.08)' },
+              }}
+            >
+              Hide read
+            </Button>
+          )}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>Per page</Typography>
             <Select value={pageSize} inputProps={{ 'aria-label': 'Posts per page' }} onChange={(e) => choosePageSize(Number(e.target.value))} size="small"
@@ -407,7 +614,11 @@ export default function BlogPage({
       {filteredPosts.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10 }}>
           <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>
-            {emptyMessage ?? (posts.length === 0 ? '// no posts yet' : '// no posts match those topics — clear a filter above')}
+            {emptyMessage
+              ?? (posts.length === 0 ? '// no posts yet'
+                : hideRead && signedIn && !onlySaved
+                  ? '// everything here is already read — switch off Hide read'
+                  : '// no posts match those topics — clear a filter above')}
           </Typography>
         </Box>
       ) : (

@@ -56,14 +56,20 @@ export function parseFrontmatter(text) {
   return { data, body: text.slice(m[0].length) };
 }
 
+// Output must satisfy reader_state's CHECK (migration 0006) and
+// validate-blog's POST_ID_RE, or the post publishes fine and then silently
+// refuses every reader's "read" and "save" write. Note `\w` includes `_`,
+// which that pattern does not allow — hence the explicit class below.
 export function slugify(s) {
   return String(s)
     .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
-    .slice(0, 80) || 'post';
+    .replace(/^-+/, '')
+    .slice(0, 128)
+    .replace(/-+$/, '') || 'post';
 }
 
 export function estimateReadTime(body) {
