@@ -8,11 +8,6 @@
 #   - the apex Worker route (cloudcodetree.com/*) — wrangler.jsonc
 
 locals {
-  # GitHub Pages' anycast IPs. Historical since the 2026-09-05 cutover: the
-  # apex Worker route overlays them, so they only answer if that route is
-  # removed. Kept proxied so Cloudflare, not GitHub, terminates TLS either way.
-  github_pages_ips = ["185.199.108.153", "185.199.109.153", "185.199.110.153", "185.199.111.153"]
-
   # Google Workspace MX (priority → host).
   google_mx = {
     "aspmx.l.google.com"      = 1
@@ -23,27 +18,16 @@ locals {
   }
 }
 
-resource "cloudflare_dns_record" "apex_a" {
-  for_each = toset(local.github_pages_ips)
-
-  zone_id = cloudflare_zone.cloudcodetree.id
-  name    = "cloudcodetree.com"
-  type    = "A"
-  content = each.value
-  ttl     = 1
-  proxied = true
-}
-
-# Step 1 of retiring apex_a: the apex Worker route is a ROUTE, not a custom
+# The apex Worker route (cloudcodetree.com/*) is a ROUTE, not a custom
 # domain — it does not create its own DNS record, and only fires for a
 # hostname that already has a proxied record (Cloudflare Workers docs,
 # "Workers Best Practices" → Routing). Without one, cloudcodetree.com would
 # return ERR_NAME_NOT_RESOLVED and never reach the Worker. There is no real
-# origin behind the apex any more, so this is Cloudflare's documented
-# placeholder for that case (same pattern as beta's AAAA 100::, owned by
-# wrangler). Added alongside apex_a, not replacing it yet, so the apex never
-# has a moment with zero proxied records. Once this is confirmed live,
-# apex_a and the github_pages_ips local can be deleted in a second apply.
+# origin behind the apex, so this is Cloudflare's documented placeholder for
+# that case (same pattern as beta's AAAA 100::, owned by wrangler). Replaced
+# the four GitHub Pages A records on 2026-09-10 — those were a leftover from
+# Pages hosting (retired 2026-09-05) that happened to satisfy this same
+# requirement incidentally.
 resource "cloudflare_dns_record" "apex_placeholder" {
   zone_id = cloudflare_zone.cloudcodetree.id
   name    = "cloudcodetree.com"
