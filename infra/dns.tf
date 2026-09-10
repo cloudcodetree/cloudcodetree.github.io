@@ -36,11 +36,18 @@ resource "cloudflare_dns_record" "apex_a" {
 
 # www is answered by the redirect rule in redirects.tf before this record is
 # ever consulted; the record exists so the hostname resolves (proxied).
+#
+# The target was cloudcodetree.github.io until 2026-09-10 — a leftover from
+# GitHub Pages hosting, which was retired 2026-09-05, and from the repo name,
+# which changed the same day. That hostname now 404s. Pointing at the apex
+# keeps the record meaningful: it is still never fetched (the redirect rule
+# runs in an earlier phase), but if the rule were ever removed www would land
+# on the real site instead of a dead host.
 resource "cloudflare_dns_record" "www" {
   zone_id = cloudflare_zone.cloudcodetree.id
   name    = "www.cloudcodetree.com"
   type    = "CNAME"
-  content = "cloudcodetree.github.io"
+  content = "cloudcodetree.com"
   ttl     = 1
   proxied = true
   settings = {
