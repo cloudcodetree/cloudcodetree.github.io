@@ -119,6 +119,10 @@ Thumbs.db
 # Brainstorm visual-companion artifacts
 /.superpowers/
 
+# Session history written by the remember plugin. Untracked AND ignored on
+# purpose: this repo is public and a stray `git add .` would publish it.
+/.remember/
+
 # Wrangler local state
 /.wrangler/
 
