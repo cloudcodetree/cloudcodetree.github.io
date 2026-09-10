@@ -17,7 +17,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
 const ACCOUNT_ID_DEFAULT = '2473c9873f03835b5779ea7c11d41106'; // public, not a secret
-const REPO = 'cloudcodetree/cloudcodetree.github.io';
+const REPO = 'cloudcodetree/cloudcodetree.com';
 
 function parseEnv(p) {
   const out = {};

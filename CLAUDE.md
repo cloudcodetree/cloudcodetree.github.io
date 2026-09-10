@@ -221,6 +221,13 @@ Cloudflare. Not in OpenTofu: the Worker (wrangler) and the R2 custom domain
 - 2026-09-05: CI armed, apex route deployed by CI (PR #3) — the site is on the Worker.
   GitHub Pages retired: `public/CNAME`, the gh-pages job, `pnpm run deploy` removed;
   the `gh-pages` branch is kept until ~2026-09-19 as a cold rollback.
+- 2026-09-10: repo renamed `cloudcodetree.github.io` → **`cloudcodetree.com`**.
+  The old name only ever meant "GitHub Pages site"; renaming away from the
+  `<user>.github.io` pattern also made that URL 404 immediately (verified),
+  which is what the gh-pages deletion timer was for. GitHub redirects the old
+  clone URL indefinitely. `infra/dns.tf`'s www CNAME still targets the old
+  hostname — harmless (the zone redirect rule answers www before the origin is
+  consulted, and `*.github.io` still resolves) but worth retargeting one day.
 Runbook: `docs/superpowers/plans/2026-08-25-cutover-runbook.md`.
 
 ### URLs
