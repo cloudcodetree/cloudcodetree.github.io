@@ -225,9 +225,8 @@ Cloudflare. Not in OpenTofu: the Worker (wrangler) and the R2 custom domain
   The old name only ever meant "GitHub Pages site"; renaming away from the
   `<user>.github.io` pattern also made that URL 404 immediately (verified),
   which is what the gh-pages deletion timer was for. GitHub redirects the old
-  clone URL indefinitely. `infra/dns.tf`'s www CNAME still targets the old
-  hostname — harmless (the zone redirect rule answers www before the origin is
-  consulted, and `*.github.io` still resolves) but worth retargeting one day.
+  clone URL indefinitely, and the routine kept publishing across the rename.
+  The www CNAME was retargeted from the dead hostname to the apex the same day.
 Runbook: `docs/superpowers/plans/2026-08-25-cutover-runbook.md`.
 
 ### URLs
