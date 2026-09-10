@@ -34,6 +34,25 @@ resource "cloudflare_dns_record" "apex_a" {
   proxied = true
 }
 
+# Step 1 of retiring apex_a: the apex Worker route is a ROUTE, not a custom
+# domain — it does not create its own DNS record, and only fires for a
+# hostname that already has a proxied record (Cloudflare Workers docs,
+# "Workers Best Practices" → Routing). Without one, cloudcodetree.com would
+# return ERR_NAME_NOT_RESOLVED and never reach the Worker. There is no real
+# origin behind the apex any more, so this is Cloudflare's documented
+# placeholder for that case (same pattern as beta's AAAA 100::, owned by
+# wrangler). Added alongside apex_a, not replacing it yet, so the apex never
+# has a moment with zero proxied records. Once this is confirmed live,
+# apex_a and the github_pages_ips local can be deleted in a second apply.
+resource "cloudflare_dns_record" "apex_placeholder" {
+  zone_id = cloudflare_zone.cloudcodetree.id
+  name    = "cloudcodetree.com"
+  type    = "AAAA"
+  content = "100::"
+  ttl     = 1
+  proxied = true
+}
+
 # www is answered by the redirect rule in redirects.tf before this record is
 # ever consulted; the record exists so the hostname resolves (proxied).
 #
