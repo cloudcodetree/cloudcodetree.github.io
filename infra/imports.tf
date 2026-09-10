@@ -15,22 +15,10 @@ import {
 }
 
 # --- DNS records ------------------------------------------------------------
-import {
-  to = cloudflare_dns_record.apex_a["185.199.108.153"]
-  id = "${local.zone_id}/af293cb864d2a84c1dd3e9bcf071a18e"
-}
-import {
-  to = cloudflare_dns_record.apex_a["185.199.109.153"]
-  id = "${local.zone_id}/f05b420ddc8fec91721a2acc6961876f"
-}
-import {
-  to = cloudflare_dns_record.apex_a["185.199.110.153"]
-  id = "${local.zone_id}/e8127074d47d8754c49a2d577fd62d44"
-}
-import {
-  to = cloudflare_dns_record.apex_a["185.199.111.153"]
-  id = "${local.zone_id}/aed5b60bdbcf7cc6590ef5da0a3a9933"
-}
+# apex_a (four GitHub Pages A records) imported here 2026-09-05, replaced by
+# cloudflare_dns_record.apex_placeholder 2026-09-10 — see dns.tf. No import
+# block for the new record: it was created by this OpenTofu config, not
+# adopted from hand-made state, so there's nothing to import.
 import {
   to = cloudflare_dns_record.www
   id = "${local.zone_id}/8102937d39675794458a27fc01a8bcdf"
