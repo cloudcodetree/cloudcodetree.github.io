@@ -10,7 +10,101 @@
     <atom:link href="https://cloudcodetree.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Daily field notes on AI-assisted engineering.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 09 Sep 2026 20:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 10 Sep 2026 04:04:00 +0000</lastBuildDate>
+
+    <item>
+      <title>Cap Claude's Thinking Budget Globally: The New `maxEffortLevel` Setting in 2.1.267</title>
+      <link>https://code.claude.com/docs/en/settings-reference</link>
+      <guid isPermaLink="false">2026-09-10-02-claude-code-max-effort-level-cap</guid>
+      <pubDate>Thu, 10 Sep 2026 04:04:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Workflow</category>
+      <category>Claude Code</category>
+      <category>Best Practices</category>
+      <description>Claude Code 2.1.267 adds maxEffortLevel to settings.json. It puts a ceiling on effort level regardless of how it was set — by the user, a flag, an env var, or the model's own default. Bedrock, Vertex, and Foundry included.</description>
+      <content:encoded><![CDATA[**`maxEffortLevel` in Claude Code 2.1.267 caps the thinking budget across every provider — users can't go above it, even with `/effort max`.**
+
+Claude Code 2.1.267 (released September 9) adds `maxEffortLevel` to `settings.json`. It puts a ceiling on the effort level regardless of how the level was requested — whether from `/effort`, `--effort`, `CLAUDE_CODE_EFFORT_LEVEL`, the model picker, or even the model's own default. A user can still pick a lower level; they just can't exceed the cap.
+
+**Adding the setting:**
+
+```json
+// ~/.claude/settings.json (user-level cap)
+{
+  "maxEffortLevel": "medium"
+}
+```
+
+Or scoped to one model inside `modelSettings`:
+
+```json
+{
+  "modelSettings": {
+    "claude-fable-5-1-20260901": {
+      "maxEffortLevel": "high"
+    }
+  }
+}
+```
+
+Valid values: `"low"`, `"medium"`, `"high"`, `"xhigh"`, `"max"`.
+
+**Scope stacking:** when several scopes define a cap (user + project + managed), the lowest wins. A project file can restrict further but cannot raise a stricter cap set above it.
+
+**Three situations where this pays off:**
+
+1. **Org deployments** — managed settings can ship a `maxEffortLevel` that keeps every team member under a cost ceiling without touching their individual configs or restricting which tasks they run.
+2. **CI pipelines** — a project-level cap stops a scheduled pipeline from burning max-thinking budget on a routine lint check or a file scan.
+3. **Budget-conscious local sessions** — set `"medium"` globally and override per task with `/effort high` only when you actually need extended thinking.
+
+**The trade-off to state clearly:** a lower cap genuinely reduces quality on tasks that benefit from extended thinking. Debugging a subtle race condition at `medium` is not the same as at `max`. Pick your ceiling by the class of work your sessions typically do, not by the cheapest option available — and leave room to go higher for the sessions that need it.
+
+**Sources:** [Claude Code changelog — 2.1.267](https://code.claude.com/docs/en/changelog) · [Settings reference — maxEffortLevel](https://code.claude.com/docs/en/settings-reference) · [Community discussion (LINUX DO)](https://linux.do/t/topic/2883035)
+]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Link Your Repo Before the First Prompt: What the Claude Design Export Bundle Hands Claude Code</title>
+      <link>https://academy.claude.com/tutorials/using-claude-design-for-prototypes-and-ux</link>
+      <guid isPermaLink="false">2026-09-10-01-claude-design-handoff-bundle-claude-code</guid>
+      <pubDate>Thu, 10 Sep 2026 04:03:00 +0000</pubDate>
+      <dc:creator>Chris Harper</dc:creator>
+      <category>AI</category>
+      <category>Tutorial</category>
+      <category>Design</category>
+      <category>Claude Design</category>
+      <description>The handoff button bundles design files, chat history, and a README. Whether Claude Code lands your real components depends on one step done before the first prompt.</description>
+      <media:content url="https://cdn.prod.website-files.com/6889473510b50328dbb70ae6/6a32f0ce3acdbbc3c4395c05_og-claude-design.jpg" medium="image"/>
+      <media:thumbnail url="https://cdn.prod.website-files.com/6889473510b50328dbb70ae6/6a32f0ce3acdbbc3c4395c05_og-claude-design.jpg"/>
+      <content:encoded><![CDATA[**The Claude Design export bundles design files, chat history, and a README — but whether Claude Code lands your actual components depends on linking your codebase before you start.**
+
+**What you'll be able to do after this:** take a Claude Design prototype to code that uses your existing `Button`, `Card`, and `Modal` components — without a manual substitution pass.
+
+**Three things that determine handoff quality:**
+- **A linked codebase gives Claude Design component-level context.** Without it, Claude Code writes Tailwind and generic HTML. With it, it generates calls to the components it already knows from your repo.
+- **Chat history is part of the bundle.** Every design decision you explained in conversation ("this header scrolls sticky on mobile") carries across to Claude Code. Write your constraints in chat, not just in the canvas.
+- **Names carry through.** If you called something "PricingCard" during the design conversation, that name appears in the handoff prompt. Naming elements clearly before Polish is free documentation for the handoff.
+
+**Steps:**
+
+1. **Connect your codebase first.** In Claude Design, click **Import** and connect your GitHub repo or a local directory. Claude reads your component library — this takes a few minutes and is what makes the next steps component-aware instead of generic.
+
+2. **Design normally.** Claude now knows which `Tabs`, `Dialog`, and `Badge` components exist and generates the design using your existing ones rather than placeholders.
+
+3. **Document your decisions in chat as you go.** When you make a choice ("the empty state shows after a 3-second delay, not on load"), say it in the chat. It enters the bundle and Claude Code inherits it.
+
+4. **Export the bundle.** Click **Export → Hand off to Claude Code**. You get a URL and a ready-to-paste prompt.
+
+5. **Paste into Claude Code.** The session fetches the bundle and begins implementing — editing existing components rather than generating from scratch.
+
+**The failure mode independent practitioners report:** the handoff breaks down when designs lack component labels, loading states, and data assumptions. Claude Code inherits the ambiguity from the canvas, and pretty-but-underspecified designs become cleanup work rather than a running start. An extra five minutes on edge cases in the design conversation saves more than it costs.
+
+One more limit: the bundle URL expires. Don't export on Friday and hand off Monday without checking whether it's still valid.
+
+**Sources:** [Using Claude Design for prototypes and UX — Claude Academy](https://academy.claude.com/tutorials/using-claude-design-for-prototypes-and-ux) · [Set up your design system in Claude Design — Claude Help Center](https://support.claude.com/en/articles/14604397-set-up-your-design-system-in-claude-design) · [Claude Design doesn't fail in the canvas. It fails after export.](https://claudedesign.substack.com/p/the-claude-design-mistake-you-dont)
+]]></content:encoded>
+    </item>
 
     <item>
       <title>Three Agent SDK Settings That Prevent a Runaway Loop From Running All Night</title>
@@ -5452,104 +5546,8 @@ The Model Context Protocol team published an updated roadmap on August 22. Three
 ]]></content:encoded>
     </item>
 
-    <item>
-      <title>Your AI-Generated Components Have Broken Focus States and Missing ARIA — Here is How to Find Them All</title>
-      <link>https://github.com/airowe/claude-a11y-skill</link>
-      <guid isPermaLink="false">2026-08-25-01-axe-core-audit-ai-generated-ui</guid>
-      <pubDate>Tue, 25 Aug 2026 04:06:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Tutorial</category>
-      <category>Design-to-Code</category>
-      <category>UI/UX</category>
-      <description>AI design tools generate visually clean components but consistently miss focus management, color contrast, and ARIA semantics. Install the axe-core Claude Code skill to find violations automatically before anything ships.</description>
-      <content:encoded><![CDATA[**TL;DR: AI-generated UI reliably passes visual review and fails accessibility audit. Install the axe-core Claude Code skill to catch violations in the same turn Claude Code writes the component.**
-
-**What you will be able to do after this:**
-- Automatically scan every AI-generated component for WCAG 2.2 violations before committing
-- Feed axe-core output back into Claude Code so it fixes violations in the same session
-- Know exactly where automated scanning stops and what still needs human eyes
-
-**Three things to know up front:**
-1. Automated scanners like axe-core catch 30–50% of WCAG 2.2 success criteria — mainly color contrast, missing labels, and structural errors. Keyboard flow, reading order, and cognitive-load issues usually need a human pass.
-2. The most consistent failures in Claude Design and Claude Code-generated UI: `<button>` elements without accessible names, generated color palettes below 4.5:1 contrast ratio, and `outline: none` in generated CSS that removes focus rings entirely.
-3. Running `jest-axe` in component tests gives you a baseline scan on every PR without spinning up a browser.
-
-**Walk-through:**
-
-Install the community skill:
-```bash
-claude skill install airowe/claude-a11y-skill
-```
-
-Run the audit on a component file:
-```
-/a11y-audit src/components/Button.tsx
-```
-
-The skill runs axe-core (Deque's engine) and jsx-a11y (static JSX lint rules), feeds the violation list back into context, and Claude Code proposes targeted fixes in the same turn. Typical output:
-
-```
-axe-core: 3 violations
-  [critical] Button: missing accessible name (aria-label or text content)
-  [serious]  Color contrast: 3.2:1 (target: 4.5:1) on .badge-text
-  [moderate] Focus indicator: outline removed on .btn-primary:focus
-```
-
-For a broader sweep before merging a feature:
-```bash
-npx jest --testPathPattern=accessibility
-```
-
-The skill generates a jest-axe component test if you don't already have one. For full-page checks, it generates a Playwright-based audit test that runs headless.
-
-**What to do after the scan:**
-1. Feed the violation list into the same Claude Code session: "Fix the three axe violations in Button.tsx." Claude Code can address most structural and ARIA issues in one turn.
-2. After the fix, rerun `/a11y-audit` to confirm the violations are gone (Claude sometimes introduces new ones while fixing others).
-3. Do one keyboard-only navigation pass through the feature manually — tab order, focus management after modal open/close, and screen-reader label flow are outside what axe catches.
-
-**The limit to be honest about:**
-Axe finds structure. It does not find that your generated error message says "Invalid input" instead of telling the user what to enter, or that your onboarding flow requires 12 clicks where 3 would suffice. The automated pass is not a substitute for testing with assistive technology — it is a first filter that prevents the worst violations from reaching users at all.
-
-**Sources:** [airowe/claude-a11y-skill — GitHub](https://github.com/airowe/claude-a11y-skill) · [dequelabs/axe-core — GitHub](https://github.com/dequelabs/axe-core) · [I Built 33 Claude Skills to Fix the Vibe Design Accessibility Gap — Matthew Stephens, Medium](https://matthewlarn.medium.com/i-built-33-claude-skills-to-fix-the-vibe-design-accessibility-gap-a0f7f3ff1d1c)
-]]></content:encoded>
-    </item>
-
-    <item>
-      <title>Type /design First, Then Code: Claude Code's New Artboard Preview Front-Loads Your UI Decisions</title>
-      <link>https://code.claude.com/docs/en/whats-new/2026-w34</link>
-      <guid isPermaLink="false">2026-08-24-08-claude-code-design-command-artboard-workflow</guid>
-      <pubDate>Mon, 24 Aug 2026 20:13:00 +0000</pubDate>
-      <dc:creator>Chris Harper</dc:creator>
-      <category>AI</category>
-      <category>Workflow</category>
-      <category>Claude Code</category>
-      <category>Design</category>
-      <description>Claude Code v2.1.234 adds /design (research preview): describe a feature, get editable artboard options, pick direction before coding starts. Token cost unspecified; paid plans only.</description>
-      <content:encoded><![CDATA[**Before opening a component file, type `/design a few options for [feature]` in Claude Code — you get editable artboard choices to settle direction before any code structure is committed.**
-
-Claude Code v2.1.234, shipped in the Week 34 changelog (August 17–21), added `/design` as a research preview on paid plans. The command brings Claude Design's artboard canvas into the CLI and desktop app, so the design decision happens before implementation rather than as a correction afterward.
-
-**How to use it:**
-
-```
-/design a few options for a notifications dropdown with unread badge
-```
-
-Claude produces two or three editable artboard variations. Pick a direction, adjust layout or copy inline on the canvas, then continue the session — Claude Code implements from the approved artboard rather than from your prose description. If you've already run `/design-sync` against your repo, the artboards pull from your actual components rather than generic defaults.
-
-**Where the research preview bites:**
-
-- **Token cost is unspecified.** Anthropic hasn't disclosed usage rates during the preview; [XenoSpectrum flagged undisclosed usage terms at launch](https://xenospectrum.com/en/claude-code-design-command-preview/). Don't assume it's low-overhead until you've tested in your own session.
-- **Design-system matching requires `/design-sync` first.** Without it, artboards use generic defaults, not your components.
-- **Behavior changes without notice** — it's experimental. Availability, token cost, and design-system fidelity are all still being tuned.
-
-**What it replaces:** describing what you want in prose, watching Claude generate something structurally different, and iterating backward. `/design` moves the direction decision to before the first line of code — once you've approved a canvas layout, the implementation phase starts from something you've seen and chosen.
-
-**Sources:** [Week 34 changelog — code.claude.com](https://code.claude.com/docs/en/whats-new/2026-w34) · [Usage terms concern — XenoSpectrum](https://xenospectrum.com/en/claude-code-design-command-preview/) · [/design walkthrough — pasqualepillitteri.it](https://pasqualepillitteri.it/en/news/11689/claude-code-design-skill-artboards)
-]]></content:encoded>
-    </item>
-
+    
+    
     
     
     
