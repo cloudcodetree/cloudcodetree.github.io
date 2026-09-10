@@ -21,7 +21,7 @@ the DNS outside Cloudflare, which is the point of it.
 | File | Contents |
 |---|---|
 | `zone.tf` | `cloudflare_zone` + settings (always_use_https, automatic_https_rewrites, ssl=full, min_tls 1.2) |
-| `dns.tf` | A ×4 (GitHub Pages IPs, historical, proxied), CNAME www, MX ×6, TXT SPF / DMARC / DKIM |
+| `dns.tf` | Proxied apex AAAA placeholder (`100::`) for the Worker route, CNAME www, MX ×6, TXT SPF / DMARC / DKIM |
 | `redirects.tf` | the `http_request_dynamic_redirect` ruleset: www → apex 301 |
 | `r2.tf` | bucket `cct-blog-images` |
 | `imports.tf` | one `import` block per resource, so a fresh checkout rebuilds state instead of re-creating anything |

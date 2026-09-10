@@ -202,8 +202,9 @@ Supabase project twice a week so the free tier never pauses it.
 ### DNS (Cloudflare zone `cloudcodetree.com`)
 Nameservers `henrik.ns.cloudflare.com` / `meg.ns.cloudflare.com`, changed at the
 **registrar** (Route 53 → Registered domains, not the hosted zone) on 2026-09-03. The
-Worker route `cloudcodetree.com/*` serves the apex; the proxied A records underneath
-are historical (GitHub Pages IPs) and only matter if the route is ever removed. `www`
+Worker route `cloudcodetree.com/*` serves the apex; a proxied AAAA placeholder
+(`100::`) supplies the DNS record required by the route. It replaced the four legacy
+GitHub Pages A records on 2026-09-10. `www`
 is a zone-level Single Redirect rule (301 to the apex, path + query preserved) — it
 is deliberately **not** a Worker route, because the Worker only runs for
 `run_worker_first` paths and would otherwise serve duplicate content. MX / SPF / DMARC /

@@ -16,9 +16,12 @@ import {
 
 # --- DNS records ------------------------------------------------------------
 # apex_a (four GitHub Pages A records) imported here 2026-09-05, replaced by
-# cloudflare_dns_record.apex_placeholder 2026-09-10 — see dns.tf. No import
-# block for the new record: it was created by this OpenTofu config, not
-# adopted from hand-made state, so there's nothing to import.
+# cloudflare_dns_record.apex_placeholder 2026-09-10 — see dns.tf. Import the
+# replacement too so a fresh checkout can recover without creating it again.
+import {
+  to = cloudflare_dns_record.apex_placeholder
+  id = "${local.zone_id}/ad5c43ecd5aefe75695202a200776704"
+}
 import {
   to = cloudflare_dns_record.www
   id = "${local.zone_id}/8102937d39675794458a27fc01a8bcdf"
