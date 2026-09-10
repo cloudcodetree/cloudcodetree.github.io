@@ -63,7 +63,7 @@
 
 **Monitor For:**
 - Unauthorized DNS record changes
-- Domain expiration dates (Route53 auto-renewal)
+- Domain expiration dates (Amazon Registrar auto-renewal; DNS is on Cloudflare)
 - MX record modifications
 - Subdomain enumeration attempts
 - Certificate transparency log monitoring
@@ -125,21 +125,22 @@ Check browser console for bot detection logs:
 
 ## 🌐 Deployment Security
 
-### **GitHub Pages Security**
-- **HTTPS Enforced**: Both cloudcodetree.com and cloudcodetree.github.io
-- **Custom Domain**: Route53 DNS with proper A/CNAME records
-- **Branch Protection**: Source code on `main`, deployment on `gh-pages`
-- **No Sensitive Data**: All secrets excluded from repository
+### **Cloudflare Workers Security**
+- **HTTPS Enforced**: `always_use_https` and TLS 1.2+ at the zone
+- **CSP**: `public/_headers`, live on Workers and guarded by `scripts/validate-csp.mjs`
+- **Gated paths**: `/projects/*/demo/*` and `/admin/*` fail closed in `worker/index.ts`
+- **Rate limiting**: a zone rule caps `/api/search` at 30 requests per 10s per IP
+- **No Sensitive Data**: no service key in the Worker; all secrets excluded from the repository
 
-### **Route53 DNS Configuration**
+### **DNS Configuration**
 ```
-A Records (cloudcodetree.com):
-185.199.108.153, 185.199.109.153
-185.199.110.153, 185.199.111.153
+Zone:  cloudcodetree.com (Cloudflare, managed by OpenTofu in infra/)
+Apex:  served by the Worker route cloudcodetree.com/*
+www:   zone-level Single Redirect rule → 301 to the apex
+```
 
-CNAME Record:
-www.cloudcodetree.com → cloudcodetree.github.io
-```
+GitHub Pages and Route 53 both served this site until 2026-09-05; neither is
+part of the deployment any more.
 
 ---
 

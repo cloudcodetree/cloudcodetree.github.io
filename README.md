@@ -5,7 +5,7 @@
 ## 🚀 Live Sites
 
 - **Production**: [cloudcodetree.com](https://cloudcodetree.com)
-- **GitHub Pages**: [cloudcodetree.github.io](https://cloudcodetree.github.io)
+- **Staging**: [beta.cloudcodetree.com](https://beta.cloudcodetree.com) (noindex; the same build on the real domain)
 
 ## ✨ Features
 
@@ -105,44 +105,45 @@ public/
 - **Scheduling**: Calendly widget integration
 - **SEO**: Next.js built-in metadata API
 - **Security**: reCAPTCHA for resume download protection
-- **Static Generation**: Optimized static site generation for GitHub Pages
+- **Static Generation**: Static export served by Cloudflare Workers Static Assets
 
 ## 🚀 Deployment
 
-### GitHub Pages Setup
+### Cloudflare Workers
 
-This project uses GitHub Pages with a custom domain:
+The site is one Cloudflare Worker, `cct-site`, configured in `wrangler.jsonc`.
+Workers Static Assets serve the static export in `./out`; the Worker itself runs
+only for `/api/*`, the gated demo paths and `/admin/*`.
 
-1. **Repository**: `cloudcodetree/cloudcodetree.github.io`
-2. **Source**: `gh-pages` branch (auto-generated)
-3. **Custom Domain**: `cloudcodetree.com`
-4. **DNS**: Route53 with A records pointing to GitHub Pages
+1. **Repository**: `cloudcodetree/cloudcodetree.com`
+2. **Deploy**: pushing to `main` runs `.github/workflows/deploy.yml`
+3. **Domain**: `cloudcodetree.com`, via a Worker route on the Cloudflare zone
+4. **DNS**: Cloudflare, managed by OpenTofu in `infra/`
+
+GitHub Pages hosted this site until 2026-09-05 and no longer serves any part of
+it. The `gh-pages` branch and the `deploy` script were removed at the cutover.
 
 ### Deployment Commands
 
 ```bash
-# Build and deploy to gh-pages branch
-pnpm run deploy
+# Production: build, vendor the demo builds, deploy the Worker
+pnpm run build && node scripts/fetch-demo-artifacts.mjs && pnpm run deploy:prod
 
-# Manual build only
-pnpm run build
+# Staging (beta.cloudcodetree.com): relative assets + noindex
+pnpm run build:staging && pnpm run deploy:staging
+
+# Acceptance test against any origin
+node scripts/check-parity.mjs --origin https://cloudcodetree.com --sweep
 ```
 
-The deployment process:
-1. Runs `pnpm run build` to generate static export in `/out`
-2. Pushes `/out` contents to `gh-pages` branch
-3. GitHub Pages serves the site automatically
+Pushing to `main` deploys automatically; the commands above are the manual path.
 
 ### DNS Configuration
 
-**A Records for cloudcodetree.com:**
-- 185.199.108.153
-- 185.199.109.153
-- 185.199.110.153
-- 185.199.111.153
-
-**CNAME Record:**
-- www.cloudcodetree.com → cloudcodetree.github.io
+DNS lives on the Cloudflare zone `cloudcodetree.com` and is managed by OpenTofu
+(`infra/`) — `node scripts/tofu.mjs plan` should report no changes. The apex is
+served by a Worker route, and `www` is a zone-level Single Redirect rule (301 to
+the apex, path and query preserved) rather than a Worker route.
 
 ## 🔄 Migration to Next.js
 

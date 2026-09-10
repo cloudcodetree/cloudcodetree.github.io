@@ -16,8 +16,10 @@ import { readFileSync } from 'node:fs';
 
 export const R2_BUCKET = 'cct-blog-images';
 export const IMG_ORIGIN = 'https://img.cloudcodetree.com';
-/** The previous home of every image; still valid, kept as a fallback. */
-export const LEGACY_CDN = 'https://github.com/cloudcodetree/cloudcodetree.github.io/releases/download/blog-images';
+/** The previous home of every image. No post references it since the 2026-09-05
+ * migration to R2, and CI deletes the Release after 2026-09-25 — kept only so
+ * isHosted() keeps recognising an old URL if one ever resurfaces. */
+export const LEGACY_CDN = 'https://github.com/cloudcodetree/cloudcodetree.com/releases/download/blog-images';
 export const PLACEHOLDER = `${IMG_ORIGIN}/_default.png`;
 
 const ACCOUNT_ID_DEFAULT = '2473c9873f03835b5779ea7c11d41106'; // public identifier
