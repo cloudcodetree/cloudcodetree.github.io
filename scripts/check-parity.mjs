@@ -80,6 +80,7 @@ export const CONTRACT = [
   { path: '/tutorials/topic/rag/', status: 200, contentType: /text\/html/, bodyIncludes: 'RAG tutorials' },
   { path: '/tutorials/topic/rag/feed.xml', status: 200, bodyIncludes: 'tutorial-build-a-rag-over-your-blog' },
   { path: '/tutorials/feed.xml?topics=rag,python', status: 200, contentType: /rss\+xml/, bodyIncludes: 'Tutorials ·' },
+  { path: '/tutorials/dealfinder-part-01/', status: 404 },
   { path: '/saved/?section=tutorials', status: 200, bodyIncludes: 'noindex' },
   // Oldest post (frozen back-catalog, never trimmed): the Related strip is
   // baked in once the index has run at least once on main.

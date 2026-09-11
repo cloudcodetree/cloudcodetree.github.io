@@ -5,7 +5,7 @@ description: Use when adding a tutorial to the CloudCodeTree Tutorials section �
 
 # Creating a tutorial
 
-Tutorials are hand-authored **MDX** at `app/tutorials/(article)/<slug>/page.mdx`, indexed in
+Tutorials are hand-authored **MDX** at `app/tutorials/(article)/<slug>/page.draft.mdx`, indexed in
 `app/tutorials/manifest.ts`, grouped into **series** and shown with a branded hero cover.
 Separate from the auto-generated AI News blog.
 
@@ -28,8 +28,10 @@ node scripts/scaffold-tutorial.mjs <slug> --series "Series Name" --title "Subtit
      --type verified|anchored [--excerpt "…"] [--tags "Tutorial,RAG,Python"] \
      [--read 10] [--with-repo]
 ```
-It appends the manifest entry (as the series' next part), bumps siblings' "(Part k of M)",
-writes the MDX from a type-aware template full of `TODO` markers, and regenerates covers.
+It appends a `draft: true` manifest entry (as the series' next part), bumps siblings'
+"(Part k of M)", writes `page.draft.mdx` from a type-aware template full of `TODO`
+markers, and regenerates covers. Drafts can be committed and pushed without creating
+a public route.
 For verified tutorials, `--with-repo` also scaffolds the local companion repo
 (then `node scripts/new-tutorial-repo.mjs <slug> --create-remote` to publish it). Run
 `--help`-style by reading the script header for all flags. It never commits.
@@ -54,10 +56,17 @@ For verified tutorials, `--with-repo` also scaffolds the local companion repo
 
 ## After authoring
 
-1. `pnpm build` — must compile and export.
+1. `pnpm build` — must compile and export; confirm the draft URL remains absent.
 2. Mobile check: no horizontal page overflow at 320px (code blocks scroll inside `<pre>` — that's fine).
 3. Personal-info sweep: grep the page for your name, handles, real hostnames/IPs, and private project names; confirm it comes back clean (see the "No personal info" hard rule).
-4. Commit + push. If the push is rejected, the autonomous blog pipeline pushed first — `git fetch && git rebase origin/main`, then push.
+4. Commit + push the draft. If the push is rejected, the autonomous blog pipeline pushed first — `git fetch && git rebase origin/main`, then push.
+
+## Releasing is a separate action
+
+Do not publish merely because authoring is complete. After explicit release direction,
+remove the lesson's `draft: true`. For a new course, also add its exact series name to
+`RELEASED_TUTORIAL_SERIES`. Both gates live in `app/tutorials/manifest.ts`. Build and
+verify the live URL, feed, topic pages, and sitemap before calling the release complete.
 
 ## Conventions (reference)
 

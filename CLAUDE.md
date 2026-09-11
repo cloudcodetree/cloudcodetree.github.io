@@ -552,7 +552,7 @@ use it to add one. In short:
   `tut-*` storage keys independently of the blog.
 - Tutorial topic pages, their RSS feeds, and sitemap entries all use
   `tutorialTopics()` from the same catalog helper. `AI` and `Tutorial` are hidden
-  categories; drafts are excluded. The Worker merges topic feeds at
+  categories; unreleased series and draft lessons are excluded. The Worker merges topic feeds at
   `/tutorials/feed.xml?topics=rag,python`, with a cache namespace separate from
   the blog. New manifest topics automatically get pages/feeds on build.
 - `/saved/` has Blog and Tutorials tabs; `/saved/?section=tutorials` opens the
@@ -580,16 +580,20 @@ ignored by the Next dev watcher; never import from them in app code.
 
 ## Drafts (the publish gate)
 
-Tutorials and projects carry an optional `draft: true` in their manifest
-(`app/tutorials/manifest.ts`, `app/projects/manifest.ts`). A draft is hidden
-from lists (`publishedTutorials` / `publishedProjects`), feeds, and the
-sitemap — and **excluded from the build**: `scripts/apply-drafts.mjs` (runs
-at prebuild) renames its `page.mdx` → `page.draft.mdx`, which Next does not
-route, so the URL does not exist in the export. Draft projects also skip demo
-vendoring. To publish, flip the flag; prebuild restores `page.mdx`. The 37-part
-"Become a Full-Stack AI Engineer" course and the seven remaining projects were
-held as drafts at launch (2026-09-03) and published on 2026-09-07; nothing is
-held right now.
+Tutorial publication is closed by default and requires **two gates** in
+`app/tutorials/manifest.ts`: the course name must appear in
+`RELEASED_TUTORIAL_SERIES`, and the lesson must not have `draft: true`. The
+scaffolder always creates `page.draft.mdx` plus `draft: true`, including for an
+already released series. Commit and push drafts freely; they are not routes.
+Release a reviewed lesson by removing its draft flag. Release a new course only
+with a separate, explicit allowlist edit. The "Become a Full-Stack AI Engineer"
+course is intentionally absent from the allowlist while it is being developed.
+
+`scripts/apply-drafts.mjs` runs at prebuild and renames every private tutorial's
+`page.mdx` → `page.draft.mdx`, which Next does not route. Private lessons are
+also excluded from lists, saved items, feeds, topic pages, and the sitemap.
+Projects retain their independent `draft: true` gate; draft projects also skip
+demo vendoring.
 
 ## Editor theme (VS Code)
 

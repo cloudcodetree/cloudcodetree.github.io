@@ -21,7 +21,7 @@ import { filterTutorials, tutorialReaderId, tutorialTopics } from '../../scripts
 type View = 'cards' | 'list';
 const VIEWS: View[] = ['cards', 'list'];
 const PAGE_DEFAULT: Record<View, number> = { cards: 20, list: 40 };
-const PAGE_OPTIONS = [10, 20, 40, 50];
+const PAGE_OPTIONS = [5, 10, 20, 40, 50];
 const border = '1px solid rgba(148,163,184,0.12)';
 const clamp = (n: number) => ({ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: n, overflow: 'hidden' } as const);
 const topicTags = (t: Tutorial) => t.tags.filter((x) => x.toLowerCase() !== 'ai' && x.toLowerCase() !== 'tutorial');

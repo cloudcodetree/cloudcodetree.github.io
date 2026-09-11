@@ -24,6 +24,18 @@ export interface Tutorial {
   draft?: boolean;
 }
 
+/**
+ * Course-level release gate. New series stay private until their name is added
+ * here deliberately; a lesson's own `draft` flag remains a second gate.
+ */
+export const RELEASED_TUTORIAL_SERIES = [
+  'RAG from Scratch',
+  'Fine-Tuning & Serving',
+  'Claude Code Anywhere',
+] as const;
+
+const releasedSeries = new Set<string>(RELEASED_TUTORIAL_SERIES);
+
 export const tutorials: Tutorial[] = [
   {
     slug: 'build-a-rag-over-your-blog',
@@ -687,5 +699,9 @@ export function fullTitle(t: Tutorial): string {
   return `${t.series}: ${t.title} (Part ${t.part} of ${seriesTotal(t.series)})`;
 }
 
-/** What the site actually shows/builds: everything not held as a draft. */
-export const publishedTutorials: Tutorial[] = tutorials.filter((t) => !t.draft);
+/** Public only after both the course and the individual lesson are released. */
+export function isTutorialPublished(tutorial: Tutorial): boolean {
+  return releasedSeries.has(tutorial.series) && !tutorial.draft;
+}
+
+export const publishedTutorials: Tutorial[] = tutorials.filter(isTutorialPublished);

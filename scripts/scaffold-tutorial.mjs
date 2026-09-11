@@ -5,8 +5,8 @@
  * the real content, testing verified code, checking anchored links — stays with you).
  *
  * Given a slug/series/subtitle, it:
- *   1. appends a correctly-shaped entry to app/tutorials/manifest.ts (as the next
- *      part of the series; order = next global),
+ *   1. appends a correctly-shaped draft entry to app/tutorials/manifest.ts (as
+ *      the next part of the series; order = next global),
  *   2. bumps every existing sibling's "(Part k of M)" title to the new total,
  *   3. writes app/tutorials/(article)/<slug>/page.mdx from a type-aware template
  *      (composed title, OG image, <TutorialHero>, the right callout),
@@ -71,8 +71,10 @@ const cover = `/tutorials/covers/${slug}.png`;
 let bumped = 0;
 if (oldTotal > 0) {
   for (const sib of tutorials.filter((t) => t.series === series)) {
-    const f = path.join(ROOT, 'app/tutorials/(article)', sib.slug, 'page.mdx');
-    if (!existsSync(f)) continue;
+    const live = path.join(ROOT, 'app/tutorials/(article)', sib.slug, 'page.mdx');
+    const held = path.join(ROOT, 'app/tutorials/(article)', sib.slug, 'page.draft.mdx');
+    if (!existsSync(live) && !existsSync(held)) continue;
+    const f = existsSync(live) ? live : held;
     const before = readFileSync(f, 'utf8');
     const after = before.replaceAll(`(Part ${sib.part} of ${oldTotal})`, `(Part ${sib.part} of ${newTotal})`);
     if (after !== before) { writeFileSync(f, after); bumped++; }
@@ -95,6 +97,7 @@ const entry = `  {
     order: ${order},
     readTime: ${readTime},
     image: '${cover}',
+    draft: true,
   },
 `;
 writeFileSync(MANIFEST, src.slice(0, close + 1) + entry + src.slice(close + 1));
@@ -160,7 +163,7 @@ L.push('');
 L.push('*Sources: TODO*');
 L.push('');
 mkdirSync(mdxDir, { recursive: true });
-writeFileSync(path.join(mdxDir, 'page.mdx'), L.join('\n'));
+writeFileSync(path.join(mdxDir, 'page.draft.mdx'), L.join('\n'));
 
 // 4) Regenerate covers (now manifest-driven — picks up the new entry).
 execFileSync('node', ['scripts/generate-tutorial-covers.mjs'], { cwd: ROOT, stdio: 'pipe' });
@@ -172,7 +175,7 @@ if (args['with-repo'] && type === 'verified') {
 
 console.log(`✓ scaffolded "${composed}"`);
 console.log(`  manifest: appended entry (part ${part}, order ${order})${bumped ? `; bumped ${bumped} sibling title(s) to "of ${newTotal}"` : ''}`);
-console.log(`  page:     app/tutorials/(article)/${slug}/page.mdx  (fill the TODOs)`);
+console.log(`  page:     app/tutorials/(article)/${slug}/page.draft.mdx  (fill the TODOs)`);
 console.log(`  cover:    public/tutorials/covers/${slug}.png`);
 if (type === 'verified' && !args['with-repo']) console.log(`  repo:     run with --with-repo, or: node scripts/new-tutorial-repo.mjs ${slug} --title "${composed}" --create-remote`);
-console.log('\nNext: write the content, then `pnpm build` and commit.');
+console.log('\nNext: write and review the content. Remove `draft: true` only when the lesson is ready; new series must also be added to RELEASED_TUTORIAL_SERIES.');

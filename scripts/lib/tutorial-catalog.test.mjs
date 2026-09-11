@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { tutorialTopics, tutorialReaderId, filterTutorials } from './tutorial-catalog.mjs';
-import { readTutorials } from './tutorials-data.mjs';
-import { publishedTutorials } from '../../app/tutorials/manifest';
+import { readReleasedTutorialSeries, readTutorials } from './tutorials-data.mjs';
+import { publishedTutorials, RELEASED_TUTORIAL_SERIES } from '../../app/tutorials/manifest';
 import { readFileSync } from 'node:fs';
 
 const list = [
@@ -11,12 +11,21 @@ const list = [
 ];
 describe('tutorial catalog', () => {
   it('uses identical published topic slugs/counts in the app and generator', () => {
-    expect(tutorialTopics(readTutorials())).toEqual(tutorialTopics(publishedTutorials));
+    expect(tutorialTopics(readTutorials().filter((t) => t.published))).toEqual(tutorialTopics(publishedTutorials));
     expect(tutorialTopics(list)).toEqual([
       { tag: 'Python', slug: 'python', count: 2 },
       { tag: 'Fine-Tuning', slug: 'fine-tuning', count: 1 },
       { tag: 'RAG', slug: 'rag', count: 1 },
     ]);
+  });
+  it('keeps unreleased courses behind the explicit series gate', () => {
+    const series = 'Become a Full-Stack AI Engineer';
+    const generated = readTutorials();
+    expect(readReleasedTutorialSeries()).toEqual([...RELEASED_TUTORIAL_SERIES]);
+    expect(RELEASED_TUTORIAL_SERIES).not.toContain(series);
+    expect(generated.filter((t) => t.series === series)).not.toHaveLength(0);
+    expect(generated.filter((t) => t.series === series).every((t) => !t.published)).toBe(true);
+    expect(publishedTutorials.some((t) => t.series === series)).toBe(false);
   });
   it('combines OR topics with search and course scope, excluding drafts', () => {
     expect(filterTutorials(list, { topics: ['RAG', 'Fine-Tuning'], query: 'python vectors' })).toEqual([list[0]]);

@@ -24,9 +24,23 @@ function arrayBounds(src) {
   return { open, close };
 }
 
+/** Explicit course allowlist: an omitted series is private by default. */
+export function readReleasedTutorialSeries() {
+  const src = readFileSync(MANIFEST, 'utf8');
+  const decl = src.indexOf('export const RELEASED_TUTORIAL_SERIES');
+  const eq = src.indexOf('=', decl);
+  const open = src.indexOf('[', eq);
+  const close = src.indexOf('] as const;', open);
+  if (decl === -1 || eq === -1 || open === -1 || close === -1) {
+    throw new Error('manifest: could not bound RELEASED_TUTORIAL_SERIES');
+  }
+  return Array.from(src.slice(open + 1, close).matchAll(/'((?:[^'\\]|\\.)*)'/g), (m) => m[1].replace(/\\'/g, "'"));
+}
+
 /** Parse the manifest into [{ slug, title, series, part, order }] (declaration order). */
 export function readTutorials() {
   const src = readFileSync(MANIFEST, 'utf8');
+  const released = new Set(readReleasedTutorialSeries());
   const { open, close } = arrayBounds(src);
   const body = src.slice(open + 1, close);
   const str = (chunk, k) => { const m = chunk.match(new RegExp(`${k}:\\s*'((?:[^'\\\\]|\\\\.)*)'`)); return m ? m[1].replace(/\\'/g, "'") : undefined; };
@@ -36,7 +50,11 @@ export function readTutorials() {
     .split(/\},\s*/)
     .map((c) => c.trim())
     .filter((c) => c.startsWith('{'))
-    .map((c) => ({ slug: str(c, 'slug'), title: str(c, 'title'), series: str(c, 'series'), part: num(c, 'part'), order: num(c, 'order'), date: str(c, 'date'), excerpt: str(c, 'excerpt'), tags: tags(c), draft: /draft:\s*true/.test(c) }))
+    .map((c) => {
+      const draft = /draft:\s*true/.test(c);
+      const series = str(c, 'series');
+      return { slug: str(c, 'slug'), title: str(c, 'title'), series, part: num(c, 'part'), order: num(c, 'order'), date: str(c, 'date'), excerpt: str(c, 'excerpt'), tags: tags(c), draft, published: released.has(series) && !draft };
+    })
     .filter((t) => t.slug);
 }
 

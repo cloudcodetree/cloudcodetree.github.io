@@ -11,6 +11,8 @@ test('tutorial topics filter courses and link to their own static landing pages 
   let privateRequests = 0;
   page.on('request', (request) => { if (request.url().includes('.supabase.co')) privateRequests++; });
   await page.goto('/tutorials/');
+  await expect(page.getByRole('heading', { name: /Become a full-stack AI engineer/ })).toHaveCount(0);
+  expect((await request.get('/tutorials/dealfinder-part-01/')).status()).toBe(404);
   await page.getByRole('button', { name: 'Topics', exact: true }).click();
   await page.getByRole('textbox', { name: 'Filter topics' }).fill('RAG');
   await page.getByRole('button', { name: /^RAG \d+$/ }).click();
@@ -37,12 +39,12 @@ test('tutorial topics filter courses and link to their own static landing pages 
 test('tutorial search, pagination and layout preferences survive reload', async ({ page }) => {
   await page.goto('/tutorials/all/');
   await page.getByRole('combobox', { name: 'Tutorials per page' }).click();
-  await page.getByRole('option', { name: '10', exact: true }).click();
+  await page.getByRole('option', { name: '5', exact: true }).click();
   await page.getByRole('button', { name: 'Go to page 2', exact: true }).click();
   await expect(page).toHaveURL(/page=2/);
   await page.reload();
   await expect(page.getByRole('button', { name: 'page 2', exact: true })).toHaveAttribute('aria-current', 'page');
-  await expect(page.getByRole('combobox', { name: 'Tutorials per page' })).toHaveText('10');
+  await expect(page.getByRole('combobox', { name: 'Tutorials per page' })).toHaveText('5');
   await page.getByRole('button', { name: 'Compact list', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search tutorials' }).fill('embeddings');
   await expect(page).toHaveURL(/q=embeddings/);

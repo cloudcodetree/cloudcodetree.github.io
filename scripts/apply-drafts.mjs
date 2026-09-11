@@ -14,7 +14,7 @@ import { readProjects } from './lib/projects-data.mjs';
 
 let hidden = 0, restored = 0;
 const entries = [
-  ...readTutorials().map((t) => ({ ...t, dir: path.join(ROOT, 'app', 'tutorials', '(article)', t.slug) })),
+  ...readTutorials().map((t) => ({ ...t, draft: !t.published, dir: path.join(ROOT, 'app', 'tutorials', '(article)', t.slug) })),
   ...readProjects().map((p) => ({ ...p, dir: path.join(ROOT, 'app', 'projects', '(detail)', p.slug) })),
 ];
 for (const t of entries) {

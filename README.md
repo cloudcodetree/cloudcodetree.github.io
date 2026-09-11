@@ -51,6 +51,11 @@ metadata as cacheable chunks; full-feed view fetches only the displayed bodies.
 Generated files are ignored by Git. The original archive remains available for
 existing consumers.
 
+Tutorials are private by default. A public lesson must belong to a series named
+in `RELEASED_TUTORIAL_SERIES` and must not carry `draft: true` in
+`app/tutorials/manifest.ts`. The scaffolder creates draft entries and
+`page.draft.mdx`; publishing is a separate, explicit manifest change.
+
 ## Deployment
 
 Pushes to `main` run `.github/workflows/deploy.yml`:
