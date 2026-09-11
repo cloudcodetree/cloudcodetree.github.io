@@ -7,12 +7,12 @@ import {
 // The one place supabase-js is reachable from this module; stubbing it lets the
 // caching behaviour be observed by counting real calls rather than by exposing
 // module internals for the test's benefit.
-const calls = { select: 0, upsert: 0 };
+const calls = { select: 0, upsert: 0, failRead: false, rows: [] as ReaderRow[] };
 vi.mock('./supabaseClient', () => ({
   supabase: () => ({
     auth: { getSession: async () => ({ data: { session: { user: { id: 'reader-1' } } } }) },
     from: () => ({
-      select: async () => { calls.select++; return { data: [] as ReaderRow[], error: null }; },
+      select: () => ({ order: () => ({ range: async (from: number, to: number) => { calls.select++; return { data: calls.failRead ? null : calls.rows.slice(from, to + 1), error: calls.failRead ? { message: 'offline' } : null }; } }) }),
       upsert: async () => { calls.upsert++; return { error: null }; },
     }),
   }),
@@ -97,6 +97,8 @@ describe('resetReaderState', () => {
     signIn();
     resetReaderState();
     calls.select = 0;
+    calls.failRead = false;
+    calls.rows = [];
     calls.upsert = 0;
   });
 
@@ -104,6 +106,21 @@ describe('resetReaderState', () => {
     await loadReaderState();
     await loadReaderState();
     expect(calls.select).toBe(1);
+  });
+
+  it('retries after a failed read instead of caching an empty success', async () => {
+    calls.failRead = true;
+    await expect(loadReaderState()).rejects.toThrow('Could not load');
+    calls.failRead = false;
+    calls.rows = [{ post_id: 'saved', saved: true, read_at: null }];
+    expect((await loadReaderState()).get('saved')?.saved).toBe(true);
+    expect(calls.select).toBe(2);
+  });
+
+  it('loads readers with more rows than the API page limit', async () => {
+    calls.rows = Array.from({ length: 1201 }, (_, i) => ({ post_id: `post-${i}`, saved: true, read_at: null }));
+    expect((await loadReaderState()).size).toBe(1201);
+    expect(calls.select).toBe(3);
   });
 
   it('clears the row cache, so the next load queries again', async () => {

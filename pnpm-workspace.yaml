@@ -15,3 +15,9 @@ onlyBuiltDependencies:
   - sharp
   - unrs-resolver
   - workerd
+
+# Upstream tools still pin vulnerable transitive versions; remove these once
+# Next.js and Miniflare adopt the patched releases themselves.
+overrides:
+  'next>postcss': 8.5.28
+  'miniflare>sharp': 0.35.4

@@ -17,7 +17,7 @@
     // Worker can answer ?topics= — with no parameter it serves the same asset.
     "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*", "/ai-news/feed.xml"]
   },
-  "observability": { "enabled": true },
+  "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
   // Search: Workers AI embeds the query, Vectorize holds the post chunks.
   // Both on the Free plan; the index is filled by scripts/index-search.mjs in CI.
   "ai": { "binding": "AI" },

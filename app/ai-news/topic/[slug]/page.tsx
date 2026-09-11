@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import ClientLayout from '../../../components/ClientLayout';
 import BlogPage from '../../../components/BlogPage';
+import { blogListing } from '../../../lib/blogArchive';
 import type { BlogPost } from '../../../components/blogShared';
 import { topicTags } from '../../../../scripts/lib/topics.mjs';
 
@@ -37,11 +38,12 @@ export default async function TopicPage({ params }: { params: Promise<{ slug: st
   const posts = readPosts();
   const topic = topicTags(posts).find((t) => t.slug === slug);
   if (!topic) notFound();
-  const slim = posts.filter((p) => p.tags.includes(topic.tag)).map(({ content, ...rest }) => rest);
+  const { initial, archive } = blogListing(topic.tag);
   return (
     <ClientLayout>
       <BlogPage
-        posts={slim}
+        posts={initial}
+        archive={archive}
         heading={topic.tag}
         intro={`${topic.count} post${topic.count === 1 ? '' : 's'} tagged ${topic.tag}.`}
         feedPath={`/ai-news/topic/${slug}/feed.xml`}

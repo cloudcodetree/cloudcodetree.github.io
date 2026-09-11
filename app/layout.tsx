@@ -17,6 +17,7 @@ const barlow = Barlow({
 const barlowCondensed = Barlow_Condensed({
   subsets: ['latin'],
   display: 'swap',
+  preload: false,
   variable: '--font-display',
   weight: ['400', '600'],
 })
@@ -25,6 +26,7 @@ const barlowCondensed = Barlow_Condensed({
 const plexMono = IBM_Plex_Mono({
   subsets: ['latin'],
   display: 'swap',
+  preload: false,
   variable: '--font-plex-mono',
   weight: ['400', '500', '600'],
 })

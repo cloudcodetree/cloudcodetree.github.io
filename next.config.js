@@ -9,17 +9,9 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
-  // SITE_ORIGIN overrides the asset origin. Staging sets it to '' so assets are
-  // relative and resolve against whatever origin serves the build. A staging
-  // build carrying the production prefix loads every script, stylesheet and
-  // font cross-origin, which CSP's 'self' then blocks — a blank page that still
-  // returns 200, so status-code checks cannot see it.
-  assetPrefix:
-    process.env.SITE_ORIGIN !== undefined
-      ? process.env.SITE_ORIGIN
-      : process.env.NODE_ENV === 'production'
-        ? 'https://cloudcodetree.com'
-        : '',
+  // Same-origin assets make the exact production export portable to local previews.
+  // Canonical/OG URLs remain absolute in route metadata.
+  assetPrefix: process.env.SITE_ORIGIN ?? '',
   basePath: '',
   reactStrictMode: true,
   compiler: {

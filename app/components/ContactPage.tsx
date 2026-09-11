@@ -82,28 +82,17 @@ export default function ContactPage() {
     company: '', // Company honeypot
   });
 
-  // Set initial time when component mounts
-  const [formStartTime] = useState<number>(Date.now());
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mouseMovements, setMouseMovements] = useState<number>(0);
-  const [keystrokes, setKeystrokes] = useState<number>(0);
 
   const handleInputChange = (field: keyof FormData) => (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    // Track keystroke activity (legitimate user behavior)
-    setKeystrokes(prev => prev + 1);
-    
     setFormData(prev => ({
       ...prev,
       [field]: event.target.value,
     }));
-  };
-
-  const handleMouseMove = () => {
-    setMouseMovements(prev => prev + 1);
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -111,20 +100,7 @@ export default function ContactPage() {
     
     // Multiple honeypot validation - if any filled, it's a bot
     if (formData.honeypot || formData.website || formData.phone || formData.company) {
-      console.log('Bot detected: honeypot field filled');
-      return; // Silently reject
-    }
-
-    // User interaction validation
-    if (mouseMovements < 3 || keystrokes < 5) {
-      console.log('Bot detected: insufficient user interaction');
-      return; // Silently reject
-    }
-
-    // Time validation - too fast submission indicates bot
-    const timeTaken = Date.now() - formStartTime;
-    if (timeTaken < 3000) { // Less than 3 seconds
-      setError('Please take a moment to review your message before sending.');
+      setError('This submission could not be sent. Please reload the form and try again, or contact me by email.');
       return;
     }
 
@@ -147,14 +123,14 @@ export default function ContactPage() {
 
       const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
+        signal: AbortSignal.timeout(15000),
         body: formDataToSend
       });
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.success === true) {
         setSuccess(true);
         setFormData({ name: '', email: '', subject: '', message: '', honeypot: '', website: '', phone: '', company: '' });
-        setMouseMovements(0);
-        setKeystrokes(0);
       } else {
         throw new Error('Form submission failed');
       }
@@ -213,7 +189,6 @@ export default function ContactPage() {
               <Box
                 component="form"
                 onSubmit={handleSubmit}
-                onMouseMove={handleMouseMove}
               >
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   {/* First row: Name and Email side by side */}

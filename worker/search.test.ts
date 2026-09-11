@@ -123,7 +123,7 @@ describe('handleSearch', () => {
       const res = await handleSearch(deliberateReq('  Sourdough   Starter '), env, ctx, fakeCache());
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual({ results: [] });
-      expect(missesIn(log)).toEqual([{ event: 'search_miss', q: 'sourdough starter', top: 0.657 }]);
+      expect(missesIn(log)).toEqual([{ event: 'search_miss', topic: 'other' }]);
     } finally {
       log.mockRestore();
     }
@@ -141,12 +141,12 @@ describe('handleSearch', () => {
     }
   });
 
-  it('logs one search_miss carrying the normalized query when nothing matches, and none when something does', async () => {
+  it('logs one search_miss carrying only a fixed topic when nothing matches, and none when something does', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
     const logged = () => log.mock.calls.map((c) => JSON.parse(String(c[0])) as { event: string; results?: number });
     try {
       await handleSearch(deliberateReq('  Zzqqxx   Nonexistent Topic '), stubEnv({ matches: [] }), ctx, fakeCache());
-      expect(missesIn(log)).toEqual([{ event: 'search_miss', q: 'zzqqxx nonexistent topic', top: 0 }]);
+      expect(missesIn(log)).toEqual([{ event: 'search_miss', topic: 'other' }]);
       // The success log stays as it was: counts and latency, never the query.
       expect(logged().filter((e) => e.event === 'search')).toEqual([{ event: 'search', results: 0, ms: expect.any(Number) }]);
 
@@ -183,7 +183,7 @@ describe('handleSearch', () => {
       // and it must still be recorded, or the deliberate search vanishes.
       const res = await handleSearch(deliberateReq('sourdough starter'), env, ctx, cache);
       expect(await res.json()).toEqual({ results: [] });
-      expect(missesIn(log)).toEqual([{ event: 'search_miss', q: 'sourdough starter' }]);
+      expect(missesIn(log)).toEqual([{ event: 'search_miss', topic: 'other' }]);
       // Cache key is the query alone: intent must not double the model calls.
       expect(env.ai).toHaveBeenCalledTimes(1);
     } finally {
@@ -198,10 +198,16 @@ describe('handleSearch', () => {
       await handleSearch(deliberateReq('ab'), env(), ctx, fakeCache());               // too short
       await handleSearch(deliberateReq('me@example.com'), env(), ctx, fakeCache());   // email-ish
       await handleSearch(deliberateReq('order 40281337722'), env(), ctx, fakeCache()); // long digit run
-      expect(missesIn(log)).toEqual([]);
+      expect(missesIn(log)).toEqual(Array(3).fill({ event: 'search_miss', topic: 'other' }));
+      log.mockClear();
       // The guard is narrow: an ordinary short-ish query still records.
+      await handleSearch(deliberateReq('call Jane at 202-555-0142'), env(), ctx, fakeCache());
+      expect(missesIn(log)).toEqual([{ event: 'search_miss', topic: 'other' }]);
+      expect(JSON.stringify(log.mock.calls)).not.toContain('Jane');
+      expect(JSON.stringify(log.mock.calls)).not.toContain('202-555');
+      log.mockClear();
       await handleSearch(deliberateReq('rag'), env(), ctx, fakeCache());
-      expect(missesIn(log)).toEqual([{ event: 'search_miss', q: 'rag', top: 0 }]);
+      expect(missesIn(log)).toEqual([{ event: 'search_miss', topic: 'rag' }]);
     } finally {
       log.mockRestore();
     }

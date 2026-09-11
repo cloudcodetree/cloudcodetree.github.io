@@ -13,8 +13,8 @@
 //     imported dynamically behind it, so importing this module from BlogPage
 //     does not drag the auth SDK into the list page's chunk (the same reason
 //     GlobalAuth loads AuthWidget with next/dynamic).
-//  2. Nothing here throws. Reader state is a nicety layered on a static page;
-//     a failure dims nothing and breaks nothing.
+//  2. Failed reads reject and are evicted from the cache. Callers show a retry
+//     notice; writes return success/failure without breaking the static page.
 
 export interface ReaderRow {
   post_id: string;
@@ -56,7 +56,7 @@ async function currentUserId(): Promise<string | null> {
 }
 
 /**
- * One query per signed-in session, shared: /saved renders BlogPage, and both
+ * One paginated read per signed-in session, shared: /saved renders BlogPage, and both
  * want the same rows. Callers each get their OWN Map copy so an optimistic
  * update in one component can never alias another's state. Cleared by
  * resetReaderState() whenever the reader changes.
@@ -64,19 +64,16 @@ async function currentUserId(): Promise<string | null> {
 let inFlight: Promise<ReaderStateMap> | null = null;
 
 async function fetchReaderState(): Promise<ReaderStateMap> {
-  const empty: ReaderStateMap = new Map();
-  if (!(await currentUserId())) return empty;
-  try {
-    const { supabase } = await import('./supabaseClient');
-    // No .eq('user_id', …): the select policy already scopes this to the caller,
-    // and a redundant predicate would be a second place to get it wrong.
-    const { data, error } = await supabase().from('reader_state').select('post_id, saved, read_at');
-    if (error || !data) return empty;
-    const map: ReaderStateMap = new Map();
+  if (!(await currentUserId())) return new Map();
+  const { supabase } = await import('./supabaseClient');
+  const map: ReaderStateMap = new Map();
+  const pageSize = 500;
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase().from('reader_state')
+      .select('post_id, saved, read_at').order('post_id').range(from, from + pageSize - 1);
+    if (error || !data) throw new Error('Could not load your reading state.');
     (data as ReaderRow[]).forEach((row) => map.set(row.post_id, row));
-    return map;
-  } catch {
-    return empty;
+    if (data.length < pageSize) return map;
   }
 }
 
@@ -90,16 +87,22 @@ function patchCache(postId: string, patch: Partial<ReaderRow>): void {
   void inFlight.then((map) => {
     const current = map.get(postId) ?? { post_id: postId, saved: false, read_at: null };
     map.set(postId, { ...current, ...patch });
-  });
+  }).catch(() => {});
 }
 
 /**
  * Every row this reader owns, keyed by post id. The caller holds the Map so
  * pagination, topic filtering and the view switcher never re-query. Resolves to
- * an empty Map when signed out or on any error — it never rejects.
+ * an empty Map when signed out. Failed reads reject and are never cached.
  */
 export async function loadReaderState(): Promise<ReaderStateMap> {
-  inFlight ??= fetchReaderState();
+  if (!inFlight) {
+    const request = fetchReaderState().catch((error) => {
+      if (inFlight === request) inFlight = null;
+      throw error;
+    });
+    inFlight = request;
+  }
   const shared = await inFlight;
   const copy: ReaderStateMap = new Map();
   shared.forEach((row, id) => copy.set(id, row));
@@ -113,7 +116,9 @@ export async function loadReaderState(): Promise<ReaderStateMap> {
  * reader looking at another's state, or suppress the next reader's first
  * "mark as read" because the previous one had already read that post.
  */
+let generation = 0;
 export function resetReaderState(): void {
+  generation++;
   inFlight = null;
   marked.clear();
 }
@@ -129,6 +134,7 @@ export function resetReaderState(): void {
 const marked = new Set<string>();
 
 export function markRead(postId: string): void {
+  const epoch = generation;
   if (!hasReaderSession()) return;
   // At most one write per post for as long as this reader's session lasts in
   // this tab — module state, so it survives client-side navigation between
@@ -144,6 +150,7 @@ export function markRead(postId: string): void {
   marked.add(postId);
   void (async () => {
     const userId = await currentUserId();
+    if (generation !== epoch) return;
     if (!userId) { marked.delete(postId); return; }
     try {
       const { supabase } = await import('./supabaseClient');
@@ -154,10 +161,10 @@ export function markRead(postId: string): void {
       const { error } = await supabase()
         .from('reader_state')
         .upsert({ user_id: userId, post_id: postId, read_at: readAt }, { onConflict: 'user_id,post_id' });
-      if (error) marked.delete(postId);
-      else patchCache(postId, { read_at: readAt });
+      if (error && generation === epoch) marked.delete(postId);
+      else if (generation === epoch) patchCache(postId, { read_at: readAt });
     } catch {
-      marked.delete(postId);   // best-effort: let a later mount retry
+      if (generation === epoch) marked.delete(postId);   // best-effort: let a later mount retry
     }
   })();
 }
@@ -168,15 +175,16 @@ export function markRead(postId: string): void {
  * than deleting the row (there is no delete policy) — read state survives it.
  */
 export async function setSaved(postId: string, saved: boolean): Promise<boolean> {
+  const epoch = generation;
   const userId = await currentUserId();
-  if (!userId) return false;
+  if (!userId || generation !== epoch) return false;
   try {
     const { supabase } = await import('./supabaseClient');
     const { error } = await supabase()
       .from('reader_state')
       .upsert({ user_id: userId, post_id: postId, saved }, { onConflict: 'user_id,post_id' });
-    if (!error) patchCache(postId, { saved });
-    return !error;
+    if (!error && generation === epoch) patchCache(postId, { saved });
+    return !error && generation === epoch;
   } catch {
     return false;
   }

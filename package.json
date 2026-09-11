@@ -22,8 +22,8 @@
     "feeds": "node scripts/generate-feeds.mjs",
     "prebuild": "node scripts/apply-drafts.mjs && node scripts/generate-feeds.mjs",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
+    "start": "wrangler dev --local",
+    "lint": "eslint app worker scripts --ext .js,.mjs,.ts,.tsx",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck:worker": "tsc -p worker/tsconfig.json",
@@ -31,7 +31,10 @@
     "link-projects": "node scripts/link-projects.mjs",
     "deploy:staging": "node scripts/assert-variant.mjs staging && wrangler deploy --env staging",
     "deploy:prod": "node scripts/assert-variant.mjs production && wrangler deploy",
-    "dev:turbo": "node scripts/generate-feeds.mjs && next dev --turbo"
+    "dev:turbo": "node scripts/generate-feeds.mjs && next dev --turbo",
+    "test:browser": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "check": "pnpm test && pnpm run typecheck:worker && pnpm run lint"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -40,43 +43,45 @@
     "@emotion/styled": "^11.14.1",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
-    "@mui/icons-material": "^7.3.0",
+    "@mui/icons-material": "^7.3.11",
     "@mui/lab": "7.0.0-beta.15",
-    "@mui/material": "^7.3.0",
-    "@mui/system": "^7.3.0",
-    "@next/mdx": "^15.5.19",
-    "@supabase/supabase-js": "^2.112.3",
-    "@tailwindcss/typography": "^0.5.16",
+    "@mui/material": "^7.3.11",
+    "@mui/material-nextjs": "^7.3.10",
+    "@mui/system": "^7.3.11",
+    "@next/mdx": "^15.5.25",
+    "@supabase/supabase-js": "^2.116.0",
+    "@tailwindcss/typography": "^0.5.20",
     "@types/mdx": "^2.0.14",
-    "autoprefixer": "^10.5.0",
-    "framer-motion": "^12.40.0",
-    "jose": "^6.2.9",
-    "jszip": "^3.10.1",
+    "autoprefixer": "^10.5.5",
+    "framer-motion": "^12.43.0",
+    "jose": "^6.2.12",
+    "jszip": "^3.10.2",
     "minisearch": "^7.2.0",
-    "next": "^15.5.19",
-    "postcss": "^8.5.15",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "next": "^15.5.25",
+    "postcss": "^8.5.28",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "react-markdown": "^10.1.0",
     "rehype-highlight": "^7.0.2",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
-    "shiki": "^4.3.1",
-    "tailwindcss": "^3.4.17"
+    "shiki": "^4.4.3",
+    "tailwindcss": "^3.4.19"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260819.1",
-    "@types/node": "^20.0.0",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "eslint": "^8.0.0",
-    "eslint-config-next": "^15.1.6",
-    "fast-xml-parser": "^5.8.0",
+    "@cloudflare/workers-types": "^5.20260908.1",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^20.19.43",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.5.25",
+    "fast-xml-parser": "^5.11.1",
     "pg": "^8.23.0",
-    "sharp": "^0.35.0",
+    "sharp": "^0.35.4",
     "typescript": "~5.8.3",
     "vitest": "^4.1.11",
-    "wrangler": "^4.124.0"
+    "wrangler": "^4.130.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -85,5 +90,9 @@
       "unrs-resolver",
       "workerd"
     ]
+  },
+  "packageManager": "pnpm@11.0.9",
+  "engines": {
+    "node": ">=22.13.0"
   }
 }

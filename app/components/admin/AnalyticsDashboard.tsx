@@ -23,11 +23,9 @@ interface Sections {
 
 /** One line of content/search-misses.jsonl, baked in by the server route. */
 export interface SearchMiss {
-  q: string;
+  topic: string;
   first_seen: string;
   count: number;
-  /** Best similarity score before the relevance floor; absent on a cached miss. */
-  top?: number;
 }
 
 type State =
@@ -161,9 +159,9 @@ export default function AnalyticsDashboard({ misses = [] }: { misses?: SearchMis
       {misses.length > 0 && (
         <Section
           title="Search misses"
-          hint="content/search-misses.jsonl · searches that returned nothing"
-          rows={misses.map((m) => ({ query: m.q, count: m.count, first_seen: m.first_seen }))}
-          columns={['query', 'count', 'first_seen']}
+          hint="content/search-misses.jsonl · aggregate topic counts; no query text"
+          rows={misses.map((m) => ({ topic: m.topic, count: m.count, first_seen: m.first_seen }))}
+          columns={['topic', 'count', 'first_seen']}
         />
       )}
     </Container>

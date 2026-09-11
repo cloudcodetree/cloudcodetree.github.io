@@ -27,7 +27,7 @@ export default function CourseHomeCard({ parts, allHref = '/tutorials/all/' }: {
   return (
     <Box
       component={motion.div}
-      initial={{ opacity: 0, y: 18 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55 }}
       sx={{

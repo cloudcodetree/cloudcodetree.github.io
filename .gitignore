@@ -144,3 +144,9 @@ crash.log
 
 # Claude Code worktrees (isolated checkouts, never part of the repo)
 /.claude/worktrees/
+
+/public/blog/archive/
+/public/blog/bodies/
+/test-results/
+/playwright-report/
+/.prepared-images/

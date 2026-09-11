@@ -9,10 +9,9 @@
  *                        referenced by absolute URL so they render anywhere.
  *   public/sitemap.xml — static routes + every /ai-news/<id>/ page
  *                        (robots.txt advertises this URL).
- *   public/blog/pages/<n>.json — the list page's pagination chunks (10 posts
- *                        each, full content). The /ai-news list embeds page 1
- *                        at build time and fetches only the visited page's
- *                        chunk, instead of all of posts.json.
+ *   public/blog/archive/<hash>.json — 100-post metadata chunks, with stable
+ *                        older chunks as posts are prepended.
+ *   public/blog/bodies/<hash>.json — one body fetched per visible full-feed post.
  *
  * Runs automatically as `prebuild` and before `dev`; all outputs are
  * regenerated from posts.json each build, so they're never hand-maintained
@@ -23,13 +22,14 @@
  * No external dependencies.
  */
 
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readTutorials, seriesTotal } from './lib/tutorials-data.mjs';
 import { readProjects } from './lib/projects-data.mjs';
 import { topicTags } from './lib/topics.mjs';
+import { buildArchive } from './lib/blog-archive.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -180,6 +180,16 @@ ${media}  </item>`;
   const searchIndex = posts.map((p) => ({ id: p.id, title: p.title, excerpt: p.excerpt || '', tags: p.tags || [], date: p.date }));
   await writeFile(path.join(BLOG_DIR, 'search-index.json'), JSON.stringify(searchIndex));
   console.log(`✓ blog/search-index.json (${searchIndex.length} posts) → public/`);
+
+  const archive = buildArchive(posts);
+  for (const dir of ['archive', 'bodies']) {
+    await rm(path.join(BLOG_DIR, dir), { recursive: true, force: true });
+    await mkdir(path.join(BLOG_DIR, dir), { recursive: true });
+  }
+  for (const file of [...archive.chunks, ...archive.bodies]) {
+    await writeFile(path.join(PUBLIC, file.url.slice(1)), file.text);
+  }
+  console.log(`✓ ${archive.chunks.length} archive chunks + ${archive.bodies.length} article bodies`);
 
   // Tutorials feed — built from the hand-authored manifest (newest-first, capped).
   const allTuts = readTutorials().filter((t) => !t.draft);

@@ -13,6 +13,8 @@ import path from 'node:path';
 
 /** Origins the site FETCHES at runtime. Each must be allowed by its directive. */
 export const REQUIRED = [
+  { origin: 'https://static.cloudflareinsights.com', directive: 'script-src' },
+  { origin: 'https://cloudflareinsights.com', directive: 'connect-src' },
   { origin: 'https://api.web3forms.com', directive: 'script-src' },   // contact form
   { origin: 'https://api.web3forms.com', directive: 'connect-src' },  // form POST
   { origin: 'https://assets.calendly.com', directive: 'script-src' }, // scheduling widget

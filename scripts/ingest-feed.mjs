@@ -19,10 +19,10 @@
  * runs (true everywhere it runs: CI, cloud agents, and the repo checkout).
  *
  * Usage:
- *   node scripts/ingest-feed.mjs [feed.xml] [--no-images] [--refresh-images]
+ *   node scripts/ingest-feed.mjs [feed.xml] [--no-images] [--refresh-images] [--prepare-images=DIR]
  */
 
-import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rm, copyFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import os from 'node:os';
@@ -40,12 +40,15 @@ const FEED = path.resolve(ROOT, positional[0] || 'content/feed.xml');
 const POSTS_JSON = path.join(ROOT, 'public', 'blog', 'posts.json');
 const NO_IMAGES = flags.has('--no-images');
 const REFRESH = flags.has('--refresh-images');
+const prepareArg = argv.find((a) => a.startsWith('--prepare-images='));
+const PREPARE_DIR = prepareArg ? path.resolve(prepareArg.slice('--prepare-images='.length)) : null;
+const preparedIds = new Set();
 
 // Images are hosted on R2 at https://img.cloudcodetree.com (scripts/lib/r2.mjs).
-// Optional: when set (e.g. in the rehost-images CI job), posts with no source
+// Optional: when set (e.g. in the prepare-images CI job), posts with no source
 // image get a relevant Pexels stock photo instead of the placeholder.
 const PEXELS_KEY = process.env.PEXELS_API_KEY || '';
-const TMP = path.join(os.tmpdir(), 'cct-ingest-images');
+const TMP = path.join(os.tmpdir(), `cct-ingest-images-${process.pid}`);
 const DEFAULT_AUTHOR = 'Chris Harper';
 const UA = 'Mozilla/5.0 (compatible; cloudcodetree-blog/1.0; +https://cloudcodetree.com)';
 
@@ -146,7 +149,19 @@ async function downloadTo(url, dst, attempts = 3) {
       }
       const ct = (res.headers.get('content-type') || '').toLowerCase();
       if (ct && !ct.startsWith('image/')) return false;
-      const buf = Buffer.from(await res.arrayBuffer());
+      if (Number(res.headers.get('content-length')) > 10_000_000) { await res.body?.cancel(); return false; }
+      const reader = res.body?.getReader();
+      if (!reader) return false;
+      const chunks = [];
+      let length = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        length += value.length;
+        if (length > 10_000_000) { await reader.cancel(); return false; }
+        chunks.push(value);
+      }
+      const buf = Buffer.concat(chunks);
       if (!buf.length || !looksLikeImage(buf)) return false;
       await writeFile(dst, buf);
       return true;
@@ -162,7 +177,7 @@ async function compress(src, dst) {
   // sips (macOS built-in) so a bare local checkout without node_modules works.
   try {
     sharpMod ??= (await import('sharp')).default;
-    await sharpMod(src)
+    await sharpMod(src, { limitInputPixels: 40_000_000 })
       .rotate() // honor EXIF orientation
       .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
       .jpeg({ quality: 78 })
@@ -185,7 +200,15 @@ async function hostImage(srcUrl, id) {
   if (!(await downloadTo(srcUrl, raw))) return false;
   if (!(await compress(raw, jpg))) { await rm(raw, { force: true }); return false; }
   await rm(raw, { force: true });
-  const ok = await uploadAsset(jpg, `${id}.jpg`);
+  let ok;
+  if (PREPARE_DIR) {
+    await mkdir(PREPARE_DIR, { recursive: true });
+    await copyFile(jpg, path.join(PREPARE_DIR, `${id}.jpg`));
+    preparedIds.add(id);
+    ok = true;
+  } else {
+    ok = await uploadAsset(jpg, `${id}.jpg`);
+  }
   await rm(jpg, { force: true });
   return ok;
 }
@@ -277,7 +300,7 @@ async function resolveImage(item, id, existing, post) {
 
 /** Warn up front if image hosting can't work, instead of failing silently per item. */
 function checkImagePrereqs() {
-  if (NO_IMAGES) return;
+  if (NO_IMAGES || PREPARE_DIR) return;
   if (!r2Ready()) {
     console.warn('! no CLOUDFLARE_API_TOKEN (env or .env) — new images will use the placeholder; the rehost-images CI job fixes them on the next push');
   }
@@ -286,6 +309,9 @@ function checkImagePrereqs() {
 // --- main -------------------------------------------------------------------
 
 async function main() {
+  if (PREPARE_DIR && (process.env.CLOUDFLARE_API_TOKEN || existsSync(path.join(ROOT, '.env')) || existsSync(path.join(ROOT, '.env.local')))) {
+    throw new Error('Prepare images in a clean checkout without Cloudflare credentials or .env files.');
+  }
   if (!existsSync(FEED)) { console.error(`✗ feed not found: ${path.relative(ROOT, FEED)}`); process.exit(1); }
   let doc;
   try {
@@ -359,7 +385,15 @@ async function main() {
     (dateKey(b.date) - dateKey(a.date)) ||
     (ts(b) < ts(a) ? -1 : ts(b) > ts(a) ? 1 : 0) ||
     (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  await writeFile(POSTS_JSON, JSON.stringify(merged, null, 2) + '\n');
+  if (PREPARE_DIR) {
+    await mkdir(PREPARE_DIR, { recursive: true });
+    const manifest = merged.filter((p) => preparedIds.has(p.id)).map((p) => ({
+      id: p.id, imageSource: p.imageSource, imageCredit: p.imageCredit, imageCreditUrl: p.imageCreditUrl,
+    }));
+    await writeFile(path.join(PREPARE_DIR, 'manifest.json'), JSON.stringify(manifest));
+  } else {
+    await writeFile(POSTS_JSON, JSON.stringify(merged, null, 2) + '\n');
+  }
   await rm(TMP, { recursive: true, force: true });
 
   console.log(`✓ ingested ${upserted} feed item(s) (${withImg} with hosted images) → ${merged.length} total posts`);

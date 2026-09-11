@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { FEED_WINDOW, FEED_WINDOW_LIMIT } from './lib/feed-window.mjs';
 import { isFeedEra } from './lib/feed-era.mjs';
 import { slugForTag, topicTags } from './lib/topics.mjs';
+import { isSearchTopic } from './lib/search-telemetry.mjs';
 import { parseMisses } from './lib/search-misses.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -19,7 +20,7 @@ const POSTS_JSON = path.join(BLOG_DIR, 'posts.json');
 const FEED = path.join(ROOT, 'content', 'feed.xml');
 const TOMBSTONES = path.join(ROOT, 'content', 'removed-posts.json');
 const SEARCH_MISSES = path.join(ROOT, 'content', 'search-misses.jsonl');
-const MISSES_LIMIT = 500;
+
 const REQUIRED =['id', 'title', 'excerpt', 'author', 'date', 'tags', 'readTime', 'content', 'image'];
 /** Must stay identical to reader_state's CHECK constraint (migration 0006). */
 const POST_ID_RE = /^[a-z0-9][a-z0-9-]{0,127}$/;
@@ -138,23 +139,17 @@ async function checkFeedWindow(warnings) {
   );
 }
 
-/**
- * Backstop for content/search-misses.jsonl, the same lesson as the feed window
- * (see CLAUDE.md on content/feed.xml): nothing breaks the moment it grows, but
- * the publishing routine reads the whole file when choosing topics, so an
- * unbounded file quietly stops fitting in context and the signal it exists to
- * carry gets weaker without any failure to notice. A warning, never an error —
- * telemetry must not block a deploy.
- */
-async function checkSearchMisses(warnings) {
+/** Public telemetry must contain only the fixed topic schema, never user text. */
+async function checkSearchMisses(errors) {
   if (!existsSync(SEARCH_MISSES)) return;
-  const rows = parseMisses(await readFile(SEARCH_MISSES, 'utf8'));
-  if (rows.length <= MISSES_LIMIT) return;
-  warnings.push(
-    `content/search-misses.jsonl holds ${rows.length} queries — past the ${MISSES_LIMIT}-row ` +
-      'guide. Prune the low-count and off-topic rows (they are only a topic hint), ' +
-      'keeping the ones the routine still acts on.',
-  );
+  const text = await readFile(SEARCH_MISSES, 'utf8');
+  for (const line of text.split('\n').filter((line) => line.trim())) {
+    try {
+      const row = JSON.parse(line);
+      if (!row || Object.keys(row).some((key) => !['topic', 'count', 'first_seen'].includes(key)) ||
+          !isSearchTopic(row.topic) || parseMisses(line).length !== 1) throw new Error();
+    } catch { errors.push('Search telemetry contains an invalid row; only aggregate topic/count/first_seen fields are allowed.'); }
+  }
 }
 
 async function main() {
@@ -216,7 +211,7 @@ async function main() {
   }
 
   await checkFeedWindow(warnings);
-  await checkSearchMisses(warnings);
+  await checkSearchMisses(errors);
   await checkTombstones(posts, errors);
   await checkRelated(posts, errors);
   checkTopicSlugs(posts || [], errors);

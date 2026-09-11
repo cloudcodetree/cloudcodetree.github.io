@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -46,17 +46,12 @@ interface ClientLayoutProps {
 
 export default function ClientLayout({ children }: ClientLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isAnimationReady, setIsAnimationReady] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const pathname = usePathname();
   // Highlight a nav item for its route and any sub-route (e.g. /blog/<id> → AI News).
-  const isActive = (path: string) => (path === '/' ? pathname === '/' : pathname.startsWith(path));
+  const isActive = (path: string) => (path === '/' ? pathname === '/' || pathname.startsWith('/ai-news/') : pathname.startsWith(path));
 
-  useEffect(() => {
-    // Remove artificial delay - show content immediately
-    setIsAnimationReady(true);
-  }, []);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -80,7 +75,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
             CloudCodeTree
           </Typography>
         </Box>
-        <IconButton onClick={handleDrawerToggle} sx={{ display: { md: 'none' } }}>
+        <IconButton aria-label="Close navigation" onClick={handleDrawerToggle} sx={{ display: { md: 'none' } }}>
           <CloseIcon />
         </IconButton>
       </Box>
@@ -90,7 +85,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
           return (
             <ListItem key={item.name} disablePadding>
               <ListItemButton
-                component={Link}
+                component={Link} prefetch={false}
                 href={item.path}
                 onClick={handleDrawerToggle}
                 selected={isActive(item.path)}
@@ -116,7 +111,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
       <AppBar
         position="fixed"
         sx={{
-          zIndex: theme.zIndex.drawer + 1,
+          zIndex: theme.zIndex.appBar,
           background: 'rgba(29,31,32, 0.9)',
           backdropFilter: 'blur(10px)',
           borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
@@ -147,7 +142,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
               />
               <Typography
                 variant="h6"
-                component={Link}
+                component={Link} prefetch={false}
                 href="/"
                 sx={{
                   textDecoration: 'none',
@@ -163,7 +158,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
               {navItems.map((item) => (
                 <Button
                   key={item.name}
-                  component={Link}
+                  component={Link} prefetch={false}
                   href={item.path}
                   color="inherit"
                   startIcon={<item.icon />}
@@ -221,7 +216,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{

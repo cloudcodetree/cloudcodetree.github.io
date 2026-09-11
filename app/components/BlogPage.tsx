@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  Container, Typography, Box, Button, Skeleton, Pagination,
+  Container, Typography, Box, Button, Alert, Pagination,
   ToggleButtonGroup, ToggleButton, Grid, Chip,
   Select, MenuItem,
 } from '@mui/material';
@@ -12,12 +12,12 @@ import {
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
-import { BlogPost, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx, markdownComponents } from './blogShared';
+import FeedBody from './FeedBody';
+import { usePostArchive, type PostArchive } from '../lib/usePostArchive';
+import { BlogPost, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx } from './blogShared';
 import { Corners } from './Blueprint';
 import SearchBox from './SearchBox';
+import ReaderStateNotice from './ReaderStateNotice';
 import TopicsFlyout from './TopicsFlyout';
 import {
   applyReaderState, loadReaderState, selectVisiblePosts, setSaved, watchReaderAuth,
@@ -27,8 +27,9 @@ import {
 import { topicTags } from '../../scripts/lib/topics.mjs';
 
 interface BlogPageProps {
-  /** Slim (content-free) index of every post, newest-first, embedded at build time. */
+  /** First-page metadata (or an already-filtered result set), newest-first. */
   posts: BlogPost[];
+  archive?: PostArchive;
   heading?: string;
   /**
    * A function is called with the number of posts actually on screen after
@@ -123,17 +124,14 @@ function SaveChip({ post, onToggle, busy }: { post: ReaderPost; onToggle: (post:
 }
 
 export default function BlogPage({
-  posts, heading = 'AI News', intro = 'Daily field notes on AI-assisted engineering.',
+  posts: initialPosts, archive, heading = 'AI News', intro = 'Daily field notes on AI-assisted engineering.',
   feedPath = '/feed.xml', emptyMessage, showSearch = true, onlySaved = false,
 }: BlogPageProps) {
+  const { posts, loading: archiveLoading, error: archiveError, retry: retryArchive } = usePostArchive(initialPosts, archive);
   const [view, setView] = useState<View>('cards');              // SSR default
   const [sizeOverride, setSizeOverride] = useState<Partial<Record<View, number>>>({});
   const [page, setPage] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  // Feed bodies are loaded lazily (only when the feed view is opened).
-  const [feedContent, setFeedContent] = useState<Map<string, string> | null>(null);
-  const [feedLoading, setFeedLoading] = useState(false);
-  const feedRef = useRef<Map<string, string> | null>(null);
   const [feedCopied, setFeedCopied] = useState(false);
   // Empty until mount: this component prerenders, and window.location.origin
   // does not exist then. Only click handlers read the absolute URL.
@@ -143,6 +141,8 @@ export default function BlogPage({
   // Both start in their signed-out shape and only ever leave it inside the
   // effect below. The prerendered HTML is therefore always the signed-out list,
   // and read/saved decoration lands after hydration — never in the static file.
+  const [readerError, setReaderError] = useState(false);
+  const [readerRetry, setReaderRetry] = useState(0);
   const [signedIn, setSignedIn] = useState(false);
   const [readerState, setReaderState] = useState<ReaderStateMap>(EMPTY_STATE);
   const [hideRead, setHideRead] = useState(false);
@@ -160,7 +160,7 @@ export default function BlogPage({
   // most-used first, with its slug and count. topicTags() is the ONE definition
   // shared with the feed/sitemap generators, so a pill's link and the page it
   // opens can never disagree about a slug.
-  const topics: { tag: string; slug: string; count: number }[] = useMemo(() => topicTags(posts), [posts]);
+  const topics: { tag: string; slug: string; count: number }[] = useMemo(() => archive?.topics ?? topicTags(posts), [posts, archive]);
 
   // Annotate first, then narrow. Every filter below operates on the same
   // annotated list, so Hide-read composes with topics, search and /saved
@@ -182,7 +182,7 @@ export default function BlogPage({
   );
 
   const pageSize = sizeOverride[view] ?? PAGE_DEFAULT[view];
-  const pageCount = Math.max(1, Math.ceil(filteredPosts.length / pageSize));
+  const pageCount = Math.max(1, Math.ceil((archiveLoading ? archive!.total : filteredPosts.length) / pageSize));
   const safePage = Math.min(page, pageCount);
   const pagePosts = filteredPosts.slice((safePage - 1) * pageSize, safePage * pageSize);
 
@@ -215,6 +215,8 @@ export default function BlogPage({
   // chip would flip back to "Save" and forward again as the write lands.
   const readerRef = useRef<string | null>(null);
   useEffect(() => {
+    readerRef.current = null;
+    setReaderError(false);
     let live = true;
     const stop = watchReaderAuth((userId) => {
       if (!live) return;
@@ -223,6 +225,7 @@ export default function BlogPage({
         // arrives synchronously on mount) bails out of re-rendering entirely.
         readerRef.current = null;
         setSignedIn(false);
+        setReaderError(false);
         setReaderState(EMPTY_STATE);
         setHideRead(false);
         pendingRef.current = {};
@@ -231,12 +234,20 @@ export default function BlogPage({
       }
       if (userId === readerRef.current) return;   // same reader, new token
       readerRef.current = userId;
+      setReaderError(false);
+      setReaderState(EMPTY_STATE);
+      pendingRef.current = {};
+      setPendingSaves({});
       setSignedIn(true);
       setHideRead(window.localStorage.getItem('ainews-hide-read') === '1');
-      void loadReaderState().then((state) => { if (live) setReaderState(state); });
+      void loadReaderState().then((state) => {
+        if (live && readerRef.current === userId) setReaderState(state);
+      }).catch(() => {
+        if (live && readerRef.current === userId) setReaderError(true);
+      });
     });
     return () => { live = false; stop(); };
-  }, []);
+  }, [readerRetry]);
 
   // Keep the URL (?page, ?topics) in sync, clamped, on the CURRENT path (/ or /ai-news/,
   // also /ai-news/search/ where a foreign `?q=` must survive this rewrite).
@@ -262,21 +273,6 @@ export default function BlogPage({
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [safePage, view, pageSize, selectedTags]);
-
-  // Lazy-load full bodies the first time the feed view is opened.
-  useEffect(() => {
-    if (view !== 'feed' || feedRef.current) return;
-    setFeedLoading(true);
-    fetch('/blog/posts.json')
-      .then((r) => r.json())
-      .then((all: BlogPost[]) => {
-        const m = new Map(all.map((p) => [p.id, p.content || '']));
-        feedRef.current = m;
-        setFeedContent(m);
-      })
-      .catch(() => { /* leave bodies empty on failure */ })
-      .finally(() => setFeedLoading(false));
-  }, [view]);
 
   const chooseView = (v: View | null) => {
     if (!v) return;
@@ -322,13 +318,15 @@ export default function BlogPage({
   // double-click cannot land `true` after `false` or revert to a value the
   // server never confirmed.
   const toggleSaved = (post: ReaderPost) => {
-    if (pendingRef.current[post.id]) return;
+    if (pendingRef.current[post.id] || readerError) return;
+    const userId = readerRef.current;
     pendingRef.current[post.id] = true;
     const before = readerState.get(post.id);
     const saved = !post.isSaved;
     setPendingSaves((cur) => ({ ...cur, [post.id]: true }));
     putRow(post.id, { post_id: post.id, saved, read_at: before ? before.read_at : null });
     void setSaved(post.id, saved).then((ok) => {
+      if (readerRef.current !== userId) return;
       delete pendingRef.current[post.id];
       if (!ok) putRow(post.id, before);
       setPendingSaves((cur) => ({ ...cur, [post.id]: false }));
@@ -339,7 +337,7 @@ export default function BlogPage({
   const readerExtras = (post: ReaderPost): React.ReactNode => (signedIn ? (
     <>
       {post.isRead && <ReadChip />}
-      <SaveChip post={post} onToggle={toggleSaved} busy={!!pendingSaves[post.id]} />
+      <SaveChip post={post} onToggle={toggleSaved} busy={!!pendingSaves[post.id] || readerError} />
     </>
   ) : undefined);
 
@@ -401,12 +399,12 @@ export default function BlogPage({
         <Box
           key={post.id}
           component={motion.div}
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          initial={false} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: Math.min(i * 0.025, 0.25) }}
           sx={{ display: 'flex', gap: 2.5, py: 3, borderTop: border, alignItems: 'flex-start' }}
         >
           {post.image && (
-            <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ flexShrink: 0, display: { xs: 'none', sm: 'block' }, ...dim(post) }}>
+            <Box component={Link} prefetch={false} href={`/ai-news/${post.id}/`} sx={{ flexShrink: 0, display: { xs: 'none', sm: 'block' }, ...dim(post) }}>
               <Box component="img" src={post.image} alt={post.title} loading="lazy"
                 sx={{ width: 132, aspectRatio: '16 / 9', objectFit: 'cover', display: 'block', borderRadius: 1.5, border }} />
             </Box>
@@ -415,7 +413,7 @@ export default function BlogPage({
             <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', letterSpacing: '0.04em', ...dim(post) }}>
               {metaLine(post)}
             </Typography>
-            <Typography component={Link} href={`/ai-news/${post.id}/`}
+            <Typography component={Link} prefetch={false} href={`/ai-news/${post.id}/`}
               sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.5rem' }, lineHeight: 1.15, color: 'text.primary', textDecoration: 'none', ...clamp(2), transition: 'color .2s ease', '&:hover': { color: LINK }, ...dim(post) }}>
               {post.title}
             </Typography>
@@ -436,7 +434,7 @@ export default function BlogPage({
         <Grid size={{ xs: 12, sm: 6 }} key={post.id}>
           <Box
             component={motion.div}
-            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+            initial={false} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.4) }}
             sx={{
               height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 0, border,
@@ -446,7 +444,7 @@ export default function BlogPage({
           >
             <Corners />
             {post.image && (
-              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', ...dim(post) }}>
+              <Box component={Link} prefetch={false} href={`/ai-news/${post.id}/`} sx={{ display: 'block', ...dim(post) }}>
                 <Box component="img" src={post.image} alt={post.title} loading="lazy"
                   sx={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>
@@ -455,7 +453,7 @@ export default function BlogPage({
               <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', letterSpacing: '0.04em', ...dim(post) }}>
                 {metaLine(post)}
               </Typography>
-              <Typography component={Link} href={`/ai-news/${post.id}/`}
+              <Typography component={Link} prefetch={false} href={`/ai-news/${post.id}/`}
                 sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: '1.3rem', lineHeight: 1.2, color: 'text.primary', textDecoration: 'none', ...clamp(3), transition: 'color .2s ease', '&:hover': { color: LINK }, ...dim(post) }}>
                 {post.title}
               </Typography>
@@ -473,17 +471,16 @@ export default function BlogPage({
   const feedView = (
     <Box>
       {pagePosts.map((post, i) => {
-        const body = feedContent?.get(post.id);
         return (
           <Box
             key={post.id}
-            component={motion.div}
-            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+            component={motion.article}
+            initial={false} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.4) }}
             sx={{ py: { xs: 4, md: 6 }, borderTop: border }}
           >
             {post.image && (
-              <Box component={Link} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5, border, ...dim(post) }}>
+              <Box component={Link} prefetch={false} href={`/ai-news/${post.id}/`} sx={{ display: 'block', mb: 2.5, border, ...dim(post) }}>
                 <Box component="img" src={post.image} alt={post.title} loading="lazy"
                   sx={{ width: '100%', maxHeight: 320, aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
               </Box>
@@ -491,20 +488,14 @@ export default function BlogPage({
             <Typography sx={{ fontFamily: MONO, fontSize: 12, color: 'text.secondary', letterSpacing: '0.04em', mb: 1.5, ...dim(post) }}>
               {metaLine(post)}
             </Typography>
-            <Typography component={Link} href={`/ai-news/${post.id}/`}
+            <Typography component={Link} prefetch={false} href={`/ai-news/${post.id}/`}
               sx={{ display: 'block', fontFamily: SERIF, fontWeight: 600, fontSize: { xs: '1.7rem', md: '2.2rem' }, lineHeight: 1.12, letterSpacing: '-0.015em', mb: 1.5, color: 'text.primary', textDecoration: 'none', transition: 'color 0.22s ease', '&:hover': { color: LINK }, ...dim(post) }}>
               {post.title}
             </Typography>
             <Box sx={{ mb: 2.5 }}><Pills post={post} extra={readerExtras(post)} /></Box>
-            {body !== undefined ? (
-              <Box sx={{ ...markdownSx, ...dim(post) }}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>{body}</ReactMarkdown>
-              </Box>
-            ) : (
-              <Box>
-                <Skeleton variant="text" width="95%" /><Skeleton variant="text" width="92%" /><Skeleton variant="text" width="60%" />
-              </Box>
-            )}
+            <Box sx={{ ...markdownSx, ...dim(post) }}>
+              <FeedBody url={post.bodyPath} content={post.content} />
+            </Box>
           </Box>
         );
       })}
@@ -514,8 +505,9 @@ export default function BlogPage({
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 9 } }}>
+      {readerError && <ReaderStateNotice onRetry={() => setReaderRetry((n) => n + 1)} />}
       {/* Masthead */}
-      <Box component={motion.div} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} sx={{ mb: { xs: 4, md: 6 } }}>
+      <Box component={motion.div} initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} sx={{ mb: { xs: 4, md: 6 } }}>
         <Typography sx={{ fontFamily: MONO, color: ACCENT, fontSize: 12, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', mb: 1.5 }}>
           CloudCodeTree&nbsp;·&nbsp;Journal
         </Typography>
@@ -536,7 +528,7 @@ export default function BlogPage({
             component="a"
             href={feedPath}
             onClick={(e: React.MouseEvent) => { e.preventDefault(); copyFeedUrl(); }}
-            aria-label="Copy the RSS feed URL"
+            aria-label={feedCopied ? "Feed URL copied" : "Subscribe via RSS — copy feed URL"}
             sx={{
               display: 'inline-flex', alignItems: 'center', gap: 0.85, cursor: 'pointer',
               textDecoration: 'none', fontFamily: MONO, fontSize: 12, lineHeight: 1,
@@ -611,7 +603,8 @@ export default function BlogPage({
         </ToggleButtonGroup>
       </Box>
 
-      {filteredPosts.length === 0 ? (
+      {archiveError && <Alert severity="warning" action={<Button onClick={retryArchive}>Retry</Button>}>The archive could not be loaded. Recent posts are still available.</Alert>}
+      {archiveLoading && (safePage > 1 || selectedTags.length > 0) ? <Typography role="status">Loading posts…</Typography> : filteredPosts.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10 }}>
           <Typography sx={{ fontFamily: MONO, color: 'text.secondary', fontSize: 14 }}>
             {emptyMessage

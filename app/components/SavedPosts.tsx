@@ -11,13 +11,17 @@ import { useEffect, useRef, useState } from 'react';
 import { Box, Button, Container, Typography } from '@mui/material';
 import { Bookmark, Login } from '@mui/icons-material';
 import BlogPage from './BlogPage';
+import { usePostArchive, type PostArchive } from '../lib/usePostArchive';
+import ReaderStateNotice from './ReaderStateNotice';
 import { MONO, SERIF, ACCENT, type BlogPost } from './blogShared';
 import { loadReaderState, watchReaderAuth, type ReaderStateMap } from '../lib/readerState';
 
-type Phase = 'loading' | 'signedOut' | 'ready';
+type Phase = 'loading' | 'signedOut' | 'ready' | 'error';
 
-export default function SavedPosts({ posts }: { posts: BlogPost[] }) {
+export default function SavedPosts({ posts: initial, archive }: { posts: BlogPost[]; archive?: PostArchive }) {
+  const [retry, setRetry] = useState(0);
   const [phase, setPhase] = useState<Phase>('loading');
+  const { posts, loading: archiveLoading, error: archiveError, retry: retryArchive } = usePostArchive(initial, archive, phase === 'ready');
   const [state, setState] = useState<ReaderStateMap | null>(null);
 
   // Tracked, not probed once: signing out here has to fall back to the sign-in
@@ -29,6 +33,7 @@ export default function SavedPosts({ posts }: { posts: BlogPost[] }) {
   // for no reason they caused.
   const readerRef = useRef<string | null>(null);
   useEffect(() => {
+    readerRef.current = null;
     let live = true;
     const stop = watchReaderAuth((userId) => {
       if (!live) return;
@@ -37,13 +42,15 @@ export default function SavedPosts({ posts }: { posts: BlogPost[] }) {
       readerRef.current = userId;
       setPhase('loading');
       void loadReaderState().then((loaded) => {
-        if (!live) return;
+        if (!live || readerRef.current !== userId) return;
         setState(loaded);
         setPhase('ready');
-      });
+      }).catch(() => { if (live && readerRef.current === userId) setPhase('error'); });
     });
     return () => { live = false; stop(); };
-  }, []);
+  }, [retry]);
+
+  if (phase === 'error' || archiveError) return <Container maxWidth="md" sx={{ py: 8 }}><Typography component="h1" variant="h4">Saved posts</Typography><ReaderStateNotice onRetry={() => { setRetry((n) => n + 1); retryArchive(); }} /></Container>;
 
   if (phase === 'signedOut') {
     return (
@@ -90,13 +97,13 @@ export default function SavedPosts({ posts }: { posts: BlogPost[] }) {
       // A function, so the count follows what is actually on screen: unsaving a
       // card removes it inside BlogPage, and a count computed from `saved` here
       // would still claim the post that just left.
-      intro={phase === 'loading'
+      intro={phase === 'loading' || (phase === 'ready' && archiveLoading)
         ? 'Loading the posts you saved for later.'
         : (visible: number) => `${visible} post${visible === 1 ? '' : 's'} saved for later.`}
       // "nothing saved yet" only when nothing IS saved. With saved posts on the
       // page an empty list means a topic filter or search inside /saved matched
       // none of them, which is BlogPage's own message to give.
-      emptyMessage={phase === 'loading'
+      emptyMessage={phase === 'loading' || (phase === 'ready' && archiveLoading)
         ? '// loading your saved posts…'
         : saved.length === 0
           ? '// nothing saved yet — use Save on any post to keep it here'

@@ -1,35 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { CacheProvider } from '@emotion/react';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import createEmotionCache from '../lib/emotionCache';
+import { MotionConfig } from 'framer-motion';
 import { darkTheme } from '../lib/theme';
 
-const clientSideEmotionCache = createEmotionCache();
-
-interface ClientOnlyThemeProviderProps {
-  children: React.ReactNode;
-}
-
-export default function ClientOnlyThemeProvider({ children }: ClientOnlyThemeProviderProps) {
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  if (!hasMounted) {
-    return <>{children}</>;
-  }
-
+/** The same provider tree renders on the server and during hydration. */
+export default function ClientOnlyThemeProvider({ children }: { children: React.ReactNode }) {
   return (
-    <CacheProvider value={clientSideEmotionCache}>
+    <AppRouterCacheProvider options={{ key: 'mui-style' }}>
       <MuiThemeProvider theme={darkTheme}>
         <CssBaseline enableColorScheme />
-        {children}
+        <MotionConfig reducedMotion="user">{children}</MotionConfig>
       </MuiThemeProvider>
-    </CacheProvider>
+    </AppRouterCacheProvider>
   );
 }

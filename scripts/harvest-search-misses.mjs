@@ -1,43 +1,13 @@
 #!/usr/bin/env node
-/**
- * harvest-search-misses.mjs — pull zero-result searches out of Workers
- * observability and append them to content/search-misses.jsonl.
- *
- *   node scripts/harvest-search-misses.mjs             merge new events into the file
- *   node scripts/harvest-search-misses.mjs --days 7    widen the fallback window (API caps at 7)
- *   node scripts/harvest-search-misses.mjs --dry-run   print what it would add, write nothing
- *
- * worker/search.ts logs `{"event":"search_miss","q":"…","top":0.657}` when a
- * DELIBERATE search collapses to nothing above the relevance floor. Cloudflare
- * keeps those logs for about a week; this script is what makes them durable, so
- * the publishing routine can see what readers looked for and could not find
- * (docs/superpowers/specs/2026-09-08-search-analytics-design.md).
- *
- * **The cursor matters.** CI runs on every push to main and the publishing
- * routine pushes ~3x/day, so a fixed `--days` window would re-harvest the same
- * events several times and inflate `count` — the field the dashboard and the
- * routine rank by. content/search-misses.state.json remembers the newest event
- * already harvested and the next run resumes just after it; the `--days` window
- * is only the floor for a first run or lost state.
- *
- * Response shape, verified against the live account on 2026-09-08: a
- * console.log of a JSON string is PARSED by the platform, so the event's
- * `source` is the object itself ({event, q, top}) and `$metadata.message` is
- * absent — that field only carries the request line ("GET https://…/api/search?q=…")
- * of `type: cf-worker-event` rows. Hence the filter below is on the parsed
- * `event` field, not on `$metadata.message`; a message filter matches zero
- * console logs. The parser still accepts a raw `source.message` string in case
- * the platform ever stops parsing.
- *
- * Telemetry must never block a deploy: every failure path (no token, HTTP
- * error, unexpected shape) prints a `!` warning and exits 0. The one thing it
- * will NOT do is write a truncated file — an unreadable existing file aborts
- * the run rather than replacing history with the current window.
+/** Harvest only fixed topic counters from Workers logs. Raw queries are never
+ * read, printed, or committed. Legacy events are rejected at the input boundary.
+ * Usage: node scripts/harvest-search-misses.mjs [--days 7] [--dry-run]
  */
 import { readFile, writeFile, rename, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { API, cfCredentials } from './lib/r2.mjs';
+import { isSearchTopic } from './lib/search-telemetry.mjs';
 import { mergeMisses, parseMisses, serializeMisses } from './lib/search-misses.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -94,7 +64,7 @@ export function newestEventMs(sightings) {
 }
 
 /**
- * One observability event → { q, date, ts, top }, or null when it isn't a
+ * One observability event → { topic, date, ts }, or null when it isn't a
  * usable miss. `source` is the parsed log object; the `message` branch is the
  * fallback for a log the platform left as a string.
  */
@@ -109,15 +79,10 @@ export function sightingFrom(event) {
       return null;
     }
   }
-  if (!payload || payload.event !== 'search_miss' || typeof payload.q !== 'string' || !payload.q) return null;
+  if (!payload || payload.event !== 'search_miss' || Object.hasOwn(payload, 'q') || !isSearchTopic(payload.topic)) return null;
   const ts = Number(event.timestamp);
-  const top = Number(payload.top);
-  return {
-    q: payload.q,
-    date: Number.isFinite(ts) ? dayOf(ts) : undefined,
-    ts: Number.isFinite(ts) ? ts : undefined,
-    top: Number.isFinite(top) ? top : undefined,
-  };
+  if (!Number.isFinite(ts) || ts <= 0) return null;
+  return { topic: payload.topic, date: dayOf(ts), ts };
 }
 
 /** Read a file, or '' when it genuinely does not exist. Any other error throws. */
@@ -190,7 +155,8 @@ async function fetchMisses({ from, to }) {
     return null;
   }
   if (events.length === LIMIT) {
-    console.warn(`! observability returned the maximum ${LIMIT} events — results may be truncated; run again to catch the rest`);
+    console.warn(`! observability returned the maximum ${LIMIT} events — refusing a truncated harvest to avoid skipping events`);
+    return null;
   }
   return events.map(sightingFrom).filter(Boolean);
 }
@@ -221,14 +187,14 @@ async function main() {
     return;
   }
   const existing = parseMisses(before);
-  const known = new Map(existing.map((r) => [r.q, r.count]));
+  const known = new Map(existing.map((r) => [r.topic, r.count]));
   const merged = mergeMisses(existing, sightings, dayOf(Date.now()));
-  const added = merged.filter((r) => !known.has(r.q));
-  const bumped = merged.filter((r) => known.has(r.q) && r.count !== known.get(r.q));
+  const added = merged.filter((r) => !known.has(r.topic));
+  const bumped = merged.filter((r) => known.has(r.topic) && r.count !== known.get(r.topic));
   const after = serializeMisses(merged);
 
-  for (const r of added) console.log(`  + ${r.q} (${r.count})`);
-  for (const r of bumped) console.log(`  ~ ${r.q} (${known.get(r.q)} → ${r.count})`);
+  for (const r of added) console.log(`  + ${r.topic} (${r.count})`);
+  for (const r of bumped) console.log(`  ~ ${r.topic} (${known.get(r.topic)} → ${r.count})`);
 
   if (dryRun) {
     console.log(`✓ search misses — ${added.length} new, ${bumped.length} incremented, ${merged.length} total (dry run — nothing written)`);

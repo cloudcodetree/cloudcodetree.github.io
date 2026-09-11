@@ -18,13 +18,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Re-host any feed images that are still on the placeholder (the cloud
-  # routine has no Cloudflare token, so its posts land with placeholders; this
-  # job uploads the real images to R2 (img.cloudcodetree.com) and commits the
-  # URLs). Convergent: a push with nothing to fix commits nothing, and the
-  # GITHUB_TOKEN push below doesn't trigger a new workflow run — the build job
-  # checks out latest main instead, so the fix ships in THIS run's deploy.
+  # Image decoding runs on a separate runner with no deployment credentials.
+  prepare-images:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+    - uses: pnpm/action-setup@v6
+    - uses: actions/setup-node@v7
+      with:
+        node-version-file: .node-version
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+    - name: Download and decode images without deployment credentials
+      env:
+        # Optional read-only photo search key; no Cloudflare or repository-write token.
+        PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+      run: node scripts/ingest-feed.mjs --prepare-images=.prepared-images
+    - uses: actions/upload-artifact@v4
+      with:
+        name: prepared-images
+        path: .prepared-images/
+        include-hidden-files: true
+        retention-days: 1
+
   rehost-images:
+    needs: prepare-images
+    outputs:
+      commit: ${{ steps.published.outputs.commit }}
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
@@ -33,32 +58,31 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v7
       with:
-        ref: main
+        ref: ${{ github.sha }}
 
     - name: Setup pnpm
       uses: pnpm/action-setup@v6
       with:
-        version: 10
+        version: 11.0.9
 
     - name: Setup Node.js
       uses: actions/setup-node@v7
       with:
-        node-version: '22'
+        node-version-file: .node-version
         cache: 'pnpm'
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
 
-    - name: Re-host feed images to R2 (img.cloudcodetree.com)
+    - uses: actions/download-artifact@v4
+      with:
+        name: prepared-images
+        path: .prepared-images
+    - name: Upload prepared JPEGs (no image decoder runs in this job)
       env:
-        # R2 uploads go through the Cloudflare API with the same token the
-        # Worker deploy uses (it carries Workers R2 Storage: Edit).
         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        # Optional: add a free Pexels API key as a repo secret to give posts with
-        # no source image a relevant stock photo instead of the placeholder.
-        PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-      run: node scripts/ingest-feed.mjs
+      run: node scripts/upload-prepared-images.mjs .prepared-images
 
     # Zero-result searches, out of Workers observability (which keeps them for
     # about a week) and into the committed content/search-misses.jsonl, so the
@@ -92,8 +116,12 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add $paths
           git commit -m "blog: re-host images + harvest search misses (CI)"
-          git push origin main
+          git push origin HEAD:main
         fi
+
+    - name: Record the exact commit to build
+      id: published
+      run: echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
     # Cutover leftovers on a timer (runbook step 8). The gh-pages branch and
     # the blog-images Release are cold fallbacks that must not be deleted
@@ -116,7 +144,7 @@ jobs:
   build:
     needs: rehost-images
     # Run for PRs (rehost-images is skipped there) and after it on main pushes.
-    if: ${{ !cancelled() && needs.rehost-images.result != 'failure' }}
+    if: ${{ !cancelled() && (github.event_name == 'pull_request' || needs.rehost-images.result == 'success') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -124,23 +152,25 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v7
       with:
-        # On main pushes, build latest main so a rehost-images commit (which
-        # can't trigger its own run) is included; empty ref = default for PRs.
-        ref: ${{ github.event_name == 'push' && 'main' || '' }}
+        # Build precisely the checked/updated commit from this run.
+        ref: ${{ needs.rehost-images.outputs.commit || github.sha }}
 
     - name: Setup pnpm
       uses: pnpm/action-setup@v6
       with:
-        version: 10
+        version: 11.0.9
 
     - name: Setup Node.js
       uses: actions/setup-node@v7
       with:
-        node-version: '22'
+        node-version-file: .node-version
         cache: 'pnpm'
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
+
+    - name: Dependency security audit + lint
+      run: pnpm audit --audit-level=high && pnpm run lint
 
     # The suite guards the Worker handlers, the chunker, the feed merger and
     # the rank fusion — none of which validate-blog can see. It ran only on a
@@ -180,12 +210,18 @@ jobs:
     - name: Build
       run: pnpm run build
 
+    - name: Install browser for smoke checks
+      run: pnpm exec playwright install --with-deps chromium
+
+    - name: Browser smoke checks against the production export
+      run: pnpm run test:browser
+
     # The production deploy, in the same job as the build (no artifact hop, no
     # second install): cct-site on Cloudflare Workers, serving cloudcodetree.com
     # via the route in wrangler.jsonc. Gated on the repo variable
     # ENABLE_WORKER_DEPLOY=true plus the CLOUDFLARE_API_TOKEN /
     # CLOUDFLARE_ACCOUNT_ID secrets (scripts/set-ci-secrets.mjs sets all three).
-    # PR builds stop after `Build`.
+    # PR builds stop after the browser checks.
     - name: Vendor gated demo builds
       if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_WORKER_DEPLOY == 'true'
       run: node scripts/fetch-demo-artifacts.mjs
@@ -214,3 +250,8 @@ jobs:
         done
         echo "::warning title=search warm-up::endpoint did not return 200; first live search may be keyword-only"
 
+    - name: Verify deployed production behavior
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_WORKER_DEPLOY == 'true'
+      run: |
+        node scripts/check-parity.mjs --origin https://cloudcodetree.com
+        PLAYWRIGHT_BASE_URL=https://cloudcodetree.com pnpm run test:browser

@@ -11,6 +11,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { BlogPost as Post, SERIF, MONO, ACCENT, formatPublished, markdownSx, markdownComponents } from './blogShared';
 import SearchBox from './SearchBox';
+import ReaderStateNotice from './ReaderStateNotice';
 import RelatedPosts from './RelatedPosts';
 import { loadReaderState, markRead, setSaved, watchReaderAuth } from '../lib/readerState';
 
@@ -19,6 +20,8 @@ import { loadReaderState, markRead, setSaved, watchReaderAuth } from '../lib/rea
 export default function BlogPost({ post, related = [] }: { post: Post; related?: Post[] }) {
   // Signed-out readers never leave these defaults, so the prerendered article
   // and the signed-out browser render are the same page.
+  const [readerError, setReaderError] = useState(false);
+  const [retry, setRetry] = useState(0);
   const [signedIn, setSignedIn] = useState(false);
   const [saved, setSavedState] = useState(false);
   const [savePending, setSavePending] = useState(false);
@@ -36,7 +39,8 @@ export default function BlogPost({ post, related = [] }: { post: Post; related?:
   // simply reading the article.
   const readerRef = useRef<string | null>(null);
   useEffect(() => {
-    readerRef.current = null;   // a new article re-reads state for this reader
+    readerRef.current = null;
+    setReaderError(false);
     let live = true;
     const stop = watchReaderAuth((userId) => {
       if (!live) return;
@@ -44,6 +48,7 @@ export default function BlogPost({ post, related = [] }: { post: Post; related?:
       readerRef.current = userId;
       // Reset first: this effect re-runs when the route changes to another
       // article, and a stale `true` would show "Saved" on a post that is not.
+      setReaderError(false);
       setSignedIn(!!userId);
       setSavedState(false);
       setSavePending(false);
@@ -52,22 +57,24 @@ export default function BlogPost({ post, related = [] }: { post: Post; related?:
       markRead(post.id);
       void loadReaderState().then((state) => {
         const row = state.get(post.id);
-        if (live && row) setSavedState(row.saved);
-      });
+        if (live && readerRef.current === userId && row) setSavedState(row.saved);
+      }).catch(() => { if (live && readerRef.current === userId) setReaderError(true); });
     });
     return () => { live = false; stop(); };
-  }, [post.id]);
+  }, [post.id, retry]);
 
   // The ref is the guard, the state only disables the button: two clicks in one
   // tick both read the render's captured `savePending`, so state alone would let
   // the second through and `true` could land after `false`.
   const toggleSaved = () => {
-    if (savePendingRef.current) return;
+    if (savePendingRef.current || readerError) return;
+    const userId = readerRef.current;
     savePendingRef.current = true;
     const next = !saved;
     setSavedState(next);                                        // optimistic
     setSavePending(true);
     void setSaved(post.id, next).then((ok) => {
+      if (readerRef.current !== userId) return;
       savePendingRef.current = false;
       if (!ok) setSavedState(!next);
       setSavePending(false);
@@ -82,7 +89,8 @@ export default function BlogPost({ post, related = [] }: { post: Post; related?:
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 2, md: 4 } }}>
-      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+      {readerError && <ReaderStateNotice onRetry={() => setRetry((n) => n + 1)} />}
+      <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 4 }}>
           {backButton}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
@@ -92,7 +100,7 @@ export default function BlogPost({ post, related = [] }: { post: Post; related?:
                 variant="outlined"
                 startIcon={saved ? <Bookmark /> : <BookmarkBorder />}
                 onClick={toggleSaved}
-                disabled={savePending}
+                disabled={savePending || readerError}
                 aria-pressed={saved}
                 sx={{
                   fontFamily: MONO, fontSize: 12, textTransform: 'none',

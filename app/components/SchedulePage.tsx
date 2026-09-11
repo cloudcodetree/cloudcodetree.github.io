@@ -139,7 +139,7 @@ export default function SchedulePage() {
               return (
                 <Box key={meeting.title}>
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={false}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.05 }}
                   >
@@ -391,7 +391,7 @@ export default function SchedulePage() {
             ].map((step, index) => (
               <Grid size={{ xs: 12, md: 4 }} key={step.title}>
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={false}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.05 }}
                   viewport={{ once: true }}

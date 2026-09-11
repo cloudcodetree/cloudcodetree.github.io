@@ -158,7 +158,7 @@ export default function HomePage() {
       {/* Skills Section */}
       <Box sx={{ py: 8 }}>
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
@@ -170,7 +170,7 @@ export default function HomePage() {
             {skills.map((skill, index) => (
               <motion.div
                 key={skill}
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={false}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
                 viewport={{ once: true }}
@@ -198,7 +198,7 @@ export default function HomePage() {
       {/* Services Section */}
       <Box sx={{ py: 8 }}>
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
@@ -212,7 +212,7 @@ export default function HomePage() {
               return (
                 <Grid size={{ xs: 12, md: 6 }} key={service.title}>
                   <motion.div
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={false}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
                     viewport={{ once: true }}
@@ -257,7 +257,7 @@ export default function HomePage() {
       {/* Contact CTA */}
       <Box sx={{ py: 8, textAlign: 'center' }}>
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}

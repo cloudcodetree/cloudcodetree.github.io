@@ -21,7 +21,7 @@ const html = readFileSync('out/index.html', 'utf8');
 const hasNoindex = headers.includes('X-Robots-Tag: noindex');
 const prodAssets = html.includes('https://cloudcodetree.com/_next');
 
-const is = hasNoindex && !prodAssets ? 'staging' : !hasNoindex && prodAssets ? 'production' : 'mixed';
+const is = hasNoindex && !prodAssets ? 'staging' : !hasNoindex ? 'production' : 'mixed';
 if (is !== want) {
   console.error(`✗ out/ is a ${is} build; refusing to deploy as ${want}.`);
   console.error(want === 'staging' ? '  run: pnpm run build:staging' : '  run: pnpm run build && node scripts/fetch-demo-artifacts.mjs');

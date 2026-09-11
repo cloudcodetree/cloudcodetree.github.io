@@ -1,3 +1,4 @@
+import { topicForQuery } from '../scripts/lib/search-telemetry.mjs';
 /// <reference types="@cloudflare/workers-types" />
 
 /**
@@ -14,10 +15,8 @@
  *
  * A successful search logs its count and latency and never its text. The one
  * exception is a DELIBERATE search (`intent=submit`) where nothing cleared the
- * floor: that logs the normalized query as `search_miss` so
- * scripts/harvest-search-misses.mjs can make it durable in a file committed to
- * a public repo. See logMiss() for the rules and
- * docs/superpowers/specs/2026-09-08-search-analytics-design.md for why.
+ * floor: that logs a fixed topic label as `search_miss` so
+ * scripts/harvest-search-misses.mjs can aggregate counts without receiving query text.
  */
 export interface SearchEnv {
   AI?: Ai;
@@ -65,21 +64,9 @@ export function collapseMatches(
   return Array.from(best.entries(), ([id, score]) => ({ id, score })).sort((a, b) => b.score - a.score);
 }
 
-/**
- * Write down one zero-result search — the only search text this codebase ever
- * records, and only for a DELIBERATE search (`intent=submit`), because
- * scripts/harvest-search-misses.mjs lands it in a file committed to a PUBLIC
- * repo. Typeahead fragments are therefore never recorded, and three cheap
- * guards drop anything that could carry something personal. `top` is the best
- * collapsed score before the floor, so the floor stays re-derivable from real
- * traffic; it is omitted when the answer came from cache and the scores are
- * no longer available.
- */
-function logMiss(q: string, top: number | null): void {
-  if (q.length < 3) return;
-  if (/\S+@\S+/.test(q)) return; // email-ish
-  if (/\d{7,}/.test(q)) return; // phone / card / account number
-  console.log(JSON.stringify(top === null ? { event: 'search_miss', q } : { event: 'search_miss', q, top }));
+/** Log a fixed topic label only. Unknown/private text becomes "other". */
+function logMiss(q: string, _top: number | null): void {
+  console.log(JSON.stringify({ event: 'search_miss', topic: topicForQuery(q) }));
 }
 
 function defaultCache(): CacheLike | undefined {
@@ -146,8 +133,8 @@ export async function handleSearch(
     const res = Response.json({ results }, { headers: { 'cache-control': `public, max-age=${TTL_SECONDS}` } });
     if (cache) ctx.waitUntil(cache.put(cacheKey, res.clone()));
     return res;
-  } catch (err) {
-    console.log(JSON.stringify({ event: 'search_error', message: (err as Error).message.slice(0, 200) }));
+  } catch {
+    console.log(JSON.stringify({ event: 'search_error' }));
     return unavailable();
   }
 }

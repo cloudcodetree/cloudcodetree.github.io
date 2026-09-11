@@ -9,6 +9,7 @@ export interface BlogPost {
   excerpt: string;
   /** Post body, Markdown, inlined in posts.json. */
   content?: string;
+  bodyPath?: string;
   author: string;
   date: string;
   /** Full publication timestamp (ISO 8601, from the feed's pubDate). */

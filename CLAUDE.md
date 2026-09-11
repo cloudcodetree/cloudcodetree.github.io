@@ -98,7 +98,7 @@ scripts/                      # Blog automation (Node; deps: fast-xml-parser, sh
 
 content/                      # Source feed the Desktop task writes (ingested at publish time)
 ├── feed.xml                 # RSS 2.0 + Media RSS — source of truth for 2026-06-09 onward
-├── search-misses.jsonl      # Committed: searches that found nothing (see "Search analytics")
+├── search-misses.jsonl      # Committed: aggregate topic miss counters (see "Search analytics")
 └── search-misses.state.json # Harvest cursor, so counts are not re-counted per push
 
 .claude/                      # Claude Code project tooling (see "Claude Code Tooling")
@@ -183,13 +183,16 @@ acceptance test: a 28-case contract (redirects, feeds, headers, the gate) plus a
 of every sitemap URL. HTTP checks cannot see a blank page — pair them with a browser.
 
 ### CI (`.github/workflows/deploy.yml`, on push to `main`)
-Two jobs. `rehost-images` uploads the routine's placeholder images to R2
-(`img.cloudcodetree.com`, using the same Cloudflare token) and commits the URLs.
-`build` validates the blog and the
-research log, runs `pnpm run build`, and — on `main` pushes only, gated on the repo
-variable `ENABLE_WORKER_DEPLOY=true` plus the secrets `CLOUDFLARE_API_TOKEN` /
-`CLOUDFLARE_ACCOUNT_ID` — vendors the demo builds and runs `wrangler deploy` in the
-same job (no artifact hop). PR builds stop after the build.
+Three jobs: `prepare-images` decodes downloaded images on a separate runner
+without deployment credentials; `rehost-images` validates/uploads only prepared
+JPEGs and commits image URLs plus aggregate search counters; `build` checks out
+that exact commit, runs the dependency audit, lint, unit/type checks, content
+validation, production build, and browser regressions. Main pushes vendor demo
+artifacts and deploy, then verify parity and browser behavior on production.
+PRs run the build/browser checks without publishing. Node 22 and pnpm 11.0.9 are
+pinned in `.node-version` and `package.json`. The optional `PEXELS_API_KEY` is
+available only to image preparation for stock-photo fallback; Cloudflare write
+credentials are confined to the upload and deploy steps.
 `node scripts/set-ci-secrets.mjs` sets the variable and both secrets from a token
 kept in `.env` (it never prints the token); `node scripts/cf-zone.mjs status|purge|www-redirect`
 covers the zone-level chores with the same token. Both environments carry the `ai` (`AI`)
@@ -286,9 +289,11 @@ See the **Blog ("AI News")** section below — posts live inline in
 
 ## Development Workflow
 
+Use Node 22 and the package-pinned pnpm 11.0.9.
+
 1. **Local Development**: `pnpm run dev` serves at `http://localhost:3000/` with hot
    reload (it first runs `generate-feeds.mjs` so the feed and sitemap exist)
-2. **Code Quality**: `pnpm run lint` for ESLint validation
+2. **Code Quality**: `pnpm run check` and `pnpm audit`
 3. **Type Checking**: enforced during `pnpm run build` (TS + ESLint failures fail the build)
 4. **Build**: `pnpm run build` generates the static export in `./out`
 5. **Deploy**: push to `main` → GitHub Actions builds and deploys the Worker (manual:
@@ -401,20 +406,35 @@ file). `--dry-run` never touches Cloudflare; no token =
 keyword-only + related posts from the last mirror (empty if there is none), never a failed
 build.
 
-**Search analytics (2026-09).** `/api/search` logs `{event:'search_miss', q, top}`
-when a **deliberate** search (the results page, marked `?intent=submit` — never the
-typeahead) clears no match above the relevance floor `MIN_SCORE` in `worker/search.ts`.
-Queries under 3 chars, or matching an email or a 7+ digit run, are never written down.
-`node scripts/harvest-search-misses.mjs [--days N] [--dry-run]` pulls those events from
-the Workers observability API into `content/search-misses.jsonl` (committed), advancing
-the cursor in `content/search-misses.state.json` so a push-triggered CI cannot re-count
-the same event; it exits 0 on every failure and never blocks a deploy. The `rehost-images`
-job runs it daily-ish and commits the result. Consumers: the owner dashboard
-(`/admin/analytics/`, read at build time, ranked by count) and the publishing routine
-(`docs/ai-news-feed-contract.md` — a repeated miss is a topic candidate, not an
-instruction). **The repo is public, so anything harvested is published permanently** —
-that is why only deliberate, scrubbed queries are recorded. `validate-blog.mjs` warns
-past 500 rows, the same backstop `content/feed.xml` has.
+**Search analytics (2026-09).** Deliberate `/api/search` misses log only
+`{event:'search_miss', topic}`. `scripts/lib/search-telemetry.mjs` defines the fixed
+allowlist; only exact normalized topic matches get a named bucket, everything
+else becomes `other`. No raw query text, snippets, scores, or error messages are
+logged. Automatic Worker invocation logs are disabled so URLs cannot reintroduce
+query text. The harvester rejects legacy `q` events and publishes only
+`{topic, first_seen, count}` to `content/search-misses.jsonl`. Its committed cursor
+prevents recounting; failed or saturated windows do not advance it. Telemetry
+API failures remain non-blocking, but `validate-blog.mjs` rejects an unsafe public
+row. The owner dashboard and editorial routine consume aggregate topic counters.
+Old raw rows were removed from the current file; historical commits were not
+rewritten.
+
+**Listing payloads.** Server routes pass only the first 20 metadata rows and an
+archive manifest. `generate-feeds.mjs` emits hashed 100-row metadata chunks and
+individual hashed article bodies. `usePostArchive` shares cached metadata requests
+and evicts failures for retry. Full-feed view loads Markdown/highlighting lazily
+and fetches only the displayed bodies. Keep the full canonical `posts.json` for
+existing consumers. Do not put the entire archive back into route props. Listing and main navigation
+links disable eager prefetching so unrelated pages cannot load Markdown or auth
+code into the homepage.
+
+**Rendering and browser checks.** The MUI App Router cache provider renders a
+stable server/client tree and emits styles in the head. Primary content must not
+start at opacity zero. Both environments use relative assets; staging is marked
+by its noindex header. `pnpm run test:browser` serves the export through Wrangler;
+`PLAYWRIGHT_BASE_URL` targets an existing origin. All contact submissions are
+mocked, including production tests. Reader-state failures reject and evict the
+shared cache; callers display retry UI. Histories are read in 500-row pages.
 
 **Hard rules**
 - Post bodies are Markdown stored inline in `posts.json` `content` (no `.md` files, no YAML
