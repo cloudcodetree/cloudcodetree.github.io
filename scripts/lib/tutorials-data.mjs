@@ -30,12 +30,13 @@ export function readTutorials() {
   const { open, close } = arrayBounds(src);
   const body = src.slice(open + 1, close);
   const str = (chunk, k) => { const m = chunk.match(new RegExp(`${k}:\\s*'((?:[^'\\\\]|\\\\.)*)'`)); return m ? m[1].replace(/\\'/g, "'") : undefined; };
+  const tags = (chunk) => Array.from((chunk.match(/tags:\s*\[([^\]]*)\]/)?.[1] ?? '').matchAll(/'((?:[^'\\]|\\.)*)'/g), (m) => m[1].replace(/\\'/g, "'"));
   const num = (chunk, k) => { const m = chunk.match(new RegExp(`${k}:\\s*(\\d+)`)); return m ? Number(m[1]) : undefined; };
   return body
     .split(/\},\s*/)
     .map((c) => c.trim())
     .filter((c) => c.startsWith('{'))
-    .map((c) => ({ slug: str(c, 'slug'), title: str(c, 'title'), series: str(c, 'series'), part: num(c, 'part'), order: num(c, 'order'), date: str(c, 'date'), excerpt: str(c, 'excerpt'), draft: /draft:\s*true/.test(c) }))
+    .map((c) => ({ slug: str(c, 'slug'), title: str(c, 'title'), series: str(c, 'series'), part: num(c, 'part'), order: num(c, 'order'), date: str(c, 'date'), excerpt: str(c, 'excerpt'), tags: tags(c), draft: /draft:\s*true/.test(c) }))
     .filter((t) => t.slug);
 }
 

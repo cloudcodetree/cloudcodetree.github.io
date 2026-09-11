@@ -1,6 +1,7 @@
 'use client';
 
-// Per-reader state for AI News posts — what has been opened, what is saved.
+// Per-reader state for blog posts and tutorial lessons — opened and saved.
+// Blog IDs stay unchanged; tutorials use their RSS GUID, tutorial-<slug>.
 //
 // The browser talks to Supabase directly with the reader's own JWT; RLS on
 // public.reader_state (migration 0005) is the whole enforcement story. There is

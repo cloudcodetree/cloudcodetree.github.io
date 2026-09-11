@@ -150,3 +150,5 @@ crash.log
 /test-results/
 /playwright-report/
 /.prepared-images/
+
+/public/tutorials/topic/

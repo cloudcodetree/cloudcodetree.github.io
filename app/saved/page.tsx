@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import ClientLayout from '../components/ClientLayout';
-import SavedPosts from '../components/SavedPosts';
+import SavedLibrary from '../components/SavedLibrary';
+import { publishedTutorials } from '../tutorials/manifest';
 import { blogListing } from '../lib/blogArchive';
 
 // Per-reader, so never indexed and never linked from the sitemap. The exported
@@ -8,8 +9,8 @@ import { blogListing } from '../lib/blogArchive';
 // hydration from the reader's own JWT, so this file can never carry one
 // reader's list to another.
 export const metadata: Metadata = {
-  title: 'Saved · AI News · CloudCodeTree',
-  description: 'Posts you saved to read later.',
+  title: 'Saved · CloudCodeTree',
+  description: 'Blog posts and tutorials you saved to read later.',
   robots: { index: false, follow: false },
 };
 
@@ -17,7 +18,7 @@ export default function SavedPage() {
   const { initial, archive } = blogListing();
   return (
     <ClientLayout>
-      <SavedPosts posts={initial} archive={archive} />
+      <SavedLibrary posts={initial} archive={archive} tutorials={publishedTutorials} />
     </ClientLayout>
   );
 }

@@ -3,13 +3,13 @@
 import type { CacheLike } from './search';
 
 /**
- * GET /ai-news/feed.xml?topics=<slug,slug> — a reader feed for a multi-topic
+ * GET /{ai-news|tutorials}/feed.xml?topics=<slug,slug> — a reader feed for a multi-topic
  * selection made in the Topics flyout.
  *
  * Without `topics` this is the static file, byte for byte: the request goes
  * straight to the assets binding. With it, the Worker merges the per-topic
  * feeds `generate-feeds.mjs` already publishes at
- * /ai-news/topic/<slug>/feed.xml — no posts.json in the Worker, no second
+ * /{ai-news|tutorials}/topic/<slug>/feed.xml — no posts.json in the Worker, no second
  * renderer to keep in sync with the item markup. Items are deduped by guid,
  * sorted newest-first, and capped like every other feed. Responses are cached
  * by the NORMALIZED selection for an hour, in the Worker (Cache API) and at
@@ -60,7 +60,7 @@ interface FeedItem { guid: string; time: number; xml: string }
 export function parseTopicFeed(body: string, slug: string): { tag: string; items: FeedItem[] } {
   const head = body.split('<item>')[0];
   const title = head.match(/<title>([\s\S]*?)<\/title>/);
-  const tag = title ? uncdata(title[1]).replace(TITLE_SUFFIX, '').trim() || slug : slug;
+  const tag = title ? uncdata(title[1]).replace(TITLE_SUFFIX, '').replace(' · Tutorials · CloudCodeTree', '').trim() || slug : slug;
   const items: FeedItem[] = [];
   const blocks = Array.from(body.matchAll(/<item>[\s\S]*?<\/item>/g), (m) => m[0]);
   const opens = (body.match(/<item>/g) || []).length;
@@ -115,12 +115,15 @@ export async function handleFeed(
 ): Promise<Response> {
   if (request.method !== 'GET') return new Response('method not allowed', { status: 405, headers: { allow: 'GET' } });
 
-  const topics = parseTopics(new URL(request.url).searchParams.get('topics'));
+  const url = new URL(request.url);
+  const section = url.pathname === '/tutorials/feed.xml' ? 'tutorials' : 'ai-news';
+  const label = section === 'tutorials' ? 'Tutorials' : 'AI News';
+  const topics = parseTopics(url.searchParams.get('topics'));
   if (topics.kind === 'none') return env.ASSETS.fetch(request);
   if (topics.kind === 'invalid') return Response.json({ error: 'invalid topics' }, { status: 400 });
 
   const { slugs } = topics;
-  const self = new URL(`/ai-news/feed.xml?topics=${slugs.join(',')}`, request.url).toString();
+  const self = new URL(`/${section}/feed.xml?topics=${slugs.join(',')}`, request.url).toString();
   const cacheKey = new Request(self, { method: 'GET' });
   const hit = await cache?.match(cacheKey);
   if (hit) return hit;
@@ -133,7 +136,7 @@ export async function handleFeed(
   // quietly incomplete feed and never an unhandled 500.
   try {
     for (const slug of slugs) {
-      const source = new URL(`/ai-news/topic/${slug}/feed.xml`, request.url).toString();
+      const source = new URL(`/${section}/topic/${slug}/feed.xml`, request.url).toString();
       const res = await env.ASSETS.fetch(new Request(source, { method: 'GET' }));
       if (res.status === 404) continue;                    // unknown topic — skip it
       if (!res.ok) return unavailable();
@@ -150,10 +153,10 @@ export async function handleFeed(
   const items = Array.from(merged.values()).sort((a, b) => b.time - a.time).slice(0, ITEM_LIMIT);
   const origin = new URL(request.url).origin;
   const body = channel({
-    title: `AI News · ${tags.join(' + ')} · CloudCodeTree`,
-    desc: `AI News posts tagged ${tags.join(' or ')}.`,
+    title: `${label} · ${tags.join(' + ')} · CloudCodeTree`,
+    desc: `${label}${section === 'ai-news' ? ' posts' : ''} tagged ${tags.join(' or ')}.`,
     self,
-    link: `${origin}/`,
+    link: section === 'tutorials' ? `${origin}/tutorials/` : `${origin}/`,
     itemsXml: items.map((it) => it.xml).join('\n'),
     now: new Date().toUTCString(),
   });

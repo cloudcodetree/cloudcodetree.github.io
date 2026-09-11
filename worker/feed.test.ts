@@ -204,3 +204,22 @@ describe('handleFeed', () => {
     ]);
   });
 });
+
+it('keeps tutorial topic feeds and cache keys separate from AI News', async () => {
+  const cache = fakeCache();
+  const env = stubEnv();
+  await handleFeed(req('?topics=security'), env, ctx, cache);
+  const source = topicFeed('Security', 'security', ['a-01']).replaceAll('AI News', 'Tutorials').replaceAll('/ai-news/', '/tutorials/');
+  const fetcher = vi.fn(async () => new Response(source));
+  const tutorialEnv = { ASSETS: { fetch: fetcher } as unknown as Fetcher };
+  const response = await handleFeed(new Request('https://cloudcodetree.com/tutorials/feed.xml?topics=security'), tutorialEnv, ctx, cache);
+  expect(fetcher.mock.calls.length).toBe(1);
+  const body = await response.text();
+  expect(body).toContain('<title>Tutorials · Security · CloudCodeTree</title>');
+  expect(body).toContain('<link>https://cloudcodetree.com/tutorials/</link>');
+  expect(body).not.toContain('AI News');
+  expect(Array.from(cache.store.keys())).toEqual([
+    'https://cloudcodetree.com/ai-news/feed.xml?topics=security',
+    'https://cloudcodetree.com/tutorials/feed.xml?topics=security',
+  ]);
+});

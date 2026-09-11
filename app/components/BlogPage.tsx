@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import {
   GridView, ViewList, ViewStream, RssFeed, ContentCopy, Check,
-  VisibilityOff, Bookmark, BookmarkBorder,
+  VisibilityOff,
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -18,10 +18,11 @@ import { BlogPost, SERIF, MONO, ACCENT, LINK, formatPublished, markdownSx } from
 import { Corners } from './Blueprint';
 import SearchBox from './SearchBox';
 import ReaderStateNotice from './ReaderStateNotice';
+import { ReadChip, SaveChip } from './ReaderChips';
+import { useReaderLibrary } from '../lib/useReaderLibrary';
 import TopicsFlyout from './TopicsFlyout';
 import {
-  applyReaderState, loadReaderState, selectVisiblePosts, setSaved, watchReaderAuth,
-  type ReaderRow, type ReaderStateMap, type WithReaderState,
+  applyReaderState, selectVisiblePosts, type WithReaderState,
 } from '../lib/readerState';
 // eslint-disable-next-line import/no-relative-packages
 import { topicTags } from '../../scripts/lib/topics.mjs';
@@ -67,9 +68,6 @@ const clamp = (n: number) => ({
 
 const postTopics = (post: BlogPost) => post.tags.filter((t) => t.toLowerCase() !== 'ai');
 
-/** The signed-out reader's state: no rows, ever. One shared, never-mutated Map. */
-const EMPTY_STATE: ReaderStateMap = new Map();
-
 /**
  * Shared tag-pill row, identical across every view.
  *
@@ -93,36 +91,6 @@ function Pills({ post, max = 3, extra }: { post: BlogPost; max?: number; extra?:
 /** Post as the list sees it once this reader's state is merged in. */
 type ReaderPost = WithReaderState<BlogPost>;
 
-/** "Read" marker — same geometry as a tag pill, in the accent rather than amber. */
-function ReadChip() {
-  return (
-    <Chip label="Read" size="small"
-      sx={{ height: 22, fontFamily: MONO, fontSize: 10, background: 'rgba(148,188,227,0.08)', color: ACCENT, border: `1px solid rgba(148,188,227,0.3)` }} />
-  );
-}
-
-/** Save / unsave, sitting in the pill row. Optimistic; reverts if the write fails. */
-function SaveChip({ post, onToggle, busy }: { post: ReaderPost; onToggle: (post: ReaderPost) => void; busy: boolean }) {
-  return (
-    <Chip
-      size="small"
-      disabled={busy}
-      icon={post.isSaved ? <Bookmark sx={{ fontSize: 13 }} /> : <BookmarkBorder sx={{ fontSize: 13 }} />}
-      label={post.isSaved ? 'Saved' : 'Save'}
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle(post); }}
-      aria-label={post.isSaved ? `Remove “${post.title}” from saved` : `Save “${post.title}” for later`}
-      sx={{
-        height: 22, fontFamily: MONO, fontSize: 10, cursor: 'pointer',
-        background: post.isSaved ? 'rgba(148,188,227,0.16)' : 'transparent',
-        color: post.isSaved ? ACCENT : 'text.secondary',
-        border: `1px solid ${post.isSaved ? 'rgba(148,188,227,0.45)' : 'rgba(148,163,184,0.25)'}`,
-        '& .MuiChip-icon': { color: 'inherit', ml: 0.6 },
-        '&:hover': { background: 'rgba(148,188,227,0.12)', borderColor: 'rgba(148,188,227,0.45)', color: ACCENT },
-      }}
-    />
-  );
-}
-
 export default function BlogPage({
   posts: initialPosts, archive, heading = 'AI News', intro = 'Daily field notes on AI-assisted engineering.',
   feedPath = '/feed.xml', emptyMessage, showSearch = true, onlySaved = false,
@@ -137,24 +105,14 @@ export default function BlogPage({
   // does not exist then. Only click handlers read the absolute URL.
   const [origin, setOrigin] = useState('');
 
-  // ---- reader state --------------------------------------------------------
-  // Both start in their signed-out shape and only ever leave it inside the
-  // effect below. The prerendered HTML is therefore always the signed-out list,
-  // and read/saved decoration lands after hydration — never in the static file.
-  const [readerError, setReaderError] = useState(false);
-  const [readerRetry, setReaderRetry] = useState(0);
-  const [signedIn, setSignedIn] = useState(false);
-  const [readerState, setReaderState] = useState<ReaderStateMap>(EMPTY_STATE);
+  const reader = useReaderLibrary();
+  const { state: readerState, signedIn, pending: pendingSaves } = reader;
+  const readerError = reader.status === 'error';
   const [hideRead, setHideRead] = useState(false);
-  /**
-   * Post ids with a save/unsave write in flight. The ref is the guard and the
-   * state is only what disables the chip: two clicks in the SAME tick both read
-   * the render's captured state, which is still empty, so state alone lets the
-   * second one through and `true` can land after `false`. A ref updates
-   * synchronously, so the second click sees the first.
-   */
-  const pendingRef = useRef<Record<string, boolean>>({});
-  const [pendingSaves, setPendingSaves] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    try { setHideRead(signedIn && localStorage.getItem('ainews-hide-read') === '1'); }
+    catch { setHideRead(false); }
+  }, [signedIn]);
 
   // What the Topics flyout lists: every tag except the ubiquitous "AI",
   // most-used first, with its slug and count. topicTags() is the ONE definition
@@ -201,53 +159,6 @@ export default function BlogPage({
     const n = parseInt(params.get('page') || '1', 10);
     if (n > 1) setPage(n);
   }, []);
-
-  // Reader state, tracked for as long as this list is mounted rather than
-  // probed once: signing out has to take the decoration away without a reload
-  // (otherwise the next person on a shared machine sees the last reader's
-  // state), and signing in on this very page has to turn it on — AuthWidget
-  // deliberately does not navigate when you are already on the destination.
-  // A signed-out visitor never gets past watchReaderAuth's first line: no
-  // supabase-js chunk, no request, no controls.
-  // Only a CHANGE of reader reloads. TOKEN_REFRESHED arrives roughly hourly and
-  // means nothing here; reloading on it would replace the state map wholesale,
-  // which throws away an optimistic save that has not been confirmed yet — the
-  // chip would flip back to "Save" and forward again as the write lands.
-  const readerRef = useRef<string | null>(null);
-  useEffect(() => {
-    readerRef.current = null;
-    setReaderError(false);
-    let live = true;
-    const stop = watchReaderAuth((userId) => {
-      if (!live) return;
-      if (!userId) {
-        // Every setter here is idempotent, so the signed-out case (which
-        // arrives synchronously on mount) bails out of re-rendering entirely.
-        readerRef.current = null;
-        setSignedIn(false);
-        setReaderError(false);
-        setReaderState(EMPTY_STATE);
-        setHideRead(false);
-        pendingRef.current = {};
-        setPendingSaves((cur) => (Object.keys(cur).length ? {} : cur));
-        return;
-      }
-      if (userId === readerRef.current) return;   // same reader, new token
-      readerRef.current = userId;
-      setReaderError(false);
-      setReaderState(EMPTY_STATE);
-      pendingRef.current = {};
-      setPendingSaves({});
-      setSignedIn(true);
-      setHideRead(window.localStorage.getItem('ainews-hide-read') === '1');
-      void loadReaderState().then((state) => {
-        if (live && readerRef.current === userId) setReaderState(state);
-      }).catch(() => {
-        if (live && readerRef.current === userId) setReaderError(true);
-      });
-    });
-    return () => { live = false; stop(); };
-  }, [readerRetry]);
 
   // Keep the URL (?page, ?topics) in sync, clamped, on the CURRENT path (/ or /ai-news/,
   // also /ai-news/search/ where a foreign `?q=` must survive this rewrite).
@@ -302,42 +213,13 @@ export default function BlogPage({
     setPage(1);
   };
 
-  /** Replace one post's row, leaving every other reader-state entry alone. */
-  const putRow = (postId: string, row: ReaderRow | undefined) => {
-    setReaderState((cur) => {
-      const next: ReaderStateMap = new Map();
-      cur.forEach((v, k) => next.set(k, v));
-      if (row) next.set(postId, row); else next.delete(postId);
-      return next;
-    });
-  };
-
-  // Optimistic: flip the pill immediately, revert just this post's row if the
-  // write fails. read_at is carried over, so saving never forgets a read.
-  // Ignored while a write for the same post is still in flight, so a rapid
-  // double-click cannot land `true` after `false` or revert to a value the
-  // server never confirmed.
-  const toggleSaved = (post: ReaderPost) => {
-    if (pendingRef.current[post.id] || readerError) return;
-    const userId = readerRef.current;
-    pendingRef.current[post.id] = true;
-    const before = readerState.get(post.id);
-    const saved = !post.isSaved;
-    setPendingSaves((cur) => ({ ...cur, [post.id]: true }));
-    putRow(post.id, { post_id: post.id, saved, read_at: before ? before.read_at : null });
-    void setSaved(post.id, saved).then((ok) => {
-      if (readerRef.current !== userId) return;
-      delete pendingRef.current[post.id];
-      if (!ok) putRow(post.id, before);
-      setPendingSaves((cur) => ({ ...cur, [post.id]: false }));
-    });
-  };
+  const toggleSaved = (post: ReaderPost) => reader.toggleSaved(post.id);
 
   /** The signed-in extras for a card's pill row; undefined signed out. */
   const readerExtras = (post: ReaderPost): React.ReactNode => (signedIn ? (
     <>
       {post.isRead && <ReadChip />}
-      <SaveChip post={post} onToggle={toggleSaved} busy={!!pendingSaves[post.id] || readerError} />
+      <SaveChip post={post} onToggle={toggleSaved} busy={!!pendingSaves[post.id] || reader.status !== 'ready'} />
     </>
   ) : undefined);
 
@@ -505,7 +387,8 @@ export default function BlogPage({
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 9 } }}>
-      {readerError && <ReaderStateNotice onRetry={() => setReaderRetry((n) => n + 1)} />}
+      {readerError && <ReaderStateNotice onRetry={reader.retry} />}
+      {reader.writeError && <Alert severity="warning" sx={{ mb: 2 }}>Your change could not be saved. Please try the Save button again.</Alert>}
       {/* Masthead */}
       <Box component={motion.div} initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} sx={{ mb: { xs: 4, md: 6 } }}>
         <Typography sx={{ fontFamily: MONO, color: ACCENT, fontSize: 12, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', mb: 1.5 }}>

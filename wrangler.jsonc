@@ -15,7 +15,7 @@
     // These paths 404 until Phase 2. Declared now so the array form is proven
     // to deploy before anything depends on it. /ai-news/feed.xml is here so the
     // Worker can answer ?topics= — with no parameter it serves the same asset.
-    "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*", "/ai-news/feed.xml"]
+    "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*", "/ai-news/feed.xml", "/tutorials/feed.xml"]
   },
   "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
   // Search: Workers AI embeds the query, Vectorize holds the post chunks.
@@ -60,7 +60,7 @@
         "binding": "ASSETS",
         "html_handling": "force-trailing-slash",
         "not_found_handling": "404-page",
-        "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*", "/ai-news/feed.xml"]
+        "run_worker_first": ["/api/*", "/projects/*/demo/*", "/admin/*", "/ai-news/feed.xml", "/tutorials/feed.xml"]
       },
       // Search: Workers AI embeds the query, Vectorize holds the post chunks.
       // Both on the Free plan; the index is filled by scripts/index-search.mjs in CI.

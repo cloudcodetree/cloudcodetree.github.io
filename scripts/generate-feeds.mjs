@@ -30,6 +30,7 @@ import { readTutorials, seriesTotal } from './lib/tutorials-data.mjs';
 import { readProjects } from './lib/projects-data.mjs';
 import { topicTags } from './lib/topics.mjs';
 import { buildArchive } from './lib/blog-archive.mjs';
+import { tutorialTopics, tutorialReaderId } from './lib/tutorial-catalog.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -193,26 +194,40 @@ ${media}  </item>`;
 
   // Tutorials feed — built from the hand-authored manifest (newest-first, capped).
   const allTuts = readTutorials().filter((t) => !t.draft);
-  const tuts = allTuts
+  const sortedTuts = allTuts
     .filter((t) => t.date)
     .map((t) => ({ ...t, d: toDate(t.date), total: seriesTotal(allTuts, t.series) }))
-    .sort((a, b) => (b.d - a.d) || (b.order - a.order))
-    .slice(0, FEED_LIMIT);
-  const tutItems = tuts.map((t) => {
+    .sort((a, b) => (b.d - a.d) || (b.order - a.order));
+  const renderTutorial = (t) => {
     const link = `${SITE}/tutorials/${t.slug}/`;
     const fullTitle = `${t.series}: ${t.title} (Part ${t.part} of ${t.total})`;
     return `  <item>
     <title>${cdata(fullTitle)}</title>
     <link>${xml(link)}</link>
-    <guid isPermaLink="false">tutorial-${xml(t.slug)}</guid>
+    <guid isPermaLink="false">${xml(tutorialReaderId(t.slug))}</guid>
     <pubDate>${rfc822(t.d)}</pubDate>
     <dc:creator>${cdata('Chris Harper')}</dc:creator>
     <category>${cdata(t.series)}</category>
+${(t.tags || []).map((tag) => `    <category>${cdata(tag)}</category>`).join('\n')}
     <description>${cdata(t.excerpt || '')}</description>
   </item>`;
-  }).join('\n');
+  };
+  const tuts = sortedTuts.slice(0, FEED_LIMIT);
+  const tutItems = tuts.map(renderTutorial).join('\n');
   const tutBody = rssChannel({ title: 'Tutorials · CloudCodeTree', desc: 'Hands-on tutorials for agentic AI development and AI engineering.', self: `${SITE}/tutorials/feed.xml`, link: `${SITE}/tutorials/`, itemsXml: tutItems, now });
   await writeAll('tutorials', tutBody, tuts.length);
+
+  const tutTopics = tutorialTopics(allTuts);
+  const tutSlugs = new Set();
+  for (const { tag, slug } of tutTopics) {
+    if (tutSlugs.has(slug)) throw new Error('duplicate tutorial topic slug: ' + slug);
+    tutSlugs.add(slug);
+    const tagged = sortedTuts.filter((t) => t.tags.includes(tag)).slice(0, FEED_LIMIT);
+    const body = rssChannel({ title: `${tag} · Tutorials · CloudCodeTree`, desc: `Hands-on tutorials tagged ${tag}.`,
+      self: `${SITE}/tutorials/topic/${slug}/feed.xml`, link: `${SITE}/tutorials/topic/${slug}/`,
+      itemsXml: tagged.map(renderTutorial).join('\n'), now });
+    await writeAll(`tutorials/topic/${slug}`, body, tagged.length);
+  }
 
   // --- sitemap.xml -----------------------------------------------------------
   const iso = (d) => d.toISOString().slice(0, 10);
@@ -225,6 +240,8 @@ ${media}  </item>`;
     { loc: `${SITE}/`, lastmod: newest, priority: '1.0' }, // home = AI News blog
     ...topics.map((t) => ({ loc: `${SITE}/ai-news/topic/${t.slug}/`, lastmod: newest, priority: '0.5' })),
     { loc: `${SITE}/tutorials/`, priority: '0.8' },
+    { loc: `${SITE}/tutorials/all/`, priority: '0.7' },
+    ...tutTopics.map((t) => ({ loc: `${SITE}/tutorials/topic/${t.slug}/`, priority: '0.5' })),
     ...tutorialSlugs.map((s) => ({ loc: `${SITE}/tutorials/${s}/`, priority: '0.7' })),
     { loc: `${SITE}/projects/`, priority: '0.8' },
     ...readProjects().filter((p) => !p.draft).map((p) => ({ loc: `${SITE}/projects/${p.slug}/`, priority: '0.6' })),

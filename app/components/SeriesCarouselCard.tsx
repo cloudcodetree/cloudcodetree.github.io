@@ -26,7 +26,7 @@ const slide = {
  * a progress bar, drag/swipe, and arrow keys. Each slide links to its part.
  * Degrades to a plain card for a single-part series.
  */
-export default function SeriesCarouselCard({ series, parts, featured = false }: { series: string; parts: Tutorial[]; featured?: boolean }) {
+export default function SeriesCarouselCard({ series, parts, featured = false, readerControls }: { series: string; parts: Tutorial[]; featured?: boolean; readerControls?: (tutorial: Tutorial) => React.ReactNode }) {
   const [[i, dir], setState] = useState<[number, number]>([0, 0]);
   const n = parts.length;
   const total = seriesTotal(series);
@@ -67,7 +67,7 @@ export default function SeriesCarouselCard({ series, parts, featured = false }: 
             onDragEnd={(_e, info) => { if (info.offset.x < -56) go(1); else if (info.offset.x > 56) go(-1); }}
             sx={{ position: 'absolute', inset: 0, cursor: multi ? 'grab' : 'default', '&:active': { cursor: multi ? 'grabbing' : 'default' } }}
           >
-            <Box component={Link} href={`/tutorials/${t.slug}/`} draggable={false} sx={{ display: 'block', width: '100%', height: '100%' }}>
+            <Box component={Link} prefetch={false} href={`/tutorials/${t.slug}/`} draggable={false} sx={{ display: 'block', width: '100%', height: '100%' }}>
               {t.image ? (
                 <Box component="img" src={t.image} alt={t.title} draggable={false} sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               ) : (
@@ -101,7 +101,7 @@ export default function SeriesCarouselCard({ series, parts, featured = false }: 
         <Typography sx={{ fontFamily: MONO, fontSize: 11, color: ACCENT, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
           {`${series} · ${total} parts`}
         </Typography>
-        <Typography component={Link} href={`/tutorials/${t.slug}/`}
+        <Typography component={Link} prefetch={false} href={`/tutorials/${t.slug}/`}
           sx={{ fontFamily: SERIF, fontWeight: 600, fontSize: featured ? { xs: '1.5rem', md: '1.9rem' } : '1.3rem', lineHeight: 1.15, color: 'text.primary', textDecoration: 'none', ...clamp(2), '&:hover': { color: LINK } }}>
           {t.title}
         </Typography>
@@ -114,6 +114,8 @@ export default function SeriesCarouselCard({ series, parts, featured = false }: 
           ))}
         </Box>
 
+        <Box sx={{ display: 'flex', gap: 0.75 }}>{readerControls?.(t)}</Box>
+
         {multi && (
           <Box sx={{ mt: 'auto', pt: 1.25, display: 'flex', flexDirection: 'column', gap: 1 }}>
             {/* progress track */}
@@ -124,10 +126,10 @@ export default function SeriesCarouselCard({ series, parts, featured = false }: 
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
               <Typography sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary' }}>{`${idx + 1} / ${n}`}</Typography>
               <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-                <Typography component={Link} href={`/tutorials/${parts[0].slug}/`} sx={{ fontFamily: MONO, fontSize: 11, color: ACCENT, textDecoration: 'none', '&:hover': { color: LINK } }}>
+                <Typography component={Link} prefetch={false} href={`/tutorials/${parts[0].slug}/`} sx={{ fontFamily: MONO, fontSize: 11, color: ACCENT, textDecoration: 'none', '&:hover': { color: LINK } }}>
                   Start →
                 </Typography>
-                <Typography component={Link} href={`/tutorials/all/?series=${encodeURIComponent(series)}`} sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', textDecoration: 'none', '&:hover': { color: ACCENT } }}>
+                <Typography component={Link} prefetch={false} href={`/tutorials/all/?series=${encodeURIComponent(series)}`} sx={{ fontFamily: MONO, fontSize: 11, color: 'text.secondary', textDecoration: 'none', '&:hover': { color: ACCENT } }}>
                   {`Browse all ${total} parts →`}
                 </Typography>
               </Box>

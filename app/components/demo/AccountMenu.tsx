@@ -77,7 +77,7 @@ export default function AccountMenu() {
             noindex, so it belongs where only a signed-in reader will find it. */}
         <MenuItem component={Link} href="/saved/" onClick={() => setAnchor(null)} sx={{ fontFamily: MONO, fontSize: 13 }}>
           <ListItemIcon><Bookmark fontSize="small" /></ListItemIcon>
-          Saved posts
+          Saved
         </MenuItem>
         <MenuItem onClick={() => void signOut()} sx={{ fontFamily: MONO, fontSize: 13 }}>
           <ListItemIcon><Logout fontSize="small" /></ListItemIcon>

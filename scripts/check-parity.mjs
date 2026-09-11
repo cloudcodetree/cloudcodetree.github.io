@@ -77,6 +77,10 @@ export const CONTRACT = [
   { path: '/ai-news/topic/claude-code/feed.xml',  status: 200, bodyIncludes: '<rss' },
   // Multi-topic feed: built by the Worker from the per-topic static feeds.
   { path: '/ai-news/feed.xml?topics=claude-code,security', status: 200, contentType: /rss\+xml/, bodyIncludes: '<rss' },
+  { path: '/tutorials/topic/rag/', status: 200, contentType: /text\/html/, bodyIncludes: 'RAG tutorials' },
+  { path: '/tutorials/topic/rag/feed.xml', status: 200, bodyIncludes: 'tutorial-build-a-rag-over-your-blog' },
+  { path: '/tutorials/feed.xml?topics=rag,python', status: 200, contentType: /rss\+xml/, bodyIncludes: 'Tutorials ·' },
+  { path: '/saved/?section=tutorials', status: 200, bodyIncludes: 'noindex' },
   // Oldest post (frozen back-catalog, never trimmed): the Related strip is
   // baked in once the index has run at least once on main.
   { path: '/ai-news/2026-05-28-19-amd-venice-enters-production-on-tsmc-2nm/', status: 200, bodyIncludes: 'data-related' },

@@ -90,7 +90,10 @@ Worker invocation logging is disabled to avoid recording search URLs. The public
 telemetry validator rejects extra fields and legacy raw-query rows. Previously
 committed raw rows were removed from the current tree; Git history is unchanged.
 
-Saved posts and reading history are private to the signed-in reader. Failed reads
+Blog and tutorial saves share one Saved page with Blog and Tutorials tabs.
+Tutorials also support search, a topic dropdown, topic landing pages/RSS, read
+markers, Hide read, and persistent layout/filter controls. Course ordering stays
+intact. Saved items and reading history are private to the signed-in reader. Failed reads
 show a retry action, and large histories are paginated. The contact form uses
 Web3Forms with honeypots and visible errors; it requires no mouse gestures or delay.
 The deployed CSP is maintained in `public/_headers` and checked during validation.

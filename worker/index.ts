@@ -47,7 +47,7 @@ export default {
     }
     // The one static asset the Worker may rewrite: ?topics= merges the
     // per-topic feeds. Without the parameter it hands back the file untouched.
-    if (url.pathname === '/ai-news/feed.xml') {
+    if (url.pathname === '/ai-news/feed.xml' || url.pathname === '/tutorials/feed.xml') {
       return handleFeed(request, env, ctx);
     }
 

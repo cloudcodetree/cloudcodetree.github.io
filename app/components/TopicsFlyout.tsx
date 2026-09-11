@@ -13,6 +13,7 @@ export interface TopicsFlyoutProps {
    * so there is exactly one slug source on the page.
    */
   topics: { tag: string; slug: string; count: number }[];
+  topicBasePath?: string;
   selected: string[];
   onToggle: (tag: string) => void;
   onClear: () => void;
@@ -33,7 +34,7 @@ export interface TopicsFlyoutProps {
  * selection itself stays in BlogPage, which also owns the ?topics= URL sync, so
  * a shared link and the flyout can never disagree.
  */
-export default function TopicsFlyout({ topics, selected, onToggle, onClear, feedUrlForSelection }: TopicsFlyoutProps) {
+export default function TopicsFlyout({ topics, selected, onToggle, onClear, feedUrlForSelection, topicBasePath = '/ai-news/topic' }: TopicsFlyoutProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [filter, setFilter] = useState('');
   const [copied, setCopied] = useState(false);
@@ -158,7 +159,8 @@ export default function TopicsFlyout({ topics, selected, onToggle, onClear, feed
                 />
                 <IconButton
                   component={Link}
-                  href={`/ai-news/topic/${slug}/`}
+                  href={`${topicBasePath}/${slug}/`}
+                  prefetch={false}
                   size="small"
                   aria-label={`Open the ${tag} topic page`}
                   onClick={(e) => e.stopPropagation()}
